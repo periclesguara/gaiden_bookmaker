@@ -1,0 +1,22 @@
+{
+  "mode": "en_ptbr_2025",
+  "task": "translate",
+  "description": "Tradução contemporânea para o Português do Brasil (2025) com estilo fluido, direto e natural.",
+  "rules": {
+    "sentence_length_target": 12,
+    "sentence_length_tolerance_pct": 8,
+    "register": "natural",
+    "avoid_literal_translation": true,
+    "preserve_context": true,
+    "preserve_dialogue": true,
+    "avoid_girias_brasileiras_modernas": true,
+    "avoid_portugues_arcaico": true,
+    "preserve_rhythm": true,
+    "preserve_characters": true,
+    "avoid_regionalismos_fortes": true
+  },
+  "output": {
+    "format": "plain",
+    "language": "pt-br"
+  }
+}

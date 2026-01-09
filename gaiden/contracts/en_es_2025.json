@@ -1,0 +1,21 @@
+{
+  "mode": "en_es_2025",
+  "task": "translate",
+  "description": "Traducción contemporánea al español para lectores modernos (2025).",
+  "rules": {
+    "sentence_length_target": 12,
+    "sentence_length_tolerance_pct": 8,
+    "register": "neutral",
+    "avoid_es_arcaico": true,
+    "preserve_dialogue": true,
+    "preserve_context": true,
+    "avoid_spain_only_slang": true,
+    "avoid_latin_only_slang": true,
+    "avoid_literal_translation": true,
+    "preserve_characters": true
+  },
+  "output": {
+    "format": "plain",
+    "language": "es"
+  }
+}

@@ -1,0 +1,1 @@
+{ "target_language": "Español Moderno (2025)", "sentence_length": {"min":8,"max":16,"variance":0.06}, "modernize": true, "remove_archaic": true, "remove_redundancy": true, "preserve_style": true, "preserve_context": true, "no_invention": true, "no_summary": true, "tone": "sereno-oficial", "register": "culto", "dont_merge_sentences": true, "dont_split_paragraphs": true }

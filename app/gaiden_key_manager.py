@@ -5,9 +5,11 @@ import streamlit as st
 from gaiden.secrets import get_openai_key, set_openai_key
 
 
-def main():
-    st.set_page_config(page_title="Gaiden – API Key Manager", page_icon="🔐")
-
+def page_key_manager():
+    """
+    Página de gerenciamento de chave para ser usada dentro do app principal
+    (sem chamar set_page_config).
+    """
     st.title("🔐 Gaiden – OpenAI API Key")
     st.write(
         "Cole aqui sua chave da OpenAI. "
@@ -46,6 +48,15 @@ def main():
         "Os módulos de tradução do Gaiden (como `translate_en_modern`) "
         "vão usar automaticamente essa chave."
     )
+
+
+def main():
+    """
+    Entry point standalone: permite rodar só o Key Manager via
+    `streamlit run app/gaiden_key_manager.py`.
+    """
+    st.set_page_config(page_title="Gaiden – API Key Manager", page_icon="🔐")
+    page_key_manager()
 
 
 if __name__ == "__main__":

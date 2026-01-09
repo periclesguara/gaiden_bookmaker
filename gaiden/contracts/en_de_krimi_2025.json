@@ -1,0 +1,27 @@
+{
+  "mode": "en_de_krimi_2025",
+  "task": "translate",
+  "description": "Moderne deutschsprachige Krimi-Übersetzung für 2025. Flüssig, präzise, nüchtern, ohne archaische Wendungen. Sherlock als klassischer Detektivtext mit moderner Lesbarkeit.",
+  "rules": {
+    "register": "krimi_modern",
+    "sentence_length_target": 12,
+    "sentence_length_tolerance_pct": 10,
+    "preserve_dialogue": true,
+    "preserve_characters": true,
+    "preserve_context": true,
+    "avoid_literal_translation": true,
+    "avoid_archaisms": true,
+    "avoid_over_formality": true,
+    "use_natural_german_word_order": true,
+    "use_modal_particles_when_appropriate": true,
+    "avoid_regionalisms": true,
+    "avoid_spain_germanisms": true,
+    "avoid_old_konjunktiv_if_not_needed": true,
+    "emphasis_on_precision": true,
+    "readability": "high"
+  },
+  "output": {
+    "format": "plain",
+    "language": "de"
+  }
+}

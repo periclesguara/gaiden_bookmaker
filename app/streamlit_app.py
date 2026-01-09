@@ -8,8 +8,7 @@ import streamlit as st
 
 from gaiden.templates import BookMeta, frontispiece_text, copyright_page
 from gaiden.split_01 import run_split_01
-# quando tiver pronto:
-# from gaiden.chunk_01 import run_chunk_01
+from gaiden_key_manager import page_key_manager  # <-- integração Key Manager
 
 
 # -------------------------------------------------------------------
@@ -516,8 +515,8 @@ def main():
     st.set_page_config(page_title="Gaiden BookMaker", layout="wide")
     st.title("Gaiden BookMaker")
 
-    tab_debug, tab_books, tab_pipeline, tab_diag = st.tabs(
-        ["Debug", "Books & Templates", "Pipeline", "Diagnostics"]
+    tab_debug, tab_books, tab_pipeline, tab_diag, tab_keys = st.tabs(
+        ["Debug", "Books & Templates", "Pipeline", "Diagnostics", "API Key"]
     )
 
     with tab_debug:
@@ -528,6 +527,8 @@ def main():
         page_pipeline()
     with tab_diag:
         page_diagnostics()
+    with tab_keys:
+        page_key_manager()
 
 
 if __name__ == "__main__":

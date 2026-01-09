@@ -1,0 +1,22 @@
+{
+  "mode": "en_modern_2025",
+  "task": "modernize",
+  "description": "Modern English rewrite for 2025 audiences, eliminating archaic forms while preserving tone and character voice.",
+  "rules": {
+    "avoid_archaisms": true,
+    "sentence_length_target": 10,
+    "sentence_length_tolerance_pct": 5,
+    "register": "natural",
+    "year": 2025,
+    "preserve_characters": true,
+    "preserve_dialogue": true,
+    "avoid_redundancy": true,
+    "avoid_passive_voice_excess": true,
+    "preserve_narrative_rhythm": true,
+    "preserve_emotional_intent": true
+  },
+  "output": {
+    "format": "plain",
+    "language": "en"
+  }
+}

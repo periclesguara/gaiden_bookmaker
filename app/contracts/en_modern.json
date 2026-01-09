@@ -1,0 +1,1 @@
+{ "target_language": "Modern English (2025)", "sentence_length": {"min":6,"max":14,"variance":0.05}, "modernize": true, "remove_archaic": true, "remove_redundancy": true, "preserve_style": true, "preserve_context": true, "no_invention": true, "no_summary": true, "tone": "neutral-intellectual", "register": "educated", "dont_merge_sentences": true, "dont_split_paragraphs": true }
