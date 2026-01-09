@@ -22,3 +22,4 @@ data/chunks/
 # System / OS files
 .DS_Store
 Thumbs.db
+v1.0-stable
