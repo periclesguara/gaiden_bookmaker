@@ -1,0 +1,24 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Streamlit
+.streamlit/
+
+# Data — NÃO versionar artefatos
+data/db/*.sqlite3
+data/uploads/
+data/logs/
+data/tmp/
+data/chunks/
+
+# System / OS files
+.DS_Store
+Thumbs.db

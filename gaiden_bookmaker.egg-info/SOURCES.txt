@@ -1,0 +1,10 @@
+pyproject.toml
+gaiden/__init__.py
+gaiden/db.py
+gaiden/ingest.py
+gaiden/settings.py
+gaiden/templates.py
+gaiden_bookmaker.egg-info/PKG-INFO
+gaiden_bookmaker.egg-info/SOURCES.txt
+gaiden_bookmaker.egg-info/dependency_links.txt
+gaiden_bookmaker.egg-info/top_level.txt
