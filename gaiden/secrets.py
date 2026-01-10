@@ -1,44 +1,55 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Dict
 
-# Arquivo local, fora do Git, para guardar a chave.
-SECRET_FILE = Path(".gaiden_secrets")
+# Arquivo de segredos na raiz do repo
+SECRETS_FILE = Path(__file__).resolve().parent.parent / ".gaiden_secrets"
+
+_cache: Dict[str, str] | None = None
 
 
-def get_openai_key() -> Optional[str]:
-    """
-    Lê a chave OPENAI_API_KEY do arquivo .gaiden_secrets, se existir.
-    Formato esperado:
-        OPENAI_API_KEY=sk-xxxx...
-    """
-    if not SECRET_FILE.exists():
-        return None
+def _load_secrets() -> Dict[str, str]:
+    data: Dict[str, str] = {}
+    if not SECRETS_FILE.is_file():
+        return data
 
-    try:
-        text = SECRET_FILE.read_text(encoding="utf-8")
-    except Exception:
-        return None
-
-    for line in text.splitlines():
+    for line in SECRETS_FILE.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        if line.startswith("OPENAI_API_KEY="):
-            return line.split("=", 1)[1].strip() or None
-    return None
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        data[key.strip()] = value.strip()
+    return data
+
+
+def get_openai_key() -> str | None:
+    """
+    Lê OPENAI_API_KEY do arquivo .gaiden_secrets.
+    Formato esperado:
+        OPENAI_API_KEY=sk-xxxxx
+    """
+    global _cache
+    if _cache is None:
+        _cache = _load_secrets()
+    return _cache.get("OPENAI_API_KEY")
 
 
 def set_openai_key(key: str) -> None:
     """
-    Salva/atualiza a chave no arquivo .gaiden_secrets.
-    Sobrescreve qualquer valor anterior.
+    Salva/atualiza OPENAI_API_KEY em .gaiden_secrets.
+    Se key vier vazia, remove a chave do arquivo.
     """
-    key = (key or "").strip()
-    if not key:
-        # Se quiser permitir "limpar" a chave, pode trocar por SECRET_FILE.unlink(missing_ok=True)
-        SECRET_FILE.write_text("", encoding="utf-8")
-        return
+    global _cache
+    data = _load_secrets()
+    clean = (key or "").strip()
+    if clean:
+        data["OPENAI_API_KEY"] = clean
+    else:
+        data.pop("OPENAI_API_KEY", None)
 
-    SECRET_FILE.write_text(f"OPENAI_API_KEY={key}\n", encoding="utf-8")
+    lines = [f"{k}={v}" for k, v in data.items()]
+    SECRETS_FILE.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    _cache = data
