@@ -23,3 +23,9 @@ data/chunks/
 .DS_Store
 Thumbs.db
 v1.0-stable
+
+# Python junk
+.venv/
+__pycache__/
+*.pyc
+

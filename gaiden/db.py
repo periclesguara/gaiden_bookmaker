@@ -92,6 +92,23 @@ def init_db():
             );
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS book_translated_merged (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              book_id INTEGER NOT NULL,
+              lang_key TEXT NOT NULL,
+              merged_path TEXT,
+              merged_text TEXT,
+              merged_sha256 TEXT,
+              chunk_count INTEGER,
+              source_dir TEXT,
+              created_at TEXT DEFAULT (datetime('now')),
+              UNIQUE (book_id, lang_key),
+              FOREIGN KEY(book_id) REFERENCES books(id)
+            );
+            """
+        )
         conn.commit()
     finally:
         conn.close()

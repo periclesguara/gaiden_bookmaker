@@ -1,27 +1,16 @@
 {
-  "mode": "en_de_krimi_2025",
-  "task": "translate",
-  "description": "Moderne deutschsprachige Krimi-Übersetzung für 2025. Flüssig, präzise, nüchtern, ohne archaische Wendungen. Sherlock als klassischer Detektivtext mit moderner Lesbarkeit.",
-  "rules": {
-    "register": "krimi_modern",
-    "sentence_length_target": 12,
-    "sentence_length_tolerance_pct": 10,
-    "preserve_dialogue": true,
-    "preserve_characters": true,
-    "preserve_context": true,
-    "avoid_literal_translation": true,
-    "avoid_archaisms": true,
-    "avoid_over_formality": true,
-    "use_natural_german_word_order": true,
-    "use_modal_particles_when_appropriate": true,
-    "avoid_regionalisms": true,
-    "avoid_spain_germanisms": true,
-    "avoid_old_konjunktiv_if_not_needed": true,
-    "emphasis_on_precision": true,
-    "readability": "high"
-  },
+  "name": "Sherlock Holmes – EN → DE Krimi (2025)",
+  "model": "gpt-5.2",
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+
+  "chunk_dir": "data/chunks/book_0001/split_01",
+  "out_dir": "data/translated/book_0001/de_krimi_2025",
+
   "output": {
-    "format": "plain",
     "language": "de"
-  }
+  },
+
+  "system_prompt": "Du bist ein professioneller literarischer Übersetzer im Jahr 2025, spezialisiert auf Krimi-Literatur. Du übersetzt Sherlock-Holmes-Geschichten aus dem Englischen ins moderne, lesbare Deutsch, mit klarem Stil und spannender Atmosphäre. Keine Zusammenfassungen, keine Kommentare, nur der übersetzte Text.",
+  "user_prompt": "Übersetze den folgenden Sherlock-Holmes-Abschnitt ins moderne, flüssige Deutsch. Erhalte alle Informationen, Hinweise und die Stimmung des Originals.\n\n{text}"
 }

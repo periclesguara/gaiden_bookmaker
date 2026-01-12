@@ -6,6 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from gaiden.db import init_db
 from gaiden.templates import BookMeta, frontispiece_text, copyright_page
 from gaiden.split_01 import run_split_01
 from gaiden_key_manager import page_key_manager  # <-- integração Key Manager
@@ -17,6 +18,8 @@ from gaiden_key_manager import page_key_manager  # <-- integração Key Manager
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "db" / "gaiden.sqlite3"
+
+init_db()
 
 
 def get_connection() -> sqlite3.Connection:

@@ -1,22 +1,16 @@
 {
-  "mode": "en_ptbr_2025",
-  "task": "translate",
-  "description": "Tradução contemporânea para o Português do Brasil (2025) com estilo fluido, direto e natural.",
-  "rules": {
-    "sentence_length_target": 12,
-    "sentence_length_tolerance_pct": 8,
-    "register": "natural",
-    "avoid_literal_translation": true,
-    "preserve_context": true,
-    "preserve_dialogue": true,
-    "avoid_girias_brasileiras_modernas": true,
-    "avoid_portugues_arcaico": true,
-    "preserve_rhythm": true,
-    "preserve_characters": true,
-    "avoid_regionalismos_fortes": true
-  },
+  "name": "Sherlock Holmes – EN → PT-BR (2025)",
+  "model": "gpt-5.1",
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+
+  "chunk_dir": "data/chunks/book_0001/split_01",
+  "out_dir": "data/translated/book_0001/ptbr_2025",
+
   "output": {
-    "format": "plain",
     "language": "pt-br"
-  }
+  },
+
+  "system_prompt": "Você é um tradutor literário profissional em 2025, especializado em traduzir romances clássicos do inglês para português brasileiro moderno. Seu foco é fluidez, clareza e ritmo, mantendo o clima de mistério e o estilo de Sherlock Holmes. Não resuma, não explique, não acrescente comentários.",
+  "user_prompt": "Traduza o trecho a seguir de Sherlock Holmes para português brasileiro moderno, com fluidez e naturalidade, sem perder nenhuma informação, insinuação ou atmosfera do texto original.\n\n{text}"
 }

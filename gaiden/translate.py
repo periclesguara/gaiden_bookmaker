@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from gaiden.openai_client import get_client
 
@@ -90,6 +91,44 @@ def _default_out_dir(chunk_dir_path: Path, target_lang: str) -> Path:
         return Path("data/translated") / parts[-2] / parts[-1] / target_lang
     return chunk_dir_path.parent / f"{chunk_dir_path.name}_{target_lang}"
 
+def _extract_book_id(path: Path) -> Optional[int]:
+    for part in path.parts:
+        m = re.match(r"^book_(\d{4})$", part)
+        if m:
+            return int(m.group(1))
+    return None
+
+def _merge_translated_chunks(out_dir_path: Path, lang_key: str, book_id: Optional[int]) -> Optional[Path]:
+    txt_files = sorted(
+        p for p in out_dir_path.glob("*.txt")
+        if not (p.name.startswith("merged_") or p.name == "merged.txt")
+    )
+    if not txt_files:
+        return None
+
+    parts: List[str] = []
+    for path in txt_files:
+        text = path.read_text(encoding="utf-8").rstrip()
+        if text:
+            parts.append(text)
+
+    merged = "\n\n".join(parts) + "\n"
+    out_path = out_dir_path / f"merged_{lang_key}.txt"
+    out_path.write_text(merged, encoding="utf-8")
+
+    if book_id is not None:
+        from gaiden.merge_translated import register_merged_translation
+        register_merged_translation(
+            book_id=book_id,
+            lang_key=lang_key,
+            out_path=out_path,
+            merged_text=merged,
+            chunk_count=len(txt_files),
+            source_dir=out_dir_path,
+        )
+
+    return out_path
+
 
 def run_translate_with_contract(contract_path: str | Path) -> None:
     """
@@ -135,6 +174,8 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         return
 
     target_lang = _get_target_language(contract)
+    lang_key = out_dir_path.name
+    book_id = _extract_book_id(out_dir_path)
 
     print("[INFO] Tradução file-based iniciada")
     print(f"  Contrato: {contract_path}")
@@ -179,6 +220,9 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         print(f"[OK] {idx:04d}/{len(txt_files):04d} -> {out_path}")
 
     print("[INFO] Tradução concluída.")
+    merged_path = _merge_translated_chunks(out_dir_path, lang_key, book_id)
+    if merged_path:
+        print(f"[INFO] Arquivo unificado: {merged_path}")
 
 
 if __name__ == "__main__":

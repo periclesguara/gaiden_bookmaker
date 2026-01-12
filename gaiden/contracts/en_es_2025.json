@@ -1,21 +1,16 @@
 {
-  "mode": "en_es_2025",
-  "task": "translate",
-  "description": "Traducción contemporánea al español para lectores modernos (2025).",
-  "rules": {
-    "sentence_length_target": 12,
-    "sentence_length_tolerance_pct": 8,
-    "register": "neutral",
-    "avoid_es_arcaico": true,
-    "preserve_dialogue": true,
-    "preserve_context": true,
-    "avoid_spain_only_slang": true,
-    "avoid_latin_only_slang": true,
-    "avoid_literal_translation": true,
-    "preserve_characters": true
-  },
+  "name": "Sherlock Holmes – EN → ES (2025)",
+  "model": "gpt-5.1",
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+
+  "chunk_dir": "data/chunks/book_0001/split_01",
+  "out_dir": "data/translated/book_0001/es_2025",
+
   "output": {
-    "format": "plain",
     "language": "es"
-  }
+  },
+
+  "system_prompt": "Eres un traductor literario profesional en 2025. Tu trabajo es traducir las historias de Sherlock Holmes del inglés al español moderno, manteniendo el tono, el misterio y el ritmo narrativo. No resumas, no expliques, no añadas comentarios.",
+  "user_prompt": "Traduce el siguiente fragmento de Sherlock Holmes al español moderno, con fluidez y naturalidad, sin perder ningún matiz ni información.\n\n{text}"
 }
