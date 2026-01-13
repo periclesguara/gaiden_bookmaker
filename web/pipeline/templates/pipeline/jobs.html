@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Status da Pipeline</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 20px; }
+    h1 { margin-bottom: 16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
+    th { background: #f2f2f2; text-align: left; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .status-PENDING { color: #aa8800; font-weight: bold; }
+    .status-RUNNING { color: #0066cc; font-weight: bold; }
+    .status-SUCCESS { color: #008800; font-weight: bold; }
+    .status-FAIL { color: #cc0000; font-weight: bold; }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>Status da Pipeline</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Livro</th>
+        <th>Codigo</th>
+        <th>Lingua</th>
+        <th>Etapa</th>
+        <th>Status</th>
+        <th>Arquivo</th>
+        <th>Atualizado em</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td>{{ job.book_title }}</td>
+        <td><span class="badge">{{ job.book_code }}</span></td>
+        <td>{{ job.language }}</td>
+        <td>{{ job.stage }}</td>
+        <td class="status-{{ job.status }}">{{ job.get_status_display|default:job.status }}</td>
+        <td>{{ job.filepath }}</td>
+        <td>{{ job.updated_at }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">Nenhum job registrado ainda. Rode o comando <code>sync_sherlock_pipeline</code>.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.urls import path
-
-from pipeline.views import pipeline_dashboard
+from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("pipeline/", pipeline_dashboard, name="pipeline_dashboard"),
+    path("pipeline/", include("pipeline.urls")),
+    path("", include("pipeline.urls")),
 ]

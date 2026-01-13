@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Edition - Gaiden</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
+    h1 { margin-bottom: 16px; }
+    form div { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 80px; font-family: monospace; }
+    .roles { display: flex; flex-wrap: wrap; gap: 12px; }
+    .roles label { font-weight: 400; display: flex; align-items: center; gap: 4px; }
+    .actions { margin-top: 20px; }
+    button { padding: 6px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Book Edition</h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div>
+      <label for="{{ form.book_code.id_for_label }}">Book code</label>
+      {{ form.book_code }}
+    </div>
+
+    <div>
+      <label for="{{ form.language.id_for_label }}">Language</label>
+      {{ form.language }}
+    </div>
+
+    <hr />
+
+    <div>
+      <label for="{{ form.source_file.id_for_label }}">Raw file (original text)</label>
+      {{ form.source_file }}
+    </div>
+
+    <div>
+      <label for="{{ form.cover_file.id_for_label }}">Cover file</label>
+      {{ form.cover_file }}
+      {% if form.instance.cover_filepath %}
+      <small>Current: {{ form.instance.cover_filepath }}</small>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.images_zip.id_for_label }}">Images ZIP (optional)</label>
+      {{ form.images_zip }}
+      {% if form.instance.images_dir %}
+      <small>Current: {{ form.instance.images_dir }}</small>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.title.id_for_label }}">Title</label>
+      {{ form.title }}
+    </div>
+
+    <div>
+      <label for="{{ form.subtitle.id_for_label }}">Subtitle</label>
+      {{ form.subtitle }}
+    </div>
+
+    <div>
+      <label for="{{ form.author_name.id_for_label }}">Author</label>
+      {{ form.author_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.publication_year.id_for_label }}">Publication year</label>
+      {{ form.publication_year }}
+    </div>
+
+    <div>
+      <label for="{{ form.imprint_name.id_for_label }}">Imprint name</label>
+      {{ form.imprint_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.collection_name.id_for_label }}">Collection name</label>
+      {{ form.collection_name }}
+    </div>
+
+    <hr />
+
+    <div>
+      <label for="{{ form.collaborator_name.id_for_label }}">Contributor name (you)</label>
+      {{ form.collaborator_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.collaborator_pseudonym.id_for_label }}">Contributor pseudonym (optional)</label>
+      {{ form.collaborator_pseudonym }}
+    </div>
+
+    <div>
+      <span>Roles</span>
+      <div class="roles">
+        {{ form.collaborator_roles }}
+      </div>
+    </div>
+
+    <hr />
+
+    <div>
+      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispiece (template)</label>
+      {{ form.frontispiece_text }}
+    </div>
+
+    <div>
+      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
+      {{ form.copyright_text }}
+    </div>
+
+    <div>
+      <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
+      {{ form.about_edition_text }}
+    </div>
+
+    <div>
+      <label for="{{ form.about_contributor_text.id_for_label }}">About the contributor</label>
+      {{ form.about_contributor_text }}
+    </div>
+
+    <div class="actions">
+      <button type="submit">Save</button>
+      <a href="{% url 'book_edition_list' %}">Back</a>
+    </div>
+  </form>
+</body>
+</html>

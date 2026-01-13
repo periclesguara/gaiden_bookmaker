@@ -9,9 +9,6 @@ __pycache__/
 venv/
 env/
 
-# Streamlit
-.streamlit/
-
 # Data — NÃO versionar artefatos
 data/db/*.sqlite3
 data/uploads/

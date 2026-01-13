@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gaiden Pipeline - Visao Geral</title>
+  <style>
+    :root {
+      --bg: #f5f2ed;
+      --ink: #1f1b16;
+      --muted: #6f6256;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --ok: #1f7a3b;
+      --fail: #b3261e;
+      --border: #e2d9cf;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 10% 0%, #fff2e1 0%, #f5f2ed 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0.4px;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      padding: 20px 24px 32px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .stat.ok strong {
+      color: var(--ok);
+    }
+    .stat.fail strong {
+      color: var(--fail);
+    }
+    .actions a {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gaiden Pipeline - Visao Geral</h1>
+    <p>Resumo por livro com status das etapas.</p>
+    <p><a href="{% url 'book_edition_list' %}">Book Editions (frontispicio / copyright / about)</a></p>
+  </header>
+  <section class="grid">
+    {% for book in books %}
+    <article class="card">
+      <div class="meta">{{ book.book_code }}</div>
+      <h2>{{ book.book_title }}</h2>
+      <div class="stats">
+        <div class="stat">
+          <strong>{{ book.total_jobs }}</strong>
+          Total
+        </div>
+        <div class="stat ok">
+          <strong>{{ book.success_jobs }}</strong>
+          Sucesso
+        </div>
+        <div class="stat fail">
+          <strong>{{ book.fail_jobs }}</strong>
+          Falhou
+        </div>
+      </div>
+      <div class="actions">
+        <a href="{% url 'pipeline_jobs' %}?book={{ book.book_code }}">Ver detalhes</a>
+      </div>
+    </article>
+    {% empty %}
+    <article class="card">
+      <h2>Nenhum livro encontrado</h2>
+      <p>Rode o comando <code>sync_sherlock_pipeline</code> para preencher o banco.</p>
+    </article>
+    {% endfor %}
+  </section>
+</body>
+</html>
