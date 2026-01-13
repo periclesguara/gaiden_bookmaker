@@ -16,7 +16,7 @@ def _connect():
 def init_db():
     conn = _connect()
     try:
-        conn.execute(
+        cur = conn.execute(
             """
             CREATE TABLE IF NOT EXISTS books (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,7 +109,54 @@ def init_db():
             );
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS book_polished_merged (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              book_id INTEGER NOT NULL,
+              lang TEXT NOT NULL,
+              variant TEXT NOT NULL,
+              source_kind TEXT NOT NULL DEFAULT 'translated_merged',
+              source_path TEXT NOT NULL,
+              polished_path TEXT NOT NULL,
+              model TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT (datetime('now')),
+              FOREIGN KEY(book_id) REFERENCES books(id)
+            );
+            """
+        )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def get_translated_merged(book_id: int, lang_key: str) -> sqlite3.Row:
+    conn = _connect()
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            """
+            SELECT id,
+                   book_id,
+                   lang_key,
+                   merged_path,
+                   merged_text,
+                   merged_sha256,
+                   chunk_count,
+                   source_dir,
+                   created_at
+              FROM book_translated_merged
+             WHERE book_id = ?
+               AND lang_key = ?
+            """,
+            (book_id, lang_key),
+        )
+        row = cur.fetchone()
+        if row is None:
+            raise RuntimeError(
+                f"translated_merged not found for book_id={book_id}, lang_key={lang_key}"
+            )
+        return row
     finally:
         conn.close()
 
@@ -261,5 +308,45 @@ def update_book_about(book_id: int, about_work: str, about_contributor: str) -> 
             (about_work, about_contributor, book_id),
         )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def insert_polished_merged(
+    *,
+    book_id: int,
+    lang: str,
+    variant: str,
+    source_kind: str,
+    source_path: str,
+    polished_path: str,
+    model: str,
+) -> int:
+    conn = _connect()
+    try:
+        cur = conn.execute(
+            """
+            INSERT INTO book_polished_merged (
+              book_id,
+              lang,
+              variant,
+              source_kind,
+              source_path,
+              polished_path,
+              model
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                book_id,
+                lang,
+                variant,
+                source_kind,
+                source_path,
+                polished_path,
+                model,
+            ),
+        )
+        conn.commit()
+        return int(cur.lastrowid)
     finally:
         conn.close()
