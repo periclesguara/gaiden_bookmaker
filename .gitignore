@@ -29,3 +29,4 @@ v1.0-stable
 __pycache__/
 *.pyc
 
+data/db/*.sqlite3
