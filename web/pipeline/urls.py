@@ -7,4 +7,14 @@ urlpatterns = [
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/edit/", views.book_edition_edit, name="book_edition_new"),
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),
+    path(
+        "editions/<str:book_code>/<str:language>/build-md/",
+        views.build_book_md,
+        name="build_book_md",
+    ),
+    path(
+        "editions/<str:book_code>/<str:language>/preview-md/",
+        views.preview_book_md,
+        name="preview_book_md",
+    ),
 ]

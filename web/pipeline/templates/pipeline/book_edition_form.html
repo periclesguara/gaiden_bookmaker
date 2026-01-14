@@ -142,6 +142,14 @@
       <a href="{% url 'book_edition_list' %}">Back</a>
     </div>
   </form>
+  {% if form.instance.pk %}
+  <form method="post" action="{% url 'build_book_md' book_code=form.instance.book_code language=form.instance.language %}">
+    {% csrf_token %}
+    <div class="actions">
+      <button type="submit">Build Markdown (.md) + Preview</button>
+    </div>
+  </form>
+  {% endif %}
   <script>
     const languageDefaults = {
       en: {

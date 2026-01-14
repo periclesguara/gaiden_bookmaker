@@ -1,18 +1,16 @@
-import sqlite3
 import os
+import sqlite3
 import zipfile
 from pathlib import Path
 
 from django.conf import settings
-from django.http import HttpResponse
-from pathlib import Path
-
-from django.conf import settings
+from django.core.management import call_command
 from django.db.models import Case, Count, IntegerField, Q, When
-from django.shortcuts import redirect, render
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import BookEditionTemplateForm
-from .models import BookEditionTemplate, PipelineJob
+from .models import BookEditionTemplate, PipelineJob, get_book_md_path
 
 
 DB_PATH = Path(settings.BASE_DIR).parent / "data" / "db" / "gaiden.sqlite3"
@@ -271,3 +269,37 @@ def book_edition_edit(request, book_code=None, language=None):
         "pipeline/book_edition_form.html",
         {"form": form, "instance": instance},
     )
+
+
+def build_book_md(request, book_code, language):
+    if request.method != "POST":
+        return redirect("book_edition_edit", book_code=book_code, language=language)
+
+    edition = get_object_or_404(
+        BookEditionTemplate,
+        book_code=book_code,
+        language=language,
+    )
+
+    call_command(
+        "build_book_text",
+        book_code=edition.book_code,
+        language=edition.language,
+    )
+
+    return redirect("preview_book_md", book_code=book_code, language=language)
+
+
+def preview_book_md(request, book_code, language):
+    path = get_book_md_path(book_code, language)
+    if not path.exists():
+        raise Http404(f"Markdown file not found: {path}")
+
+    content = path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": language,
+        "md_path": str(path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)

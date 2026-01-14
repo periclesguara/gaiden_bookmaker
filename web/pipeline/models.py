@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.db import models
 
 
@@ -89,6 +91,19 @@ LANGUAGE_DEFAULT_TEMPLATES = {
         ),
     },
 }
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def get_book_md_path(book_code: str, language: str) -> Path:
+    return (
+        PROJECT_ROOT
+        / "data"
+        / "builds"
+        / book_code
+        / language
+        / f"{book_code}_{language}_book.md"
+    )
 
 
 class BookEditionTemplate(models.Model):
