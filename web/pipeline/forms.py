@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import BookEditionTemplate
+from .models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES
 
 
 class BookEditionTemplateForm(forms.ModelForm):
@@ -53,75 +53,19 @@ class BookEditionTemplateForm(forms.ModelForm):
         if self.instance and self.instance.pk and self.instance.collaborator_roles:
             self.initial["collaborator_roles"] = self.instance.roles_list
 
-        if not self.instance or not self.instance.pk:
-            lang = self.initial.get("language") or self.fields["language"].initial
+        if (not self.instance or not self.instance.pk) and not self.is_bound:
+            lang = self.initial.get("language") or self.instance.language or self.fields["language"].initial
             self._set_default_templates(lang)
 
     def _set_default_templates(self, lang: str):
-        if lang == BookEditionTemplate.LANG_EN:
-            self.fields["frontispiece_text"].initial = (
-                "This edition of {title} by {author} was prepared in {year}.\n"
-            )
-            self.fields["copyright_text"].initial = (
-                "Copyright {year} {author}. All rights reserved.\n"
-                "Adaptation and notes Copyright {year} {collaborator}.\n"
-            )
-            self.fields["about_edition_text"].initial = (
-                "About this edition:\n"
-                "This is a modernized, carefully revised edition prepared for contemporary readers."
-            )
-            self.fields["about_contributor_text"].initial = (
-                "About the {role_label}:\n"
-                "{collaborator} is responsible for the adaptation/translation and editorial curation of this volume."
-            )
-        elif lang == BookEditionTemplate.LANG_PTBR:
-            self.fields["frontispiece_text"].initial = (
-                "Esta edicao de {title}, de {author}, foi preparada em {year}.\n"
-            )
-            self.fields["copyright_text"].initial = (
-                "Copyright {year} {author}. Todos os direitos reservados.\n"
-                "Adaptacao e notas Copyright {year} {collaborator}.\n"
-            )
-            self.fields["about_edition_text"].initial = (
-                "Sobre esta edicao:\n"
-                "Edicao modernizada e revisada, pensada para o leitor contemporaneo."
-            )
-            self.fields["about_contributor_text"].initial = (
-                "Sobre o(a) {role_label}:\n"
-                "{collaborator} e responsavel pela adaptacao/traducao e curadoria editorial deste volume."
-            )
-        elif lang == BookEditionTemplate.LANG_ES:
-            self.fields["frontispiece_text"].initial = (
-                "Esta edicion de {title}, de {author}, fue preparada en {year}.\n"
-            )
-            self.fields["copyright_text"].initial = (
-                "Copyright {year} {author}. Todos los derechos reservados.\n"
-                "Adaptacion y notas Copyright {year} {collaborator}.\n"
-            )
-            self.fields["about_edition_text"].initial = (
-                "Sobre esta edicion:\n"
-                "Edicion modernizada y revisada para el lector contemporaneo."
-            )
-            self.fields["about_contributor_text"].initial = (
-                "Sobre el/la {role_label}:\n"
-                "{collaborator} es responsable de la adaptacion/traduccion y la curaduria editorial de este volumen."
-            )
-        elif lang == BookEditionTemplate.LANG_DE:
-            self.fields["frontispiece_text"].initial = (
-                "Diese Ausgabe von {title} von {author} wurde im Jahr {year} vorbereitet.\n"
-            )
-            self.fields["copyright_text"].initial = (
-                "Copyright {year} {author}. Alle Rechte vorbehalten.\n"
-                "Bearbeitung und Anmerkungen Copyright {year} {collaborator}.\n"
-            )
-            self.fields["about_edition_text"].initial = (
-                "Ueber diese Ausgabe:\n"
-                "Modernisierte, sorgfaeltig ueberarbeitete Ausgabe fuer heutige Leser."
-            )
-            self.fields["about_contributor_text"].initial = (
-                "Ueber den/die {role_label}:\n"
-                "{collaborator} ist verantwortlich fuer die Bearbeitung/Uebersetzung und redaktionelle Betreuung dieses Bandes."
-            )
+        defaults = LANGUAGE_DEFAULT_TEMPLATES.get(lang)
+        if defaults:
+            if not self.initial.get("frontispiece_text"):
+                self.fields["frontispiece_text"].initial = defaults["frontispiece_text"]
+            if not self.initial.get("copyright_text"):
+                self.fields["copyright_text"].initial = defaults["copyright_text"]
+
+        # About fields are always manual and should not be auto-filled.
 
     def clean_collaborator_roles(self):
         roles = self.cleaned_data.get("collaborator_roles") or []

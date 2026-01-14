@@ -35,6 +35,62 @@ class PipelineJob(models.Model):
         return f"{self.book_code} [{self.language}] - {self.stage} ({self.status})"
 
 
+LANGUAGE_DEFAULT_TEMPLATES = {
+    "en": {
+        "frontispiece_text": (
+            "This edition of {title} by {author} was prepared in {year} "
+            "under the {imprint} imprint."
+        ),
+        "copyright_text": (
+            "Copyright {year} {author}. All rights reserved.\n"
+            "Adaptation and notes copyright {year} {collaborator}.\n"
+            "Manta Quest is a registered trademark of RinoBooks.\n"
+            "The publisher and trademark owner is Pericles Guara Silva.\n"
+            "Rio de Janeiro, Brazil."
+        ),
+    },
+    "ptbr": {
+        "frontispiece_text": (
+            "Esta edicao de {title}, de {author}, foi preparada em {year} "
+            "sob o selo editorial {imprint}."
+        ),
+        "copyright_text": (
+            "Copyright {year} {author}. Todos os direitos reservados.\n"
+            "Adaptacao e notas: copyright {year} {collaborator}.\n"
+            "Manta Quest e uma marca registrada da RinoBooks.\n"
+            "O publisher e dono da marca e Pericles Guara Silva.\n"
+            "Rio de Janeiro, Brasil."
+        ),
+    },
+    "es": {
+        "frontispiece_text": (
+            "Esta edicion de {title}, de {author}, fue preparada en {year} "
+            "bajo el sello editorial {imprint}."
+        ),
+        "copyright_text": (
+            "Copyright {year} {author}. Todos los derechos reservados.\n"
+            "Adaptacion y notas: copyright {year} {collaborator}.\n"
+            "Manta Quest es una marca registrada de RinoBooks.\n"
+            "El publisher y propietario de la marca es Pericles Guara Silva.\n"
+            "Rio de Janeiro, Brasil."
+        ),
+    },
+    "de": {
+        "frontispiece_text": (
+            "Diese Ausgabe von {title} von {author} wurde im Jahr {year} "
+            "unter dem Imprint {imprint} vorbereitet."
+        ),
+        "copyright_text": (
+            "Copyright {year} {author}. Alle Rechte vorbehalten.\n"
+            "Adaptation und Anmerkungen: Copyright {year} {collaborator}.\n"
+            "Manta Quest ist eine eingetragene Marke von RinoBooks.\n"
+            "Der Publisher und Markeninhaber ist Pericles Guara Silva.\n"
+            "Rio de Janeiro, Brasilien."
+        ),
+    },
+}
+
+
 class BookEditionTemplate(models.Model):
     LANG_EN = "en"
     LANG_PTBR = "ptbr"
@@ -122,12 +178,14 @@ class BookEditionTemplate(models.Model):
         return mapping.get(roles[0], "Contributor") if roles else "Contributor"
 
     def get_placeholder_context(self) -> dict:
+        pseudonym = self.collaborator_pseudonym or self.collaborator_name
         return {
             "title": self.title,
             "author": self.author_name,
             "year": self.publication_year,
             "collaborator": self.collaborator_name,
-            "pseudonym": self.collaborator_pseudonym,
+            "pseudonym": pseudonym,
+            "imprint": self.imprint_name,
             "role_label": self.primary_role_label,
         }
 
@@ -154,3 +212,31 @@ class BookEditionTemplate(models.Model):
     @property
     def about_contributor_rendered(self) -> str:
         return self._render_text(self.about_contributor_text)
+
+    def apply_language_defaults_if_empty(self):
+        defaults = LANGUAGE_DEFAULT_TEMPLATES.get(self.language)
+        if not defaults:
+            return []
+
+        def is_any_default(value: str, field_name: str) -> bool:
+            return any(
+                value == lang_defaults.get(field_name)
+                for lang_defaults in LANGUAGE_DEFAULT_TEMPLATES.values()
+            )
+
+        updated_fields = []
+        if not self.frontispiece_text or is_any_default(self.frontispiece_text, "frontispiece_text"):
+            self.frontispiece_text = defaults["frontispiece_text"]
+            updated_fields.append("frontispiece_text")
+        if not self.copyright_text or is_any_default(self.copyright_text, "copyright_text"):
+            self.copyright_text = defaults["copyright_text"]
+            updated_fields.append("copyright_text")
+        return updated_fields
+
+    def save(self, *args, **kwargs):
+        updated_fields = self.apply_language_defaults_if_empty()
+        if updated_fields and kwargs.get("update_fields") is not None:
+            update_fields = set(kwargs["update_fields"])
+            update_fields.update(updated_fields)
+            kwargs["update_fields"] = update_fields
+        super().save(*args, **kwargs)

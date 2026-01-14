@@ -15,6 +15,8 @@
       box-sizing: border-box;
     }
     textarea { min-height: 80px; font-family: monospace; }
+    .preview { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
+    .preview-title { font-weight: 600; margin: 6px 0 4px; }
     .roles { display: flex; flex-wrap: wrap; gap: 12px; }
     .roles label { font-weight: 400; display: flex; align-items: center; gap: 4px; }
     .actions { margin-top: 20px; }
@@ -114,20 +116,24 @@
     <div>
       <label for="{{ form.frontispiece_text.id_for_label }}">Frontispiece (template)</label>
       {{ form.frontispiece_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview" id="frontispiece_preview"></div>
     </div>
 
     <div>
       <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
       {{ form.copyright_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview" id="copyright_preview"></div>
     </div>
 
     <div>
-      <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
+      <label for="{{ form.about_edition_text.id_for_label }}" data-label-key="about_edition_text">About this edition</label>
       {{ form.about_edition_text }}
     </div>
 
     <div>
-      <label for="{{ form.about_contributor_text.id_for_label }}">About the contributor</label>
+      <label for="{{ form.about_contributor_text.id_for_label }}" data-label-key="about_contributor_text">About the contributor</label>
       {{ form.about_contributor_text }}
     </div>
 
@@ -136,5 +142,261 @@
       <a href="{% url 'book_edition_list' %}">Back</a>
     </div>
   </form>
+  <script>
+    const languageDefaults = {
+      en: {
+        frontispiece_text: "This edition of {title} by {author} was prepared in {year} under the {imprint} imprint.",
+        copyright_text:
+          "Copyright {year} {author}. All rights reserved.\n" +
+          "Adaptation and notes copyright {year} {collaborator}.\n" +
+          "Manta Quest is a registered trademark of RinoBooks.\n" +
+          "The publisher and trademark owner is Pericles Guara Silva.\n" +
+          "Rio de Janeiro, Brazil.",
+      },
+      ptbr: {
+        frontispiece_text: "Esta edicao de {title}, de {author}, foi preparada em {year} sob o selo editorial {imprint}.",
+        copyright_text:
+          "Copyright {year} {author}. Todos os direitos reservados.\n" +
+          "Adaptacao e notas: copyright {year} {collaborator}.\n" +
+          "Manta Quest e uma marca registrada da RinoBooks.\n" +
+          "O publisher e dono da marca e Pericles Guara Silva.\n" +
+          "Rio de Janeiro, Brasil.",
+      },
+      es: {
+        frontispiece_text: "Esta edicion de {title}, de {author}, fue preparada en {year} bajo el sello editorial {imprint}.",
+        copyright_text:
+          "Copyright {year} {author}. Todos los derechos reservados.\n" +
+          "Adaptacion y notas: copyright {year} {collaborator}.\n" +
+          "Manta Quest es una marca registrada de RinoBooks.\n" +
+          "El publisher y propietario de la marca es Pericles Guara Silva.\n" +
+          "Rio de Janeiro, Brasil.",
+      },
+      de: {
+        frontispiece_text: "Diese Ausgabe von {title} von {author} wurde im Jahr {year} unter dem Imprint {imprint} vorbereitet.",
+        copyright_text:
+          "Copyright {year} {author}. Alle Rechte vorbehalten.\n" +
+          "Adaptation und Anmerkungen: Copyright {year} {collaborator}.\n" +
+          "Manta Quest ist eine eingetragene Marke von RinoBooks.\n" +
+          "Der Publisher und Markeninhaber ist Pericles Guara Silva.\n" +
+          "Rio de Janeiro, Brasilien.",
+      },
+    };
+
+    const fieldIds = {
+      language: "{{ form.language.id_for_label }}",
+      frontispiece_text: "{{ form.frontispiece_text.id_for_label }}",
+      copyright_text: "{{ form.copyright_text.id_for_label }}",
+      about_edition_text: "{{ form.about_edition_text.id_for_label }}",
+      about_contributor_text: "{{ form.about_contributor_text.id_for_label }}",
+      title: "{{ form.title.id_for_label }}",
+      author_name: "{{ form.author_name.id_for_label }}",
+      publication_year: "{{ form.publication_year.id_for_label }}",
+      collaborator_name: "{{ form.collaborator_name.id_for_label }}",
+      collaborator_pseudonym: "{{ form.collaborator_pseudonym.id_for_label }}",
+      imprint_name: "{{ form.imprint_name.id_for_label }}",
+    };
+
+    const previewIds = {
+      frontispiece_text: "frontispiece_preview",
+      copyright_text: "copyright_preview",
+    };
+
+    const labelTranslations = {
+      en: {
+        about_edition_text: "About this edition",
+        about_contributor_text: "About the contributor",
+      },
+      ptbr: {
+        about_edition_text: "Sobre esta edicao",
+        about_contributor_text: "Sobre o colaborador",
+      },
+      es: {
+        about_edition_text: "Sobre esta edicion",
+        about_contributor_text: "Sobre el colaborador",
+      },
+      de: {
+        about_edition_text: "Ueber diese Ausgabe",
+        about_contributor_text: "Ueber den Beitragenden",
+      },
+    };
+
+    const placeholderTranslations = {
+      en: {
+        about_edition_text: "Write a short note about this edition.",
+        about_contributor_text: "Write a short note about the contributor.",
+      },
+      ptbr: {
+        about_edition_text: "Escreva uma nota curta sobre esta edicao.",
+        about_contributor_text: "Escreva uma nota curta sobre o colaborador.",
+      },
+      es: {
+        about_edition_text: "Escribe una nota breve sobre esta edicion.",
+        about_contributor_text: "Escribe una nota breve sobre el colaborador.",
+      },
+      de: {
+        about_edition_text: "Schreiben Sie eine kurze Notiz zu dieser Ausgabe.",
+        about_contributor_text: "Schreiben Sie eine kurze Notiz ueber den Beitragenden.",
+      },
+    };
+
+    const lastAppliedDefaults = {};
+
+    const fieldMatchesDefault = (fieldName, value) => {
+      const defaults = languageDefaults;
+      return Object.keys(defaults).some((lang) => defaults[lang][fieldName] === value);
+    };
+
+    const getFieldValue = (fieldName) => {
+      const field = document.getElementById(fieldIds[fieldName]);
+      return field ? field.value : "";
+    };
+
+    const getRoleLabel = () => {
+      const roleInputs = document.querySelectorAll("input[name='collaborator_roles']:checked");
+      if (!roleInputs.length) {
+        return "Contributor";
+      }
+      const label = roleInputs[0].closest("label");
+      return label ? label.textContent.trim() : "Contributor";
+    };
+
+    const renderTemplate = (template, context) => {
+      return template.replace(/\{(\w+)\}/g, (_, key) => {
+        return context[key] !== undefined ? context[key] : "";
+      });
+    };
+
+    const updatePreviews = () => {
+      const context = {
+        title: getFieldValue("title"),
+        author: getFieldValue("author_name"),
+        year: getFieldValue("publication_year"),
+        collaborator: getFieldValue("collaborator_name"),
+        pseudonym: getFieldValue("collaborator_pseudonym") || getFieldValue("collaborator_name"),
+        imprint: getFieldValue("imprint_name"),
+        role_label: getRoleLabel(),
+      };
+
+      Object.keys(previewIds).forEach((fieldName) => {
+        const field = document.getElementById(fieldIds[fieldName]);
+        const preview = document.getElementById(previewIds[fieldName]);
+        if (!field || !preview) {
+          return;
+        }
+        preview.textContent = renderTemplate(field.value || "", context);
+      });
+    };
+
+    const applyDefaults = (lang) => {
+      const defaults = languageDefaults[lang];
+      if (!defaults) {
+        return;
+      }
+      Object.keys(defaults).forEach((fieldName) => {
+        const field = document.getElementById(fieldIds[fieldName]);
+        if (field) {
+          const lastApplied = lastAppliedDefaults[fieldName];
+          if (!field.value || field.value === lastApplied || fieldMatchesDefault(fieldName, field.value)) {
+            field.value = defaults[fieldName];
+            lastAppliedDefaults[fieldName] = defaults[fieldName];
+          }
+        }
+      });
+    };
+
+    const applyDefaultsIfEmpty = (lang) => {
+      const defaults = languageDefaults[lang];
+      if (!defaults) {
+        return;
+      }
+      Object.keys(defaults).forEach((fieldName) => {
+        const field = document.getElementById(fieldIds[fieldName]);
+        if (field && !field.value) {
+          field.value = defaults[fieldName];
+          lastAppliedDefaults[fieldName] = defaults[fieldName];
+        }
+      });
+    };
+
+    const applyLabelsAndPlaceholders = (lang) => {
+      const labels = labelTranslations[lang];
+      const placeholders = placeholderTranslations[lang];
+      if (labels) {
+        Object.keys(labels).forEach((fieldName) => {
+          const label = document.querySelector(`label[data-label-key="${fieldName}"]`);
+          if (label) {
+            label.textContent = labels[fieldName];
+          }
+        });
+      }
+      if (placeholders) {
+        Object.keys(placeholders).forEach((fieldName) => {
+          const field = document.getElementById(fieldIds[fieldName]);
+          if (field) {
+            field.setAttribute("placeholder", placeholders[fieldName]);
+          }
+        });
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const languageField = document.getElementById(fieldIds.language);
+      if (!languageField) {
+        return;
+      }
+      Object.keys(fieldIds).forEach((fieldName) => {
+        if (fieldName === "language") {
+          return;
+        }
+        const field = document.getElementById(fieldIds[fieldName]);
+        if (field && fieldMatchesDefault(fieldName, field.value)) {
+          lastAppliedDefaults[fieldName] = field.value;
+        }
+      });
+      applyLabelsAndPlaceholders(languageField.value);
+      applyDefaultsIfEmpty(languageField.value);
+      updatePreviews();
+      const form = languageField.closest("form");
+      if (form) {
+        form.addEventListener("submit", () => {
+          applyDefaultsIfEmpty(languageField.value);
+          updatePreviews();
+        });
+      }
+      languageField.addEventListener("change", (event) => {
+        applyDefaults(event.target.value);
+        applyLabelsAndPlaceholders(event.target.value);
+        updatePreviews();
+      });
+      ["frontispiece_text", "copyright_text"].forEach((fieldName) => {
+        const field = document.getElementById(fieldIds[fieldName]);
+        if (!field) {
+          return;
+        }
+        field.addEventListener("blur", () => {
+          applyDefaultsIfEmpty(languageField.value);
+          updatePreviews();
+        });
+        field.addEventListener("input", updatePreviews);
+      });
+      [
+        "title",
+        "author_name",
+        "publication_year",
+        "collaborator_name",
+        "collaborator_pseudonym",
+        "imprint_name",
+      ].forEach((fieldName) => {
+        const field = document.getElementById(fieldIds[fieldName]);
+        if (field) {
+          field.addEventListener("input", updatePreviews);
+        }
+      });
+      const roleInputs = document.querySelectorAll("input[name='collaborator_roles']");
+      roleInputs.forEach((input) => {
+        input.addEventListener("change", updatePreviews);
+      });
+    });
+  </script>
 </body>
 </html>
