@@ -123,14 +123,24 @@ class BookEditionTemplate(models.Model):
     ROLE_ADAPTER = "adapter"
     ROLE_CURATOR = "curator"
     ROLE_REVISOR = "revisor"
+    ROLE_PUBLISHER = "publisher"
     ROLE_AUTHOR = "author"
+    ROLE_PREFACE = "preface"
+    ROLE_INTRODUCTION = "introduction"
+    ROLE_EPILOGUE = "epilogue"
+    ROLE_ILLUSTRATOR = "illustrator"
 
     ROLE_CHOICES = [
         (ROLE_TRANSLATOR, "Translator"),
         (ROLE_ADAPTER, "Adapter"),
         (ROLE_CURATOR, "Curator"),
         (ROLE_REVISOR, "Revisor"),
+        (ROLE_PUBLISHER, "Publisher"),
         (ROLE_AUTHOR, "Author"),
+        (ROLE_PREFACE, "Preface"),
+        (ROLE_INTRODUCTION, "Introduction"),
+        (ROLE_EPILOGUE, "Epilogue"),
+        (ROLE_ILLUSTRATOR, "Illustrator"),
     ]
 
     book_code = models.CharField(max_length=64, db_index=True)
@@ -146,7 +156,10 @@ class BookEditionTemplate(models.Model):
     collaborator_roles = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Roles separated by comma: translator,adapter,curator,revisor,author",
+        help_text=(
+            "Roles separated by comma: translator,adapter,curator,revisor,publisher,"
+            "author,preface,introduction,epilogue,illustrator"
+        ),
     )
     cover_filepath = models.CharField(
         "Cover file path",
@@ -187,7 +200,12 @@ class BookEditionTemplate(models.Model):
             self.ROLE_ADAPTER: "Adapter",
             self.ROLE_CURATOR: "Curator",
             self.ROLE_REVISOR: "Revisor",
+            self.ROLE_PUBLISHER: "Publisher",
             self.ROLE_AUTHOR: "Author",
+            self.ROLE_PREFACE: "Preface",
+            self.ROLE_INTRODUCTION: "Introduction",
+            self.ROLE_EPILOGUE: "Epilogue",
+            self.ROLE_ILLUSTRATOR: "Illustrator",
         }
         roles = self.roles_list
         return mapping.get(roles[0], "Contributor") if roles else "Contributor"

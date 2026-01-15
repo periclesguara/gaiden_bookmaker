@@ -20,6 +20,11 @@ class BookEditionTemplateForm(forms.ModelForm):
         help_text="Optional ZIP with interior images.",
     )
 
+    collaborator_pseudonym = forms.CharField(
+        required=False,
+        label="Pseudonimo",
+    )
+
     collaborator_roles = forms.MultipleChoiceField(
         choices=BookEditionTemplate.ROLE_CHOICES,
         required=False,

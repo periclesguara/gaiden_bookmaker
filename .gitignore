@@ -27,3 +27,6 @@ __pycache__/
 *.pyc
 
 data/db/*.sqlite3
+web/db.sqlite3
+*.sqlite3
+**/*.sqlite3

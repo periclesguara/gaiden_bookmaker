@@ -1,0 +1,8 @@
+{% autoescape off %}
+# {{ edition.title }}
+{% if edition.subtitle %}
+## {{ edition.subtitle }}
+{% endif %}
+
+{{ edition.author_name }}
+{% endautoescape %}

@@ -36,6 +36,7 @@
         <th>Status</th>
         <th>Arquivo</th>
         <th>Atualizado em</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -48,10 +49,15 @@
         <td class="status-{{ job.status }}">{{ job.get_status_display|default:job.status }}</td>
         <td>{{ job.filepath }}</td>
         <td>{{ job.updated_at }}</td>
+        <td>
+          {% if job.edition_id %}
+          <a href="{% url 'edition_steps' edition_id=job.edition_id %}">Ver pipeline</a>
+          {% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="7">Nenhum job registrado ainda. Rode o comando <code>sync_sherlock_pipeline</code>.</td>
+        <td colspan="8">Nenhum job registrado ainda. Rode o comando <code>sync_sherlock_pipeline</code>.</td>
       </tr>
       {% endfor %}
     </tbody>

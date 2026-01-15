@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pipeline Steps - {{ edition.book_code }} ({{ edition.language }})</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --accent-dark: #a63f22;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      padding: 18px 24px 36px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .actions {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .actions form {
+      margin: 0;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--ink);
+    }
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .status strong {
+      color: var(--ink);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok {
+      color: var(--ok);
+    }
+    .badge.warn {
+      color: var(--warn);
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      padding: 10px;
+      font-family: "Courier New", monospace;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .links {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .links a {
+      color: var(--accent-dark);
+      text-decoration: none;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pipeline Steps — {{ edition.book_code }} ({{ edition.language }})</h1>
+    <p class="subtitle">{{ edition.title }} · {{ edition.author_name }}</p>
+  </header>
+  {% if messages %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Mensagens</h2>
+      {% for message in messages %}
+      <div class="status"><strong>{{ message.tags|upper }}</strong>: {{ message }}</div>
+      {% endfor %}
+    </article>
+  </section>
+  {% endif %}
+  {% if sync_log %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Sync</h2>
+      {% for line in sync_log %}
+      <div class="status">{{ line }}</div>
+      {% endfor %}
+    </article>
+  </section>
+  {% endif %}
+
+  <section class="grid">
+    <article class="card">
+      <h2>Texto / Pipeline Core</h2>
+      <div class="actions">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'raw' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="file" name="raw_file" required />
+          <button class="btn secondary" type="submit">Select RAW archive</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'normalize' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Normalize</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Split</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Chunk</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Translate</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'refine' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Refine (full text)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit">Polish (optional)</button>
+        </form>
+      </div>
+      <div class="status">
+        RAW: <strong>{{ status.raw }}</strong>
+      </div>
+      <div class="status">
+        Normalize: <strong>{{ status.normalize }}</strong>
+      </div>
+      <div class="status">
+        Split: <strong>{{ status.split }}</strong>
+      </div>
+      <div class="status">
+        Translate:
+        <strong>{{ status.translate }}</strong>
+        {% if chunk_count %}
+        <span class="badge ok">{{ chunk_count }} chunks</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        Refine: <strong>{{ status.refine }}</strong>
+      </div>
+      <div class="status">
+        Polish: <strong>{{ status.polish }}</strong>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>Transformacao Editorial &amp; Qualidade</h2>
+      <div class="actions">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Convert TXT to MD</button>
+        </form>
+      </div>
+      <div class="status">
+        Fonte: <strong>{{ final_source }}</strong>
+      </div>
+      <div class="status">
+        Texto final em uso:
+        {% if text_source.canonical_name %}
+        <strong>{{ text_source.canonical_name }}</strong>
+        {% else %}
+        <strong>—</strong>
+        {% endif %}
+      </div>
+      <div class="status">
+        Caminho canonico:
+        {% if text_source.canonical_path %}
+        <strong>{{ text_source.canonical_path }}</strong>
+        {% else %}
+        <strong>—</strong>
+        {% endif %}
+      </div>
+      {% if text_source.job_stage %}
+      <div class="status">
+        Origem no pipeline:
+        <strong>{{ text_source.job_stage|upper }}</strong>
+        (job #{{ text_source.job_id }})
+      </div>
+      <div class="status">
+        Arquivo original: <strong>{{ text_source.job_filepath }}</strong>
+      </div>
+      <div class="status">
+        Criado em: <strong>{{ text_source.job_created_at }}</strong>
+      </div>
+      {% endif %}
+      <textarea readonly>{{ md_preview }}</textarea>
+
+      <div class="actions" style="margin-top: 12px;">
+        <div class="status"><strong>QA suspenso</strong></div>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'approve_md' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Approve MD Final</button>
+        </form>
+      </div>
+
+      <div class="status">
+        MD status: <strong>{{ md_status }}</strong>
+      </div>
+
+      <div class="links">
+        {% if md_pre_qa_path %}
+        <a href="{{ md_pre_qa_path }}">BOOK.PRE_QA.md</a>
+        {% else %}
+        <span class="badge">BOOK.PRE_QA.md</span>
+        {% endif %}
+        {% if md_final_path %}
+        <a href="{{ md_final_path }}">BOOK.MD_FINAL</a>
+        {% else %}
+        <span class="badge">BOOK.MD_FINAL</span>
+        {% endif %}
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>Build &amp; Export</h2>
+      <div class="actions">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Build (Cover + Edition + Miolo)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_epub' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit">Export EPUB3 (Pandoc)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_pdf' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit">Export Print PDF (Pandoc)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'epubcheck' %}">
+          {% csrf_token %}
+          <button class="btn ghost" type="submit">Run epubcheck</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Gaiden: Montar Livro Completo</button>
+        </form>
+      </div>
+      <div class="status">
+        Build status: <strong>{{ build_status }}</strong>
+      </div>
+      <div class="links">
+        {% if build_path %}
+        <a href="{{ build_path }}">BOOK.BUILD.MD</a>
+        {% else %}
+        <span class="badge">BOOK.BUILD.MD</span>
+        {% endif %}
+        {% if epub_path %}
+        <a href="{{ epub_path }}">BOOK.EPUB3</a>
+        {% else %}
+        <span class="badge">BOOK.EPUB3</span>
+        {% endif %}
+        {% if pdf_path %}
+        <a href="{{ pdf_path }}">BOOK.PRINT.PDF</a>
+        {% else %}
+        <span class="badge">BOOK.PRINT.PDF</span>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+</body>
+</html>

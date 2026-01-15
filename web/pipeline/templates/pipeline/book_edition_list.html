@@ -33,6 +33,7 @@
         <th>Pseudonym</th>
         <th>Roles</th>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -51,9 +52,12 @@
         <td>
           <a href="{% url 'book_edition_edit' book_code=ed.book_code language=ed.language %}">Edit</a>
         </td>
+        <td>
+          <a href="{% url 'edition_steps' edition_id=ed.id %}">Pipeline steps</a>
+        </td>
       </tr>
       {% empty %}
-      <tr><td colspan="11">No editions yet.</td></tr>
+      <tr><td colspan="12">No editions yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
