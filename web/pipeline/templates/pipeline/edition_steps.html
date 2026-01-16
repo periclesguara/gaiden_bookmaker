@@ -219,46 +219,100 @@
 
     <article class="card">
       <h2>Transformacao Editorial &amp; Qualidade</h2>
+      <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
+      <p>
+        <strong>Fonte atual (canonico):</strong>
+        {% if text_source.selected_sources|length > 1 %}
+          {% for source in text_source.selected_sources %}
+            {{ source.label }}<br>
+            <code>{{ source.path }}</code><br>
+          {% endfor %}
+        {% elif text_source.canonical_name %}
+          {{ text_source.canonical_name }}<br>
+          <code>{{ text_source.canonical_path }}</code>
+        {% else %}
+          <em>Nenhum merge_* disponivel ainda.</em>
+        {% endif %}
+      </p>
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_text_source" />
+        <label for="id_text_source_choice"><strong>Selecionar arquivo-fonte:</strong></label>
+        <select name="text_source_choice" id="id_text_source_choice" multiple>
+          <option value="auto" {% if "auto" in text_source.selected_values %}selected{% endif %}>
+            Auto (prioridade: polish &gt; refine &gt; translate)
+          </option>
+          <option value="{{ edition.language }}::merge_translate.txt" {% if edition.language|add:'::merge_translate.txt' in text_source.selected_values %}selected{% endif %}>
+            merge_translate.txt ({{ edition.language }})
+          </option>
+          <option value="{{ edition.language }}::merge_refine.txt" {% if edition.language|add:'::merge_refine.txt' in text_source.selected_values %}selected{% endif %}>
+            merge_refine.txt ({{ edition.language }})
+          </option>
+          <option value="{{ edition.language }}::merge_polish.txt" {% if edition.language|add:'::merge_polish.txt' in text_source.selected_values %}selected{% endif %}>
+            merge_polish.txt ({{ edition.language }})
+          </option>
+          {% for extra in text_source.extra_candidates %}
+            <option value="{{ extra.value }}" {% if extra.value in text_source.selected_values %}selected{% endif %}>
+              {{ extra.label }}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">
+          Usar esta fonte
+        </button>
+      </form>
       <div class="actions">
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
           {% csrf_token %}
           <button class="btn" type="submit">Convert TXT to MD</button>
         </form>
       </div>
-      <div class="status">
-        Fonte: <strong>{{ final_source }}</strong>
-      </div>
-      <div class="status">
-        Texto final em uso:
-        {% if text_source.canonical_name %}
-        <strong>{{ text_source.canonical_name }}</strong>
-        {% else %}
-        <strong>—</strong>
-        {% endif %}
-      </div>
-      <div class="status">
-        Caminho canonico:
-        {% if text_source.canonical_path %}
-        <strong>{{ text_source.canonical_path }}</strong>
-        {% else %}
-        <strong>—</strong>
-        {% endif %}
-      </div>
       {% if text_source.job_stage %}
-      <div class="status">
-        Origem no pipeline:
-        <strong>{{ text_source.job_stage|upper }}</strong>
-        (job #{{ text_source.job_id }})
-      </div>
-      <div class="status">
-        Arquivo original: <strong>{{ text_source.job_filepath }}</strong>
-      </div>
-      <div class="status">
-        Criado em: <strong>{{ text_source.job_created_at }}</strong>
-      </div>
+        <div class="status">
+          Origem no pipeline:
+          <strong>{{ text_source.job_stage|upper }}</strong>
+          (job #{{ text_source.job_id }})
+        </div>
+        <div class="status">
+          Arquivo original: <strong>{{ text_source.job_filepath }}</strong>
+        </div>
+        <div class="status">
+          Criado em: <strong>{{ text_source.job_created_at }}</strong>
+        </div>
       {% endif %}
-      <textarea readonly>{{ md_preview }}</textarea>
-
+      <form method="post" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="insert_headlines" />
+        <button type="submit" class="btn btn-sm btn-secondary">
+          Insert page headlines
+        </button>
+        <p class="form-text">
+          Aplica pagebreak + heading de capitulo no MD atual.
+        </p>
+      </form>
+      <form method="post" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="insert_images" />
+        <button type="submit" class="btn btn-sm btn-secondary">
+          Insert image placeholders
+        </button>
+        <p class="form-text">
+          Insere placeholders de imagem (&#123;&#123;IMAGE:CHXX:01&#125;&#125;) no MD atual.
+        </p>
+      </form>
+      <div class="actions">
+        {% if text_source.selected_sources %}
+          {% for source in text_source.selected_sources %}
+            <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=edition.book_code language=source.language %}">
+              Preview ({{ source.language }})
+            </a>
+          {% endfor %}
+        {% else %}
+          <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=edition.book_code language=edition.language %}">
+            Preview (Pre-Edition)
+          </a>
+        {% endif %}
+      </div>
       <div class="actions" style="margin-top: 12px;">
         <div class="status"><strong>QA suspenso</strong></div>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'approve_md' %}">
@@ -272,6 +326,11 @@
       </div>
 
       <div class="links">
+        {% if md_pre_edition_path %}
+        <a href="{{ md_pre_edition_path }}">BOOK.PRE_EDITION.md</a>
+        {% else %}
+        <span class="badge">BOOK.PRE_EDITION.md</span>
+        {% endif %}
         {% if md_pre_qa_path %}
         <a href="{{ md_pre_qa_path }}">BOOK.PRE_QA.md</a>
         {% else %}

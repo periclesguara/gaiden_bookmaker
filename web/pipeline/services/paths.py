@@ -18,6 +18,7 @@ def edition_build_dir(edition) -> Path:
 
 
 MERGE_PRIORITY = ["merge_polish.txt", "merge_refine.txt", "merge_translate.txt"]
+FORCE_MERGE_TRANSLATE_MARKER = "FORCE_MERGE_TRANSLATE"
 LEGACY_MERGE_NAMES = [
     "MERGE_POLISH.TXT",
     "MERGE_REFINE.TXT",
@@ -25,9 +26,16 @@ LEGACY_MERGE_NAMES = [
 ]
 
 
+def merge_priority_names(edition) -> list[str]:
+    build_dir = edition_build_dir(edition)
+    if (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
+        return ["merge_translate.txt", "merge_refine.txt", "merge_polish.txt"]
+    return list(MERGE_PRIORITY)
+
+
 def merge_paths(edition) -> list[Path]:
     build_dir = edition_build_dir(edition)
-    return [build_dir / name for name in MERGE_PRIORITY]
+    return [build_dir / name for name in merge_priority_names(edition)]
 
 
 def _legacy_target_name(legacy_name: str) -> str | None:
@@ -85,6 +93,10 @@ def pre_qa_md_path(edition) -> Path:
 
 def qa_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.QA.md"
+
+
+def pre_edition_md_path(edition) -> Path:
+    return edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
 
 
 def qa_log_path(edition) -> Path:

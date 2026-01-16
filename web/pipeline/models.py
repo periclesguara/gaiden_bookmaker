@@ -177,6 +177,7 @@ class BookEditionTemplate(models.Model):
     copyright_text = models.TextField(blank=True)
     about_edition_text = models.TextField(blank=True)
     about_contributor_text = models.TextField(blank=True)
+    text_source_mode = models.CharField(max_length=100, default="auto")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

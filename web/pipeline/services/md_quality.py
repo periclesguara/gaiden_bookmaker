@@ -117,12 +117,15 @@ def run_quality_analysis(edition) -> Dict[str, object]:
 def approve_md_final(edition) -> Dict[str, str]:
     qa_path = paths.qa_md_path(edition)
     pre_path = paths.pre_qa_md_path(edition)
+    pre_edition_path = paths.pre_edition_md_path(edition)
     if qa_path.exists():
         source_path = qa_path
+    elif pre_edition_path.exists():
+        source_path = pre_edition_path
     elif pre_path.exists():
         source_path = pre_path
     else:
-        raise FileNotFoundError("No QA or PRE_QA file found to approve.")
+        raise FileNotFoundError("No QA, PRE_EDITION, or PRE_QA file found to approve.")
 
     final_path = paths.final_md_path(edition)
     final_path.parent.mkdir(parents=True, exist_ok=True)

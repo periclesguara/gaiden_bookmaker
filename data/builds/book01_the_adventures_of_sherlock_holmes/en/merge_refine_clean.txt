@@ -1,105 +1,31 @@
-::: center
-# The Adventures of Sherlock Holmes
-
-## Modern English Edition
-:::
-
-
-\newpage
-
-# I. A Scandal in Bohemia
-
-\newpage
-
-# I
-
-\newpage
-
-# I. The Red-Headed League
-
-\newpage
-
-# I
-
-\newpage
-
-# II. A Case of Identity
-
-\newpage
-
-# I
-
-\newpage
-
-# V. The Boscombe Valley Mystery
-
-\newpage
-
-# V. The Five Orange Pips
-
-\newpage
-
-# V
-
-\newpage
-
-# I. The Man with the Twisted Lip
-
-\newpage
-
-# V
-
-\newpage
-
-# II. The Adventure of the Blue Carbuncle
-
-\newpage
-
-# V
-
-\newpage
-
-# III. The Adventure of the Speckled Band
-
-\newpage
-
-# I
-
-\newpage
-
-# X. The Adventure of the Engineer’s Thumb
-
-\newpage
-
-# X. The Adventure of the Noble Bachelor
-
-\newpage
-
-# X
-
-\newpage
-
-# I. The Adventure of the Beryl Coronet
-
-\newpage
-
-# X
-
-\newpage
-
-# II. The Adventure of the Copper Beeches
-
-\newpage
-
-# I. A SCANDAL IN BOHEMIA
+I. A Scandal in Bohemia
+I
+I. The Red-Headed League
+I
+II. A Case of Identity
+I
+V. The Boscombe Valley Mystery
+V. The Five Orange Pips
+V
+I. The Man with the Twisted Lip
+V
+II. The Adventure of the Blue Carbuncle
+V
+III. The Adventure of the Speckled Band
+I
+X. The Adventure of the Engineer’s Thumb
+X. The Adventure of the Noble Bachelor
+X
+I. The Adventure of the Beryl Coronet
+X
+II. The Adventure of the Copper Beeches
+I. A SCANDAL IN BOHEMIA
 
 I.
 
 To Sherlock Holmes she is always the woman. I have rarely heard him refer to her by any other name. In his eyes she outshines and dominates her entire sex. It was not that he felt anything resembling love for Irene Adler. All emotions—and that one in particular—were repugnant to his cold, precise, but wonderfully balanced mind. He was, as I see it, the most perfect reasoning and observing machine the world has ever known; but as a lover he would have put himself in a false position. He never spoke of the softer passions except with a jest and a sneer. They were admirable things for the observer—excellent for lifting the veil from men’s motives and actions. But for a trained reasoner to allow such intrusions into his own delicate and finely tuned temperament would be to introduce a distracting element that might cast doubt on all his mental results. A grain of sand in a sensitive instrument, or a crack in one of his own powerful lenses, would not be more disturbing than a strong emotion in a nature like his. And yet, for him there was only one woman, and that woman was the late Irene Adler, of doubtful and questionable memory.
 
-\newpage
-
-# I. had seen little of Holmes lately. My marriage had gradually drawn us apart. My own complete happiness, and the home-centred interests that spring up around the man who first finds himself master of his own household, were enough to absorb all my attention; while Holmes, who loathed every form of society with his whole Bohemian soul, remained in our old rooms in Baker Street, buried among his books, and alternating week by week between cocaine and ambition—the lethargy of the drug and the fierce energy of his own keen nature. He was still, as always, deeply fascinated by the study of crime, and employed his immense faculties and extraordinary powers of observation in following up clues and solving mysteries which the official police had given up as hopeless. From time to time I heard vague reports of his activities: of his summons to Odessa in the Trepoff murder case, of his clearing up the strange tragedy of the Atkinson brothers at Trincomalee, and finally of the mission he had carried out so delicately and successfully for the reigning family of Holland. Beyond these signs of his activity, however—of which I knew only what every reader of the daily papers might know—I knew little of my former friend and companion.
+I. had seen little of Holmes lately. My marriage had gradually drawn us apart. My own complete happiness, and the home-centred interests that spring up around the man who first finds himself master of his own household, were enough to absorb all my attention; while Holmes, who loathed every form of society with his whole Bohemian soul, remained in our old rooms in Baker Street, buried among his books, and alternating week by week between cocaine and ambition—the lethargy of the drug and the fierce energy of his own keen nature. He was still, as always, deeply fascinated by the study of crime, and employed his immense faculties and extraordinary powers of observation in following up clues and solving mysteries which the official police had given up as hopeless. From time to time I heard vague reports of his activities: of his summons to Odessa in the Trepoff murder case, of his clearing up the strange tragedy of the Atkinson brothers at Trincomalee, and finally of the mission he had carried out so delicately and successfully for the reigning family of Holland. Beyond these signs of his activity, however—of which I knew only what every reader of the daily papers might know—I knew little of my former friend and companion.
 
 One night—it was the twentieth of March, 1888—I was returning from a visit to a patient (for I had now gone back into civilian practice), and my route took me through Baker Street. As I passed the well-remembered door, which must always be associated in my mind with my courtship and with the dark events of A Study in Scarlet, I was seized by a strong desire to see Holmes again and to learn how he was using his extraordinary powers. His rooms were brightly lit, and even as I looked up I saw his tall, thin figure pass twice in dark silhouette across the blind. He was pacing the room quickly, eagerly, with his head sunk on his chest and his hands clasped behind his back. To me, who knew his every mood and habit, his attitude and manner told their own story. He was at work again. He had risen from his drug-induced dreams and was hot on the trail of some new problem. I rang the bell and was shown up to the room which had once been partly mine.
 
@@ -123,17 +49,13 @@ He chuckled to himself and rubbed his long, nervous hands together.
 
 “I’ve got no data yet. It’s a serious mistake to start theorizing before you have data. Without realizing it, you begin twisting facts to fit theories instead of theories to fit facts. But let’s look at the note itself. What do you deduce from it?”
 
-\newpage
-
-# I. examined the handwriting carefully, and then the paper it was written on.
+I. examined the handwriting carefully, and then the paper it was written on.
 
 “The man who wrote it was probably well-off,” I said, trying to imitate my companion’s methods. “You couldn’t buy paper like this for less than half a crown a packet. It’s unusually strong and stiff.”
 
 “Unusual—exactly the word,” said Holmes. “It’s not English paper at all. Hold it up to the light.”
 
-\newpage
-
-# I. did so, and saw a large ‘E’ with a small ‘g,’ a ‘P,’ and a large ‘G’ with a small ‘t’ woven into the texture of the paper.
+I. did so, and saw a large ‘E’ with a small ‘g,’ a ‘P,’ and a large ‘G’ with a small ‘t’ woven into the texture of the paper.
 
 “What do you make of that?” asked Holmes.
 
@@ -169,9 +91,7 @@ A man entered who could hardly have been less than six foot six, with the chest 
 
 “You may call me the Count von Kramm, a Bohemian nobleman. I understand that this gentleman, your friend, is a man of honour and discretion, someone I may trust with a matter of the utmost importance. If not, I would much prefer to speak with you alone.”
 
-\newpage
-
-# I. rose to leave, but Holmes caught my wrist and pushed me back into my chair. “It’s both of us or neither,” he said. “You may say to this gentleman anything you can say to me.”
+I. rose to leave, but Holmes caught my wrist and pushed me back into my chair. “It’s both of us or neither,” he said. “You may say to this gentleman anything you can say to me.”
 
 The Count shrugged his broad shoulders. “Then I must begin,” he said, “by binding you both to absolute secrecy for two years. After that, the matter will no longer be important. At present, it’s no exaggeration“Then please, go on,” said Holmes, closing his eyes again.
 
@@ -299,17 +219,12 @@ Holmes jotted it down. “One more question,” he said. “Was the photograph c
 
 “Then good night, Your Majesty, and I trust we shall soon have good news for you. And good night, Watson,” he added, as the wheels of the royal brougham rolled away down the street. “If you would be so kind as to call tomorrow afternoon at three o’clock, I should like to talk this little matter over with you.”
 
-\newpage
-
-# I
-
+I
 I.
 
 At precisely three o’clock I was in Baker Street, but Holmes had not yet returned. The landlady told me that he had left the house shortly after eight that morning. I sat down by the fire, determined to wait for him, however long he might be.
 
-\newpage
-
-# I. was already deeply interested in his investigation, for although it lacked the grim and bizarre features of the two crimes I have already described, the nature of the case and the exalted rank of his client gave it a character all its own. Indeed, quite apart from the particular problem my friend had in hand, there was something in his masterly grasp of a situation and his sharp, incisive reasoning that made it a pleasure to study his methods and to follow the quick, subtle ways inI strolled down the street and, as I’d expected, found a mews in a little lane running along one wall of the garden. I helped the stable hands rub down their horses and, in return, got twopence, a glass of half-and-half, two pipefuls of shag tobacco, and as much information as I could possibly want about Miss Adler—plus the life stories of half a dozen other local people in whom I had no interest whatsoever, but which I was forced to endure.
+I. was already deeply interested in his investigation, for although it lacked the grim and bizarre features of the two crimes I have already described, the nature of the case and the exalted rank of his client gave it a character all its own. Indeed, quite apart from the particular problem my friend had in hand, there was something in his masterly grasp of a situation and his sharp, incisive reasoning that made it a pleasure to study his methods and to follow the quick, subtle ways inI strolled down the street and, as I’d expected, found a mews in a little lane running along one wall of the garden. I helped the stable hands rub down their horses and, in return, got twopence, a glass of half-and-half, two pipefuls of shag tobacco, and as much information as I could possibly want about Miss Adler—plus the life stories of half a dozen other local people in whom I had no interest whatsoever, but which I was forced to endure.
 
 “And what about Irene Adler?” I asked.
 
@@ -437,15 +352,10 @@ There were several people on the pavement at the time, but the greeting seemed t
 
 “I’ve heard that voice before,” said Holmes, staring down the dimly lit street. “Now, who the devil could that have been?”
 
-\newpage
-
-# I
-
+I
 II.
 
-\newpage
-
-# I. slept at Baker Street that night, and we were in the middle of our toast and coffee the next morning when the King of Bohemia burst into the room.
+I. slept at Baker Street that night, and we were in the middle of our toast and coffee the next morning when the King of Bohemia burst into the room.
 
 “You really have it!” he cried, seizing Sherlock Holmes by both shoulders and staring eagerly into his face.
 
@@ -525,9 +435,7 @@ The King stared at him in astonishment.
 
 And that is how a great scandal came close to shaking the kingdom of Bohemia, and how the finest plans of Mr. Sherlock Holmes were outmatched by a woman’s wit. He used to jest about the cleverness of women, but I have not heard him do so for some time. And when he speaks of Irene Adler, or refers to her photograph, it is always with the respectful title: the woman.2. THE RED-HEADED LEAGUE
 
-\newpage
-
-# I. had dropped in on my friend, Mr. Sherlock Holmes, one day in the autumn of last year and found him deep in conversation with a very stout, florid-faced elderly gentleman with blazing red hair. I apologized for interrupting and was about to withdraw when Holmes seized me by the arm, pulled me into the room, and shut the door behind me.
+I. had dropped in on my friend, Mr. Sherlock Holmes, one day in the autumn of last year and found him deep in conversation with a very stout, florid-faced elderly gentleman with blazing red hair. I apologized for interrupting and was about to withdraw when Holmes seized me by the arm, pulled me into the room, and shut the door behind me.
 
 “You couldn’t possibly have come at a better moment, my dear Watson,” he said warmly.
 
@@ -553,9 +461,7 @@ The stout gentleman half rose from his chair and gave a little bob of greeting, 
 
 Our portly client puffed out his chest with a touch of pride and pulled a dirty, wrinkled newspaper from the inside pocket of his greatcoat. As he ran his eye down the advertisement column, his head thrust forward and the paper flattened across his knee, I took the opportunity to study him and tried, in my companion’s fashion, to read whatever clues might be offered by his clothes and appearance.
 
-\newpage
-
-# I. did not gain much, however, from my inspection. Our visitor showed every sign of being an ordinary, commonplace British tradesman: fat, pompous, and slow. He wore rather baggy gray shepherd’s-check trousers, a not-too-clean black frock coat, unbuttoned in front, and a drab waistcoat with a heavy, brassy Albert chain and a square, pierced bit of metal dangling from it as an ornament. A frayed top hat and a faded brown overcoat with a wrinkled velvet collar lay on a chair beside him. Look as I might, there was nothing remarkable about the man except his flaming red hair and the expression of deep annoyance and discontent on his features.
+I. did not gain much, however, from my inspection. Our visitor showed every sign of being an ordinary, commonplace British tradesman: fat, pompous, and slow. He wore rather baggy gray shepherd’s-check trousers, a not-too-clean black frock coat, unbuttoned in front, and a drab waistcoat with a heavy, brassy Albert chain and a square, pierced bit of metal dangling from it as an ornament. A frayed top hat and a faded brown overcoat with a wrinkled velvet collar lay on a chair beside him. Look as I might, there was nothing remarkable about the man except his flaming red hair and the expression of deep annoyance and discontent on his features.
 
 Sherlock Holmes’s quick eye noticed what I was doing, and he shook his head with a smile as he caught my questioning glances. “Beyond the obvious facts that he has at some time done manual labor, that he takes snuff, that he is a Freemason, that he has been in China, and that he has done a considerable amount of writing lately, I can deduce nothing else.”
 
@@ -631,9 +537,7 @@ He stepped to the window and shouted at the top of his voice that the vacancy wa
 
 “My name,” he said, “is Mr. Duncan Ross, and I am myself one of the pensioners of the fund left by our noble benefactor. Are you a married man, Mr. Wilson? Do you have a family?”
 
-\newpage
-
-# I. answered that I did not.
+I. answered that I did not.
 
 His face fell at once.
 
@@ -775,9 +679,7 @@ We took the Underground as far as Aldersgate, and a short walk brought us to Sax
 
 “Very good. And, I say, Doctor—there may be a touch of danger, so please slip your service revolver into your pocket.” He waved a hand, turned on his heel, and vanished at once into the crowd.
 
-\newpage
-
-# I. hope I am no more dull than my neighbours, but I was always weighed down by a sense of my own stupidity when dealing with Sherlock Holmes. I had heard what he had heard, I had seen what he had seen, and yet from his words it was clear that he understood not only what had happened, but what was about to happen, while to me the whole affair remained confused and grotesque. As I drove back to my house in Kensington, I went over everything in my mind—from the extraordinary story of the red-headed copyist of the Encyclopaedia, down to our visit to Saxe-Coburg Square and the ominous words with which he had left me. What was this nighttime expedition, and why was I to go armed? Where were we going, and what were we to do? Holmes had hinted that this smooth-faced assistant in the pawnshop was a dangerous man—a man capable of playing a very deep game. I tried to work it out, but finally gave it up in despair and put the matter from my mind until the night should bring an explanation.
+I. hope I am no more dull than my neighbours, but I was always weighed down by a sense of my own stupidity when dealing with Sherlock Holmes. I had heard what he had heard, I had seen what he had seen, and yet from his words it was clear that he understood not only what had happened, but what was about to happen, while to me the whole affair remained confused and grotesque. As I drove back to my house in Kensington, I went over everything in my mind—from the extraordinary story of the red-headed copyist of the Encyclopaedia, down to our visit to Saxe-Coburg Square and the ominous words with which he had left me. What was this nighttime expedition, and why was I to go armed? Where were we going, and what were we to do? Holmes had hinted that this smooth-faced assistant in the pawnshop was a dangerous man—a man capable of playing a very deep game. I tried to work it out, but finally gave it up in despair and put the matter from my mind until the night should bring an explanation.
 
 It was a quarter past nine when I left home, crossed the Park, and went by way of Oxford Street to Baker Street. Two hansom cabs were waiting at the door, and as I entered the passage I heard voices upstairs. When I went into Holmes’s room, I found him in animated conversation with two men, one of whom I recognized as Peter Jones, the official police detective, while the other was a tall, thin, sad-faced man with a very shiny hat and an oppressively respectable frock coat.
 
@@ -815,9 +717,7 @@ The solemn Mr. Merryweather perched himself on a box, looking deeply offended, w
 
 “I’m afraid so. I brought a pack of cards in my pocket, and I thought that since we were a foursome you might get your rubber after all. But I see the enemy’s preparations are so far advanced that we can’t risk any light. First of all, we must choose our positions. These are bold men, and although we’ll catch them at a disadvantage, they may still do us some harm if we’re not careful. I’ll stand behind this crate, and you two hide behind those. Then, when I flash the light on them, close in quickly. If they fire, Watson, don’t hesitate to shoot them down.”
 
-\newpage
-
-# I. laid my revolver, cocked, on top of the wooden crate behind which I crouched. Holmes slid the cover over the front of his lantern and left us in total darkness—such absolute darkness as I had never known before. The smell of hot metal was all that assured us the light was still there, ready to blaze out at a moment’s notice. With my nerves strung tight with expectation, there was something crushing and oppressive in the sudden blackness and in the cold, clammy air of the vault.
+I. laid my revolver, cocked, on top of the wooden crate behind which I crouched. Holmes slid the cover over the front of his lantern and left us in total darkness—such absolute darkness as I had never known before. The smell of hot metal was all that assured us the light was still there, ready to blaze out at a moment’s notice. With my nerves strung tight with expectation, there was something crushing and oppressive in the sudden blackness and in the cold, clammy air of the vault.
 
 “They have only one way out,” Holmes whispered. “Back through the house into Saxe-Coburg Square. I hope you’ve done what I asked, Jones?”
 
@@ -859,9 +759,7 @@ He shrugged. “Well, perhaps, after all, it is of some small use,” he remarke
 
 “To create a realistic effect, you have to exercise some choice and judgment,” Holmes remarked. “That’s exactly what’s missing from the police report, where more emphasis is placed, perhaps, on the magistrate’s platitudes than on the details which, to an observer, contain the vital essence of the whole affair. You may depend on it: nothing is so unnatural as the commonplace.”
 
-\newpage
-
-# I. smiled and shook my head. “I can quite understand your thinking that,” I said. “Of course, in your position as unofficial adviser and helper to everyone who is utterly baffled, across three continents, you come into contact with everything strange and bizarre. But here”—I picked the morning paper up from the floor—“let’s put it to a practical test. Here is the first headline I see: ‘A Husband’s Cruelty to His Wife.’ There’s half a column of print, but I know without reading it that it’s all perfectly familiar. There will be, of course, the other woman, the drink, the shove, the blow, the bruise, the sympathetic sister or landlady. The clumsiest of writers could invent nothing more clumsy.”
+I. smiled and shook my head. “I can quite understand your thinking that,” I said. “Of course, in your position as unofficial adviser and helper to everyone who is utterly baffled, across three continents, you come into contact with everything strange and bizarre. But here”—I picked the morning paper up from the floor—“let’s put it to a practical test. Here is the first headline I see: ‘A Husband’s Cruelty to His Wife.’ There’s half a column of print, but I know without reading it that it’s all perfectly familiar. There will be, of course, the other woman, the drink, the shove, the blow, the bruise, the sympathetic sister or landlady. The clumsiest of writers could invent nothing more clumsy.”
 
 “In fact, your example is a poor one for your argument,” said Holmes, taking the paper and running his eye down the column. “This is the Dundas separation case, and, as it happens, I was involved in clearing up a few small points connected with it. The husband was a teetotaler, there was no other woman, and the conduct complained of was that he had fallen into the habit of ending every meal by taking out his false teeth and hurling them at his wife—which, you’ll admit, is not an action likely to occur to the imagination of the average storyteller. Take a pinch of snuff, Doctor, and admit that I’ve scored a point against you with your own example.”
 
@@ -889,9 +787,7 @@ As he spoke, there was a knock at the door, and the page-boy entered to announce
 
 “Oh yes, Mother is alive and well. I wasn’t at all pleased, Mr. Holmes, when she married again so soon after Father’s death—and to a man nearly fifteen years younger than she was. Father was a plumber in Tottenham Court Road, and he left a good business behind him, which Mother carried on with Mr. Hardy, the foreman. But when Mr. Windibank came, he made her sell the business, because he was very superior, being a wine traveller. They got £4,700 for the goodwill and interest, which was nowhere near what Father could have got if he’d been alive.”
 
-\newpage
-
-# I. had expected Sherlock Holmes to grow impatient with this rambling, seemingly aimless story, but instead he listened with the most intense attention.
+I. had expected Sherlock Holmes to grow impatient with this rambling, seemingly aimless story, but instead he listened with the most intense attention.
 
 “Your own little income,” he asked, “does that come from the business?”
 
@@ -1003,9 +899,7 @@ Sherlock Holmes sat silent for a few minutes with his fingertips still pressed t
 
 “I noticed, in passing, that she had written a note before leaving home, but after she was fully dressed. You saw that her right glove was torn at the forefinger, but you apparently didn’t notice that both the glove and the finger were stained with violet ink. She had written in a hurry and dipped her pen too deeply. It must have been this morning, or the mark wouldn’t still be so clear on her finger. All this is entertaining, if rather elementary, but I must get back to business, Watson. Would you read me the advertised description of Mr. Hosmer Angel?”
 
-\newpage
-
-# I. held the little printed slip up to the light. “Missing,” it said, “on the morning of the fourteenth, a gentleman named Hosmer Angel. About five feet seven inches in height; strongly built; sallow complexion; black hair, a little bald in the centre; bushy black side-whiskers and moustache; tinted glasses; slight speech impediment. Was dressed, when last seen, in black frock coat faced with silk, black waistcoat, gold Albert chain, and grey Harris tweed trousers, with brown gaiters over elastic-sided boots. Known to have been employed in an office in Leadenhall Street. Anybody bringing,” etc., etc.
+I. held the little printed slip up to the light. “Missing,” it said, “on the morning of the fourteenth, a gentleman named Hosmer Angel. About five feet seven inches in height; strongly built; sallow complexion; black hair, a little bald in the centre; bushy black side-whiskers and moustache; tinted glasses; slight speech impediment. Was dressed, when last seen, in black frock coat faced with silk, black waistcoat, gold Albert chain, and grey Harris tweed trousers, with brown gaiters over elastic-sided boots. Known to have been employed in an office in Leadenhall Street. Anybody bringing,” etc., etc.
 
 “That will do,” said Holmes. “As to the letters,” he went on, glancing over them, “they are very ordinary. Absolutely no clue in them to Mr. Angel, except that he quotes Balzac once. There is one remarkable point, however, which will no doubt strike you.”
 
@@ -1021,13 +915,9 @@ Sherlock Holmes sat silent for a few minutes with his fingertips still pressed t
 
 “No, that was not the point. However, I shall write two letters which ought to settle the matter. One is to a firm in the City, the other is to the young lady’s stepfather, Mr. Windibank, asking whether he can meet us here at six o’clock tomorrow evening. It is just as well that we should conduct our business with the male relatives. And now, Doctor, we can do nothing until the answers to those letters arrive, so we may put our little problem on the shelf for the time being.”
 
-\newpage
+I. had had so many reasons to trust in my friend’s subtle powers of reasoning and his extraordinary energy in action that I felt he must have some solid grounds for the calm, assured manner with which he treated the strange mystery he had been called upon to unravel. Only once had I known him to fail—in the case of the King of Bohemia and the Irene Adler photograph. But when I thought back to the uncanny affair of The Sign of Four and the extraordinary circumstances surrounding A Study in Scarlet, I felt it would have to be a very strange tangle indeed that he could not unweave.
 
-# I. had had so many reasons to trust in my friend’s subtle powers of reasoning and his extraordinary energy in action that I felt he must have some solid grounds for the calm, assured manner with which he treated the strange mystery he had been called upon to unravel. Only once had I known him to fail—in the case of the King of Bohemia and the Irene Adler photograph. But when I thought back to the uncanny affair of The Sign of Four and the extraordinary circumstances surrounding A Study in Scarlet, I felt it would have to be a very strange tangle indeed that he could not unweave.
-
-\newpage
-
-# I. left him then, still puffing at his black clay pipe, convinced that when I returned the next evening I would find that he held in his hands all the clues that would lead to the identity of Miss Mary Sutherland’s disappearing bridegroom.
+I. left him then, still puffing at his black clay pipe, convinced that when I returned the next evening I would find that he held in his hands all the clues that would lead to the identity of Miss Mary Sutherland’s disappearing bridegroom.
 
 A professional case of great seriousness was occupying my own attention at the time, and the whole of the next day I was busy at my patient’s bedside. It was not until nearly six o’clock that I found myself free and able to jump into a hansom and drive to Baker Street, half afraid that I might be too late to witness the dénouement of the little mystery. I found Sherlock Holmes alone, however, half asleep, his long, thin form curled up in the depths of his armchair. A formidable array of bottles and test tubes, and the sharp, clean smell of hydrochloric acid, told me that he had spent his day on the chemical work he loved so much.
 
@@ -1135,9 +1025,7 @@ We had the compartment to ourselves, apart from an enormous litter of papers Hol
 
 “On the contrary,” said Holmes, “it’s the brightest break in the clouds I can see at the moment. However innocent he might be, he couldn’t be such a complete idiot as not to see that the circumstances looked very black against him. If he had seemed surprised at his arrest, or had pretended to be indignant about it, I should have found that highly suspicious, because such surprise or anger would not be natural in the circumstances, and yet might seem the best policy to a calculating man. His straightforward acceptance of the situation marks him either as an innocent man, or as a man of remarkable self-control and strength of character. As for his remark about getting what he deserved, that too is not unnatural if you consider that he was standing beside his father’s dead body, and that there is no doubt he had that very day so far forgotten his duty as a son as to bandy words with him and even—according to the little girl whose testimony is so important—to raise his hand as if to strike him. The self-reproach and remorse shown in his remark seem to me signs of a healthy mind rather than a guilty one.”
 
-\newpage
-
-# I. shook my head. “Many men have been hanged on far slighter evidence,” I said.
+I. shook my head. “Many men have been hanged on far slighter evidence,” I said.
 
 “So they have. And many men have been wrongly hanged.”
 
@@ -1219,15 +1107,11 @@ He had barely spoken when there burst into the room one of the loveliest young w
 
 “Then let’s do it. Watson, I’m afraid you’ll find it very dull, but I’ll only be gone a couple of hours.”
 
-\newpage
-
-# I. walked down to the station with them, then wandered through the streets of the little town, finally returning to the hotel, where I lay on the sofa and tried to interest myself in a yellow-backed novel. The flimsy little plot was so thin compared to the deep mystery we were groping through that my attention kept drifting from the story back to the case, until at last I flung the book across the room and gave myself up entirely to thinking over the day’s events.
+I. walked down to the station with them, then wandered through the streets of the little town, finally returning to the hotel, where I lay on the sofa and tried to interest myself in a yellow-backed novel. The flimsy little plot was so thin compared to the deep mystery we were groping through that my attention kept drifting from the story back to the case, until at last I flung the book across the room and gave myself up entirely to thinking over the day’s events.
 
 If this unhappy young man’s story was absolutely true, then what hellish thing—what utterly unforeseen and extraordinary calamity—could have happened between the moment he left his father and the moment when, drawn back by his screams, he rushed into the clearing? It was something terrible and deadly. What could it have been? Might the nature of the injuries suggest something to my medical instincts?
 
-\newpage
-
-# I. rang for the waiter and asked for the weekly county paper, which carried a verbatim report of the inquest. In the surgeon’s deposition it was stated that the back third of the left parietal bone and the left half of the occipital bone had been shattered by a heavy blow from a blunt weapon. I marked the spot on my own head. Clearly, such a blow must have been struck from behind. That told somewhat in favour of the accused, since when they were seen quarrelling they were face to face. Still, it did not count for very much, for the older man might have turned his back before the blow fell. Even so, it might be worth drawing Holmes’s attention to it.
+I. rang for the waiter and asked for the weekly county paper, which carried a verbatim report of the inquest. In the surgeon’s deposition it was stated that the back third of the left parietal bone and the left half of the occipital bone had been shattered by a heavy blow from a blunt weapon. I marked the spot on my own head. Clearly, such a blow must have been struck from behind. That told somewhat in favour of the accused, since when they were seen quarrelling they were face to face. Still, it did not count for very much, for the older man might have turned his back before the blow fell. Even so, it might be worth drawing Holmes’s attention to it.
 
 Then there was the strange dying reference to a “rat.” What could that mean? It could hardly be delirium. A man dying from a sudden blow does not usually become delirious. No, it was more likely an attempt to explain how he met his fate. But what could it indicate? I racked my brains for some possible explanation.
 
@@ -1445,15 +1329,11 @@ One day—it was in March 1883—a letter with a foreign stamp was lying on the 
 
 “They can do what they like, but I’ll checkmate them yet,” he said with an oath. “Tell Mary I’ll want a fire in my room today, and send down to Fordham, the lawyer in Horsham.”
 
-\newpage
-
-# I. did as he ordered, and when the lawyer arrived I was told to come up to the room. The fire was blazing, and in the grate there was a heap of black, fluffy ashes, like burned paper, while the brass box stood open and empty beside it. As I glanced at the box I started, for on the lid was printed the triple K I had seen that morning on the envelope.
+I. did as he ordered, and when the lawyer arrived I was told to come up to the room. The fire was blazing, and in the grate there was a heap of black, fluffy ashes, like burned paper, while the brass box stood open and empty beside it. As I glanced at the box I started, for on the lid was printed the triple K I had seen that morning on the envelope.
 
 “I want you, John,” said my uncle, “to witness my will. I leave my estate, with all its advantages and all its drawbacks, to my brother, your father, from whom it will no doubt pass on to you. If you can enjoy it in peace, so much the better. If you find you can’t, then take my advice, my boy, and leave it to your worst enemy. I’m sorry to hand you such a two-edged thing, but I can’t tell which way matters are going to turn. Kindly sign where Mr. Fordham shows you.”
 
-\newpage
-
-# I. signed where I was told, and the lawyer took the document away with him. The strange incident, as you can imagine, made a deep impression on me, and I turned it over and over in my mind without being able to make any sense of it. I still couldn’t shake off the vague dread it left behind, though the feeling dulled as the weeks went by and nothing happened to disturb our usual routine. I could see a change in my uncle, though. He drank more than ever and was less inclined for any kind of company. Most of the time he stayed in his room with the door locked on the inside, but sometimes he would burst out in a kind of drunken frenzy, rush out of the house, and tear around the garden with a revolver in his hand, shouting that he feared no man and that he would not be cooped up like a sheep in a pen by man or devil. But when these hot fits were over, he would come storming back into the house and lock and bar the door behind him, like a man who can no longer brazen it out against the terror at the bottom of his soul. At such times I have seen his face, even on a cold day, shining with sweat, as though he had just lifted it from a basin of water.
+I. signed where I was told, and the lawyer took the document away with him. The strange incident, as you can imagine, made a deep impression on me, and I turned it over and over in my mind without being able to make any sense of it. I still couldn’t shake off the vague dread it left behind, though the feeling dulled as the weeks went by and nothing happened to disturb our usual routine. I could see a change in my uncle, though. He drank more than ever and was less inclined for any kind of company. Most of the time he stayed in his room with the door locked on the inside, but sometimes he would burst out in a kind of drunken frenzy, rush out of the house, and tear around the garden with a revolver in his hand, shouting that he feared no man and that he would not be cooped up like a sheep in a pen by man or devil. But when these hot fits were over, he would come storming back into the house and lock and bar the door behind him, like a man who can no longer brazen it out against the terror at the bottom of his soul. At such times I have seen his face, even on a cold day, shining with sweat, as though he had just lifted it from a basin of water.
 
 To bring the matter to an end, Mr. Holmes, and not to strain your patience, there came a night when he made one of those drunken sallies—and never came back. When we went to look for him we found him lying face down in a little pool with a green scum on it at the bottom of the garden. There was no sign of violence, and the water was only two feet deep, so the jury, taking his known eccentricity into account, returned a verdict of suicide. But I, who knew how he shuddered at the very thought of death, found it hard to believe he had gone“‘What on earth does this mean, John?’ he stammered.
 
@@ -1645,9 +1525,7 @@ One night—it was in June of ’89—the bell rang, just about the time of even
 
 “A patient,” she said. “You’ll have to go out.”
 
-\newpage
-
-# I. groaned, for I had only just come back from a long, exhausting day.
+I. groaned, for I had only just come back from a long, exhausting day.
 
 We heard the front door open, a few hurried words, and then quick steps across the linoleum. Our own door flew open, and a lady dressed in some dark material, with a black veil, came into the room.
 
@@ -1915,9 +1793,7 @@ We both put our eyes to the grating. The prisoner lay facing us, in a very deep 
 
 “Allow me to introduce you,” he shouted, “to Mr. Neville St. Clair, of Lee, in the county of Kent.”
 
-\newpage
-
-# I. have never in my life seen anything like it. The man’s face came away under the sponge like bark from a tree. Gone was the coarse brown tint! Gone, too, the horrible scar that had seamed it across, and the twisted lip that had given the face its repulsive sneer! A quick tug stripped off the tangled red hair, and there, sitting up in his bed, was a pale, sad-faced, refined-looking man, black-haired and smooth-skinned, rubbing his eyes and staring around him in sleepy bewilderment. Then, suddenly realizing that he was exposed, he let out a scream and flung himself face down on the pillow.
+I. have never in my life seen anything like it. The man’s face came away under the sponge like bark from a tree. Gone was the coarse brown tint! Gone, too, the horrible scar that had seamed it across, and the twisted lip that had given the face its repulsive sneer! A quick tug stripped off the tangled red hair, and there, sitting up in his bed, was a pale, sad-faced, refined-looking man, black-haired and smooth-skinned, rubbing his eyes and staring around him in sleepy bewilderment. Then, suddenly realizing that he was exposed, he let out a scream and flung himself face down on the pillow.
 
 “Good heavens!” cried the inspector. “It really is the missing man. I know him from the photograph.”
 
@@ -1943,9 +1819,7 @@ As I grew richer, I grew more ambitious. I took a house in the country and event
 
 Last Monday I had finished for the day and was changing in my room above the opium den when I looked out of the window and, to my horror and astonishment, saw my wife standing in the street, staring straight up at me. I cried out in shock, threw up my arms to cover my face, and rushed to my confidant, the Lascar, begging him to stop anyone from coming up to my room. I heard her voice downstairs, but I knew she couldn’t get up to me. Quickly I stripped off my clothes, pulled on my beggar’s rags, and put on my makeup and wig. Not even a wife’s eyes could see through such a perfect disguise. Then it struck me that they might search the room and that my clothes could betray me. I flung open the window, reopening, in my haste, a small cut I had given myself that morning in the bedroom. Then I grabbed my coat, which was heavy with the coppers I had just transferred into it from the leather bag I used to carry my takings. I hurled it out of the window, and it vanished into the Thames. The rest of the clothes would have followed, but at that moment there was a rush of policemen up the stairs, and a few minutes later I discovered—rather, I admit, to my relief—that instead of being identified as Mr. Neville St. Clair, I was arrested as his murderer.
 
-\newpage
-
-# I. don’t think there is anything else I need to explain. I was determined to keep my disguise as long as possible, which is why I insisted on keeping my face dirty. Knowing how terribly anxious my wife would be, I slipped off my ring and, at a moment when no constable was watching, entrusted it to the Lascar along with a hurried note telling her she had no reason to be afraid.”
+I. don’t think there is anything else I need to explain. I was determined to keep my disguise as long as possible, which is why I insisted on keeping my face dirty. Knowing how terribly anxious my wife would be, I slipped off my ring and, at a moment when no constable was watching, entrusted it to the Lascar along with a hurried note telling her she had no reason to be afraid.”
 
 “That note only reached her yesterday,” said Holmes.
 
@@ -1965,17 +1839,13 @@ Last Monday I had finished for the day and was changing in my room above the opi
 
 “I arrived at this one,” said my friend, “by sitting on five pillows and smoking an ounce of shag tobacco. I think, Watson, that if we drive to Baker Street now, we shall be just in time for breakfast.”7. THE ADVENTURE OF THE BLUE CARBUNCLE
 
-\newpage
-
-# I. had called on my friend Sherlock Holmes on the second morning after Christmas, intending to offer him the compliments of the season. He was lounging on the sofa in a purple dressing gown, a pipe-rack within easy reach on his right, and a heap of crumpled morning papers—clearly just read—close at hand. Beside the couch stood a wooden chair, and from the corner of its back hung a very shabby, disreputable hard-felt hat, badly worn and cracked in several places. A magnifying lens and a pair of forceps lying on the seat suggested that the hat had been hung there for the purpose of examination.
+I. had called on my friend Sherlock Holmes on the second morning after Christmas, intending to offer him the compliments of the season. He was lounging on the sofa in a purple dressing gown, a pipe-rack within easy reach on his right, and a heap of crumpled morning papers—clearly just read—close at hand. Beside the couch stood a wooden chair, and from the corner of its back hung a very shabby, disreputable hard-felt hat, badly worn and cracked in several places. A magnifying lens and a pair of forceps lying on the seat suggested that the hat had been hung there for the purpose of examination.
 
 “You’re busy,” I said. “Perhaps I’m interrupting.”
 
 “Not at all. I’m glad to have a friend to discuss my results with. The matter is perfectly trivial”—he jerked his thumb toward the old hat—“but there are points about it that are not entirely without interest, and even instruction.”
 
-\newpage
-
-# I. settled into his armchair and warmed my hands at his crackling fire, for a sharp frost had set in and the windows were thick with ice crystals. “I suppose,” I remarked, “that homely as it looks, this thing has some deadly story attached to it—that it’s the clue that will guide you to the solution of some mystery and the punishment of some crime.”
+I. settled into his armchair and warmed my hands at his crackling fire, for a sharp frost had set in and the windows were thick with ice crystals. “I suppose,” I remarked, “that homely as it looks, this thing has some deadly story attached to it—that it’s the clue that will guide you to the solution of some mystery and the punishment of some crime.”
 
 “No, no. No crime,” said Sherlock Holmes, laughing. “Just one of those whimsical little incidents that are bound to happen when you have four million human beings all jostling one another within a few square miles. In the constant action and reaction of such a dense swarm of humanity, every possible combination of events may be expected, and many a small problem will present itself which may be striking and bizarre without being criminal. We’ve already had experience of such cases.”
 
@@ -2015,9 +1885,7 @@ Last Monday I had finished for the day and was changing in my room above the opi
 
 “Here is my lens. You know my methods. What can you yourself deduce about the personality of the man who has worn this item?”
 
-\newpage
-
-# I. took the tattered object in my hands and turned it over rather ruefully. It was a very ordinary black hat of the usual round shape, hard and badly worn. The lining had once been red silk, but was now much discolored. There was no maker’s name; but, as Holmes had pointed out, the initials “H. B.” were scrawled on one side. The brim was pierced for a hat-guard, but the elastic was missing. Otherwise, it was cracked, extremely dusty, and stained in several“You’re joking, Holmes.”
+I. took the tattered object in my hands and turned it over rather ruefully. It was a very ordinary black hat of the usual round shape, hard and badly worn. The lining had once been red silk, but was now much discolored. There was no maker’s name; but, as Holmes had pointed out, the initials “H. B.” were scrawled on one side. The brim was pierced for a hat-guard, but the elastic was missing. Otherwise, it was cracked, extremely dusty, and stained in several“You’re joking, Holmes.”
 
 “Not in the slightest. Can it really be that even now, when I lay the conclusions before you, you still can’t see how I reached them?”
 
@@ -2117,9 +1985,7 @@ When the commissionaire had gone, Holmes picked up the stone and held it to the 
 
 “I’ll be very glad to see you. I dine at seven. There’s a woodcock, I believe. In light of recent events, perhaps I ought to ask Mrs. Hudson to examine its crop.”
 
-\newpage
-
-# I. was delayed by a case, and it was a little after half-past six when I found myself once more in Baker Street. As I approached the house I saw a tall man in a Scotch bonnet and a coat buttoned up to his chin waiting outside in the bright semicircle of light thrown from the fanlight. Just as I arrived, the door opened, and we were shown up together to Holmes’s room.
+I. was delayed by a case, and it was a little after half-past six when I found myself once more in Baker Street. As I approached the house I saw a tall man in a Scotch bonnet and a coat buttoned up to his chin waiting outside in the bright semicircle of light thrown from the fanlight. Just as I arrived, the door opened, and we were shown up together to Holmes’s room.
 
 “Mr. Henry Baker, I presume,” said Holmes, rising from his armchair and greeting his visitor with that easy geniality he could so readily assume. “Please take this chair by the fire, Mr. Baker. It’s a cold night, and I notice your circulation is better suited to summer than to winter. Ah, Watson, you’ve come at exactly the right moment. Is that your hat, Mr. Baker?”
 
@@ -2605,9 +2471,11 @@ He squatted down in front of the wooden chair and examined the seat with the gre
 
 “But what are you going to do?”
 
-“We’re going to spend the night in your room and get to the bottom of this noise that’s been disturbing you.”
+“We’re going to spend the night in your room and get to the bottom of
+this noise that’s been disturbing you.”
 
-“I believe, Mr. Holmes, that you’ve already made up your mind,” said Miss Stoner, laying her hand on my companion’s sleeve.
+“I believe, Mr. Holmes, that you’ve already made up your mind,” said
+Miss Stoner, laying her hand on my companion’s sleeve.
 
 “Perhaps I have.”
 
@@ -2615,13 +2483,29 @@ He squatted down in front of the wooden chair and examined the seat with the gre
 
 “I’d rather have clearer proof before I say anything.”
 
-“You can at least tell me whether my own idea is right—whether she died from some sudden fright.”
+“You can at least tell me whether my own idea is right—whether she died
+from some sudden fright.”
 
-“No, I don’t think so. I believe there was probably some more tangible cause. And now, Miss Stoner, we must leave you, for if Dr. Roylott comes back and finds us here, our whole journey will have been wasted. Good-bye—and be brave, for if you do exactly as I’ve told you, you may rest assured that we’ll soon drive away the danger that threatens you.”
+“No, I don’t think so. I believe there was probably some more tangible
+cause. And now, Miss Stoner, we must leave you, for if Dr. Roylott
+comes back and finds us here, our whole journey will have been wasted.
+Good-bye—and be brave, for if you do exactly as I’ve told you, you may
+rest assured that we’ll soon drive away the danger that threatens you.”
 
-Sherlock Holmes and I had no difficulty in getting a bedroom and a sitting room at the Crown Inn. They were on the top floor, and from our window we had a clear view of the avenue gate and the inhabited wing of Stoke Moran Manor House. At dusk we saw Dr. Grimesby Roylott drive past, his huge figure looming beside the small, slight boy who drove him. The lad had some trouble unfastening the heavy iron gates, and we heard the doctor’s hoarse bellow and saw the fury with which he shook his clenched fists at him. The trap rolled on, and a few minutes later we saw a sudden light spring up among the trees as a lamp was lit in one of the sitting rooms.
+Sherlock Holmes and I had no difficulty in getting a bedroom and a
+sitting room at the Crown Inn. They were on the top floor, and from our
+window we had a clear view of the avenue gate and the inhabited wing of
+Stoke Moran Manor House. At dusk we saw Dr. Grimesby Roylott drive
+past, his huge figure looming beside the small, slight boy who drove
+him. The lad had some trouble unfastening the heavy iron gates, and we
+heard the doctor’s hoarse bellow and saw the fury with which he shook
+his clenched fists at him. The trap rolled on, and a few minutes later
+we saw a sudden light spring up among the trees as a lamp was lit in
+one of the sitting rooms.
 
-“You know, Watson,” said Holmes, as we sat together in the gathering darkness, “I have some scruples about taking you with me tonight. There is a definite element of danger.”
+“You know, Watson,” said Holmes, as we sat together in the gathering
+darkness, “I have some scruples about taking you with me tonight. There
+is a definite element of danger.”
 
 “Can I be of any help?”
 
@@ -2631,25 +2515,36 @@ Sherlock Holmes and I had no difficulty in getting a bedroom and a sitting room 
 
 “That’s very good of you.”
 
-“You speak of danger. You’ve clearly seen more in those rooms than I did.”
+“You speak of danger. You’ve clearly seen more in those rooms than I
+did.”
 
-“No, but I suspect I may have drawn a few more conclusions. I imagine you saw everything I saw.”
+“No, but I suspect I may have drawn a few more conclusions. I imagine
+you saw everything I saw.”
 
-“I noticed nothing remarkable except the bell-rope—and what purpose that could serve, I confess I cannot imagine.”
+“I noticed nothing remarkable except the bell-rope—and what purpose
+that could serve, I confess I cannot imagine.”
 
 “You saw the ventilator as well?”
 
-“Yes, but I don’t think it’s anything very unusual to have a small opening between two rooms. It was so small a rat could hardly squeeze through.”
+“Yes, but I don’t think it’s anything very unusual to have a small
+opening between two rooms. It was so small a rat could hardly squeeze
+through.”
 
 “I knew we’d find a ventilator before we ever came to Stoke Moran.”
 
 “My dear Holmes!”
 
-“Oh yes, I did. You remember in her statement she said her sister could smell Dr. Roylott’s cigar. That, of course, immediately suggested there must be some connection between the two rooms. It could only be a small one, or it would have been noticed at the coroner’s inquest. I deduced a ventilator.”
+“Oh yes, I did. You remember in her statement she said her sister could
+smell Dr. Roylott’s cigar. That, of course, immediately suggested there
+must be some connection between the two rooms. It could only be a small
+one, or it would have been noticed at the coroner’s inquest. I deduced
+a ventilator.”
 
 “But what harm could there be in that?”
 
-“Well, at the very least, the dates form a curious coincidence. A ventilator is installed, a cord is hung, and a lady who sleeps in that bed dies. Doesn’t that strike you?”
+“Well, at the very least, the dates form a curious coincidence. A
+ventilator is installed, a cord is hung, and a lady who sleeps in that
+bed dies. Doesn’t that strike you?”
 
 “I still can’t see any connection.”
 
@@ -2657,29 +2552,49 @@ Sherlock Holmes and I had no difficulty in getting a bedroom and a sitting room 
 
 “No.”
 
-“It was clamped to the floor. Have you ever seen a bed fastened down like that before?”
+“It was clamped to the floor. Have you ever seen a bed fastened down
+like that before?”
 
 “I can’t say that I have.”
 
-“The lady couldn’t move her bed. It had to remain in the same position relative to the ventilator and to the rope—or so we may call it, since it was clearly never meant to be a bell-pull.”
+“The lady couldn’t move her bed. It had to remain in the same position
+relative to the ventilator and to the rope—or so we may call it, since
+it was clearly never meant to be a bell-pull.”
 
-“Holmes,” I cried, “I begin to see dimly what you’re getting at. We’ve arrived just in time to prevent some subtle and horrible crime.”
+“Holmes,” I cried, “I begin to see dimly what you’re getting at. We’ve
+arrived just in time to prevent some subtle and horrible crime.”
 
-“Subtle enough, and horrible enough. When a doctor goes wrong, he is the very worst of criminals. He has nerve, and he has knowledge. Palmer and Pritchard were among the leading men of their profession. This man strikes even deeper, but I think, Watson, that we’ll be able to strike deeper still. But we’ll have horrors enough before the night is over; for heaven’s sake let’s have a quiet pipe and turn our minds for a few hours to something more cheerful.”
+“Subtle enough, and horrible enough. When a doctor goes wrong, he is
+the very worst of criminals. He has nerve, and he has knowledge. Palmer
+and Pritchard were among the leading men of their profession. This man
+strikes even deeper, but I think, Watson, that we’ll be able to strike
+deeper still. But we’ll have horrors enough before the night is over;
+for heaven’s sake let’s have a quiet pipe and turn our minds for a few
+hours to something more cheerful.”
 
-Around nine o’clock the light among the trees went out, and all was dark in the direction of the Manor House. Two slow hours crawled by, and then, suddenly, just as the clock struck eleven, a single bright light shone out directly in front of us.
+Around nine o’clock the light among the trees went out, and all was
+dark in the direction of the Manor House. Two slow hours crawled by,
+and then, suddenly, just as the clock struck eleven, a single bright
+light shone out directly in front of us.
 
-“That’s our signal,” said Holmes, springing to his feet. “It comes from the middle window.”
+“That’s our signal,” said Holmes, springing to his feet. “It comes from
+the middle window.”
 
-As we went out, he exchanged a few words with the landlord, explaining that we were paying a late visit to an acquaintance and might possibly spend the night there. A moment later we were out on the dark road, a chill wind blowing in our faces, and one yellow light twinkling ahead of us through the gloom, guiding us on our sombre errand.
+As we went out, he exchanged a few words with the landlord, explaining
+that we were paying a late visit to an acquaintance and might possibly
+spend the night there. A moment later we were out on the dark road, a
+chill wind blowing in our faces, and one yellow light twinkling ahead
+of us through the gloom, guiding us on our sombre errand.
 
-It was easy enough to get into the grounds, for unrepaired gaps yawned in the old park wall. Picking our way among the trees, we reached the lawn, crossed it, and were just about to climb in through the window when, from a clump of laurel bushes, there darted out what looked like a hideous, twisted child. ItSuddenly, for a split second, a light flashed near the ventilator and vanished, followed at once by a strong smell of burning oil and hot metal. Someone in the next room had lit a dark lantern. I heard a faint movement, and then everything was silent again, though the smell grew stronger. For half an hour I sat there, ears straining. Then another sound reached us—a very soft, steady, soothing noise, like a thin jet of steam hissing from a kettle. The instant we heard it, Holmes leapt from the bed, struck a match, and slashed furiously at the bell-pull with his cane.
+It was easy enough to get into the grounds, for unrepaired gaps yawned
+in the old park wall. Picking our way among the trees, we reached the
+lawn, crossed it, and were just about to climb in through the window
+when, from a clump of laurel bushes, there darted out what looked like
+a hideous, twisted child. ItSuddenly, for a split second, a light flashed near the ventilator and vanished, followed at once by a strong smell of burning oil and hot metal. Someone in the next room had lit a dark lantern. I heard a faint movement, and then everything was silent again, though the smell grew stronger. For half an hour I sat there, ears straining. Then another sound reached us—a very soft, steady, soothing noise, like a thin jet of steam hissing from a kettle. The instant we heard it, Holmes leapt from the bed, struck a match, and slashed furiously at the bell-pull with his cane.
 
 “You see it, Watson?” he shouted. “Do you see it?”
 
-\newpage
-
-# I. saw nothing. At the very moment Holmes struck the light, I heard a low, clear whistle, but the sudden glare stabbing into my tired eyes made it impossible for me to see what he was attacking so savagely. I could, however, see that his face was deathly pale, filled with horror and disgust. He had stopped striking and was staring up at the ventilator when, all at once, from the stillness of the night there burst the most horrible cry I have ever heard. It rose louder and louder, a hoarse scream in which pain, terror, and rage were all tangled together in one dreadful shriek. They say that far down in the village, and even at the distant parsonage, that cry dragged sleepers from their beds. It chilled our blood, and I stood staring at Holmes, and he at me, until the last echoes had died back into the silence from which they came.
+I. saw nothing. At the very moment Holmes struck the light, I heard a low, clear whistle, but the sudden glare stabbing into my tired eyes made it impossible for me to see what he was attacking so savagely. I could, however, see that his face was deathly pale, filled with horror and disgust. He had stopped striking and was staring up at the ventilator when, all at once, from the stillness of the night there burst the most horrible cry I have ever heard. It rose louder and louder, a hoarse scream in which pain, terror, and rage were all tangled together in one dreadful shriek. They say that far down in the village, and even at the distant parsonage, that cry dragged sleepers from their beds. It chilled our blood, and I stood staring at Holmes, and he at me, until the last echoes had died back into the silence from which they came.
 
 “What can it mean?” I gasped.
 
@@ -2691,9 +2606,7 @@ The sight that met our eyes was extraordinary. On the table stood a dark lantern
 
 “The band! The speckled band!” Holmes whispered.
 
-\newpage
-
-# I. stepped forward. In an instant, that strange headband began to stir, and from among his hair rose the squat, diamond-shaped head and swollen neck of a revolting snake.
+I. stepped forward. In an instant, that strange headband began to stir, and from among his hair rose the squat, diamond-shaped head and swollen neck of a revolting snake.
 
 “It’s a swamp adder!” cried Holmes. “The deadliest snake in India. He died within ten seconds of being bitten. Violence truly recoils upon the violent, and the plotter falls into the pit he digs for another. Let’s drive this creature back into its den, and then we can move Miss Stoner somewhere safe and inform the county police what has happened.”
 
@@ -2717,15 +2630,11 @@ One morning, a little before seven o’clock, I was woken by the maid knocking a
 
 “It’s a new patient,” he whispered. “I thought I’d bring him round myself; then he couldn’t slip away. There he is, safe and sound. I must go now, Doctor; I’ve got my dooties, same as you.” And off he went, that faithful tout, without even giving me time to thank him.
 
-\newpage
-
-# I. went into my consulting room and found a gentleman seated at the table. He was neatly dressed in a heather-tweed suit, with a soft cloth cap which he had laid down on my books. One of his hands was wrapped in a handkerchief, blotched all over with blood. He was young—no more than five-and-twenty, I should say—with a strong, masculine face; but he was extremely pale and gave me the impression of a man suffering from some powerful agitation which it took all his self-control to master.
+I. went into my consulting room and found a gentleman seated at the table. He was neatly dressed in a heather-tweed suit, with a soft cloth cap which he had laid down on my books. One of his hands was wrapped in a handkerchief, blotched all over with blood. He was young—no more than five-and-twenty, I should say—with a strong, masculine face; but he was extremely pale and gave me the impression of a man suffering from some powerful agitation which it took all his self-control to master.
 
 “I’m sorry to drag you out so early, Doctor,” he said, “but I’ve had a very serious accident during the night. I came in by train this morning, and when I asked at Paddington where I could find a doctor, a good fellow there kindly brought me here himself. I gave the maid my card, but I see she’s left it on the side table.”
 
-\newpage
-
-# I. picked it up and glanced at it. “Mr. Victor Hatherley, hydraulic engineer, 16A Victoria Street (3rd floor).” That was the name, profession, and address of my early-morning visitor. “I’m sorry to have kept you waiting,” I said, sitting down in my armchair. “You’ve just come off a night journey, I understand, which is in itself a rather monotonous experience.”
+I. picked it up and glanced at it. “Mr. Victor Hatherley, hydraulic engineer, 16A Victoria Street (3rd floor).” That was the name, profession, and address of my early-morning visitor. “I’m sorry to have kept you waiting,” I said, sitting down in my armchair. “You’ve just come off a night journey, I understand, which is in itself a rather monotonous experience.”
 
 “Oh, my night could hardly be called monotonous,” he said, and laughed.
 
@@ -2839,9 +2748,7 @@ Suddenly, without the slightest warning in the midst of that utter stillness, th
 
 “It is not worth your while to wait,” she went on. “You can pass through the door; no one hinders.” Then, seeing that I smiled and shook my head, she suddenly dropped her restraint and stepped forward, wringing her hands. “For the love of Heaven!” she whispered, “get away from here before it is too late!”
 
-\newpage
-
-# I. am, however, somewhat headstrong by nature, and all the more inclined to see a thing through when there is some obstacle in the way. I thought of my fifty-guinea fee, of my tedious journey, and of the unpleasant night that seemed to lie ahead of me. Was it all to go for nothing? Why should I sneak away without carrying out my commission and without receiving the payment that was my due? For all I knew, this woman might be a monomaniac. So, mustering a firm manner—though her agitation had shaken me more than I cared to admit—I still shook my head and stated my intention of staying where I was. She was about to renew her pleas when a door slammed somewhere overhead and the sound of several footsteps came down the stairs. She listened for an instant, flung up her hands in a despairing gesture, and vanished as suddenly and silently as she had appeared.
+I. am, however, somewhat headstrong by nature, and all the more inclined to see a thing through when there is some obstacle in the way. I thought of my fifty-guinea fee, of my tedious journey, and of the unpleasant night that seemed to lie ahead of me. Was it all to go for nothing? Why should I sneak away without carrying out my commission and without receiving the payment that was my due? For all I knew, this woman might be a monomaniac. So, mustering a firm manner—though her agitation had shaken me more than I cared to admit—I still shook my head and stated my intention of staying where I was. She was about to renew her pleas when a door slammed somewhere overhead and the sound of several footsteps came down the stairs. She listened for an instant, flung up her hands in a despairing gesture, and vanished as suddenly and silently as she had appeared.
 
 The newcomers were Colonel Lysander Stark and a short, thickset man with a chinchilla beard sprouting from the folds of his double chin, who was introduced to me as Mr. Ferguson.
 
@@ -2873,13 +2780,9 @@ The lamp still stood on the floor where I’d put it while examining the trough.
 
 Then it flashed through my mind that the pain of my death would depend greatly on the position in which I met it. If I lay on my face, the weight would fall on my spine, and I shuddered at the thought of that dreadful snap. It might be easier the other way; and yet—did I have the nerve to lie there and stare up at that deadly black shadow wavering down upon me? I could no longer stand upright when my eye caught something that sent a surge of hope through my heart.
 
-\newpage
+I. have said that although the floor and ceiling were iron, the walls were wood. As I cast one last desperate glance around, I saw a thin line of yellow light between two of the boards. It widened and widened as a small panel was pushed back. For a moment I could hardly believe that this was truly a door leading away from death. The next instant I flung myself through it and collapsed, half-fainting, on the other side. The panel closed again behind me, but the crash of the lamp, and a few moments later the clang of the two iron slabs, told me how narrow my escape had been.
 
-# I. have said that although the floor and ceiling were iron, the walls were wood. As I cast one last desperate glance around, I saw a thin line of yellow light between two of the boards. It widened and widened as a small panel was pushed back. For a moment I could hardly believe that this was truly a door leading away from death. The next instant I flung myself through it and collapsed, half-fainting, on the other side. The panel closed again behind me, but the crash of the lamp, and a few moments later the clang of the two iron slabs, told me how narrow my escape had been.
-
-\newpage
-
-# I. was brought back to myself by frantic tugging at my wrist. I found I was lying on the stone floor of a narrow corridor, while a woman bent over me, pulling at me with her left hand and holding a candle in her right. It was the same good friend whose warning I had so foolishly ignored.
+I. was brought back to myself by frantic tugging at my wrist. I found I was lying on the stone floor of a narrow corridor, while a woman bent over me, pulling at me with her left hand and holding a candle in her right. It was the same good friend whose warning I had so foolishly ignored.
 
 “Come! Come!” she gasped. “They will be here in a moment. They will see that you are not there. Oh, do not waste this precious time—come!”
 
@@ -2895,9 +2798,7 @@ The thought had barely flashed through my mind before he was at the door, forcin
 
 “You are mad, Elise!” he shouted, struggling to break free. “You will ruin us. He has seen too much. Let me pass, I say!” He hurled her aside and, rushing to the window, slashed at me with his heavy weapon. I had already let myself down and was hanging by my hands from the sill when his blow fell. I felt a dull pain, my grip loosened, and I plunged into the garden below.
 
-\newpage
-
-# I. was shaken but not injured by the fall, so I scrambled up and ran as fast as I could into the bushes, knowing I was still far from safe. But as I ran, a deadly dizziness and nausea suddenly came over me. I glanced down at my hand, which was throbbing with pain, and saw for the first time that my thumb had been cut off and that blood was pouring from the wound. I tried to tie my handkerchief around it, but a loud buzzing filled my ears, and the next moment I collapsed in a dead faint among the rosebushes.
+I. was shaken but not injured by the fall, so I scrambled up and ran as fast as I could into the bushes, knowing I was still far from safe. But as I ran, a deadly dizziness and nausea suddenly came over me. I glanced down at my hand, which was throbbing with pain, and saw for the first time that my thumb had been cut off and that blood was pouring from the wound. I tried to tie my handkerchief around it, but a loud buzzing filled my ears, and the next moment I collapsed in a dead faint among the rosebushes.
 
 How long I lay unconscious I cannot say“Here’s an advertisement that will interest you,” he said. “It ran in all the papers about a year ago. Listen: ‘Missing, on the 9th instant, Mr. Jeremiah Hayling, age twenty-six, hydraulic engineer. Left his lodgings at ten o’clock at night and has not been heard of since. Was dressed in,’ and so on, and so on. Ha! I’d say that marks the last time the colonel needed his machine overhauled.”
 
@@ -3005,9 +2906,19 @@ He broke the seal and glanced over the contents.
 
 “Excellent. The letter I’m holding is from Lord St. Simon. I’ll read it to you, and in return you can go through those papers and give me everything that bears on the matter. This is what he says:
 
-“‘MY DEAR MR. SHERLOCK HOLMES,—Lord Backwater tells me that I may place implicit reliance upon your judgment and discretion. I have therefore decided to call upon you and consult you regarding the very painful incident which has occurred in connection with my wedding. Mr. Lestrade, of Scotland Yard, is already engaged on the matter, but he assures me that he sees no objection to your co-operation, and that he even thinks it might be of some assistance. I will call at four o’clock in the afternoon, and, should you have any other engagement at that time, I hope that you will postpone it, as this matter is of paramount importance. Yours faithfully,
+    “‘MY DEAR MR. SHERLOCK HOLMES,—Lord Backwater tells me that I may
+    place implicit reliance upon your judgment and discretion. I have
+    therefore decided to call upon you and consult you regarding the
+    very painful incident which has occurred in connection with my
+    wedding. Mr. Lestrade, of Scotland Yard, is already engaged on the
+    matter, but he assures me that he sees no objection to your
+    co-operation, and that he even thinks it might be of some
+    assistance. I will call at four o’clock in the afternoon, and,
+    should you have any other engagement at that time, I hope that you
+    will postpone it, as this matter is of paramount importance.
+    Yours faithfully,
 
-“‘ROBERT ST. SIMON.’
+    “‘ROBERT ST. SIMON.’
 
 “It’s dated from Grosvenor Mansions, written with a quill pen, and the noble lord has had the misfortune to smear ink on the outer side of his right little finger,” Holmes remarked, folding up the letter.
 
@@ -3245,7 +3156,8 @@ Lestrade shot him an angry look. “I suppose you know all about it,” he snarl
 
 “There’s a pocket in the dress. In the pocket is a card case. In the card case is a note. And here is the note itself.” He slapped it down on the table in front of him. “Listen to this: ‘You will see me when all is ready. Come at once. F. H. M.’ Now my theory all along has been that Lady St. Simon was lured away by Flora Millar and that she, with accomplices no doubt, is responsible for her disappearance. Here, signed with her initials, is the very note that was no doubt quietly slipped into her hand at the door and that drew her into their power.”
 
-“Very good, Lestrade,” said Holmes, laughing. “Just before nine o’clock Sherlock Holmes walked briskly into the room. His features were set and serious, but there was a light in his eye that told me his expectations had been fulfilled.
+“Very good, Lestrade,” said Holmes, laughing. “Just before nine o’clock Sherlock Holmes walked briskly into the room.
+His features were set and serious, but there was a light in his eye that told me his expectations had been fulfilled.
 
 “So they’ve laid out supper,” he said, rubbing his hands.
 
@@ -3399,9 +3311,7 @@ The name was indeed well known to us as that of the senior partner in the second
 
 ‘Yes, but you wouldn’t have me leave it in disgrace,’ he said. ‘I couldn’t endure the shame. I have to raise the money somehow, and if you won’t give it to me, then I’ll have to find some other way.’
 
-\newpage
-
-# I. was furious; it was the third time he’d asked for money that month. ‘You won’t get a penny from me!’ I cried. He bowed and left the room without another word.
+I. was furious; it was the third time he’d asked for money that month. ‘You won’t get a penny from me!’ I cried. He bowed and left the room without another word.
 
 When he was gone, I unlocked my desk, checked that my treasure was safe, and locked it again. Then I went round the house to make sure everything was secure—a job I usually leave to Mary, but which I thought it best to do myself that night. As I came down the stairs, I saw Mary at the side window in the hall, closing and fastening it as I approached.
 
@@ -3423,9 +3333,7 @@ I’m trying to tell you everything, Mr. Holmes, that might have any bearing on 
 
 ‘I’m coming now to a part of my story where I especially want to be precise. I’m not a very heavy sleeper, and the anxiety on my mind no doubt made me even lighter than usual. Around two in the morning, I was woken by some sound in the house. It had stopped before I was fully awake, but it left the impression that a window had been gently closed somewhere. I lay there listening with all my attention. Then, to my horror, I heard distinct footsteps, moving softly in the next room.
 
-\newpage
-
-# I. slipped out of bed, my heart pounding with fear, and peered round the corner of my dressing-room door.
+I. slipped out of bed, my heart pounding with fear, and peered round the corner of my dressing-room door.
 
 ‘Arthur!’ I screamed. ‘You scoundrel! You thief! How dare you touch that coronet?’
 
@@ -3593,9 +3501,16 @@ It was indeed our friend the financier. I was shocked by the change in him. His 
 
 “Yes. Her bed this morning had not been slept in, her room was empty, and a note for me was lying on the hall table. I had said to her last night, in sorrow and not in anger, that if she had married my boy all might have been well with him. Perhaps it was thoughtless of me to say so. It’s to that remark that she refers in this note:
 
-‘MY DEAREST UNCLE,—I feel that I have brought trouble upon you, and that if I had acted differently this terrible misfortune might never have occurred. I cannot, with this thought in my mind, ever again be happy under your roof, and I feel that I must leave you forever. Do not worry about my future, for that is provided for; and, above all, do not search for me, for it will be fruitless labour and an ill-service to me. In life or in death, I am ever your loving,
+    ‘MY DEAREST UNCLE,—I feel that I have brought trouble upon you,
+    and that if I had acted differently this terrible misfortune might
+    never have occurred. I cannot, with this thought in my mind, ever
+    again be happy under your roof, and I feel that I must leave you
+    forever. Do not worry about my future, for that is provided for;
+    and, above all, do not search for me, for it will be fruitless
+    labour and an ill-service to me. In life or in death, I am ever
+    your loving,
 
-MARY.’
+    MARY.’
 
 “What can she mean by that note, Mr. Holmes? Do you think she’s hinting at suicide?”
 
@@ -3681,9 +3596,12 @@ It was a cold early-spring morning, and after breakfast we sat on either side of
 
 It was dated from Montague Place the previous evening, and ran as follows:
 
-DEAR MR. HOLMES,—I am very anxious to consult you as to whether I should or should not accept a position which has been offered to me as a governess. I shall call at half-past ten to-morrow if I do not inconvenience you. Yours faithfully,
+    DEAR MR. HOLMES,—I am very anxious to consult you as to whether I
+    should or should not accept a position which has been offered to
+    me as a governess. I shall call at half-past ten to-morrow if I do
+    not inconvenience you. Yours faithfully,
 
-VIOLET HUNTER.
+    VIOLET HUNTER.
 
 “Do you know the young lady?” I asked.
 
@@ -3733,9 +3651,7 @@ It seemed to me that I had never met such a charming and considerate man. As I w
 
 “One child—one dear little rascal, just six years old. Oh, if you could see him killing cockroaches with a slipper! Smack! smack! smack! Three gone before you could blink!” He leaned back in his chair and laughed until his eyes disappeared again into his head.
 
-\newpage
-
-# I. was a little shocked at the nature of the child’s amusement, but the father’s laughter made me think that perhaps he was only joking.
+I. was a little shocked at the nature of the child’s amusement, but the father’s laughter made me think that perhaps he was only joking.
 
 “My only duties, then,” I asked, “would be to look after a single child?”
 
@@ -3753,9 +3669,7 @@ It seemed to me that I had never met such a charming and considerate man. As I w
 
 “Or to cut your hair quite short before you come to us?”
 
-\newpage
-
-# I. could hardly believe my ears. As you can see, Mr. Holmes, my hair is rather abundant, and of a somewhat unusual shade of chestnut. It has been considered artistic. I could not dream of sacrificing it in such an offhand way.
+I. could hardly believe my ears. As you can see, Mr. Holmes, my hair is rather abundant, and of a somewhat unusual shade of chestnut. It has been considered artistic. I could not dream of sacrificing it in such an offhand way.
 
 “I’m afraid that is quite impossible,” I said. He had been watching me intently with his small eyes, and I saw a shadow pass over his face as I spoke.
 
@@ -3867,9 +3781,7 @@ But Holmes shook his head gravely.
 
 The next time, in the middle of my laughing, I raised my handkerchief to my eyes and, with a little maneuvering, I was able to see everything behind me. I must admit I was disappointed at first. There was nothing. At least, that was my first impression. On a second look, however, I noticed a man standing in the Southampton Road—a small, bearded man in a gray suit—who seemed to be looking in my direction. The road is a main thoroughfare, and there are usually people on it. This man, however, was leaning against the railings that border our field and was staring intently up.
 
-\newpage
-
-# I. lowered my handkerchief and glanced at Mrs. Rucastle, only to find her eyes fixed on me with the most searching gaze. She said nothing, but I am convinced she had guessed that I had a mirror in my hand and had seen what was behind me. She stood up at once.
+I. lowered my handkerchief and glanced at Mrs. Rucastle, only to find her eyes fixed on me with the most searching gaze. She said nothing, but I am convinced she had guessed that I had a mirror in my hand and had seen what was behind me. She stood up at once.
 
 “‘Jephro,’ she said, ‘there is an impertinent fellow on the road who is staring up at Miss Hunter.’
 

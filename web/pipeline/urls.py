@@ -23,4 +23,9 @@ urlpatterns = [
         views.preview_book_md,
         name="preview_book_md",
     ),
+    path(
+        "editions/<str:book_code>/<str:language>/preview-pre-edition/",
+        views.preview_pre_edition_md,
+        name="preview_pre_edition_md",
+    ),
 ]

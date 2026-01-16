@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .paths import MERGE_PRIORITY, data_dir, edition_build_dir
+from . import paths
+from .paths import data_dir, edition_build_dir
 
 
-def _iter_existing_merges(build_dir: Path) -> bool:
+def _iter_existing_merges(edition, build_dir: Path) -> bool:
     """Return True if any canonical merge exists in the build dir."""
-    return any((build_dir / name).exists() for name in MERGE_PRIORITY)
+    return any((build_dir / name).exists() for name in paths.merge_priority_names(edition))
 
 
 def sync_legacy_merges_from_translated(edition) -> None:
@@ -19,7 +20,7 @@ def sync_legacy_merges_from_translated(edition) -> None:
     Does not overwrite existing canonical merges.
     """
     build_dir = edition_build_dir(edition)
-    if _iter_existing_merges(build_dir):
+    if _iter_existing_merges(edition, build_dir):
         return
 
     book_code = getattr(edition, "book_code", str(edition.id))

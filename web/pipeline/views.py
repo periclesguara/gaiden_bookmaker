@@ -501,6 +501,63 @@ def _count_split_chunks(book_code: str) -> int | None:
 
 def edition_steps(request, edition_id: int):
     edition = get_object_or_404(BookEditionTemplate, id=edition_id)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "set_text_source":
+            choices = request.POST.getlist("text_source_choice")
+            if not choices:
+                mode = "auto"
+            else:
+                if "auto" in choices:
+                    choices = [choice for choice in choices if choice != "auto"]
+                mode = "auto" if not choices else "||".join(choices)
+            edition.text_source_mode = mode
+            edition.save(update_fields=["text_source_mode"])
+            messages.success(request, "Fonte de texto atualizada.")
+            return redirect("edition_steps", edition_id=edition.id)
+        if action == "insert_headlines":
+            build_dir = paths.edition_build_dir(edition)
+            md_targets = sorted(build_dir.glob("BOOK.PRE_QA*.md"))
+            md_targets = [path for path in md_targets if path.is_file()]
+            if not md_targets:
+                messages.error(
+                    request,
+                    "BOOK.PRE_QA nao encontrado. Rode TXT -> MD antes de inserir headlines.",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+            for md_path in md_targets:
+                out_path = md_path
+                lang = (edition.language or "").lower()
+                if md_path.name.startswith("BOOK.PRE_QA."):
+                    lang = md_path.name.split(".", 2)[-1].lower()
+                    out_path = md_path.with_name(f"BOOK.PRE_EDITION.{lang}.md")
+                else:
+                    out_path = paths.pre_edition_md_path(edition)
+                out_path.write_text(md_path.read_text(encoding="utf-8"), encoding="utf-8")
+                md_transform.insert_page_headlines(out_path, lang=lang)
+            messages.success(
+                request,
+                "Headlines de capitulo inseridos no PRE_EDITION.",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+        if action == "insert_images":
+            build_dir = paths.edition_build_dir(edition)
+            md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
+            md_targets = [path for path in md_targets if path.is_file()]
+            if not md_targets:
+                messages.error(
+                    request,
+                    "BOOK.PRE_EDITION nao encontrado. Rode headlines antes de inserir imagens.",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+            for md_path in md_targets:
+                md_transform.insert_image_placeholders(md_path)
+            messages.success(
+                request,
+                "Placeholders de imagem inseridos no PRE_EDITION.",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
     legacy_merges.sync_legacy_merges_from_translated(edition)
     sync_log = _sync_canonical_merges_from_jobs(edition)
 
@@ -544,10 +601,9 @@ def edition_steps(request, edition_id: int):
 
     chunk_count = _count_split_chunks(edition.book_code)
 
-    merge_path = paths.final_merge_txt_path(edition)
-    final_source = merge_path.name if merge_path else "—"
     source_info = text_source.get_effective_text_source(edition)
 
+    pre_edition_path = paths.pre_edition_md_path(edition)
     pre_qa_path = paths.pre_qa_md_path(edition)
     qa_path = paths.qa_md_path(edition)
     final_md_path = paths.final_md_path(edition)
@@ -564,7 +620,12 @@ def edition_steps(request, edition_id: int):
         md_status = "NONE"
 
     md_preview = ""
-    preview_path = qa_path if qa_path.exists() else pre_qa_path
+    if qa_path.exists():
+        preview_path = qa_path
+    elif pre_edition_path.exists():
+        preview_path = pre_edition_path
+    else:
+        preview_path = pre_qa_path
     if preview_path.exists():
         md_preview = preview_path.read_text(encoding="utf-8")[:10000]
 
@@ -586,11 +647,11 @@ def edition_steps(request, edition_id: int):
             "polish": status_label("polish"),
         },
         "chunk_count": chunk_count,
-        "final_source": final_source,
         "text_source": source_info,
         "sync_log": sync_log,
         "md_status": md_status,
         "md_preview": md_preview,
+        "md_pre_edition_path": str(pre_edition_path) if pre_edition_path.exists() else None,
         "md_pre_qa_path": str(pre_qa_path) if pre_qa_path.exists() else None,
         "md_final_path": str(final_md_path) if final_md_path.exists() else None,
         "qa_issues": issues,
@@ -752,7 +813,15 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "txt_to_md":
             result = md_transform.run_txt_to_md(edition)
-            messages.success(request, f"TXT to MD OK: {result['path']}")
+            items = result.get("items") or []
+            if len(items) > 1:
+                outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)
+                msg = f"TXT to MD OK: {outputs}"
+            else:
+                msg = f"TXT to MD OK: {result['path']}"
+                if result.get("path_pre_qa"):
+                    msg = f"{msg} (PRE_QA: {result['path_pre_qa']})"
+            messages.success(request, msg)
 
         elif step == "qa":
             messages.warning(request, "QA suspenso no momento.")
@@ -838,6 +907,33 @@ def preview_book_md(request, book_code, language):
     path = get_book_md_path(book_code, language)
     if not path.exists():
         raise Http404(f"Markdown file not found: {path}")
+
+    content = path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": language,
+        "md_path": str(path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)
+
+
+def preview_pre_edition_md(request, book_code, language):
+    edition = get_object_or_404(
+        BookEditionTemplate,
+        book_code=book_code,
+        language=language,
+    )
+    build_dir = paths.edition_build_dir(edition)
+    candidates = [
+        build_dir / f"BOOK.PRE_EDITION.{language}.md",
+        build_dir / f"BOOK.PRE_QA.{language}.md",
+        paths.pre_edition_md_path(edition),
+        paths.pre_qa_md_path(edition),
+    ]
+    path = next((p for p in candidates if p.exists()), None)
+    if not path:
+        raise Http404("Markdown file not found for preview.")
 
     content = path.read_text(encoding="utf-8")
     context = {
