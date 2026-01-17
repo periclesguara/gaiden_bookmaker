@@ -99,6 +99,10 @@ def pre_edition_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
 
 
+def miolo_md_path(edition) -> Path:
+    return edition_build_dir(edition) / "BOOK.MIOLO.MD"
+
+
 def qa_log_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.QA_LOG.json"
 

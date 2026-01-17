@@ -28,4 +28,9 @@ urlpatterns = [
         views.preview_pre_edition_md,
         name="preview_pre_edition_md",
     ),
+    path(
+        "editions/<str:book_code>/<str:language>/preview-miolo/",
+        views.preview_miolo_md,
+        name="preview_miolo_md",
+    ),
 ]

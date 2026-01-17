@@ -1,7 +1,5 @@
 {% autoescape off %}
-Copyright {{ edition.publication_year }} {{ edition.author_name }}.
-
-{% if edition.collaborator_name %}
-Adaptation and notes copyright {{ edition.publication_year }} {{ edition.collaborator_name }}.
+{% if edition.copyright_rendered %}
+{{ edition.copyright_rendered }}
 {% endif %}
 {% endautoescape %}

@@ -40,54 +40,138 @@ class PipelineJob(models.Model):
 LANGUAGE_DEFAULT_TEMPLATES = {
     "en": {
         "frontispiece_text": (
-            "This edition of {title} by {author} was prepared in {year} "
-            "under the {imprint} imprint."
+            "{title}\n"
+            "by {author}\n"
+            "\n"
+            "Modern {language} Edition\n"
+            "adapted by {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city} · {year}"
         ),
         "copyright_text": (
-            "Copyright {year} {author}. All rights reserved.\n"
-            "Adaptation and notes copyright {year} {collaborator}.\n"
-            "Manta Quest is a registered trademark of RinoBooks.\n"
-            "The publisher and trademark owner is Pericles Guara Silva.\n"
-            "Rio de Janeiro, Brazil."
+            "Title\n"
+            "{title}\n"
+            "Subtitle\n"
+            "{subtitle}\n"
+            "Author\n"
+            "{author}\n"
+            "Adapter\n"
+            "{adapter}\n"
+            "Publication year\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Public Domain in the United States and other territories.\n"
+            "\n"
+            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
+            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "\n"
+            "Publisher: {publisher}\n"
+            "All rights reserved to RinoBooks.\n"
+            "Rio de Janeiro, Brazil — {year}"
         ),
     },
     "ptbr": {
         "frontispiece_text": (
-            "Esta edicao de {title}, de {author}, foi preparada em {year} "
-            "sob o selo editorial {imprint}."
+            "{title}\n"
+            "by {author}\n"
+            "\n"
+            "Modern {language} Edition\n"
+            "adapted by {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city} · {year}"
         ),
         "copyright_text": (
-            "Copyright {year} {author}. Todos os direitos reservados.\n"
-            "Adaptacao e notas: copyright {year} {collaborator}.\n"
-            "Manta Quest e uma marca registrada da RinoBooks.\n"
-            "O publisher e dono da marca e Pericles Guara Silva.\n"
-            "Rio de Janeiro, Brasil."
+            "Title\n"
+            "{title}\n"
+            "Subtitle\n"
+            "{subtitle}\n"
+            "Author\n"
+            "{author}\n"
+            "Adapter\n"
+            "{adapter}\n"
+            "Publication year\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Public Domain in the United States and other territories.\n"
+            "\n"
+            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
+            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "\n"
+            "Publisher: {publisher}\n"
+            "All rights reserved to RinoBooks.\n"
+            "Rio de Janeiro, Brazil — {year}"
         ),
     },
     "es": {
         "frontispiece_text": (
-            "Esta edicion de {title}, de {author}, fue preparada en {year} "
-            "bajo el sello editorial {imprint}."
+            "{title}\n"
+            "by {author}\n"
+            "\n"
+            "Modern {language} Edition\n"
+            "adapted by {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city} · {year}"
         ),
         "copyright_text": (
-            "Copyright {year} {author}. Todos los derechos reservados.\n"
-            "Adaptacion y notas: copyright {year} {collaborator}.\n"
-            "Manta Quest es una marca registrada de RinoBooks.\n"
-            "El publisher y propietario de la marca es Pericles Guara Silva.\n"
-            "Rio de Janeiro, Brasil."
+            "Title\n"
+            "{title}\n"
+            "Subtitle\n"
+            "{subtitle}\n"
+            "Author\n"
+            "{author}\n"
+            "Adapter\n"
+            "{adapter}\n"
+            "Publication year\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Public Domain in the United States and other territories.\n"
+            "\n"
+            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
+            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "\n"
+            "Publisher: {publisher}\n"
+            "All rights reserved to RinoBooks.\n"
+            "Rio de Janeiro, Brazil — {year}"
         ),
     },
     "de": {
         "frontispiece_text": (
-            "Diese Ausgabe von {title} von {author} wurde im Jahr {year} "
-            "unter dem Imprint {imprint} vorbereitet."
+            "{title}\n"
+            "by {author}\n"
+            "\n"
+            "Modern {language} Edition\n"
+            "adapted by {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city} · {year}"
         ),
         "copyright_text": (
-            "Copyright {year} {author}. Alle Rechte vorbehalten.\n"
-            "Adaptation und Anmerkungen: Copyright {year} {collaborator}.\n"
-            "Manta Quest ist eine eingetragene Marke von RinoBooks.\n"
-            "Der Publisher und Markeninhaber ist Pericles Guara Silva.\n"
-            "Rio de Janeiro, Brasilien."
+            "Title\n"
+            "{title}\n"
+            "Subtitle\n"
+            "{subtitle}\n"
+            "Author\n"
+            "{author}\n"
+            "Adapter\n"
+            "{adapter}\n"
+            "Publication year\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Public Domain in the United States and other territories.\n"
+            "\n"
+            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
+            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "\n"
+            "Publisher: {publisher}\n"
+            "All rights reserved to RinoBooks.\n"
+            "Rio de Janeiro, Brazil — {year}"
         ),
     },
 }
@@ -213,14 +297,26 @@ class BookEditionTemplate(models.Model):
 
     def get_placeholder_context(self) -> dict:
         pseudonym = self.collaborator_pseudonym or self.collaborator_name
+        language_map = {
+            "en": "English",
+            "ptbr": "Portuguese",
+            "es": "Spanish",
+            "de": "German",
+        }
+        language_label = language_map.get(self.language, (self.language or "").upper())
         return {
             "title": self.title,
+            "subtitle": self.subtitle,
             "author": self.author_name,
             "year": self.publication_year,
             "collaborator": self.collaborator_name,
             "pseudonym": pseudonym,
             "imprint": self.imprint_name,
             "role_label": self.primary_role_label,
+            "publisher": self.collaborator_name,
+            "adapter": pseudonym,
+            "language": language_label,
+            "city": "Rio de Janeiro",
         }
 
     def _render_text(self, raw_text: str) -> str:

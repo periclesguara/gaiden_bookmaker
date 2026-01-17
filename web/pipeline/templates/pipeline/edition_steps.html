@@ -266,6 +266,10 @@
           {% csrf_token %}
           <button class="btn" type="submit">Convert TXT to MD</button>
         </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_miolo' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit">Convert TXT to Miolo</button>
+        </form>
       </div>
       {% if text_source.job_stage %}
         <div class="status">
@@ -313,6 +317,15 @@
           </a>
         {% endif %}
       </div>
+      {% if miolo_paths %}
+      <div class="actions">
+        {% for miolo in miolo_paths %}
+          <a class="btn secondary" href="{% url 'preview_miolo_md' book_code=edition.book_code language=miolo.language %}">
+            Preview Miolo ({{ miolo.language }})
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
       <div class="actions" style="margin-top: 12px;">
         <div class="status"><strong>QA suspenso</strong></div>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'approve_md' %}">
@@ -330,6 +343,13 @@
         <a href="{{ md_pre_edition_path }}">BOOK.PRE_EDITION.md</a>
         {% else %}
         <span class="badge">BOOK.PRE_EDITION.md</span>
+        {% endif %}
+        {% if miolo_paths %}
+          {% for miolo in miolo_paths %}
+          <a href="{{ miolo.path }}">{{ miolo.label }}</a>
+          {% endfor %}
+        {% else %}
+        <span class="badge">BOOK.MIOLO.MD</span>
         {% endif %}
         {% if md_pre_qa_path %}
         <a href="{{ md_pre_qa_path }}">BOOK.PRE_QA.md</a>

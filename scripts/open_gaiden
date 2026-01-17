@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="${1:-8000}"
+HOST="${2:-127.0.0.1}"
+
+# Start Django dev server in the background.
+python web/manage.py runserver "${HOST}:${PORT}" >/tmp/gaiden_runserver.log 2>&1 &
+SERVER_PID=$!
+
+sleep 1
+xdg-open "http://${HOST}:${PORT}/" >/dev/null 2>&1 || true
+
+echo "Gaiden rodando em http://${HOST}:${PORT}/ (PID ${SERVER_PID})"
+echo "Logs: /tmp/gaiden_runserver.log"

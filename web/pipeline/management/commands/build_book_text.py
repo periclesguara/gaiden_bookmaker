@@ -106,17 +106,24 @@ class Command(BaseCommand):
                 content_job = qs.first()
                 break
 
-        if not content_job:
-            raise CommandError(
-                f"Nenhum PipelineJob SUCCESS encontrado para {book_code} [{language}] "
-                f"nas etapas {stage_priority}."
-            )
-
-        content_path = Path(content_job.filepath)
-        if not content_path.exists():
-            raise CommandError(
-                f"Arquivo de miolo nao encontrado: {content_path} (do job id={content_job.id})."
-            )
+        content_path = None
+        if content_job:
+            content_path = Path(content_job.filepath)
+            if not content_path.exists():
+                raise CommandError(
+                    f"Arquivo de miolo nao encontrado: {content_path} (do job id={content_job.id})."
+                )
+        else:
+            candidates = [
+                builds_base / book_code / language / "BOOK.MIOLO.MD",
+                builds_base / book_code / language / f"BOOK.MIOLO.{language}.md",
+            ]
+            content_path = next((p for p in candidates if p.exists()), None)
+            if not content_path:
+                raise CommandError(
+                    f"Nenhum PipelineJob SUCCESS encontrado para {book_code} [{language}] "
+                    f"nas etapas {stage_priority}, e nenhum BOOK.MIOLO.MD encontrado."
+                )
 
         def read_file(path: Path) -> str:
             return path.read_text(encoding="utf-8")
@@ -155,6 +162,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Livro montado em {output_path}"))
         self.stdout.write(
             self.style.SUCCESS(
-                f"Conteudo base: frontmatter em {front_dir} + miolo ({content_job.stage}) em {content_path}"
+                f"Conteudo base: frontmatter em {front_dir} + miolo em {content_path}"
             )
         )

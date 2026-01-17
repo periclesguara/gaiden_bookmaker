@@ -23,6 +23,7 @@ from .services import (
     legacy_merges,
     md_quality,
     md_transform,
+    miolo_transform,
     paths,
     text_source,
     utils,
@@ -611,6 +612,31 @@ def edition_steps(request, edition_id: int):
     epub_path = paths.epub_path(edition)
     pdf_path = paths.pdf_path(edition)
     qa_log_path = paths.qa_log_path(edition)
+    miolo_paths = []
+    if source_info.selected_sources:
+        for source in source_info.selected_sources:
+            if len(source_info.selected_sources) == 1:
+                miolo_path = paths.miolo_md_path(edition)
+            else:
+                miolo_path = paths.edition_build_dir(edition) / f"BOOK.MIOLO.{source.language}.md"
+            if miolo_path.exists():
+                miolo_paths.append(
+                    {
+                        "language": source.language,
+                        "path": str(miolo_path),
+                        "label": miolo_path.name,
+                    }
+                )
+    else:
+        miolo_path = paths.miolo_md_path(edition)
+        if miolo_path.exists():
+            miolo_paths.append(
+                {
+                    "language": edition.language,
+                    "path": str(miolo_path),
+                    "label": miolo_path.name,
+                }
+            )
 
     if final_md_path.exists():
         md_status = "QA_DONE"
@@ -654,6 +680,7 @@ def edition_steps(request, edition_id: int):
         "md_pre_edition_path": str(pre_edition_path) if pre_edition_path.exists() else None,
         "md_pre_qa_path": str(pre_qa_path) if pre_qa_path.exists() else None,
         "md_final_path": str(final_md_path) if final_md_path.exists() else None,
+        "miolo_paths": miolo_paths,
         "qa_issues": issues,
         "build_status": "DONE" if build_md_path.exists() else "NONE",
         "build_path": str(build_md_path) if build_md_path.exists() else None,
@@ -823,6 +850,18 @@ def run_edition_step(request, edition_id: int, step: str):
                     msg = f"{msg} (PRE_QA: {result['path_pre_qa']})"
             messages.success(request, msg)
 
+        elif step == "txt_to_miolo":
+            result = miolo_transform.run_txt_to_miolo(edition)
+            items = result.get("items") or []
+            if len(items) > 1:
+                outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)
+                msg = f"TXT to Miolo OK: {outputs}"
+            else:
+                msg = f"TXT to Miolo OK: {result['path']}"
+                if result.get("path"):
+                    _upsert_job(edition, "miolo_md", "SUCCESS", result["path"], "Miolo MD generated.")
+            messages.success(request, msg)
+
         elif step == "qa":
             messages.warning(request, "QA suspenso no momento.")
 
@@ -934,6 +973,31 @@ def preview_pre_edition_md(request, book_code, language):
     path = next((p for p in candidates if p.exists()), None)
     if not path:
         raise Http404("Markdown file not found for preview.")
+
+    content = path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": language,
+        "md_path": str(path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)
+
+
+def preview_miolo_md(request, book_code, language):
+    edition = get_object_or_404(
+        BookEditionTemplate,
+        book_code=book_code,
+        language=language,
+    )
+    build_dir = paths.edition_build_dir(edition)
+    candidates = [
+        build_dir / f"BOOK.MIOLO.{language}.md",
+        paths.miolo_md_path(edition),
+    ]
+    path = next((p for p in candidates if p.exists()), None)
+    if not path:
+        raise Http404("Miolo markdown file not found for preview.")
 
     content = path.read_text(encoding="utf-8")
     context = {
