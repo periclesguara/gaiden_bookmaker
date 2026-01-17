@@ -1,4 +1,4 @@
-1. UM ESCÂNDALO NA BOÊMIA
+# UM ESCÂNDALO NA BOÊMIA
 
 Para Sherlock Holmes ela é sempre _a_ mulher. Raramente o ouvi
 mencioná-la por outro nome. Aos olhos dele, ela ofusca e domina todo o
@@ -536,8 +536,9 @@ mas não o ouvi fazê-lo ultimamente. E, quando fala de Irene Adler, ou
 quando se refere à fotografia dela, é sempre sob o honroso título de
 _a_ mulher.
 
-2. A LIGA DOS RUIVOS
+\newpage
 
+# A LIGA DOS RUIVOS
 
 Eu tinha ido visitar meu amigo, o senhor Sherlock Holmes, num dia do outono do ano passado e o encontrei em profunda conversa com um senhor idoso, muito gordo, de rosto avermelhado e cabelos de um vermelho flamejante. Pedindo desculpas pela intromissão, eu já me preparava para me retirar quando Holmes me puxou bruscamente para dentro do cômodo e fechou a porta atrás de mim.
 
@@ -851,8 +852,9 @@ A princípio, não passava de uma faísca avermelhada sobre o piso de pedra. Dep
 
 Ele deu de ombros. “Bem, talvez, afinal de contas, tenha alguma pequena utilidade”, comentou. “‘_L’homme c’est rien—l’œuvre c’est tout_’, como Gustave Flaubert escreveu a George Sand.”
 
-3. UM CASO DE IDENTIDADE
+\newpage
 
+# UM CASO DE IDENTIDADE
 
 — Meu caro amigo — disse Sherlock Holmes, enquanto nos sentávamos um de cada lado do fogo em seus aposentos na Baker Street —, a vida é infinitamente mais estranha do que qualquer coisa que a mente humana poderia inventar. Não ousaríamos conceber coisas que, na realidade, são meros lugares-comuns da existência. Se pudéssemos sair voando por aquela janela de mãos dadas, pairar sobre esta grande cidade, tirar delicadamente os telhados e espiar as coisas esquisitas que estão acontecendo, as coincidências estranhas, os planos, os desencontros, as maravilhosas cadeias de acontecimentos que atravessam gerações e levam aos resultados mais _outré_, toda a ficção, com suas convenções e desfechos previsíveis, pareceria a coisa mais gasta e sem proveito do mundo.
 
@@ -1050,8 +1052,9 @@ Nosso visitante havia recuperado um pouco da autoconfiança enquanto Holmes fala
 
 — Se eu contar a verdade, ela não vai acreditar em mim. Talvez você se lembre do velho provérbio persa: “Há perigo para quem toma o filhote de tigre, e perigo também para quem arranca uma ilusão de uma mulher.” Há tanta sabedoria em Hafiz quanto em Horácio, e tanto conhecimento do mundo.
 
-4. O MISTÉRIO DO VALE DE BOSCOMBE
+\newpage
 
+# O MISTÉRIO DO VALE DE BOSCOMBE
 
 Estávamos tomando café da manhã certa vez, minha esposa e eu, quando a criada trouxe um telegrama. Era de Sherlock Holmes e dizia o seguinte:
 
@@ -1344,7 +1347,9 @@ Holmes se levantou e sentou-se à mesa, com a caneta na mão e um maço de folha
 
 — Quando cheguei lá, encontrei-o falando com o filho, então acendi um charuto e fiquei esperando atrás de uma árvore até que ele ficasse sozinho. Mas, enquanto ouvia a conversa, tudo o que havia de mais negro e amargo em mim veio à tona. Ele insistia para que o filho se casasse com minha filha com tão pouca consideração pelos desejos dela como se ela fosse alguma vadia de rua. Isso me enlouqueceu ao pensar que eu, e tudo o que tinha de mais querido, estivesse no poder de um homem assim. Não poderia eu romper a corrente? Eu já era um homem moribundo e desesperado. Embora minha mente estivesse clara e meus membros ainda bastante fortes, eu sabia que meu destino estava selado. Mas minha memória — e minha menina! — podiam ser salvas se eu calasse aquela língua imunda.
 
-5. AS CINCO SEMENTES DE LARANJA
+\newpage
+
+# AS CINCO SEMENTES DE LARANJA
 
 Quando dou uma olhada nas minhas anotações e registros dos casos de Sherlock Holmes entre os anos de 82 e 90, deparo com tantos que apresentam características estranhas e interessantes que não é tarefa fácil saber quais escolher e quais deixar de lado. Alguns, porém, já ganharam publicidade pelos jornais, e outros não ofereceram campo para aquelas qualidades peculiares que meu amigo possuía em tão alto grau, e que é justamente o objetivo destes relatos ilustrar. Alguns, ainda, desafiaram sua habilidade analítica e seriam, como narrativas, começos sem fim; enquanto outros foram apenas parcialmente esclarecidos, e suas explicações se baseiam mais em conjecturas e suposições do que naquela prova lógica absoluta que lhe era tão cara. Há, entretanto, um desses últimos que foi tão notável em seus detalhes e tão impressionante em seus resultados que me sinto tentado a dar dele algum relato, apesar do fato de que há pontos relacionados a ele que nunca foram, e provavelmente nunca serão, inteiramente esclarecidos.
 
@@ -1611,8 +1616,9 @@ Ele tirou do bolso uma grande folha de papel, toda coberta de datas e nomes.
 
 Há sempre, porém, uma falha nos planos humanos mais bem traçados, e os assassinos de John Openshaw jamais receberiam as sementinhas de laranja que lhes mostrariam que alguém, tão astuto e resoluto quanto eles, estava em seu encalço. Muito longos e muito violentos foram os temporais de equinócio naquele ano. Esperamos durante muito tempo notícias do _Lone Star_ de Savannah, mas nenhuma jamais nos chegou. Por fim, soubemos que, em algum ponto distante do Atlântico, vira-se o madeiro destroçado da popa de um barco balançando no bojo de uma onda, com as letras “L. S.” entalhadas nele, e é tudo o que jamais saberemos sobre o destino do _Lone Star_.
 
-6. O HOMEM DO LÁBIO TORCIDO
+\newpage
 
+# O HOMEM DO LÁBIO TORCIDO
 
 Isa Whitney, irmão do falecido Elias Whitney, doutor em teologia e diretor do Colégio Teológico de St. George’s, era profundamente viciado em ópio. O hábito, pelo que entendo, começou por alguma tolice de estudante, quando ainda estava na faculdade; depois de ler a descrição que De Quincey faz de seus sonhos e sensações, ele embebeu o tabaco em láudano, tentando produzir os mesmos efeitos. Descobriu, como tantos outros, que é muito mais fácil adquirir o costume do que livrar-se dele e, por muitos anos, continuou escravo da droga, objeto de horror e pena misturados para seus amigos e parentes. Consigo vê-lo agora, com o rosto amarelo e pastoso, as pálpebras caídas e as pupilas em ponta de alfinete, encolhido numa cadeira, o destroço e a ruína de um homem outrora nobre.
 
@@ -1910,8 +1916,9 @@ O prisioneiro se virou com o ar despreocupado de quem se entrega ao próprio des
 
 — Cheguei a este — disse meu amigo — sentado sobre cinco almofadas e consumindo uma onça de fumo shag. Acho, Watson, que, se formos de carruagem até a Baker Street, chegaremos bem na hora do café da manhã.
 
-7. A AVENTURA DO CARBÚNCULO AZUL
+\newpage
 
+# A AVENTURA DO CARBÚNCULO AZUL
 
 Eu tinha ido visitar meu amigo Sherlock Holmes na manhã do segundo dia depois do Natal, com a intenção de lhe apresentar meus cumprimentos de fim de ano. Ele estava esparramado no sofá, usando um roupão de chambre roxo, com um suporte de cachimbos ao alcance da mão direita e uma pilha de jornais matinais amassados, evidentemente recém-lidos, bem ao lado. Ao lado do sofá havia uma cadeira de madeira, e, pendurado no ângulo do encosto, via-se um chapéu-coco de feltro duro, muito surrado e desleixado, em péssimo estado, rachado em vários pontos. Uma lente e uma pinça largadas no assento da cadeira sugeriam que o chapéu tinha sido pendurado daquela maneira para fins de exame.
 
@@ -2251,8 +2258,9 @@ E nenhuma outra palavra foi necessária. Ouviu-se uma corrida apressada, um trop
 
 “Veja bem, Watson”, disse Holmes, estendendo a mão para pegar seu cachimbo de barro, “eu não sou contratado pela polícia para suprir as deficiências deles.
 
-8. A AVENTURA DA FAIXA MALHADA
+\newpage
 
+# A AVENTURA DA FAIXA MALHADA
 
 Ao folhear minhas anotações sobre os mais de setenta casos em que, nos últimos oito anos, estudei os métodos do meu amigo Sherlock Holmes, encontro muitos trágicos, alguns cômicos, um grande número simplesmente estranhos, mas nenhum banal; pois, trabalhando como trabalhava, mais por amor à sua arte do que pela aquisição de riqueza, ele se recusava a se envolver em qualquer investigação que não tendesse para o incomum, e até para o fantástico. De todos esses casos variados, porém, não consigo me lembrar de nenhum que apresentasse características mais singulares do que aquele ligado à conhecida família de Surrey, os Roylott de Stoke Moran. Os acontecimentos em questão se deram nos primeiros tempos da minha convivência com Holmes, quando dividíamos quartos, dois solteirões, na Baker Street. É possível que eu pudesse tê-los registrado antes, mas na época foi feito um juramento de segredo, do qual só fui liberado no mês passado, pela morte prematura da dama a quem a promessa havia sido feita. Talvez seja até melhor que os fatos venham agora à luz, pois sei, por boas razões, que há rumores espalhados a respeito da morte do doutor Grimesby Roylott, rumores que tendem a tornar o caso ainda mais terrível do que a verdade.
 
@@ -2600,8 +2608,9 @@ Tais são os verdadeiros fatos da morte do doutor Grimesby Roylott, de Stoke Mor
 
 “Eu havia”, disse ele, “chegado a uma conclusão inteiramente errada, o que mostra, meu caro Watson, como é perigoso raciocinar com dados insuficientes. A presença dos ciganos e o uso da palavra ‘faixa’ — que a pobre moça sem dúvida empregou para descrever aquilo que vislumbrou por um instante à luz do fósforo — bastaram para me pôr numa trilha completamente falsa. Só posso reivindicar o mérito de ter revisto de imediato minha posição quando ficou claro para mim que qualquer perigo que ameaçasse a ocupante daquele quarto não poderia vir nem da janela nem da porta. Minha atenção foi rapidamente atraída, como já lhe disse, para o ventilador e para a corda da campainha que pendia sobre a cama. Ao descobrir que a corda era apenas um simulacro e que a cama estava aparafusada ao chão, ficou claro que a corda servia de ponte para algo que passava pelo buraco e chegava à cama. A ideia de uma serpente me ocorreu de imediato e, quando a combinei com meu conhecimento de que o doutor mantinha uma coleção de criaturas da Índia, senti que provavelmente estava no caminho certo.”
 
-9. A AVENTURA DO POLEGAR DO ENGENHEIRO
+\newpage
 
+# A AVENTURA DO POLEGAR DO ENGENHEIRO
 
 De todos os casos que foram submetidos ao meu amigo, o senhor Sherlock Holmes, para que lhes encontrasse solução durante os anos de nossa convivência, houve apenas dois que eu próprio trouxe à sua atenção: o do polegar do senhor Hatherley e o da loucura do coronel Warburton. Desses dois, o último talvez oferecesse um campo mais rico para um observador arguto e original, mas o outro foi tão estranho em sua origem e tão dramático em seus detalhes que talvez mereça ainda mais ser registrado, mesmo tendo proporcionado ao meu amigo menos oportunidades para empregar aqueles métodos dedutivos de raciocínio com os quais alcançava resultados tão notáveis. A história, creio eu, já foi contada mais de uma vez nos jornais, mas, como acontece com todos esses relatos, seu efeito é muito menos impressionante quando apresentada _en bloc_ em uma única meia coluna de texto do que quando os fatos vão se desenrolando lentamente diante dos seus próprios olhos, e o mistério vai se dissipando aos poucos, à medida que cada nova descoberta fornece um degrau que conduz à verdade completa. Na época, as circunstâncias me impressionaram profundamente, e o intervalo de dois anos mal bastou para atenuar esse efeito.
 
@@ -2847,8 +2856,9 @@ O chefe da estação caiu na risada.
 
 — Experiência — disse Holmes, rindo. — Indiretamente, pode ter seu valor, sabe; basta colocá-la em palavras para ganhar a reputação de ser uma excelente companhia pelo resto da sua vida.
 
-10. A AVENTURA DO NOBRE SOLTEIRO
+\newpage
 
+# A AVENTURA DO NOBRE SOLTEIRO
 
 O casamento de lorde St. Simon, e sua curiosa conclusão, há muito deixou de ser assunto de interesse naquelas esferas elevadas em que o infeliz noivo circula. Escândalos mais recentes o eclipsaram, e seus detalhes mais picantes desviaram as línguas fofoqueiras desse drama de quatro anos atrás. Tenho razões, porém, para acreditar que os fatos completos jamais foram revelados ao grande público e, como meu amigo Sherlock Holmes teve participação considerável em esclarecer o caso, sinto que nenhuma memória sobre ele estaria completa sem um pequeno esboço desse episódio notável.
 
@@ -3201,8 +3211,9 @@ O lorde St. Simon de modo algum relaxara sua postura rígida; ouvira todo aquele
 
 — Pelo preço. Oito xelins por uma cama e oito pence por um copo de xerez indicam um dos hotéis mais caros. Não há muitos em Londres que cobrem essa tarifa. No segundo que visitei na Northumberland Avenue, ao examinar o registro, descobri que Francis H. Moulton, um cavalheiro americano, havia saído no dia anterior, e, ao olhar os lançamentos junto ao seu nome, encontrei exatamente os mesmos itens que eu vira na duplicata da conta. As cartas dele deveriam ser encaminhadas para 226 Gordon Square.
 
-11. A AVENTURA DA COROA DE BERILOS
+\newpage
 
+# A AVENTURA DA COROA DE BERILOS
 
 — Holmes — disse eu, certa manhã, enquanto estava de pé na nossa janela em arco olhando para a rua —, lá vem um louco pela calçada. É bem triste que os parentes dele deixem que saia sozinho.
 
@@ -3525,8 +3536,9 @@ A reação de alegria foi tão intensa quanto fora a sua dor, e ele apertou as j
 
 — E quem poderia ser o cúmplice dela? Evidentemente um amante, pois quem mais poderia pesar mais do que o amor e a gratidão que ela devia sentir por você? Eu sabia que você saía pouco e que seu círculo de amizades era muito restrito. Mas entre seus conhecidos estava Sir George Burnwell. Eu já ouvira falar dele como um homem de péssima reputação entre as mulheres. Só podia ter sido ele quem calçava aquelas botas e ficou com as joias desaparecidas. Mesmo sabendo que Arthur o havia descoberto, ele ainda podia se iludir achando que estava seguro, pois o rapaz não podia dizer uma palavra sem comprometer a própria família.
 
-12. A AVENTURA DOS FAIA DE COBRE
+\newpage
 
+# A AVENTURA DOS FAIA DE COBRE
 
 — Para o homem que ama a arte por ela mesma — comentou Sherlock Holmes, jogando de lado a página de anúncios do _Daily Telegraph_ —, é muitas vezes em suas manifestações mais humildes e aparentemente menos importantes que se encontra o prazer mais intenso. Fico satisfeito em observar, Watson, que você já compreendeu essa verdade a ponto de, nesses pequenos relatos de nossos casos que você teve a gentileza de redigir e, devo dizer, às vezes de enfeitar, ter dado destaque não tanto aos muitos _causes célèbres_ e julgamentos sensacionais em que apareci, mas sim àqueles incidentes que podem ter sido triviais em si mesmos, mas que abriram espaço para aquelas faculdades de dedução e de síntese lógica que eu fiz meu campo especial.
 

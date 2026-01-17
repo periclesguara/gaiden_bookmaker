@@ -1,4 +1,4 @@
-1. A SCANDAL IN BOHEMIA  
+# A SCANDAL IN BOHEMIA
 
 To Sherlock Holmes she is always the woman. I have rarely heard him refer to her by any other name. In his eyes she outshines and dominates her entire sex. It was not that he felt anything resembling love for Irene Adler. All emotions—and that one in particular—were repugnant to his cold, precise, but wonderfully balanced mind. He was, as I see it, the most perfect reasoning and observing machine the world has ever known; but as a lover he would have put himself in a false position. He never spoke of the softer passions except with a jest and a sneer. They were admirable things for the observer—excellent for lifting the veil from men’s motives and actions. But for a trained reasoner to allow such intrusions into his own delicate and finely tuned temperament would be to introduce a distracting element that might cast doubt on all his mental results. A grain of sand in a sensitive instrument, or a crack in one of his own powerful lenses, would not be more disturbing than a strong emotion in a nature like his. And yet, for him there was only one woman, and that woman was the late Irene Adler, of doubtful and questionable memory.
 
@@ -418,7 +418,9 @@ The King stared at him in astonishment.
 
 And that is how a great scandal came close to shaking the kingdom of Bohemia, and how the finest plans of Mr. Sherlock Holmes were outmatched by a woman’s wit. He used to jest about the cleverness of women, but I have not heard him do so for some time. And when he speaks of Irene Adler, or refers to her photograph, it is always with the respectful title: the woman.
 
-2. THE RED-HEADED LEAGUE
+\newpage
+
+# HEADED LEAGUE
 
 I had dropped in on my friend, Mr. Sherlock Holmes, one day in the autumn of last year and found him deep in conversation with a very stout, florid-faced elderly gentleman with blazing red hair. I apologized for interrupting and was about to withdraw when Holmes seized me by the arm, pulled me into the room, and shut the door behind me.
 
@@ -976,7 +978,9 @@ Our visitor had recovered some of his confidence while Holmes was speaking, and 
 
 “If I tell her, she won’t believe me. You may remember the old Persian saying: ‘There is danger for the man who takes a tiger cub, and danger also for the one who tears an illusion from a woman.’ There is as much wisdom in Hafiz as in Horace, and just as much knowledge of the world.”
 
-4. THE BOSCOMBE VALLEY MYSTERY
+\newpage
+
+# THE BOSCOMBE VALLEY MYSTERY
 
 My wife and I were at breakfast one morning when the maid brought in a telegram. It was from Sherlock Holmes, and read:
 
@@ -1284,7 +1288,9 @@ Holmes stood, moved to the table, and sat down with his pen in hand and a bundle
 
 “When I went down there, I found him talking with his son, so I lit a cigar and waited behind a tree until he should be alone. But as I listened to what he was saying, everything black and bitter in me rose to the surface. He was urging his son to marry my daughter with as little regard for her wishes as if she were some slut off the streets. It drove me mad to think that I, and all I held most dear, should be in the power of such a man. Could I not break the chain? I was already a dying and desperate man. Though my mind was clear and my limbs still fairly strong, I knew my fate was sealed. But my memory—and my girl! Both could be saved if only I could silence that foul tongue.
 
-5. THE FIVE ORANGE PIPS
+\newpage
+
+# THE FIVE ORANGE PIPS
 
 When I look back over my notes and records of Sherlock Holmes’s cases between the years ’82 and ’90, I find so many with strange and fascinating features that it is no easy task to decide which to choose and which to leave aside. Some have already been made public in the newspapers; others did not provide a stage for those peculiar gifts my friend possessed in such a high degree, and which it is the purpose of these memoirs to illustrate. Some, too, defeated even his analytical skill and would, as stories, be mere beginnings without an ending; others were only partly cleared up, their explanations resting more on conjecture and surmise than on that absolute logical proof which he prized so highly. There is, however, one of this last class which was so remarkable in its details and so startling in its outcome that I am tempted to give some account of it, despite the fact that there are points connected with it which never have been, and probably never will be, entirely cleared up.
 
@@ -1554,7 +1560,9 @@ He pulled a large sheet of paper from his pocket, covered with dates and names.
 
 But even the best-laid human plans have their flaw, and the murderers of John Openshaw were never to receive the orange pips that would have shown them that someone as cunning and as relentless as themselves was on their trail. The equinoctial gales were very long and very violent that year. We waited a long time for news of the Lone Star of Savannah, but none ever came. At last we heard that somewhere far out in the Atlantic a shattered stern-post of a boat had been seen tossing in the trough of a wave, with the letters “L. S.” carved upon it—and that is all we shall ever know of the fate of the Lone Star.
 
-6. THE MAN WITH THE TWISTED LIP
+\newpage
+
+# THE MAN WITH THE TWISTED LIP
 
 Isa Whitney, brother of the late Elias Whitney, D.D., Principal of St. George’s Theological College, was badly addicted to opium. The habit, as I understand it, began as some foolish prank when he was at university. After reading De Quincey’s account of his dreams and sensations, he had soaked his tobacco in laudanum, hoping to reproduce the same effects. He discovered, as so many others have, that the practice is far easier to acquire than to abandon, and for many years he remained a slave to the drug, an object of mingled horror and pity to his friends and family. I can see him now: yellow, pasty face, drooping eyelids, pupils like pinpoints, huddled in a chair—the wreck and ruin of a fine man.
 
@@ -1888,7 +1896,9 @@ I don’t think there is anything else I need to explain. I was determined to ke
 
 “I arrived at this one,” said my friend, “by sitting on five pillows and smoking an ounce of shag tobacco. I think, Watson, that if we drive to Baker Street now, we shall be just in time for breakfast.”
 
-7. THE ADVENTURE OF THE BLUE CARBUNCLE
+\newpage
+
+# THE ADVENTURE OF THE BLUE CARBUNCLE
 
 I had called on my friend Sherlock Holmes on the second morning after Christmas, intending to offer him the compliments of the season. He was lounging on the sofa in a purple dressing gown, a pipe-rack within easy reach on his right, and a heap of crumpled morning papers—clearly just read—close at hand. Beside the couch stood a wooden chair, and from the corner of its back hung a very shabby, disreputable hard-felt hat, badly worn and cracked in several places. A magnifying lens and a pair of forceps lying on the seat suggested that the hat had been hung there for the purpose of examination.
 
@@ -2256,7 +2266,9 @@ And no more words were needed. There was a rush, a clatter on the stairs, a door
 
 “After all, Watson,” said Holmes, reaching up for his clay pipe, “the police don’t hire me to make up for their shortcomings. If Horner were in danger it would be different; but this fellow won’t testify against him, and the case will collapse. I suppose I’m compounding a felony, but it’s just possible I’m saving a soul. This man won’t go wrong again; he’s far too badly frightened. Send him to prison now and you turn him into a jailbird for life. Besides, it’s the season of forgiveness. Chance has dropped a most singular and whimsical little problem in our path, and solving it is reward enough. If you’d be so good as to ring the bell, Doctor, we’ll begin another investigation—in which, again, a bird will play the leading part.”
 
-8. THE ADVENTURE OF THE SPECKLED BAND
+\newpage
+
+# THE ADVENTURE OF THE SPECKLED BAND
 
 Looking back over my notes on the seventy-odd cases in which, over the last eight years, I have studied the methods of my friend Sherlock Holmes, I find many that are tragic, some that are comic, a great number that are merely strange, but none that could be called ordinary. Working as he did more for the love of his art than for the acquisition of wealth, he refused to involve himself in any investigation that did not tend towards the unusual, even the fantastic. Yet of all these varied cases, I cannot recall one with more singular features than the one connected with the well-known Surrey family, the Roylotts of Stoke Moran. The events in question took place in the early days of my association with Holmes, when we were sharing bachelor lodgings in Baker Street. I might have put them on record earlier, but I had given a promise of secrecy at the time, a promise from which I have only been released within the last month by the untimely death of the lady to whom it was made. It is perhaps just as well that the facts should now come to light, for I know there are widespread rumours about the death of Dr. Grimesby Roylott which make the affair seem even more terrible than the truth.
 
@@ -2693,7 +2705,9 @@ Those are the true facts of the death of Dr. Grimesby Roylott of Stoke Moran. It
 
 “The idea of using a kind of poison that no chemical test could possibly detect is exactly the sort of thing that would occur to a clever and ruthless man with an Eastern training. The speed with which such a poison would act would also, from the fact of its leaving no trace in the body, be in favor of such a theory.
 
-9. THE ADVENTURE OF THE ENGINEER’S THUMB
+\newpage
+
+# THE ADVENTURE OF THE ENGINEER’S THUMB
 
 Of all the problems that have been brought to my friend Mr. Sherlock Holmes over the years of our friendship, there were only two that I myself introduced to his attention: the case of Mr. Hatherley’s thumb, and that of Colonel Warburton’s madness. The latter may have offered a richer field for a sharp and original observer, but the former was so strange in its beginning and so dramatic in its details that it may be more deserving of being put on record, even if it gave my friend fewer chances to display those deductive methods by which he achieved such remarkable results. The story has, I believe, appeared more than once in the newspapers, but like all such accounts, it loses much of its force when compressed into a single half-column of print, instead of having the facts unfold slowly before your eyes and the mystery clear bit by bit as each new discovery provides another step toward the whole truth. At the time, the circumstances made a deep impression on me, and even the passing of two years has hardly weakened it.
 
@@ -2963,7 +2977,9 @@ The stationmaster had barely finished speaking before we were all hurrying towar
 
 “Experience,” Holmes replied with a laugh. “Indirectly, it may be worth something, you know. All you have to do is put it into words, and you’ll earn a reputation as excellent company for the rest of your life.”
 
-10. THE ADVENTURE OF THE NOBLE BACHELOR
+\newpage
+
+# THE ADVENTURE OF THE NOBLE BACHELOR
 
 The marriage of Lord St. Simon, and its strange ending, have long since stopped being a topic of interest in those lofty circles in which the unlucky bridegroom moves. New scandals have overshadowed it, and their spicier details have drawn the gossips away from this four-year-old drama. I have reason to believe, however, that the full facts have never been made known to the general public, and since my friend Sherlock Holmes played a considerable part in clearing the matter up, I feel that no memoir of him would be complete without some brief sketch of this remarkable episode.
 
@@ -3344,7 +3360,9 @@ Lord St. Simon had by no means relaxed his stiff posture. He listened to this lo
 
 “From the exclusive prices. Eight shillings for a bed and eightpence for a glass of sherry point to one of the most expensive hotels. There aren’t many in London that charge at that rate. At the second one I visited in Northumberland Avenue, I found, by inspecting the register, that Francis H. Moulton, an American gentleman, had left only the day before, and when I looked over the entries against his name, I came upon the very items I had seen on the duplicate bill. His letters were to be forwarded to 226 Gordon Square.”
 
-11. THE ADVENTURE OF THE BERYL CORONET
+\newpage
+
+# THE ADVENTURE OF THE BERYL CORONET
 
 “Holmes,” I said one morning, standing at our bay window and looking down into the street, “there’s a madman coming this way. It’s rather sad that his family lets him go out alone.”
 
@@ -3695,7 +3713,9 @@ The swing from despair to joy was as violent as his grief had been, and he press
 
 “Exactly. That was me. Once I knew I had my man, I came home and changed my clothes. What followed was the delicate part, because I saw that we had to avoid scandal and yet restore the jewels.
 
-12. THE ADVENTURE OF THE COPPER BEECHES
+\newpage
+
+# THE ADVENTURE OF THE COPPER BEECHES
 
 “To a man who loves art for its own sake,” said Sherlock Holmes, tossing aside the advertisement page of The Daily Telegraph, “it’s often in its least important and humblest forms that the keenest pleasure is found. I’m pleased to see, Watson, that you’ve grasped this truth to the extent that, in these little records of our cases which you’ve been kind enough to write—and, I must say, occasionally to embellish—you’ve focused not so much on the many famous causes célèbres and sensational trials in which I’ve appeared, but rather on those incidents which may have been trivial in themselves, yet gave scope for those powers of deduction and logical synthesis which I’ve made my special field.”
 
