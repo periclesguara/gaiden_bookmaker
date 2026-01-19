@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Pipeline Steps - {{ edition.book_code }} ({{ edition.language }})</title>
+  <title>Pipeline Steps - {{ book_code }} ({{ language }})</title>
   <style>
     :root {
       --bg: #f7f2ea;
@@ -135,8 +135,8 @@
 </head>
 <body>
   <header>
-    <h1>Pipeline Steps — {{ edition.book_code }} ({{ edition.language }})</h1>
-    <p class="subtitle">{{ edition.title }} · {{ edition.author_name }}</p>
+    <h1>Pipeline Steps — {{ book_code }} ({{ language }})</h1>
+    <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
   </header>
   {% if messages %}
   <section class="grid" style="padding-top: 0;">
@@ -166,7 +166,7 @@
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'raw' %}" enctype="multipart/form-data">
           {% csrf_token %}
           <input type="file" name="raw_file" required />
-          <button class="btn secondary" type="submit">Select RAW archive</button>
+          <button class="btn secondary" type="submit">Salvar RAW (upload)</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'normalize' %}">
           {% csrf_token %}
@@ -176,13 +176,34 @@
           {% csrf_token %}
           <button class="btn" type="submit">Split</button>
         </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split_by_chapter' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit">Split by Chapter</button>
+        </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
           {% csrf_token %}
           <button class="btn" type="submit">Chunk</button>
         </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');">
           {% csrf_token %}
+          <select name="target_language" aria-label="Idioma de traducao">
+            <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
+            <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
+            <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
+            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+          </select>
           <button class="btn" type="submit">Translate</button>
+        </form>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_translation_language" />
+          <select name="target_language" aria-label="Salvar idioma de traducao">
+            <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
+            <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
+            <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
+            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+          </select>
+          <button class="btn secondary" type="submit">Salvar idioma</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'refine' %}">
           {% csrf_token %}
@@ -197,10 +218,29 @@
         RAW: <strong>{{ status.raw }}</strong>
       </div>
       <div class="status">
+        RAW path:
+        {% if raw_path %}
+          <strong>{{ raw_path }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        RAW arquivo:
+        {% if raw_name %}
+          <strong>{{ raw_name }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
         Normalize: <strong>{{ status.normalize }}</strong>
       </div>
       <div class="status">
         Split: <strong>{{ status.split }}</strong>
+      </div>
+      <div class="status">
+        Split by Chapter: <strong>{{ status.split_by_chapter }}</strong>
       </div>
       <div class="status">
         Translate:
@@ -221,46 +261,8 @@
       <h2>Transformacao Editorial &amp; Qualidade</h2>
       <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
       <p>
-        <strong>Fonte atual (canonico):</strong>
-        {% if text_source.selected_sources|length > 1 %}
-          {% for source in text_source.selected_sources %}
-            {{ source.label }}<br>
-            <code>{{ source.path }}</code><br>
-          {% endfor %}
-        {% elif text_source.canonical_name %}
-          {{ text_source.canonical_name }}<br>
-          <code>{{ text_source.canonical_path }}</code>
-        {% else %}
-          <em>Nenhum merge_* disponivel ainda.</em>
-        {% endif %}
+        A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
       </p>
-      <form method="post" class="mb-3">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="set_text_source" />
-        <label for="id_text_source_choice"><strong>Selecionar arquivo-fonte:</strong></label>
-        <select name="text_source_choice" id="id_text_source_choice" multiple>
-          <option value="auto" {% if "auto" in text_source.selected_values %}selected{% endif %}>
-            Auto (prioridade: polish &gt; refine &gt; translate)
-          </option>
-          <option value="{{ edition.language }}::merge_translate.txt" {% if edition.language|add:'::merge_translate.txt' in text_source.selected_values %}selected{% endif %}>
-            merge_translate.txt ({{ edition.language }})
-          </option>
-          <option value="{{ edition.language }}::merge_refine.txt" {% if edition.language|add:'::merge_refine.txt' in text_source.selected_values %}selected{% endif %}>
-            merge_refine.txt ({{ edition.language }})
-          </option>
-          <option value="{{ edition.language }}::merge_polish.txt" {% if edition.language|add:'::merge_polish.txt' in text_source.selected_values %}selected{% endif %}>
-            merge_polish.txt ({{ edition.language }})
-          </option>
-          {% for extra in text_source.extra_candidates %}
-            <option value="{{ extra.value }}" {% if extra.value in text_source.selected_values %}selected{% endif %}>
-              {{ extra.label }}
-            </option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-sm btn-primary">
-          Usar esta fonte
-        </button>
-      </form>
       <div class="actions">
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
           {% csrf_token %}
@@ -270,20 +272,10 @@
           {% csrf_token %}
           <button class="btn secondary" type="submit">Convert TXT to Miolo</button>
         </form>
+        <a class="btn secondary" href="{% url 'preview_merge_translate' edition_id=edition.id %}">
+          Preview Merge Translate
+        </a>
       </div>
-      {% if text_source.job_stage %}
-        <div class="status">
-          Origem no pipeline:
-          <strong>{{ text_source.job_stage|upper }}</strong>
-          (job #{{ text_source.job_id }})
-        </div>
-        <div class="status">
-          Arquivo original: <strong>{{ text_source.job_filepath }}</strong>
-        </div>
-        <div class="status">
-          Criado em: <strong>{{ text_source.job_created_at }}</strong>
-        </div>
-      {% endif %}
       <form method="post" class="mt-3">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_headlines" />
@@ -305,22 +297,14 @@
         </p>
       </form>
       <div class="actions">
-        {% if text_source.selected_sources %}
-          {% for source in text_source.selected_sources %}
-            <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=edition.book_code language=source.language %}">
-              Preview ({{ source.language }})
-            </a>
-          {% endfor %}
-        {% else %}
-          <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=edition.book_code language=edition.language %}">
-            Preview (Pre-Edition)
-          </a>
-        {% endif %}
+        <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=book_code language=language %}">
+          Preview (Pre-Edition)
+        </a>
       </div>
       {% if miolo_paths %}
       <div class="actions">
         {% for miolo in miolo_paths %}
-          <a class="btn secondary" href="{% url 'preview_miolo_md' book_code=edition.book_code language=miolo.language %}">
+          <a class="btn secondary" href="{% url 'preview_miolo_md' book_code=book_code language=miolo.language %}">
             Preview Miolo ({{ miolo.language }})
           </a>
         {% endfor %}
@@ -349,7 +333,7 @@
           <a href="{{ miolo.path }}">{{ miolo.label }}</a>
           {% endfor %}
         {% else %}
-        <span class="badge">BOOK.MIOLO.MD</span>
+        <span class="badge">{{ miolo_filename }}</span>
         {% endif %}
         {% if md_pre_qa_path %}
         <a href="{{ md_pre_qa_path }}">BOOK.PRE_QA.md</a>

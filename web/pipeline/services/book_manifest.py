@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from . import paths, text_source
+from . import edition_meta, paths, text_source
 
 
 @dataclass
@@ -104,8 +104,8 @@ def build_manifest(
 
     return BookManifest(
         edition_id=edition.id,
-        book_code=edition.book_code,
-        language=edition.language,
+        book_code=edition_meta.book_code(edition),
+        language=edition_meta.language_code(edition),
         edition_type=getattr(edition, "edition_type", None),
         imprint_name=getattr(edition, "imprint_name", None),
         collection_name=getattr(edition, "collection_name", None),

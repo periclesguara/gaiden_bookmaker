@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import paths
+from . import edition_meta, paths
 from .paths import data_dir, edition_build_dir
 
 
@@ -23,7 +23,7 @@ def sync_legacy_merges_from_translated(edition) -> None:
     if _iter_existing_merges(edition, build_dir):
         return
 
-    book_code = getattr(edition, "book_code", str(edition.id))
+    book_code = edition_meta.book_code(edition) or str(edition.id)
 
     candidate_dirs = [
         data_dir() / "translated" / book_code,

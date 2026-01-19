@@ -1,7 +1,4 @@
 import json
-import os
-import sqlite3
-import zipfile
 from pathlib import Path
 import shutil
 from datetime import datetime
@@ -10,295 +7,54 @@ import re
 from django.conf import settings
 from django.core.management import call_command
 from django.contrib import messages
-from django.db.models import Case, Count, IntegerField, Q, When
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
-from .forms import BookEditionTemplateForm
-from .models import BookEditionTemplate, PipelineJob, get_book_md_path
+from editorial.models import (
+    Edition as EditorialEdition,
+    EditionPipeline,
+    EditionText,
+    PipelineStage,
+)
+
+from .models import get_book_md_path
 from .services import (
     book_manifest,
     build_book,
+    chapter_chunks,
+    editorial_split,
     export_book,
     legacy_merges,
     md_quality,
     md_transform,
     miolo_transform,
     paths,
-    text_source,
     utils,
 )
 
 
-DB_PATH = Path(settings.BASE_DIR).parent / "data" / "db" / "gaiden.sqlite3"
-
-
-def _badge(flag: bool) -> str:
-    return "✅" if flag else "—"
-
-
 def pipeline_dashboard(request):
-    # Conecta no SQLite do Gaiden
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-
-    # Em vez de depender da tabela books, usamos o que EXISTE:
-    # os book_id reais da book_translated_merged
-    try:
-        cur.execute(
-            """
-            SELECT DISTINCT book_id AS id
-              FROM book_translated_merged
-             ORDER BY book_id;
-            """
-        )
-        books = cur.fetchall()
-    except sqlite3.Error as e:
-        conn.close()
-        return HttpResponse(
-            f"<h1>Gaiden Pipeline</h1><p>Erro acessando DB: {e}</p>",
-            content_type="text/html",
-        )
-
-    books_data = []
-
-    for book in books:
-        book_id = book["id"]
-
-        # translated
-        cur.execute(
-            """
-            SELECT lang_key
-              FROM book_translated_merged
-             WHERE book_id = ?
-            """,
-            (book_id,),
-        )
-        translated_langs = [row["lang_key"] for row in cur.fetchall()]
-
-        # refined
-        try:
-            cur.execute(
-                """
-                SELECT lang, variant
-                  FROM book_refined_merged
-                 WHERE book_id = ?
-                """,
-                (book_id,),
-            )
-            refined_rows = cur.fetchall()
-        except sqlite3.OperationalError:
-            refined_rows = []
-
-        refined_langs = [row["lang"] for row in refined_rows]
-
-        # polished
-        try:
-            cur.execute(
-                """
-                SELECT lang, variant
-                  FROM book_polished_merged
-                 WHERE book_id = ?
-                """,
-                (book_id,),
-            )
-            polished_rows = cur.fetchall()
-        except sqlite3.OperationalError:
-            polished_rows = []
-
-        polished_langs = [row["lang"] for row in polished_rows]
-
-        all_langs = sorted(set(translated_langs) | set(refined_langs) | set(polished_langs))
-
-        lang_status = []
-        for lang in all_langs:
-            lang_status.append(
-                {
-                    "lang": lang,
-                    "translated": lang in translated_langs,
-                    "refined": lang in refined_langs,
-                    "polished": lang in polished_langs,
-                }
-            )
-
-        books_data.append(
-            {
-                "id": book_id,
-                "label": f"Book {book_id}",
-                "langs": lang_status,
-            }
-        )
-
-    conn.close()
-
-    parts = []
-    parts.append("<html><head><meta charset='utf-8'><title>Gaiden Pipeline</title></head><body>")
-    parts.append("<h1>Gaiden Pipeline – Status dos Livros</h1>")
-
-    if not books_data:
-        parts.append("<p>Nenhum livro encontrado em <code>book_translated_merged</code>.</p>")
-    else:
-        for book in books_data:
-            parts.append(
-                f"<h2>Livro {book['id']}: {book['label']}</h2>"
-            )
-            parts.append(
-                "<table border='1' cellspacing='0' cellpadding='4'>"
-                "<tr>"
-                "<th>Idioma</th>"
-                "<th>Translated</th>"
-                "<th>Refined</th>"
-                "<th>Polished</th>"
-                "</tr>"
-            )
-            for ls in book["langs"]:
-                parts.append(
-                    "<tr>"
-                    f"<td>{ls['lang']}</td>"
-                    f"<td style='text-align:center'>{_badge(ls['translated'])}</td>"
-                    f"<td style='text-align:center'>{_badge(ls['refined'])}</td>"
-                    f"<td style='text-align:center'>{_badge(ls['polished'])}</td>"
-                    "</tr>"
-                )
-            parts.append("</table>")
-
-    parts.append("</body></html>")
-
-    return HttpResponse("\n".join(parts), content_type="text/html")
-
-
-def pipeline_dashboard(request):
-    books = (
-        PipelineJob.objects.values("book_code", "book_title")
-        .annotate(
-            total_jobs=Count("id"),
-            success_jobs=Count("id", filter=Q(status="SUCCESS")),
-            fail_jobs=Count("id", filter=Q(status="FAIL")),
-        )
-        .order_by("book_code")
-    )
-    return render(request, "pipeline/dashboard.html", {"books": books})
+    pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
+    return render(request, "pipeline/dashboard.html", {"pipelines": pipelines})
 
 
 def pipeline_jobs(request):
-    stage_order = Case(
-        When(stage="raw", then=0),
-        When(stage="normalize", then=1),
-        When(stage="split", then=2),
-        When(stage="translate", then=3),
-        When(stage="refine", then=4),
-        When(stage="polish", then=5),
-        default=99,
-        output_field=IntegerField(),
-    )
-
-    qs = (
-        PipelineJob.objects.annotate(stage_index=stage_order)
-        .order_by("book_code", "language", "stage_index")
-    )
-    book_code = request.GET.get("book")
-    if book_code:
-        qs = qs.filter(book_code=book_code)
-    jobs = list(qs)
-    edition_map = {}
-    if jobs:
-        keys = {(j.book_code, j.language) for j in jobs}
-        cond = Q()
-        for book_code_value, language_value in keys:
-            cond |= Q(book_code=book_code_value, language=language_value)
-        editions = BookEditionTemplate.objects.filter(cond) if cond else []
-        edition_map = {(e.book_code, e.language): e.id for e in editions}
-
-    for job in jobs:
-        job.edition_id = edition_map.get((job.book_code, job.language))
-
-    return render(request, "pipeline/jobs.html", {"jobs": jobs})
+    pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("-id")
+    return render(request, "pipeline/jobs.html", {"pipelines": pipelines})
 
 
 def book_edition_list(request):
-    editions = BookEditionTemplate.objects.all().order_by("book_code", "language")
+    editions = (
+        EditorialEdition.objects.select_related("work", "language", "seal")
+        .order_by("work__code", "language__code")
+    )
     return render(request, "pipeline/book_edition_list.html", {"editions": editions})
 
 
 def book_edition_edit(request, book_code=None, language=None):
-    instance = None
-
-    if book_code and language:
-        try:
-            instance = BookEditionTemplate.objects.get(book_code=book_code, language=language)
-        except BookEditionTemplate.DoesNotExist:
-            instance = None
-
-    if request.method == "POST":
-        form = BookEditionTemplateForm(request.POST, request.FILES, instance=instance)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            project_root = Path(settings.BASE_DIR).parent
-            data_dir = project_root / "data"
-
-            cover_file = form.cleaned_data.get("cover_file")
-            if cover_file:
-                cover_dir = data_dir / "covers" / obj.book_code / obj.language
-                cover_dir.mkdir(parents=True, exist_ok=True)
-                cover_path = cover_dir / cover_file.name
-                with cover_path.open("wb+") as dest:
-                    for chunk in cover_file.chunks():
-                        dest.write(chunk)
-                obj.cover_filepath = os.path.relpath(cover_path, project_root)
-
-            images_zip = form.cleaned_data.get("images_zip")
-            if images_zip:
-                images_dir = data_dir / "images" / obj.book_code / obj.language
-                images_dir.mkdir(parents=True, exist_ok=True)
-                zip_path = images_dir / images_zip.name
-                with zip_path.open("wb+") as dest:
-                    for chunk in images_zip.chunks():
-                        dest.write(chunk)
-                with zipfile.ZipFile(zip_path, "r") as zf:
-                    zf.extractall(images_dir)
-                try:
-                    zip_path.unlink()
-                except FileNotFoundError:
-                    pass
-                obj.images_dir = os.path.relpath(images_dir, project_root)
-
-            obj.save()
-            uploaded = form.cleaned_data.get("source_file")
-            if uploaded:
-                raw_base_dir = data_dir / "raw"
-                dest_dir = raw_base_dir / obj.book_code
-                dest_dir.mkdir(parents=True, exist_ok=True)
-                ext = Path(uploaded.name).suffix or ".txt"
-                dest_path = dest_dir / f"{obj.book_code}_{obj.language}_raw{ext}"
-                with dest_path.open("wb+") as dest:
-                    for chunk in uploaded.chunks():
-                        dest.write(chunk)
-                PipelineJob.objects.update_or_create(
-                    book_code=obj.book_code,
-                    language=obj.language,
-                    stage="raw",
-                    defaults={
-                        "book_title": obj.title,
-                        "status": "SUCCESS",
-                        "filepath": str(dest_path),
-                        "message": "Raw file uploaded.",
-                    },
-                )
-            return redirect("book_edition_edit", book_code=obj.book_code, language=obj.language)
-    else:
-        initial = {}
-        if book_code:
-            initial["book_code"] = book_code
-        if language:
-            initial["language"] = language
-        form = BookEditionTemplateForm(instance=instance, initial=initial)
-
-    return render(
-        request,
-        "pipeline/book_edition_form.html",
-        {"form": form, "instance": instance},
-    )
+    messages.info(request, "Edicoes sao criadas via seed_editorial ou admin.")
+    return redirect("book_edition_list")
 
 
 def _parse_book_id(book_code: str) -> int | None:
@@ -317,27 +73,20 @@ def _parse_book_id(book_code: str) -> int | None:
     return None
 
 
+
+
+def _edition_codes(edition) -> tuple[str, str]:
+    return edition.work.code, edition.language.code
+
+
 def _raw_upload_path(edition, uploaded_name: str) -> Path:
+    book_code, language = _edition_codes(edition)
     data_dir = Path(settings.BASE_DIR).parent / "data"
     raw_base_dir = data_dir / "raw"
-    dest_dir = raw_base_dir / edition.book_code
+    dest_dir = raw_base_dir / book_code
     dest_dir.mkdir(parents=True, exist_ok=True)
     ext = Path(uploaded_name).suffix or ".txt"
-    return dest_dir / f"{edition.book_code}_{edition.language}_raw{ext}"
-
-
-def _upsert_job(edition, stage: str, status: str, filepath: str, message: str = "") -> None:
-    PipelineJob.objects.update_or_create(
-        book_code=edition.book_code,
-        language=edition.language,
-        stage=stage,
-        defaults={
-            "book_title": edition.title,
-            "status": status,
-            "filepath": filepath,
-            "message": message,
-        },
-    )
+    return dest_dir / f"{book_code}_{language}_raw{ext}"
 
 
 def _select_contract_path(language: str) -> Path:
@@ -393,7 +142,7 @@ def _resolve_contract_out_dir(contract_path: Path, edition) -> Path:
     out_dir = payload.get("out_dir")
     if out_dir:
         return Path(out_dir)
-    book_id = _parse_book_id(edition.book_code)
+    book_id = _parse_book_id(_edition_codes(edition)[0])
     if book_id is None:
         raise ValueError("book_code must be like book_0001 to resolve out_dir.")
     target_lang = _contract_target_lang(payload)
@@ -436,45 +185,6 @@ def _legacy_gaiden_merge_path(book_id: int, language: str, stage: str) -> Path |
     return None
 
 
-def _sync_canonical_merges_from_jobs(edition) -> list[str]:
-    stage_to_target = {
-        "polish": paths.merge_polish_path(edition),
-        "refine": paths.merge_refine_path(edition),
-        "translate": paths.merge_translate_path(edition),
-    }
-    synced: list[str] = []
-    for stage, target_path in stage_to_target.items():
-        if target_path.exists():
-            continue
-        job = (
-            PipelineJob.objects.filter(
-                book_code=edition.book_code,
-                language=edition.language,
-                stage=stage,
-                status="SUCCESS",
-            )
-            .order_by("-updated_at")
-            .first()
-        )
-        source_path = None
-        if job and job.filepath:
-            source_path = Path(job.filepath)
-            if not source_path.exists():
-                source_path = None
-        if source_path is None:
-            book_id = _parse_book_id(edition.book_code)
-            if book_id is None:
-                continue
-            source_path = _legacy_gaiden_merge_path(book_id, edition.language, stage)
-            if source_path is None:
-                continue
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source_path, target_path)
-        stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        synced.append(f"{stamp} | {stage}: {source_path} -> {target_path}")
-    return synced
-
-
 def _detect_merged_path(out_dir: Path) -> Path | None:
     lang_key = out_dir.name
     merged = out_dir / f"merged_{lang_key}.txt"
@@ -501,20 +211,16 @@ def _count_split_chunks(book_code: str) -> int | None:
 
 
 def edition_steps(request, edition_id: int):
-    edition = get_object_or_404(BookEditionTemplate, id=edition_id)
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, language = _edition_codes(edition)
     if request.method == "POST":
         action = request.POST.get("action")
-        if action == "set_text_source":
-            choices = request.POST.getlist("text_source_choice")
-            if not choices:
-                mode = "auto"
-            else:
-                if "auto" in choices:
-                    choices = [choice for choice in choices if choice != "auto"]
-                mode = "auto" if not choices else "||".join(choices)
-            edition.text_source_mode = mode
-            edition.save(update_fields=["text_source_mode"])
-            messages.success(request, "Fonte de texto atualizada.")
+        if action == "save_translation_language":
+            target_language = utils.normalize_lang(request.POST.get("target_language") or language)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.translation_language = target_language
+            pipeline_state.save(update_fields=["translation_language"])
+            messages.success(request, f"Idioma de traducao salvo: {target_language}")
             return redirect("edition_steps", edition_id=edition.id)
         if action == "insert_headlines":
             build_dir = paths.edition_build_dir(edition)
@@ -528,7 +234,7 @@ def edition_steps(request, edition_id: int):
                 return redirect("edition_steps", edition_id=edition.id)
             for md_path in md_targets:
                 out_path = md_path
-                lang = (edition.language or "").lower()
+                lang = language.lower()
                 if md_path.name.startswith("BOOK.PRE_QA."):
                     lang = md_path.name.split(".", 2)[-1].lower()
                     out_path = md_path.with_name(f"BOOK.PRE_EDITION.{lang}.md")
@@ -560,49 +266,28 @@ def edition_steps(request, edition_id: int):
             return redirect("edition_steps", edition_id=edition.id)
 
     legacy_merges.sync_legacy_merges_from_translated(edition)
-    sync_log = _sync_canonical_merges_from_jobs(edition)
+    sync_log = []
 
-    jobs = PipelineJob.objects.filter(
-        book_code=edition.book_code,
-        language=edition.language,
-    )
-    jobs_by_stage = {job.stage: job for job in jobs}
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    texts = EditionText.objects.filter(edition=edition).first()
+    raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
+    raw_name = Path(raw_path).name if raw_path else None
 
-    def is_success(stage: str) -> bool:
-        job = jobs_by_stage.get(stage)
-        return bool(job and job.status == "SUCCESS")
+    def _status(flag: bool) -> str:
+        return "OK" if flag else "falta"
 
-    def has_merge(stage: str) -> bool:
-        if stage == "polish":
-            if paths.merge_polish_path(edition).exists():
-                return True
-        if stage == "refine":
-            if paths.merge_refine_path(edition).exists():
-                return True
-        if stage == "translate":
-            if paths.merge_translate_path(edition).exists():
-                return True
-        book_id = _parse_book_id(edition.book_code)
-        if book_id is None:
-            return False
-        legacy = _legacy_gaiden_merge_path(book_id, edition.language, stage)
-        return bool(legacy and legacy.exists())
+    book_id = _parse_book_id(book_code)
+    split_by_chapter_dir = None
+    if book_id is not None:
+        split_by_chapter_dir = (
+            Path(settings.BASE_DIR).parent
+            / "data"
+            / "chunks"
+            / f"book_{book_id:04d}"
+            / "split_01_by_chapter"
+        )
 
-    def status_label(stage: str) -> str:
-        job = jobs_by_stage.get(stage)
-        if not job:
-            if has_merge(stage):
-                return "done"
-            return "not run" if stage == "polish" else "pending"
-        if job.status == "SUCCESS":
-            return "done" if stage in {"translate", "refine", "polish"} else "OK"
-        if job.status == "FAIL":
-            return "falha"
-        return job.status.lower()
-
-    chunk_count = _count_split_chunks(edition.book_code)
-
-    source_info = text_source.get_effective_text_source(edition)
+    chunk_count = _count_split_chunks(book_code)
 
     pre_edition_path = paths.pre_edition_md_path(edition)
     pre_qa_path = paths.pre_qa_md_path(edition)
@@ -613,30 +298,15 @@ def edition_steps(request, edition_id: int):
     pdf_path = paths.pdf_path(edition)
     qa_log_path = paths.qa_log_path(edition)
     miolo_paths = []
-    if source_info.selected_sources:
-        for source in source_info.selected_sources:
-            if len(source_info.selected_sources) == 1:
-                miolo_path = paths.miolo_md_path(edition)
-            else:
-                miolo_path = paths.edition_build_dir(edition) / f"BOOK.MIOLO.{source.language}.md"
-            if miolo_path.exists():
-                miolo_paths.append(
-                    {
-                        "language": source.language,
-                        "path": str(miolo_path),
-                        "label": miolo_path.name,
-                    }
-                )
-    else:
-        miolo_path = paths.miolo_md_path(edition)
-        if miolo_path.exists():
-            miolo_paths.append(
-                {
-                    "language": edition.language,
-                    "path": str(miolo_path),
-                    "label": miolo_path.name,
-                }
-            )
+    miolo_path = paths.miolo_md_path(edition)
+    if miolo_path.exists():
+        miolo_paths.append(
+            {
+                "language": language,
+                "path": str(miolo_path),
+                "label": miolo_path.name,
+            }
+        )
 
     if final_md_path.exists():
         md_status = "QA_DONE"
@@ -665,15 +335,18 @@ def edition_steps(request, edition_id: int):
     context = {
         "edition": edition,
         "status": {
-            "raw": "OK" if is_success("raw") else "falta",
-            "normalize": "OK" if is_success("normalize") else "falta",
-            "split": "OK" if is_success("split") else "falta",
-            "translate": status_label("translate"),
-            "refine": status_label("refine"),
-            "polish": status_label("polish"),
+            "raw": _status(bool(raw_path)),
+            "normalize": _status(bool(pipeline_state.normalized_at)),
+            "split": _status(bool(pipeline_state.split_at)),
+            "split_by_chapter": _status(bool(split_by_chapter_dir and split_by_chapter_dir.exists())),
+            "translate": _status(bool(pipeline_state.translated_at)),
+            "refine": _status(bool(pipeline_state.refined_at)),
+            "polish": _status(bool(pipeline_state.polished_at)),
         },
+        "raw_path": raw_path,
+        "raw_name": raw_name,
+        "translate_language": pipeline_state.translation_language or language,
         "chunk_count": chunk_count,
-        "text_source": source_info,
         "sync_log": sync_log,
         "md_status": md_status,
         "md_preview": md_preview,
@@ -681,18 +354,22 @@ def edition_steps(request, edition_id: int):
         "md_pre_qa_path": str(pre_qa_path) if pre_qa_path.exists() else None,
         "md_final_path": str(final_md_path) if final_md_path.exists() else None,
         "miolo_paths": miolo_paths,
+        "miolo_filename": paths.miolo_md_filename(),
         "qa_issues": issues,
         "build_status": "DONE" if build_md_path.exists() else "NONE",
         "build_path": str(build_md_path) if build_md_path.exists() else None,
         "epub_path": str(epub_path) if epub_path.exists() else None,
         "pdf_path": str(pdf_path) if pdf_path.exists() else None,
+        "book_code": book_code,
+        "language": language,
     }
 
     return render(request, "pipeline/edition_steps.html", context)
 
 
 def run_edition_step(request, edition_id: int, step: str):
-    edition = get_object_or_404(BookEditionTemplate, id=edition_id)
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, language = _edition_codes(edition)
 
     if request.method != "POST":
         return redirect("edition_steps", edition_id=edition.id)
@@ -706,79 +383,91 @@ def run_edition_step(request, edition_id: int, step: str):
             with dest_path.open("wb+") as dest:
                 for chunk in uploaded.chunks():
                     dest.write(chunk)
-            _upsert_job(edition, "raw", "SUCCESS", str(dest_path), "Raw file uploaded.")
+            edition.raw_source_path = str(dest_path)
+            edition.save(update_fields=["raw_source_path", "updated_at"])
+
+            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            texts.raw_path = str(dest_path)
+            texts.save(update_fields=["raw_path", "updated_at"])
+
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.RAW
+            pipeline_state.raw_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, f"RAW saved: {dest_path}")
 
         elif step == "normalize":
-            from gaiden import db as gaiden_db
             from gaiden import ingest, normalize as gaiden_normalize
 
-            book_id = _parse_book_id(edition.book_code)
-            if book_id is None:
-                raise ValueError("book_code must be like book_0001 to normalize.")
-
-            raw_job = PipelineJob.objects.filter(
-                book_code=edition.book_code,
-                language=edition.language,
-                stage="raw",
-                status="SUCCESS",
-            ).order_by("-updated_at").first()
-            if not raw_job:
+            texts = EditionText.objects.filter(edition=edition).first()
+            raw_path_str = (texts.raw_path if texts else "") or edition.raw_source_path
+            if not raw_path_str:
                 raise FileNotFoundError("RAW file not found. Upload it first.")
 
-            raw_path = Path(raw_job.filepath)
+            raw_path = Path(raw_path_str)
             ext = raw_path.suffix.lstrip(".")
             text = ingest.extract_text_from_file(raw_path, ext)
             if not text:
                 raise ValueError("Could not extract text from RAW file.")
 
-            gaiden_db.upsert_extracted_text(book_id, text)
             normalized = gaiden_normalize.normalize_text_v2(text)
-            out_path, _ = gaiden_normalize.write_normalized(book_id, normalized, version="v2")
-            gaiden_db.upsert_normalized_text(book_id, normalized, version="v2")
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "normalized"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            out_path = data_dir / f"{book_code}_{language}_v2.txt"
+            out_path.write_text(normalized, encoding="utf-8")
 
-            _upsert_job(edition, "normalize", "SUCCESS", str(out_path), "Normalized text saved.")
+            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            texts.raw_text = text
+            texts.normalized_text = normalized
+            texts.raw_path = str(raw_path)
+            texts.normalized_path = str(out_path)
+            texts.save()
+
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            if pipeline_state.raw_at is None:
+                pipeline_state.raw_at = timezone.now()
+            pipeline_state.current_stage = PipelineStage.NORMALIZED
+            pipeline_state.normalized_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
+
             messages.success(request, f"Normalize OK: {out_path}")
 
         elif step == "split":
-            from gaiden.split_struct import run_split_struct
-
-            book_id = _parse_book_id(edition.book_code)
-            if book_id is None:
-                raise ValueError("book_code must be like book_0001 to split.")
-
-            count = run_split_struct(book_id)
-            _upsert_job(
-                edition,
-                "split",
-                "SUCCESS",
-                str(Path("data/db/gaiden.sqlite3")),
-                f"Split struct items: {count}",
-            )
+            count = editorial_split.run_split_struct(edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.SPLIT
+            pipeline_state.split_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, f"Split struct OK: {count} units")
 
         elif step == "chunk":
-            from gaiden.split_01 import run_split_01
-
-            book_id = _parse_book_id(edition.book_code)
-            if book_id is None:
-                raise ValueError("book_code must be like book_0001 to chunk.")
-
-            count = run_split_01(book_id)
+            count = editorial_split.run_split_01(edition)
+            book_id = _parse_book_id(book_code)
             chunks_dir = Path("data/chunks") / f"book_{book_id:04d}" / "split_01"
-            _upsert_job(
-                edition,
-                "split",
-                "SUCCESS",
-                str(chunks_dir),
-                f"Chunks generated: {count}",
-            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.CHUNKED
+            pipeline_state.chunked_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, f"Chunks OK: {count}")
+
+        elif step == "split_by_chapter":
+            result = chapter_chunks.run_split_by_chapter(edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.SPLIT
+            pipeline_state.split_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
+            messages.success(request, f"Split by chapter OK: {result['path']}")
 
         elif step == "translate":
             from gaiden.translate import run_translate_with_contract
 
-            contract_path = _select_contract_path(edition.language)
+            target_language = utils.normalize_lang(request.POST.get("target_language") or language)
+            contract_path = _select_contract_path(target_language)
             run_translate_with_contract(contract_path)
 
             out_dir_path = _resolve_contract_out_dir(contract_path, edition)
@@ -787,19 +476,18 @@ def run_edition_step(request, edition_id: int, step: str):
             if not merged_path:
                 raise FileNotFoundError(f"Merged translation not found in {out_dir_path}")
             build_path = _copy_merge_to_build(edition, merged_path, paths.merge_translate_path(edition))
-            _upsert_job(
-                edition,
-                "translate",
-                "SUCCESS",
-                str(build_path),
-                "Translation finished.",
-            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.TRANSLATED
+            pipeline_state.translation_language = target_language
+            pipeline_state.translated_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, "Translate OK")
 
         elif step == "refine":
             from gaiden.translate import run_translate_with_contract
 
-            contract_path = _select_refine_contract(edition.language)
+            contract_path = _select_refine_contract(language)
             run_translate_with_contract(contract_path)
 
             out_dir_path = _resolve_contract_out_dir(contract_path, edition)
@@ -808,34 +496,30 @@ def run_edition_step(request, edition_id: int, step: str):
             if not merged_path:
                 raise FileNotFoundError(f"Merged refine not found in {out_dir_path}")
             build_path = _copy_merge_to_build(edition, merged_path, paths.merge_refine_path(edition))
-            _upsert_job(
-                edition,
-                "refine",
-                "SUCCESS",
-                str(build_path),
-                "Refine finished.",
-            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.REFINED
+            pipeline_state.refined_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, "Refine OK")
 
         elif step == "polish":
             from gaiden.polish_en_2025 import run_polish_en_2025
 
-            book_id = _parse_book_id(edition.book_code)
+            book_id = _parse_book_id(book_code)
             if book_id is None:
                 raise ValueError("book_code must be like book_0001 to polish.")
-            if edition.language != "en":
+            if language != "en":
                 raise ValueError("Polish is only available for English.")
 
             run_polish_en_2025(book_id=book_id, lang_key="en_modern_2025")
             out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
             build_path = _copy_merge_to_build(edition, out_path, paths.merge_polish_path(edition))
-            _upsert_job(
-                edition,
-                "polish",
-                "SUCCESS",
-                str(build_path),
-                "Polish finished.",
-            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.POLISHED
+            pipeline_state.polished_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save()
             messages.success(request, "Polish OK")
 
         elif step == "txt_to_md":
@@ -859,7 +543,11 @@ def run_edition_step(request, edition_id: int, step: str):
             else:
                 msg = f"TXT to Miolo OK: {result['path']}"
                 if result.get("path"):
-                    _upsert_job(edition, "miolo_md", "SUCCESS", result["path"], "Miolo MD generated.")
+                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+                    pipeline_state.current_stage = PipelineStage.MIOLO_MD
+                    pipeline_state.miolo_md_at = timezone.now()
+                    pipeline_state.last_log = ""
+                    pipeline_state.save()
             messages.success(request, msg)
 
         elif step == "qa":
@@ -917,26 +605,27 @@ def run_edition_step(request, edition_id: int, step: str):
 
     except Exception as exc:
         messages.error(request, f"Step {step} failed: {exc}")
-        if step in {"raw", "normalize", "split", "chunk", "translate", "refine", "polish"}:
-            _upsert_job(edition, step if step != "chunk" else "split", "FAIL", "", str(exc))
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+        pipeline_state.last_log = str(exc)
+        pipeline_state.save()
 
     return redirect("edition_steps", edition_id=edition.id)
 
 
 def build_book_md(request, book_code, language):
     if request.method != "POST":
-        return redirect("book_edition_edit", book_code=book_code, language=language)
+        return redirect("book_edition_list")
 
     edition = get_object_or_404(
-        BookEditionTemplate,
-        book_code=book_code,
-        language=language,
+        EditorialEdition,
+        work__code=book_code,
+        language__code=language,
     )
 
     call_command(
         "build_book_text",
-        book_code=edition.book_code,
-        language=edition.language,
+        book_code=edition.work.code,
+        language=edition.language.code,
     )
 
     return redirect("preview_book_md", book_code=book_code, language=language)
@@ -959,9 +648,9 @@ def preview_book_md(request, book_code, language):
 
 def preview_pre_edition_md(request, book_code, language):
     edition = get_object_or_404(
-        BookEditionTemplate,
-        book_code=book_code,
-        language=language,
+        EditorialEdition,
+        work__code=book_code,
+        language__code=language,
     )
     build_dir = paths.edition_build_dir(edition)
     candidates = [
@@ -984,15 +673,38 @@ def preview_pre_edition_md(request, book_code, language):
     return render(request, "pipeline/preview_md.html", context)
 
 
+def preview_merge_translate(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    book_code, language = _edition_codes(edition)
+
+    target_language = utils.normalize_lang(
+        (pipeline_state.translation_language if pipeline_state else None) or language
+    )
+    contract_path = _select_contract_path(target_language)
+    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+    merged_path = _detect_merged_path(out_dir_path)
+    if not merged_path:
+        raise Http404("Merged translation file not found.")
+
+    content = merged_path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": target_language,
+        "md_path": str(merged_path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)
+
+
 def preview_miolo_md(request, book_code, language):
     edition = get_object_or_404(
-        BookEditionTemplate,
-        book_code=book_code,
-        language=language,
+        EditorialEdition,
+        work__code=book_code,
+        language__code=language,
     )
-    build_dir = paths.edition_build_dir(edition)
     candidates = [
-        build_dir / f"BOOK.MIOLO.{language}.md",
+        paths.miolo_md_path_for_language(book_code, language),
         paths.miolo_md_path(edition),
     ]
     path = next((p for p in candidates if p.exists()), None)

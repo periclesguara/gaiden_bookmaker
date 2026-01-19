@@ -1,8 +1,5 @@
 {% autoescape off %}
-# {{ edition.title }}
-{% if edition.subtitle %}
-## {{ edition.subtitle }}
-{% endif %}
+# {{ edition.work.title }}
 
-{{ edition.author_name }}
+{{ edition.work.author.name }}
 {% endautoescape %}

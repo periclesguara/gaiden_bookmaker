@@ -33,31 +33,29 @@
         <th>Codigo</th>
         <th>Lingua</th>
         <th>Etapa</th>
-        <th>Status</th>
-        <th>Arquivo</th>
-        <th>Atualizado em</th>
+        <th>Ultimo log</th>
+        <th>RAW</th>
+        <th>Normalized</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% for job in jobs %}
+      {% for pipeline in pipelines %}
       <tr>
-        <td>{{ job.book_title }}</td>
-        <td><span class="badge">{{ job.book_code }}</span></td>
-        <td>{{ job.language }}</td>
-        <td>{{ job.stage }}</td>
-        <td class="status-{{ job.status }}">{{ job.get_status_display|default:job.status }}</td>
-        <td>{{ job.filepath }}</td>
-        <td>{{ job.updated_at }}</td>
+        <td>{{ pipeline.edition.work.title }}</td>
+        <td><span class="badge">{{ pipeline.edition.work.code }}</span></td>
+        <td>{{ pipeline.edition.language.code }}</td>
+        <td>{{ pipeline.current_stage }}</td>
+        <td>{{ pipeline.last_log|default:"—" }}</td>
+        <td>{{ pipeline.raw_at|default:"—" }}</td>
+        <td>{{ pipeline.normalized_at|default:"—" }}</td>
         <td>
-          {% if job.edition_id %}
-          <a href="{% url 'edition_steps' edition_id=job.edition_id %}">Ver pipeline</a>
-          {% endif %}
+          <a href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="8">Nenhum job registrado ainda. Rode o comando <code>sync_sherlock_pipeline</code>.</td>
+        <td colspan="8">Nenhuma pipeline registrada ainda.</td>
       </tr>
       {% endfor %}
     </tbody>

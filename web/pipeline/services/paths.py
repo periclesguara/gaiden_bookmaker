@@ -4,6 +4,8 @@ from pathlib import Path
 
 from django.conf import settings
 
+from . import edition_meta
+
 
 def _project_root() -> Path:
     return Path(settings.BASE_DIR).parent
@@ -14,7 +16,11 @@ def data_dir() -> Path:
 
 
 def edition_build_dir(edition) -> Path:
-    return data_dir() / "builds" / edition.book_code / edition.language
+    return data_dir() / "builds" / edition_meta.book_code(edition) / edition_meta.language_code(edition)
+
+
+def edition_build_dir_for_language(book_code: str, language: str) -> Path:
+    return data_dir() / "builds" / book_code / language
 
 
 MERGE_PRIORITY = ["merge_polish.txt", "merge_refine.txt", "merge_translate.txt"]
@@ -99,8 +105,21 @@ def pre_edition_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
 
 
-def miolo_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.MIOLO.MD"
+MIOL_TERM_VERSION = "v1"
+
+
+def miolo_md_filename(version: str | None = None) -> str:
+    return f"MIOL_TERM.{version or MIOL_TERM_VERSION}.md"
+
+
+def miolo_md_path(edition, version: str | None = None) -> Path:
+    return edition_build_dir(edition) / miolo_md_filename(version)
+
+
+def miolo_md_path_for_language(
+    book_code: str, language: str, version: str | None = None
+) -> Path:
+    return edition_build_dir_for_language(book_code, language) / miolo_md_filename(version)
 
 
 def qa_log_path(edition) -> Path:
@@ -116,7 +135,7 @@ def build_md_path(edition) -> Path:
 
 
 def epub_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.EPUB3"
+    return edition_build_dir(edition) / "BOOK.epub"
 
 
 def pdf_path(edition) -> Path:

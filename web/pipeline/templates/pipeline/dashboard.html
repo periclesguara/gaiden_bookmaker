@@ -95,36 +95,36 @@
 <body>
   <header>
     <h1>Gaiden Pipeline - Visao Geral</h1>
-    <p>Resumo por livro com status das etapas.</p>
-    <p><a href="{% url 'book_edition_list' %}">Book Editions (frontispicio / copyright / about)</a></p>
+    <p>Resumo por edicao com status das etapas.</p>
+    <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>
   </header>
   <section class="grid">
-    {% for book in books %}
+    {% for pipeline in pipelines %}
     <article class="card">
-      <div class="meta">{{ book.book_code }}</div>
-      <h2>{{ book.book_title }}</h2>
+      <div class="meta">{{ pipeline.edition.work.code }} · {{ pipeline.edition.language.code }}</div>
+      <h2>{{ pipeline.edition.work.title }}</h2>
       <div class="stats">
-        <div class="stat">
-          <strong>{{ book.total_jobs }}</strong>
-          Total
-        </div>
         <div class="stat ok">
-          <strong>{{ book.success_jobs }}</strong>
-          Sucesso
+          <strong>{{ pipeline.current_stage }}</strong>
+          Etapa atual
         </div>
-        <div class="stat fail">
-          <strong>{{ book.fail_jobs }}</strong>
-          Falhou
+        <div class="stat">
+          <strong>{{ pipeline.raw_at|default:"—" }}</strong>
+          RAW
+        </div>
+        <div class="stat">
+          <strong>{{ pipeline.normalized_at|default:"—" }}</strong>
+          Normalizado
         </div>
       </div>
       <div class="actions">
-        <a href="{% url 'pipeline_jobs' %}?book={{ book.book_code }}">Ver detalhes</a>
+        <a href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
       </div>
     </article>
     {% empty %}
     <article class="card">
       <h2>Nenhum livro encontrado</h2>
-      <p>Rode o comando <code>sync_sherlock_pipeline</code> para preencher o banco.</p>
+      <p>Crie uma edicao com <code>seed_editorial</code>.</p>
     </article>
     {% endfor %}
   </section>

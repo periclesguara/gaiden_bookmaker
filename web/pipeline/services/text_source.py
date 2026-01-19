@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from pipeline.models import PipelineJob
-from . import paths
+from . import edition_meta, paths
 
 
 @dataclass
@@ -75,46 +74,7 @@ def _discover_merge_candidates(build_dir: Path, language: str) -> list[TextSourc
 
 
 def _latest_job_candidates(edition, stages: tuple[str, ...]) -> list[TextSourceCandidate]:
-    jobs = (
-        PipelineJob.objects.filter(
-            book_code=edition.book_code,
-            stage__in=stages,
-            status="SUCCESS",
-        )
-        .order_by("-created_at")
-    )
-    seen: set[tuple[str, str]] = set()
-    candidates: list[TextSourceCandidate] = []
-    for job in jobs:
-        if not job.language:
-            continue
-        key = (job.language, job.stage)
-        if key in seen:
-            continue
-        if not job.filepath:
-            continue
-        path = Path(job.filepath)
-        if not path.exists():
-            continue
-        seen.add(key)
-        timestamp = job.created_at.strftime("%Y-%m-%d %H:%M")
-        label = f"{job.stage} ({job.language}) - {path.name} [{timestamp}]"
-        candidates.append(
-            TextSourceCandidate(
-                value=_pack_value(job.language, str(path)),
-                label=label,
-            )
-        )
-        clean_path = path.with_name(f"{path.stem}_clean{path.suffix}")
-        if clean_path.exists():
-            clean_label = f"clean ({job.language}) - {clean_path.name} [{timestamp}]"
-            candidates.append(
-                TextSourceCandidate(
-                    value=_pack_value(job.language, str(clean_path)),
-                    label=clean_label,
-                )
-            )
-    return candidates
+    return []
 
 
 def _dedupe_candidates(candidates: list[TextSourceCandidate]) -> list[TextSourceCandidate]:
@@ -131,9 +91,10 @@ def _dedupe_candidates(candidates: list[TextSourceCandidate]) -> list[TextSource
 def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
     build_dir = paths.edition_build_dir(edition)
     mode = getattr(edition, "text_source_mode", "auto") or "auto"
+    language_code = edition_meta.language_code(edition)
 
     def resolve_one(raw_value: str) -> SelectedTextSource | None:
-        lang, value = _unpack_value(raw_value, edition.language)
+        lang, value = _unpack_value(raw_value, language_code)
         candidate_path = Path(value)
         if not candidate_path.is_absolute():
             candidate_path = build_dir / value
@@ -152,10 +113,10 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
             if p.exists():
                 return [
                     SelectedTextSource(
-                        language=edition.language,
+                        language=language_code,
                         path=p,
                         name=p.name,
-                        label=f"{p.name} ({edition.language})",
+                        label=f"{p.name} ({language_code})",
                     )
                 ]
         return []
@@ -172,7 +133,8 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
 
 def get_effective_text_source(edition) -> TextSourceInfo:
     build_dir = paths.edition_build_dir(edition)
-    candidates = _discover_merge_candidates(build_dir, edition.language)
+    language_code = edition_meta.language_code(edition)
+    candidates = _discover_merge_candidates(build_dir, language_code)
     candidates.extend(_latest_job_candidates(edition, ("translate", "refine", "polish")))
     candidates = _dedupe_candidates(candidates)
 
@@ -187,38 +149,6 @@ def get_effective_text_source(edition) -> TextSourceInfo:
     job_id = None
     job_created_at = None
 
-    if canonical_path:
-        job = (
-            PipelineJob.objects.filter(
-                filepath=str(canonical_path),
-            )
-            .order_by("-created_at")
-            .first()
-        )
-        if not job and canonical_name:
-            if "polish" in canonical_name:
-                stage = "polish"
-            elif "refine" in canonical_name:
-                stage = "refine"
-            elif "translate" in canonical_name:
-                stage = "translate"
-            else:
-                stage = "refine"
-            job = (
-                PipelineJob.objects.filter(
-                    book_code=edition.book_code,
-                    language=edition.language,
-                    stage=stage,
-                )
-                .order_by("-created_at")
-                .first()
-            )
-        if job:
-            job_stage = job.stage
-            job_filepath = job.filepath
-            job_id = job.id
-            job_created_at = job.created_at.isoformat()
-
     return TextSourceInfo(
         canonical_name=canonical_name,
         canonical_path=canonical_path,
@@ -230,9 +160,9 @@ def get_effective_text_source(edition) -> TextSourceInfo:
         extra_candidates=[
             candidate
             for candidate in candidates
-            if candidate.value not in {_pack_value(edition.language, name) for name in paths.MERGE_PRIORITY}
+            if candidate.value not in {_pack_value(language_code, name) for name in paths.MERGE_PRIORITY}
         ],
-        selected_values=_build_selected_values(mode, edition.language),
+        selected_values=_build_selected_values(mode, language_code),
         selected_sources=selected_sources,
     )
 

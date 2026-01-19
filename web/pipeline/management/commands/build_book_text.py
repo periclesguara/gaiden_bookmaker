@@ -3,7 +3,8 @@ from pathlib import Path
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from pipeline.models import BookEditionTemplate, PipelineJob
+from editorial.models import Edition as EditorialEdition
+from pipeline.services import paths
 
 
 class Command(BaseCommand):
@@ -39,13 +40,13 @@ class Command(BaseCommand):
         project_root = Path(__file__).resolve().parents[4]
 
         try:
-            edition = BookEditionTemplate.objects.get(
-                book_code=book_code,
-                language=language,
+            edition = EditorialEdition.objects.get(
+                work__code=book_code,
+                language__code=language,
             )
-        except BookEditionTemplate.DoesNotExist:
+        except EditorialEdition.DoesNotExist:
             raise CommandError(
-                f"Nenhuma BookEditionTemplate encontrada para book_code={book_code!r}, language={language!r}."
+                f"Nenhuma Edition encontrada para book_code={book_code!r}, language={language!r}."
             )
 
         frontmatter_base = project_root / "data" / "frontmatter"
@@ -89,41 +90,14 @@ class Command(BaseCommand):
                 f"Mesmo apos export_frontmatter, frontmatter esta incompleto em {front_dir}"
             )
 
-        stage_priority = ["polish", "refine", "translate"]
-        content_job = None
-
-        for stage in stage_priority:
-            qs = (
-                PipelineJob.objects.filter(
-                    book_code=book_code,
-                    language=language,
-                    stage=stage,
-                    status="SUCCESS",
-                )
-                .order_by("-updated_at")
+        candidates = [
+            paths.miolo_md_path_for_language(book_code, language),
+        ]
+        content_path = next((p for p in candidates if p.exists()), None)
+        if not content_path:
+            raise CommandError(
+                f"Nenhum {paths.miolo_md_filename()} encontrado para {book_code} [{language}]."
             )
-            if qs.exists():
-                content_job = qs.first()
-                break
-
-        content_path = None
-        if content_job:
-            content_path = Path(content_job.filepath)
-            if not content_path.exists():
-                raise CommandError(
-                    f"Arquivo de miolo nao encontrado: {content_path} (do job id={content_job.id})."
-                )
-        else:
-            candidates = [
-                builds_base / book_code / language / "BOOK.MIOLO.MD",
-                builds_base / book_code / language / f"BOOK.MIOLO.{language}.md",
-            ]
-            content_path = next((p for p in candidates if p.exists()), None)
-            if not content_path:
-                raise CommandError(
-                    f"Nenhum PipelineJob SUCCESS encontrado para {book_code} [{language}] "
-                    f"nas etapas {stage_priority}, e nenhum BOOK.MIOLO.MD encontrado."
-                )
 
         def read_file(path: Path) -> str:
             return path.read_text(encoding="utf-8")
@@ -135,17 +109,6 @@ class Command(BaseCommand):
         content = read_file(content_path)
 
         sections = []
-        header_comment = (
-            f"<!--\n"
-            f"  book_code: {edition.book_code}\n"
-            f"  language: {edition.language}\n"
-            f"  title: {edition.title}\n"
-            f"  author: {edition.author_name}\n"
-            f"  collaborator: {edition.collaborator_name} ({edition.collaborator_roles})\n"
-            f"  year: {edition.publication_year}\n"
-            f"-->\n\n"
-        )
-        sections.append(header_comment)
         sections.append(frontispiece.strip() + "\n\n---\n\n")
         sections.append(copyright_text.strip() + "\n\n---\n\n")
 

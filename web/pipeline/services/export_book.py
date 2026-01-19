@@ -1,8 +1,72 @@
 from __future__ import annotations
 
+import re
+import shutil
 import subprocess
+import tempfile
+import zipfile
+from pathlib import Path
 
-from . import paths
+from django.conf import settings
+
+from . import edition_meta, paths
+
+
+def _resolve_cover_path(edition) -> Path | None:
+    cover = (getattr(edition, "cover_filepath", "") or "").strip()
+    if not cover:
+        return None
+    path = Path(cover)
+    if not path.is_absolute():
+        path = Path(settings.BASE_DIR).parent / path
+    return path if path.exists() else None
+
+
+def _ensure_epub_cover_meta(epub_path: Path) -> None:
+    opf_path = "EPUB/content.opf"
+    with zipfile.ZipFile(epub_path, "r") as zin:
+        if opf_path not in zin.namelist():
+            return
+        opf_text = zin.read(opf_path).decode("utf-8", errors="replace")
+
+    if 'name="cover"' in opf_text:
+        return
+
+    cover_id = None
+    for match in re.finditer(r"<item[^>]+>", opf_text):
+        tag = match.group(0)
+        if "cover-image" not in tag:
+            continue
+        id_match = re.search(r'id="([^"]+)"', tag)
+        if id_match:
+            cover_id = id_match.group(1)
+            break
+
+    if not cover_id or "</metadata>" not in opf_text:
+        return
+
+    opf_text = opf_text.replace(
+        "</metadata>",
+        f'    <meta name="cover" content="{cover_id}" />\n  </metadata>',
+        1,
+    )
+
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_path = Path(tmp_file.name)
+
+    try:
+        with zipfile.ZipFile(epub_path, "r") as zin, zipfile.ZipFile(
+            tmp_path, "w"
+        ) as zout:
+            for info in zin.infolist():
+                data = zin.read(info.filename)
+                if info.filename == opf_path:
+                    data = opf_text.encode("utf-8")
+                zout.writestr(info, data)
+        shutil.move(tmp_path, epub_path)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
 
 
 def run_export_epub(edition) -> dict:
@@ -20,9 +84,22 @@ def run_export_epub(edition) -> dict:
         str(out_path),
         "--toc",
         "--toc-depth=2",
-        "--ebook-format=epub3",
+        "-t",
+        "epub3",
+        "--metadata",
+        f"title={edition_meta.title(edition)}",
+        "--metadata",
+        f"author={edition_meta.author_name(edition)}",
     ]
+    css_path = paths.edition_build_dir(edition) / "BOOK.epub.css"
+    if css_path.exists():
+        cmd.extend(["--css", str(css_path)])
+    cover_path = _resolve_cover_path(edition)
+    if cover_path:
+        cmd.extend(["--metadata", f"cover-image={cover_path}"])
     subprocess.run(cmd, check=True)
+    if cover_path:
+        _ensure_epub_cover_meta(out_path)
 
     return {"path": str(out_path), "cmd": " ".join(cmd)}
 

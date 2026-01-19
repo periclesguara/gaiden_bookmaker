@@ -4,11 +4,11 @@ import re
 from pathlib import Path
 from typing import List, Tuple, Dict
 
-from . import utils
+from . import edition_meta, utils
 
-PATTERN_EN = r"^(?:CHAPTER\s+\d+\s*[-–:]?\s*(.*)|\d+\.\s*(.*))$"
-PATTERN_ES = r"^(?:CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)|\d+\.\s*(.*))$"
-PATTERN_PTBR = r"^(?:CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)|\d+\.\s*(.*))$"
+PATTERN_EN = r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$"
+PATTERN_ES = r"^(CAP[IÍ]TULO)\s+\d+\s*[-–:]?\s*(.*)$"
+PATTERN_PTBR = r"^(CAP[IÍ]TULO)\s+\d+\s*[-–:]?\s*(.*)$"
 
 
 def _pattern_for_language(language: str) -> str:
@@ -118,15 +118,15 @@ def run_txt_to_miolo(edition) -> Dict[str, str]:
     if not sources:
         raise FileNotFoundError("No merge_* file found. Run translate/refine/polish first.")
 
-    build_dir = paths.edition_build_dir(edition)
     items: list[dict[str, str]] = []
 
     for source in sources:
         pattern = _pattern_for_language(source.language)
-        if len(sources) == 1:
-            out_path = paths.miolo_md_path(edition)
-        else:
-            out_path = build_dir / f"BOOK.MIOLO.{source.language}.md"
+        build_dir = paths.edition_build_dir_for_language(edition_meta.book_code(edition), source.language)
+        out_path = paths.miolo_md_path_for_language(
+            edition_meta.book_code(edition),
+            source.language,
+        )
         txt_to_md(source.path, out_path, pattern)
         items.append(
             {

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from pipeline.models import BookEditionTemplate
+from editorial.models import Edition as EditorialEdition
 from pipeline.services import paths
 from pipeline.services.md_transform import PreEditionConfig, pre_edition_txt_to_md
 
@@ -23,9 +23,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         book_code = options["book_code"]
         language = options["language"]
-        edition = BookEditionTemplate.objects.filter(
-            book_code=book_code,
-            language=language,
+        edition = EditorialEdition.objects.filter(
+            work__code=book_code,
+            language__code=language,
         ).first()
         if not edition:
             raise CommandError(f"Edition not found: {book_code} [{language}]")
@@ -48,8 +48,8 @@ class Command(BaseCommand):
             md_path = paths.edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
 
         cfg = PreEditionConfig(
-            title=options.get("title") or edition.title,
-            subtitle=options.get("subtitle") or edition.subtitle,
+            title=options.get("title") or edition.work.title,
+            subtitle=options.get("subtitle") or "",
             language=language,
         )
         pre_edition_txt_to_md(txt_path, md_path, cfg)

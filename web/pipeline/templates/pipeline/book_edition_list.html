@@ -16,7 +16,7 @@
   <h1>Book Editions</h1>
 
   <p>
-    <a href="{% url 'book_edition_new' %}" class="btn">+ New edition</a>
+    <a href="{% url 'pipeline_jobs' %}" class="btn">Ver pipelines</a>
   </p>
 
   <table>
@@ -27,37 +27,25 @@
         <th>Title</th>
         <th>Author</th>
         <th>Year</th>
-        <th>Imprint</th>
-        <th>Collection</th>
-        <th>Contributor</th>
-        <th>Pseudonym</th>
-        <th>Roles</th>
-        <th></th>
+        <th>Seal</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       {% for ed in editions %}
       <tr>
-        <td>{{ ed.book_code }}</td>
-        <td>{{ ed.language }}</td>
-        <td>{{ ed.title }}</td>
-        <td>{{ ed.author_name }}</td>
-        <td>{{ ed.publication_year }}</td>
-        <td>{{ ed.imprint_name }}</td>
-        <td>{{ ed.collection_name }}</td>
-        <td>{{ ed.collaborator_name }}</td>
-        <td>{{ ed.collaborator_pseudonym }}</td>
-        <td>{{ ed.collaborator_roles }}</td>
-        <td>
-          <a href="{% url 'book_edition_edit' book_code=ed.book_code language=ed.language %}">Edit</a>
-        </td>
+        <td>{{ ed.work.code }}</td>
+        <td>{{ ed.language.code }}</td>
+        <td>{{ ed.work.title }}</td>
+        <td>{{ ed.work.author.name }}</td>
+        <td>{{ ed.work.year }}</td>
+        <td>{{ ed.seal.name }}</td>
         <td>
           <a href="{% url 'edition_steps' edition_id=ed.id %}">Pipeline steps</a>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="12">No editions yet.</td></tr>
+      <tr><td colspan="7">No editions yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>

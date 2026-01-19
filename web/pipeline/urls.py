@@ -14,6 +14,11 @@ urlpatterns = [
         name="pipeline_run_edition_step",
     ),
     path(
+        "editions/<int:edition_id>/preview-merge-translate/",
+        views.preview_merge_translate,
+        name="preview_merge_translate",
+    ),
+    path(
         "editions/<str:book_code>/<str:language>/build-md/",
         views.build_book_md,
         name="build_book_md",

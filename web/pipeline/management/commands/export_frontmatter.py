@@ -2,11 +2,11 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from pipeline.models import BookEditionTemplate
+from editorial.models import Edition as EditorialEdition
 
 
 class Command(BaseCommand):
-    help = "Exporta frontispicio/copyright/about* para .md a partir de BookEditionTemplate."
+    help = "Exporta frontispicio/copyright/about* para .md a partir de Edition."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -33,11 +33,11 @@ class Command(BaseCommand):
         project_root = Path(__file__).resolve().parents[4]
         base_dir = Path(base_dir_opt) if base_dir_opt else project_root / "data" / "frontmatter"
 
-        qs = BookEditionTemplate.objects.all()
+        qs = EditorialEdition.objects.select_related("work", "language").all()
         if book_code:
-            qs = qs.filter(book_code=book_code)
+            qs = qs.filter(work__code=book_code)
         if language:
-            qs = qs.filter(language=language)
+            qs = qs.filter(language__code=language)
 
         if not qs.exists():
             msg = "Nenhuma edicao encontrada para exportar."
@@ -54,31 +54,24 @@ class Command(BaseCommand):
         )
 
         for edition in qs:
-            target_dir = base_dir / edition.book_code / edition.language
+            target_dir = base_dir / edition.work.code / edition.language.code
             target_dir.mkdir(parents=True, exist_ok=True)
 
-            context_info = (
-                f"# {edition.book_code} [{edition.language}] - {edition.title}\n"
-                f"# author: {edition.author_name}\n"
-                f"# collaborator: {edition.collaborator_name} ({edition.collaborator_roles})\n"
-                f"# pseudonym: {edition.collaborator_pseudonym}\n"
-                f"# year: {edition.publication_year}\n\n"
-            )
-
+            frontispiece = f"{edition.work.title}\nby {edition.work.author.name}\n"
             files = {
-                "frontispiece.md": edition.frontispiece_rendered,
-                "copyright.md": edition.copyright_rendered,
-                "about_edition.md": edition.about_edition_rendered,
-                "about_contributor.md": edition.about_contributor_rendered,
+                "frontispiece.md": frontispiece,
+                "copyright.md": "",
+                "about_edition.md": "",
+                "about_contributor.md": "",
             }
 
             for filename, content in files.items():
                 target_path = target_dir / filename
-                text = context_info + (content or "")
+                text = content or ""
                 target_path.write_text(text, encoding="utf-8")
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"[{edition.book_code} {edition.language}] -> {target_path}"
+                        f"[{edition.work.code} {edition.language.code}] -> {target_path}"
                     )
                 )
 
