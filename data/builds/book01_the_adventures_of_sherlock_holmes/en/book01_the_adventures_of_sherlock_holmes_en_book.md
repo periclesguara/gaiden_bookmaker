@@ -1,17 +1,4 @@
-<!--
-  book_code: book01_the_adventures_of_sherlock_holmes
-  language: en
-  title: The Adventures of Sherlock Holmes
-  author: Arthur Conan Doyle
-  collaborator: Péricles Guará Silva (adapter)
-  year: 2026
--->
-
-# book01_the_adventures_of_sherlock_holmes [en] - The Adventures of Sherlock Holmes
-# author: Arthur Conan Doyle
-# collaborator: Péricles Guará Silva (adapter)
-# pseudonym: Hans Herman Ironside
-# year: 2026
+Frontispiece
 
 The Adventures of Sherlock Holmes
 by Arthur Conan Doyle
@@ -24,11 +11,7 @@ Rio de Janeiro · 2026
 
 ---
 
-# book01_the_adventures_of_sherlock_holmes [en] - The Adventures of Sherlock Holmes
-# author: Arthur Conan Doyle
-# collaborator: Péricles Guará Silva (adapter)
-# pseudonym: Hans Herman Ironside
-# year: 2026
+Copyright
 
 Copyright © 1892 Arthur Conan Doyle.
 Public Domain in the United States and other territories.
@@ -42,11 +25,7 @@ Rio de Janeiro, Brazil — 2026
 
 ---
 
-# book01_the_adventures_of_sherlock_holmes [en] - The Adventures of Sherlock Holmes
-# author: Arthur Conan Doyle
-# collaborator: Péricles Guará Silva (adapter)
-# pseudonym: Hans Herman Ironside
-# year: 2026
+About this edition
 
 The Adventures of Sherlock Holmes remains one of the most influential works in detective fiction, introducing methods of observation, inference, and analytical reasoning that shaped the genre for generations.
 
@@ -55,14 +34,6 @@ This Modern English Edition presents a carefully updated text for contemporary r
 The aim of this modernization is not to reinterpret Holmes, but to restore his sharpness, allowing the reader to experience the elegance of Doyle’s storytelling as it was intended — brisk, intelligent, and alive with subtle humor and deductive mastery.
 
 This edition is suited both for newcomers discovering Holmes for the first time and for lifelong admirers returning to 221B Baker Street with fresh eyes.
-
----
-
-# book01_the_adventures_of_sherlock_holmes [en] - The Adventures of Sherlock Holmes
-# author: Arthur Conan Doyle
-# collaborator: Péricles Guará Silva (adapter)
-# pseudonym: Hans Herman Ironside
-# year: 2026
 
 ---
 

@@ -1,13 +1,6 @@
-::: center
-# The Adventures of Sherlock Holmes
-
-## Modern English Edition
-:::
-
-
 \newpage
 
-# I. A Scandal in Bohemia
+# I.     Ein Skandal in Böhmen
 
 \newpage
 
@@ -15,7 +8,7 @@
 
 \newpage
 
-# I. The Red-Headed League
+# I.    Der Bund der Rothaarigen
 
 \newpage
 
@@ -23,7 +16,7 @@
 
 \newpage
 
-# II. A Case of Identity
+# II.   Ein Fall von Identität
 
 \newpage
 
@@ -31,11 +24,11 @@
 
 \newpage
 
-# V. The Boscombe Valley Mystery
+# V.    Das Geheimnis von Boscombe Valley
 
 \newpage
 
-# V. The Five Orange Pips
+# V.     Die fünf Orangenkerne
 
 \newpage
 
@@ -43,7 +36,7 @@
 
 \newpage
 
-# I. The Man with the Twisted Lip
+# I.    Der Mann mit der verdrehten Lippe
 
 \newpage
 
@@ -51,7 +44,7 @@
 
 \newpage
 
-# II. The Adventure of the Blue Carbuncle
+# II.   Das Abenteuer des blauen Karfunkels
 
 \newpage
 
@@ -59,7 +52,7 @@
 
 \newpage
 
-# III. The Adventure of the Speckled Band
+# III.  Das Abenteuer vom gesprenkelten Band
 
 \newpage
 
@@ -67,11 +60,11 @@
 
 \newpage
 
-# X. The Adventure of the Engineer’s Thumb
+# X.    Das Abenteuer vom Daumen des Ingenieurs
 
 \newpage
 
-# X. The Adventure of the Noble Bachelor
+# X. Das Abenteuer des adligen Junggesellen
 
 \newpage
 
@@ -79,7 +72,7 @@
 
 \newpage
 
-# I. The Adventure of the Beryl Coronet
+# I. Das Abenteuer der Beryllkrone
 
 \newpage
 
@@ -87,355 +80,319 @@
 
 \newpage
 
-# II. The Adventure of the Copper Beeches
+# II. Das Abenteuer der Kupferbuchen
 
 \newpage
 
-# I. A SCANDAL IN BOHEMIA
+# I. EIN SKANDAL IN BÖHMEN
 
 I.
 
-To Sherlock Holmes she is always the woman. I have rarely heard him refer to her by any other name. In his eyes she outshines and dominates her entire sex. It was not that he felt anything resembling love for Irene Adler. All emotions—and that one in particular—were repugnant to his cold, precise, but wonderfully balanced mind. He was, as I see it, the most perfect reasoning and observing machine the world has ever known; but as a lover he would have put himself in a false position. He never spoke of the softer passions except with a jest and a sneer. They were admirable things for the observer—excellent for lifting the veil from men’s motives and actions. But for a trained reasoner to allow such intrusions into his own delicate and finely tuned temperament would be to introduce a distracting element that might cast doubt on all his mental results. A grain of sand in a sensitive instrument, or a crack in one of his own powerful lenses, would not be more disturbing than a strong emotion in a nature like his. And yet, for him there was only one woman, and that woman was the late Irene Adler, of doubtful and questionable memory.
+Für Sherlock Holmes war sie immer *die* Frau. Selten habe ich ihn sie unter einem anderen Namen erwähnen hören. In seinen Augen überstrahlte sie und beherrschte sie das ganze Geschlecht. Es war nicht, dass er für Irene Adler irgendein Gefühl empfunden hätte, das der Liebe auch nur nahekam. Alle Regungen, und diese ganz besonders, waren seinem kalten, präzisen, dabei bewundernswert ausgewogenen Geist zuwider. Er war, wie ich meine, die vollkommenste Maschine zum Schlussfolgern und Beobachten, die die Welt je gesehen hat; doch als Liebender hätte er sich in eine falsche Lage gebracht. Von den zarteren Leidenschaften sprach er nie, außer mit Spott und Hohn. Für den Beobachter waren sie großartige Dinge – ausgezeichnet, um den Schleier von den Motiven und Handlungen der Menschen zu ziehen. Doch für den geschulten Denker bedeutete es, solche Einbrüche in sein eigenes feines, empfindlich abgestimmtes Temperament zuzulassen, einen störenden Faktor einzuführen, der alle Ergebnisse seines Denkens in Zweifel ziehen konnte. Sandkorn in einem empfindlichen Instrument, oder ein Sprung in einer seiner eigenen starken Linsen – nichts wäre beunruhigender gewesen als eine heftige Emotion in einer Natur wie der seinen. Und doch gab es für ihn nur diese eine Frau, und diese Frau war die verstorbene Irene Adler, deren Andenken zweifelhaft und unerquicklich war.
 
-\newpage
+In letzter Zeit hatte ich wenig von Holmes gesehen. Meine Ehe hatte uns voneinander weggetragen. Mein eigenes vollkommenes Glück und die häuslichen Interessen, die sich um einen Mann scharen, sobald er sich zum ersten Mal als Herr eines eigenen Hausstands wiederfindet, nahmen meine ganze Aufmerksamkeit in Anspruch; während Holmes, der mit seiner ganzen bohèmehaften Seele jede Form von Gesellschaft verabscheute, in unseren Zimmern in der Baker Street blieb, vergraben in alten Büchern, und von Woche zu Woche wechselte zwischen Kokain und Ehrgeiz – zwischen der schläfrigen Dumpfheit der Droge und der wilden Energie seiner scharfen Natur. Wie immer zog ihn das Studium des Verbrechens tief an, und er setzte seine gewaltigen Fähigkeiten und seine außergewöhnliche Beobachtungsgabe dafür ein, Spuren zu verfolgen und Rätsel zu lösen, die die offizielle Polizei als hoffnungslos aufgegeben hatte. Von Zeit zu Zeit hörte ich vage Berichte über sein Tun: von seiner Vorladung nach Odessa im Fall des Trepoff-Mordes, von der Aufklärung der seltsamen Tragödie der Atkinson-Brüder in Trincomalee, und schließlich von der Mission, die er so feinfühlig und erfolgreich für das regierende Haus von Holland ausgeführt hatte. Abgesehen von diesen Zeichen seiner Tätigkeit jedoch, die ich lediglich mit allen Lesern der Tagespresse teilte, wusste ich wenig über meinen früheren Freund und Gefährten.
 
-# I. had seen little of Holmes lately. My marriage had gradually drawn us apart. My own complete happiness, and the home-centred interests that spring up around the man who first finds himself master of his own household, were enough to absorb all my attention; while Holmes, who loathed every form of society with his whole Bohemian soul, remained in our old rooms in Baker Street, buried among his books, and alternating week by week between cocaine and ambition—the lethargy of the drug and the fierce energy of his own keen nature. He was still, as always, deeply fascinated by the study of crime, and employed his immense faculties and extraordinary powers of observation in following up clues and solving mysteries which the official police had given up as hopeless. From time to time I heard vague reports of his activities: of his summons to Odessa in the Trepoff murder case, of his clearing up the strange tragedy of the Atkinson brothers at Trincomalee, and finally of the mission he had carried out so delicately and successfully for the reigning family of Holland. Beyond these signs of his activity, however—of which I knew only what every reader of the daily papers might know—I knew little of my former friend and companion.
+Eines Abends – es war der zwanzigste März 1888 – kehrte ich von einem Besuch bei einem Patienten zurück (denn ich hatte inzwischen wieder die zivile Praxis aufgenommen), als mich mein Weg durch die Baker Street führte. Als ich an der wohlbekannten Tür vorbeikam, die in meinem Kopf für immer mit meiner Werbung und mit den düsteren Ereignissen der *Studie in Scharlachrot* verbunden sein wird, packte mich ein heftiges Verlangen, Holmes wiederzusehen und zu erfahren, wie er seine außergewöhnlichen Kräfte gerade einsetzte. Seine Zimmer waren hell erleuchtet, und noch während ich hinaufsah, sah ich seine große, schlanke Gestalt zweimal als dunkle Silhouette hinter dem Rollo vorbeiziehen. Er ging schnell und unruhig im Zimmer auf und ab, den Kopf auf die Brust gesenkt, die Hände hinter dem Rücken verschränkt. Für mich, der jede seiner Stimmungen und Gewohnheiten kannte, erzählten Haltung und Bewegung ihre eigene Geschichte. Er arbeitete wieder. Er war aus seinen drogengeborenen Träumen aufgestiegen und hatte die Fährte eines neuen Problems aufgenommen. Ich klingelte und wurde hinaufgeführt in das Zimmer, das früher zum Teil auch meines gewesen war.
 
-One night—it was the twentieth of March, 1888—I was returning from a visit to a patient (for I had now gone back into civilian practice), and my route took me through Baker Street. As I passed the well-remembered door, which must always be associated in my mind with my courtship and with the dark events of A Study in Scarlet, I was seized by a strong desire to see Holmes again and to learn how he was using his extraordinary powers. His rooms were brightly lit, and even as I looked up I saw his tall, thin figure pass twice in dark silhouette across the blind. He was pacing the room quickly, eagerly, with his head sunk on his chest and his hands clasped behind his back. To me, who knew his every mood and habit, his attitude and manner told their own story. He was at work again. He had risen from his drug-induced dreams and was hot on the trail of some new problem. I rang the bell and was shown up to the room which had once been partly mine.
+Sein Auftreten war nicht überschwänglich. Das war es selten; doch ich glaube, er freute sich, mich zu sehen. Ohne viele Worte, aber mit einem freundlichen Blick, wies er mich in einen Sessel, warf mir sein Zigarrenetui zu und deutete auf ein Spirituosenkästchen und einen Gasogen in der Ecke. Dann stellte er sich vor den Kamin und musterte mich auf seine eigentümlich nach innen gerichtete Art.
 
-His manner was not effusive. It rarely was. But he was glad to see me, I think. With hardly a word, but with a friendly look, he waved me to an armchair, tossed me his cigar case, and pointed out a spirit case and a gasogene in the corner. Then he stood before the fire and examined me in his peculiar, introspective way.
+„Die Ehe steht Ihnen“, bemerkte er. „Ich glaube, Watson, Sie haben seit unserem letzten Treffen siebeneinhalb Pfund zugelegt.“
 
-“Married life suits you,” he remarked. “I think, Watson, you’ve put on seven and a half pounds since I last saw you.”
+„Sieben“, erwiderte ich.
 
-“Seven,” I replied.
+„Tatsächlich? Ich hätte eher an ein wenig mehr gedacht. Nur ein klein wenig mehr, meine ich, Watson. Und wieder in der Praxis, wie ich sehe. Sie haben mir nicht gesagt, dass Sie wieder ins Geschirr wollen.“
 
-“Really, I’d have thought a little more. Just a shade more, I’d say, Watson. And back in practice again, I see. You didn’t tell me you meant to go back into harness.”
+„Woher wissen Sie es dann?“
 
-“Then how do you know?”
+„Ich sehe es, ich folgere es. Woher weiß ich, dass Sie in letzter Zeit sehr nass geworden sind und dass Sie ein äußerst unbeholfenes und nachlässiges Dienstmädchen haben?“
 
-“I see it. I deduce it. How do I know that you’ve been getting yourself very wet lately, and that you have a most clumsy and careless maid?”
+„Mein lieber Holmes“, sagte ich, „das ist zu viel. Man hätte Sie ganz gewiss verbrannt, wenn Sie vor ein paar Jahrhunderten gelebt hätten. Es stimmt, ich war am Donnerstag auf einem Spaziergang auf dem Land und kam in einem fürchterlichen Zustand heim, aber
 
-“My dear Holmes,” I said, “this is too much. You’d certainly have been burned if you’d lived a few centuries ago. It’s true that I took a country walk on Thursday and came home in a dreadful state, but as I’ve changed my clothes I can’t imagine how you deduce it. As for Mary Jane, she’s incorrigible, and my wife has given her notice; but there again, I can’t see how you work it out.”
+„Das ist in der Tat ein Rätsel“, bemerkte ich. „Was, glauben Sie, bedeutet es?“
 
-He chuckled to himself and rubbed his long, nervous hands together.
+„Ich habe noch keine Daten. Es ist ein grundlegender Fehler, zu theorieren, bevor man Daten hat. Unmerklich fängt man an, Tatsachen so zu verdrehen, dass sie zu den Theorien passen, statt die Theorien den Tatsachen anzupassen. Aber die Notiz selbst: Was schließen Sie daraus?“
 
-“It’s the simplest thing in the world,” he said. “My eyes tell me that on the inside of your left shoe, just where the firelight catches it, the leather is scored by six almost parallel cuts. Obviously they were made by someone who very carelessly scraped around the edge of the sole to remove caked mud. Hence, you see, my double deduction: that you’ve been out in vile weather, and that you have a particularly malevolent, boot-slitting specimen of a London maid-of-all-work. As to your practice, if a gentleman walks into my rooms smelling of iodoform, with a black stain of nitrate of silver on his right forefinger, and a bulge on the right side of his top hat where he has tucked away his stethoscope, I would have to be very“This really is a mystery,” I said. “What do you think it means?”
+Ich untersuchte sorgfältig die Handschrift und das Papier, auf dem sie geschrieben war.
 
-“I’ve got no data yet. It’s a serious mistake to start theorizing before you have data. Without realizing it, you begin twisting facts to fit theories instead of theories to fit facts. But let’s look at the note itself. What do you deduce from it?”
+„Der Mann, der das geschrieben hat, ist vermutlich wohlhabend“, sagte ich und bemühte mich, die Denkweise meines Begleiters nachzuahmen. „Solches Papier bekommt man nicht unter einer halben Krone pro Packung. Es ist auffallend fest und steif.“
 
-\newpage
+„Auffallend – genau das ist das Wort“, sagte Holmes. „Es ist überhaupt kein englisches Papier. Halten Sie es gegen das Licht.“
 
-# I. examined the handwriting carefully, and then the paper it was written on.
+Ich tat es und sah ein großes „E“ mit einem kleinen „g“, ein „P“ und ein großes „G“ mit einem kleinen „t“, in die Struktur des Papiers eingewebt.
 
-“The man who wrote it was probably well-off,” I said, trying to imitate my companion’s methods. “You couldn’t buy paper like this for less than half a crown a packet. It’s unusually strong and stiff.”
+„Was machen Sie daraus?“, fragte Holmes.
 
-“Unusual—exactly the word,” said Holmes. “It’s not English paper at all. Hold it up to the light.”
+„Der Name des Herstellers, ohne Zweifel; oder eher sein Monogramm.“
 
-\newpage
+„Keineswegs. Das ‚G‘ mit dem kleinen ‚t‘ steht für ‚Gesellschaft‘ – das ist das deutsche Wort für ‚Company‘. Eine übliche Abkürzung, wie unser ‚Co.‘ Das ‚P‘ steht natürlich für ‚Papier‘. Und nun das ‚Eg‘. Werfen wir einen Blick in unseren Kontinental-Gazetteer.“ Er zog einen schweren braunen Band aus dem Regal. „Eglow, Eglonitz – hier sind wir: Egria. Das liegt in einem deutschsprachigen Land – in Böhmen, nicht weit von Karlsbad. ‚Bemerkenswert als Schauplatz des Todes Wallensteins und wegen seiner zahlreichen Glasfabriken und Papiermühlen.‘ Ha, ha, mein Junge, was sagen Sie dazu?“ Seine Augen funkelten, und aus seiner Zigarette stieg eine große, blaue, triumphierende Wolke auf.
 
-# I. did so, and saw a large ‘E’ with a small ‘g,’ a ‘P,’ and a large ‘G’ with a small ‘t’ woven into the texture of the paper.
+„Das Papier wurde in Böhmen hergestellt“, sagte ich.
 
-“What do you make of that?” asked Holmes.
+„Ganz genau. Und der Mann, der die Notiz geschrieben hat, ist ein Deutscher. Beachten Sie den eigentümlichen Satzbau: ‚Diesen Bericht über Sie haben wir aus allen Richtungen erhalten.‘ Ein Franzose oder Russe hätte das nicht so geschrieben. Es ist der Deutsche, der so unhöflich mit seinen Verben umspringt. Es bleibt also nur noch herauszufinden, was dieser Deutsche will, der auf böhmischem Papier schreibt und lieber eine Maske trägt, als sein Gesicht zu zeigen. Und da kommt er auch schon – wenn ich mich nicht irre –, um all unsere Zweifel zu beseitigen.“
 
-“The maker’s name, no doubt—or rather his monogram.”
+Während er sprach, hörte man das scharfe Klappern von Pferdehufen und das Knirschen von Rädern am Bordstein, dann ein kräftiges Ziehen an der Klingel. Holmes pfiff leise.
 
-“Not at all. The ‘G’ with the small ‘t’ stands for ‘Gesellschaft,’ which is German for ‘Company.’ It’s the usual abbreviation, like our ‘Co.’ ‘P,’ of course, stands for ‘Papier.’ Now for the ‘Eg.’ Let’s consult our Continental Gazetteer.” He took a heavy brown volume from his shelves. “Eglow, Eglonitz—here we are, Egria. It’s in a German-speaking country—Bohemia, not far from Carlsbad. ‘Notable as the scene of Wallenstein’s death, and for its numerous glass factories and paper mills.’ Ha! Well, my boy, what do you make of that?” His eyes sparkled, and he sent up a great blue triumphant cloud from his cigarette.
+„Ein Zweispänner, dem Klang nach“, sagte er. „Ja“, fuhr er fort und warf einen Blick aus dem Fenster. „Ein hübscher kleiner Brougham und zwei Prachtexemplare. Hundertfünfzig Guineen das Stück. In diesem Fall steckt Geld, Watson – wenn sonst schon nichts.“
 
-“The paper was made in Bohemia,” I said.
+„Ich glaube, ich gehe besser, Holmes.“
 
-“Exactly. And the man who wrote the note is a German. Notice the peculiar construction of the sentence—‘This account of you we have from all quarters received.’ A Frenchman or a Russian could not have written that. It’s the German who treats his verbs so rudely. It only remains, then, to discover what is wanted by this German who writes on Bohemian paper and prefers wearing a mask to showing his face. And here he comes now, if I’m not mistaken, to clear up all our doubts.”
+„Keineswegs, Doktor. Bleiben Sie, wo Sie sind. Ohne meinen Boswell bin ich verloren. Und das hier verspricht interessant zu werden. Es wäre schade, es zu verpassen.“
 
-As he spoke, there came the sharp sound of horses’ hooves and wheels grinding against the curb, followed by a brisk tug at the bell. Holmes whistled.
+„Aber Ihr Klient—“
 
-“A pair, by the sound,” he said. “Yes,” he went on, glancing out of the window. “A neat little brougham and a pair of beauties. A hundred and fifty guineas each. There’s money in this case, Watson, if nothing else.”
+„Schon gut. Ich könnte Ihre Hilfe brauchen, und er vielleicht auch. Da kommt er. Setzen Sie sich in diesen Sessel, Doktor, und schenken Sie uns Ihre volle Aufmerksamkeit.“
 
-“I think I’d better go, Holmes.”
+Ein langsamer, schwerer Schritt, den man bereits auf der Treppe und im Flur gehört hatte, hielt direkt vor der Tür inne. Dann klopfte es laut und befehlend.
 
-“Not at all, Doctor. Stay where you are. I’m lost without my Boswell. And this promises to be interesting. It would be a shame to miss it.”
+„Herein!“, sagte Holmes.
 
-“But your client—”
+Ein Mann trat ein, der kaum weniger als zwei Meter groß sein konnte, mit der Brust und den Gliedmaßen eines Herkules. Seine Kleidung war reich – von einer Art Reichtum, die man in England als nahe am schlechten Geschmack ansehen würde. Schwere Astrakhanborten waren quer über Ärmel und Vorderseiten seines zweireihigen Rockes gesetzt, und der tiefblaue Mantel, den er über die Schultern geworfen hatte, war mit flammfarbenem Seidenfutter ausgeschlagen und am Hals mit einer Brosche befestigt, die aus einem einzigen, feurig leuchtenden Beryll bestand. Stiefel, die bis zur Mitte der Waden reichten und oben mit kostbarem braunem Pelz besetzt waren, vollendeten den Eindruck barbarischen Prunks, den sein gesamtes Erscheinungsbild hervorrief. In der Hand hielt er einen breitkrempigen Hut, während er über dem oberen Teil seines Gesichts – bis unter die Wangenknochen hinab – eine schwarze Halbmaske trug, die er offenbar erst im letzten Augenblick zurechtgerückt hatte, denn beim Eintreten war seine Hand noch daran erhoben. Vom unteren Teil des Gesichts her wirkte er wie ein Mann von starkem Charakter, mit einer dicken, herabhängenden Lippe und einem langen, geraden Kinn, das Entschlossenheit verriet – bis hin zur Sturheit.
 
-“Never mind him. I may need your help, and so may he. Here he comes. Sit in that armchair, Doctor, and give us your full attention.”
+„Sie haben meine Notiz erhalten?“, fragte er mit tiefer, rauer Stimme
 
-A slow, heavy tread, which we had heard on the stairs and in the hallway, stopped just outside the door. Then came a loud, authoritative knock.
+„Dann, bitte, berichten Sie“, sagte Holmes und schloss wieder die Augen.
 
-“Come in!” said Holmes.
+„Die Tatsachen sind kurz diese: Vor etwa fünf Jahren, während eines längeren Aufenthalts in Warschau, machte ich die Bekanntschaft der bekannten Abenteurerin Irene Adler. Der Name ist Ihnen ohne Zweifel geläufig.“
 
-A man entered who could hardly have been less than six foot six, with the chest and limbs of a Hercules. His clothes were rich with a kind of richness that in England would border on bad taste. Heavy bands of astrakhan fur slashed across the sleeves and front of his double-breasted coat, while the deep blue cloak thrown over his shoulders was lined with flame-coloured silk and fastened at the neck with a brooch consisting of a single blazing beryl. Boots that came halfway up his calves and were trimmed at the top with thick brown fur completed the impression of barbaric opulence suggested by his whole appearance. He carried a broad-brimmed hat in his hand, and across the upper part of his face, down over the cheekbones, he wore a black visor mask, which he had apparently just adjusted, for his hand was still raised to it as he entered. From the lower part of his face he seemed a man of strong character, with a thick, pendulous lip and a long, straight chin that suggested resolution carried to the point of obstinacy.
+„Schlagen Sie sie freundlicherweise in meinem Register nach, Doktor“, murmelte Holmes, ohne die Augen zu öffnen. Seit vielen Jahren hatte er sich angewöhnt, alle Zeitungsabschnitte über Menschen und Dinge systematisch abzuheften, sodass es schwer war, ein Thema oder eine Person zu nennen, zu der er nicht sofort Auskunft geben konnte. In diesem Fall fand ich ihre Biografie eingeklemmt zwischen der eines hebräischen Rabbiners und der eines Stabsoffiziers, der eine Monografie über Tiefseefische verfasst hatte.
 
-“You received my note?” he asked, in a deep, harsh voice with a strongly marked German accent. “I told you I would call.” He looked from one of us to the other, as if unsure whom to address.
+„Mal sehen!“, sagte Holmes. „Hm! Geboren in New Jersey im Jahr 1858. Contralto — hm! La Scala, hm! Primadonna der Kaiserlichen Oper von Warschau — ja! Von der Opernbühne zurückgezogen — ha! Lebt in London — ganz recht! Eure Majestät, wie ich verstehe, haben sich mit dieser jungen Dame eingelassen, ihr einige kompromittierende Briefe geschrieben und wünschen nun, diese Briefe zurückzubekommen.“
 
-“Please, take a seat,” said Holmes. “This is my friend and colleague, Dr. Watson, who is sometimes kind enough to assist me in my cases. Whom do I have the honour of addressing?”
+„Ganz genau. Aber wie—“
 
-“You may call me the Count von Kramm, a Bohemian nobleman. I understand that this gentleman, your friend, is a man of honour and discretion, someone I may trust with a matter of the utmost importance. If not, I would much prefer to speak with you alone.”
+„Gab es eine heimliche Heirat?“
 
-\newpage
+„Nein.“
 
-# I. rose to leave, but Holmes caught my wrist and pushed me back into my chair. “It’s both of us or neither,” he said. “You may say to this gentleman anything you can say to me.”
+„Keine juristischen Papiere oder Urkunden?“
 
-The Count shrugged his broad shoulders. “Then I must begin,” he said, “by binding you both to absolute secrecy for two years. After that, the matter will no longer be important. At present, it’s no exaggeration“Then please, go on,” said Holmes, closing his eyes again.
+„Keine.“
 
-“The facts are briefly these: About five years ago, during a long stay in Warsaw, I became acquainted with the well-known adventuress Irene Adler. The name is no doubt familiar to you.”
+„Dann verstehe ich Eure Majestät nicht. Wenn diese junge Person Ihre Briefe zur Erpressung oder zu anderen Zwecken vorlegen sollte — wie will sie deren Echtheit beweisen?“
 
-“Be so good as to look her up in my index, Doctor,” murmured Holmes without opening his eyes.
+„Da ist die Handschrift.“
 
-For years he had kept a system of filing every newspaper paragraph about notable people and events, so that it was hard to name any subject or person on which he could not instantly produce information. In this case I found her biography wedged between that of a Hebrew rabbi and that of a naval staff-commander who had written a monograph on deep-sea fishes.
+„Ach was! Fälschung.“
 
-“Let me see!” said Holmes. “Hmm! Born in New Jersey in 1858. Contralto—hmm! La Scala—hmm! Prima donna at the Imperial Opera of Warsaw—yes! Retired from the operatic stage—ah! Living in London—quite so! As I understand it, Your Majesty became involved with this young lady, wrote her some compromising letters, and now wishes to get those letters back.”
+„Mein privates Briefpapier.“
 
-“Exactly. But how—”
+„Gestohlen.“
 
-“Was there a secret marriage?”
+„Mein eigenes Siegel.“
 
-“None.”
+„Imitiert.“
 
-“No legal documents or certificates?”
+„Mein Foto.“
 
-“None.”
+„Gekauft.“
 
-“Then I don’t follow you, Your Majesty. If this young lady produces your letters for blackmail or any other purpose, how is she to prove they’re genuine?”
+„Wir waren beide auf dem Foto.“
 
-“There is the handwriting.”
+„Oh, Himmel! Das ist sehr schlimm! Eure Majestät haben in der Tat eine Unbesonnenheit begangen.“
 
-“Nonsense. Forgery.”
+„Ich war außer mir — wahnsinnig.“
 
-“My private stationery.”
+„Sie haben sich ernsthaft kompromittiert.“
 
-“Stolen.”
+„Ich war damals nur Kronprinz. Ich war jung. Ich bin erst dreißig.“
 
-“My personal seal.”
+„Es muss zurückgeholt werden.“
 
-“Copied.”
+„Wir haben es versucht und sind gescheitert.“
 
-“My photograph.”
+„Eure Majestät müssen zahlen. Man muss es kaufen.“
 
-“Purchased.”
+„Sie verkauft nicht.“
 
-“We are both in the photograph.”
+„Dann stehlen.“
 
-“Oh, dear! That is very bad. Your Majesty has indeed been indiscreet.”
+„Fünf Versuche wurden unternommen. Zweimal haben Einbrecher in meinem Sold ihr Haus durchsucht. Einmal haben wir ihr Gepäck umgeleitet, als sie reiste. Zweimal wurde sie abgefangen. Ohne Ergebnis.“
 
-“I was mad—insane.”
+„Keine Spur davon?“
 
-“You have seriously compromised yourself.”
+„Absolut keine.“
 
-“I was only the Crown Prince then. I was young. I am only thirty now.”
+Holmes lachte. „Das ist ein recht hübsches kleines Problem“, sagte er.
 
-“It must be recovered.”
+„Für mich aber ein sehr ernstes“, erwiderte der König vorwurfsvoll.
 
-“We have tried and failed.”
+„Sehr, in der Tat. Und was hat sie mit dem Foto vor?“
 
-“Your Majesty must pay. It must be bought.”
+„Mich zu ruinieren.“
 
-“She will not sell.”
+„Aber wie?“
 
-“Then it must be stolen.”
+„Ich stehe kurz vor der Heirat.“
 
-“Five attempts have been made. Twice burglars in my pay have ransacked her house. Once we intercepted her luggage when she was travelling. Twice she has been waylaid. Nothing has come of it.”
+„So habe ich gehört.“
 
-“No trace of it?”
+„Mit Clotilde Lothman von Sachsen-Meiningen, der zweiten Tochter des Königs von Skandinavien. Sie kennen vielleicht die strengen Grundsätze ihrer Familie. Sie selbst ist die reine Verkörperung von Takt und Anstand. Schon der Schatten eines Zweifels an meinem Verhalten würde alles zunichtemachen.“
 
-“Absolutely none.”
+„Und Irene Adler?“
 
-Holmes laughed. “It’s quite a charming little problem,” he said.
+„Droht, ihnen das Foto zu schicken. Und sie wird es tun. Ich weiß, dass sie es tun wird. Sie kennen sie nicht, aber sie hat eine Seele aus Stahl. Sie hat das Gesicht der schönsten Frau und den Verstand des entschlossensten Mannes. Eher als dass ich eine andere Frau heirate, gibt es nichts, wozu sie nicht greifen würde — nichts.“
 
-“But a very serious one for me,” the King replied reproachfully.
+„Sind Sie sicher, dass sie es noch nicht abgeschickt hat?“
 
-“Very much so. And what does she intend to do with the photograph?”
+„Ganz sicher.“
 
-“Ruin me.”
+„Und warum?“
 
-“But how?”
+„Weil sie gesagt hat, sie werde es an dem Tag senden, an dem die Verlobung öffentlich bekanntgegeben wird. Das ist nächsten Montag.“
 
-“I am about to be married.”
+„Oh, dann haben wir noch drei Tage“, sagte Holmes gähnend. „Das ist sehr günstig, denn ich habe im Moment ein, zwei wichtige Dinge zu erledigen. Eure Majestät bleiben natürlich vorerst in London?“
 
-“So I have heard.”
+„Selbstverständlich. Sie finden mich im Langham unter dem Namen Graf von Kramm.“
 
-“To Clotilde Lothman von Saxe-Meningen, second daughter of the King of Scandinavia. You may know the strict principles of her family. She is herself the very soul of delicacy. The slightest shadow of doubt about my conduct would break off the engagement.”
+„Dann lasse ich Ihnen eine Zeile zukommen, um Sie über unsere Fortschritte zu informieren.“
 
-“And Irene Adler?”
+„Bitte tun Sie das. Ich werde in größter Unruhe sein.“
 
-“Threatens to send them the photograph. And she will do it. I know she will. You do not know her, but she has a soul of steel. She has the face of the most beautiful of women and the mind of the most resolute of men. Rather than let me marry another woman, there is nothing she would not do—nothing.”
+„Dann — was das Geld betrifft?“
 
-“You are sure she has not sent it yet?”
+„Sie haben _carte blanche_.“
 
-“I am sure.”
+„Völlig?“
 
-“And why?”
+„Ich sage Ihnen, ich gäbe eine der Provinzen meines Reiches, wenn ich dieses Foto dafür bekäme.“
 
-“Because she has said that she would send it on the day the engagement is publicly announced. That will be next Monday.”
+„Und für die laufenden Ausgaben?“
 
-“Oh, then we still have three days,” said Holmes with a yawn. “That is very fortunate, as I have one or two important matters to attend to just now. Your Majesty will, of course, remain in London for the present?”
+Der König zog unter seinem Umhang einen schweren Beutel aus sämischem Leder hervor und legte ihn auf den Tisch.
 
-“Certainly. You will find me at the Langham under the name of Count von Kramm.”
+„Darin sind dreihundert Pfund in Gold und siebenhundert in Scheinen“, sagte er.
 
-“Then I shall drop you a line to let you know how we get on.”
+Holmes kritzelte eine Quittung auf ein Blatt aus seinem Notizbuch und reichte sie ihm.
 
-“Please do. I shall be in an agony of suspense.”
+„Und die Adresse der Mademoiselle?“, fragte er.
 
-“Now, as to money?”
+„Briony Lodge, Serpentine Avenue, St. John’s Wood.“
 
-“You have carte blanche.”
+Holmes notierte sie. „Noch eine Frage“, sagte er. „War das Foto ein Kabinettfoto?“
 
-“Absolutely?”
+„Ja.“
 
-“I tell you I would give one of the provinces of my kingdom to have that photograph.”
+„Dann gute Nacht, Eure Majestät, und ich hoffe, wir werden Ihnen bald gute Nachrichten bringen. Und gute Nacht
 
-“And for immediate expenses?”
+„Dann schlenderte ich die Straße hinunter und stellte, wie erwartet, fest, dass es in einer Gasse, die an einer Gartenmauer entlangführt, einen Pferdehof gab. Ich half den Stallburschen beim Abrubbeln der Pferde und bekam dafür zwei Pence, ein Glas Half-and-half, zwei Stopfungen Shag-Tabak – und so viele Informationen über Miss Adler, wie ich nur wünschen konnte; ganz zu schweigen von einem halben Dutzend anderer Leute aus der Nachbarschaft, an denen ich nicht das geringste Interesse hatte, deren Lebensläufe ich mir aber zwangsläufig anhören musste.“
 
-The King drew a heavy chamois-leather bag from beneath his cloak and laid it on the table.
+„Und was ist mit Irene Adler?“, fragte ich.
 
-“There are three hundred pounds in gold and seven hundred in notes,” he said.
+„Oh, die hat dort drüben allen Männern den Kopf verdreht. Das feinste Geschöpf unter einer Haube auf diesem Planeten. Das sagt die ganze Serpentine-Mews – Mann für Mann. Sie lebt ruhig, singt bei Konzerten, fährt jeden Tag um fünf aus und ist um Punkt sieben wieder da zum Dinner. Sonst geht sie selten aus, außer wenn sie singt. Sie hat nur einen männlichen Besucher – aber von dem reichlich. Dunkel, gut aussehend, verwegen, geschniegelt; kommt nie seltener als einmal am Tag, oft zweimal. Ein Mr. Godfrey Norton, vom Inner Temple. Sehen Sie, was für Vorteile ein Kutscher als Vertrauter hat. Die haben ihn ein Dutzend Mal von der Serpentine-Mews nach Hause gefahren und wussten alles über ihn. Als ich mir alles angehört hatte, was sie zu erzählen wussten, begann ich wieder in der Nähe von Briony Lodge auf und ab zu gehen und meinen Feldzugsplan zu überdenken.
 
-Holmes scribbled a receipt on a page torn from his notebook and handed it to him.
+Dieser Godfrey Norton war offenbar ein wichtiger Faktor in der Sache. Er war Anwalt. Das klang unerquicklich. In welchem Verhältnis standen die beiden zueinander, und was war der Zweck seiner ständigen Besuche? War sie seine Klientin, seine Freundin – oder seine Geliebte? Wenn das Erste, dann hatte sie das Foto vermutlich in seine Verwahrung gegeben. Wenn das Letzte, war es weniger wahrscheinlich. Von der Antwort auf diese Frage hing ab, ob ich meine Arbeit bei Briony Lodge fortsetzen oder meine Aufmerksamkeit auf die Kanzleiräume des Herrn im Temple richten sollte. Es war ein heikler Punkt, und er weitete das Feld meiner Nachforschungen. Ich fürchte, ich langweile Sie mit diesen Einzelheiten, aber Sie müssen meine kleinen Schwierigkeiten sehen, wenn Sie die Lage verstehen sollen.“
 
-“And the lady’s address?” he asked.
+„Ich folge Ihnen genau“, erwiderte ich.
 
-“Briony Lodge, Serpentine Avenue, St John’s Wood.”
+„Ich wog die Sache noch in Gedanken ab, als eine Droschke vor Briony Lodge hielt und ein Gentleman heraussprang. Ein auffallend schöner Mann, dunkel, mit Adlerprofil und Schnurrbart – ganz offensichtlich der, von dem ich gehört hatte. Er schien in großer Eile, rief dem Kutscher zu, er solle warten, und schob sich mit der Selbstverständlichkeit eines Mannes, der hier völlig zu Hause ist, an dem Dienstmädchen vorbei, das die Tür geöffnet hatte.
 
-Holmes jotted it down. “One more question,” he said. “Was the photograph cabinet size?”
+Er blieb etwa eine halbe Stunde im Haus, und ich konnte ihn gelegentlich in den Fenstern des Wohnzimmers sehen: er lief auf und ab, redete erregt, fuchtelte mit den Armen. Von ihr sah ich nichts. Schließlich kam er heraus, noch aufgeregter als zuvor. Als er zur Droschke trat, zog er eine goldene Uhr aus der Tasche und sah sie eindringlich an. ‚Fahr wie der Teufel!‘, brüllte er. ‚Erst zu Gross & Hankey in der Regent Street, dann zur Kirche St. Monica an der Edgeware Road. Ein halbes Guinea, wenn du’s in zwanzig Minuten schaffst!‘
 
-“It was.”
+Sie jagten davon, und ich überlegte gerade, ob ich ihnen nicht besser folgen sollte, als die Gasse herauf eine saubere kleine Landau-Kutsche kam – der Kutscher mit nur halb zugeknöpftem Rock, die Krawatte unterm Ohr, und überall standen die Riemenenden aus den Schnallen des Geschirrs. Sie hatte noch nicht einmal gehalten, da schoss sie aus der Haustür und hinein. Ich erhaschte nur einen Blick in diesem Augenblick, aber sie war eine wunderschöne Frau, mit einem Gesicht, für das ein Mann sterben könnte.
 
-“Then good night, Your Majesty, and I trust we shall soon have good news for you. And good night, Watson,” he added, as the wheels of the royal brougham rolled away down the street. “If you would be so kind as to call tomorrow afternoon at three o’clock, I should like to talk this little matter over with you.”
+‚Zur Kirche St. Monica, John!‘, rief sie. ‚Und ein halbes Pfund, wenn du in zwanzig Minuten dort bist!‘
 
-\newpage
+Das war wirklich zu gut, um es entgehen zu lassen, Watson. Ich schwankte noch, ob ich losrennen oder mich hinten auf ihre Landau schwingen sollte, als eine Droschke die Straße heraufkam. Der Kutscher musterte so einen schäbigen Fahrgast zweimal, aber ich sprang hinein, bevor er protestieren konnte. ‚Zur Kirche St. Monica‘, sagte ich, ‚und ein halbes Pfund, wenn du in zwanzig Minuten dort bist.‘ Es war fünf vor zwölf, und natürlich war klar genug, was da im Busch war.
 
-# I
+Mein Kutscher fuhr schnell. Ich glaube nicht, dass ich je schneller gefahren bin – aber die anderen waren vor uns da. Die Droschke und die Landau standen mit dampfenden Pferden vor der Tür, als ich ankam. Ich bezahlte den Mann und eilte in die Kirche. Kein Mensch war dort, außer den beiden, denen ich gefolgt war, und einem Geistlichen im Chorhemd, der offenbar auf sie einredete. Alle drei standen dicht beieinander vor dem Al
 
-I.
+„Ich soll neutral bleiben?“
 
-At precisely three o’clock I was in Baker Street, but Holmes had not yet returned. The landlady told me that he had left the house shortly after eight that morning. I sat down by the fire, determined to wait for him, however long he might be.
+„Gar nichts tun. Es wird wahrscheinlich eine kleine Unannehmlichkeit geben. Misch dich nicht ein. Es wird damit enden, dass man mich ins Haus trägt. Vier oder fünf Minuten später wird das Fenster des Wohnzimmers geöffnet. Du stellst dich dicht an dieses offene Fenster.“
 
-\newpage
+„Ja.“
 
-# I. was already deeply interested in his investigation, for although it lacked the grim and bizarre features of the two crimes I have already described, the nature of the case and the exalted rank of his client gave it a character all its own. Indeed, quite apart from the particular problem my friend had in hand, there was something in his masterly grasp of a situation and his sharp, incisive reasoning that made it a pleasure to study his methods and to follow the quick, subtle ways inI strolled down the street and, as I’d expected, found a mews in a little lane running along one wall of the garden. I helped the stable hands rub down their horses and, in return, got twopence, a glass of half-and-half, two pipefuls of shag tobacco, and as much information as I could possibly want about Miss Adler—plus the life stories of half a dozen other local people in whom I had no interest whatsoever, but which I was forced to endure.
+„Du beobachtest mich, denn ich werde für dich zu sehen sein.“
 
-“And what about Irene Adler?” I asked.
+„Ja.“
 
-“Oh, she’s turned every man’s head in that part of town. Prettiest thing under a bonnet on this planet, they say. Every man in Serpentine Mews swears to it. She lives quietly, sings at concerts, goes out driving every day at five, and is back sharp at seven for dinner. Seldom goes out at other times, except when she’s singing. She has only one male visitor, but she sees a lot of him. Dark, handsome, dashing fellow—never calls less than once a day, and often twice. Name of Godfrey Norton, of the Inner Temple. That’s the advantage of having a cabman as a confidant: they’d driven him home a dozen times from Serpentine Mews and knew all about him. When I’d heard everything they had to say, I started pacing up and down near Briony Lodge again, working out my plan of attack.
+„Und wenn ich die Hand hebe – so –, dann wirfst du in das Zimmer, was ich dir zum Werfen gebe, und rufst gleichzeitig: Feuer. Verstehst du mich?“
 
-“This Godfrey Norton was clearly a key figure. He was a lawyer. That sounded ominous. What was the relationship between them, and what was the purpose of his constant visits? Was she his client, his friend, or his mistress? If she was his client, she had probably handed the photograph over to him for safekeeping. If she was his mistress, that was less likely. The answer to that question would decide whether I should keep working on Briony Lodge or turn my attention to the gentleman’s chambers in the Temple. It was a delicate point, and it widened the scope of my investigation. I’m afraid I’m boring you with these details, but you have to see my little difficulties if you’re to understand the situation.”
+„Vollkommen.“
 
-“I’m following you closely,” I said.
+„Es ist nichts besonders Furchterregendes“, sagte er und zog eine lange, zigarrenförmige Rolle aus der Tasche. „Eine gewöhnliche Rauchpatrone vom Klempner, an beiden Enden mit einer Kappe versehen, damit sie sich selbst entzündet. Deine Aufgabe beschränkt sich darauf. Wenn du Feuer rufst, werden es eine ganze Menge Leute aufgreifen. Dann kannst du bis ans Ende der Straße gehen, und ich stoße in zehn Minuten wieder zu dir. Ich hoffe, ich habe mich klar ausgedrückt?“
 
-“I was still weighing it all up when a hansom cab pulled up at Briony Lodge and a gentleman jumped out. Remarkably handsome man—dark, aquiline features, a moustache—obviously the man I’d heard about. He seemed to be in a great hurry, shouted to the cabman to wait, and swept past the maid who opened the door with the air of someone completely at home there.
+„Ich soll neutral bleiben, mich ans Fenster bringen, Sie beobachten und beim Zeichen dieses Ding hineinwerfen, dann Feuer rufen und Sie an der Straßenecke erwarten.“
 
-“He was in the house for about half an hour, and I could catch glimpses of him through the sitting-room windows, pacing up and down, talking excitedly, waving his arms. I couldn’t see her at all. Presently he came out again, looking even more agitated than before. As he stepped up to the cab, he yanked a gold watch from his pocket and stared at it intently. ‘Drive like the devil,’ he shouted. ‘First to Gross & Hankey’s in Regent Street, then to the Church of St. Monica in the Edgware Road. Half a guinea if you do it in twenty minutes!’
+„Ganz genau.“
 
-“Off they went, and I was just wondering whether I ought to follow when a neat little landau came hurrying up the lane, the coachman with his coat only half buttoned and his tie under his ear, all the straps of his harness sticking out of their buckles. It hadn’t even fully stopped before she shot out of the front door and into it. I only caught a glimpse of her, but she was a beautiful woman, with a face a man might die for.
+„Dann können Sie sich völlig auf mich verlassen.“
 
-“‘The Church of St. Monica, John,’ she cried, ‘and half a sovereign if you get there in twenty minutes.’
+„Ausgezeichnet. Ich denke, es ist wohl fast Zeit, dass ich mich auf die neue Rolle vorbereite, die ich zu spielen habe.“
 
-“This was far too good to miss, Watson. I was debating whether to run after them or to jump up behind her landau when a cab came down the street. The driver looked twice at such a shabby fare, but I was in the cab before he could object. ‘The Church of St. Monica,’ I said, ‘and half a sovereign if you get there in twenty minutes.’ It was twenty-five minutes to twelve, and of course it was obvious what was in the air.
+Er verschwand in seinem Schlafzimmer und kam nach wenigen Minuten als ein liebenswürdiger, einfältig wirkender freikirchlicher Geistlicher zurück. Sein breiter schwarzer Hut, die schlotternden Hosen, die weiße Krawatte, das mitfühlende Lächeln und dieser ganze Ausdruck von neugierigem, wohlwollendem Spähen – das hätte höchstens Mr. John Hare ihm nachmachen können. Es war nicht bloß, dass Holmes das Kostüm wechselte. Sein Gesicht, seine Art, ja seine ganze Seele schien sich mit jeder neuen Figur zu verwandeln, die er annahm. Die Bühne verlor einen großen Schauspieler, ebenso wie die Wissenschaft einen scharfsinnigen Denker verlor, als er sich auf das Verbrechen spezialisierte.
 
-“My cabby drove hard. I don’t think I’ve ever gone faster, but the others were there before us. The cab and the landau, their horses steaming, were already at the church door when I arrived. I paid my man and hurried inside. There wasn’t a soul there except the two I’d followed and a clergyman in surplice, who seemed to be arguing with them. The three of them were huddled together in front of the altar. I sauntered up the side aisle like any idle passerby who has wandered into a church. Suddenly, to my surprise, the three at the altar turned and faced me, and Godfrey Norton came running towards me as fast as he could.
+Es war Viertel nach sechs, als wir die Baker Street verließen, und es fehlten noch zehn Minuten bis zur vollen Stunde, als wir uns in der Serpentine Avenue wiederfanden. Es dämmerte bereits, und gerade wurden die Laternen angezündet, während wir vor Briony Lodge auf und ab gingen und auf die Bewohnerin warteten. Das Haus war genau so, wie ich es mir nach Sherlock Holmes’ knapper Beschreibung vorgestellt hatte, doch die Gegend wirkte weniger abgeschieden, als ich erwartet hatte. Im Gegenteil: Für eine kleine Straße in einem ruhigen Viertel war sie erstaunlich belebt. Da stand eine Gruppe schäbig gekleideter Männer, die in einer Ecke rauchten und lachten; ein Scherenschleifer mit seinem Rad; zwei Gardesoldaten, die mit einem Kindermädchen flirteten; und mehrere gut gekleidete junge Männer, die mit Zigarren im Mund auf und ab schlenderten.
 
-“‘Thank God,’ he cried. ‘You’ll do. Come! Come!’
+„Siehst du“, bemerkte Holmes, während wir vor dem Haus hin und her gingen, „diese Heirat vereinfacht die Sache ein wenig. Das Foto ist jetzt eine Waffe mit zwei Schneiden. Sehr wahrscheinlich ist sie ebenso wenig daran interessiert, dass Mr. Godfrey Norton es zu Gesicht bekommt, wie unser Auftraggeber daran interessiert ist, dass es seiner Prinzessin vor Augen kommt. Die Frage ist also: Wo finden wir das Foto?“
 
-“‘What for?’ I asked.
+„Ja – wo?“
 
-“‘Come, man, come—only three minutes, or it won’t be legal.’
+„Es ist höchst unwahrscheinlich, dass sie es bei sich trägt. Es hat Kabinettformat. Zu groß, um es bequem in der Kleidung einer Frau zu verbergen. Sie weiß, dass der König fähig ist, sie abfangen und durchsuchen zu lassen. Zwei solche Versuche hat es bereits gegeben. Wir können also davon ausgehen, dass sie es nicht bei sich trägt.“
 
-“I was half dragged up to the altar, and before I knew what was happening I found myself mumbling responses whispered in my ear, vouching for things I knew nothing about, and generally helping to tie up Irene Adler, spinster, to Godfrey Norton, bachelor, in the most binding fashion. It was over in an instant, and there was the gentleman thanking me on one side and the lady on the other, while the clergyman“I’m to stay neutral?”
+„Wo dann?“
 
-“To do absolutely nothing. There’ll probably be a bit of a disturbance. Don’t get involved. It will end with me being taken into the house. Four or five minutes later, the sitting-room window will be opened. You are to place yourself right by that open window.”
+„Bei ihrem Bankier oder ihrem Anwalt. Diese doppelte Möglichkeit besteht. Aber ich neige dazu, keines von beidem zu glauben. Frauen sind von Natur aus verschwiegen, und sie verstecken am liebsten selbst. Warum sollte sie es jemand anderem übergeben? Ihrer eigenen Bewachung kann sie trauen, aber sie kann nicht wissen, welchem indirekten oder politischen Druck man einen Geschäftsmann aussetzen könnte. Außerdem: Denk daran, dass sie entschlossen war, es innerhalb weniger Tage zu benutzen. Es muss dort sein, wo sie sofort die Hand darauf legen kann. Es muss in ihrem eigenen Haus sein.“
 
-“Yes.”
+„Aber es wurde doch zweimal eingebrochen.“
 
-“You’re to watch me, because you’ll be able to see me.”
+„Pah! Sie wussten nur nicht, wonach sie suchen sollten.“
 
-“Yes.”
+„Und wie wollen Sie suchen?“
 
-“And when I raise my hand—like this—you will throw into the room what I give you to throw, and at the same moment you will shout ‘Fire!’ You follow me completely?”
+„Ich werde nicht suchen.“
 
-“Completely.”
+„Was dann?“
 
-“It’s nothing very dangerous,” he said, taking a long, cigar-shaped roll from his pocket. “It’s just an ordinary plumber’s smoke-rocket, fitted with a cap at each end so it lights itself. That’s all you have to do. When you shout ‘Fire,’ a lot of people will take up the cry. You can then walk to the end of the street, and I’ll join you in ten minutes. Have I made myself clear?”
+„Ich werde sie dazu bringen, es mir zu zeigen.“
 
-“I’m to remain neutral, get close to the window, watch you, and at your signal throw this thing in, then shout ‘Fire,’ and wait for you at the corner.”
+„Aber sie wird sich weigern.“
 
-“Exactly.”
+„Das wird sie nicht können. Doch ich höre das Rollen von Rädern. Das ist ihre Kutsche. Jetzt befolgst du meine Anweisungen buchstabengetreu.“
 
-“You can rely on me completely.”
+Während er sprach, bog der Schein der Seitenlaternen einer Kutsche um die Kurve der Allee. Es war ein schmucker kleiner Landauer, der klappernd vor der Tür von Briony Lodge hielt. Kaum stand er, da schoss einer der herumlungernden Männer an der Ecke vor, um die Tür zu öffnen und sich ein Kupferstück zu verdienen, wurde jedoch von einem zweiten beiseite gestoßen, der mit ders
 
-“Excellent. I think it’s about time I got ready for the new role I have to play.”
+„Das haben Sie sehr schön gemacht, Doktor“, bemerkte er. „Besser hätte es nicht laufen können. Alles in Ordnung.“
 
-He disappeared into his bedroom and came back a few minutes later transformed into an amiable, simple-minded Nonconformist clergyman. The broad black hat, the baggy trousers, the white tie, the sympathetic smile, and the general air of peering, benevolent curiosity were such that only Mr. John Hare could have matched them. It wasn’t just that Holmes changed his clothes. His expression, his manner, his very soul seemed to alter with every new part he took on. The stage lost a fine actor, just as science lost a brilliant reasoner, when he became a specialist in crime.
+„Sie haben das Foto?“
 
-It was a quarter past six when we left Baker Street, and it was still ten minutes to seven when we found ourselves in Serpentine Avenue. It was already dusk, and the lamps were just being lit as we walked up and down in front of Briony Lodge, waiting for its occupant to arrive. The house was exactly as I had imagined it from Sherlock Holmes’s brief description, but the area seemed less private than I had expected. On the contrary, for a small street in a quiet neighborhood, it was remarkably lively. A group of shabbily dressed men were smoking and laughing on one corner, there was a scissors-grinder with his wheel, two guardsmen flirting with a nursemaid, and several well-dressed young men strolling up and down with cigars in their mouths.
+„Ich weiß, wo es ist.“
 
-“You see,” said Holmes, as we paced in front of the house, “this marriage actually makes things easier. The photograph is now a double-edged weapon. She’s probably just as anxious to keep it from Mr. Godfrey Norton as our client is to keep it from his princess. The question now is: where do we find the photograph?”
+„Und wie haben Sie das herausgefunden?“
 
-“Where indeed?”
+„Sie hat es mir gezeigt, wie ich Ihnen sagte, dass sie es tun würde.“
 
-“It’s highly unlikely she carries it with her. It’s cabinet size—too large to hide easily in a woman’s clothes. She knows the King is capable of having her waylaid and searched. He’s already tried twice. So we can safely assume she doesn’t carry it on her person.”
+„Ich tappe immer noch im Dunkeln.“
 
-“Where, then?”
+„Ich will kein Geheimnis daraus machen“, sagte er lachend. „Die Sache war völlig einfach. Sie haben natürlich gesehen, dass jeder in der Straße ein Komplize war. Die waren alle für den Abend engagiert.“
 
-“With her banker or her lawyer. Those are the two obvious possibilities. But I don’t think it’s with either. Women are naturally secretive, and they prefer to do their own hiding. Why would she hand it over to anyone else? She can trust her own guardianship, but she can’t know what indirect or political pressure might be brought to bear on a businessman. Besides, remember she planned to use it within a few days. It has to be somewhere she can reach easily. It must be in her own house.”
+„Das habe ich mir gedacht.“
 
-“But it’s been burgled twice.”
+„Als dann der Krawall losbrach, hatte ich ein wenig feuchte rote Farbe in der Handfläche. Ich stürmte nach vorn, fiel hin, schlug mir die Hand vors Gesicht und war ein erbärmlicher Anblick. Ein alter Trick.“
 
-“Pshaw! They didn’t know how to search.”
+„Auch das konnte ich mir zusammenreimen.“
 
-“And how will you search?”
+„Dann trugen sie mich hinein. Sie musste mich hereinlassen. Was hätte sie sonst tun sollen? Und zwar in ihr Wohnzimmer, genau in den Raum, den ich im Verdacht hatte. Er lag zwischen dem Flur und ihrem Schlafzimmer, und ich war entschlossen herauszufinden, welcher es war. Sie legten mich auf ein Sofa, ich deutete an, ich bräuchte Luft, sie waren gezwungen, das Fenster zu öffnen, und Sie hatten Ihre Gelegenheit.“
 
-“I won’t.”
+„Und wie hat Ihnen das geholfen?“
 
-“What then?”
+„Das war entscheidend. Wenn eine Frau glaubt, ihr Haus brenne, treibt sie der Instinkt sofort zu dem, was ihr am wertvollsten ist. Das ist ein völlig überwältigender Impuls, und ich habe ihn mehr als einmal ausgenutzt. Beim Darlington-Substitutionsskandal war er mir nützlich, und auch bei der Sache von Schloss Arnsworth. Eine verheiratete Frau greift nach ihrem Baby; eine unverheiratete nach ihrem Schmuckkästchen. Nun war mir klar, dass unsere Dame von heute nichts im Haus hatte, was ihr kostbarer war als das, wonach wir suchen. Sie würde hinrennen, um es in Sicherheit zu bringen. Der Feueralarm war hervorragend inszeniert. Rauch und Geschrei reichten aus, um Nerven aus Stahl zu erschüttern. Sie reagierte wunderbar. Das Foto liegt in einer Nische hinter einer Schiebetafel, direkt über dem rechten Klingelzug. Sie war im selben Augenblick dort, und ich erhaschte einen Blick darauf, als sie es halb herauszog. Als ich rief, es sei falscher Alarm, schob sie es zurück, warf einen Blick auf die Rakete, stürzte aus dem Zimmer, und ich habe sie seitdem nicht mehr gesehen. Ich stand auf, entschuldigte mich und entkam aus dem Haus. Ich zögerte, ob ich versuchen sollte, das Foto sofort an mich zu bringen; aber der Kutscher war hereingekommen, und da er mich scharf im Auge behielt, schien es sicherer zu warten. Ein bisschen zu viel Übereifer kann alles ruinieren.“
 
-“I’ll make her show me.”
+„Und jetzt?“, fragte ich.
 
-“But she’ll refuse.”
+„Unsere Suche ist praktisch beendet. Ich werde morgen mit dem König hingehen – und mit Ihnen, wenn Sie mitkommen möchten. Man wird uns ins Wohnzimmer führen, um auf die Dame zu warten, aber es ist gut möglich, dass sie, wenn sie kommt, weder uns noch das Foto vorfindet. Es könnte Seiner Majestät Genugtuung verschaffen, es mit eigenen Händen zurückzuerlangen.“
 
-“She won’t be able to. But I hear wheels. That’s her carriage. Now follow my instructions to the letter.”
+„Und wann gehen Sie hin?“
 
-As he spoke, the sidelights of a carriage swung into view around the curve of the avenue. It was a smart little landau that rattled up to the door of Briony Lodge. As it stopped, one of the loafers on the corner rushed forward to open the door in hopes of earning a coin, but he was shouldered aside by another loafer with the same idea. A fierce quarrel broke out, which was inflamed by the two guardsmen, who took the side of one of the loungers, and by the scissors-grinder, who was just as hot for the other. A blow was struck, and in an instant the lady, who had just stepped from her carriage, found herself in the center of a little knot of flushed, struggling men, swinging fists and sticks at each other. Holmes plunged into the crowd to protect her; but just as he reached her, he gave a cry and dropped to the ground, blood running freely down his face. At his fall the guardsmen bolted in one direction and the loafers in another, while a number of better-dressed people, who had been watching the scuffle without joining in, crowded around to help the lady and attend to the injured man. Irene Adler, as I will still call her, had hurried up the steps, but she stopped at the top, her superb figure outlined against the light from the hall, looking back into the street.
+„Um acht Uhr morgens. Sie wird noch nicht auf sein, also haben wir freie Bahn. Außerdem müssen wir schnell sein, denn diese Heirat kann eine vollständige Veränderung ihres Lebens und ihrer Gewohnheiten bedeuten. Ich muss dem König unverzüglich telegraphieren.“
 
-“Is the poor gentleman badly hurt?” she asked.
+Wir hatten die Baker Street erreicht und vor der Tür angehalten. Er durchsuchte gerade seine Taschen nach dem Schlüssel, als ein Vorübergehender sagte:
 
-“He’s dead!”“You handled it very neatly, Doctor,” he said. “Couldn’t have been better. Everything’s in order.”
+„Gute Nacht, Mister Sherlock Holmes.“
 
-“You have the photograph?”
+Es waren zu der Zeit mehrere Leute auf dem Gehweg, doch der Gruß schien von einem schlanken Jungen in einem Ulster zu kommen, der hastig vorbeigegangen war.
 
-“I know where it is.”
-
-“And how did you find out?”
-
-“She showed me, just as I told you she would.”
-
-“I’m still in the dark.”
-
-“I don’t mean to be mysterious,” he said, laughing. “It was perfectly simple. You saw, of course, that everyone in the street was in on it. They were all hired for the evening.”
-
-“I suspected as much.”
-
-“Then, when the fight broke out, I had a little wet red paint in the palm of my hand. I rushed forward, fell down, clapped my hand to my face, and became a pitiful sight. It’s an old trick.”
-
-“That, too, I could figure out.”
-
-“Then they carried me inside. She had to have me in. What else could she do? And into her sitting room, which was exactly the room I suspected. It was between that and her bedroom, and I was determined to see which it was. They laid me on a couch, I motioned for air, they were forced to open the window, and you had your chance.”
-
-“How did that help you?”
-
-“It was crucial. When a woman thinks her house is on fire, her first instinct is to rush to whatever she values most. It’s an absolutely overpowering impulse, and I’ve taken advantage of it more than once. It helped me in the Darlington Substitution Scandal, and again in the Arnsworth Castle affair. A married woman grabs her baby; an unmarried one goes for her jewelry box. Now, it was obvious to me that our lady today had nothing in the house more precious than what we’re after. She would dash to secure it. The fire alarm was beautifully done. The smoke and shouting were enough to shake nerves of steel. She reacted perfectly. The photograph is in a recess behind a sliding panel just above the right-hand bell-pull. She was there in an instant, and I caught a glimpse of it as she half drew it out. When I shouted that it was a false alarm, she put it back, glanced at the rocket, rushed from the room, and I haven’t seen her since. I got up, made my apologies, and slipped out of the house. I hesitated whether to try to secure the photograph at once; but the coachman had come in, and as he was watching me closely, it seemed safer to wait. A little too much haste might ruin everything.”
-
-“And now?” I asked.
-
-“Our search is practically over. I’ll call with the King tomorrow—and with you, if you’d like to come. We’ll be shown into the sitting room to wait for the lady, but it’s likely that when she arrives she’ll find neither us nor the photograph. It might please His Majesty to recover it with his own hands.”
-
-“And when will you call?”
-
-“At eight in the morning. She won’t be up, so we’ll have the place to ourselves. Besides, we must be quick, for this marriage may mean a complete change in her life and habits. I must wire the King at once.”
-
-We had reached Baker Street and stopped at the door. He was searching his pockets for the key when someone passing by said:
-
-“Good night, Mr. Sherlock Holmes.”
-
-There were several people on the pavement at the time, but the greeting seemed to come from a slim youth in an ulster who had hurried past.
-
-“I’ve heard that voice before,” said Holmes, staring down the dimly lit street. “Now, who the devil could that have been?”
+„Diese Stimme habe ich schon einmal gehört“, sagte Holmes und starrte die schwach beleuchtete Straße hinunter. „Nun, wer zum Teufel könnte das gewesen sein?“
 
 \newpage
 
@@ -443,3560 +400,3046 @@ There were several people on the pavement at the time, but the greeting seemed t
 
 II.
 
-\newpage
+Ich schlief in jener Nacht in der Baker Street, und wir saßen morgens bei Toast und Kaffee, als der König von Böhmen ins Zimmer stürzte.
 
-# I. slept at Baker Street that night, and we were in the middle of our toast and coffee the next morning when the King of Bohemia burst into the room.
+„Sie haben es wirklich!“, rief er und packte Sherlock Holmes an beiden Schultern, während er ihm gierig ins Gesicht sah.
 
-“You really have it!” he cried, seizing Sherlock Holmes by both shoulders and staring eagerly into his face.
+„Noch nicht.“
 
-“Not yet.”
+„Aber Sie haben Hoffnung?“
 
-“But you have hopes?”
+„Ich habe Hoffnung.“
 
-“I have hopes.”
+„Dann kommen Sie. Ich bin ganz ungeduldig, endlich loszufahren.“
 
-“Then come. I’m burning to be off.”
+„Wir brauchen eine Droschke.“
 
-“We’ll need a cab.”
+„Nein, mein Brougham wartet.“
 
-“No, my brougham is waiting.”
+„Dann vereinfacht das die Sache.“ Wir gingen hinunter und fuhren erneut zu Briony Lodge.
 
-“That simplifies things.” We went down and set off once more for Briony Lodge.
+„Irene Adler ist verheiratet“, bemerkte Holmes.
 
-“Irene Adler is married,” Holmes remarked.
+„Verheiratet! Wann?“
 
-“Married! When?”
+„Gestern.“
 
-“Yesterday.”
+„Aber mit wem?“
 
-“But to whom?”
+„Mit einem englischen Anwalt namens Norton.“
 
-“To an English lawyer named Norton.”
+„Aber sie kann ihn doch nicht lieben.“
 
-“But she cannot love him.”
+„Ich hoffe, dass sie es tut.“
 
-“I very much hope she does.”
+„Und warum hoffen Sie das?“
 
-“And why do you hope so?”
+„Weil es Eure Majestät jede Furcht vor künftiger Belästigung ersparen würde. Wenn die Dame ihren Mann liebt, liebt sie Eure Majestät nicht. Wenn sie Eure Majestät nicht liebt, gibt es keinen Grund, weshalb sie sich in Eure Majestät’ Pläne ein
 
-“Because it would free Your Majesty from any fear of future trouble. If the lady loves her husband, she does not love Your Majesty. If she does not love Your Majesty, she has no reason to interfere with Your Majesty’s plans.”
+„Mit vorzüglicher Hochachtung,
 
-“That is true. And yet—! Well! I wish she had been of my own rank. What a queen she would have made!” He fell into a moody silence, which was not broken until we pulled up in Serpentine Avenue.
+„IRENE NORTON, geborene ADLER.“
 
-The door of Briony Lodge stood open, and an elderly woman was on the steps. She watched us with a sardonic eye as we stepped out of the brougham.
+„Was für eine Frau – oh, was für eine Frau!“, rief der König von Böhmen, nachdem wir drei dieses Schreiben gelesen hatten. „Habe ich Ihnen nicht gesagt, wie schnell sie begreift und wie entschlossen sie handelt? Wäre sie nicht eine bewundernswerte Königin gewesen? Ist es nicht jammerschade, dass sie nicht meinesgleichen ist?“
 
-“Mr. Sherlock Holmes, I believe?” she said.
+„Nach allem, was ich von der Dame gesehen habe, scheint sie allerdings auf einem ganz anderen Niveau zu stehen als Eure Majestät“, sagte Holmes kühl. „Es tut mir leid, dass ich Eure Majestät’ Angelegenheit nicht zu einem erfolgreicheren Abschluss bringen konnte.“
 
-“I am Mr. Holmes,” my companion replied, looking at her with a questioning and rather startled expression.
+„Im Gegenteil, mein lieber Herr“, rief der König, „nichts hätte erfolgreicher sein können. Ich weiß, dass ihr Wort unantastbar ist. Die Fotografie ist jetzt so sicher, als läge sie im Feuer.“
 
-“Indeed! My mistress told me you were likely to call. She left this morning with her husband by the 5:15 train from Charing Cross for the Continent.”
+„Es freut mich, Eure Majestät das sagen zu hören.“
 
-“What!” Sherlock Holmes staggered back, white with chagrin and surprise. “Do you mean she has left England?”
+„Ich bin Ihnen unermesslich verpflichtet. Bitte sagen Sie mir, auf welche Weise ich Sie belohnen kann. Dieser Ring—“ Er zog einen Smaragdring in Form einer Schlange vom Finger und hielt ihn auf der offenen Handfläche hin.
 
-“Never to return.”
+„Eure Majestät besitzen etwas, das ich noch weit höher schätzen würde“, sagte Holmes.
 
-“And the papers?” asked the King hoarsely. “All is lost.”
+„Sie brauchen es nur zu nennen.“
 
-“We’ll see.” He brushed past the servant and rushed into the drawing room, the King and I close behind him. The furniture was scattered in every direction, shelves“Very truly yours,
+„Diese Fotografie!“
 
-IRENE NORTON, née ADLER.”
+Der König starrte ihn verblüfft an.
 
-“What a woman—oh, what a woman!” cried the King of Bohemia when the three of us had finished reading the letter. “Did I not tell you how quick and determined she was? Would she not have made a magnificent queen? Isn’t it a tragedy that she was not of my rank?”
+„Irenes Fotografie!“, rief er. „Gewiss, wenn Sie sie wünschen.“
 
-“From what I have seen of the lady, she appears, in fact, to be on a very different level from Your Majesty,” said Holmes coolly. “I regret that I have not been able to bring Your Majesty’s affairs to a more successful conclusion.”
+„Ich danke Eurer Majestät. Dann ist in dieser Sache nichts weiter zu tun. Ich habe die Ehre, Euch einen sehr guten Morgen zu wünschen.“ Er verbeugte sich und machte kehrt; ohne die Hand zu beachten, die der König ihm entgegengestreckt hatte, brach er in meiner Begleitung zu seinen Zimmern auf.
 
-“On the contrary, my dear sir,” exclaimed the King, “nothing could have turned out better. I know that her word is unbreakable. The photograph is now as safe as if it were already in the fire.”
+Und so kam es, dass ein großer Skandal drohte, das Königreich Böhmen zu erschüttern – und dass die besten Pläne Mr. Sherlock Holmes’ vom Witz einer Frau zunichtegemacht wurden. Er pflegte sich gern über die Klugheit der Frauen lustig zu machen, doch in letzter Zeit habe ich ihn das nicht mehr tun hören. Und wenn er von Irene Adler spricht oder auf ihre Fotografie zu sprechen kommt, dann stets unter dem ehrenden Titel: *die* Frau.
 
-“I’m glad to hear Your Majesty say so.”
+## 2. DER ROTHARIGEN-BUND
 
-“I am deeply in your debt. Please tell me how I can reward you. This ring—” He slipped an emerald snake ring from his finger and held it out on the palm of his hand.
+Ich hatte im Herbst des vergangenen Jahres eines Tages meinen Freund Mr. Sherlock Holmes aufgesucht und fand ihn in ein ernstes Gespräch vertieft mit einem sehr korpulenten, rotgesichtigen älteren Herrn, dessen Haar in einem grellen Feuerrot leuchtete. Mit einer Entschuldigung für mein Eindringen wollte ich mich gerade zurückziehen, als Holmes mich abrupt ins Zimmer zog und die Tür hinter mir schloss.
 
-“Your Majesty has something I would value even more highly,” said Holmes.
+„Sie hätten wirklich zu keinem besseren Zeitpunkt kommen können, mein lieber Watson“, sagte er herzlich.
 
-“You have only to name it.”
+„Ich hatte befürchtet, Sie seien beschäftigt.“
 
-“The photograph.”
+„Das bin ich. Und zwar sehr.“
 
-The King stared at him in astonishment.
+„Dann kann ich im Nebenzimmer warten.“
 
-“Irene’s photograph!” he cried. “Of course, if you wish it.”
+„Keineswegs. Dieser Herr, Mr. Wilson, war mir in vielen meiner erfolgreichsten Fälle Partner und Helfer, und ich zweifle nicht, dass er mir auch in Ihrem von größtem Nutzen sein wird.“
 
-“I thank Your Majesty. Then there is nothing further to be done. I have the honor to wish you a very good morning.” He bowed and, turning away without noticing the hand the King had extended to him, set off with me for his rooms.
+Der stämmige Herr erhob sich halb aus seinem Stuhl und nickte zur Begrüßung, während seine kleinen, von Fettpolstern umrahmten Augen mich mit einem schnellen, fragenden Blick musterten.
 
-And that is how a great scandal came close to shaking the kingdom of Bohemia, and how the finest plans of Mr. Sherlock Holmes were outmatched by a woman’s wit. He used to jest about the cleverness of women, but I have not heard him do so for some time. And when he speaks of Irene Adler, or refers to her photograph, it is always with the respectful title: the woman.2. THE RED-HEADED LEAGUE
+„Nehmen Sie das Sofa“, sagte Holmes, sank wieder in seinen Sessel zurück und legte die Fingerspitzen aneinander, wie er es zu tun pflegte, wenn er in richterlicher Stimmung war. „Ich weiß, mein lieber Watson, dass Sie meine Vorliebe für alles Bizarr-Ungewöhnliche teilen, für das, was außerhalb der Konventionen und der stumpfen Alltagsroutine liegt. Sie haben Ihre Freude daran durch den Eifer bewiesen, mit dem Sie so viele meiner kleinen Abenteuer aufgezeichnet haben — und, wenn Sie mir die Bemerkung verzeihen, auch ein wenig ausgeschmückt.“
 
-\newpage
+„Ihre Fälle waren in der Tat von größtem Interesse für mich“, bemerkte ich.
 
-# I. had dropped in on my friend, Mr. Sherlock Holmes, one day in the autumn of last year and found him deep in conversation with a very stout, florid-faced elderly gentleman with blazing red hair. I apologized for interrupting and was about to withdraw when Holmes seized me by the arm, pulled me into the room, and shut the door behind me.
+„Sie werden sich erinnern, dass ich neulich, kurz bevor wir uns dem sehr einfachen Problem widmeten, das Miss Mary Sutherland uns stellte, sagte: Wenn es um seltsame Wirkungen und außergewöhnliche Kombinationen geht, müssen wir zum Leben selbst gehen — denn das ist stets weit kühner als jede Anstrengung der Fantasie.“
 
-“You couldn’t possibly have come at a better moment, my dear Watson,” he said warmly.
+„Eine Behauptung, an der ich mir erlaubte zu zweifeln.“
 
-“I was afraid you were busy.”
+„Das taten Sie, Doktor; dennoch werden Sie zu meiner Ansicht zurückkehren müssen, denn andernfalls werde ich Ihnen Tatsache auf Tatsache auftürmen, bis Ihre Vernunft darunter zusammenbricht und mir Recht gibt. Nun hat Mr. Jabez Wilson hier die Güte gehabt, mich heute Morgen aufzusuchen und eine Erzählung zu beginnen, die verspricht, eine der merkwürdigsten zu werden, die ich seit einiger Zeit gehört habe. Sie haben mich sagen hören, dass die seltsamsten und einzigartigsten Dinge sehr oft nicht mit den großen, sondern mit den kleinen Verbrechen zusammenhängen — und mitunter sogar dort, wo man zweifeln kann, ob überhaupt ein eindeutiges Verbrechen begangen wurde. Soweit ich bisher gehört habe, ist es mir unmöglich zu sagen, ob der vorliegende Fall ein Verbrechen betrifft oder nicht; aber der Ablauf der Ereignisse gehört gewiss zu den sonderbarsten, die ich je zu hören bekam. Vielleicht, Mr. Wilson, wären Sie so freundlich, Ihre Geschichte noch einmal von vorn zu beginnen. Ich bitte Sie nicht nur darum, weil mein Freund Dr. Watson den Anfang nicht gehört hat, sondern auch, weil die eigentümliche Natur der Sache mich danach verlangen lässt, jedes nur mögliche Detail aus Ihrem eigenen Mund zu erhalten. In der Regel genügt mir ein kleiner Hinweis auf den Gang der Ereignisse, um mich an den Tausenden ähnlicher Fälle zu orientieren, die mir aus dem Gedächtnis zur Verfügung stehen. In diesem Fall jedoch muss ich einräumen, dass die Tatsachen nach bestem Wissen und Gewissen einzigartig sind.“
 
-“So I am. Very much so.”
+Der beleibte Klient blähte die Brust mit einem Anflug von Stolz und zog aus der Innentasche seines schweren Mantels eine schmutzige, zerknitterte Zeitung. Während er die Anzeigenrubrik überflog — den Kopf nach vorn gereckt, das Blatt auf dem Knie glattgestrichen —, betrachtete ich den Mann genau und versuchte, ganz nach Art meines Gefährten, aus Kleidung und Erscheinung jene Hinweise zu lesen, die sie preisgeben mochten.
 
-“Then I’ll wait in the next room.”
+Allzu viel gewann ich durch meine Musterung jedoch nicht. Unser Besucher trug jedes Merkmal eines durchschnittlichen, gewöhnlichen britischen Kleinbürgers und Geschäftsmanns: fettleibig, wichtigtuerisch, schwerfällig. Er trug ziemlich weite graue Hosen mit Schäferkaro, einen nicht sonderlich sauberen schwarzen Gehrock, vorn offen, und eine fahlbraune Weste, an der eine schwere, messingfarbene Albert-Kette hing, mit einem viereckigen, durchbrochenen Metallstück, das als Zierde herabbaumelte. Ein abgewetzter Zylinder und ein verblichener brauner Überzieher mit zerknittertem Samtkragen lagen auf einem Stuhl neben ihm. So sehr ich auch hinsah: Bemerkenswert war an dem Mann nichts — außer seinem lodernd roten Haarschopf und dem Ausdruck äußerster Verdrießlichkeit und Unzufriedenheit in seinem Gesicht.
 
-“Not at all. This gentleman, Mr. Wilson, has been my partner and assistant in many of my most successful cases, and I’ve no doubt he’ll be of the greatest use to me in yours as well.”
+Sherlock Holmes’ schneller Blick erfasste, womit ich beschäftigt war, und er schüttelte lächelnd den Kopf, als er meine fragenden Seitenblicke bemerkte. „Abgesehen von den offensichtlichen Tatsachen, dass er irgendwann einmal körperlich gearbeitet hat, dass er Schnupftabak nimmt, dass er Freimaurer ist, dass er in China gewesen ist und dass
 
-The stout gentleman half rose from his chair and gave a little bob of greeting, shooting a quick, questioning glance at me from his small, fat-rimmed eyes.
+„Das ist der *Morning Chronicle* vom 27. April 1890. Also erst vor zwei Monaten.“
 
-“Try the sofa,” said Holmes, sinking back into his armchair and steepling his fingers, as he always did when in a judicial mood. “I know, my dear Watson, that you share my love for everything bizarre and outside the conventions and dull routine of everyday life. You’ve shown your taste for it by the enthusiasm that has led you to record—and, if you’ll excuse my saying so, somewhat embellish—so many of my little adventures.”
+„Sehr gut. Und nun, Mr. Wilson?“
 
-“Your cases have certainly been of the greatest interest to me,” I replied.
+„Nun, es ist genau so, wie ich es Ihnen schon gesagt habe, Mr. Sherlock Holmes“, sagte Jabez Wilson und wischte sich die Stirn. „Ich habe ein kleines Pfandleihgeschäft am Coburg Square, nahe der City. Es ist nichts Großes, und in den letzten Jahren hat es gerade so viel abgeworfen, dass ich davon leben konnte. Früher konnte ich mir zwei Gehilfen leisten, aber jetzt halte ich nur noch einen; und ich hätte Mühe, ihn zu bezahlen, wenn er nicht bereit wäre, für halben Lohn zu kommen, um das Geschäft zu lernen.“
 
-“You’ll remember that I remarked the other day, just before we took up the very simple problem presented by Miss Mary Sutherland, that for strange effects and extraordinary combinations we must turn to life itself, which is always far more daring than any effort of the imagination.”
+„Wie heißt dieser gefällige junge Mann?“, fragte Sherlock Holmes.
 
-“A claim I took the liberty of doubting.”
+„Er heißt Vincent Spaulding, und so jung ist er auch wieder nicht. Sein Alter lässt sich schwer sagen. Einen pfiffigeren Assistenten möchte ich nicht, Mr. Holmes; und ich weiß sehr wohl, dass er sich verbessern und doppelt so viel verdienen könnte, wie ich ihm geben kann. Aber wenn er zufrieden ist—warum sollte ich ihm Flausen in den Kopf setzen?“
 
-“You did, Doctor, but all the same you’ll have to come round to my view, or I shall go on piling fact upon fact until your reason collapses under the weight and admits I am right. Now, Mr. Jabez Wilson here has been kind enough to call on me this morning and to begin a story which promises to be one of the most unusual I’ve heard for some time. You’ve heard me say that the strangest and most unique things are very often connected not with the bigger crimes but with the smaller ones, and sometimes even where it’s doubtful whether any actual crime has been committed at all. So far as I’ve heard, I cannot say whether the present case is an example of crime or not, but the sequence of events is certainly among the most singular I’ve ever listened to. Perhaps, Mr. Wilson, you would be so good as to start your story again. I ask it not only because my friend Dr. Watson hasn’t heard the opening, but also because the peculiar nature of the tale makes me anxious to have every possible detail from your own lips. As a rule, when I’ve heard some slight indication of the course of events, I can guide myself by the thousands of similar cases that come to my mind. In this instance I’m forced to admit that the facts are, as far as I know, unique.”
+„Warum auch? Sie scheinen wirklich Glück zu haben mit einem *Angestellten*, der unter dem vollen Marktpreis arbeitet. Das ist in unserer Zeit keine alltägliche Erfahrung für Arbeitgeber. Ich weiß nicht, ob Ihr Assistent nicht ebenso bemerkenswert ist wie Ihre Anzeige.“
 
-Our portly client puffed out his chest with a touch of pride and pulled a dirty, wrinkled newspaper from the inside pocket of his greatcoat. As he ran his eye down the advertisement column, his head thrust forward and the paper flattened across his knee, I took the opportunity to study him and tried, in my companion’s fashion, to read whatever clues might be offered by his clothes and appearance.
+„Oh, seine Fehler hat er auch“, sagte Mr. Wilson. „So einen Kerl fürs Fotografieren habe ich noch nicht erlebt. Knipst mit der Kamera herum, wenn er lieber seinen Geist bilden sollte, und dann taucht er in den Keller ab wie ein Kaninchen in seinen Bau, um seine Bilder zu entwickeln. Das ist sein Hauptfehler—aber im Großen und Ganzen ist er ein guter Arbeiter. Laster hat er keine.“
 
-\newpage
+„Er ist noch bei Ihnen, nehme ich an?“
 
-# I. did not gain much, however, from my inspection. Our visitor showed every sign of being an ordinary, commonplace British tradesman: fat, pompous, and slow. He wore rather baggy gray shepherd’s-check trousers, a not-too-clean black frock coat, unbuttoned in front, and a drab waistcoat with a heavy, brassy Albert chain and a square, pierced bit of metal dangling from it as an ornament. A frayed top hat and a faded brown overcoat with a wrinkled velvet collar lay on a chair beside him. Look as I might, there was nothing remarkable about the man except his flaming red hair and the expression of deep annoyance and discontent on his features.
+„Ja, Sir. Er und ein vierzehnjähriges Mädchen, das ein bisschen einfache Küche macht und sauber hält—mehr habe ich nicht im Haus, denn ich bin Witwer und hatte nie Familie. Wir leben sehr still, Sir, wir drei; und wir halten uns ein Dach über dem Kopf und bezahlen unsere Schulden, wenn wir sonst auch nichts weiter zustande bringen.
 
-Sherlock Holmes’s quick eye noticed what I was doing, and he shook his head with a smile as he caught my questioning glances. “Beyond the obvious facts that he has at some time done manual labor, that he takes snuff, that he is a Freemason, that he has been in China, and that he has done a considerable amount of writing lately, I can deduce nothing else.”
+„Das Erste, was uns aus der Ruhe brachte, war diese Anzeige. Spaulding—er kam heute vor acht Wochen ins Büro herunter, mit genau dieser Zeitung in der Hand, und sagt:
 
-Mr. Jabez Wilson jerked upright in his chair, his forefinger still on the newspaper but his eyes fixed on my companion.
+„‚Beim Herrgott, Mr. Wilson, ich wünschte, ich wäre ein Rothaariger.‘
 
-“How in heaven’s name did you know all that, Mr. Holmes?” he demanded. “How did you know, for instance, that I did manual labor? It’s as true as gospel, for I started as a ship’s carpenter.”
+„‚Wieso das?‘, frage ich.
 
-“Your hands, my dear sir. Your right hand is noticeably larger than your left. You’ve worked with it, and the muscles are more developed.”
+„‚Wieso‘, sagt er, ‚hier ist wieder eine freie Stelle bei der Liga der Rothaarigen. Das ist ein kleines Vermögen für jeden, der sie bekommt, und ich habe verstanden, dass es mehr freie Stellen gibt als Männer, sodass die Treuhänder nicht mehr wissen, wohin mit dem Geld. Wenn sich nur die Farbe meiner Haare ändern würde—hier stünde schon ein hübsches, kleines Nest bereit, in das ich einfach hineinschlüpfen könnte.‘
 
-“Well, what about the snuff and the Freemasonry, then?”
+„‚Was ist das denn überhaupt?‘, fragte ich. Sehen Sie, Mr. Holmes, ich bin ein Mann, der selten aus dem Haus kommt, und da das Geschäft zu mir kommt, statt dass ich zu ihm gehen müsste, vergingen oft Wochen, ohne dass ich auch nur einen Fuß über die Fußmatte setzte. So bekam ich nicht viel mit von dem, was draußen vorging, und ich war immer froh über ein bisschen Neuigkeit.
 
-“I won’t insult your intelligence by telling you how I read those, especially as, rather against the strict rules of your order, you wear an arc-and-compass pin in your tie.”
+„‚Sie haben noch nie von der Liga der Rothaarigen gehört?‘, fragte er mit großen Augen.
 
-“Ah, of course, I’d forgotten that. But the writing?”
+„‚Nie.‘
 
-“What else could be indicated by that right cuff, so very shiny for five inches, and the left one with the smooth patch near the elbow where you rest it on the desk?”
+„‚Das wundert mich, denn Sie selbst kommen für eine der freien Stellen infrage.‘
 
-“Well, but China?”
+„‚Und was bringen die ein?‘, fragte ich.
 
-“The fish tattooed just above your“It’s the Morning Chronicle for April 27, 1890. Just two months ago.”
+„‚Oh, nur ein paar Hundert im Jahr, aber die Arbeit ist gering, und sie muss einem die anderen Beschäftigungen nicht groß stören.‘
 
-“Very good. Now, Mr. Wilson?”
+„Nun, Sie können sich denken, dass ich da die Ohren spitzte, denn das Geschäft lief seit einigen Jahren nicht besonders, und ein paar Hundert extra wären sehr gelegen gekommen.
 
-“Well, it’s just as I’ve been telling you, Mr. Sherlock Holmes,” said Jabez Wilson, mopping his forehead. “I run a small pawnbroker’s shop in Coburg Square, near the City. It’s not much of a business, and in recent years it’s only just kept me going. I used to be able to employ two assistants, but now I can only afford one—and I’d have trouble paying even him if he weren’t willing to work for half wages so he can learn the trade.”
+„‚Erzählen Sie mir alles darüber‘, sagte ich.
 
-“What is the name of this obliging young man?” asked Sherlock Holmes.
+„‚Also‘, sagte er und zeigte mir die Anzeige, ‚Sie sehen selbst: Die Liga hat eine freie Stelle, und hier ist die Adresse, wo Sie sich nach Einzelheiten erkundigen sollen. Soweit ich es herausfinden konnte, wurde die Liga von einem amerikanischen Millionär gegründet, Ezekiah Hopkins, der sehr eigen in seinen Gewohnheiten war. Er selbst war rothaarig und hatte großes Mitgefühl mit allen Rothaarigen; und als er starb, stellte sich heraus, dass er sein riesiges Vermögen Treuhändern überlassen hatte, mit der Anweisung, die Zinsen dafür zu verwenden, Männern mit dieser Haarfarbe bequeme Posten zu verschaffen. Nach allem, was ich höre, ist es großartiger Lohn und kaum etwas zu tun.‘
 
-“His name is Vincent Spaulding, and he’s not so very young, either. It’s hard to say how old he is. I couldn’t wish for a sharper assistant, Mr. Holmes, and I know perfectly well he could do better for himself and earn twice what I can pay him. But after all, if he’s satisfied, why should I put ideas in his head?”
+„‚Aber‘, sagte ich, ‚da werden sich doch Millionen Rothaarige bewerben.‘
 
-“Quite. You seem very fortunate to have an employee who works below the going rate. That’s not a common experience for employers these days. I’m not sure your assistant isn’t as remarkable as your advertisement.”
+„‚Nicht so viele, wie Sie denken‘, antwortete er. ‚Sehen Sie, es ist tatsächlich auf Londoner beschränkt, und auf erwachsene Männer. Dieser Amerikaner war als junger Mensch von London aus aufgebrochen, und er wollte der alten Stadt etwas Gutes tun. Und außerdem habe ich gehört, dass es nichts nützt, wenn Ihr Haar hellrot ist oder dunkelrot oder irgendetwas—es
 
-“Oh, he has his faults, too,” said Mr. Wilson. “There never was such a fellow for photography. Snapping away with a camera when he ought to be improving his mind, and then darting down into the cellar like a rabbit into its hole to develop his pictures. That’s his main fault, but on the whole he’s a good worker. There’s no vice in him.”
+„Zu zögern wäre ungerecht“, sagte er. „Sie werden mich jedoch gewiss entschuldigen, wenn ich eine naheliegende Vorsichtsmaßnahme treffe.“ Damit packte er mein Haar mit beiden Händen und zerrte so lange daran, bis ich vor Schmerz aufschrie. „Wasser in den Augen“, sagte er, als er mich losließ. „Ich sehe, alles ist, wie es sein soll. Aber wir müssen vorsichtig sein: Zweimal hat man uns mit Perücken getäuscht und einmal mit Farbe. Ich könnte Ihnen Geschichten von Schusterpech erzählen, die Ihnen die menschliche Natur verleiden würden.“ Er trat ans Fenster und brüllte mit voller Stimme hinaus, die Stelle sei vergeben. Von unten stieg ein Stöhnen der Enttäuschung herauf, und die Leute trotteten in alle Richtungen davon, bis kein einziger Rothaariger mehr zu sehen war – außer mir und dem Geschäftsführer.
 
-“He’s still with you, I presume?”
+„Mein Name“, sagte er, „ist Mr. Duncan Ross, und ich selbst bin einer der Rentenempfänger aus dem Fonds, den unser edler Wohltäter hinterlassen hat. Sind Sie verheiratet, Mr. Wilson? Haben Sie Familie?“
 
-“Yes, sir. Him and a girl of fourteen who does a bit of simple cooking and keeps the place clean—that’s all I have in the house, for I’m a widower and never had any family. We live very quietly, sir, the three of us, and we keep a roof over our heads and pay our debts, if we do nothing more.
+Ich antwortete, dass ich keine hätte.
 
-“The first thing that disturbed our routine was that advertisement. Spaulding came down into the office exactly eight weeks ago today with this very paper in his hand, and he says:
+Sofort verfinsterte sich sein Gesicht.
 
-‘“I wish to the Lord, Mr. Wilson, that I was a red-headed man.”’
+„Ach du meine Güte!“, sagte er ernst. „Das ist in der Tat sehr unerquicklich! Es tut mir leid, das zu hören. Der Fonds war natürlich zur Vermehrung und Verbreitung der Rothaarigen bestimmt, ebenso wie zu deren Unterhalt. Es ist äußerst bedauerlich, dass Sie Junggeselle sind.“
 
-“‘Why’s that?’ I ask.
+Mir wurde ganz lang ums Gesicht, Mr. Holmes, denn ich glaubte schon, ich bekäme die Stelle nun doch nicht; aber nachdem er ein paar Minuten darüber nachgedacht hatte, sagte er, es werde schon gehen.
 
-“‘Why,’ says he, ‘here’s another vacancy in the League of the Red-headed Men. It’s worth a tidy little fortune to any man who gets it, and I understand there are more vacancies than there are men, so the trustees are at their wits’ end to know what to do with the money. If only my hair would change colour, there’d be a nice little berth all ready for me to step into.’
+„Bei einem anderen“, sagte er, „könnte dieser Einwand tödlich sein, aber wir müssen ein Auge zudrücken zugunsten eines Mannes mit einem solchen Haarschopf wie dem Ihren. Wann könnten Sie Ihre neuen Pflichten antreten?“
 
-“‘Well, what is it, then?’ I asked. You see, Mr. Holmes, I’m a real stay-at-home sort of man, and as my business comes to me instead of my having to go to it, I’d often go weeks on end without setting foot over the doormat. Because of that I didn’t know much about what was going on outside, and I was always glad of a bit of news.
+„Nun ja, das ist ein bisschen unerquicklich, denn ich habe ja bereits ein Geschäft“, sagte ich.
 
-“‘Have you never heard of the League of the Red-headed Men?’ he asked, his eyes wide.
+„Ach, kümmern Sie sich nicht darum, Mr. Wilson!“, sagte Vincent Spaulding. „Ich kann schon nach dem Laden sehen.“
 
-“‘Never.’
+„Wie sind die Arbeitszeiten?“, fragte ich.
 
-“‘Well, I’m surprised at that, for you’re eligible yourself for one of the vacancies.’
+„Zehn bis zwei.“
 
-“‘And what are they worth?’ I asked.
+Nun, Mr. Holmes, ein Pfandleiher macht den Großteil seines Geschäfts abends, besonders am Donnerstag- und Freitagabend, kurz vor dem Zahltag; also passte es mir sehr gut, morgens ein wenig dazuzuverdienen. Außerdem wusste ich, dass mein Gehilfe ein tüchtiger Mann war und sich um alles kümmern würde, was anfiel.
 
-“‘Oh, just a couple of hundred a year, but the work is light, and it needn’t interfere much with your other business.’
+„Das passt mir sehr gut“, sagte ich. „Und die Bezahlung?“
 
-“Well, you can imagine that made me prick up my ears, for trade hasn’t been very good for some years, and an extra couple of hundred would have come in very handy.
+„Vier Pfund die Woche.“
 
-“‘Tell me all about it,’ I said.
+„Und die Arbeit?“
 
-“‘Well,’ said he, showing me the advertisement, ‘you can see for yourself the League has a vacancy, and there’s the address where you should apply for details. As far as I can make out, the League was founded by an American millionaire, Ezekiah Hopkins, who was very eccentric. He was a redhead himself, and he had a great sympathy for all red-headed men; so when he died, it turned out he’d left his enormous fortune in the hands of trustees, with instructions to use the interest to provide easy jobs for men whose hair is that colour. From all I hear, the pay is excellent and there’s very little to do.’
+„Rein nominell.“
 
-“‘But,’ I said, ‘there must be millions of red-headed men who’d apply.’
+„Was heißt: rein nominell?“
 
-“‘Not as many as you might think,’ he answered. ‘You see, it’s really limited to Londoners, and to grown men. This American started out from London when he was young, and he wanted to do the old town a good turn. Then again, I’ve heard there’s no use applying if your hair is light red, or dark red, or anything but a real bright, blazing, fiery red. Now, if you cared to apply, Mr. Wilson, you’d walk straight in; but perhaps it’s hardly worth your while to put yourself out for the sake of a few hundred pounds.’
+„Nun, Sie müssen die ganze Zeit im Büro sein – oder zumindest im Gebäude. Wenn Sie weggehen, verlieren Sie Ihre Stellung für immer. Das Testament ist in diesem Punkt ganz eindeutig. Sie erfüllen die Bedingungen nicht, wenn Sie in dieser Zeit auch nur einen Schritt aus dem Büro machen.“
 
-“Now, it’s a fact, gentlemen, as you can see for yourselves, that my hair is a very full and rich shade, so it seemed to me that if there was any competition in the matter, I stood as good a chance as any man I’d ever met. Vincent Spaulding seemed to know so much about it that I thought he might be useful, so I told him to put up the shutters for the day and come along“It would be unjust to hesitate,” he said. “You will, however, I’m sure, excuse me for taking an obvious precaution.” With that he grabbed my hair in both hands and yanked until I yelled with pain.
+„Es sind nur vier Stunden am Tag, und ich würde nicht im Traum daran denken, wegzugehen“, sagte ich.
 
-“There is water in your eyes,” he said, letting go. “I see that everything is as it should be. But we have to be careful, for we’ve been fooled twice by wigs and once by paint. I could tell you stories about cobbler’s wax that would make you sick of human nature.”
+„Keine Ausrede zählt“, sagte Mr. Duncan Ross. „Weder Krankheit noch Geschäfte noch irgendetwas anderes. Sie bleiben dort, oder Sie verlieren Ihren Posten.“
 
-He stepped to the window and shouted at the top of his voice that the vacancy was filled. A groan of disappointment rose from below, and the crowd drifted away in all directions until there wasn’t a red head in sight except mine and the manager’s.
+„Und die Arbeit?“
 
-“My name,” he said, “is Mr. Duncan Ross, and I am myself one of the pensioners of the fund left by our noble benefactor. Are you a married man, Mr. Wilson? Do you have a family?”
+„Sie schreiben die *Encyclopædia Britannica* ab. Der erste Band steht dort in diesem Schrank. Tinte, Federn und Löschpapier müssen Sie selbst mitbringen, aber Tisch und Stuhl stellen wir. Sind Sie morgen bereit?“
 
-\newpage
+„Gewiss“, antwortete ich.
 
-# I. answered that I did not.
+„Dann auf Wiedersehen, Mr. Jabez Wilson, und lassen Sie mich Ihnen noch einmal zu der wichtigen Stellung gratulieren, die Sie so glücklich gewesen sind zu erlangen.“ Er verbeugte mich zur Tür hinaus, und ich ging mit meinem Gehilfen nach Hause, kaum wissend, was ich sagen oder tun sollte, so sehr freute ich mich über mein Glück.
 
-His face fell at once.
+Nun, ich dachte den ganzen Tag darüber nach, und am Abend war ich wieder niedergeschlagen; denn ich hatte mich fast überzeugt, dass die ganze Sache ein großer Schwindel oder Streich sein müsse, auch wenn ich mir beim besten Willen nicht vorstellen konnte, welchen Zweck das haben sollte. Es schien völlig unglaubhaft, dass jemand ein solches Testament machen würde – oder dass man eine solche Summe dafür zahlte, etwas so Einfaches zu tun wie die *Encyclopædia Britannica* abzuschreiben. Vincent Spaulding tat, was er konnte, um mich aufzuheitern, aber bis zur Schlafenszeit hatte ich mir die Sache vollständig ausgeredet. Dennoch beschloss ich am Morgen, mir das Ganze wenigstens anzusehen; also kaufte ich für einen Penny ein Fläschchen Tinte, dazu eine Gänsefeder und sieben Bogen Kanzleipapier, und machte mich nach Pope’s Court auf.
 
-“Dear me,” he said gravely, “that is very serious indeed. I’m sorry to hear it. The fund was, of course, for the propagation and spread of red hair as well as for its maintenance. It is extremely unfortunate that you should be a bachelor.”
+Nun, zu meiner Überraschung und Freude war alles so, wie es sein sollte. Der Tisch stand bereit, und Mr. Duncan Ross war da, um darauf zu achten, dass ich ordentlich anfing. Er setzte mich beim Buchstaben A an und ließ mich dann allein; doch von Zeit zu Zeit schaute er herein, um zu sehen, ob alles in Ordnung war. Um zwei Uhr wünschte er mir einen guten Tag, machte mir ein Kompliment über die Menge, die ich geschrieben hatte, und sch
 
-My face grew longer at this, Mr. Holmes, for I thought I was not going to get the position after all; but after thinking it over for a few minutes he said that it would be all right.
+„Wo könnte ich ihn finden?“
 
-“In another case,” he said, “the objection might be fatal, but we must stretch a point in favor of a man with such a head of hair as yours. When will you be able to start your new duties?”
+„Oh, in seinen neuen Büroräumen. Er hat mir die Adresse genannt. Ja: King Edward Street 17, in der Nähe von St. Paul’s.“
 
-“Well, it’s a little awkward, for I already have a business,” I said.
+Ich machte mich auf den Weg, Mr. Holmes, aber als ich dort ankam, war es eine Fabrik für künstliche Kniescheiben, und niemand darin hatte je von einem Mr. William Morris oder einem Mr. Duncan Ross gehört.“
 
-“Oh, never mind about that, Mr. Wilson!” said Vincent Spaulding. “I can look after that for you.”
+„Und was taten Sie dann?“, fragte Holmes.
 
-“What would the hours be?” I asked.
+„Ich ging nach Hause, nach Saxe-Coburg Square, und folgte dem Rat meines Gehilfen. Aber der konnte mir in keiner Weise helfen. Er meinte nur, wenn ich abwarte, würde ich per Post Nachricht bekommen. Doch das war mir nicht gut genug, Mr. Holmes. Ich wollte so eine Stelle nicht kampflos verlieren, und da ich gehört hatte, Sie seien so freundlich, armen Leuten in der Not Rat zu geben, bin ich sofort zu Ihnen gekommen.“
 
-“Ten to two.”
+„Und das war sehr klug von Ihnen“, sagte Holmes. „Ihr Fall ist außerordentlich bemerkenswert, und ich werde ihn mir gern ansehen. Nach dem, was Sie mir erzählt haben, halte ich es für möglich, dass schwerwiegendere Dinge daran hängen, als es auf den ersten Blick scheint.“
 
-Now, a pawnbroker’s business is mostly done in the evening, Mr. Holmes, especially Thursday and Friday evenings, just before payday; so it would suit me very well to earn a little in the mornings. Besides, I knew my assistant was a good man and that he would see to anything that turned up.
+„Schwerwiegend genug!“, rief Mr. Jabez Wilson. „Ich habe vier Pfund die Woche verloren.“
 
-“That would suit me very well,” I said. “And the pay?”
+„Soweit es Sie persönlich betrifft“, bemerkte Holmes, „sehe ich nicht, dass Sie irgendeinen Grund zur Beschwerde gegen diese sonderbare Liga hätten. Im Gegenteil: Sie sind, wenn ich Sie richtig verstehe, um etwa dreißig Pfund reicher geworden — ganz abgesehen von dem minutiösen Wissen, das Sie über jedes Thema erworben haben, das unter den Buchstaben A fällt. Sie haben durch sie nichts verloren.“
 
-“It’s four pounds a week.”
+„Nein, Sir. Aber ich will herausfinden, was es mit ihnen auf sich hat, wer sie sind und welches Ziel sie verfolgten, als sie mir diesen Streich spielten — falls es überhaupt ein Streich war. Es war ein ziemlich teurer Spaß für sie, denn er hat sie zweiunddreißig Pfund gekostet.“
 
-“And the work?”
+„Wir werden versuchen, Ihnen diese Punkte aufzuklären. Und zunächst ein, zwei Fragen, Mr. Wilson. Dieser Gehilfe von Ihnen, der Sie zuerst auf die Anzeige aufmerksam gemacht hat — wie lange war er da schon bei Ihnen?“
 
-“Is purely nominal.”
+„Damals etwa einen Monat.“
 
-“What do you call purely nominal?”
+„Wie ist er zu Ihnen gekommen?“
 
-“Well, you have to be in the office, or at least in the building, the whole time. If you leave, you forfeit your position forever. The will is very clear on that point. You don’t meet the conditions if you stir from the office during those hours.”
+„Auf eine Anzeige hin.“
 
-“It’s only four hours a day, and I shouldn’t dream of leaving,” I said.
+„War er der einzige Bewerber?“
 
-“No excuse will be accepted,” said Mr. Duncan Ross. “Neither sickness nor business nor anything else. You must stay there, or you lose your job.”
+„Nein, ich hatte ein Dutzend.“
 
-“And the work?”
+„Warum haben Sie ihn genommen?“
 
-“Is to copy out the Encyclopaedia Britannica. There is the first volume in that cupboard. You must provide your own ink, pens, and blotting paper, but we provide this table and chair. Will you be ready tomorrow?”
+„Weil er geschickt war und billig arbeiten wollte.“
 
-“Certainly,” I answered.
+„Für den halben Lohn, in der Tat.“
 
-“Then good-bye, Mr. Jabez Wilson, and let me congratulate you once more on the important position you have been fortunate enough to obtain.” He bowed me out of the room, and I went home with my assistant, hardly knowing what to say or do, I was so delighted with my good luck.
+„Ja.“
 
-Well, I thought it over all day, and by evening I was down in the dumps again; for I had quite convinced myself that the whole thing must be some great hoax or swindle, though what its object could be I could not imagine. It seemed utterly unbelievable that anyone would make such a will, or that they would pay such a sum for doing something so simple as copying out the Encyclopaedia Britannica. Vincent Spaulding did what he could to cheer me up, but by bedtime I had reasoned myself out of the whole affair. However, in the morning I decided to go and see for myself, so I bought a penny bottle of ink, and with a quill pen and seven sheets of foolscap paper I set off for Pope’s Court.
+„Wie sieht er aus, dieser Vincent Spaulding?“
 
-To my surprise and delight, everything was exactly as it should be. The table was laid out ready for me, and Mr. Duncan Ross was there to see that I got properly to work. He started me on the letter A and then left me; but he would drop in from time to time to see that everything was all right. At two o’clock he wished me good day, complimented me on how much I had written, and locked the office door behind me.
+„Klein, stämmig, sehr flink in allem, kein Bartwuchs, obwohl er bestimmt über dreißig ist. Und er hat einen weißen Säurefleck auf der Stirn.“
 
-This went on day after day, Mr. Holmes, and on Saturday the manager came in and slapped down four golden sovereigns for my week’s work. It was the same the next week, and the same the week after. Every morning I was there at ten, and every afternoon I left at two. Gradually, Mr. Duncan Ross took to coming in only once each morning, and then, after a while, he stopped coming in at all. Still, of course, I never dared leave the room for an instant, for I never knew when he might come, and the job was so good, and suited me so well, that I wouldn’t risk losing it.
+Holmes richtete sich in seinem Stuhl auf, sichtlich erregt. „Das dachte ich mir“, sagte er. „Ist Ihnen je aufgefallen, dass seine Ohren für Ohrringe durchstochen sind?“
 
-Eight weeks went by like this, and I had written about Abbots and Archery and Armour and Architecture and Attica, and hoped, if I kept at it, to get on to the B’s“‘Where could I find him?’
+„Ja, Sir. Er sagte, ein Zigeuner habe es ihm als Junge gemacht.“
 
-“‘Oh, at his new offices. He gave me the address. Yes—17 King Edward Street, near St. Paul’s.’
+„Hm!“, machte Holmes und sank wieder zurück, in tiefes Nachdenken versunken. „Er ist noch bei Ihnen?“
 
-“I set off at once, Mr. Holmes, but when I got to that address it turned out to be a factory for artificial kneecaps, and no one there had ever heard of either Mr. William Morris or Mr. Duncan Ross.”
+„Oh ja, Sir; ich habe ihn erst vorhin verlassen.“
 
-“And what did you do then?” asked Holmes.
+„Und ist Ihr Geschäft in Ihrer Abwesenheit weitergeführt worden?“
 
-“I went back home to Saxe-Coburg Square and took my assistant’s advice. But he couldn’t help me at all. He only said that if I waited I’d hear by post. That wasn’t quite good enough for me, Mr. Holmes. I didn’t want to lose such a position without a fight, so, having heard that you were kind enough to advise poor folk in trouble, I came straight to you.”
+„Nichts zu beanstanden, Sir. Morgens gibt es nie besonders viel zu tun.“
 
-“And you were very wise to do so,” said Holmes. “Your case is an exceptionally remarkable one, and I’ll be glad to look into it. From what you’ve told me, I think it’s quite possible that more serious issues are attached to it than might appear at first glance.”
+„Das genügt, Mr. Wilson. Ich werde Ihnen im Laufe eines oder zweier Tage gern meine Meinung zu der Sache sagen. Heute ist Samstag, und ich hoffe, dass wir bis Montag zu einem Ergebnis kommen.“
 
-“Serious enough!” said Mr. Jabez Wilson. “Why, I’ve lost four pounds a week.”
+Als unser Besucher gegangen war, sagte Holmes: „Nun, Watson — was halten Sie davon?“
 
-“As far as you personally are concerned,” Holmes remarked, “I don’t see that you have any real grievance against this extraordinary league. On the contrary, as I understand it, you’re richer by some thirty pounds, not to mention the detailed knowledge you’ve gained of every subject beginning with the letter A. You’ve lost nothing by them.”
+„Ich halte gar nichts davon“, antwortete ich offen. „Es ist eine höchst rätselhafte Angelegenheit.“
 
-“No, sir. But I want to find out about them—who they are, and what their purpose was in playing this trick—if it was a trick—on me. It was a pretty expensive joke for them, since it cost them thirty-two pounds.”
+„In der Regel“, sagte Holmes, „gilt: Je bizarrer eine Sache ist, desto weniger geheimnisvoll erweist sie sich. Es sind die gewöhnlichen, konturlosen Verbrechen, die wirklich verwirren — so wie ein gewöhnliches Gesicht am schwersten zu identifizieren ist. Aber in dieser Sache muss ich schnell handeln.“
 
-“We’ll try to clear up those points for you. First, one or two questions, Mr. Wilson. This assistant of yours who first drew your attention to the advertisement—how long had he been with you at that time?”
+„Was haben Sie vor?“, fragte ich.
 
-“About a month.”
+„Zu rauchen“, erwiderte er. „Das ist ein Problem für mindestens drei Pfeifen, und ich bitte Sie, fünfzig Minuten lang kein Wort zu mir zu sagen.“ Er rollte sich in seinem Stuhl zusammen, die dünnen Knie bis an die hakennasige Spitze herangezogen, und saß da mit geschlossenen Augen, die schwarze Tonpfeife wie der Schnabel eines seltsamen Vogels aus dem Gesicht ragend. Ich war schon überzeugt, er sei eingeschlafen, und nickte selbst beinahe ein, als er plötzlich aus dem Stuhl hochfuhr — mit der Bewegung eines Mannes, der eine Entscheidung getroffen hat — und die Pfeife auf den Kaminsims legte.
 
-“How did he come to you?”
+„Sarasate spielt heute Nachmittag in der St. James’s Hall“, bemerkte er. „Was meinen Sie, Watson? Können Ihre Patienten Sie ein paar Stunden entbehren?“
 
-“In answer to an advertisement.”
+„Ich habe heute nichts zu tun. Meine Praxis ist nie besonders fesselnd.“
 
-“Was he the only applicant?”
+„Dann setzen Sie den Hut auf und kommen Sie. Ich muss zuerst durch die City, und unterwegs können wir zu Mittag essen. Ich sehe, dass viel deutsche Musik auf dem Programm steht, was eher meinem Geschmack entspricht als italienische oder französ
 
-“No, I had a dozen.”
+Mein Freund war ein leidenschaftlicher Musiker; er war nicht nur ein sehr fähiger Interpret, sondern auch ein Komponist von durchaus beachtlichem Rang. Den ganzen Nachmittag saß er unten im Parkett, eingehüllt in vollkommenes Glück, und wiegte seine langen, schmalen Finger sanft im Takt der Musik, während sein leise lächelndes Gesicht und seine trägen, verträumten Augen so wenig mit Holmes, dem Spürhund, Holmes, dem unerbittlichen, scharfsinnigen, jederzeit zupackenden Agenten gegen das Verbrechen gemein hatten, wie man es sich nur vorstellen konnte. In seinem eigenartigen Wesen trat diese doppelte Natur abwechselnd hervor, und seine äußerste Genauigkeit und Schläue waren, wie ich oft gedacht habe, die Gegenreaktion auf jene poetische, kontemplative Stimmung, die bisweilen in ihm überwog. Das Pendel seines Wesens schlug von äußerster Lässigkeit zu verzehrender Energie aus; und wie ich nur zu gut wusste, war er nie so wahrhaft furchterregend wie dann, wenn er tagelang in seinem Sessel gelümmelt hatte, zwischen seinen Improvisationen und seinen Ausgaben in gotischer Schrift. Dann überkam ihn plötzlich die Jagdlust, und seine glänzende Kombinationsgabe stieg bis zur Höhe der Intuition, bis jene, die seine Methoden nicht kannten, ihn schief ansahen wie einen Mann, dessen Wissen nicht von dieser Welt war. Als ich ihn an jenem Nachmittag in der St.-James’s-Hall so ganz in die Musik versunken sah, hatte ich das Gefühl, dass für diejenigen, die er sich vorgenommen hatte zu jagen, eine böse Zeit anbrechen könnte.
 
-“Why did you choose him?”
+„Sie wollen wohl nach Hause, Doktor“, bemerkte er, als wir ins Freie traten.
 
-“Because he was handy and would work cheap.”
+„Ja, das wäre wohl das Beste.“
 
-“At half wages, in fact?”
+„Und ich habe noch etwas zu erledigen, das einige Stunden in Anspruch nehmen wird. Die Sache in Coburg Square ist ernst.“
 
-“Yes.”
+„Warum ernst?“
 
-“What is he like, this Vincent Spaulding?”
+„Ein beträchtliches Verbrechen ist in Vorbereitung. Ich habe allen Grund zu glauben, dass wir noch rechtzeitig kommen, um es zu verhindern. Aber dass heute Samstag ist, macht die Sache etwas komplizierter. Ich werde Ihre Hilfe heute Nacht brauchen.“
 
-“Short, solidly built, very quick in his movements, no hair on his face, though he’s not under thirty. He’s got a white splash of acid on his forehead.”
+„Um welche Zeit?“
 
-Holmes sat up in his chair, visibly excited. “I thought as much,” he said. “Have you ever noticed that his ears are pierced for earrings?”
+„Zehn Uhr wird früh genug sein.“
 
-“Yes, sir. He told me a gypsy did it for him when he was a lad.”
+„Ich bin um zehn in der Baker Street.“
 
-“Hmm!” said Holmes, sinking back into deep thought. “He’s still with you?”
+„Sehr gut. Und hören Sie, Doktor: Es könnte ein kleines bisschen gefährlich werden, also stecken Sie bitte Ihren Armeerevolver ein.“ Er hob die Hand, drehte sich auf dem Absatz und war im nächsten Augenblick in der Menge verschwunden.
 
-“Oh yes, sir. I’ve only just left him.”
+Ich halte mich nicht für begriffsstutziger als meine Nachbarn, aber im Umgang mit Sherlock Holmes lastete stets ein Gefühl der eigenen Dummheit auf mir. Ich hatte gehört, was er gehört hatte, ich hatte gesehen, was er gesehen hatte – und doch war seinen Worten anzumerken, dass er klar erkannte, nicht nur was geschehen war, sondern auch, was geschehen würde, während mir die ganze Angelegenheit noch immer verworren und grotesk erschien. Als ich nach Kensington zu meinem Haus fuhr, ging ich alles noch einmal durch: von der unglaublichen Geschichte des rothaarigen Abschreibers der _Encyclopædia_ bis hin zum Besuch in Saxe-Coburg Square und den unheilvollen Worten, mit denen er sich von mir getrennt hatte. Was sollte diese nächtliche Unternehmung sein, und warum sollte ich bewaffnet gehen? Wohin gingen wir, und was hatten wir dort zu tun? Von Holmes hatte ich den Hinweis, dass dieser glattgesichtige Gehilfe des Pfandleihers ein gefährlicher Mann sei – einer, der ein tiefes Spiel treiben konnte. Ich versuchte, es mir zusammenzureimen, gab jedoch schließlich verzweifelt auf und schob die Sache beiseite, bis die Nacht eine Erklärung bringen würde.
 
-“And has your business been properly looked after in your absence?”
+Es war Viertel nach neun, als ich von zu Hause aufbrach, quer durch den Park ging und dann über die Oxford Street zur Baker Street. Zwei Hansoms standen vor der Tür, und als ich den Hausflur betrat, hörte ich Stimmen von oben. Als ich in sein Zimmer trat, fand ich Holmes in lebhaftem Gespräch mit zwei Männern; den einen erkannte ich als Peter Jones, den offiziellen Polizeibeamten, während der andere ein langer, dünner, traurig dreinblickender Mann war, mit einem sehr glänzenden Hut und einem geradezu erdrückend respektablen Gehrock.
 
-“Nothing to complain of, sir. There’s never very much to do in the mornings.”
+„Ha! Unsere Gesellschaft ist vollständig“, sagte Holmes, knöpfte seine kurze, grobe Jacke zu und nahm seine schwere Reitgerte vom Haken. „Watson, Sie kennen doch Mr. Jones von Scotland Yard? Darf ich Ihnen Mr. Merryweather vorstellen, der uns bei dem heutigen Abenteuer begleiten wird.“
 
-“That will do, Mr. Wilson. I’ll be happy to give you an opinion on the matter in the course of a day or two. Today is Saturday, and I hope that by Monday we may reach a conclusion.”
+„Wir jagen wieder im Paar, Doktor, wie Sie sehen“, sagte Jones in seinem wichtigtuerischen Ton. „Unser Freund hier versteht sich wunderbar darauf, eine Hetzjagd in Gang zu setzen. Alles, was er braucht, ist ein alter Hund, der ihm beim Niederlaufen hilft.“
 
-“Well, Watson,” said Holmes, when our visitor had left us, “what do you make of it all?”
+„Ich hoffe, am Ende unserer Jagd steht nicht eine wilde Gans“, bemerkte Mr. Merryweather düster.
 
-“I can make nothing of it,” I answered honestly. “It’s the most mysterious business.”
+„Sie dürfen großes Vertrauen in Mr. Holmes setzen, Sir“, sagte der Polizeibeamte von oben herab. „Er hat so seine eigenen kleinen Methoden, die – wenn er mir die Bemerkung verzeiht – ein wenig zu theoretisch und phantastisch sind, aber er hat das Zeug zum Detektiv. Es ist nicht übertrieben zu sagen, dass er ein- oder zweimal, wie in
 
-“As a rule,” said Holmes, “the more bizarre a thing is, the less mysterious it turns out to be. It’s your ordinary, featureless crimes that are really puzzling—just as a commonplace face is the hardest to identify. But I must act quickly in this matter.”
+„Von oben her sind Sie nicht besonders angreifbar“, bemerkte Holmes, als er die Laterne hochhielt und sich umsah.
 
-“What are you going to do, then?” I asked.
+„Und von unten auch nicht“, sagte Mr. Merryweather und schlug mit seinem Stock auf die Steinplatten, die den Boden auslegten. „Um Himmels willen, das klingt ja ganz hohl!“, fügte er hinzu und blickte überrascht nach oben.
 
-“Smoke,” he replied. “This is a three-pipe problem, and I must ask you not to speak to me for fifty minutes.” He curled himself up in his chair, his thin knees drawn up to his hawk-like nose, and there he sat with his eyes closed, his black clay pipe jutting out like the beak of some strange bird. I had decided that he had fallen asleep, and was nodding myself, when he suddenly sprang out of his chair with the movement of a man who has made up his mind, and put his pipe down on the mantelpiece.
+„Ich muss Sie wirklich bitten, etwas leiser zu sein!“, sagte Holmes streng. „Sie haben den Erfolg unserer Unternehmung bereits aufs Spiel gesetzt. Darf ich Sie ersuchen, so gut zu sein, sich auf eine dieser Kisten zu setzen und sich nicht einzumischen?“
 
-“Sarasate is playing at St. James’s Hall this afternoon,” he remarked. “What do you say, Watson? Could your patients spare you for a few hours?”
+Der würdige Mr. Merryweather hockte sich mit sichtbar gekränkter Miene auf eine Kiste, während Holmes auf die Knie ging und mit Laterne und Lupe die Fugen zwischen den Steinen sorgfältig untersuchte. Ein paar Sekunden genügten ihm; er sprang wieder auf und steckte die Lupe ein.
 
-“I’ve nothing to do today. My practice is never very demanding.”
+„Wir haben mindestens noch eine Stunde“, bemerkte er, „denn sie werden kaum etwas unternehmen, bevor der gute Pfandleiher sicher im Bett ist. Dann werden sie keine Minute verlieren, denn je früher sie ihre Arbeit erledigen, desto mehr Zeit bleibt ihnen zur Flucht. Wir befinden uns im Augenblick, Doktor – wie Sie zweifellos bereits erkannt haben –, im Keller der City-Filiale einer der wichtigsten Londoner Banken. Mr. Merryweather ist der Vorsitzende des Direktoriums, und er wird Ihnen erklären, warum die verwegensten Verbrecher Londons derzeit ein erhebliches Interesse an diesem Keller haben dürften.“
 
-“Then put on your hat and come along. I’m going through the City first, and we can get some lunch on the way. I see there’s a good deal of German music on the programme, which is rather more to my taste than Italian or French. It’s introspective, and I want to introspect. Come!”
+„Es ist unser französisches Gold“, flüsterte der Direktor. „Wir haben mehrere Warnungen erhalten, dass ein Versuch darauf gemacht werden könnte.“
 
-We took the Underground as far as Aldersgate, and a short walk brought us to Saxe-Coburg Square, the scene of the strange story we had heard that morning. It was a cramped little, shabby-genteel place, where four rows of dingy two-storey brick houses looked onto a small railed-in enclosure, in which a patchy lawn of weedy grass and a few clumps of faded laurel bushes fought a losing battle against the smoke-laden, hostile air. Three gilt balls and a brown signboard with “JABEZ WILSON” in white letters on a corner house marked the premises where our red-headed client carried on his business. Sherlock Holmes stopped inMy friend was a passionate musician—himself not only a very capable performer, but a composer of no small talent. All that afternoon he sat in the stalls in a state of perfect bliss, gently moving his long, thin fingers in time with the music, his faint smile and languid, dreamy eyes as unlike those of Holmes the bloodhound—Holmes the relentless, sharp-witted, quick-handed hunter of criminals—as one could possibly imagine. In his strange character, these two sides of him took turns in asserting themselves, and his extreme precision and shrewdness were, as I have often thought, a reaction against the poetic and contemplative mood that would sometimes dominate him. His temperament swung from utter languor to consuming energy; and, as I well knew, he was never so truly formidable as when he had spent days on end lounging in his armchair amid his improvisations and his black-letter folios. Then the lust of the chase would suddenly seize him, and his brilliant reasoning would rise to the level of intuition, so that those unfamiliar with his methods would eye him askance, as they might a man whose knowledge was not of ordinary mortals. Seeing him that afternoon so absorbed in the music at St. James’s Hall, I felt that a bad time might soon be in store for those he had resolved to hunt down.
+„Ihr französisches Gold?“
 
-“You’ll be wanting to go home, no doubt, Doctor,” he remarked as we came out.
+„Ja. Wir mussten vor einigen Monaten unsere Mittel verstärken und haben zu diesem Zweck 30.000 Napoleons von der Bank von Frankreich geliehen. Es ist bekannt geworden, dass wir nie Anlass hatten, das Geld auszupacken, und dass es noch immer in unserem Keller liegt. Die Kiste, auf der ich sitze, enthält 2.000 Napoleons, zwischen Lagen von Bleifolie verpackt. Unser Goldvorrat ist derzeit wesentlich größer, als gewöhnlich in einer einzelnen Filiale aufbewahrt wird, und die Direktoren haben deswegen Bedenken gehabt.“
 
-“Yes, that would be best.”
+„Die sehr berechtigt waren“, sagte Holmes. „Und nun ist es Zeit, dass wir unsere kleinen Pläne ordnen. Ich erwarte, dass die Sache innerhalb einer Stunde zuspitzt. In der Zwischenzeit, Mr. Merryweather, müssen wir die Blende über diese Dunkellaterne setzen.“
 
-“And I have some business to attend to which will take several hours. This affair in Coburg Square is serious.”
+„Und im Dunkeln sitzen?“
 
-“Why serious?”
+„Ich fürchte ja. Ich hatte ein Kartenspiel in der Tasche und dachte, da wir zu viert sind, könnten Sie am Ende doch noch zu Ihrem Rubber kommen. Aber ich sehe, dass die Vorbereitungen des Feindes schon so weit gediehen sind, dass wir kein Licht riskieren dürfen. Und zuerst müssen wir unsere Positionen wählen. Das sind kühne Männer, und obwohl wir sie in einem ungünstigen Moment erwischen werden, können sie uns schaden, wenn wir nicht vorsichtig sind. Ich stelle mich hinter diese Kiste, und Sie verbergen sich hinter jenen. Dann, wenn ich ihnen Licht gebe, stoßen Sie rasch vor. Wenn sie schießen, Watson, haben Sie keine Skrupel, sie niederzuschießen.“
 
-“A major crime is being planned. I have every reason to believe we shall be in time to stop it. But today being Saturday complicates matters a bit. I shall need your help tonight.”
+Ich legte meinen Revolver, gespannt, oben auf die Holzkiste, hinter der ich kauerte. Holmes schob die Blende vor die Laterne, und er ließ uns in pechschwarzer Finsternis zurück – in einer so vollständigen Dunkelheit, wie ich sie noch nie erlebt hatte. Der Geruch von heißem Metall blieb, als Versicherung, dass das Licht noch da war, bereit, in jedem Augenblick aufzublitzen. Mir, dessen Nerven bis zum Äußersten gespannt waren, lag in dieser plötzlichen Finsternis und in der kalten, feuchten Luft des Gewölbes etwas Niederschlagendes, Bezwingendes.
 
-“At what time?”
+„Sie haben nur einen Rückzug“, flüsterte Holmes. „Zurück durch das Haus nach Saxe-Coburg Square. Ich hoffe, Sie haben getan, worum ich Sie bat, Jones?“
 
-“Ten will be early enough.”
+„Ich habe einen Inspektor und zwei Beamte an der Haustür postiert.“
 
-“I’ll be at Baker Street at ten.”
+„Dann haben wir alle Löcher gestopft. Und jetzt müssen wir still sein und warten.“
 
-“Very good. And, I say, Doctor—there may be a touch of danger, so please slip your service revolver into your pocket.” He waved a hand, turned on his heel, and vanished at once into the crowd.
+Was für eine Zeit es schien! Als wir später unsere Eindrücke verglichen, waren es nur eine Stunde und eine Viertelstunde gewesen, doch mir kam es vor, als müsse die Nacht fast vorüber sein und über uns bereits die Dämmerung anbrechen. Meine Glieder waren müde und steif, denn ich wagte nicht, meine Haltung zu verändern; zugleich waren meine Nerven bis zum höchsten Grad angespannt, und mein Gehör so scharf, dass ich nicht nur das leise Atmen meiner Gefährten hörte, sondern auch den tieferen, schwereren Atemzug des massigen Jones vom dünnen, seufzenden Ton des Bankdirektors unterscheiden konnte. Von meinem Platz aus konnte ich über die Kiste hinweg in Richtung Boden sehen. Plötzlich fing mein Blick den Schimmer eines Lichts auf.
 
-\newpage
+Zuerst war es nur ein fahler Funke auf dem Steinpflaster. Dann zog er sich in die Länge, bis er zu einer gelben Linie wurde, und dann, ohne jede Warnung und ohne ein Geräusch, schien ein Spalt aufzureißen, und eine Hand erschien
 
-# I. hope I am no more dull than my neighbours, but I was always weighed down by a sense of my own stupidity when dealing with Sherlock Holmes. I had heard what he had heard, I had seen what he had seen, and yet from his words it was clear that he understood not only what had happened, but what was about to happen, while to me the whole affair remained confused and grotesque. As I drove back to my house in Kensington, I went over everything in my mind—from the extraordinary story of the red-headed copyist of the Encyclopaedia, down to our visit to Saxe-Coburg Square and the ominous words with which he had left me. What was this nighttime expedition, and why was I to go armed? Where were we going, and what were we to do? Holmes had hinted that this smooth-faced assistant in the pawnshop was a dangerous man—a man capable of playing a very deep game. I tried to work it out, but finally gave it up in despair and put the matter from my mind until the night should bring an explanation.
+„Mit Mr. John Clay habe ich noch ein, zwei kleine Rechnungen offen“, sagte Holmes. „Ich habe in dieser Sache ein wenig Geld ausgelegt, das die Bank mir erstatten soll, aber abgesehen davon bin ich mehr als entschädigt: durch ein Erlebnis, das in vieler Hinsicht einzigartig ist, und dadurch, dass ich die höchst bemerkenswerte Geschichte des Rothaarigen Bundes zu hören bekam.“
 
-It was a quarter past nine when I left home, crossed the Park, and went by way of Oxford Street to Baker Street. Two hansom cabs were waiting at the door, and as I entered the passage I heard voices upstairs. When I went into Holmes’s room, I found him in animated conversation with two men, one of whom I recognized as Peter Jones, the official police detective, while the other was a tall, thin, sad-faced man with a very shiny hat and an oppressively respectable frock coat.
+„Siehst du, Watson“, erklärte er in den frühen Morgenstunden, als wir in der Baker Street bei einem Glas Whisky mit Soda saßen, „von Anfang an war völlig klar, dass das einzig mögliche Ziel dieses ziemlich phantastischen Geschäfts – die Anzeige für den Bund und das Abschreiben der *Encyclopædia* – darin bestehen musste, diesen nicht gerade hellsten Pfandleiher jeden Tag für mehrere Stunden aus dem Haus zu bekommen. Es war eine merkwürdige Art, das zu arrangieren, aber ehrlich gesagt: Es wäre schwer, eine bessere vorzuschlagen. Die Methode hat Clay zweifellos durch die Haarfarbe seines Komplizen in den Sinn bekommen. Vier Pfund die Woche waren ein Köder, der ihn zwangsläufig anlocken musste – und was bedeutete das schon für Leute, die um Tausende spielten? Sie schalten die Anzeige, der eine Gauner übernimmt vorübergehend das Büro, der andere Gauner stachelt den Mann an, sich zu bewerben, und gemeinsam sorgen sie dafür, dass er an jedem Wochentag jeden Morgen abwesend ist. In dem Moment, als ich hörte, dass der Gehilfe für halben Lohn gekommen war, war mir klar, dass er ein starkes Motiv haben musste, diese Stelle unbedingt zu bekommen.“
 
-“Ah! Our party is complete,” said Holmes, buttoning his pea jacket and taking his heavy hunting crop from the rack. “Watson, I think you know Mr. Jones of Scotland Yard? Let me introduce Mr. Merryweather, who is to be our companion in tonight’s adventure.”
+„Aber wie konntest du erraten, was das Motiv war?“
 
-“We’re hunting in couples again, Doctor, you see,” said Jones in his pompous way. “Our friend here is a wonderful man for starting a chase. All he needs is an old dog to help him run it to ground.”
+„Hätten Frauen im Haus gelebt, hätte ich eine gewöhnliche, vulgäre Affäre vermutet. Das kam jedoch nicht in Frage. Das Geschäft des Mannes war klein, und in seinem Haus gab es nichts, was solche umständlichen Vorbereitungen und solche Ausgaben erklärt hätte, wie sie betrieben wurden. Also musste es etwas außerhalb des Hauses sein. Was konnte es sein? Ich dachte an die Vorliebe des Gehilfen fürs Fotografieren und an seinen Trick, im Keller zu verschwinden. Der Keller! Da war das Ende dieser verworrenen Spur. Dann erkundigte ich mich nach diesem geheimnisvollen Gehilfen und stellte fest, dass ich es mit einem der kühlsten und verwegensten Verbrecher Londons zu tun hatte. Er tat etwas im Keller – etwas, das viele Stunden am Tag in Anspruch nahm, monatelang. Was konnte es also sein? Mir fiel nichts anderes ein, als dass er einen Tunnel zu einem anderen Gebäude grub.
 
-“I hope a wild-goose chase won’t be the end of it,” said Mr. Merryweather gloomily.
+„So weit war ich, als wir den Schauplatz besuchten. Ich habe dich überrascht, als ich mit meinem Stock auf das Pflaster klopfte. Ich wollte feststellen, ob sich der Keller nach vorn oder nach hinten erstreckte. Nach vorn tat er es nicht. Dann klingelte ich, und wie ich gehofft hatte, öffnete der Gehilfe. Wir hatten schon ein paar Scharmützel gehabt, aber wir hatten uns noch nie von Angesicht zu Angesicht gesehen. Ich sah ihm kaum ins Gesicht. Seine Knie waren es, die ich sehen wollte. Du musst selbst bemerkt haben, wie abgenutzt, zerknittert und fleckig sie waren. Sie erzählten von diesen Stunden des Wühlens und Grabens. Der einzige Punkt, der noch offen war, war: Wofür gruben sie? Ich ging um die Ecke, sah, dass die City and Suburban Bank direkt an die Räume unseres Freundes grenzte, und spürte, dass ich mein Problem gelöst hatte. Als du nach dem Konzert nach Hause fuhrst, ging ich zu Scotland Yard und zum Vorsitzenden des Bankdirektoriums – mit dem Ergebnis, das du gesehen hast.“
 
-“You may place considerable confidence in Mr. Holmes, sir,” said the police agent loftily. “He has his own little methods which are, if he’ll excuse my saying so, just a shade too theoretical and fantastic—but he has the makings of a detective in him. It’s not too much to say that once or twice, as in that Sholto murder and the Agra treasure affair, he has come closer to the truth than the official force.”
+„Und wie konntest du wissen, dass sie ihren Versuch ausgerechnet heute Nacht machen würden?“, fragte ich.
 
-“Oh, if you say so, Mr. Jones, that’s enough for me,” said the stranger respectfully. “Still, I must admit I miss my rubber. This is the first Saturday night in seven-and-twenty years that I haven’t had my rubber.”
+„Nun, als sie ihre Büros des Bundes schlossen, war das ein Zeichen, dass ihnen Mr. Jabez Wilsons Anwesenheit egal geworden war – mit anderen Worten: dass sie ihren Tunnel fertiggestellt hatten. Aber es war entscheidend, dass sie ihn bald nutzten, weil er entdeckt werden konnte oder das Gold verlegt werden konnte. Der Samstag passte ihnen besser als jeder andere Tag, weil er ihnen zwei Tage für die Flucht verschaffte. Aus all diesen Gründen erwartete ich sie heute Nacht.“
 
-“I think you’ll find,” said Sherlock Holmes, “that tonight you’ll be playing for a higher stake than ever before, and that the game will be more exciting. For you, Mr. Merryweather, the stake will be about thirty thousand pounds; and for you, Jones, it will be the man you most want to lay your hands on.”
+„Du hast es großartig hergeleitet“, rief ich in unverstellter Bewunderung. „Es ist eine so lange Kette, und doch klingt jedes Glied wahr.“
 
-“John Clay—the murderer, thief, coiner, and forger. He’s a young man, Mr. Merryweather, but he’s at the top of his profession, and I’d rather snap the bracelets on him than on any criminal in London. He’s a remarkable man, is young John Clay. His grandfather was a royal duke, and he himself went to Eton and Oxford. His brain“You’re not very exposed from above,” Holmes remarked, holding up the lantern and looking around.
+„Es hat mich vor Langeweile bewahrt“, antwortete er gähnend. „Ach! Ich spüre schon, wie sie wieder über mich kommt. Mein Leben besteht aus einem einzigen langen Versuch, den Gemeinplätzen des Daseins zu entkommen. Diese kleinen Probleme helfen mir dabei.“
 
-“Nor from below,” said Mr. Merryweather, rapping his stick on the flagstones that covered the floor. “Why, bless my soul, it sounds quite hollow!” he exclaimed, looking up in surprise.
+„Und du bist ein Wohltäter der Menschheit“, sagte ich.
 
-“I really must ask you to be a little quieter,” said Holmes sharply. “You’ve already put the whole success of our operation at risk. Please be so good as to sit on one of those crates and not interfere.”
+Er zuckte die Schultern. „Nun ja, vielleicht ist es am Ende doch zu irgendetwas gut“, meinte er. „‚*L’homme c’est rien—l’œuvre c’est tout*,‘ wie Gustave Flaubert an George Sand schrieb.“
 
-The solemn Mr. Merryweather perched himself on a box, looking deeply offended, while Holmes dropped to his knees on the floor and, with the lantern and a magnifying glass, began to examine the cracks between the stones in minute detail. A few seconds were enough to satisfy him; he sprang back to his feet and slipped the glass into his pocket.
+„Mein lieber Freund“, sagte Sherlock Holmes, während wir in seiner Wohnung in der Baker Street zu beiden Seiten des Kamins saßen, „das Leben ist unendlich viel seltsamer als alles, was der menschliche Geist sich ausdenken könnte. Wir würden uns nicht einmal trauen, uns Dinge vorzustellen, die in Wahrheit bloße Alltäglichkeiten des Daseins sind. Wenn wir Hand in Hand aus jenem Fenster fliegen könnten, über dieser großen Stadt schweben, behutsam die Dächer abheben und in die merkwürdigen Vorgänge hineinschauen würden – in die seltsamen Zufälle, die Pläne, die Missverständnisse und Gegenziele, die wunderbaren Ketten von Ereignissen, die sich durch Generationen ziehen und zu den unerquicklichsten Ergebnissen führen –, dann erschiene jede Dichtung mit ihren Konventionen und vorhersehbaren Schlüssen unerquicklich schal und unerquicklich unerquicklich, ja geradezu unerquicklich und unerquicklich.“
 
-“We have at least an hour,” he said. “They can hardly make a move until our good pawnbroker is safely in bed. After that they won’t waste a minute, because the sooner they finish, the more time they’ll have to get away. We are at this moment, Doctor—as you’ve no doubt guessed—in the cellar of the City branch of one of London’s principal banks. Mr. Merryweather is the chairman of the board, and he’ll explain why the more daring criminals in London have a particular interest in this cellar just now.”
+„Und doch bin ich davon nicht überzeugt“, erwiderte ich. „Die Fälle, die in den Zeitungen ans Licht kommen, sind in der Regel unerquicklich genug und unerquicklich genug. In unseren Polizeiberichten wird der Realismus bis an seine äußersten Grenzen getrieben, und dennoch ist das Ergebnis, man muss es zugeben, weder fesselnd noch künstlerisch.“
 
-“It’s our French gold,” the director whispered. “We’ve had several warnings that an attempt might be made on it.”
+„Um eine realistische Wirkung zu erzielen, braucht es eine gewisse Auswahl und Zurückhaltung“, bemerkte Holmes. „Genau das fehlt dem Polizeibericht, in dem man vielleicht mehr Gewicht auf die Plattheiten des Richters legt als auf die Einzelheiten, die für einen Beobachter das eigentliche Herz der Sache enthalten. Verlassen Sie sich darauf: Nichts ist so unnatürlich wie das Gewöhnliche.“
 
-“Your French gold?”
+Ich lächelte und schüttelte den Kopf. „Ich kann gut verstehen, dass Sie so denken“, sagte ich. „Natürlich kommen Sie in Ihrer Stellung als inoffizieller Berater und Helfer für jeden, der vollkommen ratlos ist – über drei Kontinente hinweg – mit allem Seltsamen und Bizarren in Berührung. Aber hier“ – ich hob die Morgenzeitung vom Boden auf – „lassen wir es auf eine praktische Probe ankommen. Hier ist die erste Überschrift, die mir ins Auge fällt: ‚Die Grausamkeit eines Ehemanns gegen seine Frau.‘ Eine halbe Spalte Text – aber ich weiß, ohne sie zu lesen, dass mir das alles vollkommen vertraut ist. Da ist natürlich die andere Frau, der Alkohol, der Stoß, der Schlag, der blaue Fleck, die mitfühlende Schwester oder die Vermieterin. Selbst der plumpeste Schreiber könnte nichts Plumperes erfinden.“
 
-“Yes. Some months ago we needed to strengthen our reserves and borrowed thirty thousand napoleons from the Bank of France. It’s become known that we’ve never had to unpack the money, and that it’s still lying here in our cellar. The crate I’m sitting on contains two thousand napoleons, packed between layers of lead foil. Our bullion reserve is much larger than is usually kept in a single branch, and the board has been very uneasy about it.”
+„In der Tat ist Ihr Beispiel für Ihr Argument ein unglückliches“, sagte Holmes, nahm die Zeitung und ließ den Blick darüber hinabgleiten. „Das ist der Scheidungsfall Dundas, und zufällig war ich damit beschäftigt, ein paar kleine Punkte in diesem Zusammenhang aufzuklären. Der Ehemann war Abstinenzler, es gab keine andere Frau, und das beanstandete Verhalten bestand darin, dass er sich angewöhnt hatte, jede Mahlzeit damit zu beschließen, dass er sein Gebiss herausnahm und es nach seiner Frau warf – was, wie Sie zugeben werden, kaum eine Handlung ist, die dem durchschnittlichen Geschichtenerzähler als Erstes einfiele. Nehmen Sie eine Prise Schnupftabak, Doktor, und gestehen Sie ein, dass ich Sie mit Ihrem Beispiel ausgestochen habe.“
 
-“With very good reason,” said Holmes. “And now it’s time we settled our little arrangements. I expect that within an hour everything will come to a head. In the meantime, Mr. Merryweather, we must put the screen over that dark lantern.”
+Er hielt mir seine Schnupftabaksdose aus altem Gold hin, mit einem großen Amethyst in der Mitte des Deckels. Ihr Glanz stand in so starkem Gegensatz zu seinen schlichten Gewohnheiten und seinem einfachen Leben, dass ich nicht umhin konnte, es zu erwähnen.
 
-“And sit in the dark?”
+„Ah“, sagte er, „ich vergaß, dass ich Sie seit einigen Wochen nicht gesehen habe. Ein kleines Andenken vom König von Böhmen als Gegenleistung für meine Hilfe in der Angelegenheit der Irene-Adler-Papiere.“
 
-“I’m afraid so. I brought a pack of cards in my pocket, and I thought that since we were a foursome you might get your rubber after all. But I see the enemy’s preparations are so far advanced that we can’t risk any light. First of all, we must choose our positions. These are bold men, and although we’ll catch them at a disadvantage, they may still do us some harm if we’re not careful. I’ll stand behind this crate, and you two hide behind those. Then, when I flash the light on them, close in quickly. If they fire, Watson, don’t hesitate to shoot them down.”
+„Und der Ring?“ fragte ich und blickte auf einen bemerkenswerten Brillanten, der an seinem Finger funkelte.
 
-\newpage
+„Der stammt aus dem regierenden Haus der Niederlande, obwohl die Sache, in der ich ihnen diente, von einer solchen Delikatesse war, dass ich sie nicht einmal Ihnen anvertrauen kann – Ihnen, der Sie so freundlich waren, das eine oder andere meiner kleinen Probleme zu Papier zu bringen.“
 
-# I. laid my revolver, cocked, on top of the wooden crate behind which I crouched. Holmes slid the cover over the front of his lantern and left us in total darkness—such absolute darkness as I had never known before. The smell of hot metal was all that assured us the light was still there, ready to blaze out at a moment’s notice. With my nerves strung tight with expectation, there was something crushing and oppressive in the sudden blackness and in the cold, clammy air of the vault.
+„Und haben Sie gerade etwas in Arbeit?“ fragte ich interessiert.
 
-“They have only one way out,” Holmes whispered. “Back through the house into Saxe-Coburg Square. I hope you’ve done what I asked, Jones?”
+„Etwa zehn oder zwölf, aber keines davon weist irgendein Merkmal von besonderem Interesse auf. Sie sind wichtig, verstehen Sie, ohne interessant zu sein. Ich habe sogar festgestellt, dass gerade in unbedeutenden Angelegenheiten ein Feld für Beobachtung liegt – und für jene schnelle Analyse von Ursache und Wirkung, die einer Untersuchung ihren Reiz gibt. Die größeren Verbrechen sind meist die einfacheren; denn je größer das Verbrechen, desto offensichtlicher ist in der Regel das Motiv. In diesen Fällen – abgesehen von einer ziemlich verzwickten Sache, die mir aus Marseille überwiesen wurde – gibt es nichts, was besondere Züge von Interesse hätte. Es ist jedoch möglich, dass ich in sehr wenigen Minuten etwas Besseres bekomme, denn das ist einer meiner Klienten – oder ich täusche mich sehr.“
 
-“I’ve got an inspector and two constables waiting at the front door.”
+Er war von seinem Stuhl aufgestanden und stand zwischen den auseinandergezogenen Jalousien, den Blick hinunter auf die matte, farblose Londoner Straße gerichtet. Als ich über seine Schulter sah, bemerkte ich auf dem gegenüberliegenden Gehweg eine große Frau mit einer schweren Pelzboa um den Hals und einer großen, gekräuselten roten Feder an einem breitkrem
 
-“Then every exit is covered. Now we must be silent and wait.”
+„Ihr Vater“, sagte Holmes, „Ihr Stiefvater vielmehr, denn der Name ist ja ein anderer.“
 
-The time dragged unbearably. When we compared notes afterwards, it turned out to be only an hour and a quarter, yet it seemed to me that the night must be nearly over and dawn breaking above us. My limbs were stiff and aching, for I hardly dared to move; yet my nerves were strung to the highest pitch, and my hearing had grown so sharp that I could make out not only the gentle breathing of my companions, but could distinguish the deeper, heavier inhalation of the bulky Jones from the thin, sighing breath of the bank director. From where I crouched I could peer over the top of the crate toward the floor.
+„Ja, mein Stiefvater. Ich nenne ihn Vater, obwohl es komisch klingt – er ist nämlich nur fünf Jahre und zwei Monate älter als ich.“
 
-Suddenly my eyes caught the glimmer of a light.
+„Und Ihre Mutter lebt?“
 
-At first it was only a dull, reddish spark on the stone pavement. Then it stretched until it became a thin yellow line, and then, without any warning or sound, a slit seemed to open and a hand appeared—a white, almost feminine hand—which groped about in the center of that little patch of light. For a minute or more the hand, with its writhing fingers, protruded from the floor. Then it was withdrawn as suddenly as it had appeared, and all was dark again except for the single lurid spark that marked a crack between the stones.
+„Oh ja, Mutter lebt und ist gesund. Ich war nicht gerade glücklich darüber, Mr. Holmes, dass sie so kurz nach Vaters Tod wieder geheiratet hat – und dann auch noch einen Mann, der fast fünfzehn Jahre jünger ist als sie. Vater war Klempner in der Tottenham Court Road und hat ein ordentliches Geschäft hinterlassen, das Mutter zusammen mit Mr. Hardy, dem Vorarbeiter, weitergeführt hat. Aber als Mr. Windibank kam, hat er sie gezwungen, das Geschäft zu verkaufen, weil er sich für etwas Besseres hielt – er war nämlich Weinreisender. Sie bekamen 4700 Pfund für den Kundenstamm und die Beteiligung, und das war bei weitem nicht so viel, wie Vater herausgeholt hätte, wenn er noch gelebt hätte.“
 
-Its disappearance, however, was only momentary. With a rending, tearing sound, one of the broad white stones tipped over onto its side and left a square, gaping hole, through which the light of a lantern poured. Over the edge a clean-cut, boyish face appeared, glancing sharply around, and then, with a hand on either side of the opening, the figure drew itself up—shoulder-high, waist-high—until one knee rested on the edge. An instant later he stood beside the hole and was hauling up a companion, slim and small like himself, with a pale face and a shock of very red hair.
+Ich hatte erwartet, Sherlock Holmes würde bei dieser weitschweifigen, zusammenhanglosen Erzählung ungeduldig werden; doch im Gegenteil: Er hörte mit größter, konzentrierter Aufmerksamkeit zu.
 
-“All clear,” he whispered. “Got the chisel and the bags? Great Scott! Jump, Archie, jump,“I’ve had one or two little scores of my own to settle with Mr. John Clay,” said Holmes. “I’ve been put to some small expense over this affair, which I shall expect the bank to refund. But beyond that, I’m more than repaid by having had an experience that is in many ways unique, and by hearing the very remarkable story of the Red-headed League.”
+„Ihr eigenes kleines Einkommen“, fragte er, „stammt das aus dem Geschäft?“
 
-“You see, Watson,” he went on, in the small hours of the morning, as we sat over a glass of whisky and soda in Baker Street, “it was perfectly clear from the start that the only possible purpose of this rather fantastic business—the League advertisement and the copying of the encyclopedia—had to be to get this not overly bright pawnbroker out of the way for several hours every day. It was an odd way of going about it, but honestly, it would be hard to suggest a better. The idea was no doubt suggested to Clay’s ingenious mind by the color of his accomplice’s hair. The four pounds a week was a bait that was bound to hook him—and what was that to them, when they were playing for thousands? They put in the advertisement, one crook rents a temporary office, the other crook urges the man to apply for the job, and together they arrange it so he’s absent every morning of the week. From the moment I heard that the assistant had taken the job at half wages, it was obvious to me that he had some powerful motive for getting that position.”
+„Oh nein, Sir. Das ist ganz getrennt und wurde mir von meinem Onkel Ned in Auckland hinterlassen. Es steckt in neuseeländischen Wertpapieren und bringt viereinhalb Prozent. Zweitausendfünfhundert Pfund waren es, aber ich darf nur die Zinsen anrühren.“
 
-“But how could you guess what the motive was?”
+„Sie interessieren mich außerordentlich“, sagte Holmes. „Und da Sie eine so stattliche Summe wie hundert Pfund im Jahr beziehen – und dazu noch verdienen –, reisen Sie gewiss ein wenig und gönnen sich dies und das. Ich meine, eine unverheiratete Dame kann mit einem Einkommen von etwa sechzig Pfund sehr gut auskommen.“
 
-“If there had been women in the house, I’d have suspected a cheap little love affair. That, however, was out of the question. The man’s business was a small one, and there was nothing in his house that could justify such elaborate preparations and such an outlay as they were making. It had to be something outside the house. What could it be? I thought of the assistant’s fondness for photography, and his habit of disappearing into the cellar. The cellar! That was the end of this tangled thread. Then I made inquiries about this mysterious assistant and discovered that I was dealing with one of the coolest and most daring criminals in London. He was doing something in the cellar—something that took many hours a day, for months on end. What could that be, again? I could think of nothing except that he was driving a tunnel to some other building.
+„Ich käme mit viel weniger aus, Mr. Holmes, aber Sie verstehen: Solange ich zu Hause lebe, möchte ich ihnen nicht zur Last fallen, und deshalb können sie das Geld nutzen, solange ich bei ihnen wohne. Natürlich nur vorübergehend. Mr. Windibank zieht meine Zinsen jedes Vierteljahr ein und gibt sie an Mutter weiter, und ich komme mit dem, was ich als Schreibkraft verdiene, ganz gut zurecht. Es bringt mir zwei Pence pro Blatt, und ich schaffe oft fünfzehn bis zwanzig Blätter am Tag.“
 
-“That’s how far I’d got when we went to visit the scene. I surprised you by beating on the pavement with my stick. I was finding out whether the cellar ran out under the street in front or extended behind. It wasn’t in front. Then I rang the bell and, as I’d hoped, the assistant answered it. We’ve had a few skirmishes, but we’d never actually seen each other before. I hardly glanced at his face. It was his knees I wanted to see. You must have noticed how worn, wrinkled, and stained they were. They told of those hours of burrowing. The only question left was what they were burrowing for. I walked round the corner, saw that the City and Suburban Bank backed directly onto our friend’s premises, and knew I had my solution. When you drove home after the concert, I called on Scotland Yard and on the chairman of the bank directors, with the result you’ve just witnessed.”
+„Sie haben mir Ihre Lage sehr klar geschildert“, sagte Holmes. „Das ist mein Freund, Dr. Watson; vor ihm können Sie ebenso frei sprechen wie vor mir. Erzählen Sie uns nun bitte alles über Ihre Verbindung mit Mr. Hosmer Angel.“
 
-“And how could you tell they would make their attempt tonight?” I asked.
+Ein Röten stieg Miss Sutherland ins Gesicht, und nervös zupfte sie an den Fransen ihrer Jacke. „Ich habe ihn zum ersten Mal auf dem Ball der Gasinstallateure getroffen“, sagte sie. „Früher schickten sie Vater Karten, solange er lebte, und später haben sie an uns gedacht und sie Mutter geschickt. Mr. Windibank wollte nicht, dass wir hingehen. Er wollte überhaupt nie, dass wir irgendwohin gingen. Er konnte richtig wütend werden, wenn ich auch nur an so etwas dachte wie an einen Sonntagsausflug der Sonntagsschule. Aber diesmal hatte ich mir in den Kopf gesetzt zu gehen – und ich ging; welches Recht hatte er, es zu verbieten? Er sagte, die Leute seien nicht passend für uns, dabei würden doch alle Freunde meines Vaters dort sein. Und er sagte, ich hätte nichts Anständiges zum Anziehen, obwohl ich meinen violetten Plüsch hatte, den ich nicht einmal aus der Schublade genommen hatte. Schließlich, als nichts anderes half, fuhr er im Auftrag der Firma nach Frankreich – und wir gingen, Mutter und ich, zusammen mit Mr. Hardy, der früher unser Vorarbeiter gewesen war, und dort habe ich Mr. Hosmer Angel kennengelernt.“
 
-“Well, when they shut down their League offices, that was a sign they no longer cared about Mr. Jabez Wilson’s presence—in other words, that they had finished their tunnel. But it was essential that they use it soon, since it might be discovered, or the bullion might be moved. Saturday would suit them better than any other day, as it would give them two days for their escape. For all these reasons, I expected them to come tonight.”
+„Ich nehme an“, sagte Holmes, „als Mr. Windibank aus Frankreich zurückkam, war er sehr verärgert, dass Sie auf dem Ball gewesen waren.“
 
-“You worked it out beautifully,” I burst out, with genuine admiration. “It’s such a long chain, and yet every link rings true.”
+„Oh, na ja, er war sehr nett deswegen. Ich erinnere mich, er lachte, zuckte mit den Schultern und sagte, es habe keinen Zweck, einer Frau irgendetwas zu verwehren – sie setze am Ende doch ihren Willen durch.“
 
-“It saved me from boredom,” he replied, yawning. “Alas, I can already feel it closing in on me again. My life is one long effort to escape from the dull routine of existence. These little problems help me to do that.”
+„Verstehe. Also haben Sie auf dem Ball der Gasinstallateure, wie ich es auffasse, einen Herrn namens Mr. Hosmer Angel getroffen.“
 
-“And you’re a benefactor of the human race,” I said.
+„Ja, Sir. Ich traf ihn an diesem Abend, und am nächsten Tag kam er vorbei, um zu fragen, ob wir gut nach Hause gekommen seien, und danach trafen wir ihn – das heißt, Mr. Holmes, ich traf ihn zweimal zu Spaziergängen, aber dann kam Vater wieder zurück, und Mr. Hosmer Angel konnte nicht mehr ins Haus kommen.“
 
-He shrugged. “Well, perhaps, after all, it is of some small use,” he remarked. “‘L’homme, c’est rien—l’œuvre, c’est tout,’ as Gustave Flaubert wrote to George Sand. Man is nothing—the work is everything.”“A dear fellow,” said Sherlock Holmes, as we sat on either side of the fire in his Baker Street rooms, “life is infinitely stranger than anything the human mind could invent. We would never dare to imagine the things that are, in fact, the everyday commonplaces of existence. If we could fly out of that window hand in hand, hover over this great city, gently lift the roofs, and peek in at the odd things going on—the strange coincidences, the schemes, the crossed purposes, the wonderful chains of events working through generations and leading to the most outrageous results—then all fiction, with its conventions and predictable endings, would seem utterly stale and worthless.”
+„Nein?“
 
-“I’m still not convinced,” I replied. “The cases that make it into the papers are, as a rule, crude and vulgar enough. Our police reports give us realism pushed to its limits, and yet the result, one must admit, is neither gripping nor artistic.”
+„Nun, Sie wissen ja, Vater mochte so etwas nicht. Er wollte keine Besucher, wenn er es vermeiden konnte, und er sagte immer, eine Frau solle in ihrem eigenen Familienkreis glücklich sein. Aber wie ich zu Mutter sagte: Eine Frau braucht erst einmal ihren eigenen Kreis – und meinen hatte ich noch nicht.“
 
-“To create a realistic effect, you have to exercise some choice and judgment,” Holmes remarked. “That’s exactly what’s missing from the police report, where more emphasis is placed, perhaps, on the magistrate’s platitudes than on the details which, to an observer, contain the vital essence of the whole affair. You may depend on it: nothing is so unnatural as the commonplace.”
+„Und Mr. Hosmer Angel? Hat er keinen Versuch gemacht, Sie zu sehen?“
 
-\newpage
+„Doch, aber Vater würde in einer Woche wieder nach Frankreich fahren, und Hosmer schrieb und sagte, es sei sicherer und besser, wenn wir uns nicht sähen, bis er weg sei. In der
 
-# I. smiled and shook my head. “I can quite understand your thinking that,” I said. “Of course, in your position as unofficial adviser and helper to everyone who is utterly baffled, across three continents, you come into contact with everything strange and bizarre. But here”—I picked the morning paper up from the floor—“let’s put it to a practical test. Here is the first headline I see: ‘A Husband’s Cruelty to His Wife.’ There’s half a column of print, but I know without reading it that it’s all perfectly familiar. There will be, of course, the other woman, the drink, the shove, the blow, the bruise, the sympathetic sister or landlady. The clumsiest of writers could invent nothing more clumsy.”
+„Er hat ihn also verfehlt?“
 
-“In fact, your example is a poor one for your argument,” said Holmes, taking the paper and running his eye down the column. “This is the Dundas separation case, and, as it happens, I was involved in clearing up a few small points connected with it. The husband was a teetotaler, there was no other woman, and the conduct complained of was that he had fallen into the habit of ending every meal by taking out his false teeth and hurling them at his wife—which, you’ll admit, is not an action likely to occur to the imagination of the average storyteller. Take a pinch of snuff, Doctor, and admit that I’ve scored a point against you with your own example.”
+„Ja, Sir; denn er war kurz davor nach England aufgebrochen, gerade bevor es ankam.“
 
-He held out his old gold snuffbox, with a large amethyst set in the center of the lid. Its splendor contrasted so sharply with his homely habits and simple life that I couldn’t help commenting on it.
+„Ha! Das war unerquicklich. Eure Hochzeit war also für den Freitag angesetzt. Sollte sie in der Kirche stattfinden?“
 
-“Ah,” he said, “I’d forgotten I hadn’t seen you for some weeks. It’s a little souvenir from the King of Bohemia, in return for my help in the matter of the Irene Adler papers.”
+„Ja, Sir, aber ganz still. Es sollte in St. Saviour’s sein, nahe King’s Cross, und danach wollten wir im St. Pancras Hotel frühstücken. Hosmer holte uns in einem Hansom ab, aber weil wir zu zweit waren, setzte er uns beide hinein und stieg selbst in einen Vierräder, der zufällig das einzige andere Taxi in der Straße war. Wir kamen zuerst an der Kirche an, und als der Vierräder vorfuhr, warteten wir darauf, dass er ausstieg – aber er tat es nicht, und als der Kutscher vom Bock herunterstieg und nachsah, war niemand drin! Der Kutscher sagte, er könne sich nicht erklären, was aus ihm geworden sei, denn er habe mit eigenen Augen gesehen, wie er eingestiegen sei. Das war letzten Freitag, Mr. Holmes, und seitdem habe ich weder etwas von ihm gesehen noch gehört, was irgendein Licht darauf werfen könnte, was aus ihm geworden ist.“
 
-“And the ring?” I asked, glancing at the remarkable diamond that sparkled on his finger.
+„Es scheint mir, dass man Sie schändlich behandelt hat“, sagte Holmes.
 
-“That was from the reigning family of Holland, though the matter in which I served them was so delicate that I can’t confide it even to you, who have been kind enough to record one or two of my little problems.”
+„Oh nein, Sir! Er war viel zu gut und zu freundlich, um mich so zu verlassen. Er hat den ganzen Morgen zu mir gesagt, dass ich, was auch immer geschehe, treu bleiben solle; und dass ich, selbst wenn etwas völlig Unvorhergesehenes eintrete, das uns trenne, immer daran denken müsse, dass ich ihm versprochen sei, und dass er dieses Versprechen früher oder später einfordern werde. Für einen Hochzeitmorgen war das seltsames Gerede, aber was danach geschehen ist, gibt dem Ganzen einen Sinn.“
 
-“And have you anything on hand just now?” I asked, interested.
+„Ganz gewiss tut es das. Ihre eigene Meinung ist also, dass ihm irgendein unvorhergesehenes Unglück zugestoßen ist?“
 
-“Some ten or twelve, but none with any particularly interesting features. They’re important, you understand, without being interesting. In fact, I’ve found that it’s usually in unimportant matters that there’s room for observation and for that quick analysis of cause and effect which gives an investigation its charm. The larger crimes tend to be simpler, because the greater the crime, the more obvious, as a rule, the motive. In these current cases, except for one rather intricate affair that’s been referred to me from Marseilles, there’s nothing that presents any striking features. It’s possible, however, that I may have something better before many minutes are over, for this is one of my clients, or I’m very much mistaken.”
+„Ja, Sir. Ich glaube, er hat eine Gefahr vorausgeahnt, sonst hätte er nicht so gesprochen. Und dann denke ich, dass das, was er vorausgesehen hat, auch eingetreten ist.“
 
-He had risen from his chair and was standing between the parted blinds, looking down into the dull, neutral-tinted London street. Looking over his shoulder, I saw that on the pavement opposite stood a large woman with a heavy fur boa around her neck and a big curling red feather in a broad-brimmed hat, which was tilted over her ear in a coquettish Duchess of Devonshire style. From under this grand display she peered up nervously and hesitantly at our windows, while her body swayed back and forth and her fingers fidgeted with her glove buttons. Suddenly, with a plunge like a swimmer leaving the bank, she hurried across the road, and we heard the sharp clang of the bell.
+„Aber Sie haben keine Vorstellung, was es gewesen sein könnte?“
 
-“I’ve seen those symptoms before,” said Holmes, flicking his cigarette into the fire. “Swaying on the pavement always means a love affair. She wants advice, but isn’t sure the matter isn’t too delicate to talk about. And even here we can distinguish further. When a woman has been seriously wronged by a man, she no longer hesitates—the usual symptom then is a broken bell wire. In this case, we may take it that it’s a love matter, but that the young lady is not so much angry as puzzled or distressed. But here she comes in person to clear up our doubts.”
+„Keine.“
 
-As he spoke, there was a knock at the door, and the page-boy entered to announce Miss“Your father,” said Holmes, “your stepfather, surely, since the name is different.”
+„Noch eine Frage. Wie hat Ihre Mutter die Sache aufgenommen?“
 
-“Yes, my stepfather. I call him father, though it sounds odd, really, because he’s only five years and two months older than I am.”
+„Sie war wütend und sagte, ich solle nie wieder davon sprechen.“
 
-“And your mother is alive?”
+„Und Ihr Vater? Haben Sie es ihm erzählt?“
 
-“Oh yes, Mother is alive and well. I wasn’t at all pleased, Mr. Holmes, when she married again so soon after Father’s death—and to a man nearly fifteen years younger than she was. Father was a plumber in Tottenham Court Road, and he left a good business behind him, which Mother carried on with Mr. Hardy, the foreman. But when Mr. Windibank came, he made her sell the business, because he was very superior, being a wine traveller. They got £4,700 for the goodwill and interest, which was nowhere near what Father could have got if he’d been alive.”
+„Ja; und er schien wie ich zu glauben, dass etwas passiert sei und dass ich wieder von Hosmer hören würde. Wie er sagte: Welches Interesse könnte irgendjemand daran haben, mich bis vor die Kirchentür zu bringen und mich dann sitzen zu lassen? Wenn er mein Geld geliehen hätte, oder wenn er mich geheiratet und sich mein Geld hätte überschreiben lassen, dann gäbe es vielleicht einen Grund – aber Hosmer war beim Geld sehr eigenständig und hätte nie auch nur einen Schilling von mir angesehen. Und doch: Was könnte passiert sein? Und warum konnte er nicht schreiben? Ach, es macht mich halb wahnsinnig, daran zu denken, und nachts bekomme ich kein Auge zu.“ Sie zog ein kleines Taschentuch aus ihrem Muff und schluchzte heftig hinein.
 
-\newpage
+„Ich werde mir den Fall für Sie ansehen“, sagte Holmes und erhob sich, „und ich zweifle nicht, dass wir zu einem klaren Ergebnis kommen. Lassen Sie die Last der Sache jetzt bei mir, und lassen Sie Ihre Gedanken nicht weiter darum kreisen. Vor allem: Versuchen Sie, Mr. Hosmer Angel aus Ihrem Gedächtnis verschwinden zu lassen – so wie er aus Ihrem Leben verschwunden ist.“
 
-# I. had expected Sherlock Holmes to grow impatient with this rambling, seemingly aimless story, but instead he listened with the most intense attention.
+„Dann glauben Sie nicht, dass ich ihn wiedersehe?“
 
-“Your own little income,” he asked, “does that come from the business?”
+„Ich fürchte, nein.“
 
-“Oh no, sir. It’s completely separate and was left to me by my Uncle Ned in Auckland. It’s in New Zealand stock, paying four and a half per cent. The amount was two thousand five hundred pounds, but I can only touch the interest.”
+„Was ist dann mit ihm geschehen?“
 
-“You interest me greatly,” said Holmes. “And since you draw as large a sum as a hundred a year, and have your earnings besides, you no doubt travel a bit and indulge yourself in every way. I believe a single woman can live quite comfortably on about £60 a year.”
+„Diese Frage überlassen Sie mir. Ich hätte gern eine genaue Beschreibung von ihm und alle Briefe von ihm, die Sie entbehren können.“
 
-“I could manage on much less than that, Mr. Holmes, but you see, as long as I live at home I don’t want to be a burden to them, so they have the use of the money while I’m staying with them. Of course, that’s only for the time being. Mr. Windibank draws my interest every quarter and pays it over to Mother, and I find I can do pretty well on what I earn by typewriting. I get twopence a sheet, and I can often do fifteen to twenty sheets a day.”
+„Ich habe vergangenen Samstag in der _Chronicle_ nach ihm inseriert“, sagte sie. „Hier ist der Ausschnitt, und hier sind vier Briefe von ihm.“
 
-“You’ve made your situation very clear to me,” said Holmes. “This is my friend Dr. Watson, to whom you can speak as freely as to me. Now please tell us everything about your connection with Mr. Hosmer Angel.”
+„Danke. Und Ihre Adresse?“
 
-A flush crept over Miss Sutherland’s face, and she nervously picked at the fringe of her jacket. “I met him first at the gasfitters’ ball,” she said. “They used to send Father tickets when he was alive, and afterwards they remembered us and sent them to Mother. Mr. Windibank didn’t want us to go. He never wanted us to go anywhere. He would get quite furious if I so much as wanted to go on a Sunday-school outing. But this time I was determined, and I would go; for what right had he to stop me? He said the people weren’t fit for us to know, when all Father’s friends were going to be there. And he said I had nothing fit to wear, when I had my purple plush dress that I’d never even taken out of the drawer. At last, when nothing else would stop me, he went off to France on business for the firm, and we went—Mother and I—with Mr. Hardy, who used to be our foreman. And it was there I met Mr. Hosmer Angel.”
+„Lyon Place 31, Camberwell.“
 
-“I suppose,” said Holmes, “that when Mr. Windibank came back from France he was very annoyed that you had gone to the ball.”
+„Mr. Angels Adresse hatten Sie nie, wie ich verstehe. Wo ist die Geschäftsadresse Ihres Vaters?“
 
-“Oh, he took it very well. He laughed, I remember, and shrugged his shoulders, and said there was no use denying a woman anything, for she would have her own way.”
+„Er ist Reisender für Westhouse & Marbank, die großen Bordeaux-Importeure in der Fenchurch Street.“
 
-“I see. So at the gasfitters’ ball you met, as I understand it, a gentleman called Mr. Hosmer Angel.”
+„Danke. Sie haben Ihre Aussage sehr klar gemacht. Lassen Sie die Papiere hier und denken Sie an den Rat, den ich Ihnen gegeben habe. Machen Sie die ganze Angelegenheit zu einem versiegelten Buch und lassen Sie nicht zu, dass sie Ihr Leben beeinflusst.“
 
-“Yes, sir. I met him that night, and he called the next day to ask if we had got home safely, and after that we met him—that is to say, Mr. Holmes, I met him twice for walks. But then Father came back again, and Mr. Hosmer Angel couldn’t come to the house any more.”
+„Sie sind sehr gütig, Mr. Holmes, aber das kann ich nicht. Ich werde Hosmer treu bleiben. Er soll mich bereit finden, wenn er zurückkommt.“
 
-“No?”
+Bei all dem lächerlichen Hut und dem leeren Gesicht lag doch etwas Edles in dem schlichten Glauben unserer Besucherin, das uns Respekt abnötigte. Sie legte ihr kleines Bündel Papiere auf den Tisch und ging, mit dem Versprechen wiederzukommen, sobald man sie rufe.
 
-“Well, you know, Father didn’t like anything of that sort. He wouldn’t have any visitors if he could help it, and he used to say a woman should be happy in her own family circle. But then, as I used to say to Mother, a woman wants a circle of her own to begin with, and I hadn’t got mine yet.”
+Sherlock Holmes saß einige Minuten schweigend da, die Fingerspitzen noch immer aneinandergelegt, die Beine vor sich ausgestreckt, den Blick zur Decke gerichtet. Dann nahm er vom Ständer die alte, speckige Tonpfeife herunter, die ihm wie ein Ratgeber war, zündete sie an und lehnte sich in den Sessel zurück, während dichte blaue Rauchkringel
 
-“But what about Mr. Hosmer Angel? Did he make no attempt to see you?”
+„Und was noch?“ fragte ich, lebhaft interessiert, wie ich es bei der scharfen Logik meines Freundes stets war.
 
-“Well, Father was going off to France again in a week, and Hosmer wrote and said it would be safer and better if we didn’t see each other until he had gone. We could write in the meantime, and he used to write every day. I brought the letters in in the morning, so there was no need for Father to know.”
+„Mir fiel nebenbei auf, dass sie, bevor sie das Haus verließ, noch einen Zettel geschrieben hatte – aber erst, nachdem sie vollständig angekleidet war. Sie haben bemerkt, dass ihr rechter Handschuh am Zeigefinger eingerissen war, aber offenbar nicht gesehen, dass sowohl Handschuh als auch Finger mit violetter Tinte befleckt waren. Sie schrieb in Eile und tauchte die Feder zu tief ein. Es muss heute Morgen gewesen sein, sonst wäre der Fleck am Finger nicht mehr so klar zu erkennen. Das alles ist ganz amüsant, wenn auch eher elementar – aber ich muss zurück zur Arbeit, Watson. Würden Sie mir bitte die Anzeige mit der Beschreibung von Mr. Hosmer Angel vorlesen?“
 
-“Were you engaged to the gentleman at this time?”
+Ich hielt den kleinen gedruckten Zettel gegen das Licht. „Vermisst“, stand da, „am Morgen des vierzehnten: ein Herr namens Hosmer Angel. Etwa fünf Fuß sieben Zoll groß; kräftig gebaut, gelblicher Teint, schwarzes Haar, in der Mitte leicht licht, buschige schwarze Koteletten und Schnurrbart; getönte Brille, leichte Sprachbehinderung. Trug, als man ihn zuletzt sah, einen schwarzen Gehrock mit Seidenbesatz, schwarze Weste, goldene Albertkette und graue Harris-Tweed-Hose, dazu braune Gamaschen über elastischen Stiefeletten. Soll in einem Büro in der Leadenhall Street beschäftigt gewesen sein. Wer ihn bringt“, usw., usw.
 
-“Oh yes, Mr. Holmes. We were engaged after the first walk we took. Hosmer—Mr. Angel—was a cashier in an office in Leadenhall Street, and—”
+„Das genügt“, sagte Holmes. „Was die Briefe angeht“, fuhr er fort und überflog sie, „die sind völlig alltäglich. Kein einziger Hinweis auf Mr. Angel, außer dass er einmal Balzac zitiert. Es gibt allerdings einen bemerkenswerten Punkt, der Ihnen gewiss auffallen wird.“
 
-“What office?”
+„Sie sind maschinengeschrieben“, bemerkte ich.
 
-“That’s the worst of it, Mr. Holmes—I don’t know.”
+„Nicht nur das – auch die Unterschrift ist maschinengeschrieben. Sehen Sie sich das sauber getippte ‚Hosmer Angel‘ unten an. Ein Datum ist da, wie Sie sehen, aber keine Anschrift, nur ‚Leadenhall Street‘, und das ist ziemlich vage. Gerade die Unterschrift ist höchst aufschlussreich – ja, wir können sie geradezu als entscheidend bezeichnen.“
 
-“Where did he live, then?”
+„Entscheidend wofür?“
 
-“He slept on the premises.”
+„Mein lieber Freund, ist es möglich, dass Sie nicht sehen, wie sehr das den Fall betrifft?“
 
-“And you don’t know his address?”
+„Ich kann es nicht behaupten – es sei denn, er wollte seine Unterschrift später abstreiten können, falls man ihn wegen gebrochenen Eheversprechens verklagte.“
 
-“No—only that it was Leadenhall Street.”
+„Nein, das ist nicht der Punkt. Wie auch immer – ich werde zwei Briefe schreiben, die die Sache klären sollten. Einer geht an eine Firma in der City, der andere an den Stiefvater der jungen Dame, Mr. Windibank, mit der Frage, ob er uns morgen Abend um sechs hier treffen kann. Es ist ohnehin besser, solche Dinge mit den männlichen Verwandten zu regeln. Und jetzt, Doktor, können wir nichts tun, bis die Antworten eintreffen; also legen wir unser kleines Problem vorerst ins Regal.“
 
-“Where did you address your letters, then?”
+Ich hatte so viele Gründe gehabt, an die feinen Schlussfolgerungen meines Freundes und seine außergewöhnliche Tatkraft zu glauben, dass ich überzeugt war, er müsse handfeste Anhaltspunkte für die sichere, gelassene Art haben, mit der er dieses seltsame Rätsel behandelte, das man ihm zu lösen gegeben hatte. Nur ein einziges Mal hatte ich ihn scheitern sehen – in der Angelegenheit mit dem König von Böhmen und dem Foto der Irene Adler; doch wenn ich an das unheimliche Geschehen um das Zeichen der Vier zurückdachte und an die außergewöhnlichen Umstände, die mit der Studie in Scharlachrot verbunden waren, dann schien mir: Es müsste schon ein ganz besonders verworrener Knoten sein, den er nicht zu entwirren vermochte.
 
-“To the Leadenhall Street Post Office, to be held till called for. He said that if they were“It missed him, then?”
+Ich ließ ihn zurück, noch immer an seiner schwarzen Tonpfeife ziehend, in der festen Überzeugung, dass ich, wenn ich am nächsten Abend wiederkäme, ihn im Besitz all jener Spuren finden würde, die zur Identität des verschwundenen Bräutigams von Miss Mary Sutherland führten.
 
-“Yes, sir. He had already left for England just before it arrived.”
+Ein beruflicher Fall von großer Schwere nahm mich zu jener Zeit selbst in Anspruch, und den ganzen folgenden Tag war ich am Bett des Kranken beschäftigt. Erst kurz vor sechs Uhr fand ich mich frei und konnte in einen Hansom springen und nach Baker Street fahren – halb in der Sorge, ich könnte zu spät kommen, um beim _Dénouement_ dieses kleinen Geheimnisses noch dabei zu sein. Doch ich fand Sherlock Holmes allein, halb schlafend, seine lange, schmale Gestalt in den Tiefen seines Lehnstuhls zusammengerollt. Eine eindrucksvolle Reihe von Flaschen und Reagenzgläsern, dazu der stechend saubere Geruch von Salzsäure, verriet mir, dass er den Tag mit jener chemischen Arbeit verbracht hatte, die ihm so lieb war.
 
-“Ah—that was unfortunate. Your wedding was set for Friday, then. Was it to be in a church?”
+„Nun, haben Sie es gelöst?“ fragte ich, als ich eintrat.
 
-“Yes, sir, but very quietly. It was to be at St. Saviour’s, near King’s Cross, and we were to have breakfast afterwards at the St. Pancras Hotel. Hosmer came for us in a hansom, but as there were two of us he put us both into it and himself got into a four-wheeler, which happened to be the only other cab in the street. We reached the church first, and when the four-wheeler drove up we waited for him to get out—but he never did, and when the cabman climbed down from the box and looked inside there was no one there! The cabman said he couldn’t imagine what had become of him, for he had seen him get in with his own eyes. That was last Friday, Mr. Holmes, and I have never seen or heard anything since that throws any light on what became of him.”
+„Ja. Es war Bariumbisulfat.“
 
-“It seems to me you’ve been very shamefully treated,” said Holmes.
+„Nein, nein – das Rätsel!“ rief ich.
 
-“Oh no, sir! He was far too good and kind to leave me like that. All that morning he kept saying to me that, whatever happened, I was to be faithful; that even if something completely unforeseen occurred to separate us, I was always to remember that I was pledged to him, and that he would claim his pledge sooner or later. It seemed strange talk for a wedding morning, but what has happened since gives it a meaning.”
+„Ach, das! Ich dachte an das Salz, an dem ich gearbeitet habe. Es gab in der Sache nie ein wirkliches Rätsel – obwohl, wie ich gestern sagte, einige Einzelheiten interessant sind. Der einzige Haken ist, dass es, fürchte ich, kein
 
-“It most certainly does. Your own opinion is, then, that some unforeseen disaster has overtaken him?”
+Mr. Windibank fuhr aus seinem Stuhl hoch und griff nach seinem Hut. „Ich kann meine Zeit nicht mit solchem fantastischen Gerede verschwenden, Mr. Holmes“, sagte er. „Wenn Sie den Mann fassen können, dann fassen Sie ihn — und geben Sie mir Bescheid, wenn Sie es getan haben.“
 
-“Yes, sir. I believe he foresaw some danger, or he would not have talked that way. And then I think that what he foresaw actually happened.”
+„Gewiss“, sagte Holmes, trat hinüber und drehte den Schlüssel im Schloss. „Dann gebe ich Ihnen hiermit Bescheid, dass ich ihn gefasst habe!“
 
-“But you have no idea what it might have been?”
+„Was! Wo?“, schrie Mr. Windibank, kreidebleich bis an die Lippen, und sah sich um wie eine Ratte in der Falle.
 
-“None.”
+„Ach, das nützt nichts — wirklich, das nützt nichts“, sagte Holmes mit sanfter Höflichkeit. „Da gibt es kein Entkommen, Mr. Windibank. Es ist viel zu durchsichtig, und es war ein sehr schlechter Scherz, als Sie meinten, es sei mir unmöglich, eine so einfache Sache zu lösen. So ist’s recht! Setzen Sie sich, und wir reden das in Ruhe durch.“
 
-“One more question. How did your mother take it?”
+Unser Besucher sackte in einen Stuhl, das Gesicht fahl wie der Tod, auf der Stirn ein feuchter Glanz. „Es — es ist nicht einklagbar“, stammelte er.
 
-“She was angry, and said I was never to speak of the matter again.”
+„Ich fürchte sehr, dass es das nicht ist. Aber unter uns, Windibank: Es war ein grausamer, selbstsüchtiger, herzloser Trick — kleinlich obendrein — wie mir selten einer untergekommen ist. Nun lassen Sie mich den Ablauf der Ereignisse kurz durchgehen, und Sie widersprechen mir, wenn ich mich irre.“
 
-“And your father? Did you tell him?”
+Der Mann kauerte in seinem Stuhl zusammen, den Kopf auf die Brust gesunken, wie einer, der völlig zerbrochen ist. Holmes legte die Füße auf die Ecke des Kaminsimses, lehnte sich zurück, die Hände in den Taschen, und begann zu sprechen — eher, wie es schien, zu sich selbst als zu uns.
 
-“Yes. And he seemed to think, as I do, that something had happened, and that I would hear from Hosmer again. As he said, what interest could anyone have in bringing me to the church door and then abandoning me? Now, if he had borrowed my money, or if he had married me and had my money settled on him, there might be some reason; but Hosmer was very independent about money and would never touch a shilling of mine. And yet, what could have happened? And why couldn’t he write? Oh, it drives me half mad to think of it, and I can’t sleep a wink at night.” She pulled a little handkerchief out of her muff and began to sob heavily into it.
+„Der Mann heiratete eine Frau, die erheblich älter war als er, ihres Geldes wegen“, sagte er, „und er genoss die Nutzung des Geldes der Tochter, solange sie bei ihnen lebte. Es war eine beträchtliche Summe für Leute ihrer Stellung, und ihr Verlust hätte einen empfindlichen Unterschied gemacht. Es lohnte sich, sie zu bewahren. Die Tochter hatte ein gutes, liebenswürdiges Wesen, war aber zugleich herzlich und warm in ihren Gefühlen, sodass klar war, dass sie mit ihren ansehnlichen Vorzügen und ihrem kleinen Einkommen nicht lange unverheiratet bleiben würde. Nun hätte ihre Heirat selbstverständlich den Verlust von hundert Pfund im Jahr bedeutet — also was tut der Stiefvater, um sie zu verhindern? Er wählt den naheliegenden Weg: Er hält sie zu Hause und verbietet ihr, den Umgang mit Menschen ihres Alters zu suchen. Doch bald merkte er, dass das auf Dauer nicht funktionieren würde. Sie wurde unruhig, bestand auf ihren Rechten und kündigte schließlich fest an, zu einem bestimmten Ball gehen zu wollen. Was tut der kluge Stiefvater dann? Er ersinnt eine Idee, die seinem Kopf mehr Ehre macht als seinem Herzen. Mit Wissen und Hilfe seiner Frau verkleidet er sich, verdeckt jene scharfen Augen mit getönten Brillengläsern, maskiert das Gesicht mit einem Schnurrbart und einem Paar buschiger Koteletten, senkt die klare Stimme zu einem einschmeichelnden Flüstern herab — und doppelt sicher, weil das Mädchen kurzsichtig ist, tritt er als Mr. Hosmer Angel auf und hält andere Verehrer fern, indem er selbst den Liebhaber spielt.“
 
-“I’ll look into the case for you,” said Holmes, rising, “and I’ve no doubt we shall reach some definite conclusion. Let the burden of the matter rest on me now, and don’t let your mind dwell on it any further. Above all, try to let Mr. Hosmer Angel fade from your memory, as he has faded from your life.”
+„Es war anfangs nur ein Scherz“, stöhnte unser Besucher. „Wir hätten nie gedacht, dass sie sich so hineinsteigern würde.“
 
-“Then you don’t think I’ll see him again?”
+„Sehr wahrscheinlich nicht. Wie dem auch sei: Die junge Dame steigerte sich ganz entschieden hinein, und da sie fest davon überzeugt war, ihr Stiefvater sei in Frankreich, kam ihr auch nicht für einen Augenblick der Verdacht eines Verrats. Sie fühlte sich geschmeichelt von den Aufmerksamkeiten des Herrn, und die Wirkung wurde noch verstärkt durch die laut bekundete Bewunderung ihrer Mutter. Dann begann Mr. Angel Besuche zu machen, denn es war offensichtlich, dass man die Sache so weit treiben musste, wie es nur ging, wenn eine echte Wirkung erzielt werden sollte. Es gab Treffen und eine Verlobung, die schließlich die Zuneigung des Mädchens so festlegen würde, dass sie sich keinem anderen mehr zuwenden konnte. Aber die Täuschung ließ sich nicht ewig aufrechterhalten. Diese vorgetäuschten Reisen nach Frankreich waren recht umständlich. Also musste man die Angelegenheit auf eine dramatische Weise beenden, die einen dauerhaften Eindruck im Geist der jungen Dame hinterließ und sie für einige Zeit daran hinderte, irgendeinen anderen Bewerber überhaupt in Betracht zu ziehen. Daher jene Treueschwüre, die man ihr auf einer Bibel abverlangte, und daher auch die Andeutungen, es könne am Morgen der Hochzeit selbst noch etwas geschehen. James Windibank wollte Miss Sutherland so an Hosmer Angel gebunden wissen und zugleich so im Ungewissen über dessen Schicksal, dass sie — wenigstens in den nächsten zehn Jahren — auf keinen anderen Mann hören würde. Bis vor die Kirchentür brachte er sie, und dann, weil er nicht weitergehen konnte, verschwand er bequem nach dem alten Trick: bei der einen Tür eines Droschkenwagens hinein und bei der anderen wieder hinaus. Ich denke, das war die Kette der Ereignisse
 
-“I’m afraid not.”
+„Und Miss Sutherland?“
 
-“Then what has happened to him?”
+„Wenn ich es ihr sage, wird sie mir nicht glauben. Sie erinnern sich vielleicht an das alte persische Sprichwort: ‚Gefahr droht dem, der ein Tigerjunges an sich nimmt, und Gefahr auch dem, der einer Frau eine Illusion entreißt.‘ In Hafis steckt ebenso viel Verstand wie in Horaz – und ebenso viel Kenntnis der Welt.“
 
-“You will leave that question in my hands. I should like an exact description of him, and any letters of his you can spare.”
+### 4. DAS GEHEIMNIS VON BOSCOMBE VALLEY
 
-“I advertised for him in last Saturday’s Chronicle,” she said. “Here is the clipping, and here are four letters from him.”
+Eines Morgens saßen meine Frau und ich beim Frühstück, als das Dienstmädchen ein Telegramm hereinbrachte. Es war von Sherlock Holmes und lautete:
 
-“Thank you. And your address?”
+„Haben Sie ein paar Tage Zeit? Bin soeben aus dem Westen Englands wegen der Tragödie im Boscombe Valley angefordert worden. Würde mich freuen, wenn Sie mitkommen. Luft und Landschaft vollkommen. Abfahrt Paddington 11:15.“
 
-“No. 31 Lyon Place, Camberwell.”
+„Was meinst du, Lieber?“, fragte meine Frau und sah zu mir herüber. „Fährst du?“
 
-“You never had Mr. Angel’s address, I understand. Where is your father’s place of business?”
+„Ich weiß wirklich nicht, was ich sagen soll. Im Moment habe ich eine ziemlich lange Liste.“
 
-“He travels for Westhouse & Marbank, the big claret importers in Fenchurch Street.”
+„Ach, Anstruther kann deine Arbeit für dich übernehmen. Du siehst in letzter Zeit etwas blass aus. Ich glaube, die Abwechslung würde dir guttun, und du interessierst dich doch immer so für Mr. Sherlock Holmes’ Fälle.“
 
-“Thank you. You’ve given your statement very clearly. You will leave the papers here, and remember the advice I’ve given you. Let the whole incident be a closed book, and don’t allow it to affect your life.”
+„Ich wäre undankbar, wenn ich es nicht täte, bei dem, was ich durch einen von ihnen gewonnen habe“, erwiderte ich. „Aber wenn ich fahren soll, muss ich sofort packen, denn ich habe nur eine halbe Stunde.“
 
-“You are very kind, Mr. Holmes, but I can’t do that. I shall be true to Hosmer. He will find me ready when he comes back.”
+Meine Erfahrungen mit dem Lagerleben in Afghanistan hatten wenigstens den Effekt gehabt, mich zu einem schnellen und unkomplizierten Reisenden zu machen. Meine Bedürfnisse waren gering und einfach, sodass ich in weniger als der genannten Zeit mit meinem Koffer in einer Droschke saß und klappernd zur Station Paddington fuhr. Sherlock Holmes ging auf dem Bahnsteig auf und ab; seine große, hager wirkende Gestalt erschien durch den langen grauen Reisemantel und die eng anliegende Stoffmütze noch hagerer und noch größer.
 
-For all the ridiculous hat and the vacant face, there was something noble in the simple faith of our visitor that compelled our respect. She laid her small bundle of papers on the table and went her way, promising to come again whenever she might be sent for.
+„Es ist wirklich sehr freundlich von Ihnen, dass Sie kommen, Watson“, sagte er. „Es macht für mich einen erheblichen Unterschied, jemanden bei mir zu haben, auf den ich mich vollkommen verlassen kann. Lokale Hilfe ist entweder wertlos oder voreingenommen. Wenn Sie die beiden Eckplätze freihalten, hole ich die Fahrkarten.“
 
-Sherlock Holmes sat silent for a few minutes with his fingertips still pressed together, his legs stretched out in front of him, and his eyes fixed on the ceiling. Then he took down from the rack the old, greasy clay pipe that served him as a counsellor, and, having lit it, he leaned back in his chair, thick blue coils of smoke spinning up from him, and an expression of infinite languor on his face.
+Wir hatten das Abteil für uns allein, abgesehen von einem gewaltigen Durcheinander an Papieren, die Holmes mitgebracht hatte. Darin wühlte und las er, unterbrochen von Notizen und langen Momenten des Nachdenkens, bis wir Reading hinter uns gelassen hatten. Dann rollte er plötzlich alles zu einem riesigen Ball zusammen und warf ihn hinauf ins Gepäcknetz.
 
-“Quite an interesting study, that young woman,” he remarked. “I found her more interesting than her little problem, which, by the way, is rather a commonplace one. You’ll find parallel cases, if you consult my index, in Andover in ’77, and there was something similar at The Hague last year. Old as the idea is, however, there were one or two details that were new to me. But the young woman herself was most instructive.”
+„Haben Sie irgendetwas über den Fall gehört?“, fragte er.
 
-“You seemed to read a great deal about her that was completely invisible to me,” I said.
+„Kein Wort. Ich habe seit einigen Tagen keine Zeitung gesehen.“
 
-“Not invisible, Watson—only unnoticed. You didn’t know where to look, and so you missed everything that mattered. I can never get you to realize the importance of sleeves, the suggestiveness of thumbnails, or the great issues that may hang from a“And what else?” I asked, as absorbed as I always was by my friend’s sharp reasoning.
+„Die Londoner Presse hat nicht besonders ausführlich berichtet. Ich habe gerade alle neueren Blätter durchgesehen, um die Einzelheiten zu beherrschen. Es scheint, nach allem, was ich herauslese, einer jener einfachen Fälle zu sein, die so außerordentlich schwierig sind.“
 
-“I noticed, in passing, that she had written a note before leaving home, but after she was fully dressed. You saw that her right glove was torn at the forefinger, but you apparently didn’t notice that both the glove and the finger were stained with violet ink. She had written in a hurry and dipped her pen too deeply. It must have been this morning, or the mark wouldn’t still be so clear on her finger. All this is entertaining, if rather elementary, but I must get back to business, Watson. Would you read me the advertised description of Mr. Hosmer Angel?”
+„Das klingt ein wenig paradox.“
 
-\newpage
+„Und doch ist es zutiefst wahr. Das Ungewöhnliche ist fast immer ein Hinweis. Je konturloser und alltäglicher ein Verbrechen ist, desto schwerer ist es, es jemandem eindeutig zuzuschreiben. In diesem Fall jedoch haben sie eine sehr ernste Sache gegen den Sohn des Ermordeten aufgebaut.“
 
-# I. held the little printed slip up to the light. “Missing,” it said, “on the morning of the fourteenth, a gentleman named Hosmer Angel. About five feet seven inches in height; strongly built; sallow complexion; black hair, a little bald in the centre; bushy black side-whiskers and moustache; tinted glasses; slight speech impediment. Was dressed, when last seen, in black frock coat faced with silk, black waistcoat, gold Albert chain, and grey Harris tweed trousers, with brown gaiters over elastic-sided boots. Known to have been employed in an office in Leadenhall Street. Anybody bringing,” etc., etc.
+„Es ist also Mord?“
 
-“That will do,” said Holmes. “As to the letters,” he went on, glancing over them, “they are very ordinary. Absolutely no clue in them to Mr. Angel, except that he quotes Balzac once. There is one remarkable point, however, which will no doubt strike you.”
+„Nun, man vermutet es. Ich nehme nichts als gegeben hin, bevor ich nicht Gelegenheit hatte, mir die Sache persönlich anzusehen. Ich erkläre Ihnen den Stand der Dinge, soweit ich ihn in wenigen Worten erfassen konnte.
 
-“They’re typewritten,” I said.
+„Boscombe Valley ist ein ländlicher Bezirk, nicht weit von Ross, in Herefordshire. Der größte Grundbesitzer in jener Gegend ist ein Mr. John Turner, der sein Geld in Australien gemacht hat und vor einigen Jahren in die alte Heimat zurückgekehrt ist. Einen seiner Höfe, Hatherley, hatte er an Mr. Charles McCarthy verpachtet, ebenfalls ein ehemaliger Australier. Die Männer hatten sich in den Kolonien gekannt, sodass es nicht verwunderlich war, dass sie sich, als sie sich niederließen, möglichst nahe beieinander ansiedelten. Turner war offenbar der wohlhabendere Mann, also wurde McCarthy sein Pächter, blieb aber, wie es scheint, auf vollkommen gleichberechtigtem Fuß, denn sie waren häufig zusammen. McCarthy hatte einen Sohn, einen Jungen von achtzehn, und Turner eine einzige Tochter im gleichen Alter, doch beide hatten keine lebenden Ehefrauen. Sie scheinen die Gesellschaft der benachbarten englischen Familien gemieden und ein zurückgezogenes Leben geführt zu haben, obwohl beide McCarthys sportbegeistert waren und häufig bei den Pferderennen der Umgebung gesehen wurden. McCarthy hielt zwei Dienstboten — einen Mann und ein Mädchen. Turner hatte einen beträchtlichen Haushalt, mindestens ein halbes Dutzend Leute. Mehr habe ich über die Familien nicht zusammentragen können. Nun zu den Tatsachen.
 
-“Not only that, but the signature is typewritten. Look at the neat little ‘Hosmer Angel’ at the bottom. There is a date, you see, but no heading except ‘Leadenhall Street,’ which is rather vague. The point about the signature is very suggestive—in fact, we may call it conclusive.”
+„Am 3. Juni, also am vergangenen Montag, verließ McCarthy gegen drei Uhr nachmittags sein Haus in Hatherley und ging hinunter zum Boscombe Pool, einem kleinen See, der dadurch entsteht, dass sich der Bach, der das Boscombe Valley hinabfließt, an dieser Stelle ausbreitet. Am Vormittag war er mit seinem Diener in Ross gewesen, und er hatte dem Mann gesagt, er müsse sich beeilen, da er um drei eine wichtige Verabredung habe. Von dieser Verabredung kehrte er nie lebend zurück.
 
-“Conclusive of what?”
+„Vom Farmhaus Hatherley bis zum Boscombe Pool ist es eine Viertelmeile, und zwei Personen sahen ihn, als er diese Strecke zurücklegte. Die eine war eine alte Frau, deren Name nicht genannt
 
-“My dear fellow, can you really not see how strongly it bears on the case?”
+„Ich fürchte“, sagte ich, „die Tatsachen liegen so offen zutage, dass Sie aus diesem Fall kaum Ruhm werden schlagen können.“
 
-“I can’t say that I do, unless it’s that he wanted to be able to deny his signature if an action for breach of promise were brought against him.”
+„Nichts ist trügerischer als eine offenkundige Tatsache“, erwiderte er lachend. „Außerdem stoßen wir vielleicht auf ein paar weitere offenkundige Tatsachen, die für Mr. Lestrade keineswegs offenkundig waren. Sie kennen mich zu gut, um zu glauben, ich prahle, wenn ich sage, dass ich seine Theorie entweder bestätigen oder zunichtemachen werde – mit Mitteln, zu deren Anwendung er völlig unfähig ist, ja die er nicht einmal begreifen würde. Nehmen wir das erste Beispiel, das sich anbietet: Ich erkenne ganz klar, dass in Ihrem Schlafzimmer das Fenster rechts liegt, und doch bezweifle ich, dass Mr. Lestrade selbst eine so selbstverständliche Sache bemerkt hätte.“
 
-“No, that was not the point. However, I shall write two letters which ought to settle the matter. One is to a firm in the City, the other is to the young lady’s stepfather, Mr. Windibank, asking whether he can meet us here at six o’clock tomorrow evening. It is just as well that we should conduct our business with the male relatives. And now, Doctor, we can do nothing until the answers to those letters arrive, so we may put our little problem on the shelf for the time being.”
+„Wie um alles in der Welt—“
 
-\newpage
+„Mein lieber Freund, ich kenne Sie gut. Ich kenne die soldatische Ordnung, die Sie auszeichnet. Sie rasieren sich jeden Morgen, und zu dieser Jahreszeit rasieren Sie sich bei Tageslicht; da Ihre Rasur jedoch auf der linken Seite, je weiter man nach hinten kommt, immer unvollständiger wird, bis sie am Kieferwinkel geradezu schlampig ist, ist doch völlig klar, dass diese Seite schlechter beleuchtet ist als die andere. Ich kann mir nicht vorstellen, dass ein Mann mit Ihren Gewohnheiten sich bei gleichmäßigem Licht betrachtet und mit einem solchen Ergebnis zufrieden ist. Ich führe das nur als ein belangloses Beispiel für Beobachtung und Schlussfolgerung an. Darin liegt mein _métier_, und es ist durchaus möglich, dass es uns bei der Untersuchung, die vor uns liegt, von Nutzen sein wird. Es gab bei der Leichenschau ein, zwei nebensächliche Punkte, die zutage traten und die es wert sind, bedacht zu werden.“
 
-# I. had had so many reasons to trust in my friend’s subtle powers of reasoning and his extraordinary energy in action that I felt he must have some solid grounds for the calm, assured manner with which he treated the strange mystery he had been called upon to unravel. Only once had I known him to fail—in the case of the King of Bohemia and the Irene Adler photograph. But when I thought back to the uncanny affair of The Sign of Four and the extraordinary circumstances surrounding A Study in Scarlet, I felt it would have to be a very strange tangle indeed that he could not unweave.
+„Welche?“
 
-\newpage
+„Es scheint, dass seine Festnahme nicht sofort erfolgte, sondern erst nach der Rückkehr zur Hatherley Farm. Als der Polizeiinspizient ihm mitteilte, er sei ein Gefangener, bemerkte er, es überrasche ihn nicht, das zu hören, und es sei nicht mehr, als er verdiene. Diese Äußerung hatte naturgemäß die Wirkung, die letzten Spuren von Zweifel zu beseitigen, die in den Köpfen der Geschworenen des Coroners vielleicht noch vorhanden gewesen waren.“
 
-# I. left him then, still puffing at his black clay pipe, convinced that when I returned the next evening I would find that he held in his hands all the clues that would lead to the identity of Miss Mary Sutherland’s disappearing bridegroom.
+„Das war ein Geständnis“, rief ich aus.
 
-A professional case of great seriousness was occupying my own attention at the time, and the whole of the next day I was busy at my patient’s bedside. It was not until nearly six o’clock that I found myself free and able to jump into a hansom and drive to Baker Street, half afraid that I might be too late to witness the dénouement of the little mystery. I found Sherlock Holmes alone, however, half asleep, his long, thin form curled up in the depths of his armchair. A formidable array of bottles and test tubes, and the sharp, clean smell of hydrochloric acid, told me that he had spent his day on the chemical work he loved so much.
+„Nein, denn darauf folgte eine Beteuerung seiner Unschuld.“
 
-“Well, have you solved it?” I asked as I entered.
+„Nach einer derart vernichtenden Kette von Ereignissen war es zumindest eine höchst verdächtige Bemerkung.“
 
-“Yes. It was the bisulphate of baryta.”
+„Im Gegenteil“, sagte Holmes, „sie ist der hellste Spalt, den ich im Moment in den Wolken erkennen kann. Wie unschuldig er auch sein mag – er kann doch nicht so ein vollkommener Dummkopf sein, dass er nicht sähe, wie schwarz die Umstände gegen ihn stehen. Hätte er über seine Festnahme überrascht gewirkt oder Empörung darüber geheuchelt, hätte ich das für höchst verdächtig gehalten, denn eine solche Überraschung oder Wut wäre unter den Umständen nicht natürlich, könnte einem berechnenden Menschen aber als die beste Taktik erscheinen. Seine offene Annahme der Lage kennzeichnet ihn entweder als einen unschuldigen Mann oder als einen Mann von beträchtlicher Selbstbeherrschung und Festigkeit. Und was seine Bemerkung über das, was er verdiene, betrifft, so war auch die nicht unnatürlich, wenn Sie bedenken, dass er neben dem Leichnam seines Vaters stand und dass es keinen Zweifel gibt, dass er an eben diesem Tag seine kindliche Pflicht so weit vergessen hatte, dass er mit ihm Worte wechselte und sogar – nach Aussage des kleinen Mädchens, dessen Zeugnis so wichtig ist – die Hand erhob, als wolle er ihn schlagen. Der Selbstvorwurf und die Reue, die in seiner Bemerkung liegen, erscheinen mir eher als Zeichen eines gesunden Geistes denn eines schuldigen.“
 
-“No, no—the mystery!” I cried.
+Ich schüttelte den Kopf. „Viele Männer sind auf weit geringere Beweise hin gehängt worden“, bemerkte ich.
 
-“Oh, that! I was thinking of the salt I’ve been working on. There was never any mystery in the case, though, as I said yesterday, some of the details are of interest. The only drawback is that there is, I fear, no law that can touch the scoundrel.”
+„So ist es. Und viele Männer sind zu Unrecht gehängt worden.“
 
-“Who was he, then, and why did he abandon Miss Sutherland?”
+„Was ist die eigene Darstellung des jungen Mannes?“
 
-The question was barely out of my mouth, and Holmes had not yet opened his lips to reply, when we heard a heavy footstep in the passage and a knock at the door.
+„Sie ist, fürchte ich, für seine Unterstützer nicht sehr ermutigend, obwohl ein oder zwei Punkte darin anregend sind. Sie finden sie hier und können sie selbst lesen.“
 
-“This is the girl’s stepfather, Mr. James Windibank,” said Holmes. “He has written to say that he would be here at six. Come in!”
+Er zog aus seinem Bündel ein Exemplar der örtlichen Herefordshire-Zeitung hervor, schlug das Blatt um und wies auf den Absatz, in dem der unglückliche junge Mann seine eigene Erklärung dessen abgegeben hatte, was geschehen war. Ich machte es mir in der Ecke des Waggons bequem und las sehr aufmerksam. Es lautete wie folgt:
 
-The man who entered was a sturdy, medium-sized fellow of about thirty, clean-shaven and sallow-skinned, with a smooth, ingratiating manner and a pair of remarkably sharp, penetrating grey eyes. He shot a questioning glance at each of us, set his shiny top hat on the sideboard, and with a slight bow sidled into the nearest chair.
+„Mr. James McCarthy, der einzige Sohn des Verstorbenen, wurde sodann aufgerufen und sagte unter Eid aus wie folgt: ‚Ich war drei Tage von zu Hause fort in Bristol und erst am Morgen des vergangenen Montags, des 3., zurückgekehrt. Mein Vater war bei meiner Ankunft nicht im Haus, und das Dienstmädchen teilte mir mit, er sei mit John Cobb, dem Stallknecht, nach Ross hinübergefahren. Kurz nach meiner Rückkehr hörte ich die Räder seines Wagens im Hof, und als ich aus dem Fenster sah, sah ich ihn aussteigen und rasch aus dem Hof hinausgehen, doch war mir nicht bewusst, in welche Richtung er ging. Ich nahm daraufhin mein Gewehr und schlenderte in Richtung des Bos
 
-“Good evening, Mr. James Windibank,” said Holmes. “I take it this typewritten letter is from you, making an appointment with me for six o’clock?”
+„Ein Geschworener: Ist Ihnen, als Sie nach dem Schrei zurückkamen und Ihren Vater tödlich verletzt vorfanden, nichts aufgefallen, was Ihren Verdacht erregt hätte?
 
-“Yes,Mr. Windibank sprang out of his chair and snatched up his hat. “I can’t waste my time on this kind of wild talk, Mr. Holmes,” he said. “If you can catch the man, catch him, and let me know when you’ve done it.”
+„Zeuge: Nichts Bestimmtes.
 
-“Of course,” said Holmes, crossing the room and turning the key in the door. “I’ll let you know now that I have caught him.”
+„Der Coroner: Was meinen Sie damit?
 
-“What! Where?” shouted Mr. Windibank. His lips went white, and he stared around him like a rat in a trap.
+„Zeuge: Ich war so aufgewühlt und außer mir, als ich ins Freie stürzte, dass ich an nichts denken konnte als an meinen Vater. Dennoch habe ich den vagen Eindruck, dass, als ich nach vorn rannte, links von mir etwas auf dem Boden lag. Es schien mir etwas Graues zu sein, ein Mantel oder so etwas, vielleicht auch ein Plaid. Als ich mich von meinem Vater erhob, sah ich mich danach um, aber es war verschwunden.
 
-“Oh, that won’t do—really, it won’t,” said Holmes smoothly. “There’s no possible way out of this, Mr. Windibank. It’s far too obvious, and it was a very poor compliment when you said it was impossible for me to solve so simple a problem. That’s better. Sit down, and let’s talk it over.”
+„‚Sie meinen, es war verschwunden, bevor Sie Hilfe holen gingen?‘
 
-Our visitor collapsed into a chair, his face ghastly, a sheen of sweat on his brow. “It—it’s not something you can prosecute,” he stammered.
+„‚Ja, es war weg.‘
 
-“I’m very much afraid it isn’t. But between ourselves, Windibank, in its small, mean way it was as cruel, selfish, and heartless a trick as has ever come before me. Now let me just run through what happened, and you can correct me if I go wrong.”
+„‚Sie können nicht sagen, was es war?‘
 
-The man sat hunched in his chair, head sunk on his chest, like someone utterly crushed. Holmes put his feet up on the corner of the mantelpiece and, leaning back with his hands in his pockets, began to talk, more to himself, it seemed, than to us.
+„‚Nein, ich hatte nur das Gefühl, dass da etwas lag.‘
 
-“The man married a woman much older than himself for her money,” he said, “and he enjoyed the use of the daughter’s money as long as she lived with them. It was a considerable sum for people in their position, and losing it would have made a serious difference. It was worth some effort to keep it. The daughter was good and amiable, but affectionate and warm-hearted as well, so it was clear that with her pleasant looks and her little income she wouldn’t be allowed to stay single for long. Now, her marriage would, of course, mean the loss of a hundred a year, so what does her stepfather do to prevent it? He takes the obvious course: he keeps her at home and forbids her to mix with people of her own age. But he soon found that that wouldn’t work forever. She grew restless, insisted on her rights, and finally announced firmly that she intended to go to a certain ball. What does her clever stepfather do then? He comes up with an idea more creditable to his brains than to his heart. With his wife’s connivance and help, he disguises himself—covers those sharp eyes with tinted glasses, hides his face with a moustache and a pair of bushy side-whiskers, lowers that clear voice into a soft, insinuating whisper—and, doubly safe because of the girl’s short sight, he appears as ‘Mr. Hosmer Angel’ and keeps other suitors away by courting her himself.”
+„‚Wie weit vom Körper entfernt?‘
 
-“It was only a joke at first,” groaned our visitor. “We never thought she’d be so carried away.”
+„‚Etwa zwölf Yards.‘
 
-“Very likely not. In any case, the young lady was very decidedly carried away, and since she was quite convinced that her stepfather was in France, the idea of treachery never once entered her mind. She was flattered by the gentleman’s attentions, and the effect was heightened by her mother’s loudly expressed admiration. Then Mr. Angel began to call regularly, for it was obvious that the matter had to be pushed as far as it would go if it was to have any real effect. There were meetings, and then an engagement, which would finally secure the girl’s affections and keep them from turning to anyone else. But the deception couldn’t be kept up forever. These supposed trips to France were rather awkward to manage. Clearly, the thing to do was to end the affair in such a dramatic way that it would leave a lasting impression on the young lady’s mind and stop her from considering any other suitor for some time. Hence those vows of fidelity demanded on a Testament, and hence the hints that something might happen on the very morning of the wedding. James Windibank wanted Miss Sutherland to be so bound to Hosmer Angel, and so uncertain about his fate, that for ten years at least she wouldn’t listen to another man. He brought her as far as the church door, and then, since he could go no farther, he conveniently vanished by the old trick of stepping in at one door of a four-wheeler and out at the other. That, I think, was the chain of events, Mr. Windibank.”
+„‚Und wie weit vom Waldrand?‘
 
-Our visitor had recovered some of his confidence while Holmes was speaking, and now he rose from his chair with a cold sneer on his pale face.
+„‚Ungefähr ebenso weit.‘
 
-“That may be so, or it may not, Mr. Holmes,” he said, “but if you’re so very sharp, you ought to be sharp enough to know that it’s you who are breaking the law now, not me. I’ve done nothing you can prosecute from the beginning, but as long as you keep that door locked, you lay yourself open to a charge of assault and unlawful restraint.”
+„‚Dann ist es, falls es entfernt wurde, entfernt worden, während Sie höchstens zwölf Yards davon weg waren?‘
 
-“The law cannot, as you say, touch you,” said Holmes, unlocking the door and throwing it open, “yet there never was a man who deserved punishment more. If the young lady has a brother or a friend, he ought to lay a whip across your shoulders. By Jove!” he went on, flushing at the sight of the man’s bitter sneer, “it’s not part of my duty to“And Miss Sutherland?”
+„‚Ja, aber ich hatte ihm den Rücken zugewandt.‘
 
-“If I tell her, she won’t believe me. You may remember the old Persian saying: ‘There is danger for the man who takes a tiger cub, and danger also for the one who tears an illusion from a woman.’ There is as much wisdom in Hafiz as in Horace, and just as much knowledge of the world.”4. THE BOSCOMBE VALLEY MYSTERY
+Damit war die Vernehmung des Zeugen beendet.“
 
-My wife and I were at breakfast one morning when the maid brought in a telegram. It was from Sherlock Holmes, and read:
+„Ich sehe“, sagte ich, während ich die Spalte überflog, „dass der Coroner in seinen Schlussbemerkungen ziemlich hart mit dem jungen McCarthy ins Gericht geht. Er weist — und nicht ohne Grund — auf den Widerspruch hin, dass sein Vater ihm angeblich ein Zeichen gegeben haben soll, bevor er ihn überhaupt gesehen hatte, außerdem auf seine Weigerung, Einzelheiten des Gesprächs mit dem Vater zu nennen, und auf seine merkwürdige Darstellung der letzten Worte des Sterbenden. Das alles spricht, wie er bemerkt, sehr gegen den Sohn.“
 
-“Have you a couple of days to spare? Have just been wired from the west of England about the Boscombe Valley tragedy. Would be glad if you came with me. Air and scenery perfect. Leave Paddington by the 11:15.”
+Holmes lachte leise vor sich hin und streckte sich auf der gepolsterten Bank aus. „Sie beide, Sie und der Coroner“, sagte er, „haben sich einige Mühe gegeben, gerade die stärksten Punkte herauszupicken, die für den jungen Mann sprechen. Sehen Sie nicht, dass Sie ihm abwechselnd zu viel und zu wenig Fantasie unterstellen? Zu wenig — wenn er nicht imstande war, einen Anlass für den Streit zu erfinden, der ihm das Mitgefühl der Geschworenen eingebracht hätte; zu viel — wenn er aus seinem Innersten etwas derart Abwegiges hervorgebracht haben soll wie einen Sterbenden, der noch von einer Ratte spricht, und dazu die Geschichte von dem verschwundenen Tuch. Nein, mein Herr, ich werde an diesen Fall mit der Annahme herangehen, dass das, was der junge Mann sagt, wahr ist — und wir werden sehen, wohin uns diese Hypothese führt. Und jetzt habe ich hier meinen Taschen-Petrarca, und kein Wort mehr werde ich über diesen Fall verlieren, bis wir am Ort des Geschehens sind. Wir essen in Swindon zu Mittag, und ich sehe, dass wir in zwanzig Minuten dort sein werden.“
 
-“What do you think, dear?” my wife asked, looking across at me. “Will you go?”
+Es war fast vier Uhr, als wir schließlich — nachdem wir durch das schöne Stroud-Tal gefahren und über den breiten, glänzend schimmernden Severn gesetzt hatten — in dem hübschen kleinen Landstädtchen Ross ankamen. Auf dem Bahnsteig wartete ein hagerer, frettchenhafter Mann, verstohlen und verschlagen im Blick. Trotz des hellbraunen Staubmantels und der Leder-Gamaschen, die er aus Rücksicht auf die ländliche Umgebung trug, erkannte ich Lestrade von Scotland Yard ohne Mühe. Mit ihm fuhren wir zum Hereford Arms, wo bereits ein Zimmer für uns reserviert war.
 
-“I really don’t know. I’ve quite a long list of patients just now.”
+„Ich habe eine Kutsche bestellt“, sagte Lestrade, als wir bei einer Tasse Tee saßen. „Ich kenne Ihre energiegeladene Art — Sie wären nicht zufrieden, bevor Sie nicht am Tatort gewesen sind.“
 
-“Oh, Anstruther can cover for you. You’ve been looking a little pale lately. I think the change would do you good, and you’re always so interested in Mr. Sherlock Holmes’s cases.”
+„Sehr aufmerksam und schmeichelhaft von Ihnen“, erwiderte Holmes. „Es ist ausschließlich eine Frage des Luftdrucks.“
 
-“I’d be ungrateful if I weren’t, considering what I owe to one of them,” I replied. “But if I’m going, I must pack at once, because I’ve only half an hour.”
+Lestrade sah ihn verblüfft an. „Ich verstehe nicht ganz“, sagte er.
 
-My time in the Afghan campaign had at least taught me to travel quickly and with little fuss. My needs were few and simple, so in less than the time allowed I was in a cab with my valise, rattling off to Paddington Station. Sherlock Holmes was pacing up and down the platform, his tall, lean figure made even taller and gaunter by his long grey travelling cloak and close-fitting cloth cap.
+„Wie steht das Barometer? Neunundzwanzig, wie ich sehe. Kein Wind, keine Wolke am Himmel. Ich habe hier ein ganzes Etui Zigaretten, die geraucht werden wollen, und das Sofa ist dem üblichen Grauen eines Landhotels weit überlegen. Ich halte es nicht für wahrscheinlich, dass ich die Kutsche heute Abend noch benutzen werde.“
 
-“It’s really very good of you to come, Watson,” he said. “It makes a great difference to me to have someone with me I can completely rely on. Local help is always either useless or biased. If you’ll secure the two corner seats, I’ll get the tickets.”
+Lestrade lachte nachsichtig. „Sie haben sich zweifellos schon anhand der Zeitungen Ihre Schlüsse gebildet“, sagte er. „Der Fall ist so klar wie Kloßbrühe, und je tiefer man hineingeht, desto klarer wird er. Trotzdem — einer Dame kann man natürlich nichts abschlagen, und noch dazu einer so entschlossenen. Sie hat von Ihnen gehört und will Ihre Meinung, obwohl ich ihr wiederholt gesagt habe, dass es nichts gibt, was Sie tun könnten, was ich nicht längst getan hätte. Himmel noch mal — da steht ja schon ihre Kutsche vor der Tür!“
 
-We had the compartment to ourselves, apart from an enormous litter of papers Holmes had brought. He rummaged among them as we started, reading, pausing now and then to jot down a note or sit in silent thought, until we were past Reading. Then he suddenly rolled the whole heap into a gigantic ball and tossed it up onto the rack.
+Er hatte kaum ausgesprochen, da stürmte eine der schönsten jungen Frauen, die ich je in meinem Leben gesehen habe, ins Zimmer. Ihre violetten Augen glänzten, die Lippen standen halb offen, ein rosiger Schimmer lag auf ihren Wangen; jede
 
-“Have you heard anything about the case?” he asked.
+„Ich werde es tun, Miss Turner.“
 
-“Not a word. I haven’t seen a newspaper for several days.”
+„Ich muss jetzt nach Hause, denn Dad ist sehr krank, und er vermisst mich so sehr, sobald ich ihn verlasse. Leb wohl — und Gott helfe Ihnen bei Ihrem Vorhaben.“ So impulsiv, wie sie hereingestürmt war, hastete sie wieder hinaus, und wir hörten, wie die Räder ihrer Kutsche die Straße hinabklapperten.
 
-“The London press hasn’t given very full accounts. I’ve just been going through all the recent papers to get the details straight. From what I can gather, it seems to be one of those simple cases that are extremely difficult.”
+„Ich schäme mich für Sie, Holmes“, sagte Lestrade nach einigen Minuten würdevollen Schweigens. „Warum wecken Sie Hoffnungen, die Sie doch zwangsläufig enttäuschen müssen? Ich bin nicht gerade zart besaitet, aber ich nenne das grausam.“
 
-“That sounds a bit like a contradiction.”
+„Ich glaube, ich sehe einen Weg, James McCarthy zu entlasten“, sagte Holmes. „Haben Sie eine Erlaubnis, ihn im Gefängnis zu sprechen?“
 
-“But it’s profoundly true. Anything out of the ordinary is almost always a clue. The more featureless and ordinary a crime is, the harder it is to bring it home to anyone. In this case, however, they’ve built up a very serious case against the murdered man’s son.”
+„Ja, aber nur für Sie und mich.“
 
-“So it is a murder, then?”
+„Dann werde ich meinen Entschluss, nicht hinauszugehen, noch einmal überdenken. Wir haben noch Zeit, einen Zug nach Hereford zu nehmen und ihn heute Abend noch zu sehen?“
 
-“Well, it’s assumed to be. I’ll take nothing for granted until I’ve had the chance to look into it myself. I’ll explain the situation to you, as far as I’ve been able to understand it, in a few words.
+„Mehr als genug.“
 
-“Boscombe Valley is a rural district not far from Ross, in Herefordshire. The largest landowner there is a Mr. John Turner, who made his money in Australia and came back to England some years ago. One of his farms, Hatherley, was rented by Mr. Charles McCarthy, who was also an ex-Australian. The two men had known each other in the colonies, so it was natural that when they settled down they should do so as near each other as possible. Turner was apparently the richer man, so McCarthy became his tenant, but they still seem to have remained on perfectly equal terms, as they were often seen together. McCarthy had one son, a lad of eighteen, and Turner had an only daughter of the same age, but neither man had a wife living. They seem to have avoided the society of the neighbouring English families and to have led rather secluded lives, though both McCarthys were fond of sport and were often seen at the local race meetings. McCarthy kept two servants—a man and a girl. Turner had quite a large household, half a dozen at least. That’s as much as I’ve been able to learn about the families. Now for the facts.
+„Dann tun wir das. Watson, ich fürchte, Sie werden sich entsetzlich langweilen, aber ich bin nur ein paar Stunden fort.“
 
-“On June 3rd—Monday last—McCarthy left his house at Hatherley at about three in the afternoon and walked down to Boscombe Pool, a small lake formed where the stream running through Boscombe Valley spreads out. He had been out that morning with his manservant in Ross, and he told the man he must hurry back because he had an important appointment at three. He never came back alive from that appointment.
+Ich ging mit ihnen hinunter zum Bahnhof und streifte danach durch die Straßen des kleinen Städtchens, bis ich schließlich ins Hotel zurückkehrte, mich aufs Sofa legte und versuchte, mich mit einem gelben Leihroman zu beschäftigen. Doch die kümmerliche Handlung war so dünn im Vergleich zu dem tiefen Rätsel, in dem wir tastend umherirrten, und meine Aufmerksamkeit glitt so ständig von der Fiktion zurück zu den Tatsachen, dass ich das Buch schließlich quer durchs Zimmer schleuderte und mich ganz den Ereignissen des Tages hingab.
 
-“It’s a quarter of a mile from Hatherley Farmhouse to Boscombe Pool, and two people saw him as he crossed that ground. One was an old woman, whose name is not given, and the other was William Crowder, a gamekeeper employed by Mr. Turner. Both witnesses state that Mr. McCarthy was walking alone. The gamekeeper adds that within a few minutes of seeing Mr. McCarthy pass, he saw his son, Mr. James McCarthy, going the same way with a gun under his arm. To the best of his belief, the father was still in sight at the time, and the son was following him. He thought nothing more of it until he heard that evening of the tragedy that had occurred.
+Angenommen, die Geschichte dieses unglücklichen jungen Mannes wäre in allen Punkten wahr — was für ein höllisches Geschehen, welches völlig unvorhersehbare und außergewöhnliche Unglück musste sich dann zwischen dem Augenblick abgespielt haben, als er sich von seinem Vater trennte, und dem Moment, als er, durch dessen Schreie zurückgerissen, in die Lichtung stürzte? Es musste etwas Schreckliches und Tödliches gewesen sein. Was konnte es sein?
 
-“The two McCarthys were seen again after the time when William Crowder, the gamekeeper, lost sight of them. Boscombe Pool is thickly wooded all around, with just a fringe of grass and reeds at the edge. A fourteen-year-old girl, Patience Moran, the lodge-keeper’s daughter on the Boscombe Valley estate, was in one of the woods picking flowers.“I’m afraid,” I said, “that the facts are so obvious you’ll get very little credit out of this case.”
+Konnte nicht die Art der Verletzungen meinem medizinischen Instinkt etwas verraten? Ich klingelte und ließ mir die wöchentliche Bezirkszeitung bringen, die einen wortgetreuen Bericht über die Untersuchung enthielt. In der Aussage des Chirurgen hieß es, das hintere Drittel des linken Scheitelbeins und die linke Hälfte des Hinterhauptbeins seien durch einen schweren Schlag mit einer stumpfen Waffe zerschmettert worden. Ich markierte die Stelle an meinem eigenen Kopf. Offenkundig musste ein solcher Schlag von hinten geführt worden sein. Das sprach bis zu einem gewissen Grad für den Angeklagten, denn als man ihn streiten sah, stand er seinem Vater gegenüber. Dennoch wog es nicht allzu schwer, denn der ältere Mann konnte sich im letzten Augenblick abgewandt haben, bevor der Schlag fiel. Trotzdem mochte es sich lohnen, Holmes darauf aufmerksam zu machen.
 
-“There’s nothing more deceptive than an obvious fact,” he replied, laughing. “Besides, we may stumble on some other ‘obvious’ facts which may not have been obvious at all to Lestrade. You know me too well to think I’m boasting when I say that I will either confirm or demolish his theory by methods he is utterly incapable of using—or even understanding. To take the first example that comes to hand: I can see quite clearly that in your bedroom the window is on the right-hand side, and yet I doubt whether Lestrade would have noticed even something as self-evident as that.”
+Dann war da diese merkwürdige Sterbensbemerkung über eine Ratte. Was sollte das bedeuten? Es konnte kein Delirium gewesen sein. Ein Mann, der durch einen plötzlichen Schlag stirbt, wird gewöhnlich nicht delirierend. Nein — wahrscheinlicher war es der Versuch, zu erklären, wie er zu seinem Ende gekommen war. Aber worauf deutete es hin? Ich zermarterte mir das Hirn, um eine mögliche Erklärung zu finden.
 
-“How on earth—”
+Und dann der Vorfall mit dem grauen Stoff, den der junge McCarthy gesehen haben wollte. Wenn das stimmte, musste der Mörder auf der Flucht ein Kleidungsstück verloren haben — vermutlich seinen Überzieher — und dann die Dreistigkeit besessen haben, zurückzukehren und es im selben Augenblick wieder an sich zu nehmen, als der Sohn kniete, den Rücken abgewandt, keine zwölf Schritte entfernt. Was für ein Geflecht aus Rätseln und Unwahrscheinlichkeiten das alles war! Ich wunderte mich nicht über Lestrades Meinung, und doch hatte ich so viel Vertrauen in Sherlock Holmes’ Scharfsinn, dass ich die Hoffnung nicht aufgeben konnte, solange jede neue Tatsache seine Überzeugung von der Unschuld des jungen McCarthy zu stärken schien.
 
-“My dear fellow, I know you. I know the military neatness that defines you. You shave every morning, and at this time of year you shave by daylight; but your shaving grows less and less complete as we move farther back on the left side, until it becomes downright sloppy as it goes round the angle of the jaw. It’s perfectly clear that that side is less well lit than the other. I can’t imagine a man of your habits looking at himself in equal light and being satisfied with such a result. I mention this only as a trivial example of observation and inference. That is my métier, and it may just prove useful in the investigation ahead of us. There are one or two minor points brought out at the inquest that are worth considering.”
+Es war spät, als Sherlock Holmes zurückkam. Er kam allein; Lestrade wohnte in der Stadt in einer Pension.
 
-“What are they?”
+„Das Barometer steht immer noch sehr hoch“, bemerkte er, als er sich setzte. „Es ist wichtig, dass es nicht regnet, bevor wir das Gelände gründlich abgehen können. Andererseits muss ein Mann für so feine Arbeit in Bestform und ganz wach sein, und ich wollte es nicht tun, wenn ich von einer langen Reise erschöpft bin. Ich habe den jungen McCarthy gesehen.“
 
-“It seems his arrest did not take place at once, but only after they had returned to Hatherley Farm. When the police inspector told him he was under arrest, he said he was not surprised to hear it, and that it was no more than he deserved. That remark naturally swept away any lingering doubts in the minds of the coroner’s jury.”
+„Und was haben Sie von ihm erfahren?“
 
-“It was a confession,” I burst out.
+„Nichts.“
 
-“No, because he followed it with a protestation of innocence.”
+„Er konnte kein Licht ins Dunkel bringen?“
 
-“Coming on top of such a damning chain of events, it was at the very least a highly suspicious remark.”
+„Überhaupt keines. Eine Zeit lang war ich geneigt zu glauben, er wisse, wer es getan hat, und decke ihn oder sie, aber ich bin jetzt überzeugt, dass er so ratlos ist wie alle anderen. Er ist kein besonders schlagfertiger Bursche, obwohl er gut aussieht und, wie ich meine, im Herzen anständig ist.“
 
-“On the contrary,” said Holmes, “it’s the brightest break in the clouds I can see at the moment. However innocent he might be, he couldn’t be such a complete idiot as not to see that the circumstances looked very black against him. If he had seemed surprised at his arrest, or had pretended to be indignant about it, I should have found that highly suspicious, because such surprise or anger would not be natural in the circumstances, and yet might seem the best policy to a calculating man. His straightforward acceptance of the situation marks him either as an innocent man, or as a man of remarkable self-control and strength of character. As for his remark about getting what he deserved, that too is not unnatural if you consider that he was standing beside his father’s dead body, and that there is no doubt he had that very day so far forgotten his duty as a son as to bandy words with him and even—according to the little girl whose testimony is so important—to raise his hand as if to strike him. The self-reproach and remorse shown in his remark seem to me signs of a healthy mind rather than a guilty one.”
+„Seinen Geschmack kann ich nicht bewundern“, bemerkte ich, „wenn es tatsächlich stimmt, dass er eine Heirat mit einer so bezaubernden jungen Dame wie Miss Turner
 
-\newpage
+„Wirklich! Kommt es Ihnen nicht ein wenig sonderbar vor, dass dieser McCarthy, der offenbar kaum etwas Eigenes besaß und Turner so sehr verpflichtet war, trotzdem davon redet, seinen Sohn mit Turners Tochter zu verheiraten – die, wie man annehmen muss, die Erbin des Gutes ist – und das in einem derart großspurigen Ton, als wäre es bloß eine Frage des Antrags und alles Weitere ergäbe sich von selbst? Umso merkwürdiger, da wir wissen, dass Turner selbst gegen die Idee war. Die Tochter hat es uns gesagt. Ziehen Sie daraus nicht irgendeinen Schluss?“
 
-# I. shook my head. “Many men have been hanged on far slighter evidence,” I said.
+„Jetzt sind wir also bei den Schlussfolgerungen und den Ableitungen“, sagte Lestrade und zwinkerte mir zu. „Ich finde es schon schwer genug, mich an Fakten zu halten, Holmes, ohne hinter Theorien und Einbildungen herzujagen.“
 
-“So they have. And many men have been wrongly hanged.”
+„Sie haben recht“, sagte Holmes mit gespielter Bescheidenheit. „Sie finden es tatsächlich sehr schwer, sich an die Fakten zu halten.“
 
-“What is the young man’s own account of the matter?”
+„Jedenfalls habe ich eine Tatsache begriffen, die Ihnen offenbar schwerer zu packen fällt“, erwiderte Lestrade mit einiger Schärfe.
 
-“I’m afraid it’s not very encouraging for those who support him, though there are one or two suggestive points in it. You’ll find it here; you can read it yourself.”
+„Und die wäre—“
 
-He took from his bundle a copy of the local Herefordshire paper, folded it down, and pointed out the paragraph in which the unfortunate young man had given his own statement of what had happened. I settled myself into the corner of the carriage and read it very carefully. It ran as follows:
+„Dass McCarthy senior durch McCarthy junior zu Tode kam, und dass alle Theorien, die dem widersprechen, der reinste Mondschein sind.“
 
-“Mr. James McCarthy, only son of the deceased, was then called and gave evidence as follows: ‘I had been away from home for three days at Bristol, and had only just returned on the morning of last Monday, the 3rd. My father was not at home when I arrived, and the maid told me that he had driven over to Ross with John Cobb, the groom. Shortly after my return I heard the wheels of his trap in the yard, and, looking out of my window, I saw him get out and walk quickly out of the yard, though I did not know in which direction he was going. I then took my gun and strolled in the direction of Boscombe Pool, intending to visit the rabbit warren on the other side. On my way I saw William Crowder, the gamekeeper, as he stated in his evidence; but he is mistaken in thinking that I was following my father. I had no idea he was in front of me. When I was about a hundred yards from the pool I heard a cry of “Cooee!” which was a usual signal between my father and myself. I then hurried forward and found him standing by the pool. He seemed very surprised to see me and asked rather roughly what I was doing there. A conversation followed which led to angry words and almost to blows, for my father was a man of very violent temper. Seeing that his rage was becoming uncontrollable, I left him and started back towards Hatherley Farm. I had not gone more than a hundred and fifty yards, however, when I heard a horrible cry behind me, which made me run back. I found my father dying on the ground, his head terribly injured. I dropped my gun and took him in my arms, but he died almost at once. I knelt beside him for some minutes, and then went to Mr. Turner’s“Juryman: When you came back after hearing the cry and found your father mortally wounded, did you see anything that made you suspicious?
+„Nun, Mondschein ist immerhin heller als Nebel“, sagte Holmes lachend. „Aber ich täusche mich sehr, wenn das dort links nicht Hatherley Farm ist.“
 
-“Witness: Nothing definite.
+„Ja, das ist sie.“ Es war ein weitläufiges, behaglich wirkendes Gebäude, zweistöckig, mit Schieferdach, und auf den grauen Wänden saßen große gelbe Flecken von Flechten. Die heruntergelassenen Jalousien und die rauchlosen Schornsteine gaben ihm jedoch etwas Geschlagenes, als läge die Last dieses Grauens noch immer schwer darauf. Wir klopften an, und das Dienstmädchen zeigte uns auf Holmes’ Wunsch die Stiefel, die ihr Herr zur Zeit seines Todes getragen hatte, sowie ein Paar des Sohnes – allerdings nicht das Paar, das er damals anhatte. Nachdem Holmes diese sehr sorgfältig an sieben oder acht verschiedenen Stellen vermessen hatte, bat er, in den Hof geführt zu werden; von dort aus folgten wir alle dem gewundenen Pfad, der zum Boscombe Pool hinunterführte.
 
-“Coroner: What do you mean by that?
+Sherlock Holmes verwandelte sich, sobald er eine solche Spur in der Nase hatte. Männer, die nur den stillen Denker und Logiker aus der Baker Street kannten, hätten ihn nicht wiedererkannt. Sein Gesicht rötete sich und wurde dunkler. Die Brauen zogen sich zu zwei harten schwarzen Linien zusammen, und darunter blitzten seine Augen mit stählernem Glanz. Er hielt den Kopf gesenkt, die Schultern nach vorn gebeugt, die Lippen fest zusammengepresst, und an seinem langen, sehnigen Hals traten die Adern hervor wie Peitschenstricke. Seine Nüstern schienen sich zu weiten – mit einer rein tierischen Gier nach der Jagd –, und sein Geist war so vollständig auf das vor ihm Liegende konzentriert, dass eine Frage oder Bemerkung ungehört an ihm abprallte oder höchstens ein kurzes, ungeduldiges Knurren als Antwort hervorrief. Schnell und lautlos ging er den Pfad entlang, der durch die Wiesen führte, dann durch den Wald zum Boscombe Pool. Der Boden war feucht und sumpfig, wie in jener Gegend überall, und es gab Spuren vieler Füße – auf dem Weg selbst und im kurzen Gras, das ihn beiderseits säumte. Manchmal beschleunigte Holmes den Schritt, manchmal blieb er abrupt stehen, und einmal machte er einen kleinen Umweg in die Wiese hinein. Lestrade und ich gingen hinter ihm; der Detektiv gleichgültig und verächtlich, während ich meinen Freund mit jenem Interesse beobachtete, das aus der Überzeugung erwächst, dass jede seiner Bewegungen auf ein bestimmtes Ziel gerichtet ist.
 
-“Witness: I was so upset and excited when I rushed out into the open that I could think of nothing but my father. Still, I have a vague impression that as I ran forward there was something lying on the ground to my left. It struck me as something grey in colour—a coat of some sort, or perhaps a plaid. When I got up from beside my father I looked around for it, but it was gone.
+Der Boscombe Pool – ein kleiner, von Schilf umgürteter Wasserspiegel von etwa fünfzig Yards Breite – liegt an der Grenze zwischen Hatherley Farm und dem Privatpark des reichen Mr. Turner. Über den Wäldern, die das andere Ufer säumten, sahen wir die roten, vorspringenden Giebelspitzen, die den Standort des Hauses des wohlhabenden Grundbesitzers markierten. Auf der Hatherley-Seite wuchs der Wald sehr dicht, und zwischen dem Rand der Bäume und dem Schilf am See lag ein schmaler Streifen durchnässten Grases, etwa zwanzig Schritte breit. Lestrade zeigte uns die genaue Stelle, an der man die Leiche gefunden hatte, und tatsächlich war der Boden so feucht, dass ich die Spuren, die der Sturz des getroffenen Mannes hinterlassen hatte, deutlich erkennen konnte. Für Holmes – das sah ich an seinem gierigen Gesicht und den lauernden Augen – ließ sich im niedergetretenen Gras noch sehr viel mehr lesen. Er lief im Kreis, wie ein Hund, der eine Fährte aufnimmt, und wandte sich dann an meinen Begleiter.
 
-“‘Do you mean it had disappeared before you went for help?’
+„Weshalb sind Sie in den Teich gegangen?“, fragte er.
 
-“‘Yes, it was gone.’
+„Ich habe mit einem Rechen darin herumgefischt. Ich dachte, vielleicht findet sich eine Waffe oder irgendeine Spur. Aber wie zum Teufel—“
 
-“‘You cannot say what it was?’
+„Ach, pff, pff! Ich habe keine Zeit! Ihr linker Fuß mit dieser Einwärts
 
-“‘No. I only had a feeling that something was there.’
+Lestrade lachte. „Ich fürchte, ich bin immer noch ein Skeptiker“, sagte er. „Theorien sind ja schön und gut, aber am Ende haben wir es mit einer nüchternen britischen Jury zu tun.“
 
-“‘How far from the body?’
+„_Nous verrons_“, erwiderte Holmes ruhig. „Sie arbeiten nach Ihrer Methode, und ich nach meiner. Ich werde heute Nachmittag beschäftigt sein und wahrscheinlich mit dem Abendzug nach London zurückfahren.“
 
-“‘About a dozen yards or so.’
+„Und Sie lassen Ihren Fall unvollendet?“
 
-“‘And how far from the edge of the wood?’
+„Nein. Vollendet.“
 
-“‘Roughly the same.’
+„Aber das Rätsel?“
 
-“‘Then if it was removed, it was while you were within a dozen yards of it?’
+„Ist gelöst.“
 
-“‘Yes, but with my back turned to it.’
+„Wer war denn der Täter?“
 
-“This ended the witness’s examination.”
+„Der Herr, den ich beschrieben habe.“
 
-“I see,” I said, glancing down the column, “that in his closing remarks the coroner was rather hard on young McCarthy. He points out, quite reasonably, the discrepancy about his father signalling to him before he could have seen him, his refusal to give details of their conversation, and his strange account of his father’s dying words. As he says, all these things tell very strongly against the son.”
+„Aber wer ist er?“
 
-Holmes chuckled softly and stretched himself out on the cushioned seat. “You and the coroner,” he said, “have taken some trouble to pick out the very strongest points in the young man’s favour. Don’t you see that you’re alternately crediting him with too much imagination and too little? Too little, if he couldn’t invent some cause of quarrel that would win the jury’s sympathy; too much, if he could conjure up out of his own mind anything as bizarre as a dying reference to a rat, and the episode of the disappearing cloth. No, my dear fellow, I’m going to start from the assumption that what this young man says is true, and we shall see where that leads us. And now, here is my pocket Petrarch, and I won’t say another word about the case until we’re actually on the spot. We lunch at Swindon, and I see we’ll be there in twenty minutes.”
+„Das dürfte sich doch nicht schwer herausfinden lassen. Das ist keine besonders dicht besiedelte Gegend.“
 
-It was close on four o’clock when, after passing through the beautiful Stroud Valley and over the broad, gleaming Severn, we finally arrived at the pretty little country town of Ross. A lean, ferret-like man, furtive and sly in appearance, was waiting for us on the platform. Despite the light brown dust-coat and leather leggings he wore in deference to his rustic surroundings, I had no difficulty in recognising Lestrade of Scotland Yard. We drove with him to the Hereford Arms, where a room had already been reserved for us.
+Lestrade zuckte die Achseln. „Ich bin ein praktischer Mann“, sagte er, „und ich kann wirklich nicht durchs Land laufen und nach einem Linkshänder mit einem steifen Bein suchen. Ich würde zum Gespött von Scotland Yard.“
 
-“I’ve ordered a carriage,” said Lestrade, as we sat over a cup of tea. “I knew your energetic nature, and that you wouldn’t be content until you’d been to the scene of the crime.”
+„Schon gut“, sagte Holmes gelassen. „Ich habe Ihnen die Chance gegeben. Hier ist Ihre Unterkunft. Auf Wiedersehen. Ich schreibe Ihnen noch ein paar Zeilen, bevor ich abreise.“
 
-“That was very kind and flattering of you,” Holmes replied. “But it’s entirely a matter of barometric pressure.”
+Nachdem wir Lestrade in seinen Zimmern zurückgelassen hatten, fuhren wir zu unserem Hotel, wo das Mittagessen bereits auf dem Tisch stand. Holmes schwieg, in Gedanken versunken, und auf seinem Gesicht lag ein schmerzlicher Ausdruck, wie bei einem Menschen, der in einer verwickelten Lage steckt.
 
-Lestrade looked taken aback. “I don’t quite follow you,” he said.
+„Hören Sie, Watson“, sagte er, als abgeräumt war, „setzen Sie sich in diesen Sessel und lassen Sie mich Ihnen ein wenig predigen. Ich weiß nicht recht, was ich tun soll, und Ihr Rat wäre mir viel wert. Zünden Sie sich eine Zigarre an, und ich werde Ihnen alles auseinanderlegen.“
 
-“How’s the glass? Twenty-nine, I see. No wind, and not a cloud in the sky. I have a case full of cigarettes here that need smoking, and this sofa is vastly superior to the usual horrors one finds in country hotels. I don’t think it at all likely that I shall use the carriage tonight.”
+„Bitte, tun Sie das.“
 
-Lestrade laughed indulgently. “You’ve no doubt already made up your mind from the newspapers,” he said. “The case is as plain as a pikestaff, and the more you look into it the plainer it gets. Still, of course, one can’t refuse a lady—especially such a very determined one. She’s heard of you and insisted on having your opinion, though I told her again and again that there was nothing you could do that I hadn’t already done. Why, bless my soul, here’s her carriage at the door now.”
+„Also. Wenn wir diesen Fall betrachten, gibt es zwei Punkte in der Aussage des jungen McCarthy, die uns beide sofort getroffen haben – nur dass sie auf mich zu seinen Gunsten wirkten und auf Sie gegen ihn. Der eine war die Tatsache, dass sein Vater, seiner Darstellung nach, ‚Cooee!‘ gerufen haben soll, bevor er ihn überhaupt sah. Der andere war sein merkwürdiger Sterbehinweis auf eine Ratte. Er murmelte mehrere Worte, verstehen Sie, aber das war alles, was dem Sohn im Ohr blieb. Von diesem doppelten Ansatz muss unsere Untersuchung ausgehen – und wir beginnen damit, dass wir annehmen, der Junge sage die reine Wahrheit.“
 
-He had barely spoken when there burst into the room one of the loveliest young women I have ever seen. Her violet eyes were shining, her lips parted, a pink flush in her cheeks; all trace of her natural reserve swept away by her overwhelming excitement and anxiety.
+„Und was ist mit diesem ‚Cooee!‘?“
 
-“Oh, Mr. Sherlock Holmes!” she cried, glancing from one to the other of us and finally, with a woman’s quick intuition, fixing on my companion. “I’m so glad you’ve come. I drove down just to tell you so. I know James didn’t do it. I know it, and I want you to begin your work knowing it too. Never let yourself doubt that. We’ve known each other since we were little children, and I know his faults as no one else does; but he’s too tender-hearted to hurt a fly. Such a charge is absurd to anyone who really knows him.”
+„Nun, ganz offensichtlich konnte es nicht für den Sohn bestimmt gewesen sein. Der Sohn war, soweit der Vater wusste, in Bristol. Dass er überhaupt in Hörweite war, war reiner Zufall. Das ‚Cooee!‘ sollte die Aufmerksamkeit dessen erregen, mit dem er verabredet war. Aber ‚Cooee‘ ist ein ausgesprochen australischer Ruf, und er wird unter Australiern gebraucht. Es spricht sehr viel dafür, dass die Person, die McCarthy am Boscombe Pool erwartete, jemand war, der in Australien gewesen ist.“
 
-“I hope we may clear him, Miss Turner,” said Sherlock Holmes. “You may rely on my doing everything I can.”
+„Und die Ratte?“
 
-“But you’ve read the evidence. You’ve formed some opinion? Don’t you see some loophole, some flaw? Don’t you yourself think he’s innocent?”
+Sherlock Holmes zog ein gefaltetes Papier aus der Tasche und strich es auf dem Tisch glatt. „Das ist eine Karte der Kolonie Victoria“, sagte er. „Ich habe gestern Nacht nach Bristol telegrafiert, damit man sie mir schickt.“ Er legte die Hand über einen Teil der Karte. „Was lesen Sie?“
 
-“I think it is very probable.”
+„ARAT“, las ich.
 
-“There, you see!” she cried, throwing back her head and looking defiantly at Lestrade. “You hear? He gives me hope“I will, Miss Turner.”
+„Und jetzt?“ Er hob die Hand.
 
-“I have to go home now. Father is very ill, and he misses me terribly when I leave him. Good-bye, and God help you in what you’re trying to do.” She rushed out of the room as impulsively as she had entered it, and we heard the wheels of her carriage rattling away down the street.
+„BALLARAT.“
 
-“I’m ashamed of you, Holmes,” said Lestrade stiffly, after a few minutes of silence. “Why raise hopes you’re certain to crush? I’m not exactly soft-hearted, but I call that cruel.”
+„Ganz genau. Das war das Wort, das der Mann aussprach – und von dem sein Sohn nur die letzten zwei Silben auffing. Er versuchte, den Namen seines Mörders zu nennen. Soundso aus Ballarat.“
 
-“I believe I see how to clear James McCarthy,” said Holmes. “Do you have an order to see him in prison?”
+„Das ist ja unglaublich!“, rief ich.
 
-“Yes, but it’s only for you and me.”
+„Es ist naheliegend. Und Sie sehen: Damit hatte ich das Feld bereits erheblich eingeengt. Der Besitz eines grauen Kleidungsstücks war ein dritter Punkt, der – wenn wir die Aussage des Sohnes als richtig voraussetzen – sicher war. Wir sind nun aus dem bloßen Nebel zu einer klaren Vorstellung gelangt: ein Australier aus Ballarat mit einem grauen Umhang.“
 
-“Then I’ll reconsider my decision about going out. We still have time to catch a train to Hereford and see him tonight?”
+„Gewiss.“
 
-“Plenty.”
+„Und einer, der sich in der Gegend auskannte, denn an den Teich gelangt man nur über den Hof oder über das Gut, wo Fremde kaum einfach so umherstreifen.“
 
-“Then let’s do it. Watson, I’m afraid you’ll find it very dull, but I’ll only be gone a couple of hours.”
+„Ganz richtig.“
 
-\newpage
+„Dann kam unser Ausflug heute. Durch die Untersuchung des Geländes gewann ich die kleinen Einzelheiten, die ich diesem Schwachkopf Lestrade über die Person des Täters genannt habe.“
 
-# I. walked down to the station with them, then wandered through the streets of the little town, finally returning to the hotel, where I lay on the sofa and tried to interest myself in a yellow-backed novel. The flimsy little plot was so thin compared to the deep mystery we were groping through that my attention kept drifting from the story back to the case, until at last I flung the book across the room and gave myself up entirely to thinking over the day’s events.
+„Aber wie haben Sie sie gewonnen?“
 
-If this unhappy young man’s story was absolutely true, then what hellish thing—what utterly unforeseen and extraordinary calamity—could have happened between the moment he left his father and the moment when, drawn back by his screams, he rushed into the clearing? It was something terrible and deadly. What could it have been? Might the nature of the injuries suggest something to my medical instincts?
+„Sie kennen meine Methode. Sie beruht auf der Beobachtung von Kleinigkeiten.“
 
-\newpage
+„Seine Größe – die konnten Sie grob aus der Schrittlänge abschätzen. Und seine Stiefel auch, anhand der Spuren.“
 
-# I. rang for the waiter and asked for the weekly county paper, which carried a verbatim report of the inquest. In the surgeon’s deposition it was stated that the back third of the left parietal bone and the left half of the occipital bone had been shattered by a heavy blow from a blunt weapon. I marked the spot on my own head. Clearly, such a blow must have been struck from behind. That told somewhat in favour of the accused, since when they were seen quarrelling they were face to face. Still, it did not count for very much, for the older man might have turned his back before the blow fell. Even so, it might be worth drawing Holmes’s attention to it.
+„Ja, es waren auffällige Stiefel.“
 
-Then there was the strange dying reference to a “rat.” What could that mean? It could hardly be delirium. A man dying from a sudden blow does not usually become delirious. No, it was more likely an attempt to explain how he met his fate. But what could it indicate? I racked my brains for some possible explanation.
+„Aber sein Hinken?“
 
-And then there was the incident of the grey cloth seen by young McCarthy. If that was true, the murderer must have dropped some part of his clothing—presumably his overcoat—while fleeing, and then had the nerve to come back and pick it up at the very moment when the son was kneeling with his back turned, not a dozen paces away. What a web of mysteries and improbabilities the whole thing was! I could not be surprised at Lestrade’s opinion, and yet I had such faith in Sherlock Holmes’s insight that I could not lose hope, especially as every new fact seemed only to strengthen his conviction of young McCarthy’s innocence.
+„Der Abdruck seines rechten Fußes war stets weniger deutlich als der linke. Er verlagerte weniger Gewicht darauf. Warum? Weil er hinkte – er war lahm.“
 
-It was late when Sherlock Holmes returned. He came back alone, for Lestrade was staying in lodgings in the town.
+„Und die Linkshändigkeit?“
 
-“The barometer is still very high,” he remarked as he sat down. “It’s important that it doesn’t rain before we can go over the ground. On the other hand, a man ought to be at his sharpest for such delicate work, and I didn’t want to tackle it worn out from a long journey. I’ve seen young McCarthy.”
+„Sie selbst waren von der Art der Verletzung beeindruckt, wie sie der Arzt bei der Untersuchung vor Gericht festgehalten hat. Der Schlag kam unmittelbar von hinten, und doch traf er die linke Seite. Wie ist das möglich, wenn nicht durch einen Linkshänder? Er hatte während des Gesprächs zwischen Vater und Sohn hinter jenem Baum
 
-“And what did you learn from him?”
+„Ich bin ein sterbender Mann“, sagte der alte Turner. „Ich habe seit Jahren Diabetes. Mein Arzt sagt, es ist fraglich, ob ich noch einen Monat lebe. Und doch sterbe ich lieber unter meinem eigenen Dach als in einem Gefängnis.“
 
-“Nothing.”
+Holmes stand auf, setzte sich an den Tisch, nahm den Füllhalter zur Hand und zog einen Stapel Papier zu sich heran. „Sagen Sie uns einfach die Wahrheit“, sagte er. „Ich notiere die Fakten. Sie unterschreiben, und Watson hier kann es bezeugen. Dann könnte ich Ihr Geständnis im äußersten Notfall vorlegen, um den jungen McCarthy zu retten. Ich verspreche Ihnen, ich werde es nicht verwenden, wenn es nicht unbedingt nötig ist.“
 
-“He could shed no light at all?”
+„Das ist wohl das Beste“, sagte der Alte. „Es ist fraglich, ob ich die Schwurgerichtssitzungen überhaupt noch erlebe, also ist es mir ziemlich gleich — aber ich möchte Alice den Schock ersparen. Und jetzt will ich Ihnen die Sache klar machen; es hat sich lange angebahnt, aber erzählen werde ich es schnell.
 
-“None. At one time I was inclined to think he knew who had done it and was shielding him or her, but I’m now convinced he’s as puzzled as anyone. He’s not a very quick-witted lad, though he’s good-looking and, I should say, sound at heart.”
+„Sie kannten diesen Toten nicht, McCarthy. Er war ein leibhaftiger Teufel. Das sage ich Ihnen. Gott bewahre Sie davor, in die Klauen eines solchen Mannes zu geraten. Seit zwanzig Jahren hat er mich im Griff, und er hat mein Leben verwüstet. Ich erzähle Ihnen zuerst, wie ich in seine Gewalt geraten bin.
 
-“I can’t admire his taste,” I remarked, “if it’s really true that he was unwilling to marry such a charming young lady as Miss Turner.”
+„Es war Anfang der Sechziger, bei den Goldfeldern. Ich war damals ein junger Kerl, hitzköpfig und leichtsinnig, zu allem bereit; ich geriet unter schlechtes Volk, fing an zu saufen, hatte kein Glück mit meinem Claim, ging in den Busch — und kurz: ich wurde das, was man hier wohl einen Straßenräuber nennen würde. Wir waren zu sechst, und wir führten ein wildes, freies Leben, überfielen hin und wieder eine Station oder hielten die Wagen auf der Straße zu den Goldfeldern an. Black Jack aus Ballarat nannte ich mich, und unsere Truppe ist in der Kolonie noch immer als die Ballarat-Bande in Erinnerung.
 
-“Ah, there hangs a rather painful story. The fellow is madly—insanely—in love with her, but about two years ago, when he was only a boy and before he really knew her—for she’d been away for five years at boarding school—what does the idiot do but fall into the clutches of a barmaid in Bristol and marry her at a registry office? No one knows a word of it, but you can imagine how maddening it must be for him to be reproached for not doing what he’d give his very eyes to do, yet knows to be absolutely impossible. It was a fit of sheer frenzy of that kind which made him throw his hands into the air when his father, in their last interview, was goading him to propose to Miss Turner.
+„Eines Tages kam ein Goldtransport von Ballarat nach Melbourne herunter, und wir legten uns auf die Lauer und griffen an. Es waren sechs berittene Soldaten und sechs von uns — es war knapp, aber mit der ersten Salve räumten wir vier aus den Sätteln. Drei von unseren Jungs wurden allerdings getötet, bevor wir an die Beute kamen. Ich setzte dem Kutscher die Pistole an den Kopf — und dieser Kutscher war genau dieser Mann, McCarthy. Ich wünschte bei Gott, ich hätte ihn damals erschossen, aber ich verschonte ihn, obwohl ich sah, wie seine bösen, kleinen Augen sich in mein Gesicht bohrten, als wollte er sich jedes Merkmal einprägen. Wir kamen mit dem Gold davon, wurden wohlhabende Männer und schlugen uns, ohne Verdacht zu erregen, nach England durch. Dort trennte ich mich von meinen alten Kumpanen und beschloss, mich niederzulassen und ein ruhiges, anständiges Leben zu führen. Ich kaufte dieses Gut, das zufällig gerade zum Verkauf stand, und nahm mir vor, mit meinem Geld ein wenig Gutes zu tun — als Ausgleich dafür, wie ich es verdient hatte. Ich heiratete auch, und obwohl meine Frau jung starb, ließ sie mir meine liebe kleine Alice. Schon als Baby schien ihre winzige Hand mich auf den rechten Weg zu führen, wie es nichts anderes je vermocht hatte. Kurz gesagt: Ich schlug ein neues Blatt auf und tat mein Bestes, die Vergangenheit wettzumachen. Alles ging gut — bis McCarthy mich wieder im Griff hatte.
 
-“On the other hand, he had no means of supporting himself, and his father, who by all accounts was a very hard man, would have cast him off completely if he had known the truth. It was with this barmaid wife that he spent the last three days in Bristol, and his father had no idea where he was. Note that point. It’s important. Still“Really! Doesn’t it strike you as a little odd that this McCarthy, who seems to have had very little of his own and to have been so indebted to Turner, should still talk about marrying his son to Turner’s daughter—who is presumably heiress to the estate—and to do it in such a cocky, matter‑of‑fact way, as if it were just a matter of proposing and everything else would fall into place? It’s all the stranger since we know Turner himself was against the idea. The daughter told us as much. Don’t you draw any conclusion from that?”
+„Ich war wegen einer Anlage in der Stadt gewesen, und da begegnete ich ihm in der Regent Street — kaum ein Mantel am Leib, kaum ein Stiefel am Fuß.
 
-“So we’ve got to the deductions and inferences,” said Lestrade, winking at me. “I find it hard enough dealing with facts, Holmes, without flying off after theories and fancies.”
+„‚Na, da sind wir ja, Jack‘, sagt er und tippt mir an den Arm. ‚Wir werden dir so gut wie Familie sein. Wir sind zu zweit, ich und mein Sohn, und du kannst uns durchfüttern. Wenn nicht — England ist ein schönes, gesetzestreues Land, und ein Polizist ist immer in Rufweite.‘
 
-“You’re right,” said Holmes mildly. “You do find it very hard to deal with the facts.”
+„Nun, sie kamen runter ins Westland, und ich wurde sie nicht mehr los; und seitdem leben sie dort auf meinem besten Land, mietfrei. Für mich gab es keine Ruhe, keinen Frieden, kein Vergessen; wohin ich mich auch wandte, da war sein listiges, grinsendes Gesicht an meiner Seite. Es wurde schlimmer, je älter Alice wurde, denn er merkte bald, dass ich mehr Angst davor hatte, dass sie von meiner Vergangenheit erfuhr, als vor der Polizei. Was immer er wollte, musste er bekommen, und was immer es war, ich gab es ihm ohne Fragen: Land, Geld, Häuser — bis er schließlich etwas verlangte, das ich nicht geben konnte. Er verlangte Alice.
 
-“Anyway, I’ve got hold of one fact which you seem to find it difficult to grasp,” replied Lestrade heatedly.
+„Sein Sohn, verstehen Sie, war herangewachsen, und mein Mädchen auch, und da ich als gesundheitlich angeschlagen galt, schien es ihm ein genialer Zug, dass sein Junge einmal das ganze Anwesen übernehmen sollte. Aber da blieb ich hart. Ich wollte sein verfluchtes Blut nicht mit meinem vermischt sehen; nicht, dass ich den Jungen nicht mochte, aber sein Blut steckte in ihm — und das genügte. Ich blieb standhaft. McCarthy drohte. Ich forderte ihn heraus, sein Schlimmstes zu tun. Wir wollten uns am Teich treffen, auf halbem Weg
 
-“And that is—?”
+**5. DIE FÜNF ORANGENKERNE**
 
-“That McCarthy senior met his death at the hands of McCarthy junior, and that all theories to the contrary are pure moonshine.”
+Wenn ich meine Notizen und Aufzeichnungen über die Fälle Sherlock Holmes’ aus den Jahren ’82 bis ’90 durchsehe, stehe ich vor so vielen, die seltsame und interessante Züge tragen, dass es keineswegs leicht ist zu entscheiden, welche ich auswählen und welche ich beiseitelassen soll. Einige haben allerdings bereits durch die Zeitungen Bekanntheit erlangt, andere wiederum boten keinen Raum für jene besonderen Fähigkeiten, die mein Freund in so hohem Maße besaß und die diese Aufzeichnungen vor allem veranschaulichen sollen. Manche haben sogar seinen analytischen Scharfsinn überfordert und wären als Erzählungen nichts als Anfänge ohne Ende, während andere nur teilweise aufgeklärt wurden und ihre Erklärungen eher auf Vermutungen und Mutmaßungen beruhen als auf jenem strengen logischen Beweis, der ihm so teuer war. Es gibt jedoch einen dieser letzteren Fälle, der in seinen Einzelheiten so bemerkenswert und in seinen Folgen so erschütternd war, dass ich versucht bin, ihn zu schildern, obwohl es dabei Punkte gibt, die niemals vollständig aufgeklärt worden sind – und es wahrscheinlich auch nie werden.
 
-“Well, moonshine is a brighter thing than fog,” said Holmes, laughing. “But I’m very much mistaken if that isn’t Hatherley Farm on the left.”
+Das Jahr ’87 bescherte uns eine lange Reihe von Fällen, mehr oder minder interessant, deren Aufzeichnungen ich aufbewahrt habe. Unter meinen Überschriften für diese zwölf Monate finde ich einen Bericht über das Abenteuer der Paradol-Kammer, über die Amateur-Bettlergesellschaft, die in einem luxuriösen Klubgewölbe unter dem Keller eines Möbelmagazins tagte, über die Umstände rund um das Verschwinden der britischen Bark *Sophy Anderson*, über die sonderbaren Erlebnisse der Grice Patersons auf der Insel Uffa und schließlich über den Camberwell-Vergiftungsfall. In letzterem – wie man sich vielleicht erinnert – konnte Sherlock Holmes, indem er die Uhr des Toten aufzog, nachweisen, dass sie zwei Stunden zuvor aufgezogen worden war und der Verstorbene folglich innerhalb dieser Zeit zu Bett gegangen sein musste – eine Schlussfolgerung von größter Bedeutung für die Aufklärung des Falles. All dies mag ich zu einem späteren Zeitpunkt skizzieren; doch keiner dieser Fälle weist so eigentümliche Züge auf wie die seltsame Kette von Umständen, deren Beschreibung ich nun zur Feder genommen habe.
 
-“Yes, that’s it.” It was a sprawling, comfortable‑looking house, two stories high, slate‑roofed, with big yellow patches of lichen on the grey walls. The blinds were drawn and no smoke rose from the chimneys, which gave it a stricken look, as though the weight of the horror still lay heavy upon it. We knocked at the door, and at Holmes’s request the maid showed us the boots her master had been wearing at the time of his death, and also a pair of the son’s, though not the pair he had worn that day. After measuring them very carefully at seven or eight different points, Holmes asked to be taken to the courtyard, from which we all followed the winding path that led to Boscombe Pool.
+Es war in den letzten Septembertagen, und die Äquinoktialstürme hatten mit ungewöhnlicher Heftigkeit eingesetzt. Den ganzen Tag hatte der Wind geheult und der Regen gegen die Scheiben gepeitscht, so dass selbst hier, im Herzen des großen, von Menschenhand errichteten London, unser Geist für einen Moment aus der Routine des Alltags gerissen wurde und wir die Gegenwart jener gewaltigen Elementarkräfte anerkennen mussten, die dem Menschen durch die Gitter seiner Zivilisation entgegenkreischen wie ungezähmte Tiere im Käfig. Als der Abend hereinbrach, steigerte sich der Sturm noch, lauter und höher, und der Wind klagte und schluchzte im Kamin wie ein Kind. Sherlock Holmes saß düster auf der einen Seite des Kamins und legte seine Verbrechensakten in ein Querverzeichnis, während ich auf der anderen Seite tief in eine der ausgezeichneten Seegeschichten von Clark Russell versunken war, bis das Heulen des Sturms draußen mit dem Text zu verschmelzen schien und das Klatschen des Regens sich in meinem Ohr zu dem langen, schweren Schlagen der Meereswellen dehnte. Meine Frau war zu Besuch bei ihrer Mutter, und für ein paar Tage war ich wieder Bewohner meiner alten Räume in der Baker Street.
 
-Sherlock Holmes was a different man when he was hot on a scent like this. Anyone who only knew the quiet thinker and logician of Baker Street would hardly have recognised him. His face flushed and darkened. His brows drew together into two hard black lines, and his eyes shone beneath them with a steely glitter. His head was bent, his shoulders rounded, his lips pressed tight, and the veins stood out like whipcord in his long, sinewy neck. His nostrils seemed to flare with a purely animal lust for the chase, and his mind was so utterly fixed on the matter before him that any question or remark fell on deaf ears, or at best drew a quick, impatient snarl in reply. Swiftly and silently he followed the track that ran through the meadows and then, by way of the woods, to Boscombe Pool. The ground was damp and marshy, as it is throughout that district, and there were the marks of many feet both on the path and in the short grass bordering it on either side. Sometimes Holmes would hurry forward, sometimes stop dead, and once he made quite a little detour into the meadow. Lestrade and I walked behind him—the detective indifferent and contemptuous, while I watched my friend with the interest born of the conviction that every one of his movements was directed toward a definite end.
+„Warum“, sagte ich und blickte zu meinem Gefährten auf, „das war doch sicher die Klingel. Wer sollte heute Nacht noch kommen? Vielleicht ein Freund von Ihnen?“
 
-Boscombe Pool, a small, reed‑fringed sheet of water some fifty yards across, lies on the boundary between Hatherley Farm and the private park of the wealthy Mr. Turner. Above the trees that lined it on the far side we could see the red, jutting pinnacles that marked the site of the rich landowner’s house. On the Hatherley side the woods grew very thick, and between the edge of the trees and the reeds at the water’s edge there was a narrow strip of sodden grass, about twenty paces across. Lestrade showed us the exact spot where the body had been found, and the ground was so wet that I could clearly see the marks left by the fall of the stricken man. To Holmes, as I could tell from his eager face and peering eyes, a great many other things were written on the trampled grass. He ran about like a dog picking up a scent, then suddenly turned on my companion.
+„Außer Ihnen habe ich keinen“, erwiderte er. „Ich ermutige keine Besucher.“
 
-“What did you go into the pool for?” he asked.
+„Dann ein Klient?“
 
-“I raked about in it. I thought there might be some weapon or other trace. But how on earth—”
+„Wenn ja, dann ist es ein ernster Fall. Nichts Geringeres würde einen Menschen bei solchem Wetter und zu solcher Stunde vor die Tür treiben. Aber ich nehme an, es ist eher irgendein Bekannter der Vermieterin.“
 
-“Oh, tut, tut! I’ve no time for that. That left foot of yours with its inward twist is all over the place. A mole could track it, and there it disappears among the reeds. Oh, how simple it all would have been if I had been here before they came like a herd of buffalo and churned everything up. Here’s where the party with the lodge‑keeper came, and they’ve obliterated all tracks for six or eight feet around the body. But here are three separate sets of the same footprints.” He took out a lens and lay down on his waterproof coat to get a better view, talking all the while more to himself than to us. “These are young McCarthy’s feet. Twice he was walking, and once he ran fast, so the soles are deeply marked and the heels hardly show. That supports his story. He ran when he saw his father on the ground. Then here are the father’s footprints as he paced up and down. What’s this, then? This is the butt of the gun where the son stood listening. And this? Ha, ha! What have we here? Tiptoes, tiptoes! And square‑toed, too—quite unusualLestrade laughed. “I’m afraid I’m still a skeptic,” he said. “Theories are all very well, but we have to convince a hard-headed British jury.”
+Doch Sherlock Holmes irrte sich mit seiner Vermutung, denn es erklang ein Schritt im Flur und ein Klopfen an der Tür. Er streckte seinen langen Arm aus, drehte die Lampe von sich weg und auf den leeren Stuhl, auf dem ein Neuankömmling Platz nehmen musste.
 
-“We shall see,” Holmes replied calmly. “You follow your method, and I’ll follow mine. I’ll be busy this afternoon, and I’ll probably be back in London by the evening train.”
+„Herein!“ sagte er.
 
-“And leave your case unfinished?”
+Der Mann, der eintrat, war jung, höchstens zweiundzwanzig, gepflegt und ordentlich gekleidet, mit etwas Feinem, Zurückhaltendem in Haltung und Auftreten. Der tropfende Schirm in seiner Hand und sein langer, glänzender Regenmantel zeugten von dem wilden Wetter, durch das er gekommen war. Im grellen Licht der Lampe sah er sich unruhig um, und ich konnte erkennen, dass sein Gesicht blass war und seine Augen schwer wirkten – wie bei einem Menschen, den eine große Sorge niederdrückt.
 
-“No—finished.”
+„Ich schulde Ihnen eine Entschuldigung“, sagte er und hob sein goldenes Kneifer an die Augen. „Ich hoffe, ich störe nicht. Ich fürchte, ich habe ein wenig Sturm und Regen in Ihr behagliches Zimmer getragen.“
 
-“But the mystery?”
+„Geben Sie mir Mantel und Schirm“, sagte Holmes. „Hier am Haken können sie hängen, und gleich sind sie trocken. Sie kommen aus Südwesten, wie ich sehe.“
 
-“It’s solved.”
+„Ja, aus Horsham.“
 
-“Who was the criminal, then?”
+„Diese Mischung aus Lehm und Kreide, die ich auf Ihren Schuhkappen erken
 
-“The gentleman I described.”
+„Er nahm keinerlei Notiz von mir; ja, eigentlich fasste er sogar Gefallen an mir, denn als er mich zum ersten Mal sah, war ich ein Junge von etwa zwölf. Das muss im Jahr 1878 gewesen sein, nachdem er schon acht oder neun Jahre in England gelebt hatte. Er bat meinen Vater, mich bei ihm wohnen zu lassen, und auf seine Art war er sehr gut zu mir. Wenn er nüchtern war, spielte er gern mit mir Backgammon und Dame, und er machte mich zu seinem Stellvertreter gegenüber den Dienstboten wie auch den Händlern, sodass ich, als ich sechzehn war, das Haus praktisch im Griff hatte. Ich verwahrte alle Schlüssel und konnte hingehen, wohin ich wollte, und tun, was ich wollte – solange ich ihn nicht in seiner Abgeschiedenheit störte. Es gab allerdings eine merkwürdige Ausnahme: Er hatte einen einzigen Raum, einen Abstellraum oben unterm Dach, der ausnahmslos verschlossen war und in den er weder mich noch sonst jemanden jemals hineinließ. Aus Jungenneugier habe ich durchs Schlüsselloch gespäht, aber ich konnte nie mehr erkennen als eine Ansammlung alter Koffer und Bündel, wie man sie in so einem Raum eben erwartet.
 
-“But who is he?”
+Eines Tages – es war im März 1883 – lag ein Brief mit ausländischer Marke auf dem Tisch, direkt vor dem Teller des Colonels. Es kam nicht oft vor, dass er Post bekam; seine Rechnungen bezahlte er stets bar, und Freunde hatte er überhaupt keine. „Aus Indien!“, sagte er, als er ihn aufhob. „Poststempel Pondicherry! Was soll das bedeuten?“ Er riss ihn hastig auf, und heraus sprangen fünf kleine, getrocknete Orangenkerne, die klackernd auf seinen Teller fielen. Ich musste darüber lachen – doch das Lachen erstarb mir auf den Lippen, als ich sein Gesicht sah. Seine Unterlippe hing herab, die Augen traten hervor, die Haut war fahl wie Kitt, und er starrte den Umschlag an, den er noch immer in der zitternden Hand hielt. „K. K. K.!“, kreischte er, und dann: „Mein Gott, mein Gott, meine Sünden holen mich ein!“
 
-“Surely that can’t be hard to find out. This isn’t exactly a crowded neighborhood.”
+„Was ist denn, Onkel?“, rief ich.
 
-Lestrade shrugged. “I’m a practical man,” he said, “and I really can’t go tramping around the countryside looking for a left-handed gentleman with a bad leg. I’d be the laughing-stock of Scotland Yard.”
+„Der Tod“, sagte er, stand vom Tisch auf und zog sich in sein Zimmer zurück, während ich vor Entsetzen bebte. Ich nahm den Umschlag und sah, dass auf der inneren Lasche, knapp über der Klebestelle, in roter Tinte hingekritzelt dreimal der Buchstabe K stand. Sonst war nichts darin – nur die fünf getrockneten Kerne. Was konnte der Grund für seine überwältigende Angst sein? Ich verließ den Frühstückstisch, und als ich die Treppe hinaufging, kam er mir entgegen: In der einen Hand hielt er einen alten, rostigen Schlüssel, der zum Dachboden gehört haben musste, in der anderen eine kleine Messingkassette, wie eine Geldkassette.
 
-“As you wish,” said Holmes quietly. “I’ve given you your chance. Here are your lodgings. Good-bye. I’ll drop you a line before I leave.”
+„Sollen sie doch tun, was sie wollen – ich setze sie trotzdem schachmatt“, sagte er fluchend. „Sag Mary, sie soll heute in meinem Zimmer Feuer machen, und schick nach Fordham, dem Anwalt aus Horsham.“
 
-After leaving Lestrade at his rooms, we drove to our hotel, where lunch was already on the table. Holmes sat in silence, lost in thought, his face drawn and troubled, like a man caught in a difficult dilemma.
+Ich tat, was er befahl, und als der Anwalt eintraf, wurde ich gebeten, ins Zimmer hinaufzukommen. Das Feuer brannte hell, und im Kaminrost lag ein Haufen schwarzer, flockiger Asche, als wäre Papier verbrannt worden; daneben stand die Messingkassette offen und leer. Als ich einen Blick darauf warf, bemerkte ich mit einem Ruck, dass auf dem Deckel das dreifache K aufgedruckt war – genau das, was ich am Morgen auf dem Umschlag gesehen hatte.
 
-“Look here, Watson,” he said when the table had been cleared, “sit down in this chair and let me preach to you for a bit. I’m not quite sure what to do, and I’d value your advice. Light a cigar and let me explain.”
+„Ich möchte, John“, sagte mein Onkel, „dass du mein Testament bezeugst. Ich vermache meinen Besitz, mit all seinen Vorteilen und all seinen Nachteilen, meinem Bruder, deinem Vater; von ihm wird er, ohne Zweifel, an dich übergehen. Wenn du ihn in Frieden genießen kannst – umso besser. Wenn du merkst, dass du es nicht kannst, dann nimm meinen Rat an, mein Junge, und überlass ihn deinem schlimmsten Feind. Es tut mir leid, dir so ein zweischneidiges Ding zu hinterlassen, aber ich kann nicht sagen, welche Wendung die Dinge nehmen werden. Unterschreib bitte dort, wo Mr. Fordham es dir zeigt.“
 
-“Please do.”
+Ich unterschrieb, wie man es mir anwies, und der Anwalt nahm das Papier mit sich. Dieser seltsame Vorfall machte, wie Sie sich denken können, den tiefsten Eindruck auf mich, und ich grübelte darüber nach, wendete ihn in Gedanken hin und her, ohne auch nur das Geringste daraus zu machen. Und doch wurde ich das vage Gefühl der Beklemmung nicht los, das er zurückließ – auch wenn es mit den Wochen weniger scharf wurde, weil nichts geschah, was den gewohnten Ablauf unseres Lebens störte. Eine Veränderung an meinem Onkel konnte ich allerdings deutlich sehen. Er trank mehr als je zuvor, und er war noch weniger zu irgendeiner Gesellschaft aufgelegt. Die meiste Zeit saß er in seinem Zimmer, die Tür von innen verriegelt; doch manchmal brach er in einer Art trunkenem Anfall heraus, stürmte aus dem Haus und raste mit einem Revolver in der Hand durch den Garten, schreiend, er fürchte keinen Menschen und lasse sich nicht wie ein Schaf im
 
-“Well then, when we consider this case, there are two points in young McCarthy’s story that struck us both at once—though they inclined me in his favor and you against him. One is that his father, according to him, called out ‘Cooee!’ before he saw him. The other is that strange dying reference to a rat. He mumbled several words, you understand, but that was all the son caught. Our investigation must start from those two points, and we’ll begin by assuming that what the boy says is absolutely true.”
+„W-was um alles in der Welt soll das bedeuten, John?“, stammelte er.
 
-“What about this ‘Cooee!’ then?”
+Mir wurde das Herz schwer wie Blei. „Es ist K. K. K.“, sagte ich.
 
-“Obviously it couldn’t have been meant for the son. As far as the father knew, the son was in Bristol. It was pure chance he was within earshot. The ‘Cooee!’ was meant to attract the person he had arranged to meet. But ‘Cooee’ is a distinctly Australian cry, used between Australians. So there’s a strong presumption that the person McCarthy expected to meet at Boscombe Pool was someone who had been in Australia.”
+Er sah in den Umschlag. „Tatsächlich!“, rief er. „Hier sind ja die Buchstaben. Aber was steht da darüber?“
 
-“And the rat?”
+„Leg die Papiere auf die Sonnenuhr“, las ich und spähte ihm über die Schulter.
 
-Sherlock Holmes took a folded paper from his pocket and smoothed it out on the table. “This is a map of the colony of Victoria,” he said. “I wired to Bristol for it last night.” He covered part of the map with his hand. “What do you read?”
+„Welche Papiere? Welche Sonnenuhr?“, fragte er.
 
-“ARAT,” I read.
+„Die Sonnenuhr im Garten. Eine andere gibt es nicht“, sagte ich. „Und mit den Papieren können nur die gemeint sein, die vernichtet wurden.“
 
-“And now?” He lifted his hand.
+„Ach was!“, sagte er und klammerte sich an seinen Mut. „Wir sind hier in einem zivilisierten Land, und so einen Blödsinn lassen wir uns nicht bieten. Wo kommt das her?“
 
-“BALLARAT.”
+„Aus Dundee“, antwortete ich und warf einen Blick auf den Poststempel.
 
-“Exactly. That was the word the man tried to say, of which his son only heard the last two syllables. He was trying to say the name of his murderer: So-and-so, of Ballarat.”
+„Ein völlig bescheuerter Streich“, sagte er. „Was habe ich mit Sonnenuhren und Papieren zu schaffen? Ich werde so einen Unsinn einfach ignorieren.“
 
-“It’s astonishing!” I cried.
+„Ich würde auf jeden Fall mit der Polizei sprechen“, sagte ich.
 
-“It’s obvious. And now you see I had narrowed the field considerably. The possession of a grey garment was a third point which, assuming the son’s statement to be correct, was certain. We had moved from mere vagueness to a clear picture: an Australian from Ballarat with a grey cloak.”
+„Damit man mich auslacht. Kommt gar nicht infrage.“
 
-“Certainly.”
+„Dann lass mich gehen?“
 
-“And one who knew the district well, because the pool can only be reached either through the farm or through the estate, and strangers would hardly wander there by accident.”
+„Nein, ich verbiete es dir. Ich will keinen Aufruhr wegen so eines Quatschs.“
 
-“Quite so.”
+Es war sinnlos, mit ihm zu streiten; er war ein äußerst starrköpfiger Mann. Ich ging zwar meinen Dingen nach, doch mein Herz war voller düsterer Vorahnungen.
 
-“Then came our expedition today. By examining the ground I picked up the little details I reported to that imbecile Lestrade about the criminal’s appearance.”
+Am dritten Tag nach dem Eintreffen des Briefes verließ mein Vater das Haus, um einen alten Freund zu besuchen: Major Freebody, der eines der Forts auf dem Portsdown Hill befehligt. Ich war froh, dass er ging, denn es schien mir, als sei er in größerer Sicherheit, wenn er nicht zu Hause war. Darin irrte ich mich jedoch. Am zweiten Tag seiner Abwesenheit erhielt ich ein Telegramm vom Major, der mich anflehte, sofort zu kommen. Mein Vater war in eine der tiefen Kreidegruben gestürzt, die in der Gegend zahlreich sind, und lag bewusstlos da, mit zerschmettertem Schädel. Ich eilte zu ihm, doch er starb, ohne je wieder zu Bewusstsein gekommen zu sein. Wie es scheint, war er in der Dämmerung von Fareham zurückgekehrt, und da ihm die Gegend unbekannt war und die Kreidegrube nicht eingezäunt, hatte die Jury keine Bedenken, als Urteil „Tod durch Unfall“ festzustellen. So sorgfältig ich auch jede Tatsache untersuchte, die mit seinem Tod zusammenhing, fand ich nichts, was auf Mord hindeuten konnte. Keine Spuren von Gewalt, keine Fußabdrücke, kein Raub, kein Hinweis darauf, dass Fremde auf den Straßen gesehen worden wären. Und doch brauche ich Ihnen nicht zu sagen, dass ich innerlich alles andere als ruhig war und beinahe sicher, dass ein niederträchtiger Plan um ihn gesponnen worden war.
 
-“But how did you get them?”
+Auf diese unheilvolle Weise trat ich mein Erbe an. Sie werden mich fragen, warum ich es nicht veräußerte. Ich antworte: weil ich fest davon überzeugt war, dass unsere Schwierigkeiten irgendwie mit einem Vorfall aus dem Leben meines Onkels zusammenhingen, und dass die Gefahr in einem Haus ebenso drängend wäre wie in einem anderen.
 
-“You know my method. It’s based on observing trifles.”
+Im Januar ’85 fand mein armer Vater sein Ende, und seitdem sind zwei Jahre und acht Monate vergangen. In dieser Zeit lebte ich glücklich in Horsham, und ich hatte zu hoffen begonnen, dass dieser Fluch von der Familie gewichen sei und mit der letzten Generation geendet habe. Doch ich hatte mich zu früh getröstet; gestern Morgen traf der Schlag – in genau derselben Gestalt, in der er meinen Vater getroffen hatte.“
 
-“His height, I know, you could roughly judge from the length of his stride. His boots, too, from their tracks.”
+Der junge Mann zog aus seiner Westentasche einen zerknitterten Umschlag, trat an den Tisch und schüttelte fünf kleine, getrocknete Orangekerne darauf.
 
-“Yes, they were unusual boots.”
+„Das ist der Umschlag“, fuhr er fort. „Der Poststempel lautet London – östlicher Bezirk. Darin stehen genau die Worte, die auf der letzten Nachricht meines Vaters standen: ‚K. K. K.‘; und dann: ‚Leg die Papiere auf die Sonnenuhr.‘“
 
-“But his limp?”
+„Was haben Sie getan?“, fragte Holmes.
 
-“The impression of his right foot was always fainter than his left. He put less weight on it. Why? Because he limped—he was lame.”
+„Nichts.“
 
-“But his being left-handed?”
+„Nichts?“
 
-“You yourself were struck by the nature of the injury as recorded by the surgeon at the inquest. The blow was struck from immediately behind, yet it fell on the left side. How can that be unless it was delivered by a left-handed man? He had been standing behind that tree during the conversation between father and son. He had even smoked there. I found cigar ash, which my special knowledge of tobacco ashes allows me to identify as that of an Indian cigar. As you know, I’ve paid some attention to the subject and written a short monograph on the ashes of 140 different kinds of pipe, cigar, and cigarette tobacco. Having found the ash, I looked around and discovered the stump among the moss where he had flicked it. It was an Indian cigar, of the type rolled in Rotterdam.”
+„Um die Wahrheit zu sagen“ – er ließ das Gesicht in seine schmalen, weißen Hände sinken – „ich habe mich hilflos gefühlt. Wie eines dieser armen Kaninchen, wenn die Schlange sich auf es zuwindet. Es ist, als hielte mich irgendein unwiderstehliches, unerbittliches Übel gepackt, gegen das keine Voraussicht und keine Vorsicht schützt.“
 
-“And the cigar holder?”
+„Tss! Tss!“, rief Sherlock Holmes. „Sie müssen handeln, Mann, sonst sind Sie verloren. Nur Entschlossenheit kann Sie retten. Das ist nicht die Zeit für Verzweiflung.“
 
-“I could see the end had not been in his mouth. Therefore he used a holder. The tip had been cut off, not bitten, but the cut wasn’t clean, so I inferred a blunt penknife.”
+„Ich war bei der Polizei.“
 
-“Holmes,” I said, “you’ve drawn a net around this man from which he can’t escape, and you’ve saved an innocent life as surely as if you’d cut the rope from his neck. I see where all this leads. The culprit is—”
+„Ah!“
 
-“Mr. John Turner,” announced the hotel waiter, opening the door of our sitting room and ushering in“I’m a dying man,” said old Turner. “I’ve had diabetes for years. My doctor says it’s doubtful I’ll live out the month. Still, I’d rather die under my own roof than in a prison.”
+„Aber sie hörten sich meine Geschichte mit einem Lächeln an. Ich bin überzeugt, der Inspektor hält die Briefe für lauter Streiche, und die Todesfälle meiner Verwandten für wirkliche Unfälle, wie die Jury es festgestellt hat, und glaubt nicht, dass sie mit den Warnungen zusammenhängen.“
 
-Holmes stood, moved to the table, and sat down with his pen in hand and a bundle of paper before him. “Just tell us the truth,” he said. “I’ll write down the facts. You’ll sign it, and Watson here will witness it. Then I can produce your confession, at the last possible moment, to save young McCarthy. I give you my word I won’t use it unless it’s absolutely necessary.”
+Holmes schüttelte die geballten Fäuste in die Luft. „Unglaubliche Dummheit!“,
 
-“It’s just as well,” said the old man. “It’s doubtful I’ll live to the Assizes, so it makes little difference to me, but I’d like to spare Alice the shock. And now I’ll make it clear to you; it’s been a long time in the doing, but it won’t take me long to tell.
+„Keine Sekunde verlieren. Und vor allem: Passen Sie in der Zwischenzeit auf sich auf, denn ich glaube nicht, dass irgendein Zweifel möglich ist: Sie sind von einer sehr realen und unmittelbar bevorstehenden Gefahr bedroht. Wie fahren Sie zurück?“
 
-“You didn’t know this dead man, McCarthy. He was the devil incarnate. I tell you that. God keep you out of the clutches of such a man. His grip has been on me for twenty years, and he has blasted my life. I’ll tell you first how I came into his power.
+„Mit dem Zug ab Waterloo.“
 
-“It was in the early ’60s, at the goldfields. I was a young fellow then—hot-blooded and reckless, ready to turn my hand to anything. I fell in with bad company, took to drink, had no luck with my claim, went into the bush, and, in short, became what you’d call here a highway robber. There were six of us, and we lived a wild, free life, holding up a station now and then or stopping the wagons on the road to the diggings. I went by the name of Black Jack of Ballarat, and our gang is still remembered in the colony as the Ballarat Gang.
+„Es ist noch nicht neun. Die Straßen werden voll sein, also hoffe ich, dass Sie sicher sein werden. Und doch können Sie sich nicht vorsichtig genug verhalten.“
 
-“One day a gold convoy came down from Ballarat to Melbourne, and we lay in wait and attacked it. There were six troopers and six of us, so it was a close-run thing, but we emptied four of their saddles with the first volley. Three of our boys were killed, though, before we got the swag. I put my pistol to the head of the wagon driver—this very man McCarthy. I wish to God I’d shot him then, but I spared him, even though I saw his wicked little eyes fixed on my face, as if he meant to remember every feature. We got away with the gold, became rich men, and slipped over to England without a hint of suspicion. There I parted from my old mates and decided to settle down to a quiet, respectable life. I bought this estate, which happened to be on the market, and I set myself to do a little good with my money, to make up for the way I’d earned it. I married, too, and though my wife died young, she left me my dear little Alice. Even as a baby, her tiny hand seemed to lead me along the right path as nothing else ever had. In short, I turned over a new leaf and did my best to atone for the past. Everything was going well when McCarthy laid his hand on me.
+„Ich bin bewaffnet.“
 
-“I’d gone up to town about an investment, and I met him in Regent Street, with hardly a coat on his back or a boot to his foot.
+„Sehr gut. Morgen werde ich mich an Ihren Fall machen.“
 
-“‘Here we are, Jack,’ says he, touching my arm. ‘We’ll be like family to you. There’s two of us—me and my son—and you can keep us. If you don’t—well, England’s a fine, law-abiding country, and there’s always a policeman within call.’
+„Dann sehe ich Sie in Horsham?“
 
-“Well, down they came to the west country. There was no shaking them off, and they’ve lived there ever since, rent-free, on my best land. There was no rest for me, no peace, no forgetting. Wherever I turned, there was his cunning, grinning face at my elbow. It grew worse as Alice grew up, for he soon saw I was more afraid of her learning my past than I was of the police. Whatever he wanted, he must have, and whatever it was, I gave it without a word—land, money, houses—until at last he asked for something I could not give. He asked for Alice.
+„Nein, Ihr Geheimnis liegt in London. Dort werde ich danach suchen.“
 
-“His son, you see, had grown up, and so had my girl, and since I was known to be in poor health, it seemed a fine stroke to him that his lad should step into the whole property. But there I stood firm. I would not have his cursed blood mixed with mine. Not that I had anything against the boy himself, but his father’s blood was in him, and that was enough. I stood firm. McCarthy threatened. I dared him to do his worst. We agreed to meet at the pool halfway between our houses to talk it over.
+„Dann komme ich in ein, zwei Tagen bei Ihnen vorbei, mit Neuigkeiten über die Kiste und die Papiere. Ich werde Ihren Rat in jedem Punkt befolgen.“ Er schüttelte uns die Hand und verabschiedete sich. Draußen heulte noch immer der Wind, und der Regen klatschte und trommelte gegen die Fensterscheiben. Diese seltsame, wilde Geschichte schien aus den tobenden Elementen zu uns herübergeweht worden zu sein – wie ein Streifen Seetang, den ein Sturm vor sich hertreibt – und nun wurden sie von ihnen wieder verschluckt.
 
-“When I went down there, I found him talking with his son, so I lit a cigar and waited behind a tree until he should be alone. But as I listened to what he was saying, everything black and bitter in me rose to the surface. He was urging his son to marry my daughter with as little regard for her wishes as if she were some slut off the streets. It drove me mad to think that I, and all I held most dear, should be in the power of such a man. Could I not break the chain? I was already a dying and desperate man. Though my mind was clear and my limbs still fairly strong, I knew my fate was sealed. But my memory—and my girl! Both could be saved if only I could silence that foul tongue.5. THE FIVE ORANGE PIPS
+Sherlock Holmes saß eine Weile schweigend da, den Kopf nach vorn gesenkt, die Augen auf das rote Glühen des Feuers gerichtet. Dann stopfte er seine Pfeife, lehnte sich zurück und beobachtete die blauen Rauchringe, wie sie einander jagend zur Decke stiegen.
 
-When I look back over my notes and records of Sherlock Holmes’s cases between the years ’82 and ’90, I find so many with strange and fascinating features that it is no easy task to decide which to choose and which to leave aside. Some have already been made public in the newspapers; others did not provide a stage for those peculiar gifts my friend possessed in such a high degree, and which it is the purpose of these memoirs to illustrate. Some, too, defeated even his analytical skill and would, as stories, be mere beginnings without an ending; others were only partly cleared up, their explanations resting more on conjecture and surmise than on that absolute logical proof which he prized so highly. There is, however, one of this last class which was so remarkable in its details and so startling in its outcome that I am tempted to give some account of it, despite the fact that there are points connected with it which never have been, and probably never will be, entirely cleared up.
+„Ich glaube, Watson“, sagte er schließlich, „dass wir unter all unseren Fällen keinen fantastischer gehabt haben als diesen.“
 
-The year ’87 provided us with a long series of cases, of greater or lesser interest, of which I still have the records. Under that single year I find headings for the adventure of the Paradol Chamber; for the Amateur Mendicant Society, who maintained a luxurious club in the lower vault of a furniture warehouse; for the facts surrounding the loss of the British barque Sophy Anderson; for the strange adventures of the Grice Patersons on the island of Uffa; and finally for the Camberwell poisoning case. In the last of these, as may be remembered, Sherlock Holmes was able, by winding up the dead man’s watch, to prove that it had been wound only two hours before, and that therefore the deceased had gone to bed within that time—a deduction of the greatest importance in solving the case. All these I may sketch out at some later date, but none of them shows such singular features as the strange chain of events I have now taken up my pen to describe.
+„Abgesehen vielleicht vom Zeichen der Vier.“
 
-It was in the last days of September, and the equinoctial gales had set in with unusual violence. All day the wind had screamed and the rain had lashed against the windows, so that even here in the heart of vast, man-made London we were forced, if only for a moment, to lift our minds from the routine of life and acknowledge the presence of those great elemental forces which howl at mankind through the bars of his civilisation like wild beasts in a cage. As evening drew in, the storm grew higher and louder, and the wind cried and sobbed like a child in the chimney. Sherlock Holmes sat moodily on one side of the fireplace, cross-indexing his records of crime, while I, on the other side, was deep in one of Clark Russell’s fine sea-stories, until the howl of the gale outside seemed to merge with the printed page and the patter of the rain lengthened out into the long wash of the sea waves. My wife was visiting her mother, and for a few days I was once more living in my old quarters in Baker Street.
+„Nun ja. Abgesehen vielleicht davon. Und doch scheint mir dieser John Openshaw durch noch größere Gefahren zu gehen als damals die Sholtos.“
 
-“Why,” I said, looking up at my companion, “that was surely the bell. Who could be calling tonight? Some friend of yours, perhaps?”
+„Aber haben Sie“, fragte ich, „schon eine konkrete Vorstellung davon, worin diese Gefahren bestehen?“
 
-“Except for yourself, I have none,” he replied. “I do not encourage visitors.”
+„An ihrer Art kann kein Zweifel bestehen“, antwortete er.
 
-“A client, then?”
+„Dann was sind sie? Wer ist dieses K. K. K., und warum verfolgt es diese unglückliche Familie?“
 
-“If so, it is a serious case. Nothing less would bring a man out on such a day and at such an hour. But I imagine it is more likely to be some crony of the landlady’s.”
+Sherlock Holmes schloss die Augen und legte die Ellbogen auf die Armlehnen seines Sessels, die Fingerspitzen aneinander. „Der ideale Denker“, bemerkte er, „würde, sobald man ihm eine einzige Tatsache in all ihren Zusammenhängen gezeigt hat, daraus nicht nur die ganze Kette der Ereignisse ableiten, die zu ihr geführt hat, sondern auch alle Folgen, die aus ihr hervorgehen werden. So wie Cuvier aus der Betrachtung eines einzigen Knochens ein ganzes Tier korrekt beschreiben konnte, so sollte der Beobachter, der ein Glied in einer Reihe von Vorfällen wirklich verstanden hat, imstande sein, alle übrigen – sowohl die vorhergehenden als auch die nachfolgenden – genau zu benennen. Wir haben noch nicht begriffen, was die Vernunft allein zu leisten vermag. Im Studierzimmer lassen sich Probleme lösen, an denen alle gescheitert sind, die mit Hilfe ihrer Sinne eine Lösung suchten. Um diese Kunst jedoch zur höchsten Vollendung zu bringen, muss der Denker alle Tatsachen nutzen können, die ihm bekannt geworden sind; und das setzt, wie Sie leicht einsehen werden, den Besitz allen Wissens voraus – was selbst in diesen Tagen der freien Bildung und der Enzyklopädien eine ziemlich seltene Leistung ist. Ganz so unmöglich ist es allerdings nicht, dass ein Mann alles Wissen besitzt, das ihm in seiner Arbeit wahrscheinlich nützen wird; und genau das habe ich in meinem Fall zu erreichen versucht. Wenn ich mich recht erinnere, haben Sie einmal, in den frühen Tagen unserer Freundschaft, meine Grenzen sehr präzise beschrieben.“
 
-Sherlock Holmes was wrong in his guess, however, for there came a step in the passage and a knock at the door. He stretched out his long arm to turn the lamp away from himself and toward the empty chair on which any newcomer must sit.
+„Ja“, antwortete ich lachend. „Es war ein eigenartiges Dokument. Philosophie, Astronomie und Politik standen, soweit ich mich erinnere, bei null. Botanik wechselhaft, Geologie tiefgründig, was Schlammspritzer aus jeder Gegend im Umkreis von fünfzig Meilen um die Stadt betrifft, Chemie exzentrisch, Anatomie unsystematisch, Sensationsliteratur und Kriminalakten einzigartig, Geiger, Boxer, Fechter, Jurist – und Selbstvergifter durch Kokain und Tabak. Das waren, glaube ich, die Hauptpunkte meiner Analyse.“
 
-“Come in!” he said.
+Holmes grinste bei dem letzten Punkt. „Nun“, sagte er, „ich sage jetzt, wie ich damals sagte: Ein Mann sollte seinen kleinen Dachboden im Kopf mit all den Möbelstücken ausstatten, die er voraussichtlich braucht; den Rest kann er im Abstellraum seiner Bibliothek lagern, wo er ihn hervorholen kann, wenn er ihn einmal benötigt. Und nun: Für einen Fall wie den, der uns heute Abend vorgelegt wurde, müssen wir gewiss alle unsere Mittel zusammenrufen. Reichen Sie mir bitte den Buchstaben K aus der _American Encyclopædia_, die im Regal neben Ihnen steht. Danke. Jetzt wollen wir die Lage betrachten und sehen, was sich daraus ableiten lässt. Zunächst dürfen wir mit gutem Grund annehmen, dass Colonel Openshaw einen sehr zwingenden Anlass hatte, Amerika zu verlassen. Männer in seinem Alter ändern nicht alle Gewohnheiten und tauschen nicht freiwillig das reizvolle Klima Floridas gegen das einsame Leben in einer englischen Provinzstadt. Seine extreme Liebe zur Abgeschiedenheit in England legt den Gedanken nahe, dass er vor jemandem oder etwas Angst hatte; wir können also als Arbeitshypothese annehmen, dass es die Furcht vor jemandem oder etwas war
 
-The man who entered was young—twenty-two at the most—well groomed and neatly dressed, with something refined and delicate in his manner. The streaming umbrella in his hand and his long, shining waterproof coat told of the fierce weather through which he had come. He looked around anxiously in the glare of the lamp, and I could see that his face was pale and his eyes heavy, like those of a man weighed down by some great anxiety.
+„Ich auch nicht.“
 
-“I must apologize,” he said, raising his gold pince-nez to his eyes. “I hope I am not intruding. I fear I have brought some traces of the storm and rain into your cozy room.”
+Holmes blätterte in dem Buch, das auf seinen Knien lag. „Hier steht es“, sagte er nach einer Weile:
 
-“Give me your coat and umbrella,” said Holmes. “Hang them here on the hook; they’ll be dry soon enough. You’ve come up from the south-west, I see.”
+„‚Ku-Klux-Klan. Ein Name, der sich von der phantasievollen Ähnlichkeit mit dem Geräusch ableitet, das beim Spannen eines Gewehrs entsteht. Diese schreckliche Geheimgesellschaft wurde nach dem Bürgerkrieg von einigen ehemaligen Soldaten der Konföderation in den Südstaaten gegründet und bildete rasch örtliche Ableger in verschiedenen Teilen des Landes, besonders in Tennessee, Louisiana, den Carolinas, Georgia und Florida. Ihre Macht wurde zu politischen Zwecken eingesetzt, vor allem, um die schwarzen Wähler zu terrorisieren und diejenigen zu ermorden oder aus dem Land zu jagen, die ihren Ansichten entgegenstanden. Ihren Gewalttaten ging gewöhnlich eine Warnung voraus, die dem ausersehenen Opfer in einer fantastischen, aber allgemein verstandenen Form zugestellt wurde — in manchen Gegenden ein Zweig mit Eichenblättern, anderswo Melonenkerne oder Orangensamen. Nach Erhalt dieser Warnung konnte das Opfer entweder öffentlich seinen bisherigen Weg abschwören oder aus dem Land fliehen. Trotz es zu wagen bedeutete unweigerlich den Tod, und meist auf eine seltsame, unvorhersehbare Weise. So vollkommen war die Organisation dieser Gesellschaft und so systematisch ihre Methoden, dass es kaum einen Fall gibt, in dem es einem Menschen gelungen wäre, ihr ungestraft zu trotzen, oder in dem eine ihrer Schandtaten den Tätern hätte nachgewiesen werden können. Einige Jahre lang blühte die Organisation trotz der Bemühungen der Regierung der Vereinigten Staaten und der besseren Kreise der südlichen Bevölkerung. Schließlich brach die Bewegung im Jahr 1869 ziemlich plötzlich zusammen, obwohl es seitdem vereinzelt ähnliche Ausbrüche gegeben hat.‘“
 
-“Yes, from Horsham.”
+„Sie werden bemerken“, sagte Holmes und legte den Band beiseite, „dass der plötzliche Zerfall der Gesellschaft zeitlich genau mit dem Verschwinden der Openshaws aus Amerika zusammenfällt — mitsamt ihren Papieren. Das kann sehr wohl Ursache und Wirkung sein. Kein Wunder, dass er und seine Familie einige der unerbittlichsten Geister auf den Fersen haben. Sie verstehen: Dieses Register und dieses Tagebuch könnten einige der bedeutendsten Männer des Südens belasten, und es wird viele geben, die nachts nicht ruhig schlafen, solange es nicht wieder in ihren Händen ist.“
 
-“That clay-and-chalk mixture on your toe-caps is quite distinctive.”
+„Dann die Seite, die wir gesehen haben —“
 
-“I have come for advice.”
+„Ist genau das, was man erwarten würde. Da stand, wenn ich mich recht erinnere: ‚schickte die Kerne an A, B und C‘ — das heißt, schickte ihnen die Warnung der Gesellschaft. Dann folgen Einträge, dass A und B ‚klar machten‘, also das Land verließen, und schließlich, dass C ‚besucht‘ wurde — mit, fürchte ich, einem unheilvollen Ausgang für C. Nun, Doktor, ich glaube, wir können etwas Licht in dieses Dunkel bringen, und ich bin überzeugt, dass die einzige Chance für den jungen Openshaw vorerst darin besteht, zu tun, was ich ihm gesagt habe. Für heute Nacht gibt es nichts mehr zu sagen oder zu tun — geben Sie mir meine Geige, und versuchen wir, für eine halbe Stunde das elende Wetter zu vergessen und die noch elenderen Wege unserer Mitmenschen.“
 
-“That is easily obtained.”
+Am Morgen hatte es aufgeklart, und die Sonne schien mit gedämpftem Glanz durch den trüben Schleier, der über der großen Stadt hängt. Sherlock Holmes saß bereits beim Frühstück, als ich hinunterkam.
 
-“And for help.”
+„Verzeihen Sie, dass ich nicht auf Sie gewartet habe“, sagte er. „Ich sehe voraus, dass ein sehr arbeitsreicher Tag vor mir liegt, wenn ich diesen Fall des jungen Openshaw untersuche.“
 
-“That is not always so easy.”
+„Welche Schritte werden Sie unternehmen?“, fragte ich.
 
-“I have heard of you, Mr. Holmes. I heard from Major Prendergast how you saved him in the Tankerville Club scandal.”
+„Das hängt sehr von den Ergebnissen meiner ersten Nachforschungen ab. Am Ende muss ich doch noch nach Horsham hinaus.“
 
-“Ah, yes. He was wrongly accused of cheating at cards.”
+„Sie fahren nicht zuerst dorthin?“
 
-“He said you could solve anything.”
+„Nein, ich beginne in der City. Klingeln Sie nur — das Mädchen bringt Ihnen den Kaffee herauf.“
 
-“He said too much.”
+Während ich wartete, nahm ich die ungeöffnete Zeitung vom Tisch und ließ den Blick darübergleiten. Er blieb an einer Überschrift hängen, die mir das Herz gefrieren ließ.
 
-“That you are never beaten.”
+„Holmes!“, rief ich. „Sie sind zu spät.“
 
-“I have been beaten four times—three times by men, and once by a woman.”
+„Ah!“, sagte er und stellte die Tasse ab. „Ich habe es befürchtet. Wie ist es geschehen?“ Er sprach ruhig, doch ich sah, wie tief es ihn traf.
 
-“But what is that compared with the number of your successes?”
+„Mein Blick fiel auf den Namen Openshaw und die Überschrift: ‚Tragödie nahe der Waterloo Bridge‘. Hier ist der Bericht:
 
-“It is true that I have generally been successful.”
+„‚Zwischen neun und zehn Uhr gestern Abend hörte Police-Constable Cook von der H-Division, der in der Nähe der Waterloo Bridge Dienst tat, einen Hilferuf und einen Platscher im Wasser. Die Nacht war jedoch äußerst dunkel und stürmisch, sodass es trotz der Hilfe mehrerer Passanten völlig unmöglich war, eine Rettung zu bewerkstelligen. Es wurde jedoch Alarm gegeben, und mit Unterstützung der Wasserpolizei konnte der Leichnam schließlich geborgen werden. Es handelte sich um einen jungen Herrn, dessen Name, wie aus einem Umschlag hervorgeht, der in seiner Tasche gefunden wurde, John Openshaw lautete und dessen Wohnsitz sich bei Horsham befindet. Man vermutet, dass er in Eile gewesen sein könnte, um den letzten Zug vom Bahnhof Waterloo zu erreichen, und dass er in seiner Hast und in der tiefen
 
-“Then you may be successful with me.”
+„Und wer ist dieser Captain Calhoun?“
 
-“I beg you, pull your chair up to the fire and give me the main facts of your case. I can question you afterwards about the details that seem most important to me.”
+„Der Anführer der Bande. Die anderen kriege ich auch – aber er zuerst.“
 
-The young man drew his chair closer and stretched his wet feet out toward the blaze.
+„Wie haben Sie die Spur denn gefunden?“
 
-“My name,” he said, “is John Openshaw, but my own affairs, as farHe didn’t object to me; in fact, he took a liking to me, because when he first saw me I was a boy of about twelve. That would have been in 1878, after he’d been eight or nine years in England. He begged my father to let me live with him, and in his own way he was very kind to me. When he was sober he liked to play backgammon and checkers with me, and he made me his go-between with the servants and the tradesmen, so that by the time I was sixteen I was practically master of the house. I kept all the keys and could go where I pleased and do what I pleased, as long as I didn’t disturb him in his privacy. There was one strange exception, though: he had a single room, a lumber-room up in the attics, which was always locked and which he would never allow me or anyone else to enter. With a boy’s curiosity I had peeped through the keyhole, but I never saw more than the usual jumble of old trunks and bundles you’d expect in such a place.
+Er zog ein großes Blatt Papier aus der Tasche, dicht bedeckt mit Daten und Namen.
 
-One day—it was in March 1883—a letter with a foreign stamp was lying on the table in front of the colonel’s plate. It was unusual for him to get letters, for he paid all his bills in cash and had no friends of any kind. “From India!” he said as he picked it up. “Pondicherry postmark! What can this be?” He tore it open hastily, and out jumped five little dried orange pips, which rattled down onto his plate. I started to laugh at this, but the laugh died on my lips when I saw his face. His lower lip had sagged, his eyes were bulging, his skin had gone the color of putty, and he stared at the envelope he still held in his shaking hand. “K. K. K.!” he screamed, and then, “My God, my God, my sins have found me out!”
+„Ich habe den ganzen Tag“, sagte er, „in Lloyd’s Registern und in den Akten alter Zeitungen gesessen und die spätere Laufbahn jedes einzelnen Schiffs verfolgt, das im Januar und Februar ’83 Pondicherry angelaufen hat. In diesen Monaten wurden dort sechsunddreißig Schiffe von ordentlicher Tonnage gemeldet. Eines davon, die *Lone Star*, sprang mir sofort ins Auge – denn obwohl sie als aus London ausgelaufen geführt wurde, ist das ein Name, den man einem der Staaten der Union gibt.“
 
-“What is it, Uncle?” I cried.
+„Texas, glaube ich.“
 
-“Death,” he said, and getting up from the table he went to his room, leaving me trembling with horror. I picked up the envelope and saw, scrawled in red ink on the inside flap just above the gum, the letter K written three times. There was nothing else, apart from the five dried pips. What could explain his overwhelming terror? I left the breakfast table, and as I went up the stairs I met him coming down, with an old rusty key in one hand—which must have belonged to the attic—and a small brass box, like a cash box, in the other.
+„Ich war und bin nicht sicher, welcher; aber ich wusste, das Schiff musste amerikanischen Ursprungs sein.“
 
-“They can do what they like, but I’ll checkmate them yet,” he said with an oath. “Tell Mary I’ll want a fire in my room today, and send down to Fordham, the lawyer in Horsham.”
+„Und dann?“
 
-\newpage
+„Ich habe die Aufzeichnungen in Dundee durchsucht, und als ich fand, dass die Bark *Lone Star* im Januar ’85 dort war, wurde aus meinem Verdacht Gewissheit. Dann erkundigte ich mich nach den Schiffen, die derzeit im Hafen von London liegen.“
 
-# I. did as he ordered, and when the lawyer arrived I was told to come up to the room. The fire was blazing, and in the grate there was a heap of black, fluffy ashes, like burned paper, while the brass box stood open and empty beside it. As I glanced at the box I started, for on the lid was printed the triple K I had seen that morning on the envelope.
+„Ja?“
 
-“I want you, John,” said my uncle, “to witness my will. I leave my estate, with all its advantages and all its drawbacks, to my brother, your father, from whom it will no doubt pass on to you. If you can enjoy it in peace, so much the better. If you find you can’t, then take my advice, my boy, and leave it to your worst enemy. I’m sorry to hand you such a two-edged thing, but I can’t tell which way matters are going to turn. Kindly sign where Mr. Fordham shows you.”
+„Die *Lone Star* war letzte Woche hier eingetroffen. Ich fuhr hinunter zu den Albert Docks und stellte fest, dass sie heute Morgen mit der frühen Tide flussabwärts geschleppt worden war, auf Heimreise nach Savannah. Ich telegraphierte nach Gravesend und erfuhr, dass sie vor einiger Zeit schon passiert hatte, und da der Wind aus Osten steht, habe ich keinen Zweifel, dass sie jetzt an den Goodwins vorbei ist und nicht mehr weit von der Isle of Wight.“
 
-\newpage
+„Was werden Sie also tun?“
 
-# I. signed where I was told, and the lawyer took the document away with him. The strange incident, as you can imagine, made a deep impression on me, and I turned it over and over in my mind without being able to make any sense of it. I still couldn’t shake off the vague dread it left behind, though the feeling dulled as the weeks went by and nothing happened to disturb our usual routine. I could see a change in my uncle, though. He drank more than ever and was less inclined for any kind of company. Most of the time he stayed in his room with the door locked on the inside, but sometimes he would burst out in a kind of drunken frenzy, rush out of the house, and tear around the garden with a revolver in his hand, shouting that he feared no man and that he would not be cooped up like a sheep in a pen by man or devil. But when these hot fits were over, he would come storming back into the house and lock and bar the door behind him, like a man who can no longer brazen it out against the terror at the bottom of his soul. At such times I have seen his face, even on a cold day, shining with sweat, as though he had just lifted it from a basin of water.
+„Oh, ich habe ihn schon in der Hand. Er und die beiden Maaten sind, wie ich erfahren habe, die einzigen in Amerika Geborenen an Bord. Die anderen sind Finnen und Deutsche. Ich weiß außerdem, dass alle drei gestern Nacht vom Schiff weg waren. Das habe ich vom Stauer, der ihre Ladung an Bord gebracht hat. Bis ihr Segelschiff Savannah erreicht, wird das Postschiff diesen Brief befördert haben, und das Kabel wird die Polizei von Savannah darüber informiert haben, dass diese drei Herren hier dringend gesucht werden – wegen Mordes.“
 
-To bring the matter to an end, Mr. Holmes, and not to strain your patience, there came a night when he made one of those drunken sallies—and never came back. When we went to look for him we found him lying face down in a little pool with a green scum on it at the bottom of the garden. There was no sign of violence, and the water was only two feet deep, so the jury, taking his known eccentricity into account, returned a verdict of suicide. But I, who knew how he shuddered at the very thought of death, found it hard to believe he had gone“‘What on earth does this mean, John?’ he stammered.
+Doch selbst in den bestdurchdachten menschlichen Plänen steckt immer ein Fehler, und die Mörder von John Openshaw sollten niemals die Orangenkerne erhalten, die ihnen gezeigt hätten, dass ein anderer – ebenso listig und ebenso entschlossen wie sie – ihnen auf den Fersen war. Sehr lang und sehr heftig waren in jenem Jahr die Herbststürme zur Tagundnachtgleiche. Wir warteten lange auf Nachricht von der *Lone Star* aus Savannah, aber keine erreichte uns je. Schließlich hörten wir, dass irgendwo weit draußen im Atlantik ein zertrümmerter Heckpfosten eines Bootes gesehen worden sei, der in der Mulde einer Welle schaukelte, und dass die Buchstaben „L. S.“ hineingeschnitzt waren – und das ist alles, was wir jemals über das Schicksal der *Lone Star* erfahren werden.
 
-My heart sank like lead. ‘It’s K. K. K.,’ I said.
+**6. DER MANN MIT DER VERDREHTEN LIPPE**
 
-He looked inside the envelope. ‘So it is,’ he cried. ‘Here are the very letters. But what’s this written above them?’
+Isa Whitney, Bruder des verstorbenen Elias Whitney, D.D., Direktors des Theologischen Kollegs von St. George’s, war dem Opium stark verfallen. Die Gewohnheit, wie ich erfahren habe, hatte sich aus einer törichten Laune während seiner Studienzeit entwickelt; denn nachdem er De Quinceys Schilderung seiner Träume und Empfindungen gelesen hatte, tränkte er seinen Tabak mit Laudanum, um dieselben Wirkungen hervorzurufen. Er stellte fest – wie so viele nach ihm –, dass man sich diese Praxis leichter aneignet, als man sie wieder loswird, und über viele Jahre blieb er ein Sklave der Droge, für Freunde und Verwandte ein Anblick, der zugleich Abscheu und Mitleid weckte. Ich sehe ihn noch vor mir: das gelbliche, teigige Gesicht, die schweren Lider, die stecknadelkopfgroßen Pupillen, wie er zusammengekauert in einem Sessel sitzt – das Wrack eines einst vornehmen Menschen.
 
-‘“Put the papers on the sundial,”’ I read, peering over his shoulder.
+Eines Abends – es war im Juni ’89 – klingelte es an meiner Haustür, ungefähr zu der Stunde, in der ein Mann zum ersten Mal gähnt und auf die Uhr schaut. Ich richtete mich in meinem Stuhl auf, und meine Frau legte ihre Handarbeit in den Schoß und verzog das Gesicht zu einer kleinen Grimasse der Enttäuschung.
 
-‘What papers? What sundial?’ he asked.
+„Ein Patient!“, sagte sie. „Du musst raus.“
 
-‘The sundial in the garden. There’s no other,’ I said. ‘But the papers must be the ones that were destroyed.’
+Ich stöhnte, denn ich war gerade erst von einem ermüdenden Tag zurückgekommen.
 
-‘Nonsense!’ he said, mustering his courage. ‘We’re in a civilized country here, and we can’t have this kind of tomfoolery. Where did it come from?’
+Wir hörten, wie die Haustür geöffnet wurde, ein paar hastige Worte, dann schnelle Schritte auf dem Linoleum. Unsere Zimmertür flog auf, und eine Dame trat ein, in dunklem Stoff gekleidet, mit schwarzem Schleier.
 
-‘From Dundee,’ I answered, glancing at the postmark.
+„Verzeihen Sie, dass ich so spät komme“, begann sie – und dann, plötzlich die Beherrschung verlierend, stürzte sie vor, schlang die Arme um den Hals meiner Frau und schluchzte an ihrer Schulter. „Oh, ich bin in so großer Not!“, rief sie. „Ich brauche so dringend ein wenig Hilfe.“
 
-‘Some ridiculous practical joke,’ he said. ‘What have I to do with sundials and papers? I’ll pay no attention to such rubbish.’
+„Aber…“, sagte meine Frau und hob ihren Schleier an, „das ist ja Kate Whitney. Wie du mich erschreckt hast, Kate! Ich hatte keine Ahnung, wer du bist, als du hereinkamst.“
 
-‘I’d certainly speak to the police,’ I said.
+„Ich wusste nicht, was ich tun sollte, also bin ich direkt zu dir gekommen.“ So war es immer. Menschen in Kummer kamen zu meiner Frau wie Vögel zu einem Leuchtturm.
 
-‘And be laughed at for my trouble? Certainly not.’
+„Das ist sehr lieb von dir. Jetzt musst du erst etwas Wein mit Wasser trinken und dich hier bequem hinsetzen und uns alles erzählen. Oder soll ich James lieber ins Bett schicken?“
 
-‘Then let me do it.’
+„Oh nein, nein! Ich will auch den Rat und die Hilfe des Doktors. Es geht um Isa. Er ist seit zwei Tagen nicht nach Hause gekommen. Ich habe solche Angst um ihn!“
 
-‘No, I forbid you. I won’t have a fuss made over such nonsense.’
+Es war nicht das erste Mal, dass sie mit uns über die Not ihres Mannes sprach – mit mir als Arzt, mit meiner Frau als alter Freundin und Schulkameradin. Wir beruhigten und trösteten sie mit den Worten, die uns einfielen. Wusste sie, wo ihr Mann war? War es möglich, dass wir ihn zu ihr zurückbringen konnten?
 
-It was useless to argue with him; he was a very stubborn man. Still, I went about with a heart full of foreboding.
+Es schien möglich zu sein. Sie hatte die sicherste Auskunft, dass er in letzter Zeit, wenn ihn der Anfall packte, eine Opiumhöhle im äußersten Osten der City aufsuchte. Bislang hatten sich seine Exzesse stets auf einen Tag beschränkt, und am Abend war er zurückgekommen – zuckend, zerrüttet. Doch nun hielt der Bann bereits achtundvierzig Stunden an, und er lag dort, zweifellos unter dem Abschaum der Docks, atmete das Gift ein oder schlief die Wirkung aus. Dort sei er zu finden, dessen war sie sicher: im *Bar of Gold* in der Upper Swandam Lane. Aber was sollte sie tun? Wie sollte sie, eine junge und schüchterne Frau, in einen solchen Ort gelangen und ihren Mann aus der Mitte der Schurken herausziehen, die ihn umgaben?
 
-On the third day after the letter arrived, my father left home to visit an old friend of his, Major Freebody, who commands one of the forts on Portsdown Hill. I was glad he was going, for it seemed to me he was safer away from home. In that, however, I was mistaken. On the second day of his absence I received a telegram from the major, begging me to come at once. My father had fallen into one of the deep chalk-pits that abound in the area and was lying unconscious, his skull shattered. I hurried to him, but he died without ever regaining consciousness. It appears that he had been returning from Fareham at dusk, and as the country was unfamiliar to him and the chalk-pit unfenced, the jury had no hesitation in returning a verdict of ‘death by misadventure.’ Careful as I was in examining every detail connected with his death, I could find nothing to suggest murder. There were no signs of violence, no footprints, no robbery, no report of strangers seen on the roads. And yet you can imagine that my mind was far from at ease, and that I was almost certain some foul plot had been woven around him.
+So lag der Fall – und natürlich gab es nur einen Ausweg. Konnte ich sie nicht dorthin begleiten? Und dann, als zweiter Gedanke: Warum sollte sie überhaupt mitkommen? Ich war Isa Whitneys Arzt, und als solcher hatte ich Einfluss auf ihn. Allein würde ich es besser regeln können. Ich gab ihr mein Wort, dass ich ihn innerhalb von zwei Stunden in einer Droschke nach Hause schicken würde, falls er tatsächlich unter der von ihr genannten Adresse sei. Und so hatte ich zehn Minuten später meinen Sessel und das behagliche Wohnzimmer hinter mir gelassen und fuhr in einem Hansom ostwärts zu einem Auftrag, der mir damals seltsam vorkam – wie seltsam, das sollte erst die Zukunft zeigen.
 
-In this sinister way I came into my inheritance. You will ask why I did not sell it. I answer that I was firmly convinced our troubles were somehow bound up with an incident in my uncle’s life, and that the danger would be just as great in any other house as in this one.
+Doch die erste Etappe meines Abenteuers bot keine große Schwierigkeit. Die Upper Swandam Lane ist eine widerliche Gasse, die sich hinter den hohen Lagerhäusern versteckt, welche das Nordufer des Flusses östlich der London Bridge säumen. Zwischen einem Ramschladen und einer Ginbude, erreichbar über eine steile Treppe, die hinab in eine schwarze Öffnung führte wie in den Schlund einer Höhle, fand ich die Höhle, die ich suchte. Ich wies den Kutscher an zu warten, stieg die Stufen hinunter – in der Mitte ausgetreten vom unablässigen Tritt betrunkener Füße –, und im
 
-It was in January ’85 that my poor father met his end, and two years and eight months have passed since then. During that time I have lived peacefully at Horsham, and I had begun to hope that this curse had lifted from the family and ended with the last generation. I took comfort too soon, however; yesterday morning the blow fell again, in exactly the same form in which it had fallen on my father.
+„Holmes!“, flüsterte ich. „Was um alles in der Welt machst du in diesem Loch?“
 
-The young man took a crumpled envelope from his waistcoat and, turning to the table, shook out onto it five small dried orange pips.
+„So tief wie möglich“, antwortete er. „Ich habe ausgezeichnete Ohren. Wenn Sie die große Güte hätten, diesen versoffenen Freund von Ihnen loszuwerden, wäre ich Ihnen sehr verbunden, dann würde ich mich gern ein wenig mit Ihnen unterhalten.“
 
-‘This is the envelope,’ he went on. ‘The postmark is London—eastern division. Inside are the exact words that were on my father’s last message: “K. K. K.” and then “Put the papers on the sundial.”’
+„Draußen wartet eine Droschke.“
 
-‘What have you done?’ asked Holmes.
+„Dann schicken Sie ihn bitte damit nach Hause. Sie können ihm ruhig trauen – er wirkt zu schlaff, um noch irgendeinen Unfug anzustellen. Ich würde Ihnen außerdem raten, dem Kutscher einen Zettel an Ihre Frau mitzugeben: dass Sie sich mir angeschlossen haben. Wenn Sie draußen warten, bin ich in fünf Minuten bei Ihnen.“
 
-‘Nothing.’
+Es war schwer, irgendeine Bitte von Sherlock Holmes abzuschlagen; sie waren stets so präzise und wurden mit dieser ruhigen, selbstverständlichen Autorität vorgetragen. Ich hatte allerdings das Gefühl, dass meine Aufgabe praktisch erledigt war, sobald Whitney erst einmal in der Droschke saß; und im Übrigen konnte ich mir kaum etwas Besseres wünschen, als meinen Freund bei einem jener seltsamen Abenteuer zu begleiten, die für ihn der Normalzustand des Lebens zu sein schienen. In wenigen Minuten hatte ich meinen Zettel geschrieben, Whitneys Rechnung bezahlt, ihn zur Droschke hinausgeführt und gesehen, wie er in die Dunkelheit davonfuhr. Kurz darauf tauchte eine hinfällige Gestalt aus der Opiumhöhle auf, und ich ging mit Sherlock Holmes die Straße hinunter. Zwei Straßenzüge lang schlurfte er mit gekrümmtem Rücken und unsicherem Schritt dahin. Dann warf er einen schnellen Blick um sich, richtete sich kerzengerade auf und brach in schallendes Gelächter aus.
 
-‘Nothing?’
+„Ich nehme an, Watson“, sagte er, „Sie stellen sich vor, ich hätte zum Kokainspritzen und all den anderen kleinen Schwächen, über die Sie mich mit Ihren medizinischen Ansichten so großzügig belehrt haben, nun auch noch das Opiumrauchen hinzugefügt.“
 
-‘To tell the truth’—he buried his face in his thin, pale hands—‘I’ve felt helpless. I’ve felt like one of those poor rabbits when the snake is writhing towards it. I seem to be in the grip of some irresistible, relentless evil that no foresight and no precautions can guard against.’
+„Ich war jedenfalls überrascht, dich dort zu finden.“
 
-‘Tut, tut!’ cried Sherlock Holmes. ‘You must act, man, or you are lost. Only energy can save you. This is no time for despair.’
+„Nicht mehr, als ich überrascht war, Sie dort zu finden.“
 
-‘I’ve seen the police.’
+„Ich kam, um einen Freund zu suchen.“
 
-‘Ah!’
+„Und ich, um einen Feind zu finden.“
 
-‘But they listened to my story with a smile. I’m convinced the inspector thinks all the letters are practical jokes, and that my relatives’ deaths were really accidents, just as the jury decided, and have nothing to do with the warnings.’
+„Einen Feind?“
 
-Holmes shook his clenched fists in the air. ‘Incredible stupidity!’ he cried.
+„Ja; einen meiner natürlichen Feinde – oder soll ich sagen: meiner natürlichen Beute. Kurz gesagt, Watson: Ich stecke mitten in einer höchst bemerkenswerten Untersuchung, und ich hoffte, in dem wirren Gestammel dieser Säufer einen Hinweis zu finden, wie ich es schon früher getan habe. Wäre ich in diesem Loch erkannt worden, hätte mein Leben keine Stunde mehr gegolten; denn ich habe es bereits für meine Zwecke benutzt, und der schurkische Lascar, der es betreibt, hat geschworen, sich an mir zu rächen. Hinten in dem Gebäude gibt es eine Falltür, nahe der Ecke von Paul’s Wharf – die könnte merkwürdige Geschichten erzählen von dem, was in mondlosen Nächten durch sie hindurchgegangen ist.“
 
-‘They have, however, allowed me a policeman who may stay in the house with me.’
+„Was! Du meinst doch nicht … Leichen?“
 
-‘Has he come with you tonight?’
+„Doch, Leichen, Watson. Wir wären reiche Männer, wenn wir für jeden armen Teufel, der in diesem Loch umgebracht worden ist, tausend Pfund bekämen. Es ist die niederträchtigste Mordfalle am ganzen Flussufer, und ich fürchte, Neville St. Clair ist hineingegangen, um nie wieder herauszukommen. Aber unsere Falle müsste hier sein.“ Er steckte die beiden Zeigefinger zwischen die Zähne und pfiff schrill – ein Signal, das aus der Ferne mit einem ähnlichen Pfiff beantwortet wurde; kurz darauf folgten das Rasseln von Rädern und das Klacken von Hufen.
 
-‘No. His orders were to remain at the house.’
+„Nun, Watson“, sagte Holmes, als ein hoher Dogcart durch das Zwielicht heranpreschte und aus seinen Seitenlaternen zwei goldene Tunnel gelben Lichts warf. „Du kommst doch mit, ja?“
 
-Again Holmes flung his hands up in the air.
+„Wenn ich nützlich sein kann.“
 
-‘Why did you come to me?’ he said. ‘And above all, why did you not come at once?’
+„Ein verlässlicher Kamerad ist immer nützlich – und ein Chronist erst recht. Mein Zimmer in The Cedars hat zwei Betten.“
 
-‘I didn’t know. It was only today that I spoke to Major Prendergast about my troubles, and he advised me to come to you.’
+„The Cedars?“
 
-‘It’s already two days since you received the letter. We should have acted before this. You have no further evidence, I suppose, beyond what you’ve shown us—no suggestive detail that might help?’
+„Ja; das ist Mr. St. Clairs Haus. Ich wohne dort, solange ich die Untersuchung führe.“
 
-‘There is one thing,’ said John Openshaw. He rummaged in his coat pocket and drew out a piece of discoloured, blue-tinted paper, which he spread on the table. ‘I remember,’ he said, ‘that on the day my uncle burned the papers, I noticed that the small, unburned scraps lying among the ashes were this particular colour. I found this single sheet on the floor of his room, and“Don’t lose a single moment. And above all, take care of yourself in the meantime, because I don’t think there can be any doubt that you’re in very real and immediate danger. How are you getting back?”
+„Wo liegt es denn?“
 
-“By train from Waterloo.”
+„Bei Lee, in Kent. Sieben Meilen Fahrt liegen vor uns.“
 
-“It’s not yet nine. The streets will be crowded, so I hope you’ll be safe. Even so, you can’t be too careful.”
+„Aber ich tappe völlig im Dunkeln.“
 
-“I’m armed.”
+„Natürlich. Du wirst gleich alles erfahren. Spring rauf. Gut so. Alles klar, John; wir brauchen dich nicht. Hier ist ein halber Kronen. Halte morgen gegen elf nach mir Ausschau. Lass sie laufen. Also dann – leb wohl!“
 
-“Good. Tomorrow I’ll begin work on your case.”
+Er gab dem Pferd mit der Peitsche einen leichten Hieb, und wir schossen davon, durch eine endlose Folge düsterer, verlassener Straßen, die allmählich breiter wurden, bis wir über eine breite Brücke mit Balustraden flogen, unter der der trübe Fluss schwerfällig dahinströmte. Dahinter lag eine weitere matte Wildnis aus Ziegeln und Mörtel; ihre Stille wurde nur vom schweren, regelmäßigen Tritt eines Polizisten gebrochen oder von den Liedern und Rufen einer verspäteten Zechgesellschaft. Ein grauer Wolkenschleier trieb langsam über den Himmel, und hier und da funkelte schwach ein Stern oder zwei durch die Risse in den Wolken. Holmes fu
 
-“I’ll see you at Horsham, then?”
+„Es ist völlig klar.“
 
-“No. Your secret lies in London. That’s where I’ll look for it.”
+„Wenn du dich erinnerst: Der Montag war ein unerquicklich heißer Tag, und Mrs. St. Clair ging langsam, den Blick unruhig umherwerfend, in der Hoffnung, eine Droschke zu entdecken, denn die Gegend, in der sie sich wiederfand, war ihr unangenehm. Während sie so die Swandam Lane hinunterging, hörte sie plötzlich einen Ausruf, einen Schrei, und erstarrte vor Entsetzen, als sie ihren Mann über sich sah: Er blickte zu ihr herab und winkte ihr, wie es ihr schien, aus einem Fenster im zweiten Stock. Das Fenster stand offen, und sie erkannte sein Gesicht deutlich; sie beschreibt es als furchtbar aufgewühlt. Er fuchtelte verzweifelt mit den Händen, und dann verschwand er so abrupt aus dem Fenster, dass es ihr vorkam, als habe ihn eine unwiderstehliche Kraft von hinten zurückgerissen. Ein merkwürdiges Detail, das ihrem schnellen weiblichen Blick nicht entging, war, dass er zwar einen dunklen Rock trug, wie den, in dem er am Morgen in die Stadt aufgebrochen war, aber weder Kragen noch Krawatte.
 
-“Then I’ll come to see you in a day or two, with news about the box and the papers. I’ll follow your advice in every detail.”
+„Überzeugt, dass mit ihm etwas nicht stimmte, stürzte sie die Stufen hinab — denn das Haus war kein anderes als die Opiumhöhle, in der du mich heute Nacht gefunden hast — und rannte durch den vorderen Raum, um die Treppe hinaufzueilen, die in den ersten Stock führte. Am Fuß der Treppe jedoch stellte sich ihr jener Lascar-Schurke in den Weg, von dem ich gesprochen habe; er stieß sie zurück und drängte sie, unterstützt von einem Dänen, der dort als Gehilfe arbeitet, hinaus auf die Straße. Von rasenden Zweifeln und Ängsten gepeinigt, jagte sie die Gasse hinunter und traf durch seltenes Glück in der Fresno Street auf mehrere Polizisten mit einem Inspektor, die gerade auf dem Weg zu ihrem Streifengang waren. Der Inspektor und zwei Mann begleiteten sie zurück, und trotz des fortgesetzten Widerstands des Besitzers drangen sie bis in den Raum vor, in dem Mr. St. Clair zuletzt gesehen worden war. Von ihm fehlte jede Spur. Ja, auf dem ganzen Stockwerk war überhaupt niemand zu finden außer einem verkrüppelten, abscheulich aussehenden Elenden, der dort, wie es schien, sein Quartier hatte. Er wie auch der Lascar schworen steif und fest, am Nachmittag sei niemand sonst im Vorderzimmer gewesen. So unbeugsam war ihr Leugnen, dass der Inspektor ins Wanken geriet und beinahe zu glauben begann, Mrs. St. Clair müsse sich getäuscht haben — als sie mit einem Schrei auf eine kleine Kiste aus einfachem Holz sprang, die auf dem Tisch stand, und den Deckel herunterriss. Heraus stürzte ein Schwall Kinderbauklötze. Es war das Spielzeug, das er versprochen hatte, mit nach Hause zu bringen.
 
-He shook hands with us and took his leave. Outside, the wind still howled, and the rain splashed and rattled against the windows. This strange, wild story seemed to have blown in on us out of the raging elements—like a strip of seaweed flung up in a gale—and now to have been drawn back into them once more.
+„Diese Entdeckung und die offenkundige Bestürzung, die der Krüppel zeigte, ließen den Inspektor begreifen, dass die Sache ernst war. Die Räume wurden sorgfältig durchsucht, und alles deutete auf ein abscheuliches Verbrechen hin. Das Vorderzimmer war schlicht als Aufenthaltsraum eingerichtet und führte in ein kleines Schlafzimmer, dessen Fenster auf die Rückseite eines der Kais hinausging. Zwischen dem Kai und dem Schlafzimmerfenster liegt ein schmaler Streifen, der bei Ebbe trocken ist, bei Flut jedoch von mindestens viereinhalb Fuß Wasser bedeckt wird. Das Schlafzimmerfenster war breit und ließ sich von unten her öffnen. Bei der Untersuchung zeigten sich Blutspuren auf der Fensterbank, und mehrere versprengte Tropfen waren auf dem Holzboden des Schlafzimmers zu sehen. Hinter einem Vorhang im Vorderzimmer waren sämtliche Kleidungsstücke von Mr. Neville St. Clair beiseitegeschoben — mit Ausnahme seines Rocks. Seine Stiefel, seine Strümpfe, sein Hut und seine Uhr: alles war da. An keinem dieser Stücke fanden sich Spuren von Gewalt, und sonst gab es keinerlei Anzeichen von Mr. Neville St. Clair. Offenbar musste er durchs Fenster hinausgegangen sein, denn kein anderer Ausgang ließ sich entdecken, und die unheilvollen Blutflecken auf der Fensterbank ließen wenig Hoffnung, dass er sich durch Schwimmen hätte retten können, denn die Flut stand im Augenblick der Tragödie auf ihrem höchsten Stand.
 
-Sherlock Holmes sat for some time in silence, his head bent forward, his eyes fixed on the red glow of the fire. Then he lit his pipe, and leaning back in his chair he watched the blue smoke rings chase one another up to the ceiling.
+„Und nun zu den Schurken, die unmittelbar in die Sache verstrickt zu sein schienen. Der Lascar war als Mann mit den niederträchtigsten Vorstrafen bekannt; doch da er nach Mrs. St. Clairs Bericht innerhalb weniger Sekunden nach dem Erscheinen ihres Mannes am Fenster unten am Treppenfuß gewesen sein musste, konnte er kaum mehr als ein Helfershelfer des Verbrechens gewesen sein. Seine Verteidigung bestand in völliger Unwissenheit: Er beteuerte, er wisse nichts von den Machenschaften Hugh Boones, seines Untermieters, und er könne sich das Auftauchen der Kleidung des verschwundenen Herrn in keiner Weise erklären.
 
-“I think, Watson,” he said at last, “that of all our cases we’ve had none more fantastic than this.”
+„So viel zum lascarischen Verwalter. Nun zu dem unheimlichen Krüppel, der im zweiten Stock der Opiumhöhle wohnt und ganz gewiss der letzte Mensch war, dessen Augen auf Neville St. Clair ruhten. Sein Name ist Hugh Boone, und sein entstelltes Gesicht ist jedem vertraut, der häufig in der City zu tun hat
 
-“Except, perhaps, The Sign of Four.”
+„Und das tat es auch, obwohl sie auf der Schlammbank kaum das fanden, was sie zu finden gefürchtet hatten. Als die Flut zurückwich, lag dort unbedeckt Neville St. Clairs Mantel – und nicht Neville St. Clair. Und was, glauben Sie, fanden sie in den Taschen?“
 
-“Well, yes. Except, perhaps, that. And yet this John Openshaw seems to me to be walking in even greater danger than the Sholtos ever did.”
+„Ich kann es mir nicht vorstellen.“
 
-“But have you,” I asked, “formed any definite idea of what these dangers are?”
+„Nein, ich glaube nicht, dass Sie es erraten würden. Jede Tasche vollgestopft mit Pennys und Halbpennys – 421 Pennys und 270 Halbpennys. Kein Wunder, dass die Flut ihn nicht fortgerissen hatte. Aber ein menschlicher Körper ist etwas anderes. Zwischen dem Kai und dem Haus gibt es einen heftigen Strudel. Es schien durchaus wahrscheinlich, dass der beschwerte Mantel liegen geblieben war, während der entkleidete Körper in den Fluss hinausgesogen worden war.“
 
-“There can be no question as to their nature,” he replied.
+„Aber ich habe verstanden, dass alle anderen Kleidungsstücke im Zimmer gefunden wurden. Würde der Körper nur in einem Mantel bekleidet sein?“
 
-“Then what are they? Who is this K.K.K., and why is he hunting down this unfortunate family?”
+„Nein, Sir, aber die Tatsachen ließen sich immerhin scheinbar schlüssig zurechtbiegen. Nehmen wir an, dieser Mann Boone hätte Neville St. Clair durchs Fenster gestoßen – kein menschliches Auge hätte die Tat sehen können. Was täte er dann? Natürlich würde ihm sofort einfallen, dass er die verräterischen Kleidungsstücke loswerden muss. Er würde also den Mantel packen und im Begriff sein, ihn hinauszuwerfen, als ihm einfiele, dass er schwimmen und nicht sinken würde. Er hat wenig Zeit, denn er hat unten das Gerangel gehört, als die Frau versuchte, sich nach oben durchzudrängen, und vielleicht hat er von seinem lascarischen Komplizen bereits erfahren, dass die Polizei die Straße herauf eilt. Keine Sekunde ist zu verlieren. Er stürzt zu irgendeinem geheimen Versteck, wo er die Früchte seiner Bettelei angesammelt hat, und stopft alle Münzen, die er zu fassen bekommt, in die Taschen, um sicherzugehen, dass der Mantel untergeht. Er wirft ihn hinaus – und hätte dasselbe mit den übrigen Kleidern getan, wenn er nicht das Heranstürmen von Schritten unten gehört hätte und gerade noch Zeit gehabt hätte, das Fenster zu schließen, als die Polizei erschien.“
 
-Sherlock Holmes closed his eyes and rested his elbows on the arms of his chair, his fingertips pressed together. “The ideal reasoner,” he said, “once shown a single fact in all its bearings, would deduce from it not only the entire chain of events that led up to it, but also all the results that will follow from it. Just as Cuvier could correctly describe an entire animal from the study of a single bone, so the observer who has thoroughly understood one link in a chain of incidents should be able to state all the other links, both before and after, with accuracy. We have not yet fully grasped what pure reason alone can achieve. Problems may be solved in the study which have baffled all those who tried to solve them by relying on their senses. But to carry the art to its highest point, the reasoner must be able to make use of every fact that has ever come to his knowledge; and that, as you will readily see, implies a possession of all knowledge—which, even in these days of free education and encyclopedias, is a rather rare accomplishment. It is not impossible, however, for a man to possess all the knowledge likely to be useful to him in his work, and that is what I have tried to do in my own case. If I remember correctly, you once, in the early days of our friendship, defined my limits in a very precise way.”
+„Das klingt tatsächlich plausibel.“
 
-“Yes,” I answered, laughing. “It was a curious document. Philosophy, astronomy, and politics were marked at zero, I remember. Botany variable, geology profound as far as mud-stains from any district within fifty miles of London were concerned, chemistry eccentric, anatomy unsystematic, sensational literature and criminal records unique; violinist, boxer, swordsman, lawyer, and self-poisoner by cocaine and tobacco. Those, I think, were the main points of my analysis.”
+„Nun, dann nehmen wir es mangels einer besseren als Arbeitshypothese. Boone wurde, wie ich Ihnen sagte, verhaftet und zur Wache gebracht, aber man konnte nicht nachweisen, dass jemals zuvor etwas gegen ihn vorgelegen hätte. Seit Jahren war er als Berufsbetttler bekannt, doch sein Leben schien sehr ruhig und unbescholten gewesen zu sein. So steht die Sache im Moment, und die Fragen, die zu lösen sind – was Neville St. Clair in der Opiumhöhle zu suchen hatte, was dort mit ihm geschah, wo er jetzt ist und was Hugh Boone mit seinem Verschwinden zu tun hat –, sind so weit von einer Lösung entfernt wie eh und je. Ich gestehe, ich kann mich in meiner Erfahrung an keinen Fall erinnern, der auf den ersten Blick so einfach aussah und doch solche Schwierigkeiten bot.“
 
-Holmes grinned at the last item. “Well,” he said, “I say now, as I said then, that a man should keep his little brain-attic stocked only with the furniture he’s likely to use, and the rest he can store away in the lumber-room of his library, where he can fetch it if he needs it. Now, for a case like the one that’s been laid before us tonight, we certainly need to muster all our resources. Be so good as to hand me volume K of the American Encyclopedia from the shelf beside you. Thank you. Now let’s consider the situation and see what can be deduced from it.
+Während Sherlock Holmes diese merkwürdige Kette von Ereignissen schilderte, waren wir durch die Außenbezirke der großen Stadt dahingejagt, bis die letzten verstreuten Häuser hinter uns lagen und wir mit einer Landhecke zu beiden Seiten dahinratterten. Gerade als er endete, fuhren wir jedoch durch zwei kleine Dörfer, in denen noch ein paar Lichter in den Fenstern glimmten.
 
-“In the first place, we can start with a strong presumption that Colonel Openshaw had a very powerful reason for leaving America. Men of his age do not lightly change all their habits and willingly exchange the delightful climate of Florida for the lonely life of an English provincial town. His extreme love of solitude in England suggests that he was afraid of someone or something, so we may assume, as a working hypothesis, that it was fear of someone or something that drove him from America. As to what he feared, we can only deduce that by considering the threatening letters received by him and by those who came after him. Did you notice the postmarks on those letters?”
+„Wir sind am Rand von Lee“, sagte mein Begleiter. „Wir haben auf unserer kurzen Fahrt drei englische Grafschaften gestreift: gestartet in Middlesex, über eine Ecke von Surrey und geendet in Kent. Sehen Sie das Licht dort zwischen den Bäumen? Das ist The Cedars, und neben dieser Lampe sitzt eine Frau, deren gespitzte Ohren, da bin ich ziemlich sicher, schon das Klirren der Hufe unseres Pferdes aufgefangen haben.“
 
-“The first was from Pondicherry, the second from Dundee, and the third from London.”
+„Aber warum führen Sie den Fall nicht von der Baker Street aus?“ fragte ich.
 
-“From East London. What do you deduce from that?”
+„Weil hier draußen vieles zu erfragen ist. Mrs. St. Clair hat mir sehr freundlich zwei Zimmer zur Verfügung gestellt, und Sie können sicher sein, dass sie für meinen Freund und Kollegen nur ein herzliches Willkommen haben wird. Ich hasse es, Watson, ihr zu begegnen, wenn ich keine Nachricht von ihrem Mann habe. Da sind wir. Hüh, da, hüh!“
 
-“They’re all seaports. That the writer was on board a ship.”
+Wir hielten vor einer großen Villa, die in einem eigenen Grundstück stand. Ein Stalljunge lief zum Pferdekopf, und ich sprang ab und folgte Holmes die kleine, gewundene Kiesauffahrt hinauf, die zum Haus führte. Als wir näherkamen, flog die Tür auf, und eine kleine blonde Frau stand im Rahmen, in irgendeinem leichten Mousseline-de-Soie, am Hals und an den Handgelenken ein Hauch von flauschigem rosafarbenem Chiffon. Sie stand, ihre Gestalt gegen den Lichtstrom abgezeichnet, eine Hand an der Tür, die andere halb erhoben vor Ungeduld, der Körper leicht vorgebeugt, Kopf und Gesicht vorgestreckt, mit erwartungsvollen Augen und geöffneten Lippen – eine stehende Frage.
 
-“Excellent. We already have a clue. There can be no doubt that the probability—the strong probability—is that the writer was on a ship. And now let’s consider another point. In the case of Pondicherry, seven weeks passed between the threat and its fulfilment; in Dundee, it was only three or four days. Does that suggest anything to you?”
+„Nun?“ rief sie. „Nun?“ Und dann, als sie sah, dass wir zu zweit waren, stieß sie einen Hoffnungslaut aus, der in ein Stöhnen sank, als sie bemerkte, wie mein Begleiter den Kopf schüttelte und die Schultern hob.
 
-“A greater distance to travel.”
+„Keine gute Nachricht?
 
-“But the letter“I never have.”
+„Ja, da war ein Ring. Sein Siegelring.“
 
-Holmes turned the pages of the book on his knee. “Here it is,” he said at last:
+„Und Sie sind sicher, dass dies die Handschrift Ihres Mannes ist?“
 
-“‘Ku Klux Klan. A name taken from the fanciful resemblance to the sound made by cocking a rifle. This terrible secret society was formed by some ex-Confederate soldiers in the Southern states after the Civil War, and it quickly established local branches in different parts of the country, notably in Tennessee, Louisiana, the Carolinas, Georgia, and Florida. Its power was used for political purposes, chiefly to terrorize Black voters and to murder or drive out of the country those who opposed its views. Its outrages were usually preceded by a warning sent to the marked man in some bizarre but generally recognized form—a sprig of oak leaves in some districts, melon seeds or orange pips in others. On receiving this, the victim might either publicly renounce his former ways or flee the country. If he stood his ground, death would inevitably come upon him, usually in some strange and unforeseen manner. So perfect was the organization of the society, and so systematic its methods, that there is hardly a case on record where any man succeeded in defying it with impunity, or in which any of its outrages were traced back to the perpetrators. For some years the organization flourished in spite of the efforts of the United States government and of the better elements of Southern society. Eventually, in the year 1869, the movement rather suddenly collapsed, although there have been sporadic outbreaks of the same sort since that date.’”
+„Eine seiner Handschriften.“
 
-“You’ll notice,” said Holmes, laying down the volume, “that the sudden breakup of the society coincides with Openshaw’s disappearance from America with their papers. It may well be cause and effect. It’s no wonder that he and his family have some of the more implacable spirits on their trail. You can understand that this register and diary may implicate some of the foremost men in the South, and that there may be many who will not sleep easily until it is recovered.”
+„Eine?“
 
-“Then the page we’ve seen—”
+„So schreibt er, wenn er in Eile ist. Das ist ganz anders als seine gewöhnliche Schrift, und doch kenne ich sie gut.“
 
-“Is exactly what we’d expect. It ran, if I remember correctly, ‘sent the pips to A, B, and C’—that is, sent the society’s warning to them. Then there are later entries that A and B cleared out, or left the country, and finally that C was visited, with, I fear, a grim result for C. Well, I think, Doctor, that we may be able to let some light into this dark place, and I believe that young Openshaw’s only chance, for the moment, is to do exactly what I’ve told him. There’s nothing more to be said or done tonight, so hand me my violin and let us try, for half an hour, to forget the miserable weather and the still more miserable ways of our fellow men.”
+„‚Liebste, hab keine Angst. Alles wird gut. Es liegt ein großer Irrtum vor, dessen Berichtigung vielleicht etwas Zeit braucht. Warte geduldig. — NEVILLE.‘“ Mit Bleistift auf das Vorsatzblatt eines Buches geschrieben, Oktavformat, ohne Wasserzeichen. Hm! Heute in Gravesend aufgegeben, von einem Mann mit schmutzigem Daumen. Ha! Und die Lasche ist, wenn ich mich nicht sehr irre, von jemandem zugeklebt worden, der Kautabak gekaut hat. Und Sie haben keinen Zweifel, gnädige Frau, dass es die Hand Ihres Mannes ist?
 
-By morning the sky had cleared, and the sun shone with a muted brightness through the dim veil that hangs over the great city. Sherlock Holmes was already at breakfast when I came down.
+„Keinen. Neville hat diese Worte geschrieben.“
 
-“You must excuse me for not waiting,” he said. “I foresee a very busy day ahead of me, looking into this case of young Openshaw’s.”
+„Und der Brief wurde heute in Gravesend aufgegeben. Nun, Mrs. St. Clair, die Wolken lichten sich — auch wenn ich nicht wagen würde zu sagen, dass die Gefahr vorüber ist.“
 
-“What steps will you take?” I asked.
+„Aber er muss am Leben sein, Mr. Holmes.“
 
-“That will depend a great deal on the results of my first inquiries. I may have to go down to Horsham after all.”
+„Es sei denn, es ist eine geschickte Fälschung, um uns auf eine falsche Fährte zu locken. Der Ring beweist letztlich gar nichts. Man könnte ihn ihm abgenommen haben.“
 
-“You won’t go there first?”
+„Nein, nein; es ist, es ist seine eigene Handschrift!“
 
-“No, I’ll start in the City. Just ring the bell and the maid will bring your coffee.”
+„Sehr gut. Er könnte allerdings am Montag geschrieben und erst heute aufgegeben worden sein.“
 
-As I waited, I picked up the unopened newspaper from the table and let my eye run over it. It stopped on a headline that sent a chill through me.
+„Das ist möglich.“
 
-“Holmes,” I cried, “you’re too late.”
+„Wenn dem so ist, kann in der Zwischenzeit viel geschehen sein.“
 
-“Ah!” he said, putting down his cup. “I feared as much. How was it done?” He spoke calmly, but I could see he was deeply shaken.
+„Oh, Sie dürfen mich nicht entmutigen, Mr. Holmes. Ich weiß, dass es ihm gut geht. Zwischen uns besteht eine so feine, so scharfe Verbundenheit, dass ich es wüsste, wenn ihm etwas Böses widerfahren wäre. An dem Tag, an dem ich ihn zuletzt sah, schnitt er sich im Schlafzimmer, und doch stürzte ich im Esszimmer sofort die Treppe hinauf, in der vollkommenen Gewissheit, dass etwas geschehen war. Glauben Sie, ich würde auf so eine Kleinigkeit reagieren und dann nichts von seinem Tod spüren?“
 
-“My eye caught the name Openshaw, and the heading ‘Tragedy Near Waterloo Bridge.’ Here is the report:
+„Ich habe zu viel gesehen, um nicht zu wissen, dass der Eindruck einer Frau mehr wert sein kann als der Schluss eines analytischen Denkers. Und in diesem Brief haben Sie tatsächlich ein sehr starkes Beweisstück, das Ihre Ansicht stützt. Aber wenn Ihr Mann lebt und Briefe schreiben kann — warum bleibt er dann von Ihnen fern?“
 
-“‘Between nine and ten o’clock last night, Police-Constable Cook, of the H Division, on duty near Waterloo Bridge, heard a cry for help and a splash in the water. The night, however, was extremely dark and stormy, so that, despite the assistance of several passers-by, it was quite impossible to effect a rescue. The alarm was given, and, with the aid of the river police, the body was eventually recovered. It proved to be that of a young gentleman whose name, as appears from an envelope found in his pocket, was John Openshaw, and whose residence is near Horsham. It is conjectured that he may have been hurrying to catch the last train from Waterloo Station, and that in his haste and in the extreme darkness he missed his way and walked over the edge of one of the small landing-stages for river steamboats. The body showed no signs of violence, and there can be no doubt that the deceased was the victim of an unfortunate accident, which should have the effect of calling the attention of the authorities to the condition of the riverside landing-places.’”
+„Ich kann es mir nicht vorstellen. Es ist undenkbar.“
 
-We sat in silence for several minutes, Holmes more depressed and shaken than I had ever seen him.
+„Und am Montag hat er vor seinem Weggehen nichts gesagt?“
 
-“That wounds my pride, Watson,” he said at last. “A petty feeling, no doubt, but it wounds my pride. It’s become a personal matter with me now, and, if God grants me health, I’ll lay my hand on this gang. That he should come to me for help, and that I should send him away to his death—!” He sprang from his chair and paced the room in uncontrollable agitation, a flush on his sallow cheeks, his long, thin hands nervously clasping and unclasping.“And who is this Captain Calhoun?”
+„Nein.“
 
-“The head of the gang. I’ll get the others, but he comes first.”
+„Und Sie waren überrascht, ihn in der Swandam Lane zu sehen?“
 
-“How did you track it down, then?”
+„Sehr sogar.“
 
-He pulled a large sheet of paper from his pocket, covered with dates and names.
+„War das Fenster offen?“
 
-“I’ve spent the whole day,” he said, “going through Lloyd’s registers and old newspaper files, tracing the later history of every ship that touched at Pondicherry in January and February of ’83. There were thirty-six vessels of decent tonnage reported there in those months. One of them, the Lone Star, caught my eye at once, because although she was listed as clearing from London, her name is that of one of the states of the Union.”
+„Ja.“
 
-“Texas, I think.”
+„Dann hätte er Sie rufen können?“
 
-“I wasn’t sure then and I’m not sure now which one; but I knew the ship had to be of American origin.”
+„Er hätte es gekonnt.“
 
-“And then?”
+„Er hat nur, wie ich verstehe, einen unartikulierten Schrei ausgestoßen?“
 
-“I checked the Dundee records, and when I found that the barque Lone Star was there in January ’85, my suspicion became certainty. I then inquired what vessels are currently lying in the Port of London.”
+„Ja.“
 
-“Yes?”
+„Sie hielten es für einen Hilferuf?“
 
-“The Lone Star arrived here last week. I went down to the Albert Dock and found she’d been taken downriver on the early tide this morning, homeward bound for Savannah. I wired Gravesend and learned she had already passed some time before, and with the wind in the east I’ve no doubt she’s now past the Goodwins and not far from the Isle of Wight.”
+„Ja. Er fuchtelte mit den Händen.“
 
-“What will you do, then?”
+„Aber es könnte auch ein Schrei der Überraschung gewesen sein. Das unerwartete Erscheinen von Ihnen hätte ihn dazu bringen können, die Hände hochzureißen?“
 
-“Oh, I’ve got my hand on him. He and the two mates are, as I’ve learned, the only American-born men on the ship. The rest are Finns and Germans. I also know that all three of them were off the ship last night. I had that from the stevedore who has been loading their cargo. By the time their sailing ship reaches Savannah, the mail boat will have carried this letter, and the cable will have informed the Savannah police that these three gentlemen are badly wanted here on a charge of murder.”
+„Das ist möglich.“
 
-But even the best-laid human plans have their flaw, and the murderers of John Openshaw were never to receive the orange pips that would have shown them that someone as cunning and as relentless as themselves was on their trail. The equinoctial gales were very long and very violent that year. We waited a long time for news of the Lone Star of Savannah, but none ever came. At last we heard that somewhere far out in the Atlantic a shattered stern-post of a boat had been seen tossing in the trough of a wave, with the letters “L. S.” carved upon it—and that is all we shall ever know of the fate of the Lone Star.6. THE MAN WITH THE TWISTED LIP
+„Und Sie glaubten, er sei zurückgerissen worden?“
 
-Isa Whitney, brother of the late Elias Whitney, D.D., Principal of St. George’s Theological College, was badly addicted to opium. The habit, as I understand it, began as some foolish prank when he was at university. After reading De Quincey’s account of his dreams and sensations, he had soaked his tobacco in laudanum, hoping to reproduce the same effects. He discovered, as so many others have, that the practice is far easier to acquire than to abandon, and for many years he remained a slave to the drug, an object of mingled horror and pity to his friends and family. I can see him now: yellow, pasty face, drooping eyelids, pupils like pinpoints, huddled in a chair—the wreck and ruin of a fine man.
+„Er war so plötzlich verschwunden.“
 
-One night—it was in June of ’89—the bell rang, just about the time of evening when a man gives his first yawn and glances at the clock. I sat up in my chair, and my wife laid her needlework down in her lap, making a little face of disappointment.
+„Er könnte auch zurückgesprungen sein. Sie haben niemand anderen im Zimmer gesehen?“
 
-“A patient,” she said. “You’ll have to go out.”
+„Nein, aber dieser schreckliche Mann hat gestanden, dort gewesen zu sein, und der Lascar stand unten am Fuß der Treppe.“
 
-\newpage
+„Ganz recht. Ihr Mann trug, soweit Sie es sehen konnten, seine gewöhnliche Kleidung?“
 
-# I. groaned, for I had only just come back from a long, exhausting day.
+„Aber ohne Kragen und Krawatte. Ich sah deutlich seinen nackten Hals.“
 
-We heard the front door open, a few hurried words, and then quick steps across the linoleum. Our own door flew open, and a lady dressed in some dark material, with a black veil, came into the room.
+„Hat er jemals von der Swandam Lane gesprochen?“
 
-“You must excuse my calling so late,” she began, and then, suddenly losing control of herself, she ran forward, threw her arms around my wife’s neck, and sobbed on her shoulder. “Oh, I’m in such trouble!” she cried. “I so badly need a little help.”
+„Nie.“
 
-“Why, it’s Kate Whitney,” said my wife, lifting her veil. “You quite startled me, Kate! I had no idea who you were when you came in.”
+„Hat er jemals Anzeichen gezeigt, Opium genommen zu haben?“
 
-“I didn’t know what to do, so I came straight to you.” That was always the way. People in distress came to my wife like birds to a lighthouse.
+„Nie.“
 
-“It was very sweet of you to come. Now, you must have some wine and water, and sit here comfortably and tell us everything. Or would you rather I sent James off to bed?”
+„Danke, Mrs. St. Clair. Das sind die wichtigsten Punkte, in denen ich völlig klar sein wollte. Wir nehmen jetzt eine Kleinigkeit zu Abend und ziehen uns dann zurück, denn morgen könnte ein sehr arbeitsreicher Tag werden.“
 
-“Oh, no, no! I want the doctor’s advice and help too. It’s about Isa. He hasn’t been home for two days. I’m so frightened about him!”
+Man hatte uns ein großes, behagliches Zimmer mit einem Doppelbett zur Verfügung gestellt, und ich lag rasch zwischen den Laken, denn nach meiner Nacht voller Abenteuer war ich erschöpft. Sherlock Holmes jedoch war ein Mann, der, wenn ihn ein ungelöstes Problem beschäftigte, tagelang, ja sogar eine Woche lang ohne Ruhe auskommen konnte: Er wälzte es, ordnete die Fakten neu, betrachtete es von jedem Blickwinkel, bis er es entweder durchdrungen hatte oder sich überzeugt hatte, dass seine Daten nicht ausreichten. Bald war mir klar, dass er sich nun auf eine Nachtsitzung einrichtete. Er zog Jacke und Weste aus, schlüpfte in einen großen blauen Hausrock und ging dann im Zimmer umher, sammelte Kissen aus seinem Bett und Polster vom Sofa und aus den Sesseln. Daraus baute er eine Art orientalisches Diwanlager, auf dem er sich im Schneidersitz niederließ; vor sich legte er eine Unze groben Shag-Tabaks und eine Streichholzschachtel bereit. Im schummrigen Lampenlicht sah ich ihn dort sitzen: eine alte Bruyèrepfeife zwischen den Lippen, der Blick leer auf die Ecke der Zimmer
 
-It was not the first time she had spoken to us about her husband’s trouble— to me as a doctor, to my wife as an old friend and schoolmate. We calmed and comforted her with what words we could find. Did she know where her husband was? Was there any way we could bring him back to her?
+Es war ein kleiner Raum, der an ein Büro erinnerte: Auf dem Tisch lag ein riesiges Hauptbuch, aus der Wand ragte ein Telefonapparat. Der Inspektor setzte sich an seinen Schreibtisch.
 
-It seemed there was. She had reliable information that lately, whenever the craving seized him, he had been going to an opium den in the far East of the City. Until now his debauches had always been confined to a single day, and he had come back in the evening, twitching and shattered. But this time the spell had been on him for forty‑eight hours, and he lay there still, no doubt among the dregs of the docks, breathing in the poison or sleeping off its effects. There he was to be found, she was sure of it—at the Bar of Gold in Upper Swandam Lane. But what was she to do? How could she, a young and timid woman, force her way into such a place and drag her husband out from among the ruffians who surrounded him?
+„Was kann ich für Sie tun, Mr. Holmes?“
 
-That was the situation, and of course there was only one way out of it. Might I not escort her to this place? And then, on second thought, why should she come at all? I was Isa Whitney’s medical adviser, and as such I had influence over him. I could handle it better if I went alone. I gave her my word that I would send him home in a cab within two hours, if he was indeed at the address she had given me. And so, ten minutes later, I had left my armchair and cheerful sitting room behind and was rattling eastward in a hansom on a strange errand, as it seemed to me at the time—though only the future could show how strange it was to be.
+„Ich komme wegen dieses Bettlers, Boone – dem, der beschuldigt wird, in das Verschwinden von Mr. Neville St. Clair aus Lee verwickelt zu sein.“
 
-The first stage of my adventure, however, presented no great difficulty. Upper Swandam Lane is a vile little alley lurking behind the high wharves that line the north bank of the river east of London Bridge. Between a slop-shop and a gin-shop, down a steep flight of steps that led into a black gap like the mouth of a cave, I found the den I was looking for. Telling my cabman to wait, I went down the steps, worn hollow in the middle by the endless tread of drunken feet; and by the light of a flickering oil-lamp above the door I found the latch and stepped into a long, low room, thick and heavy with brown opium smoke, terraced with wooden bunks like the forecastle of an emigrant ship.
+„Ja. Er wurde vorgeführt und zur weiteren Untersuchung in Haft behalten.“
 
-Through the gloom one could just make out bodies lying in strange, grotesque poses—rounded backs, bent knees, heads flung back, chins pointing upward—with here and there a dark, dull eye turned toward the newcomer. Out of the black shadows glimmered little red circles of light, now bright, now faint, as the burning poison waxed or waned in the bowls of the metal pipes. Most lay silent, but some muttered to themselves, and others talked together in a strange, low, monotonous murmur, their conversation coming in bursts and then suddenly trailing off“Holmes!” I whispered. “What on earth are you doing in this place?”
+„So habe ich gehört. Sie haben ihn hier?“
 
-“Keep your voice down,” he replied. “I have excellent ears. If you’d be so kind as to get rid of that drunken friend of yours, I’d be very glad to have a word with you.”
+„In den Zellen.“
 
-“I’ve got a cab outside.”
+„Ist er ruhig?“
 
-“Then send him home in it. You can trust him safely; he looks far too limp to get into any trouble. I’d also suggest you send a note by the cabman to your wife, telling her you’ve thrown in your lot with me. If you wait outside, I’ll join you in five minutes.”
+„Oh, er macht keinen Ärger. Aber er ist ein dreckiger Schuft.“
 
-It was hard to refuse Sherlock Holmes anything; his requests were always so precise, and delivered with such quiet authority. Still, I felt that once Whitney was safely shut in the cab, my task was essentially done; and beyond that, I could wish for nothing better than to be involved with my friend in one of those strange adventures that were his normal way of life. Within a few minutes I had written my note, settled Whitney’s bill, guided him out to the cab, and watched it roll off into the darkness. Very soon after, a bent, shabby figure emerged from the opium den, and I found myself walking down the street beside Sherlock Holmes. For two streets he shuffled along, back hunched, steps uncertain. Then, after a quick glance around, he straightened to his full height and broke into a hearty laugh.
+„Dreckig?“
 
-“I suppose, Watson,” he said, “you imagine I’ve added opium-smoking to cocaine injections and all the other little weaknesses on which you’ve favoured me with your medical opinions.”
+„Ja, wir können ihn kaum dazu bringen, sich die Hände zu waschen, und sein Gesicht ist so schwarz wie das eines Kesselflickers. Nun, sobald sein Fall erledigt ist, bekommt er ein ordentliches Gefängnisbad; und ich glaube, wenn Sie ihn sähen, würden Sie mir zustimmen, dass er es nötig hat.“
 
-“I was certainly surprised to find you there.”
+„Ich würde ihn sehr gern sehen.“
 
-“No more than I was to find you.”
+„Würden Sie? Das lässt sich leicht machen. Hier entlang. Sie können Ihre Tasche hierlassen.“
 
-“I came looking for a friend.”
+„Nein, ich glaube, ich nehme sie lieber mit.“
 
-“And I for an enemy.”
+„Sehr gut. Dann bitte hier entlang.“ Er führte uns einen Gang hinunter, öffnete eine vergitterte Tür, stieg eine gewundene Treppe hinab und brachte uns in einen weiß gekalkten Korridor, an dessen beiden Seiten sich eine Reihe von Türen befand.
 
-“An enemy?”
+„Die dritte rechts ist seine“, sagte der Inspektor. „Hier ist sie!“ Er schob leise eine Klappe im oberen Teil der Tür zurück und spähte hinein.
 
-“Yes—one of my natural enemies, or shall I say, my natural prey. In short, Watson, I’m in the middle of a very remarkable investigation, and I hoped to pick up a clue in the rambling nonsense of those sots, as I’ve done before. If I’d been recognised in that den, my life wouldn’t have been worth an hour’s purchase. I’ve used the place before for my own purposes, and the scoundrelly Lascar who runs it has sworn to have his revenge on me. There’s a trapdoor at the back of that building, near the corner of Paul’s Wharf, that could tell some strange tales about what’s passed through it on moonless nights.”
+„Er schläft“, sagte er. „Sie können ihn gut sehen.“
 
-“What! You don’t mean bodies?”
+Wir beide legten die Augen an das Gitter. Der Gefangene lag uns zugewandt in tiefem Schlaf, atmete langsam und schwer. Er war ein Mann mittlerer Größe, grob gekleidet, wie es zu seinem Gewerbe passte; durch den Riss in seinem zerlumpten Rock quoll ein buntes Hemd hervor. Er war, wie der Inspektor gesagt hatte, außerordentlich schmutzig, doch der Dreck, der sein Gesicht bedeckte, konnte dessen abstoßende Hässlichkeit nicht verbergen. Eine breite, wulstige Narbe aus alter Zeit zog sich quer darüber, vom Auge bis zum Kinn, und hatte durch ihre Spannung eine Seite der Oberlippe hochgezogen, sodass drei Zähne in einem dauernden Knurren freilagen. Ein Schopf sehr leuchtend roten Haares wuchs tief in die Stirn und über die Augen.
 
-“Oh yes, bodies, Watson. We’d be rich men if we had a thousand pounds for every poor devil who’s been done to death in that den. It’s the vilest murder-trap on the whole riverside, and I fear Neville St. Clair has gone into it never to come out again. But our own trap should be here.” He put his two forefingers between his teeth and gave a piercing whistle—a signal answered by a similar whistle in the distance, followed shortly by the rattle of wheels and the clink of horses’ hooves.
+„Ein Prachtexemplar, nicht wahr?“, sagte der Inspektor.
 
-“Now, Watson,” said Holmes, as a tall dog-cart came racing out of the gloom, its side-lanterns throwing two golden tunnels of light ahead of it, “you’ll come with me, won’t you?”
+„Er braucht ganz gewiss eine Wäsche“, bemerkte Holmes. „Ich hatte so eine Ahnung – und habe mir erlaubt, die Werkzeuge mitzubringen.“ Während er sprach, öffnete er die Gladstone-Tasche und zog zu meinem Erstaunen einen sehr großen Badeschwamm heraus.
 
-“If I can be of any use.”
+„He! he! Sie sind mir einer“, kicherte der Inspektor.
 
-“Oh, a reliable comrade is always useful—and a chronicler even more so. My room at The Cedars has two beds.”
+„Wenn Sie nun so freundlich wären, diese Tür ganz leise zu öffnen, dann werden wir ihn bald deutlich respektabler aussehen lassen.“
 
-“The Cedars?”
+„Nun, ich wüsste nicht, warum nicht“, sagte der Inspektor. „Er ist ja keine Zierde für die Zellen von Bow Street, was?“ Er steckte den Schlüssel ins Schloss, und wir traten alle drei so leise wie möglich in die Zelle. Der Schläfer drehte sich halb um und sank dann wieder in tiefen Schlummer zurück. Holmes beugte sich zum Wasserkrug, befeuchtete den Schwamm und rieb ihn dann zweimal kräftig quer über das Gesicht des Gefangenen und hinab.
 
-“Yes—that’s Mr. St. Clair’s house. I’m staying there while I conduct the investigation.”
+„Darf ich vorstellen“, rief er, „Mr. Neville St. Clair aus Lee in der Grafschaft Kent!“
 
-“Where is it, then?”
+Noch nie in meinem Leben habe ich etwas Vergleichbares gesehen. Das Gesicht des Mannes löste sich unter dem Schwamm ab wie Baumrinde. Fort war der grobe braune Ton! Fort auch die entsetzliche Narbe, die es quer durchfurcht hatte, und die verdrehte Lippe, die dem Gesicht dieses widerwärtige Grinsen gegeben hatte! Ein Ruck riss das verfilzte rote Haar weg, und da saß, aufgerichtet in seinem Bett, ein blasser, traurig blickender, fein wirkender Mann – schwarzhaarig, glatt im Gesicht –, rieb sich die Augen und starrte schlaftrunken und verwirrt umher. Dann, als er die Bloßstellung begriff, stieß er einen Schrei aus und warf sich mit dem Gesicht ins Kissen.
 
-“Near Lee, in Kent. We’ve a seven-mile drive ahead of us.”
+„Großer Gott!“, rief der Inspektor. „Es ist tatsächlich der Vermisste. Ich erkenne ihn von der Fotografie.“
 
-“But I’m completely in the dark.”
+Der Gefangene wandte sich mit der verwegenen Miene eines Mannes, der sich seinem Schicksal überlässt. „So sei es“, sagte er. „Und wessen werde ich nun beschuldigt?“
 
-“Of course you are. You’ll know all about it soon enough. Jump up. All right, John, we won’t need you. Here’s half a crown. Expect me tomorrow around eleven. Give her her head. So long!”
+„Der Beseitigung von Mr. Neville St.— Ach, kommen Sie, damit kann man Sie nicht anklagen, es sei denn, man macht daraus einen Fall von versuchtem Selbstmord“, sagte der Inspektor grinsend. „Ich bin seit siebenundzwanzig Jahren bei der Polizei, aber das hier schlägt wirklich alles.“
 
-He flicked the horse with his whip, and we shot off through an endless succession of dark, deserted streets that gradually widened until we were flying over a broad, balustraded bridge, the murky river sliding sluggishly beneath us. Beyond lay another dreary wilderness of brick and stone, its silence broken only by the heavy, measured tread of a policeman, or the songs and shouts of some belated band of revellers. A dull mass of cloud was drifting slowly across the sky, and here and there a star or two twinkled faintly through the breaks. Holmes drove in silence, head sunk on his chest, with the air of a man deep in thought, while I sat beside him, eager to learn what new case could be taxing his powers so severely, yet reluctant to disturb the flow of his reflections. We had driven several miles and were just reaching the outer fringe of suburban villas when he gave himself a shake, shrugged his shoulders, and lit his pipe with the air of a man who has decided he is acting for the best.
+„Wenn ich Mr. Neville St. Clair bin, dann ist offensichtlich kein Verbrechen begangen worden, und ich werde
 
-“You have a splendid gift for silence, Watson,” he said. “It makes you quite invaluable as a companion. Upon my word, it’s a great thing for me to have someone to talk to, for my own thoughts are not particularly pleasant. I was wondering what I should say to this dear little woman tonight when she meets me at the door.”
+„Nun, sehr bald merkte ich, dass ich beträchtliche Summen zurücklegte. Ich will nicht behaupten, irgendein Bettler auf Londons Straßen könne 700 Pfund im Jahr verdienen – das ist weniger als meine durchschnittlichen Einnahmen –, aber ich hatte außergewöhnliche Vorteile: Ich konnte mich hervorragend maskieren, und außerdem besaß ich eine Schlagfertigkeit, die sich mit der Übung steigerte und mich in der City zu einer regelrechten bekannten Figur machte. Den ganzen Tag über strömten Pennystücke auf mich ein, dazwischen immer wieder Silber, und es war ein wirklich schlechter Tag, wenn ich nicht auf 2 Pfund kam.
 
-“You forget that I know nothing about it.”
+„Mit dem wachsenden Reichtum wuchs auch mein Ehrgeiz. Ich nahm ein Haus auf dem Land und heiratete schließlich, ohne dass irgendjemand auch nur den leisesten Verdacht über meinen wirklichen Broterwerb hegte. Meine liebe Frau wusste, dass ich in der City Geschäfte hatte. Was für welche – das ahnte sie nicht.
 
-“I’ll just have time to tell you the facts before we reach Lee. It all seems absurdly simple, and yet somehow I can’t get anything to take hold of. There’s plenty of thread, no doubt, but I can’t get the end of it into my fingers. Now, I’ll lay out the“It’s very clear.
+„Am vergangenen Montag war ich mit der Arbeit für den Tag fertig und zog mich in meinem Zimmer über der Opiumhöhle um, als ich aus dem Fenster sah und zu meinem Entsetzen und Erstaunen meine Frau unten auf der Straße stehen sah, den Blick direkt auf mich gerichtet. Ich stieß einen Schrei der Überraschung aus, riss die Arme hoch, um mein Gesicht zu bedecken, und stürzte zu meinem Vertrauten, dem Lascar, und flehte ihn an, niemanden zu mir hinaufzulassen. Ich hörte ihre Stimme unten, aber ich wusste, dass sie nicht heraufkommen konnte. Hastig riss ich mir die Kleidung vom Leib, schlüpfte in die eines Bettlers und legte Farbe und Perücke an. Selbst die Augen einer Ehefrau konnten eine so vollständige Verkleidung nicht durchdringen. Doch dann fiel mir ein, dass man das Zimmer durchsuchen könnte und die Kleider mich verraten würden. Ich riss das Fenster auf und riss dabei durch meine Heftigkeit eine kleine Schnittwunde wieder auf, die ich mir an diesem Morgen im Schlafzimmer selbst zugefügt hatte. Dann packte ich meinen Rock, der durch die Kupfermünzen beschwert war, die ich eben erst aus dem Lederbeutel mit meinen Einnahmen hineingeschüttet hatte. Ich schleuderte ihn aus dem Fenster, und er verschwand in der Themse. Die übrigen Kleider wären ihm gefolgt, aber in diesem Augenblick stürmten Polizisten die Treppe herauf, und wenige Minuten später stellte ich – zu meinem, ich gestehe es, eher erleichterten Erstaunen – fest, dass man mich nicht als Mr. Neville St. Clair erkannte, sondern als seinen Mörder verhaftete.
 
-“If you remember, Monday was an extremely hot day, and Mrs. St. Clair was walking slowly, looking around in the hope of finding a cab, because she disliked the neighborhood she was in. As she was making her way down Swandam Lane in this fashion, she suddenly heard an exclamation—a cry—and froze in horror to see her husband looking down at her and, as it seemed to her, beckoning from a second-floor window. The window was open, and she clearly saw his face, which she describes as terribly agitated. He waved his hands wildly to her and then vanished from the window so abruptly that it seemed to her he had been yanked back by some irresistible force from behind. One striking detail that caught her quick, feminine eye was that although he wore a dark coat like the one he had left home in, he had on neither collar nor necktie.
+„Ich glaube nicht, dass ich noch etwas zu erklären habe. Ich war entschlossen, meine Verkleidung so lange wie möglich zu wahren, und daher meine Vorliebe für ein schmutziges Gesicht. Da ich wusste, dass meine Frau entsetzlich in Sorge sein würde, zog ich meinen Ring ab und gab ihn dem Lascar in einem Moment, in dem kein Polizist auf mich achtete, zusammen mit einer hastigen Kritzelei, in der ich ihr schrieb, sie habe keinen Grund, sich zu fürchten.“
 
-“Convinced that something was wrong, she rushed up the steps—for the house was none other than the opium den where you found me tonight—and, running through the front room, she tried to go up the stairs to the first floor. At the foot of the stairs, however, she met that Lascar scoundrel I mentioned, who shoved her back and, helped by a Dane who works there as an assistant, pushed her out into the street. Tormented by the most maddening doubts and fears, she ran down the lane and, by rare good fortune, encountered in Fresno Street a group of constables with an inspector, all on their way to their beat. The inspector and two men went back with her and, despite the continued resistance of the proprietor, forced their way to the room where Mr. St. Clair had last been seen. There was no sign of him there. In fact, on that entire floor no one was found except a hideous, crippled wretch who, it seems, lived there. Both he and the Lascar swore flatly that no one else had been in the front room during the afternoon. Their denial was so firm that the inspector was shaken and had almost begun to believe that Mrs. St. Clair had been mistaken when, with a cry, she sprang at a small wooden box lying on the table and tore the lid off. Out tumbled a cascade of children’s building bricks. It was the toy he had promised to bring home.
+„Dieser Zettel hat sie erst gestern erreicht“, sagte Holmes.
 
-“This discovery, and the obvious confusion of the cripple, made the inspector realize that the matter was serious. The rooms were carefully searched, and everything pointed to a vile crime. The front room was plainly furnished as a sitting room and opened into a small bedroom that looked out on the back of one of the wharves. Between the wharf and the bedroom window there is a narrow strip which is dry at low tide but at high tide is covered by at least four and a half feet of water. The bedroom window was broad and opened from the bottom. On examination, traces of blood were visible on the windowsill, and several scattered drops could be seen on the wooden floor of the bedroom. Stuffed away behind a curtain in the front room were all of Mr. Neville St. Clair’s clothes, except his coat. His boots, his socks, his hat, his watch—everything was there. There were no marks of violence on any of these garments, and there was no other trace of Mr. Neville St. Clair. He must, apparently, have gone out of the window, for no other exit could be found, and the ominous bloodstains on the sill gave little hope that he could have saved himself by swimming, since the tide was at its highest at the very moment of the tragedy.
+„Großer Gott! Was für eine Woche muss sie durchgemacht haben!“
 
-“And now as to the villains who seemed to be directly involved. The Lascar was known to be a man of the vilest background, but since, according to Mrs. St. Clair’s account, he was at the foot of the stairs within a few seconds of her husband’s appearance at the window, he could hardly have been more than an accessory to the crime. His defense was complete ignorance. He insisted he knew nothing of the actions of Hugh Boone, his lodger, and that he could not in any way explain the presence of the missing gentleman’s clothes.
+„Die Polizei hat diesen Lascar beobachtet“, sagte Inspektor Bradstreet, „und ich kann gut verstehen, dass es für ihn schwierig gewesen sein dürfte, einen Brief unbemerkt aufzugeben. Wahrscheinlich hat er ihn einem seiner Matrosenkunden mitgegeben, und der hat ein paar Tage lang überhaupt nicht mehr daran gedacht.“
 
-“So much for the Lascar manager. Now for the sinister cripple who lives on the second floor of the opium den, and who was certainly the last human being whose eyes rested on Neville St. Clair. His name is Hugh Boone, and his hideous face is familiar to every man who goes often into the City. He is a professional beggar, though to evade police regulations he pretends to keep a small trade in wax matches. A little way down Threadneedle Street, on the left-hand side, there is, as you may have noticed, a small angle in the wall. That is where this creature takes his daily seat, cross-legged, with his tiny stock of matches on his lap; and since he is such a pitiful sight, a steady drizzle of charity falls into the greasy leather cap that lies on the pavement beside him. I have watched the fellow more than once before I ever thought of making his professional acquaintance, and I have been astonished at the harvest he reaps in a short time. His appearance, you see, is so striking that no one can pass him without noticing him. A shock of orange hair; a pale face disfigured by a horrible scar which, by contracting, has turned up the outer edge of his upper lip; a bulldog chin; and a pair of very piercing dark eyes, which form a strange contrast with the color of his hair—all these mark him out from the common crowd of beggars. So does his wit, for he is always ready with a retort to any bit of teasing thrown at him by passers-by.And so it did, though what they found on the mudbank was not quite what they had feared. It was Neville St. Clair’s coat, not Neville St. Clair himself, that lay exposed as the tide went out. And what do you think they found in the pockets?”
+„Genau so war es“, sagte Holmes und nickte zustimmend. „Daran habe ich keinen Zweifel. Aber sind Sie nie wegen Bettelns angeklagt worden?“
 
-“I can’t imagine.”
+„Viele Male; aber was bedeutete mir schon eine Geldstrafe?“
 
-“No, I don’t suppose you could. Every pocket was crammed with pennies and halfpennies—421 pennies and 270 halfpennies. No wonder the coat hadn’t been swept away by the tide. A human body is another matter. There’s a violent eddy between the wharf and the house. It seemed likely enough that the weighted coat had stayed where it was while the naked body was sucked away into the river.”
+„Damit muss jetzt Schluss sein“, sagte Bradstreet. „Wenn die Polizei die Sache unter den Teppich kehren soll, dann darf es keinen Hugh Boone mehr geben.“
 
-“But I understood that all the other clothes were found in the room. Would the body have been wearing only a coat?”
+„Ich habe es mit den feierlichsten Eiden geschworen, die ein Mann schwören kann.“
 
-“No, but the facts could still be made to fit—at least on the surface. Suppose this man Boone had pushed Neville St. Clair through the window. No human eye could have seen the act. What would he do then? It would immediately occur to him that he must get rid of the incriminating clothes. He would grab the coat and be on the point of throwing it out when it would strike him that it would float, not sink. He has very little time, for he has heard the struggle downstairs when the wife tried to force her way up, and perhaps he has already been warned by his Lascar accomplice that the police are hurrying up the street. There isn’t a second to lose. He dashes to some secret stash where he has hoarded the proceeds of his begging, and he stuffs all the coins he can lay his hands on into the pockets to make sure the coat will sink. He throws it out, and would have done the same with the other garments if he had not heard the rush of feet below and only just had time to close the window before the police appeared.”
+„In diesem Fall halte ich es für wahrscheinlich, dass keine weiteren Schritte unternommen werden. Aber wenn man Sie noch einmal erwischt, dann kommt alles ans Licht. Ich bin sicher, Mr. Holmes, wir sind Ihnen sehr zu Dank verpflichtet, dass Sie die Angelegenheit aufgeklärt haben. Ich wünschte, ich wüsste, wie Sie zu Ihren Ergebnissen gelangen.“
 
-“It certainly sounds plausible.”
+„Zu diesem hier“, sagte mein Freund, „bin ich gelangt, indem ich auf fünf Kissen saß und eine Unze Shag-Tabak verrauchte. Ich denke, Watson, wenn wir nach Baker Street fahren, sind wir gerade noch rechtzeitig zum Frühstück.“
 
-“Well, we’ll treat it as a working hypothesis until we find a better one. Boone, as I told you, was arrested and taken to the station, but nothing could be shown against him from before this. He had for years been known as a professional beggar, but his life seemed to have been very quiet and harmless. That’s where the matter stands at present, and the questions that have to be answered—what Neville St. Clair was doing in the opium den, what happened to him there, where he is now, and what Hugh Boone had to do with his disappearance—are all as far from solution as ever. I must admit I can’t recall any case in my experience that looked so simple at first glance and yet presented such difficulties.”
+Ich hatte meinen Freund Sherlock Holmes am zweiten Morgen nach Weihnachten aufgesucht, um ihm die üblichen Festtagsgrüße zu überbringen. Er lag lässig auf dem Sofa, in einen violetten Hausrock gehüllt; rechts, in Griffweite, stand ein Pfeifenständer, und daneben lag ein Haufen zerknitterter Morgenzeitungen, offenbar eben erst durchgearbeitet. Neben der Couch stand ein Holzstuhl, und über einer Ecke der Lehne hing ein äußerst schäbiger, heruntergekommener Filzhut — ein hartes, rundes Stück, deutlich vom Leben gezeichnet und an mehreren Stellen eingerissen. Eine Lupe und eine Pinzette auf der Sitzfläche ließen keinen Zweifel: Der Hut hing dort zum Zweck einer Untersuchung.
 
-While Sherlock Holmes had been recounting this strange chain of events, we had been spinning through the outskirts of the great city until the last scattered houses were left behind and we were rattling along with country hedges on either side of us. Just as he finished, however, we drove through two straggling villages, where a few lights still glimmered in the windows.
+„Du bist beschäftigt“, sagte ich. „Vielleicht störe ich.“
 
-“We’re on the outskirts of Lee,” said my companion. “We’ve touched three English counties in this short drive—starting in Middlesex, cutting across a corner of Surrey, and ending in Kent. See that light among the trees? That’s The Cedars, and beside that lamp sits a woman whose anxious ears have already, I’ve little doubt, caught the sound of our horse’s hooves.”
+„Keineswegs. Ich bin froh, einen Freund zu haben, mit dem ich meine Ergebnisse besprechen kann. Die Sache ist vollkommen unerquicklich“ — er zuckte mit dem Daumen in Richtung des alten Hutes — „aber es gibt ein paar Punkte daran, die nicht ganz ohne Interesse sind, ja sogar lehrreich.“
 
-“But why aren’t you running the case from Baker Street?” I asked.
+Ich setzte mich in seinen Sessel und wärmte mir die Hände am knisternden Feuer, denn ein scharfer Frost hatte eingesetzt, und die Fensterscheiben waren dick mit Eisblumen überzogen. „Ich nehme an“, bemerkte ich, „dass dieses Ding, so unscheinbar es aussieht, irgendeine tödliche Geschichte an sich hängen hat — dass es der Hinweis ist, der dich zur Lösung eines Rätsels und zur Bestrafung eines Verbrechens führen wird.“
 
-“Because there are many inquiries that have to be made out here. Mrs. St. Clair has very kindly put two rooms at my disposal, and you may be sure she will have nothing but a welcome for my friend and colleague. I hate meeting her, Watson, when I have no news of her husband. Here we are. Whoa there, whoa!”
+„Nein, nein. Kein Verbrechen“, sagte Sherlock Holmes lachend. „Nur einer jener skurrilen kleinen Vorfälle, die zwangsläufig passieren, wenn vier Millionen Menschen auf wenigen Quadratmeilen aneinander vorbeidrängen. In dem ständigen Stoßen und Zurückstoßen eines so dichten Menschenschwarms darf man jede nur denkbare Kombination von Ereignissen erwarten, und man bekommt manches kleine Problem serviert, das auffällig und bizarr sein kann, ohne kriminell zu sein. Damit haben wir ja bereits Erfahrung.“
 
-We had pulled up in front of a large villa standing in its own grounds. A stable-boy ran out to the horse’s head, and, jumping down, I followed Holmes up the small, winding gravel drive that led to the house. As we approached, the door flew open and a small, fair-haired woman stood in the doorway, dressed in some light mousseline de soie, with a touch of fluffy pink chiffon at her neck and wrists. She stood outlined against the flood of light, one hand on the door, the other half-raised in her eagerness, her body slightly bent forward, her head and face thrust out, eyes shining and lips parted—a living question.
+„Und wie“, erwiderte ich, „von den letzten sechs Fällen, die ich in meinen Notizen festgehalten habe, waren drei völlig frei von irgendeinem strafrechtlichen Delikt.“
 
-“Well?” she cried. “Well?” Then, seeing there were two of us, she gave a cry of hope which sank into a groan as she saw my companion shake his head and shrug his shoulders.
+„Ganz genau. Du meinst meinen Versuch, die Papiere der Irene Adler wiederzubeschaffen, den merkwürdigen Fall der Miss Mary Sutherland und das Abenteuer des Mannes mit der verdrehten Lippe. Nun, ich zweifle nicht daran, dass diese kleine Angelegenheit in dieselbe harmlose Kategorie fällt. Du kennst Peterson, den Kommissionär?“
 
-“No good news?”
+„Ja.“
 
-“None.”
+„Ihm gehört diese Trophäe.“
 
-“No bad?”
+„Das ist sein Hut.“
 
-“No.”
+„Nein, nein, er hat ihn gefunden. Der Besitzer ist unbekannt. Ich bitte dich, sieh ihn nicht als verbeulten Filzhut, sondern als ein geistiges Problem. Und zunächst: wie er hierherkam. Er traf am Weihnachtsmorgen ein, zusammen mit einer schönen, fetten Gans, die — da bin ich sicher — in diesem Augenblick vor Petersons Feuer brät. Die Fakten sind folgende: Gegen vier Uhr am Weihnachtsmorgen kehrte Peterson, der, wie du weißt, ein sehr ehrlicher Kerl ist, von einer kleinen Feierlichkeit zurück und ging die Tottenham Court Road hinunter nach Hause. Vor sich sah er im Gaslicht einen ziemlich großen Mann, der leicht schwankend ging und eine weiße Gans über der Schulter trug. Als er die Ecke zur Goodge Street erreichte, geriet der Fremde mit einem kleinen Trupp Halbstarker aneinander. Einer von ihnen schlug dem Mann den Hut vom Kopf; daraufhin hob dieser seinen Stock zur Verteidigung, und als er ihn über dem Kopf schwang, zerschlug er die Schaufensterscheibe hinter sich. Peterson stürzte vor, um den Fremden vor seinen Angreifern zu schützen; doch der Mann, erschrocken darüber, das Fenster zerbrochen zu haben, und als er eine uniformierte, amtlich wirkende Person auf sich zukommen sah, ließ die Gans fallen, nahm die Beine in die Hand und verschwand in dem Labyrinth kleiner Straßen hinter der Tottenham Court Road. Die Rowdys waren beim Anblick Petersons ebenfalls geflohen, sodass er als Herr des Schlachtfelds zurückblieb — und zugleich im Besitz der Beute des Sieges: dieses verbeulten Hutes und einer völlig unverdächtigen Weihnachtsgans.“
 
-“Thank God for that. But come in. You must be tired; you’ve had a long day.”
+„Die er doch sicher dem Besitzer zurückgab?“
 
-“This is my friend, Dr. Watson. He has been of the greatest help to me in several of my cases, and a lucky chance has made it possible for me to bring him out and associate him with this investigation.”
+„Mein lieber Freund, genau da liegt das Problem. Es stimmt, dass an das linke Bein des Vogels eine kleine Karte gebunden war, auf der ‚Für Mrs. Henry Baker‘ gedruckt stand, und es stimmt auch, dass die Initialen ‚H. B.‘ im Futter dieses Hutes zu lesen sind — aber da es in unserer Stadt einige Tausend Bakers und einige Hundert Henry Bakers gibt, ist es nicht leicht, verlorenes Eigentum einem von ihnen wieder zuzustellen.“
 
-“I’m very glad to see you,” she said, pressing my hand warmly. “You will, I’m sure, forgive anything that may be lacking in our arrangements when you consider the blow that has come so suddenly upon us.”
+„Was hat Peterson dann getan?“
 
-“My dear madam,” I said, “I’m an old campaigner, and even if I weren’t, it’s quite clear that no apology is needed. If I can be of any help, either to you or to my friend here, I shall be very glad.”
+„Er brachte mir am Weihnachtsmorgen sowohl Hut als auch Gans vorbei, weil er weiß, dass mich selbst die kleinsten Probleme interessieren. Die Gans behielten wir bis heute Morgen, als sich Anzeichen zeigten, dass man sie trotz des leichten Frosts besser ohne unnötigen Aufschub essen sollte. Ihr Finder hat sie daher mitgenommen, um das letzte Schicksal einer Gans zu erfüllen, während ich weiterhin den Hut des unbekannten Herrn behalte, der sein Weihnachtsessen verloren hat.“
 
-“Now, Mr. Sherlock Holmes,” said the lady, as we entered a brightly lit dining“Yes, there was a ring. His signet ring.”
+„Hat er nicht inseriert?“
 
-“And you’re sure this is your husband’s handwriting?”
+„
 
-“One of his handwritings.”
+„Du machst Witze, Holmes.“
 
-“One?”
+„Keineswegs. Ist es möglich, dass du selbst jetzt, wo ich dir diese Ergebnisse vorlege, nicht erkennen kannst, wie ich zu ihnen gelangt bin?“
 
-“How he wrote when he was in a hurry. It’s very unlike his usual hand, and yet I know it perfectly well.”
+„Ich zweifle nicht daran, dass ich entsetzlich begriffsstutzig bin, aber ich muss gestehen, dass ich dir nicht folgen kann. Zum Beispiel: Wie hast du geschlossen, dass dieser Mann gebildet war?“
 
-“‘Dearest, don’t be frightened. Everything will turn out all right. There is a huge mistake which may take a little time to put right. Wait patiently.—NEVILLE.’ Written in pencil on the flyleaf of a book, octavo size, no watermark. Hm! Posted today in Gravesend by a man with a dirty thumb. Ha! And the flap was gummed, unless I’m very much mistaken, by someone who had been chewing tobacco. And you have no doubt that it is your husband’s writing, madam?”
+Statt zu antworten, setzte Holmes sich den Hut auf. Er rutschte ihm bis tief über die Stirn und kam auf dem Nasenrücken zu liegen. „Das ist eine Frage des Rauminhalts“, sagte er. „Ein Mann mit einem so großen Gehirn muss auch etwas darin haben.“
 
-“None. Neville wrote those words.”
+„Und der Niedergang seiner Verhältnisse?“
 
-“And they were posted today at Gravesend. Well, Mrs. St. Clair, the clouds are lifting, though I wouldn’t go so far as to say the danger is past.”
+„Dieser Hut ist drei Jahre alt. Diese flachen Krempen, die sich am Rand leicht aufrollen, kamen damals in Mode. Es ist ein Hut allerbester Qualität. Sieh dir das gerippte Seidenband an und das ausgezeichnete Futter. Wenn dieser Mann sich vor drei Jahren einen so teuren Hut leisten konnte und seitdem keinen neuen mehr gekauft hat, dann ist er ganz gewiss sozial abgestiegen.“
 
-“But he must be alive, Mr. Holmes.”
+„Gut, das ist immerhin klar. Aber wie steht es mit der Weitsicht und dem moralischen Rückschritt?“
 
-“Unless this is a clever forgery to throw us off the scent. The ring, after all, proves nothing. It may have been taken from him.”
+Sherlock Holmes lachte. „Hier ist die Weitsicht“, sagte er und legte den Finger auf die kleine Scheibe und die Schlaufe der Hutsicherung. „So etwas wird nie serienmäßig an Hüten verkauft. Wenn dieser Mann so etwas bestellt hat, ist das ein Zeichen für ein gewisses Maß an Voraussicht — er hat sich extra die Mühe gemacht, diese Vorsichtsmaßnahme gegen den Wind zu treffen. Aber da wir sehen, dass er das Gummiband zerrissen hat und sich nicht die Mühe machte, es zu ersetzen, ist offensichtlich, dass er heute weniger Weitsicht besitzt als früher; ein deutlicher Beleg für nachlassende Willenskraft. Andererseits hat er versucht, einige dieser Flecken auf dem Filz zu verbergen, indem er sie mit Tinte überpinselt hat — ein Zeichen dafür, dass er seinen Selbstrespekt noch nicht völlig verloren hat.“
 
-“No, no; it is, it is his very own writing!”
+„Deine Schlussfolgerung ist jedenfalls plausibel.“
 
-“Very well. It may, however, have been written on Monday and only posted today.”
+„Die weiteren Punkte — dass er mittleren Alters ist, dass sein Haar grau meliert ist, dass es vor Kurzem geschnitten wurde und dass er Kalkcreme benutzt — all das lässt sich durch eine genaue Untersuchung des unteren Teils des Futters feststellen. Die Lupe zeigt eine große Anzahl von Haarspitzen, sauber abgeschnitten von der Schere des Barbiers. Sie wirken alle leicht klebrig, und es gibt einen deutlichen Geruch nach Kalkcreme. Dieser Staub, wie du siehst, ist nicht der körnige, graue Straßenstaub, sondern der weiche, braune Hausstaub; das zeigt, dass der Hut die meiste Zeit drinnen aufgehängt war. Und die Feuchtigkeitsränder an der Innenseite sind ein untrüglicher Beweis dafür, dass der Träger sehr stark schwitzte und daher kaum in bester körperlicher Verfassung sein konnte.“
 
-“That is possible.”
+„Aber seine Frau — du hast gesagt, sie liebe ihn nicht mehr.“
 
-“If so, much may have happened in between.”
+„Dieser Hut ist seit Wochen nicht gebürstet worden. Wenn ich dich, mein lieber Watson, einmal mit einer Woche Staubschicht auf dem Hut sehe und wenn deine Frau dich in so einem Zustand aus dem Haus gehen lässt, dann werde ich fürchten, dass auch du das Unglück hattest, die Zuneigung deiner Frau zu verlieren.“
 
-“Oh, you mustn’t discourage me, Mr. Holmes. I know that all is well with him. There is such a strong sympathy between us that I would know if anything bad had happened to him. On the very day I last saw him he cut himself in the bedroom, and yet I, in the dining room, rushed upstairs at once, absolutely certain that something had happened. Do you think I would respond to such a trifle and yet be unaware of his death?”
+„Aber er könnte Junggeselle sein.“
 
-“I’ve seen too much not to know that a woman’s intuition may be more valuable than the conclusion of an analytical reasoner. And in this letter you certainly have a very strong piece of evidence to support your belief. But if your husband is alive and able to write letters, why should he stay away from you?”
+„Nein. Er brachte die Gans als Friedensangebot für seine Frau nach Hause. Denk an die Karte am Bein des Vogels.“
 
-“I can’t imagine. It’s unthinkable.”
+„Du hast auf alles eine Antwort. Aber wie um alles in der Welt schließt du daraus, dass in seinem Haus kein Gas gelegt ist?“
 
-“And on Monday he said nothing before leaving you?”
+„Ein Talgfleck — oder auch zwei — könnte Zufall sein; aber wenn ich nicht weniger als fünf sehe, dann kann kaum ein Zweifel bestehen, dass der Betreffende häufig mit brennendem Talg in Berührung kommt — wahrscheinlich geht er nachts die Treppe hinauf, den Hut in der einen Hand und in der anderen eine tropfende Kerze. Jedenfalls bekommt man keine Talgflecken von einer Gasflamme. Bist du zufrieden?“
 
-“No.”
+„Nun, es ist sehr raffiniert“, sagte ich lachend; „aber da, wie du eben noch meintest, kein Verbrechen begangen wurde und kein Schaden entstanden ist außer dem Verlust einer Gans, scheint mir das alles eine ziemliche Verschwendung von Energie.“
 
-“And you were surprised to see him in Swandam Lane?”
+Sherlock Holmes hatte den Mund schon geöffnet, um zu antworten, als die Tür aufflog und Peterson, der Hausdiener, mit hochroten Wangen und dem Gesicht eines Mannes, den schieres Staunen benommen macht, ins Zimmer stürzte.
 
-“Very much so.”
+„Die Gans, Mr. Holmes! Die Gans, Sir!“, japste er.
 
-“Was the window open?”
+„Wie? Was ist damit? Ist sie wieder lebendig geworden und durchs Küchenfenster davongeflattert?“ Holmes drehte sich auf dem Sofa herum, um das erregte Gesicht des Mannes besser sehen zu können.
 
-“Yes.”
+„Sehen Sie nur, Sir! Sehen Sie, was meine Frau in ihrem Kropf gefunden hat!“ Er streckte die Hand aus und zeigte mitten auf der Handfläche einen brillant funkelnden blauen Stein, etwas kleiner als eine Bohne, aber von einer Reinheit und Leuchtkraft, dass er wie ein elektrischer Punkt in der dunklen Mulde seiner Hand aufblitzte.
 
-“Then he could have called out to you?”
+Sherlock Holmes richtete sich mit einem leisen Pfiff auf
 
-“He could.”
+„Hm! So viel zum Polizeigericht“, sagte Holmes nachdenklich und warf die Zeitung beiseite. „Die Frage, die wir jetzt zu lösen haben, ist die Abfolge der Ereignisse, die von einem ausgeräumten Schmuckkästchen am einen Ende bis zum Kropf einer Gans in der Tottenham Court Road am anderen führt. Sie sehen, Watson: Unsere kleinen Schlussfolgerungen haben plötzlich eine weit wichtigere und weit weniger harmlose Seite bekommen. Hier ist der Stein; der Stein kam aus der Gans, und die Gans kam von Mr. Henry Baker – dem Herrn mit dem schlechten Hut und all den übrigen Merkmalen, mit denen ich Sie gelangweilt habe. Also müssen wir uns jetzt sehr ernsthaft daranmachen, diesen Herrn zu finden und festzustellen, welche Rolle er in diesem kleinen Geheimnis gespielt hat. Dazu versuchen wir zuerst die einfachsten Mittel, und die liegen zweifellos in einer Anzeige in sämtlichen Abendblättern. Wenn das fehlschlägt, greife ich zu anderen Methoden.“
 
-“He only gave, as I understand it, an inarticulate cry?”
+„Was werden Sie schreiben?“
 
-“Yes.”
+„Geben Sie mir einen Bleistift und diesen Zettel. So, dann: ‚Gefunden an der Ecke Goodge Street: eine Gans und ein schwarzer Filzhut. Mr. Henry Baker kann beides abholen, wenn er sich heute Abend um 6.30 Uhr in 221B Baker Street meldet.‘ Das ist klar und knapp.“
 
-“You thought it was a cry for help?”
+„Sehr. Aber wird er es lesen?“
 
-“Yes. He waved his hands.”
+„Nun, er wird die Zeitungen ganz sicher im Auge behalten, denn für einen armen Mann war der Verlust ein schwerer. Er war offenbar so erschrocken über sein Missgeschick mit der eingeschlagenen Scheibe und über Petersons Auftauchen, dass er an nichts als Flucht dachte; aber seitdem muss er den Impuls, der ihn dazu brachte, den Vogel fallen zu lassen, bitter bereut haben. Und außerdem: Die Nennung seines Namens wird dafür sorgen, dass er es sieht, denn jeder, der ihn kennt, wird ihn darauf stoßen. Hier, Peterson – laufen Sie zur Anzeigenannahme und sorgen Sie dafür, dass das heute Abend in die Zeitungen kommt.“
 
-“But it might have been a cry of surprise. The shock of seeing you unexpectedly might make him throw up his hands?”
+„In welche denn, Sir?“
 
-“That’s possible.”
+„Oh, in den *Globe*, den *Star*, den *Pall Mall*, die *St. James’s Gazette*, die *Evening News*, den *Standard*, den *Echo* – und in alle anderen, die Ihnen einfallen.“
 
-“And you thought he was pulled back?”
+„Sehr wohl, Sir. Und dieser Stein?“
 
-“He vanished so suddenly.”
+„Ah, ja – den Stein behalte ich. Danke. Und hören Sie, Peterson: Kaufen Sie auf dem Rückweg noch eine Gans und lassen Sie sie hier bei mir, denn wir müssen diesem Herrn eine geben als Ersatz für diejenige, die Ihre Familie gerade verspeist.“
 
-“He might have jumped back. You didn’t see anyone else in the room?”
+Als der Kommissionär gegangen war, nahm Holmes den Stein wieder auf und hielt ihn gegen das Licht. „Ein hübsches Ding“, sagte er. „Sehen Sie nur, wie er glitzert und funkelt. Natürlich ist er ein Kern und Brennpunkt des Verbrechens. Jeder gute Stein ist das. Sie sind des Teufels liebste Köder. Bei den größeren und älteren Juwelen kann jede Facette für eine blutige Tat stehen. Dieser Stein ist noch keine zwanzig Jahre alt. Er wurde an den Ufern des Amoy-Flusses im Süden Chinas gefunden und ist bemerkenswert, weil er alle Eigenschaften des Karfunkels besitzt – bis auf die Farbe: Er ist blau getönt statt rubinrot. Trotz seiner Jugend hat er bereits eine unheilvolle Geschichte. Es gab zwei Morde, einen Vitriolanschlag, einen Selbstmord und mehrere Raubüberfälle – alles um dieses vierzig Gran schwere Stück kristallisierten Kohlenstoffs. Wer würde denken, dass so ein hübsches Spielzeug ein Lieferant für Galgen und Zuchthaus sein kann? Ich schließe ihn jetzt in meinen Geldschrank und schreibe der Gräfin ein paar Zeilen, dass wir ihn haben.“
 
-“No, but that horrible man admitted he had been there, and the Lascar was at the foot of the stairs.”
+„Glauben Sie, dieser Horner ist unschuldig?“
 
-“Quite so. Your husband, as far as you could see, was wearing his usual clothes?”
+„Ich kann es nicht sagen.“
 
-“But without his collar or tie. I clearly saw his bare throat.”
+„Und meinen Sie, dieser andere – Henry Baker – hatte etwas damit zu tun?“
 
-“Had he ever spoken of Swandam Lane?”
+„Ich halte es für viel wahrscheinlicher, dass Henry Baker ein völlig unschuldiger Mann ist, der keine Ahnung hatte, dass der Vogel, den er trug, erheblich wertvoller war, als wenn er aus massivem Gold gewesen wäre. Das allerdings werde ich mit einem sehr einfachen Test feststellen – vorausgesetzt, wir bekommen eine Antwort auf unsere Anzeige.“
 
-“Never.”
+„Und bis dahin können Sie nichts tun?“
 
-“Had he ever shown any signs of taking opium?”
+„Nichts.“
 
-“Never.”
+„Dann werde ich meine berufliche Runde fortsetzen. Aber ich komme heute Abend zu der von Ihnen genannten Stunde zurück, denn ich möchte gern die Auflösung eines so vertrackten Geschäfts sehen.“
 
-“Thank you, Mrs. St. Clair. Those are the main points I wanted to have absolutely clear. We’ll have a little supper now and then go to bed, for we may have a very busy day tomorrow.”
+„Sehr gern. Ich esse um sieben. Es gibt, glaube ich, eine Waldschnepfe. Übrigens – angesichts der jüngsten Vorkommnisse sollte ich Mrs. Hudson vielleicht bitten, ihren Kropf zu untersuchen.“
 
-A large, comfortable room with two beds had been put at our disposal, and I was quickly between the sheets, for I was tired after my night’s adventures. Sherlock Holmes, however, was the sort of man who, when he had an unsolved problem on his mind, could go for days, even a week, without rest, turning it over, rearranging his facts, looking at it from every angle until he had either got to the bottom of it or convinced himself that his data were insufficient. It was soon clear to me that he was preparing for an all-night session. He took off his coat and waistcoat, put on a long blue dressing gown, and then wandered about the room collecting pillows from his bed and cushions from the sofa and armchairs. With these he built a kind of Eastern divan, on which he perched himself cross-legged, with an ounce of shag tobacco and a box of matches laid out in front of him. In the dim lamplight I saw him sitting there, an old briar pipe between his lips, his eyes fixed vacantly on a corner of the ceiling, blue smoke curling up from him, silent, motionless, the light shining on his strong, aquiline features. He was sitting so when I drifted off to sleep, and he was sitting so when a sudden exclamation woke me, and I found the summer sun streaming into the room. The pipe was still between his lips, the smoke still curled upward, and the room was thick with tobacco haze, but nothing remained of the heap of shag I had seen the night before.
+Ich war durch einen Fall aufgehalten worden, und es war schon etwas nach halb sieben, als ich mich wieder in der Baker Street einfand. Als ich mich dem Haus näherte, sah ich einen großen Mann in einer schottischen Mütze, in einem Mantel, der bis unters Kinn zugeknöpft war, draußen warten – im hellen Halbkreis Licht, den das Oberlicht über der Tür auf den Gehweg warf. Gerade als ich ankam, wurde geöffnet, und man führte uns gemeinsam hinauf in Holmes’ Zimmer.
 
-“Awake, Watson?” he asked.
+„Mr. Henry Baker, wenn ich nicht irre“, sagte Holmes, erhob sich aus seinem Sessel und begrüßte
 
-“Yes.”
+„So viel zu Mr. Henry Baker“, sagte Holmes, als er die Tür hinter ihm geschlossen hatte. „Es ist völlig sicher, dass er rein gar nichts mit der Sache zu tun hat. Hast du Hunger, Watson?“
 
-“Feel up to a morning drive?”
+„Nicht besonders.“
 
-“Certainly.”
+„Dann schlage ich vor, wir machen aus unserem Dinner ein spätes Abendessen und gehen dieser Spur nach, solange sie noch warm ist.“
 
-“Then get dressed. No one’s up yet, but I know where the stable-boy sleeps, and we’ll soon have the trap out.” He chuckled as he spoke, his eyes twinkling; he seemed a different man from the sombre thinker of the previous night.
+„Unbedingt.“
 
-As I dressed I glanced at my watch. No wonder no one was stirring. It was twenty-five minutes past four. I had barely finished when Holmes came back with the news that the boy was harnessIt was a small, office-like room, with a huge ledger on the table and a telephone jutting from the wall. The inspector sat down at his desk.
+Es war eine klirrend kalte Nacht, also zogen wir unsere Ulster an und wickelten die Krawatten fest um die Hälse. Draußen funkelten die Sterne kalt in einem wolkenlosen Himmel, und der Atem der Passanten stieß in kleinen Rauchwolken hervor wie eine Reihe von Pistolenschüssen. Unsere Schritte hallten scharf und laut, als wir durch das Ärzteviertel gingen, Wimpole Street, Harley Street, dann durch Wigmore Street in die Oxford Street. Nach einer Viertelstunde waren wir in Bloomsbury, im Alpha Inn, einem kleinen Wirtshaus an der Ecke einer Straße, die hinunter nach Holborn führt. Holmes stieß die Tür zur Schankstube auf und bestellte beim rotgesichtigen Wirt im weißen Schurz zwei Gläser Bier.
 
-“What can I do for you, Mr. Holmes?”
+„Ihr Bier muss ausgezeichnet sein, wenn es so gut ist wie Ihre Gänse“, sagte er.
 
-“I’ve come about that beggar, Boone—the one charged in connection with the disappearance of Mr. Neville St. Clair, of Lee.”
+„Meine Gänse!“ Der Mann sah ihn verblüfft an.
 
-“Yes. He was brought up and remanded while we make further inquiries.”
+„Ja. Ich habe erst vor einer halben Stunde mit Mr. Henry Baker gesprochen, der Mitglied Ihres Gänseklubs war.“
 
-“So I heard. You have him here?”
+„Ach so, ja, ich verstehe. Aber sehen Sie, Sir, das sind nicht _unsere_ Gänse.“
 
-“In the cells.”
+„Tatsächlich? Wessen denn dann?“
 
-“Is he quiet?”
+„Nun ja, ich hab die zwei Dutzend von einem Händler in Covent Garden.“
 
-“Oh, he gives no trouble. But he’s a filthy scoundrel.”
+„Wirklich? Ich kenne einige von denen. Wer war’s?“
 
-“Filthy?”
+„Breckinridge heißt er.“
 
-“Yes, we can barely get him to wash his hands, and his face is as black as a tinker’s. Well, once his case is settled he’ll get a proper prison bath, and I think, if you saw him, you’d agree he needs it.”
+„Ah! Den kenne ich nicht. Nun, auf Ihre Gesundheit, Wirt, und Wohlstand für Ihr Haus. Gute Nacht.“
 
-“I’d very much like to see him.”
+„Und jetzt zu Mr. Breckinridge“, fuhr er fort, während wir in die frostige Luft hinaustraten und er seinen Mantel zuknöpfte. „Denk daran, Watson: So unerquicklich das eine Ende dieser Kette auch ist — eine ganz gewöhnliche Gans —, am anderen Ende steht ein Mann, der mit Sicherheit sieben Jahre Zuchthaus bekommt, wenn wir seine Unschuld nicht beweisen können. Es ist möglich, dass unsere Nachforschungen nur seine Schuld bestätigen; aber wie auch immer: Wir haben eine Ermittlungsrichtung, die der Polizei entgangen ist und die uns ein merkwürdiger Zufall in die Hand gespielt hat. Gehen wir ihr nach, bis zum bitteren Ende. Also: Gesicht nach Süden — und im Laufschritt!“
 
-“Would you? That’s easily arranged. This way. You can leave your bag.”
+Wir überquerten Holborn, gingen die Endell Street hinunter und schlängelten uns dann im Zickzack durch ein Gewirr von Elendsgassen bis zum Covent-Garden-Markt. Einer der größten Stände trug den Namen Breckinridge, und der Besitzer — ein pferdehaft wirkender Mann mit scharf geschnittenem Gesicht und ordentlich gestutzten Backenbärten — half gerade einem Jungen, die Läden hochzuklappen.
 
-“No, I think I’ll take it.”
+„Guten Abend. Kalte Nacht“, sagte Holmes.
 
-“Very good. This way, if you please.” He led us down a passage, opened a barred door, went down a winding stair, and brought us into a whitewashed corridor with a row of doors on each side.
+Der Händler nickte und warf meinem Begleiter einen fragenden Blick zu.
 
-“Third on the right is his,” said the inspector. “Here we are.” He quietly slid back a panel in the upper part of the door and looked through.
+„Ausverkauft an Gänsen, wie ich sehe“, fuhr Holmes fort und deutete auf die blanken Marmorplatten.
 
-“He’s asleep,” he said. “You can see him clearly.”
+„Morgen früh kann ich Ihnen fünfhundert geben.“
 
-We both put our eyes to the grating. The prisoner lay facing us, in a very deep sleep, breathing slow and heavy. He was a man of medium height, coarsely dressed, as suited his supposed trade, with a colored shirt bulging through a tear in his ragged coat. He was, as the inspector had said, extremely dirty, but the grime on his face couldn’t hide its repulsive ugliness. A broad welt from an old scar ran right across it from eye to chin, and its contraction had pulled up one side of his upper lip so that three teeth were bared in a permanent snarl. A shock of very bright red hair grew low over his forehead and eyes.
+„Das hilft mir nicht.“
 
-“He’s a beauty, isn’t he?” said the inspector.
+„Na, da drüben am Stand mit dem Gaslicht sind noch welche.“
 
-“He certainly needs a wash,” Holmes remarked. “I suspected as much, and took the liberty of bringing the tools.” As he spoke, he opened the Gladstone bag and, to my astonishment, took out a very large bath sponge.
+„Ah, aber man hat mich zu Ihnen geschickt.“
 
-“Heh, heh! You’re a queer one,” chuckled the inspector.
+„Von wem?“
 
-“Now, if you would be so kind as to open that door very quietly, we’ll soon have him looking a good deal more respectable.”
+„Vom Wirt des Alpha.“
 
-“Well, I don’t see why not,” said the inspector. “He’s no credit to the Bow Street cells, is he?” He slipped his key into the lock, and we all went very quietly into the cell. The sleeper half turned, then sank once more into deep slumber. Holmes bent over the water jug, dampened his sponge, and then rubbed it twice, hard, across and down the prisoner’s face.
+„Ach ja; dem hab ich zwei Dutzend geschickt.“
 
-“Allow me to introduce you,” he shouted, “to Mr. Neville St. Clair, of Lee, in the county of Kent.”
+„Ausgezeichnete Tiere waren das. Und wo haben Sie die her?“
 
-\newpage
+Zu meiner Überraschung löste die Frage einen Wutausbruch beim Händler aus.
 
-# I. have never in my life seen anything like it. The man’s face came away under the sponge like bark from a tree. Gone was the coarse brown tint! Gone, too, the horrible scar that had seamed it across, and the twisted lip that had given the face its repulsive sneer! A quick tug stripped off the tangled red hair, and there, sitting up in his bed, was a pale, sad-faced, refined-looking man, black-haired and smooth-skinned, rubbing his eyes and staring around him in sleepy bewilderment. Then, suddenly realizing that he was exposed, he let out a scream and flung himself face down on the pillow.
+„So, mein Herr“, sagte er, den Kopf schief gelegt, die Arme in die Hüften gestemmt, „was soll das werden? Raus mit der Sprache, aber geradeaus.“
 
-“Good heavens!” cried the inspector. “It really is the missing man. I know him from the photograph.”
+„Geradeaus ist es doch. Ich möchte wissen, wer Ihnen die Gänse verkauft hat, die Sie ans Alpha geliefert haben.“
 
-The prisoner turned with the reckless air of a man who has surrendered himself to fate. “So be it,” he said. “And may I ask what I am charged with?”
+„Na dann: Das sag ich Ihnen nicht. So!“
 
-“With making away with Mr. Neville St.— Oh, come now, you can’t be charged with that unless they call it attempted suicide,” said the inspector with a grin. “Well, I’ve been twenty-seven years in the force, but this really takes the cake.”
+„Oh, es ist völlig unwichtig; ich verstehe nur nicht, warum Sie sich wegen so einer Kleinigkeit so aufregen.“
 
-“If I am Mr. Neville St. Clair, then obviously no crime has been committed, and therefore I am being held illegally.”
+„Aufregen! Sie würden sich auch aufregen, wenn man Sie so belästigen würde wie mich. Wenn ich gutes Geld für gute Ware bezahle, dann sollte die Sache erledigt sein. Aber nein: ‚Wo sind die Gänse?‘ und ‚An wen haben Sie die Gänse verkauft?‘ und ‚Was nehmen Sie für die Gänse?‘ Man könnte meinen, es wären die einzigen Gänse auf der Welt, so ein Theater wird um die gemacht.“
 
-“No crime, but a very great mistake has been committed,” said Holmes. “You would have done better to trust your wife.”
+„Nun, ich habe mit keinem von den anderen zu tun, die hier Fragen stellen“, sagte Holmes gleichgültig. „Wenn Sie’s uns nicht sagen wollen, ist die Wette eben hinfällig, weiter nichts. Aber ich bin immer bereit, meine Meinung bei Geflügel zu vertreten, und ich setze einen Fünfer darauf, dass der Vogel, den ich gegessen habe, vom Land stammt.“
 
-“It wasn’t my wife; it was the children,” groaned the prisoner. “God help me, I couldn’t bear for them to be ashamed of their father. My God, what an exposure! What am I to do?”
+„Dann haben Sie Ihren Fünfer verloren, denn der ist aus der Stadt“, fauchte der Händler.
 
-Sherlock Holmes sat down beside him on the cot and patted him kindly on the shoulder.
+„Keineswegs.“
 
-“If you leave it to a court of law to untangle this,” he said, “you can hardly hope to avoid publicity. On the other hand, if you convince the police authorities that there is no possible case against you, I see no reason why the details need ever reach the papers. Inspector Bradstreet would, I’m sure, take notes on whatever you tell us and submit them to the proper authorities. The case need never go to court at all.”
+„Doch, ist er.“
 
-“God bless you!” cried the prisoner passionately. “I would have endured imprisonment—yes, even execution—rather than leave my wretched secret as a stain on my children’s name.
+„Das glaube ich nicht.“
 
-“You are the first who have ever heard my story. My father was a schoolVery soon I found I was putting away quite a lot of money. I don’t mean that just any beggar on the streets of London could make seven hundred pounds a year—which is actually less than my average earnings—but I had special advantages: my skill with disguises, and a quick wit that sharpened with practice, until I became quite a well-known character in the City. All day long a stream of pennies, with the occasional silver coin, poured into my hands, and it was a very poor day indeed when I didn’t clear at least two pounds.
+„Meinen Sie, Sie wissen mehr über Geflügel
 
-As I grew richer, I grew more ambitious. I took a house in the country and eventually married, without anyone ever suspecting what my real occupation was. My dear wife knew I had “business in the City.” She had no idea what kind.
+„Nein; aber eine davon gehörte trotzdem mir“, quengelte der kleine Mann.
 
-Last Monday I had finished for the day and was changing in my room above the opium den when I looked out of the window and, to my horror and astonishment, saw my wife standing in the street, staring straight up at me. I cried out in shock, threw up my arms to cover my face, and rushed to my confidant, the Lascar, begging him to stop anyone from coming up to my room. I heard her voice downstairs, but I knew she couldn’t get up to me. Quickly I stripped off my clothes, pulled on my beggar’s rags, and put on my makeup and wig. Not even a wife’s eyes could see through such a perfect disguise. Then it struck me that they might search the room and that my clothes could betray me. I flung open the window, reopening, in my haste, a small cut I had given myself that morning in the bedroom. Then I grabbed my coat, which was heavy with the coppers I had just transferred into it from the leather bag I used to carry my takings. I hurled it out of the window, and it vanished into the Thames. The rest of the clothes would have followed, but at that moment there was a rush of policemen up the stairs, and a few minutes later I discovered—rather, I admit, to my relief—that instead of being identified as Mr. Neville St. Clair, I was arrested as his murderer.
+„Na dann, fragen Sie Mrs. Oakshott danach.“
 
-\newpage
+„Sie hat gesagt, ich soll Sie fragen.“
 
-# I. don’t think there is anything else I need to explain. I was determined to keep my disguise as long as possible, which is why I insisted on keeping my face dirty. Knowing how terribly anxious my wife would be, I slipped off my ring and, at a moment when no constable was watching, entrusted it to the Lascar along with a hurried note telling her she had no reason to be afraid.”
+„Dann fragen Sie meinetwegen den König von Preußen. Ich hab die Nase voll davon. Raus hier!“ Er stürmte wütend nach vorn, und der Fragesteller huschte in die Dunkelheit davon.
 
-“That note only reached her yesterday,” said Holmes.
+„Ha! Das erspart uns vielleicht einen Besuch in der Brixton Road“, flüsterte Holmes. „Kommen Sie mit, und wir sehen, was aus diesem Kerl herauszuholen ist.“ Er bahnte sich mit langen Schritten seinen Weg durch die verstreuten Grüppchen von Leuten, die um die grell erleuchteten Stände herumlungerten, holte den kleinen Mann rasch ein und tippte ihm auf die Schulter. Der fuhr herum, und im Gaslicht sah ich, dass ihm jede Spur von Farbe aus dem Gesicht gewichen war.
 
-“Good God! What a week she must have gone through!”
+„Wer sind Sie denn? Was wollen Sie?“ fragte er mit zitternder Stimme.
 
-“The police have kept an eye on this Lascar,” said Inspector Bradstreet, “and I can quite see how he might have found it hard to post a letter without being seen. Most likely he passed it to some sailor customer of his, who then forgot about it for a few days.”
+„Verzeihen Sie“, sagte Holmes liebenswürdig, „aber ich konnte nicht umhin, die Fragen zu hören, die Sie eben an den Verkäufer gerichtet haben. Ich glaube, ich könnte Ihnen behilflich sein.“
 
-“That was it,” said Holmes, nodding in approval. “I’ve no doubt of it. But have you never been prosecuted for begging?”
+„Sie? Wer sind Sie? Woher könnten Sie irgendetwas darüber wissen?“
 
-“Many times. But what was a fine to me?”
+„Mein Name ist Sherlock Holmes. Es ist mein Beruf, zu wissen, was andere nicht wissen.“
 
-“It must end here, though,” said Bradstreet. “If the police are to keep this quiet, there can be no more Hugh Boone.”
+„Aber davon können Sie doch nichts wissen?“
 
-“I have sworn it with the most solemn oaths a man can take.”
+„Verzeihen Sie, ich weiß alles darüber. Sie versuchen, einige Gänse aufzuspüren, die Mrs. Oakshott aus der Brixton Road an einen Händler namens Breckinridge verkauft hat, der sie wiederum an Mr. Windigate vom ‚Alpha‘ weitergab, und der sie dann an seinen Club lieferte, dessen Mitglied Mr. Henry Baker ist.“
 
-“In that case, I think it likely no further action will be taken. But if you are ever found at it again, then everything will have to come out. I am sure, Mr. Holmes, that we owe you a great deal for clearing this matter up. I only wish I knew how you arrive at your conclusions.”
+„Oh, Sir, Sie sind genau der Mann, den ich mir so sehr gewünscht habe zu treffen“, rief der kleine Kerl mit ausgestreckten Händen und bebenden Fingern. „Ich kann Ihnen kaum erklären, wie sehr mich diese Sache interessiert.“
 
-“I arrived at this one,” said my friend, “by sitting on five pillows and smoking an ounce of shag tobacco. I think, Watson, that if we drive to Baker Street now, we shall be just in time for breakfast.”7. THE ADVENTURE OF THE BLUE CARBUNCLE
+Sherlock Holmes winkte eine vorbeifahrende Droschke heran. „Dann besprechen wir das besser in einem gemütlichen Zimmer als hier auf diesem zugigen Marktplatz“, sagte er. „Aber sagen Sie mir bitte, bevor wir weitergehen, wem ich das Vergnügen habe zu helfen.“
 
-\newpage
+Der Mann zögerte einen Augenblick. „Mein Name ist John Robinson“, antwortete er und warf einen Blick zur Seite.
 
-# I. had called on my friend Sherlock Holmes on the second morning after Christmas, intending to offer him the compliments of the season. He was lounging on the sofa in a purple dressing gown, a pipe-rack within easy reach on his right, and a heap of crumpled morning papers—clearly just read—close at hand. Beside the couch stood a wooden chair, and from the corner of its back hung a very shabby, disreputable hard-felt hat, badly worn and cracked in several places. A magnifying lens and a pair of forceps lying on the seat suggested that the hat had been hung there for the purpose of examination.
+„Nein, nein — der richtige Name“, sagte Holmes sanft. „Es ist immer unerquicklich, Geschäfte unter einem Alias zu machen.“
 
-“You’re busy,” I said. “Perhaps I’m interrupting.”
+Eine Röte schoss in die weißen Wangen des Fremden. „Na gut“, sagte er, „mein wirklicher Name ist James Ryder.“
 
-“Not at all. I’m glad to have a friend to discuss my results with. The matter is perfectly trivial”—he jerked his thumb toward the old hat—“but there are points about it that are not entirely without interest, and even instruction.”
+„Ganz recht. Oberkellner — nein, Chefportier — im Hotel Cosmopolitan. Steigen Sie ein; und ich werde Ihnen bald alles sagen können, was Sie wissen möchten.“
 
-\newpage
+Der kleine Mann stand da und blickte mit halb verängstigten, halb hoffnungsvollen Augen von einem zum anderen von uns, wie einer, der nicht weiß, ob er am Rand eines Glückstreffers steht oder einer Katastrophe. Dann stieg er in die Droschke, und eine halbe Stunde später waren wir wieder im Wohnzimmer in der Baker Street. Während der Fahrt war kein Wort gefallen, doch das hohe, dünne Atmen unseres neuen Begleiters und das ständige Öffnen und Schließen seiner Hände verrieten die nervöse Anspannung in ihm.
 
-# I. settled into his armchair and warmed my hands at his crackling fire, for a sharp frost had set in and the windows were thick with ice crystals. “I suppose,” I remarked, “that homely as it looks, this thing has some deadly story attached to it—that it’s the clue that will guide you to the solution of some mystery and the punishment of some crime.”
+„Da wären wir!“ sagte Holmes heiter, als wir hintereinander ins Zimmer traten. „Das Feuer sieht bei diesem Wetter geradezu passend aus. Sie sehen aus, als frören Sie, Mr. Ryder. Nehmen Sie doch den Korbstuhl. Ich schlüpfe nur schnell in meine Pantoffeln, bevor wir diese kleine Angelegenheit von Ihnen klären. So, nun! Sie wollen wissen, was aus den Gänsen geworden ist?“
 
-“No, no. No crime,” said Sherlock Holmes, laughing. “Just one of those whimsical little incidents that are bound to happen when you have four million human beings all jostling one another within a few square miles. In the constant action and reaction of such a dense swarm of humanity, every possible combination of events may be expected, and many a small problem will present itself which may be striking and bizarre without being criminal. We’ve already had experience of such cases.”
+„Ja, Sir.“
 
-“So much so,” I replied, “that of the last six cases I’ve added to my notes, three have been entirely free of any legal crime.”
+„Oder vielmehr, wie ich vermute, aus der Gans. Es war wohl ein einziges Tier, für das Sie sich interessierten — weiß, mit einem schwarzen Streifen quer über dem Schwanz.“
 
-“Exactly. You refer to my attempt to recover the Irene Adler papers, to the singular case of Miss Mary Sutherland, and to the adventure of the man with the twisted lip. Well, I’ve no doubt this small matter will fall into the same innocent category. You know Peterson, the commissionaire?”
+Ryder bebte vor Erregung. „Oh, Sir“, rief er, „können Sie mir sagen, wohin sie gekommen ist?“
 
-“Yes.”
+„Sie ist hierhergekommen.“
 
-“This trophy belongs to him.”
+„Hierher?“
 
-“It’s his hat?”
+„Ja — und als ein höchst bemerkenswertes Tier erwies sie sich. Ich wundere mich nicht, dass Sie Interesse daran haben. Sie legte ein Ei, nachdem sie tot war — das hübscheste, strahlendste kleine blaue Ei, das man je gesehen hat. Ich habe es hier in meinem Museum.“
 
-“No, no—he found it. Its owner is unknown. I beg you to look at it not as a battered bowler, but as an intellectual problem. First, as to how it came here. It arrived on Christmas morning, together with a fine fat goose, which is, I’ve no doubt, roasting at this very moment in front of Peterson’s fire. The facts are these: at about four o’clock on Christmas morning, Peterson—who, as you know, is a very honest fellow—was on his way home down Tottenham Court Road after some small celebration. Ahead of him, in the gaslight, he saw a rather tall man, walking with a slight stagger and carrying a white goose slung over his shoulder. As he reached the corner of Goodge Street, a quarrel broke out between this stranger and a little knot of roughs. One of the roughs knocked off the man’s hat, at which the man raised his walking stick to defend himself and, swinging it over his head, smashed the shop window behind him. Peterson rushed forward to protect the stranger from his assailants; but the man, startled at having broken the window and seeing an official-looking figure in uniform running toward him, dropped his goose, took to his heels, and vanished into the maze of small streets behind Tottenham Court Road. The roughs also fled at Peterson’s appearance, so he was left in possession of the field of battle—and of the spoils of victory, in the form of this battered hat and a most unimpeachable Christmas goose.”
+Unser Besucher taumelte auf die Füße und klammerte sich mit der rechten Hand an den Kaminsims. Holmes schloss seine Kassette auf und hielt den blauen Karfunkel hoch, der wie ein Stern aufleuchtete — kalt, brillant, mit vielzackigem Glanz. Ryder starrte mit eingefallenem Gesicht darauf, unschlüssig, ob er ihn beanspruchen oder verleugnen sollte.
 
-“Which he surely returned to their owner?”
+„Das Spiel ist aus, Ryder“, sagte Holmes ruhig. „Halten Sie sich, Mann, sonst fallen Sie ins Feuer! Watson, geben Sie ihm den Arm und bringen Sie ihn zurück in den Stuhl. Er hat nicht genug Blut in den Adern, um ungestraft ein Verbrechen durchzustehen. Geben Sie ihm einen Schuss Brandy. So! Jetzt sieht er wieder ein wenig menschlicher aus. Was für ein
 
-“My dear fellow, that is the problem. It’s true that ‘For Mrs. Henry Baker’ was printed on a small card tied to the bird’s left leg, and it’s also true that the initials ‘H. B.’ are legible on the lining of this hat. But as there are several thousand Bakers and several hundred Henry Bakers in this city of ours, it’s not easy to restore lost property to any one of them.”
+„Ich hatte einmal einen Freund namens Maudsley. Der ist auf die schiefe Bahn geraten und hat gerade erst seine Zeit in Pentonville abgesessen. Eines Tages traf er mich, und wir kamen auf die Tricks der Diebe zu sprechen und darauf, wie sie das, was sie geklaut hatten, wieder loswurden. Ich wusste, dass er mir gegenüber dichthalten würde – ich wusste ein, zwei Dinge über ihn –, also fasste ich den Entschluss, direkt nach Kilburn zu gehen, wo er wohnte, und ihn ins Vertrauen zu ziehen. Er sollte mir zeigen, wie ich den Stein zu Geld machen konnte. Aber wie sollte ich sicher zu ihm kommen? Ich dachte an die Qualen, die ich schon hinter mir hatte, seit ich aus dem Hotel weg war. Jeden Moment konnte man mich packen und durchsuchen – und dann wäre da der Stein in meiner Westentasche gewesen. Ich lehnte gerade an einer Wand und sah den Gänsen zu, die um meine Füße herumwatschelten, da schoss mir plötzlich eine Idee durch den Kopf, mit der ich den besten Detektiv, der je gelebt hat, hätte austricksen können.
 
-“What, then, did Peterson do?”
+Meine Schwester hatte mir ein paar Wochen zuvor gesagt, ich dürfe mir zu Weihnachten eine ihrer Gänse aussuchen, und ich wusste, dass sie ihr Wort immer hielt. Ich würde mir meine Gans jetzt nehmen – und in ihr würde ich den Stein nach Kilburn bringen. Im Hof stand ein kleiner Schuppen, und hinter den trieb ich einen der Vögel – ein prächtiges, großes Tier, weiß, mit gebändertem Schwanz. Ich packte sie, hebelte ihr den Schnabel auf und schob den Stein ihr die Kehle hinunter, so weit, wie mein Finger reichte. Der Vogel schluckte, und ich spürte, wie der Stein die Speiseröhre entlangglitt und in den Kropf rutschte. Aber das Vieh schlug mit den Flügeln und zappelte, und meine Schwester kam heraus, um zu sehen, was los war. Als ich mich zu ihr umdrehte, um zu reden, riss sich das Biest los und flatterte zurück, mitten unter die anderen.
 
-“He brought both hat and goose round to me on Christmas morning, knowing that even the smallest problems interest me. We kept the goose until this morning, when it began to show signs that, despite the slight frost, it would be wise to eat it without unnecessary delay. Its finder has carried it off, then, to fulfil the ultimate destiny of a goose, while I continue to keep the hat of the unknown gentleman who lost his Christmas dinner.”
+‚Was hast du denn mit dem Vogel angestellt, Jem?‘, sagt sie.
 
-“Did he not advertise?”
+‚Na ja‘, sagte ich, ‚du hast doch gesagt, ich krieg zu Weihnachten einen, und ich hab nur gefühlt, welcher der fetteste ist.‘
 
-“No.”
+‚Ach so‘, sagt sie. ‚Wir haben deinen schon für dich beiseite getan – wir nennen ihn „Jems Vogel“. Das ist der große weiße da drüben. Es sind sechsundzwanzig Stück: einer für dich, einer für uns und zwei Dutzend für den Markt.‘
 
-“Then what clue could you possibly have to his identity?”
+‚Danke, Maggie‘, sage ich, ‚aber wenn’s dir egal ist, hätte ich lieber den, den ich eben in der Hand hatte.‘
 
-“Only what we can deduce.”
+‚Der andere ist gut drei Pfund schwerer‘, sagt sie, ‚und den haben wir extra für dich gemästet.‘
 
-“From his hat?”
+‚Schon gut. Ich nehme den anderen, und ich nehme ihn jetzt gleich mit‘, sagte ich.
 
-“Exactly.”
+‚Oh, wie du willst‘, sagt sie, ein bisschen angefressen. ‚Welchen willst du denn dann?‘
 
-“But you’re joking. What can you possibly learn from this old battered felt?”
+‚Den weißen mit dem gebänderten Schwanz, genau in der Mitte vom Schwarm.‘
 
-“Here is my lens. You know my methods. What can you yourself deduce about the personality of the man who has worn this item?”
+‚Na schön. Schlacht ihn und nimm ihn mit.‘
 
-\newpage
+Also tat ich, was sie sagte, Mr. Holmes, und ich trug den Vogel den ganzen Weg nach Kilburn. Ich erzählte meinem Kumpel, was ich gemacht hatte – er war einer, dem man so was leicht erzählen konnte. Er lachte, bis er keine Luft mehr bekam, und wir holten ein Messer und schnitten die Gans auf. Da wurde mir das Herz zu Wasser, denn vom Stein war keine Spur zu sehen, und ich wusste, dass ein furchtbarer Fehler passiert sein musste. Ich ließ den Vogel liegen, rannte zurück zu meiner Schwester und stürzte in den Hinterhof. Da war keine einzige Gans mehr zu sehen.
 
-# I. took the tattered object in my hands and turned it over rather ruefully. It was a very ordinary black hat of the usual round shape, hard and badly worn. The lining had once been red silk, but was now much discolored. There was no maker’s name; but, as Holmes had pointed out, the initials “H. B.” were scrawled on one side. The brim was pierced for a hat-guard, but the elastic was missing. Otherwise, it was cracked, extremely dusty, and stained in several“You’re joking, Holmes.”
+‚Wo sind sie alle, Maggie?‘, schrie ich.
 
-“Not in the slightest. Can it really be that even now, when I lay the conclusions before you, you still can’t see how I reached them?”
+‚Zum Händler gebracht, Jem.‘
 
-“I’ve no doubt I’m being very dense, but I must admit I can’t follow you. For instance, how did you deduce that this man is intelligent?”
+‚Zu welchem Händler?‘
 
-In answer, Holmes clapped the hat onto his own head. It dropped down over his forehead and settled on the bridge of his nose.
+‚Breckinridge, aus Covent Garden.‘
 
-“It’s a matter of cubic capacity,” he said. “A man with a head this large must have something in it.”
+‚Aber gab’s noch eine mit gebändertem Schwanz?‘, fragte ich. ‚So eine wie die, die ich mir ausgesucht hab?‘
 
-“And the decline in his fortunes?”
+‚Ja, Jem; es waren zwei mit gebändertem Schwanz, und ich konnte sie nie auseinanderhalten.‘
 
-“This hat is three years old. These flat brims, curled at the edge, came in then. It’s a hat of the very best quality. Look at the ribbed silk band and the fine lining. If this man could afford such an expensive hat three years ago and hasn’t bought another since, then he has certainly fallen on hard times.”
+Da sah ich natürlich alles, und ich rannte los, so schnell mich meine Beine trugen, zu diesem Breckinridge. Aber der hatte die ganze Partie sofort verkauft, und kein Wort wollte er mir sagen, wohin sie gegangen waren. Sie haben ihn ja selbst heute Abend gehört. Na, so antwortet er mir immer. Meine Schwester glaubt, ich werde verrückt. Manchmal glaube ich’s selbst. Und jetzt – und jetzt bin ich ein gebrandmarkter Dieb, ohne jemals den Reichtum berührt zu haben, für den ich meinen Ruf verkauft habe. Gott steh mir bei! Gott steh mir bei!“ Er brach in krampfhaftes Schluchzen aus, das Gesicht in den Händen vergraben.
 
-“That’s clear enough, I admit. But what about his foresight—and his moral decline?”
+Es folgte eine lange Stille, nur unterbrochen von seinem schweren Atem und dem gleichmäßigen Klopfen von Sherlock Holmes’ Fingerspitzen auf der Tischkante. Dann stand mein Freund auf und riss die Tür auf.
 
-Sherlock Holmes laughed.
+„Raus!“ sagte er.
 
-“Here’s the foresight,” he said, putting his finger on the little disc and loop of the hat-guard. “These are never sold attached to hats. If this man ordered one, it shows a certain amount of foresight, since he went out of his way to take this precaution against the wind. But since we see that the elastic is broken and he hasn’t bothered to replace it, it’s obvious he has less foresight now than he once had, which is clear evidence of a weakening character. On the other hand, he has tried to hide some of these stains on the felt by dabbing them with ink, which shows he hasn’t entirely lost his self-respect.”
+„Was, Sir! Oh, der Himmel segne Sie!“
 
-“Your reasoning is certainly plausible.”
+„Kein Wort mehr. Raus!“
 
-“The further points—that he’s middle-aged, that his hair is graying, that it’s been recently cut, and that he uses lime cream—can all be gathered from a close examination of the lower part of the lining. Through the lens you can see a large number of hair-ends, cleanly cut by the barber’s scissors. They’re all slightly sticky, and there’s a distinct smell of lime cream. This dust, you’ll notice, isn’t the gritty grey dust of the street, but the soft brown dust of a house, showing that the hat has been hung up indoors most of the time, while the marks of moisture on the inside are proof positive that the wearer sweats very freely and therefore can hardly be in the best of training.”
+Und mehr Worte brauchte
 
-“But his wife—you said she’d stopped loving him.”
+**8. DAS ABENTEUER DES GEFLECKTEN BANDES**
 
-“This hat hasn’t been brushed for weeks. When I see you, my dear Watson, with a week’s worth of dust on your hat, and when your wife lets you go out in such a state, I’ll fear that you too have been unfortunate enough to lose your wife’s affection.”
+Wenn ich meine Aufzeichnungen über die gut siebzig Fälle durchsehe, in denen ich in den letzten acht Jahren die Methoden meines Freundes Sherlock Holmes studiert habe, so finde ich viele tragische, einige komische, eine große Zahl bloß seltsame – aber keinen einzigen alltäglichen. Denn da er, wie er es tat, eher aus Liebe zu seiner Kunst arbeitete als aus dem Wunsch nach Reichtum, weigerte er sich, sich mit irgendeiner Untersuchung einzulassen, die nicht ins Ungewöhnliche, ja sogar ins Fantastische führte. Unter all diesen verschiedenartigen Fällen kann ich mich jedoch an keinen erinnern, der eigentümlichere Züge trug als jener, der mit der bekannten Surrey-Familie der Roylotts von Stoke Moran verknüpft war. Die betreffenden Ereignisse spielten sich in den frühen Tagen meiner Verbindung mit Holmes ab, als wir als Junggesellen gemeinsam Zimmer in der Baker Street bewohnten. Es ist möglich, dass ich sie schon früher zu Protokoll gegeben hätte, doch damals wurde ein Versprechen der Verschwiegenheit abgelegt, von dem ich erst im vergangenen Monat durch den unzeitigen Tod der Dame entbunden wurde, der dieses Gelöbnis galt. Vielleicht ist es sogar gut, dass die Tatsachen nun ans Licht kommen; denn ich weiß, dass weitverbreitete Gerüchte über den Tod von Dr. Grimesby Roylott im Umlauf sind, die die Sache noch schrecklicher erscheinen lassen, als es die Wahrheit tut.
 
-“But he might be a bachelor.”
+Es war Anfang April des Jahres ’83, als ich eines Morgens erwachte und Sherlock Holmes, vollständig angekleidet, neben meinem Bett stehen sah. Er war gewöhnlich ein Spätaufsteher, und als mir die Uhr auf dem Kaminsims zeigte, dass es erst Viertel nach sieben war, blinzelte ich ihn nicht ohne Verwunderung an – und vielleicht auch mit einem kleinen Anflug von Verdruss, denn ich selbst war in meinen Gewohnheiten regelmäßig.
 
-“No. He was taking the goose home as a peace offering to his wife. Remember the card tied to the bird’s leg.”
+„Tut mir sehr leid, dich aus dem Bett zu holen, Watson“, sagte er, „aber heute Morgen ist es das allgemeine Schicksal. Mrs. Hudson ist aus dem Bett geklopft worden, sie hat es an mir ausgelassen, und ich nun an dir.“
 
-“You have an answer for everything. But how on earth do you deduce that there’s no gas laid on in his house?”
+„Was ist denn los – Feuer?“
 
-“One tallow stain, or even two, might be chance; but when I see no fewer than five, I think there can be little doubt that the man must be in frequent contact with burning tallow—probably walks upstairs at night with his hat in one hand and a guttering candle in the other. In any case, he never got tallow stains from a gas jet. Are you satisfied?”
+„Nein. Ein Klient. Offenbar ist eine junge Dame in einem beträchtlichen Zustand der Aufregung eingetroffen, die darauf besteht, mich zu sprechen. Sie wartet jetzt im Wohnzimmer. Wenn junge Damen um diese Uhrzeit durch die Metropole irren und schlaftrunkene Leute aus ihren Betten klopfen, dann nehme ich an, dass sie etwas äußerst Dringendes mitzuteilen haben. Sollte es sich als ein interessanter Fall erweisen, würdest du ihn, da bin ich sicher, von Anfang an verfolgen wollen. Ich dachte jedenfalls, ich wecke dich und gebe dir die Gelegenheit.“
 
-“Well, it’s very ingenious,” I said, laughing, “but since, as you said yourself just now, there’s been no crime committed and no harm done except the loss of a goose, all this seems rather a waste of energy.”
+„Mein lieber Freund, das würde ich um nichts in der Welt versäumen.“
 
-Sherlock Holmes had opened his mouth to reply when the door flew open and Peterson, the commissionaire, burst into the room, cheeks flushed and wearing the dazed look of a man stunned by astonishment.
+Es gab für mich kein größeres Vergnügen, als Holmes bei seinen beruflichen Untersuchungen zu begleiten und jene raschen Schlussfolgerungen zu bewundern – so schnell wie Eingebungen und doch stets auf einer logischen Grundlage –, mit denen er die ihm vorgelegten Rätsel entwirrte. Ich warf mir hastig die Kleider über und war nach wenigen Minuten bereit, meinen Freund hinunter ins Wohnzimmer zu begleiten. Eine Dame, in Schwarz gekleidet und dicht verschleiert, die am Fenster gesessen hatte, erhob sich, als wir eintraten.
 
-“The goose, Mr. Holmes! The goose, sir!” he gasped.
+„Guten Morgen, gnädige Frau“, sagte Holmes heiter. „Mein Name ist Sherlock Holmes. Dies ist mein enger Freund und Mitarbeiter, Dr. Watson, in dessen Gegenwart Sie ebenso frei sprechen können wie vor mir. Ha! Ich freue mich zu sehen, dass Mrs. Hudson den guten Sinn hatte, das Feuer anzuzünden. Bitte rücken Sie näher heran, und ich werde Ihnen eine Tasse heißen Kaffee bestellen, denn ich sehe, dass Sie zittern.“
 
-“Eh? What about it, then? Has it come back to life and flapped off through the kitchen window?” Holmes twisted around on the sofa to get a better view of the man’s excited face.
+„Es ist nicht die Kälte, die mich zittern lässt“, sagte die Frau mit leiser Stimme und wechselte, wie er es wünschte, den Platz.
 
-“Look here, sir! Look what my wife found in its crop!” He held out his hand and showed, lying in the centre of his palm, a brilliantly sparkling blue stone, a little smaller than a bean, but of such purity and fire that it glittered like a point of electric light in the dark hollow of his hand.
+„Was dann?“
 
-Sherlock Holmes sat up with a whistle.
+„Es ist Angst, Mr. Holmes. Es ist Entsetzen.“ Während sie sprach, hob sie den Schleier, und wir konnten sehen, dass sie tatsächlich in einem erbarmungswürdigen Zustand der Erregung war: das Gesicht ganz eingefallen und grau, die Augen ruhelos und erschrocken wie die eines gehetzten Tieres. Züge und Gestalt gehörten zu einer Frau von dreißig, doch ihr Haar war von vorzeitigem Grau durchzogen, und ihr Ausdruck war müde und ausgezehrt. Sherlock Holmes musterte sie mit einem seiner schnellen, alles umfassenden Blicke.
 
-“Good Lord, Peterson!” he said. “This is treasure trove indeed. I suppose you know what you’ve got there?”
+„Sie dürfen keine Angst haben“, sagte er beruhigend, beugte sich vor und legte ihr die Hand auf den Unterarm. „Wir werden die Sache schon in Ordnung bringen, daran zweifle ich nicht. Sie sind heute Morgen mit dem Zug gekommen, wie ich sehe.“
 
-“A diamond, sir? A precious stone. It cuts into glass as if it were putty.”
+„Dann kennen Sie mich?“
 
-“It’s more than a precious stone. It is the precious stone.”
+„Nein, aber ich bemerke die zweite Hälfte einer Rückfahrkarte in der Handfläche Ihres linken Handschuhs. Sie müssen früh aufgebrochen sein, und dennoch hatten Sie, bevor Sie den Bahnhof erreichten, eine ordentliche Fahrt in einem Dogcart über schwere, aufgeweichte Straßen.“
 
-“Not the Countess of Morcar’s blue carbuncle!” I burst out.
+Die Dame fuhr heftig zusammen und starrte meinen Gefährten verwirrt an.
 
-“Exactly. I ought to know its size and shape, seeing I’ve read the advertisement about it in The Times every day lately. It’s absolutely unique, and its value can only be guessed at, but the reward offered—one thousand pounds—is certainly not a twentieth of its market price.”
+„Kein Geheimnis, meine liebe gnädige Frau“, sagte er lächelnd. „Der link
 
-“A thousand pounds! Good Lord above!” The commissionaire dropped into a chair and stared from one of us to the other.
+„Als Dr. Roylott in Indien war, heiratete er meine Mutter, Mrs. Stoner, die junge Witwe von Generalmajor Stoner aus der Bengalischen Artillerie. Meine Schwester Julia und ich waren Zwillinge und erst zwei Jahre alt, als meine Mutter wieder heiratete. Sie verfügte über ein beträchtliches Einkommen – nicht weniger als tausend Pfund im Jahr – und dieses vermachte sie Dr. Roylott vollständig, solange wir bei ihm lebten, mit der Bestimmung, dass im Falle unserer Heirat jedem von uns eine bestimmte jährliche Summe auszuzahlen sei. Kurz nach unserer Rückkehr nach England starb meine Mutter – sie kam vor acht Jahren bei einem Eisenbahnunfall nahe Crewe ums Leben. Dr. Roylott gab daraufhin seine Versuche auf, sich in London als Arzt niederzulassen, und nahm uns mit, um mit ihm im alten Stammsitz in Stoke Moran zu leben. Das Geld, das meine Mutter hinterlassen hatte, reichte für all unsere Bedürfnisse, und es schien nichts unserem Glück im Wege zu stehen.
 
-“That’s the reward, and I have reason to know there are sentimental considerations in the background that would persuade the Countess to part with half her fortune if she could only recover the gem.”
+Doch um diese Zeit kam eine furchtbare Veränderung über unseren Stiefvater. Statt Freundschaften zu schließen und Besuche mit den Nachbarn auszutauschen, die anfangs außer sich vor Freude gewesen waren, wieder einen Roylott von Stoke Moran im alten Familiensitz zu sehen, schloss er sich in seinem Haus ein und kam nur selten heraus – außer um sich in wütende, brutale Streitigkeiten mit jedem zu stürzen, der ihm in die Quere kam. Eine Gewalttätigkeit des Temperaments, die bis an den Rand des Wahnsinns reichte, war bei den Männern dieser Familie erblich, und bei meinem Stiefvater war sie, wie ich glaube, durch seinen langen Aufenthalt in den Tropen noch gesteigert worden. Es kam zu einer Reihe schändlicher Raufereien, zwei davon endeten vor dem Polizeigericht, bis er schließlich zum Schrecken des Dorfes wurde und die Leute bei seinem Nahen die Flucht ergriffen; denn er ist ein Mann von ungeheurer Kraft und in seinem Zorn völlig unbeherrschbar.
 
-“It was lost, if I remember correctly, at the Hotel Cosmopolitan,” I remarked.
+Erst letzte Woche schleuderte er den örtlichen Schmied über eine Brüstung in einen Bach, und nur indem ich alles Geld zusammenkratzte, dessen ich habhaft werden konnte, gelang es mir, eine weitere öffentliche Bloßstellung abzuwenden. Er hatte überhaupt keine Freunde außer den umherziehenden Zigeunern; diesen Landstreichern erlaubte er, auf den wenigen Morgen brombeerverwucherten Landes zu lagern, die den Familienbesitz darstellen, und nahm im Gegenzug die Gastfreundschaft ihrer Zelte an – manchmal streifte er mit ihnen wochenlang umher. Außerdem hat er eine Leidenschaft für indische Tiere, die ihm von einem Korrespondenten herüberschicken lässt, und im Augenblick besitzt er einen Geparden und einen Pavian, die frei über sein Gelände laufen und von den Dorfbewohnern fast ebenso gefürchtet werden wie ihr Herr.
 
-“Exactly—on December 22“Hmm. So much for the police court,” Holmes said thoughtfully, tossing the paper aside. “The problem we have to solve now is the chain of events that runs from a ransacked jewel case at one end to the crop of a goose in Tottenham Court Road at the other. You see, Watson, our little deductions have suddenly taken on a far more serious and less innocent character. Here is the stone; the stone came from the goose, and the goose came from Mr. Henry Baker—the gentleman with the shabby hat and all the other traits with which I’ve already wearied you. So we must now set ourselves in earnest to finding this gentleman and discovering what part he has played in this little mystery. To do that, we’ll start with the simplest methods, which are undoubtedly an advertisement in all the evening papers. If that fails, I’ll turn to other means.”
+Sie können sich nach dem, was ich sage, vorstellen, dass meine arme Schwester Julia und ich wenig Freude in unserem Leben hatten. Kein Dienstbote blieb bei uns, und lange Zeit verrichteten wir die gesamte Hausarbeit selbst. Sie war bei ihrem Tod erst dreißig, und doch hatte ihr Haar schon begonnen, grau zu werden – so wie meines.“
 
-“What will you say?”
+„Ihre Schwester ist also tot?“
 
-“Give me a pencil and that slip of paper. Now then: ‘Found at the corner of Goodge Street, a goose and a black felt hat. Mr. Henry Baker can have them by calling at 6:30 this evening at 221B Baker Street.’ That’s clear and concise.”
+„Sie starb vor genau zwei Jahren, und von ihrem Tod möchte ich mit Ihnen sprechen. Sie verstehen: Bei dem Leben, das ich beschrieben habe, war es wenig wahrscheinlich, dass wir Menschen unseres Alters und Standes zu Gesicht bekamen. Wir hatten jedoch eine Tante, die ledige Schwester meiner Mutter, Miss Honoria Westphail, die nahe Harrow lebt, und gelegentlich durften wir ihr kurze Besuche abstatten. Julia war vor zwei Jahren zu Weihnachten dort und lernte einen Marine-Major im Halbsold kennen, mit dem sie sich verlobte. Mein Stiefvater erfuhr von der Verlobung, als meine Schwester zurückkam, und erhob keinen Einwand gegen die Heirat; doch innerhalb von vierzehn Tagen vor dem festgesetzten Hochzeitstermin geschah das schreckliche Ereignis, das mich meiner einzigen Gefährtin beraubt hat.“
 
-“Very. But will he see it?”
+Sherlock Holmes hatte sich in seinem Stuhl zurückgelehnt, die Augen geschlossen und den Kopf in ein Kissen gesenkt; nun hob er die Lider halb und blickte zu seiner Besucherin hinüber.
 
-“He’s sure to be watching the papers, since, for a poor man, the loss was a serious one. He was obviously so frightened by his accident in breaking the window and by Peterson’s approach that he thought of nothing but running away, but since then he must have bitterly regretted the impulse that made him drop his bird. Then again, putting his name in will make sure he notices it, for everyone who knows him will draw his attention to it. Here you are, Peterson—run down to the advertising agency and have this put in the evening papers.”
+„Bitte seien Sie genau in den Einzelheiten“, sagte er.
 
-“In which ones, sir?”
+„Das fällt mir leicht, denn jedes Ereignis jener entsetzlichen Zeit ist mir ins Gedächtnis eingebrannt. Das Herrenhaus ist, wie ich schon sagte, sehr alt, und nur ein Flügel ist noch bewohnt. Die Schlafzimmer in diesem Flügel liegen im Erdgeschoss, die Wohnräume im mittleren Gebäudeteil. Von diesen Schlafzimmern ist das erste das von Dr. Roylott, das zweite das meiner Schwester und das dritte meines. Es gibt keine Verbindung zwischen ihnen, aber alle öffnen sich in denselben Korridor. Drücke ich mich verständlich aus?“
 
-“Oh, in the Globe, Star, Pall Mall, St. James’s Gazette, Evening News, Standard, Echo, and any others that occur to you.”
+„Vollkommen.“
 
-“Very good, sir. And this stone?”
+„Die Fenster der drei Zimmer gehen auf den Rasen hinaus. In jener verhängnisvollen Nacht war Dr. Roylott früh in sein Zimmer gegangen, obwohl wir wussten, dass er sich nicht zur Ruhe gelegt hatte; denn meine Schwester wurde von dem Geruch der starken indischen Zigarren belästigt, die er zu rauchen pflegte. Sie verließ daher ihr Zimmer und kam in meines, wo sie eine Zeitlang saß und über ihre bevorstehende Hochzeit plaud
 
-“Ah yes, I’ll keep the stone. Thank you. And—Peterson, on your way back just buy a goose and leave it here with me, because we must have one to give this gentleman in place of the one your family is now devouring.”
+„Einen Moment“, sagte Holmes. „Sind Sie sich bei diesem Pfeifen und dem metallischen Geräusch wirklich sicher? Würden Sie es beschwören?“
 
-When the commissionaire had gone, Holmes picked up the stone and held it to the light. “It’s a lovely thing,” he said. “Just look how it flashes and sparkles. Naturally, it’s a nucleus and magnet for crime. Every good stone is. They’re the devil’s favorite bait. In the larger and older jewels, every facet may stand for a bloody deed. This stone is not yet twenty years old. It was found in the banks of the Amoy River in southern China, and it’s remarkable in having every characteristic of a carbuncle, except that it’s blue instead of ruby red. In spite of its youth, it already has a sinister history. Two murders, an acid-throwing, a suicide, and several robberies have been committed for the sake of this forty-grain weight of crystallized carbon. Who would think that such a pretty trinket would feed the gallows and the prison? I’ll lock it in my strongbox now and drop the Countess a line to say we’ve recovered it.”
+„Genau das hat mich der Gerichtsarzt des Bezirks bei der Untersuchung gefragt. Ich habe den starken Eindruck, dass ich es gehört habe – und doch könnte ich mich, zwischen dem Krachen des Sturms und dem Knarren eines alten Hauses, vielleicht getäuscht haben.“
 
-“Do you think this man Horner is innocent?”
+„War Ihre Schwester angekleidet?“
 
-“I can’t say.”
+„Nein, sie trug ihr Nachthemd. In ihrer rechten Hand fand man den verkohlten Stummel eines Streichholzes, und in der linken eine Streichholzschachtel.“
 
-“Well then, do you think this other man, Henry Baker, had anything to do with it?”
+„Das zeigt, dass sie Licht gemacht und sich umgesehen hat, als der Alarm losging. Das ist wichtig. Und zu welchem Schluss kam der Gerichtsarzt?“
 
-“It’s far more likely, I think, that Henry Baker is completely innocent, and had no idea that the bird he was carrying was worth much more than if it had been made of solid gold. I’ll settle that point with a very simple test—if we get an answer to our advertisement.”
+„Er hat den Fall mit großer Sorgfalt untersucht, denn Dr. Roylotts Benehmen war im ganzen Bezirk seit Langem berüchtigt, aber er konnte keine zufriedenstellende Todesursache feststellen. Meine Aussage ergab, dass die Tür von innen verriegelt gewesen war, und die Fenster waren durch altmodische Läden mit breiten Eisenstangen gesichert, die jede Nacht verschlossen wurden. Die Wände wurden sorgfältig abgeklopft und erwiesen sich ringsum als völlig massiv, und auch der Fußboden wurde gründlich untersucht – mit demselben Ergebnis. Der Kamin ist breit, aber mit vier großen Eisenklammern vergittert. Es steht daher fest, dass meine Schwester ganz allein war, als sie ums Leben kam. Außerdem gab es keine Spuren von Gewalt an ihr.“
 
-“And you can do nothing until then?”
+„Und Gift?“
 
-“Nothing.”
+„Die Ärzte haben sie darauf untersucht, aber ohne Erfolg.“
 
-“In that case I’ll go on with my rounds. But I’ll come back this evening at the time you mentioned, for I’d like to see the solution of such a tangled affair.”
+„Woran, glauben Sie, ist die arme Frau dann gestorben?“
 
-“I’ll be very glad to see you. I dine at seven. There’s a woodcock, I believe. In light of recent events, perhaps I ought to ask Mrs. Hudson to examine its crop.”
+„Ich glaube, sie ist an blanker Angst und einem Nervenschock gestorben – obwohl ich mir nicht vorstellen kann, was sie so erschreckt hat.“
 
-\newpage
+„Waren damals Zigeuner auf dem Gut in der Plantage?“
 
-# I. was delayed by a case, and it was a little after half-past six when I found myself once more in Baker Street. As I approached the house I saw a tall man in a Scotch bonnet and a coat buttoned up to his chin waiting outside in the bright semicircle of light thrown from the fanlight. Just as I arrived, the door opened, and we were shown up together to Holmes’s room.
+„Ja, fast immer sind dort welche.“
 
-“Mr. Henry Baker, I presume,” said Holmes, rising from his armchair and greeting his visitor with that easy geniality he could so readily assume. “Please take this chair by the fire, Mr. Baker. It’s a cold night, and I notice your circulation is better suited to summer than to winter. Ah, Watson, you’ve come at exactly the right moment. Is that your hat, Mr. Baker?”
+„Aha. Und was haben Sie aus dieser Anspielung auf ein Band herausgelesen – ein gesprenkeltes Band?“
 
-“Yes, sir, that is undoubtedly my hat.”
+„Manchmal habe ich gedacht, es sei nur wirres Deliriumgerede gewesen, manchmal, es könne sich auf eine Gruppe von Menschen beziehen – vielleicht gerade auf diese Zigeuner in der Plantage. Ich weiß nicht, ob die gefleckten Tücher, die so viele von ihnen über dem Kopf tragen, das seltsame Beiwort nahegelegt haben, das sie benutzte.“
 
-He was a large man with rounded shoulders, a massive head, and a broad, intelligent face that narrowed down into a pointed beard of grizzled brown. A touch of red in his nose and cheeks, and a slight tremor in the hand he held out, confirmed Holmes’s guess about his habits. His rusty black frock coat was buttoned right up to the throat, the collar turned up, and his thin wrists stuck out of the sleeves with no sign of cuff or shirt. He spoke in a slow, staccato way, choosing his words carefully, and he gave, overall, the impression of a man of learning and letters who had been badly treated by fortune“So much for Mr. Henry Baker,” said Holmes, once the door had closed behind him. “We can be quite sure he knows absolutely nothing about the affair. Are you hungry, Watson?”
+Holmes schüttelte den Kopf wie jemand, der ganz und gar nicht zufrieden ist.
 
-“Not particularly.”
+„Das sind sehr tiefe Gewässer“, sagte er. „Bitte fahren Sie mit Ihrer Erzählung fort.“
 
-“In that case, let’s turn dinner into a late supper and follow this lead while it’s still hot.”
+„Zwei Jahre sind seitdem vergangen, und mein Leben war bis vor Kurzem einsamer als je zuvor. Vor einem Monat jedoch hat mir ein lieber Freund, den ich seit vielen Jahren kenne, die Ehre erwiesen, um meine Hand anzuhalten. Er heißt Armitage – Percy Armitage –, der zweite Sohn von Mr. Armitage aus Crane Water bei Reading. Mein Stiefvater hat der Verbindung nicht widersprochen, und wir werden im Laufe des Frühjahrs heiraten. Vor zwei Tagen hat man mit Reparaturen im Westflügel des Hauses begonnen, und dabei ist die Wand meines Schlafzimmers durchbrochen worden, sodass ich in das Zimmer umziehen musste, in dem meine Schwester starb, und in genau dem Bett schlafen, in dem sie geschlafen hat. Stellen Sie sich also meinen Schauder vor, als ich gestern Nacht wach lag, an ihr schreckliches Ende dachte – und plötzlich in der Stille der Nacht das leise Pfeifen hörte, das der Vorbote ihres Todes gewesen war. Ich sprang auf und zündete die Lampe an, aber im Zimmer war nichts zu sehen. Ich war jedoch zu erschüttert, um wieder ins Bett zu gehen, also zog ich mich an, und sobald es hell wurde, schlich ich hinunter, nahm mir beim Crown Inn gegenüber einen Dogcart und fuhr nach Leatherhead, von wo ich heute Morgen weitergekommen bin – mit dem einzigen Ziel, Sie zu sehen und Ihren Rat zu erbitten.“
 
-“By all means.”
+„Sie haben klug gehandelt“, sagte mein Freund. „Aber haben Sie mir auch alles erzählt?“
 
-It was a bitter night, so we pulled on our ulsters and wrapped scarves tight around our throats. Outside, the stars glittered coldly in a cloudless sky, and the breath of passers-by burst out in white puffs like pistol smoke. Our footsteps rang out sharp and loud as we swung through the doctors’ district—Wimpole Street, Harley Street—and then along Wigmore Street into Oxford Street. In fifteen minutes we were in Bloomsbury, at the Alpha Inn, a small public house on the corner of one of the streets running down into Holborn. Holmes pushed open the door of the private bar and ordered two glasses of beer from the ruddy-faced landlord in his white apron.
+„Ja, alles.“
 
-“Your beer ought to be excellent if it’s as good as your geese,” he said.
+„Miss Roylott, das haben Sie nicht. Sie schützen Ihren Stiefvater.“
 
-“My geese!” The man looked surprised.
+„Wie bitte? Was meinen Sie damit?“
 
-“Yes. I was talking not half an hour ago to Mr. Henry Baker, who was a member of your goose club.”
+Als Antwort schob Holmes die schwarze Spitzenrüsche zurück, die die Hand säumte, die auf dem Knie unserer Besucherin lag. Fünf kleine, livide Flecken – die Abdrücke von vier Fingern und einem Daumen – zeichneten sich auf dem weißen Handgelenk ab.
 
-“Ah! Yes, I see. But you see, sir, those aren’t our geese.”
+„Man hat Sie grausam behandelt“, sagte Holmes.
 
-“Really? Whose are they, then?”
+Die Dame errötete tief und bedeckte ihr verletztes Handgelenk. „Er ist ein harter Mann“, sagte sie, „und vielleicht kennt er seine eigene Kraft kaum.“
 
-“Well, I got the two dozen from a salesman in Covent Garden.”
+Es entstand ein langes Schweigen, während Holmes sein Kinn auf die Hände stützte und in das prasselnde Feuer starrte.
 
-“Indeed? I know some of them. Which one?”
+„Das ist eine sehr ernste Sache“, sagte er schließlich. „Es gibt tausend Einzelheiten, die ich wissen möchte, bevor ich über unser Vorgehen entscheide. Und doch dürfen wir keinen Augenblick verlieren. Wenn wir heute nach Stoke Moran kämen – wäre es möglich, dass wir uns diese Zimmer ansehen, ohne dass Ihr Stiefvater davon erfährt?“
 
-“Name of Breckinridge.”
+„Es trifft sich, dass er davon sprach, heute wegen einer äußerst wichtigen Angelegenheit in die Stadt zu fahren. Wah
 
-“Ah, I don’t know him. Well, here’s to your good health, landlord, and prosperity to your house. Good night.”
+„Welcher von Ihnen ist Holmes?“, fragte diese Erscheinung.
 
-“Now for Mr. Breckinridge,” Holmes went on, buttoning his coat as we stepped back into the frosty air. “Remember, Watson, that although we have something as homely as a goose at one end of this chain, at the other we have a man who will certainly get seven years’ hard labour unless we can prove his innocence. It may be that our investigation will only confirm his guilt; but in any case, we have a line of inquiry the police have missed, and which a curious stroke of chance has put into our hands. Let’s follow it through to the bitter end. Faces south, then—quick march!”
+„Mein Name, Sir; aber Sie sind mir im Vorteil“, sagte mein Begleiter ruhig.
 
-We crossed Holborn, went down Endell Street, and then through a zigzag of slums to Covent Garden Market. One of the largest stalls bore the name “Breckinridge,” and its owner—a horsey-looking man with a sharp face and neat side-whiskers—was helping a boy to put up the shutters.
+„Ich bin Dr. Grimesby Roylott aus Stoke Moran.“
 
-“Good evening. Cold night,” said Holmes.
+„In der Tat, Doktor“, sagte Holmes gelassen. „Nehmen Sie doch Platz.“
 
-The salesman nodded and shot a wary, questioning glance at my companion.
+„Nichts dergleichen werde ich tun. Meine Stieftochter war hier. Ich habe sie verfolgt. Was hat sie Ihnen erzählt?“
 
-“Sold out of geese, I see,” Holmes went on, pointing at the bare marble slabs.
+„Es ist ein wenig kalt für die Jahreszeit“, sagte Holmes.
 
-“Can let you have five hundred tomorrow morning.”
+„Was hat sie Ihnen erzählt?“, schrie der Alte wütend.
 
-“That’s no use.”
+„Aber ich habe gehört, die Krokusse versprechen dieses Jahr gut zu werden“, fuhr mein Begleiter ungerührt fort.
 
-“Well, there are some over on the stall under the gaslight.”
+„Ha! Sie wollen mich abwimmeln, was?“, sagte unser neuer Besucher, trat einen Schritt vor und schüttelte seine Reitpeitsche. „Ich kenne Sie, Sie Schuft! Von Ihnen habe ich schon gehört. Sie sind Holmes, der Einmischer.“
 
-“Ah, but you were the one I was recommended to.”
+Mein Freund lächelte.
 
-“Who by?”
+„Holmes, der Wichtigtuer!“
 
-“The landlord of the Alpha.”
+Sein Lächeln wurde breiter.
 
-“Oh, yes. I sent him a couple of dozen.”
+„Holmes, der kleine Amtsheld von Scotland Yard!“
 
-“Fine birds they were, too. Where did you get them from?”
+Holmes lachte herzlich. „Ihre Unterhaltung ist höchst amüsant“, sagte er. „Wenn Sie hinausgehen, schließen Sie die Tür, es zieht nämlich ganz beträchtlich.“
 
-To my surprise, the question provoked a burst of anger from the salesman.
+„Ich gehe erst, wenn ich gesagt habe, was ich zu sagen habe. Wagen Sie es nicht, sich in meine Angelegenheiten einzumischen. Ich weiß, dass Miss Stoner hier war. Ich habe sie aufgespürt! Ich bin ein gefährlicher Mann, wenn man sich mit mir anlegt! Sehen Sie her.“ Er trat blitzschnell vor, packte den Schürhaken und bog ihn mit seinen riesigen braunen Händen zu einem Bogen.
 
-“Now then, mister,” he snapped, cocking his head and planting his fists on his hips, “what are you playing at? Out with it, straight.”
+„Sehen Sie zu, dass Sie nicht in meinen Griff geraten“, knurrte er, schleuderte den verdrehten Schürhaken in den Kamin und stapfte aus dem Zimmer.
 
-“It’s quite straightforward. I want to know who sold you the geese you supplied to the Alpha.”
+„Er scheint ein sehr liebenswürdiger Mensch zu sein“, sagte Holmes lachend. „Ich bin nicht ganz so massig, aber wenn er geblieben wäre, hätte ich ihm vielleicht gezeigt, dass mein Griff nicht viel schwächer ist als der seine.“ Während er sprach, hob er den stählernen Schürhaken auf und richtete ihn mit einem plötzlichen Kraftstoß wieder gerade.
 
-“Well, I’m not going to tell you. So there!”
+„Man stelle sich vor, welche Unverschämtheit: mich mit der offiziellen Detektivtruppe in einen Topf zu werfen! Dieser Zwischenfall gibt unserer Untersuchung immerhin Würze, und ich hoffe nur, dass unsere kleine Freundin nicht für ihre Unvorsichtigkeit büßen muss, diesem Ungeheuer zu erlauben, sie zu verfolgen. Und nun, Watson, bestellen wir Frühstück, und danach gehe ich hinunter zu Doctors’ Commons, wo ich hoffe, einige Daten zu bekommen, die uns in dieser Sache helfen können.“
 
-“Oh, it’s no great matter; but I don’t see why you should get so hot over such a trifle.”
+Es war fast ein Uhr, als Sherlock Holmes von seinem Ausflug zurückkehrte. In der Hand hielt er ein Blatt blaues Papier, vollgekritzelt mit Notizen und Zahlen.
 
-“Hot! You’d be hot enough if you were pestered like I am. When I pay good money for a good article, that ought to be the end of it. But it’s ‘Where are the geese?’ and ‘Who did you sell the geese to?’ and ‘What’ll you take for the geese?’ You’d think they were the only geese in the whole world, to hear the fuss that’s made about them.”
+„Ich habe das Testament der verstorbenen Ehefrau eingesehen“, sagte er. „Um seine genaue Bedeutung festzustellen, war ich gezwungen, die aktuellen Kurse der Anlagen zu berechnen, um die es darin geht. Das Gesamteinkommen, das zur Zeit des Todes der Frau nur wenig unter 1.100 Pfund lag, beträgt jetzt, infolge des Verfalls der Agrarpreise, nicht mehr als 750 Pfund. Jede Tochter kann im Falle einer Heirat ein Einkommen von 250 Pfund beanspruchen. Es ist daher offensichtlich, dass dieser schöne Herr, wenn beide Mädchen geheiratet hätten, nur noch ein Almosen übrig behalten hätte, während selbst eine von ihnen ihn in sehr ernstem Maße lahmlegen würde. Meine Morgenarbeit war nicht umsonst, denn sie hat bewiesen, dass er die denkbar stärksten Motive hat, sich allem derartigen in den Weg zu stellen. Und nun, Watson, das ist zu ernst, um zu trödeln – zumal der Alte weiß, dass wir uns für seine Angelegenheiten interessieren; also, wenn Sie bereit sind, nehmen wir eine Droschke und fahren nach Waterloo. Ich wäre Ihnen sehr verbunden, wenn Sie Ihren Revolver in die Tasche gleiten ließen. Eine Eley Nr. 2 ist ein ausgezeichnetes Argument bei Gentlemen, die stählerne Schürhaken zu Knoten verdrehen können. Das und eine Zahnbürste sind, denke ich, alles, was wir brauchen.“
 
-“I’ve no connection with anyone else who’s been asking questions,” said Holmes carelessly. “If you won’t tell us, the bet’s off, that’s all. But I’m always ready to back my opinion where fowls are concerned, and I’ve got a fiver riding on it that the bird I ate was country-bred.”
+In Waterloo hatten wir das Glück, einen Zug nach Leatherhead zu erwischen; dort mieteten wir im Bahnhofsgasthof einen Wagen und fuhren vier oder fünf Meilen durch die herrlichen Surrey-Gassen. Es war ein perfekter Tag, mit hellem Sonnenschein und ein paar watteweichen Wolken am Himmel. Die Bäume und die Hecken am Wegesrand trieben gerade ihr erstes Grün, und die Luft war erfüllt vom angenehmen Geruch feuchter Erde. Für mich zumindest lag ein seltsamer Gegensatz zwischen dem süßen Versprechen des Frühlings und dieser unheilvollen Suche, auf die wir uns eingelassen hatten. Mein Begleiter saß vorn auf dem Bock, die Arme verschränkt, den Hut tief über die Augen gezogen und das Kinn auf die Brust gesenkt, versunken in die tiefsten Gedanken. Plötzlich jedoch fuhr er auf, tippte mir auf die Schulter und deutete über die Wiesen.
 
-“Well, then, you’ve lost your fiver, because it was town-bred,” snapped the salesman.
+„Sehen Sie dort!“, sagte er.
 
-“Nothing of the sort.”
+Ein parkartiges Gelände, dicht mit hohen Bäumen bestanden,
 
-“I say it was.”
+„Ganz genau. Aber ich schlafe jetzt im mittleren.“
 
-“I don’t believe it.”
+„Bis die Umbauten fertig sind, wie ich verstanden habe. Übrigens scheint mir an jener Stirnwand kein besonders dringender Bedarf an Reparaturen zu bestehen.“
 
-“Think you know more about fowls than me, when I’ve handled them since I was a nipper? I’m telling you, every bird that went to the Alpha was town-bred.”
+„Den gab es auch nicht. Ich glaube, es war nur ein Vorwand, um mich aus meinem Zimmer herauszubekommen.“
 
-“You’ll never make me believe that.”
+„Ah! Das ist aufschlussreich. Nun verläuft auf der anderen Seite dieses schmalen Flügels der Korridor, von dem aus diese drei Zimmer abgehen. Gibt es dort Fenster?“
 
-“Will you bet, then?”
+„Ja, aber sehr kleine. Zu schmal, als dass jemand hindurchklettern könnte.“
 
-“It’s just taking your money, because I know I’m right. But I’ll put a sovereign on it with you, just to teach you not to be so stubborn.”
+„Da Sie beide nachts Ihre Türen abschlossen, waren Ihre Zimmer von dieser Seite aus nicht zu erreichen. Nun wären Sie so freundlich, in Ihr Zimmer zu gehen und die Fensterläden zu verriegeln?“
 
-The salesman gave a grim chuckle. “Bring me the books, Bill,” he called.
+Miss Stoner tat es, und Holmes bemühte sich nach einer sorgfältigen Untersuchung durch das offene Fenster auf jede erdenkliche Weise, den Laden aufzudrücken – vergeblich. Es gab keinen Spalt, durch den man ein Messer hätte schieben können, um den Riegel anzuheben. Dann prüfte er mit seiner Lupe die Scharniere, doch sie waren aus massivem Eisen und fest in das schwere Mauerwerk eingelassen. „Hm!“, sagte er und kratzte sich nachdenklich am Kinn, „meine Theorie hat eindeutig ihre Tücken. Niemand könnte diese Läden passieren, wenn sie verriegelt sind. Nun gut – vielleicht bringt das Innere Licht in die Sache.“
 
-The small boy brought over a thin little volume and a big, greasy-backed ledger, laying them side by side under the hanging lamp.
+Eine kleine Seitentür führte in den weiß gekalkten Korridor, von dem die drei Schlafzimmer abgingen. Holmes weigerte sich, die dritte Kammer zu untersuchen, also gingen wir sofort in die zweite – jene, in der Miss Stoner nun schlief und in der ihre Schwester ihr Ende gefunden hatte. Es war ein schlichtes, kleines Zimmer mit niedriger Decke und einem weit klaffenden Kamin, wie man ihn aus alten Landhäusern kennt. In einer Ecke stand eine braune Kommode, in einer anderen ein schmales Bett mit weißer Tagesdecke, und links vom Fenster ein Schminktisch. Diese Stücke, dazu zwei kleine Korbstühle, bildeten die gesamte Einrichtung, abgesehen von einem quadratischen Wilton-Teppich in der Mitte. Die Dielen ringsum und die Wandvertäfelung bestanden aus brauner, wurmstichiger Eiche, so alt und so verfärbt, dass sie wohl noch aus der Zeit des ursprünglichen Hausbaus stammen mochte. Holmes zog einen der Stühle in eine Ecke und setzte sich schweigend, während sein Blick unablässig im Kreis wanderte, auf und ab, und jedes Detail des Zimmers in sich aufnahm.
 
-“Now then, Mr. Know-it-all,” said the salesman, “I thought I was out of geese, but before I’m done you’ll find there’s still one left in my shop. See this little book?”
+„Wohin führt diese Klingel?“ fragte er schließlich und deutete auf eine dicke Klingelschnur, die neben dem Bett herabhing, deren Quaste tatsächlich auf dem Kissen lag.
 
-“Well?”
+„In das Zimmer der Haushälterin.“
 
-“That’s the list“No—but one of them was mine all the same,” whined the little man.
+„Sie wirkt neuer als die übrigen Dinge?“
 
-“Well then, ask Mrs. Oakshott for it.”
+„Ja, sie wurde erst vor ein paar Jahren angebracht.“
 
-“She told me to ask you.”
+„Ihre Schwester hat darum gebeten, nehme ich an?“
 
-“Well, you can ask the King of Prussia for all I care. I’m done with it. Now get out!” He lunged forward angrily, and the questioner darted away into the darkness.
+„Nein, ich habe nie gehört, dass sie sie benutzt hätte. Wir haben uns immer selbst geholt, was wir brauchten.“
 
-“This may save us a trip to Brixton Road,” Holmes whispered. “Come along—we’ll see what we can make of this fellow.” Pushing through the scattered knots of people lounging around the blazing stalls, my companion quickly caught up with the little man and tapped him on the shoulder. He spun around, and in the gaslight I saw that every trace of color had drained from his face.
+„In der Tat – es wirkt unnötig, hier so einen hübschen Klingelzug anzubringen. Verzeihen Sie mir ein paar Minuten, während ich mir diesen Boden genauer ansehe.“ Er warf sich mit der Lupe in der Hand bäuchlings hin und kroch rasch vor und zurück, wobei er die Ritzen zwischen den Dielen minutiös untersuchte. Dann tat er dasselbe mit dem Holzwerk der Wandvertäfelung. Schließlich ging er zum Bett, starrte eine Weile darauf und ließ den Blick an der Wand auf und ab gleiten. Dann nahm er die Klingelschnur in die Hand und zog kräftig daran.
 
-“Who are you? What do you want?” he stammered.
+„Warum – das ist eine Attrappe“, sagte er.
 
-“You must excuse me,” said Holmes pleasantly, “but I couldn’t help overhearing the questions you were putting to the salesman just now. I believe I can be of some help to you.”
+„Sie klingelt nicht?“
 
-“You? Who are you? How could you know anything about it?”
+„Nein, sie ist nicht einmal an einem Draht befestigt. Das ist höchst interessant. Sie sehen: Sie ist an einem Haken befestigt, genau über der kleinen Öffnung des Lüftungsschachts.“
 
-“My name is Sherlock Holmes. It’s my business to know what other people don’t know.”
+„Wie absurd! Das ist mir noch nie aufgefallen.“
 
-“But you can’t know anything about this!”
+„Sehr merkwürdig!“, murmelte Holmes und zerrte an der Schnur. „Es gibt ein, zwei ausgesprochen seltsame Punkte in diesem Zimmer. Zum Beispiel: Was für ein Narr muss ein Baumeister sein, einen Lüftungsschacht in ein anderes Zimmer zu öffnen, wenn er mit derselben Mühe die Verbindung zur Außenluft hätte herstellen können!“
 
-“On the contrary, I know everything about it. You’re trying to trace some geese that were sold by Mrs. Oakshott of Brixton Road to a dealer named Breckinridge, by him to Mr. Windigate of the Alpha, and by him to his club, where Mr. Henry Baker is a member.”
+„Das ist ebenfalls ganz neu“, sagte die Dame.
 
-“Oh, sir, you’re the very man I’ve been longing to meet,” cried the little fellow, hands stretched out, fingers trembling. “I can hardly tell you how interested I am in this matter.”
+„Etwa zur selben Zeit gemacht wie die Klingelschnur?“ fragte Holmes.
 
-Holmes hailed a passing four-wheeler. “In that case, we’d better discuss it in a cozy room rather than in this windswept market,” he said. “But before we go any further, may I ask whom I have the pleasure of assisting?”
+„Ja, damals wurden mehrere kleine Veränderungen vorgenommen.“
 
-The man hesitated for a moment. “My name is John Robinson,” he said, giving us a sidelong look.
+„Sie scheinen von höchst interessanter Art gewesen zu sein – Attrappen-Klingeln und Lüftungsschächte, die nicht lüften. Mit Ihrer Erlaubnis, Miss Stoner, werden wir unsere Nachforschungen nun im inneren Zimmer fortsetzen.“
 
-“No, no—the real name,” said Holmes sweetly. “It’s always awkward doing business with an alias.”
+Dr. Grimesby Roylotts Kammer war größer als die seiner Stieftochter, aber ebenso karg eingerichtet. Ein Feldbett, ein kleines Holzregal voller Bücher, meist technischer Art, ein Sessel neben dem Bett, ein schlichter Holzstuhl an der Wand, ein runder Tisch und ein großer eiserner Safe waren die wichtigsten Dinge, die ins Auge fielen. Holmes ging langsam im Zimmer umher und betrachtete jedes einzelne mit größtem, scharfem Interesse.
 
-A flush leapt into the stranger’s pale cheeks. “Very well,” he said. “My real name is James Ryder.”
+„Was ist
 
-“Exactly. Head attendant at the Hotel Cosmopolitan. Please step into the cab, and I’ll soon be able to tell you everything you want to know.”
+„Oh ja, ohne Weiteres.“
 
-The little man looked from one of us to the other with eyes that were half-frightened, half-hopeful, like someone unsure whether he’s on the brink of a windfall or a disaster. Then he climbed into the cab, and half an hour later we were back in the sitting room at Baker Street. No one spoke during the drive, but the high, thin sound of our companion’s breathing, and the constant clenching and unclenching of his hands, betrayed the strain he was under.
+„Den Rest überlassen Sie uns.“
 
-“Here we are,” said Holmes cheerfully as we filed into the room. “The fire looks very seasonable in this weather. You look cold, Mr. Ryder. Please, take the basket chair. I’ll just put on my slippers before we settle this little matter of yours. Now then—you want to know what became of those geese?”
+„Aber was werden Sie tun?“
 
-“Yes, sir.”
+„Wir werden die Nacht in Ihrem Zimmer verbringen und der Ursache dieses Geräuschs nachgehen, das Sie so beunruhigt hat.“
 
-“Or rather, I suspect, of that goose. It was one bird in particular that interested you, I imagine—white, with a black bar across the tail.”
+„Ich glaube, Mr. Holmes, Sie haben sich längst entschieden“, sagte Miss Stoner und legte die Hand auf den Ärmel meines Begleiters.
 
-Ryder shuddered with emotion. “Oh, sir,” he cried, “can you tell me where it went?”
+„Vielleicht.“
 
-“It came here.”
+„Dann, um Himmels willen, sagen Sie mir, woran meine Schwester gestorben ist.“
 
-“Here?”
+„Ich möchte lieber klarere Beweise haben, bevor ich darüber spreche.“
 
-“Yes—and it turned out to be a most remarkable bird. I don’t wonder you took an interest in it. It laid an egg after it was dead—the prettiest, brightest little blue egg that ever was seen. I have it here in my collection.”
+„Sie können mir wenigstens sagen, ob mein eigener Gedanke stimmt – ob sie an einem plötzlichen Schrecken starb.“
 
-Our visitor lurched to his feet and grabbed the mantelpiece with his right hand. Holmes unlocked his strongbox and held up the blue carbuncle, which shone like a star with a cold, brilliant, many-faceted light. Ryder stared at it with a twisted expression, unsure whether to claim it or deny it.
+„Nein, das glaube ich nicht. Ich denke, es gab wahrscheinlich eine handfestere Ursache. Und jetzt, Miss Stoner, müssen wir gehen; denn wenn Dr. Roylott zurückkäme und uns sähe, wäre unsere Reise umsonst gewesen. Lebwohl – und seien Sie tapfer. Wenn Sie tun, was ich Ihnen gesagt habe, dürfen Sie sicher sein, dass wir die Gefahren, die Sie bedrohen, bald vertreiben.“
 
-“The game’s up, Ryder,” said Holmes quietly. “Steady, man, or you’ll fall into the fire. Give him an arm back to his chair, Watson. He hasn’t enough blood in him to go in for felony with impunity. Give him a splash of brandy. There. Now he looks a little more human. What a shrimp he is, to be sure.”
+Sherlock Holmes und ich hatten keine Mühe, im Crown Inn ein Schlafzimmer und ein kleines Wohnzimmer zu bekommen. Sie lagen im oberen Stock, und von unserem Fenster aus konnten wir sowohl das Tor der Auffahrt als auch den bewohnten Flügel von Stoke Moran, dem Herrenhaus, überblicken. In der Dämmerung sahen wir Dr. Grimesby Roylott vorbeifahren; seine riesige Gestalt ragte neben der kleinen Figur des Jungen auf, der den Wagen lenkte. Der Bursche hatte einige Mühe, die schweren eisernen Tore zu öffnen; wir hörten das heisere Brüllen des Doktors, sahen die Wut, mit der er die geballten Fäuste nach ihm schüttelte. Der Wagen fuhr weiter, und wenige Minuten später sahen wir zwischen den Bäumen plötzlich ein Licht aufflammen, als in einem der Wohnzimmer die Lampe angezündet wurde.
 
-For a moment he had staggered and almost fallen, but the brandy brought a touch of color back to his cheeks, and he sat staring with terrified eyes at his accuser.
+„Wissen Sie, Watson“, sagte Holmes, als wir in der zunehmenden Dunkelheit beisammensaßen, „ich habe wirklich gewisse Skrupel, Sie heute Nacht mitzunehmen. Es steckt eindeutig Gefahr darin.“
 
-“I have almost every link in my hands, and all the proof I could possibly need, so there’s very little you need tell me. Still, we may as well clear up that little bit to make the case complete. You had heard, Ryder, of this blue stone belonging to the Countess of Morcar?”
+„Kann ich Ihnen helfen?“
 
-“It was Catherine Cusack who told me about it,” he said in a crackling voice.
+„Ihre Anwesenheit könnte von unschätzbarem Wert sein.“
 
-“I see—her ladyship’s maid. Well, the temptation of sudden wealth so easily had was too much for you, as it has been for better men than you. But you weren’t very scrupulous about your methods. It seems to me, Ryder, that you have the makings of a very pretty villain. You knew that this man Horner, the plumber, had been involved in some similar affair before, and that suspicion would fall all the more readily on him. What did you do then“I once had a friend named Maudsley who went bad and has just finished a stretch in Pentonville. One day I ran into him, and he started talking about thieves’ tricks and how they get rid of what they steal. I knew he’d be straight with me, because I knew one or two things about him myself, so I decided to go straight on to Kilburn, where he lived, and take him into my confidence. He’d show me how to turn the stone into money. But how was I to get to him safely? I remembered the torment I’d gone through just getting from the hotel. At any moment I might be grabbed and searched, and there the stone would be, in my waistcoat pocket. I was leaning against the wall at the time, watching the geese waddling around my feet, when suddenly an idea came to me that showed me how I could beat the best detective that ever lived.
+„Dann komme ich ganz bestimmt.“
 
-“My sister had told me weeks before that I could have my pick of her geese as a Christmas present, and I knew she always kept her word. I’d take my goose now, and inside it I’d carry my stone to Kilburn. There was a little shed in the yard, and behind it I drove one of the birds—a big fine one, white, with a barred tail. I grabbed it, pried its beak open, and shoved the stone down its throat as far as my finger would reach. The bird gulped, and I felt the stone slide down its gullet into its crop. But the creature flapped and struggled, and out came my sister to see what was going on. As I turned to speak to her, the brute broke loose and fluttered back among the others.
+„Das ist sehr freundlich von Ihnen.“
 
-“‘What on earth were you doing with that bird, Jem?’ she says.
+„Sie sprechen von Gefahr. Sie haben offenbar mehr in diesen Zimmern gesehen, als mir sichtbar war.“
 
-“‘Well,’ I said, ‘you said you’d give me one for Christmas, and I was feeling which was the fattest.’
+„Nein – aber ich bilde mir ein, ein wenig mehr daraus abgeleitet zu haben. Ich nehme an, Sie haben alles gesehen, was ich gesehen habe.“
 
-“‘Oh,’ she says, ‘we’ve already put yours aside—“Jem’s bird,” we call it. It’s that big white one over there. There’s twenty-six of them: one for you, one for us, and two dozen for the market.’
+„Ich sah nichts Auffälliges außer der Klingelschnur – und wozu die gut sein sollte, gestehe ich, kann ich mir beim besten Willen nicht erklären.“
 
-“‘Thanks, Maggie,’ I said, ‘but if it’s all the same to you, I’d rather have the one I was handling just now.’
+„Sie haben auch das Lüftungsloch gesehen?“
 
-“‘The other’s a good three pounds heavier,’ she said, ‘and we fattened it specially for you.’
+„Ja, aber ich finde es nicht besonders ungewöhnlich, eine kleine Öffnung zwischen zwei Zimmern zu haben. Sie war so klein, dass kaum eine Ratte hindurchgepasst hätte.“
 
-“‘Never mind. I’ll have the other, and I’ll take it now,’ I said.
+„Ich wusste, dass wir ein Lüftungsloch finden würden, noch bevor wir überhaupt nach Stoke Moran kamen.“
 
-“‘Oh, just as you like,’ she said, a bit put out. ‘Which one do you want, then?’
+„Mein lieber Holmes!“
 
-“‘That white one with the barred tail, right in the middle of the flock.’
+„Oh ja, das wusste ich. Sie erinnern sich: In ihrer Aussage sagte sie, ihre Schwester habe Dr. Roylotts Zigarre riechen können. Das deutete natürlich sofort darauf hin, dass es eine Verbindung zwischen den beiden Zimmern geben musste. Sie konnte nur klein sein, sonst wäre sie bei der Untersuchung des Gerichtsmediziners aufgefallen. Ich schloss auf ein Lüftungsloch.“
 
-“‘Oh, very well. Kill it and take it with you.’
+„Aber was kann daran gefährlich sein?“
 
-“So I did as she said, Mr. Holmes, and carried the bird all the way to Kilburn. I told my pal what I’d done, for he was the sort of man you could tell a thing like that to. He laughed till he choked, and then we got a knife and opened the goose. My heart turned to water—there was no sign of the stone, and I knew some terrible mistake had been made. I left the bird, ran back to my sister’s, and rushed into the backyard. There wasn’t a bird in sight.
+„Nun – da gibt es zumindest eine merkwürdige Übereinstimmung der Daten. Ein Lüftungsloch wird gemacht, eine Schnur wird aufgehängt, und eine Dame, die in diesem Bett schläft, stirbt. Fällt Ihnen das nicht auf?“
 
-“‘Where are they all, Maggie?’ I shouted.
+„Ich sehe noch keinen Zusammenhang.“
 
-“‘Gone to the dealer’s, Jem.’
+„Ist Ihnen an diesem Bett etwas besonders Eigenartiges aufgefallen?“
 
-“‘Which dealer?’
+„Nein.“
 
-“‘Breckinridge, in Covent Garden.’
+„Es war am Boden festgeschraubt. Haben Sie je zuvor ein Bett gesehen, das so befestigt war?“
 
-“‘But was there another with a barred tail?’ I asked. ‘Just like the one I chose?’
+„Ich kann nicht sagen, dass ich das habe.“
 
-“‘Yes, Jem, there were two with barred tails, and I could never tell them apart.’
+„Die Dame konnte ihr Bett nicht verrücken. Es musste immer in derselben Lage zum Lüftungsloch und zur Schnur stehen – oder nennen wir es so, denn als Klingelzug war es ganz offensichtlich nie gedacht.“
 
-“Well, then I saw it all, of course, and I ran as fast as my legs would carry me to this Breckinridge. But he’d sold the lot at once, and he wouldn’t tell me a single word about where they’d gone. You heard him yourself tonight. He’s always answered me like that. My sister thinks I’m going mad. Sometimes I think so myself. And now—now I’m a branded thief, without ever having touched the wealth I sold my good name for. God help me! God help me!”
+„Holmes“, rief ich, „ich glaube, ich ahne, worauf Sie hinauswollen. Wir sind gerade noch rechtzeitig, um ein raffiniertes und entsetzliches Verbrechen zu verhindern.“
 
-He broke down into violent sobbing, burying his face in his hands.
+„Raffiniert genug und entsetzlich genug. Wenn ein Arzt auf die schiefe Bahn gerät, ist er der schlimmste Verbrecher. Er hat Nerven – und er hat Wissen. Palmer und Pritchard gehörten zu den Spitzen ihres Fachs. Dieser Mann geht noch tiefer – aber ich glaube, Watson, wir werden noch tiefer stechen. Doch bevor die Nacht vorüber ist, werden wir Grauen genug erleben; um Himmels willen, lassen Sie uns eine ruhige Pfeife rauchen und unsere Gedanken für ein paar Stunden auf etwas Heiteres richten.“
 
-There was a long silence, broken only by his heavy breathing and by the steady tapping of Sherlock Holmes’s fingertips on the edge of the table. Then my friend stood up and flung open the door.
+Gegen neun Uhr wurde das Licht zwischen den Bäumen gelöscht, und in Richtung des Herrenhauses lag alles im Dunkeln. Zwei Stunden vergingen quälend langsam, und dann – plötzlich, genau mit dem Schlag von elf – leuchtete ein einzelnes helles Licht direkt vor uns auf.
 
-“Get out,” he said.
+„Das ist unser Zeichen“, sagte Holmes und sprang auf. „Es kommt aus dem mittleren Fenster.“
 
-“What, sir! Oh, Heaven bless you!”
+Als
 
-“No more words. Get out.”
+Plötzlich flackerte für einen Augenblick ein Lichtschein in Richtung des Lüftungsschachts auf, verschwand sofort wieder, doch gleich darauf lag ein starker Geruch von brennendem Öl und erhitztem Metall in der Luft. Jemand im Nebenzimmer hatte eine Blendlaterne angezündet. Ich hörte ein leises Geräusch, als bewege sich etwas, und dann war wieder alles still — nur dass der Geruch immer intensiver wurde. Eine halbe Stunde lang saß ich da, die Ohren bis zum Zerreißen angespannt. Dann wurde auf einmal ein anderes Geräusch hörbar: ein sehr sanftes, beruhigendes Lauten, wie wenn aus einem Kessel ein dünner Dampfstrahl ununterbrochen entweicht.
 
-And no more words were needed. There was a rush, a clatter on the stairs, a door slammed, and then the sharp rattle of running footsteps in the street.
+In dem Moment, als wir es hörten, sprang Holmes aus dem Bett, riss ein Streichholz an und drosch wütend mit seinem Stock auf die Klingelschnur ein.
 
-“After all, Watson,” said Holmes, reaching up for his clay pipe, “the police don’t hire me to make up for their shortcomings. If Horner were in danger it would be different; but this fellow won’t testify against him, and the case will collapse. I suppose I’m compounding a felony, but it’s just possible I’m saving a soul. This man won’t go wrong again; he’s far too badly frightened. Send him to prison now and you turn him into a jailbird for life. Besides, it’s the season of forgiveness. Chance has dropped a most singular and whimsical little problem in our path, and solving it is reward enough. If you’d be so good as to ring the bell, Doctor, we’ll begin another investigation—in which, again, a bird will play the leading part.”8. THE ADVENTURE OF THE SPECKLED BAND
+„Sehen Sie es, Watson?“, brüllte er. „Sehen Sie es?“
 
-Looking back over my notes on the seventy-odd cases in which, over the last eight years, I have studied the methods of my friend Sherlock Holmes, I find many that are tragic, some that are comic, a great number that are merely strange, but none that could be called ordinary. Working as he did more for the love of his art than for the acquisition of wealth, he refused to involve himself in any investigation that did not tend towards the unusual, even the fantastic. Yet of all these varied cases, I cannot recall one with more singular features than the one connected with the well-known Surrey family, the Roylotts of Stoke Moran. The events in question took place in the early days of my association with Holmes, when we were sharing bachelor lodgings in Baker Street. I might have put them on record earlier, but I had given a promise of secrecy at the time, a promise from which I have only been released within the last month by the untimely death of the lady to whom it was made. It is perhaps just as well that the facts should now come to light, for I know there are widespread rumours about the death of Dr. Grimesby Roylott which make the affair seem even more terrible than the truth.
+Aber ich sah nichts. In dem Augenblick, als Holmes Licht machte, hörte ich ein tiefes, klares Pfeifen; doch das plötzliche Aufleuchten, das in meine müden Augen schnitt, machte es mir unmöglich zu erkennen, worauf mein Freund so wild einschlug. Ich konnte jedoch sehen, dass sein Gesicht totenbleich war, erfüllt von Entsetzen und Abscheu. Er hatte aufgehört zu schlagen und starrte hinauf zum Lüftungsschacht, als plötzlich die Stille der Nacht von dem grauenhaftesten Schrei zerrissen wurde, den ich je gehört habe. Er schwoll immer weiter an, lauter und lauter — ein heiseres Aufbrüllen, in dem Schmerz, Angst und Wut zu einem einzigen entsetzlichen Kreischen verschmolzen. Man sagt, unten im Dorf, ja sogar im entfernten Pfarrhaus, habe dieser Schrei die Schlafenden aus den Betten gerissen. Er ließ uns das Herz gefrieren, und ich stand da und starrte Holmes an, und er starrte mich an, bis das letzte Echo in jene Stille zurückgesunken war, aus der es hervorgebrochen war.
 
-It was early in April of ’83 that I woke one morning to find Sherlock Holmes standing beside my bed, fully dressed. He was usually a late riser, and as the clock on the mantelpiece showed that it was only a quarter past seven, I blinked up at him in some surprise, and perhaps with a touch of resentment, for I am a regular man in my habits.
+„Was kann das bedeuten?“, keuchte ich.
 
-“Sorry to drag you out of bed, Watson,” he said, “but it’s the common fate this morning. Mrs. Hudson was dragged out of hers, she retaliated on me, and I’m passing the favour on to you.”
+„Es bedeutet, dass alles vorbei ist“, antwortete Holmes. „Und vielleicht ist es am Ende sogar das Beste. Nehmen Sie Ihre Pistole, und wir gehen in Dr. Roylotts Zimmer.“
 
-“What is it, then—a fire?”
+Mit ernster Miene zündete er die Lampe an und ging den Korridor hinunter voran. Zweimal schlug er gegen die Tür des Schlafzimmers, ohne dass drinnen eine Antwort kam. Dann drückte er die Klinke hinunter und trat ein — ich dicht hinter ihm, die Pistole gespannt in der Hand.
 
-“No; a client. A young lady has arrived in a considerable state of agitation and insists on seeing me. She’s waiting now in the sitting room. When young ladies wander about London at this hour and knock sleepy people out of their beds, I presume they have something very urgent to communicate. If it turns out to be an interesting case, I’m sure you’ll want to follow it from the start. In any case, I thought I should call you and give you the chance.”
+Was sich uns bot, war ein seltsamer Anblick. Auf dem Tisch stand eine Blendlaterne, deren Schieber halb geöffnet war, und warf einen gleißenden Lichtstrahl auf den eisernen Safe, dessen Tür einen Spalt offenstand. Neben dem Tisch, auf dem Holzstuhl, saß Dr. Grimesby Roylott, in einen langen grauen Morgenrock gehüllt; seine nackten Knöchel ragten darunter hervor, und seine Füße steckten in roten, hinten offenen türkischen Pantoffeln. Quer über seinem Schoß lag der kurze Stock mit der langen Peitsche, den wir am Tag bemerkt hatten. Sein Kinn war nach oben gereckt, und seine Augen waren in einem schrecklichen, starren Blick auf die Ecke der Zimmerdecke gerichtet. Um seine Stirn lag ein merkwürdiges gelbes Band mit bräunlichen Sprenkeln, das fest um seinen Kopf geschnürt zu sein schien. Als wir eintraten, gab er weder einen Laut von sich noch rührte er sich.
 
-“My dear fellow, I wouldn’t miss it for anything.”
+„Das Band! Das gesprenkelte Band!“, flüsterte Holmes.
 
-Nothing pleased me more than to accompany Holmes in his professional investigations and to watch his rapid deductions—swift as intuitions, yet always resting on a logical foundation—with which he unravelled the problems brought to him. I dressed quickly and in a few minutes was ready to go down with my friend to the sitting room. A lady dressed in black and heavily veiled, who had been sitting by the window, rose as we entered.
+Ich machte einen Schritt nach vorn. Im selben Augenblick begann diese seltsame Kopfbedeckung sich zu bewegen, und aus seinem Haar richtete sich der gedrungene, rautenförmige Kopf mit dem aufgeblähten Hals einer widerwärtigen Schlange auf.
 
-“Good morning, madam,” said Holmes cheerfully. “My name is Sherlock Holmes. This is my close friend and associate, Dr. Watson, before whom you may speak as freely as you would before me. Ah! I’m glad to see that Mrs. Hudson had the sense to light the fire. Please come closer to it, and I’ll order you a cup of hot coffee, for I see that you are shivering.”
+„Es ist eine Sumpf-Viper!“, rief Holmes. „Die tödlichste Schlange Indiens. Er ist innerhalb von zehn Sekunden nach dem Biss gestorben. Gewalt fällt in Wahrheit auf den Gewalttätigen zurück, und der Ränkeschmied stürzt in die Grube, die er für einen anderen aushebt. Stoßen wir dieses Tier zurück in sein Versteck; dann können wir Miss Stoner an einen sicheren Ort bringen und der County-Polizei melden, was geschehen ist.“
 
-“It is not the cold that makes me shiver,” the woman said in a low voice, moving her seat as he suggested.
+Während er sprach, zog er die Hundpeitsche rasch aus dem Schoß des Toten, warf die Schlinge um den Hals des Reptils, riss es von seinem entsetzlichen Sitz und schleuderte es, den Arm weit ausgestreckt, in den eisernen Safe, den er sofort zuschlug.
 
-“What is it, then?”
+Dies sind die wahren Tatsachen über den Tod des Dr. Grimesby Roylott von Stoke Moran. Es ist nicht nötig, dass ich eine Erzählung, die ohnehin schon zu lang geraten ist, noch weiter ausdehne, indem ich berichte, wie wir dem verängstigten Mädchen die traurige Nachricht überbrachten, wie wir sie mit dem Morgenzug in die Obhut ihrer guten Tante nach Harrow brachten, oder wie der langsame Gang der amtlichen Untersuchung schließlich zu dem Schluss kam, der Doktor habe sein Ende gefunden
 
-“It is fear, Mr. Holmes. It is terror.” She raised her veil as she spoke, and we could see that she was indeed in a pitiable state of agitation, her face drawn and grey, her eyes restless and frightened like those of some hunted creature. Her features and figure were those of a woman of thirty, but her hair was already streaked with grey, and her expression was worn and haggard. Sherlock Holmes ran his quick, all-encompassing gaze over her.
+9. DAS ABENTEUER MIT DEM DAUMEN DES INGENIEURS
 
-“You must not be afraid,” he said gently, leaning forward and patting her forearm. “We shall soon set matters right, I’ve no doubt. You came up by train this morning, I see.”
+Von all den Problemen, die meinem Freund Mr. Sherlock Holmes in den Jahren unserer Bekanntschaft zur Lösung vorgelegt wurden, gab es nur zwei, die ich ihm überhaupt erst zugetragen habe: die Sache mit Mr. Hatherleys Daumen und die mit Colonel Warburtons Wahnsinn. Letztere hätte einem scharfsinnigen und originellen Beobachter vielleicht das ergiebigere Feld geboten; doch die andere war in ihrem Ursprung so seltsam und in ihren Einzelheiten so dramatisch, dass sie umso eher verdient, festgehalten zu werden – auch wenn sie meinem Freund weniger Ansatzpunkte für jene deduktiven Schlussketten bot, mit denen er so erstaunliche Ergebnisse erzielte. Die Geschichte ist, wie ich glaube, mehr als einmal in den Zeitungen erzählt worden; aber wie bei allen solchen Berichten wirkt sie weit weniger eindringlich, wenn man sie en bloc in einer halben Spalte Druckerschwärze serviert bekommt, als wenn sich die Tatsachen langsam vor den eigenen Augen entfalten und das Rätsel sich Schritt für Schritt lichtet, sobald jede neue Entdeckung einen weiteren Tritt zur ganzen Wahrheit liefert. Damals machten die Umstände einen tiefen Eindruck auf mich, und selbst zwei Jahre später hat die Zeit diese Wirkung kaum abgeschwächt.
 
-“You know me, then?”
+Es war im Sommer ’89, nicht lange nach meiner Heirat, dass sich die Ereignisse zutrugen, die ich nun zusammenfassen will. Ich war in die zivile Praxis zurückgekehrt und hatte Holmes endgültig in seinen Baker-Street-Zimmern zurückgelassen, auch wenn ich ihn weiterhin regelmäßig besuchte und ihn gelegentlich sogar dazu überredete, seine bohemienhaften Gewohnheiten so weit beiseitezuschieben, dass er uns einen Besuch abstattete. Meine Praxis wuchs stetig, und da ich zufällig nicht allzu weit von der Paddington Station entfernt wohnte, bekam ich einige Patienten unter den Bahnbeamten. Einer von ihnen, den ich von einer schmerzhaften und langwierigen Krankheit geheilt hatte, wurde nicht müde, meine Vorzüge überall auszuposaunen und mir jeden Leidenden zuzuführen, auf den er nur irgendwie Einfluss hatte.
 
-“No, but I observe the second half of a return ticket in the palm of your left glove. You must have started early, and yet you had a good drive in a dog-cart along heavy roads before you reached the station.”
+Eines Morgens, kurz vor sieben Uhr, weckte mich das Dienstmädchen mit einem Klopfen an der Tür und meldete, zwei Männer aus Paddington seien gekommen und warteten im Sprechzimmer. Ich zog mich hastig an, denn aus Erfahrung wusste ich, dass Eisenbahnfälle selten harmlos waren, und eilte die Treppe hinunter. Als ich hinabstieg, trat mein alter Verbündeter, der Zugschaffner, aus dem Zimmer, zog die Tür fest hinter sich zu und blieb dicht bei mir stehen.
 
-The lady gave a violent start and stared at my companion in bewilderment.
+„Ich hab ihn hier“, flüsterte er und ruckte mit dem Daumen über die Schulter. „Er ist in Ordnung.“
 
-“There is no mystery, madam,” he said, smiling. “The left sleeve of your jacket is spattered with mud in no fewer than seven places. The marks are perfectly fresh. No vehicle but a dog-cart throws up mud in that way, and that only when you sit on the left-hand side of the driver.”
+„Was ist es denn?“ fragte ich, denn sein Verhalten ließ eher vermuten, er habe irgendein seltsames Wesen in meinem Zimmer eingesperrt.
 
-“Whatever your reasons may be, you are perfectly correct,” she said. “I left home before six, reached Leatherhead at twenty past, and came in by the first train to Waterloo. Sir, I can’t endure this strain any longer; I shall go mad if it continues. I have no one to turn to—no one, except one person who cares for me, and he, poor fellow, can do very little to help. I have heard of you, Mr. Holmes; I heard of you from Mrs. Farintosh, whom you helped in her hour of bitter need. It was from her that I got your address. Oh, sir, don’t you think you could help me too, and at least throw a little light into the dense darkness that surrounds me? At present I have no means of paying you for your services, but in a month or six weeks I shall be married and have control of my own income, and then at least youWhen Dr. Roylott was in India, he married my mother, Mrs. Stoner, the young widow of Major-General Stoner of the Bengal Artillery. My sister Julia and I were twins, and we were only two years old when my mother remarried. She had a substantial income—no less than a thousand pounds a year—and she left it all to Dr. Roylott for as long as we lived with him, with a clause that a fixed annual sum should be paid to each of us if we married. Shortly after we returned to England my mother died—she was killed eight years ago in a railway accident near Crewe. After that, Dr. Roylott gave up trying to build a medical practice in London and took us to live with him in the old family house at Stoke Moran. The money my mother left was enough for all our needs, and there seemed to be nothing standing in the way of our happiness.
+„Ein neuer Patient“, flüsterte er. „Ich dachte, ich bring ihn lieber selbst her; dann kann er mir nicht wieder ausbüxen. Da sitzt er, ganz sicher und wohlauf. Ich muss jetzt los, Doktor; ich hab meine Pflichten – genau wie Sie.“ Und damit war dieser zuverlässige Anwerber auch schon verschwunden, ohne mir auch nur Zeit zu lassen, ihm zu danken.
 
-But around that time a terrible change came over our stepfather. Instead of making friends and exchanging visits with the neighbours—who had at first been delighted to see a Roylott of Stoke Moran back in the old family home—he shut himself up in the house and rarely came out, except to get into vicious quarrels with anyone who crossed his path. A violent temper, bordering on madness, runs in the men of his family, and in his case I believe it had been made worse by his long years in the tropics. There were a series of disgraceful fights, two of which ended up in the police court, until he became the terror of the village. People would scatter at the sight of him, for he is a man of immense strength and completely uncontrollable when he is angry.
+Ich trat ins Sprechzimmer und fand einen Herrn am Tisch sitzen. Er war unauffällig gekleidet, in einem Anzug aus heidefarbenem Tweed, dazu eine weiche Stoffmütze, die er auf meine Bücher gelegt hatte. Um eine seiner Hände war ein Taschentuch gewickelt, das überall von Blutflecken gesprenkelt war. Er war jung, kaum älter als fünfundzwanzig, würde ich sagen, mit einem kräftigen, männlichen Gesicht; doch er war auffallend bleich und machte auf mich den Eindruck eines Menschen, der unter einer heftigen Erregung stand, die er nur mit äußerster Willenskraft im Zaum hielt.
 
-Just last week he threw the local blacksmith over a parapet into a stream, and I was only able to prevent another public scandal by handing over every penny I could scrape together. He has no friends at all except the wandering gypsies. He lets these vagabonds camp on the few bramble-covered acres that remain of the family estate, and in return he accepts their hospitality, sometimes going off with them and wandering for weeks at a time. He is also obsessed with Indian animals, which are sent to him by a contact overseas, and at this very moment he has a cheetah and a baboon roaming freely over the grounds. The villagers are almost as afraid of them as they are of him.
+„Verzeihen Sie, dass ich Sie so früh aus dem Bett klopfe, Doktor“, sagte er, „aber ich hatte in der Nacht einen sehr schweren Unfall. Ich bin heute Morgen mit dem Zug gekommen, und als ich in Paddington fragte, wo ich einen Arzt finden könne, hat mich ein braver Kerl sehr freundlich hierher begleitet. Ich habe dem Mädchen eine Karte gegeben, aber ich sehe, sie hat sie auf dem Beistelltisch liegen lassen.“
 
-You can imagine from what I’ve told you that my poor sister Julia and I had very little joy in our lives. No servant would stay with us, and for a long time we did all the housework ourselves. She was only thirty when she died, and yet her hair had already begun to turn white, just as mine has.
+Ich nahm sie auf und warf einen Blick darauf. „Mr. Victor Hatherley, Hydraulikingenieur, Victoria Street 16A (3. Stock).“ Das waren Name, Beruf und Adresse meines morgendlichen Besuchers. „Es tut mir leid, dass ich Sie habe warten lassen“, sagte ich und setzte mich in meinen Bibliotheksstuhl. „Sie kommen, wie ich höre, frisch von einer Nachtfahrt, und das ist an sich schon eine recht eintönige Beschäftigung.“
 
-“Your sister is dead, then?”
+„Oh, meine Nacht kann man nicht eintönig nennen“, sagte er – und lachte. Er lachte sehr herzlich, hoch und schrill, lehnte sich im Stuhl zurück und schüttelte sich vor Lachen. Alles in mir als Arzt sträubte sich gegen dieses Lachen.
 
-“She died just two years ago, and it’s her death I’ve come to talk to you about. You can understand that, living the way I’ve described, we had very little chance of meeting anyone our own age and social standing. We did, however, have an aunt—my mother’s unmarried sister, Miss Honoria Westphail—who lives near Harrow, and we were occasionally allowed to pay her short visits. Julia went there at Christmas two years ago and met a half-pay major of marines, and they became engaged. My stepfather found out about the engagement when my sister came home, and he raised no objection to the marriage. But within two weeks of the date set for the wedding, the terrible event occurred that robbed me of my only companion.”
+„Hören Sie auf!“ rief ich. „Reißen Sie sich zusammen!“ Und ich goss Wasser aus der Karaffe ein.
 
-Sherlock Holmes had been leaning back in his chair with his eyes closed and his head sunk into a cushion, but now he half opened his lids and glanced across at his visitor.
+Es war jedoch vergeblich. Er war in einen jener hysterischen Ausbrüche geraten, die eine starke Natur überfallen, wenn eine große Krise vorüber
 
-“Please be exact about the details,” he said.
+„Ja; ich werde keine Ruhe finden, bis ich meine Geschichte erzählt habe.“
 
-“That’s easy for me, because every incident of that dreadful time is burned into my memory. The manor house is, as I’ve already said, very old, and only one wing is now lived in. The bedrooms in this wing are on the ground floor, with the sitting rooms in the central block of the building. Of these bedrooms, the first is Dr. Roylott’s, the second my sister’s, and the third my own. There is no internal connection between them, but they all open onto the same corridor. Am I being clear?”
+„Dann lässt mein Diener eine Droschke holen, und ich bin im Handumdrehen bei Ihnen.“ Ich stürmte nach oben, erklärte meiner Frau die Sache in aller Kürze, und fünf Minuten später saß ich in einem Hansom, der mich mit meiner neuen Bekanntschaft zur Baker Street brachte.
 
-“Perfectly.”
+Sherlock Holmes lag, wie ich erwartet hatte, in seinem Wohnzimmer herum, im Morgenrock, las die Kummerkasten-Anzeigen der *Times* und rauchte seine Pfeife vor dem Frühstück – eine Mischung aus sämtlichen Stopfresten und Stummeln vom Vortag, die er sorgfältig getrocknet und auf der Ecke des Kaminsimses gesammelt hatte. Er empfing uns in seiner ruhigen, freundlich-gelassenen Art, bestellte frischen Speck und Eier und setzte sich zu uns zu einem kräftigen Frühstück. Als wir fertig waren, bettete er unseren neuen Bekannten auf das Sofa, schob ihm ein Kissen unter den Kopf und stellte ein Glas Brandy mit Wasser in Reichweite.
 
-“The windows of all three rooms look out over the lawn. On that fatal night, Dr. Roylott had gone to his room early, though we knew he had not gone to bed, because my sister was bothered by the smell of the strong Indian cigars he always smoked. She left her room and came into mine, where she sat for some time talking about her coming wedding. At eleven o’clock she got up to leave, but she paused at the door and looked back.
+„Man sieht sofort, dass Sie nichts Gewöhnliches erlebt haben, Mr. Hatherley“, sagte er. „Bitte, legen Sie sich dort hin und fühlen Sie sich ganz wie zu Hause. Erzählen Sie, was Sie können – aber hören Sie auf, sobald Sie müde werden, und halten Sie Ihre Kräfte mit einem kleinen Stärkungsmittel aufrecht.“
 
-‘Tell me, Helen,’ she said, ‘have you ever heard anyone whistle in the middle of the night?’
+„Danke“, sagte mein Patient, „aber seit der Doktor mich verbunden hat, fühle ich mich wie ein anderer Mensch, und ich glaube, Ihr Frühstück hat die Heilung vollendet. Ich werde so wenig wie möglich von Ihrer kostbaren Zeit in Anspruch nehmen, also beginne ich sofort mit meinen sonderbaren Erlebnissen.“
 
-‘Never,’ I said.
+Holmes saß in seinem großen Sessel, mit jenem müden, schwerlidrigen Ausdruck, der seine wache, gespannte Natur verdeckte, während ich ihm gegenüber Platz nahm, und wir hörten schweigend der seltsamen Geschichte zu, die unser Besucher uns darlegte.
 
-‘You couldn’t possibly whistle yourself in your sleep, could you?’
+„Sie müssen wissen“, begann er, „dass ich Waise und Junggeselle bin und allein in einem möblierten Zimmer in London wohne. Von Beruf bin ich Hydraulikingenieur, und ich habe in den sieben Jahren, die ich bei Venner & Matheson, der bekannten Firma in Greenwich, in die Lehre ging, beträchtliche praktische Erfahrung gesammelt. Vor zwei Jahren, nachdem ich ausgelernt hatte und durch den Tod meines armen Vaters zudem zu einer ansehnlichen Geldsumme gekommen war, beschloss ich, mich selbständig zu machen, und mietete Büroräume in der Victoria Street.
 
-‘Certainly not. But why?’
+„Ich nehme an, jeder empfindet den ersten unabhängigen Schritt ins Geschäftsleben als unerquicklich. Bei mir war es in besonderem Maße so. In zwei Jahren hatte ich drei Beratungen und einen kleinen Auftrag – und das ist buchstäblich alles, was mir mein Beruf eingebracht hat. Meine gesamten Einnahmen belaufen sich auf 27 Pfund und 10 Schilling. Tag für Tag, von neun Uhr morgens bis vier Uhr nachmittags, saß ich in meinem kleinen Loch und wartete, bis mir schließlich der Mut sank und ich zu glauben begann, ich würde überhaupt nie eine Praxis aufbauen.
 
-‘Because for the last few nights, always around three in the morning, I’ve heard a low, clear whistle. I’m a light sleeper, and it’s woken me up. I can’t tell where it’s coming from—perhaps from the next room, perhaps from the lawn. I thought I’d ask if you’d heard it.’
+„Gestern jedoch, gerade als ich daran dachte, das Büro zu verlassen, kam mein Schreiber herein und sagte, es warte ein Herr, der mich in einer geschäftlichen Angelegenheit sprechen wolle. Er brachte auch eine Karte mit, auf der der Name ‚Colonel Lysander Stark‘ eingraviert war. Dicht hinter ihm trat der Colonel selbst ein – ein Mann etwas über mittlerer Größe, aber von einer geradezu außergewöhnlichen Dünnheit. Ich glaube nicht, dass ich je einen so dünnen Mann gesehen habe. Sein ganzes Gesicht lief spitz auf Nase und Kinn zu, und die Haut an den Wangen war straff über die hervorstehenden Knochen gespannt. Dennoch schien diese Auszehrung bei ihm eine natürliche Eigenart zu sein und nicht von Krankheit zu kommen; denn sein Auge war hell, sein Schritt lebhaft, und seine Haltung selbstsicher. Er war schlicht, aber ordentlich gekleidet, und sein Alter, würde ich schätzen, lag näher bei vierzig als bei dreißig.
 
-‘No, I haven’t. It must be those wretched gypsies in the plantation.’
+„‚Mr. Hatherley?‘ sagte er mit einem leichten deutschen Akzent. ‚Man hat Sie mir empfohlen, Mr. Hatherley, als einen Mann, der nicht nur in seinem Fach tüchtig ist, sondern auch diskret und fähig, ein Geheimnis zu bewahren.‘
 
-‘Very likely. And yet, if it were on the lawn, I wonder you didn’t hear it too.’
+„Ich verbeugte mich, so geschmeichelt, wie es jeder junge Mann bei einer solchen Ansprache wäre. ‚Darf ich fragen, wer mir ein so gutes Zeugnis ausgestellt hat?‘
 
-‘Ah, but I sleep more heavily than you.’
+„‚Nun, vielleicht ist es besser, wenn ich Ihnen das im Augenblick nicht sage. Aus derselben Quelle weiß ich, dass Sie sowohl Waise als auch Junggeselle sind und allein in London wohnen.‘
 
-‘Well, it’s no great matter, anyway.’ She smiled back at me, closed my door, and a“One moment,” said Holmes. “Are you certain about this whistle and the metallic sound? Could you swear to it?”
+„‚Das ist völlig richtig‘, antwortete ich; ‚aber Sie werden mir verzeihen, wenn ich sage, dass ich nicht einsehe, was das mit meinen beruflichen Qualifikationen zu tun hat. Ich verstand, dass Sie mich wegen einer fachlichen Angelegenheit sprechen wollten?‘
 
-“That was exactly what the county coroner asked me at the inquest. I am strongly convinced that I heard it, and yet, with the gale crashing and the old house creaking, I may possibly have been mistaken.”
+„‚Zweifellos. Aber Sie werden finden, dass alles, was ich sage, wirklich zur Sache gehört. Ich habe einen Auftrag für Sie, doch absolute Geheimhaltung ist unerlässlich – absolute Geheimhaltung, verstehen Sie, und natürlich kann man das eher von einem Mann erwarten, der allein lebt, als von einem, der im Schoß seiner Familie wohnt.‘
 
-“Was your sister dressed?”
+„‚Wenn ich verspreche,
 
-“No, she was in her nightgown. In her right hand they found the burned-out stump of a match, and in her left a matchbox.”
+„Ganz recht. Es ist nur natürlich, dass das Geheimhaltungsversprechen, das wir Ihnen abverlangt haben, Ihre Neugier geweckt hat. Ich möchte Sie zu nichts verpflichten, ohne dass Sie alles vor sich haben. Ich nehme an, wir sind hier völlig sicher vor Lauscherohren?“
 
-“Which shows she struck a light and looked around her when the alarm came. That is important. And what conclusion did the coroner reach?”
+„Vollkommen.“
 
-“He investigated the case very carefully, because Dr. Roylott’s behavior had long been notorious in the county, but he couldn’t find any satisfactory cause of death. My evidence showed that the door had been fastened on the inside, and the windows were blocked by old-fashioned shutters with broad iron bars, which were secured every night. The walls were carefully sounded and proved to be quite solid all around, and the floor was thoroughly examined with the same result. The chimney is wide, but it’s blocked by four large iron staples. It is certain, therefore, that my sister was completely alone when she died. Besides, there were no marks of violence on her.”
+„Dann verhält es sich so: Sie wissen vermutlich, dass Walkerde ein wertvoller Rohstoff ist und dass man sie in England nur an ein oder zwei Orten findet?“
 
-“What about poison?”
+„Das habe ich gehört.“
 
-“The doctors tested for it, but found nothing.”
+„Vor einiger Zeit habe ich ein kleines Anwesen gekauft – ein sehr kleines – keine zehn Meilen von Reading entfernt. Ich hatte das Glück zu entdecken, dass sich in einem meiner Felder ein Vorkommen von Walkerde befindet. Als ich es jedoch untersuchte, stellte ich fest, dass dieses Vorkommen vergleichsweise klein ist und gewissermaßen ein Bindeglied zwischen zwei sehr viel größeren Lagerstätten rechts und links bildet – beide allerdings auf dem Grund meiner Nachbarn. Diese guten Leute hatten keine Ahnung, dass in ihrem Boden etwas steckt, das so wertvoll ist wie eine Goldmine. Natürlich lag es in meinem Interesse, ihr Land zu kaufen, bevor sie seinen wahren Wert erkannten, aber leider fehlte mir das Kapital, um das zu tun. Ich habe jedoch ein paar Freunde ins Vertrauen gezogen, und sie schlugen vor, wir sollten unser eigenes kleines Vorkommen still und heimlich ausbeuten und auf diese Weise das Geld verdienen, das uns den Kauf der benachbarten Felder ermöglichen würde. Das tun wir nun schon seit einiger Zeit, und um uns bei unserer Arbeit zu helfen, haben wir eine hydraulische Presse aufgestellt. Diese Presse, wie ich bereits erklärt habe, ist außer Betrieb geraten, und wir wünschen Ihren Rat in der Sache. Wir hüten unser Geheimnis allerdings eifersüchtig, und wenn bekannt würde, dass hydraulische Ingenieure zu unserem kleinen Haus kommen, würde das rasch Fragen wecken – und wenn dann die Tatsachen ans Licht kämen, könnten wir jede Chance, diese Felder zu bekommen und unsere Pläne umzusetzen, vergessen. Darum habe ich Sie versprechen lassen, dass Sie keinem Menschen sagen, dass Sie heute Nacht nach Eyford fahren. Ist das alles klar?“
 
-“Then what do you think this unfortunate lady died of?”
+„Ich verstehe Sie vollkommen“, sagte ich. „Der einzige Punkt, den ich nicht recht begreifen konnte, war, wozu man beim Abbau von Walkerde eine hydraulische Presse braucht – Walkerde wird doch, soweit ich weiß, wie Kies aus einer Grube herausgeschaufelt.“
 
-“I believe she died of sheer terror and nervous shock, though what it was that frightened her I cannot imagine.”
+„Ah!“, sagte er gleichgültig. „Wir haben da unser eigenes Verfahren. Wir pressen die Erde zu Ziegeln, damit wir sie abtransportieren können, ohne zu verraten, was sie ist. Aber das ist nur ein Detail. Ich habe Sie nun vollständig in mein Vertrauen gezogen, Mr. Hatherley, und Ihnen gezeigt, wie sehr ich Ihnen vertraue.“ Während er sprach, erhob er sich. „Ich erwarte Sie also um 11:15 in Eyford.“
 
-“Were there gypsies in the plantation at the time?”
+„Ich werde ganz bestimmt dort sein.“
 
-“Yes, there are almost always some there.”
+„Und kein Wort zu einer Seele.“ Er sah mich ein letztes Mal lange und prüfend an, dann drückte er meine Hand mit einem kalten, feuchten Griff und hastete aus dem Zimmer.
 
-“Ah. And what did you make of her reference to a band—a speckled band?”
+Nun, als ich in aller Ruhe darüber nachdachte, war ich – wie Sie beide sich denken können – sehr erstaunt über diesen plötzlichen Auftrag, der mir anvertraut worden war. Einerseits war ich natürlich froh, denn das Honorar war mindestens zehnmal so hoch, wie ich verlangt hätte, wenn ich meinen eigenen Leistungen einen Preis gegeben hätte, und es war möglich, dass dieser Auftrag weitere nach sich ziehen würde. Andererseits hatten Gesicht und Auftreten meines Auftraggebers einen unangenehmen Eindruck auf mich gemacht, und ich konnte nicht glauben, dass seine Erklärung mit der Walkerde ausreichte, um die Notwendigkeit zu erklären, dass ich um Mitternacht kommen sollte, und seine extreme Angst, ich könnte irgendjemandem von meinem Weg erzählen. Trotzdem jagte ich alle Befürchtungen zum Teufel, aß ein kräftiges Abendessen, fuhr nach Paddington und machte mich auf den Weg – wobei ich die Anweisung, den Mund zu halten, buchstabengetreu befolgte.
 
-“Sometimes I’ve thought it was just the wild talk of delirium; sometimes that it might have referred to some band of people—perhaps those very gypsies in the plantation. I don’t know whether the spotted handkerchiefs that so many of them wear over their heads might have suggested the strange word she used.”
+In Reading musste ich nicht nur den Wagen, sondern auch den Bahnhof wechseln. Dennoch erreichte ich noch den letzten Zug nach Eyford und kam kurz nach elf an dem kleinen, schummrig beleuchteten Bahnhof an. Ich war der einzige Fahrgast, der dort ausstieg, und auf dem Bahnsteig war niemand außer einem einzelnen verschlafenen Gepäckträger mit einer Laterne. Als ich jedoch durch das kleine Drehkreuz hinausging, fand ich meinen Bekannten vom Morgen auf der anderen Seite im Schatten wartend. Ohne ein Wort packte er meinen Arm und zog mich hastig in eine Kutsche, deren Tür offenstand. Er zog die Fenster auf beiden Seiten hoch, klopfte an das Holzwerk, und schon fuhren wir davon, so schnell das Pferd laufen konnte.
 
-Holmes shook his head like a man far from satisfied.
+„Ein Pferd?“ warf Holmes ein.
 
-“These are very deep waters,” he said. “Please go on with your story.”
+„Ja, nur eins.“
 
-“Two years have passed since then, and until recently my life has been lonelier than ever. A month ago, however, a dear friend whom I have known for many years did me the honor of asking me to marry him. His name is Armitage—Percy Armitage—the second son of Mr. Armitage of Crane Water, near Reading. My stepfather has raised no objection to the match, and we are to be married in the spring. Two days ago some repairs were begun in the west wing of the house, and a hole was knocked through the wall of my bedroom, so I had to move into the room in which my sister died, and sleep in the very bed she used. Imagine, then, my horror when last night, as I lay awake thinking about her terrible fate, I suddenly heard, in the stillness of the night, the low whistle that had been the herald of her death. I jumped up and lit the lamp, but there was nothing to be seen in the room. I was too shaken to go back to bed, so I dressed, and as soon as it was daylight I slipped out, got a dog-cart at the Crown Inn opposite, and drove to Leatherhead, from where I came on here this morning with the single purpose of seeing you and asking your advice.”
+„Haben Sie die Farbe bemerkt?“
 
-“You have acted wisely,” said my friend. “But have you told me everything?”
+„Ja, ich sah sie im Schein der Seitenlaternen, als ich in die Kutsche stieg. Es war ein Fuchs.“
 
-“Yes, everything.”
+„Wirkte es müde oder frisch?“
 
-“Miss Roylott, you have not. You are shielding your stepfather.”
+„Oh, frisch und glänzend.“
 
-“Why—what do you mean?”
+„Danke. Verzeihen Sie die Unterbrechung. Fahren Sie bitte mit Ihrer höchst interessanten Aussage fort.“
 
-In answer, Holmes pushed back the frill of black lace that edged the hand resting on our visitor’s knee. Five small, livid spots—the marks of four fingers and a thumb—were printed on the white wrist.
+„Also fuhren wir weiter, und wir waren mindestens eine Stunde unterwegs. Colonel Lysander Stark hatte gesagt, es seien nur sieben Meilen, aber nach dem Tempo, das wir zu
 
-“You have been cruelly used,” said Holmes.
+„Ich warf einen Blick auf die Bücher auf dem Tisch, und trotz meiner Unkenntnis des Deutschen sah ich, dass zwei davon wissenschaftliche Abhandlungen waren, die übrigen Gedichtbände. Dann ging ich zum Fenster hinüber, in der Hoffnung, einen Blick auf die Landschaft zu erhaschen, doch ein schwerer, mit dicken Riegeln gesicherter Eichenladen war davorgeklappt. Es war ein unheimlich stilles Haus. Irgendwo draußen im Flur tickte laut eine alte Uhr, aber sonst herrschte eine totenstille Ruhe. Ein vages Gefühl der Beklemmung schlich sich in mir hoch. Wer waren diese deutschen Leute, und was taten sie hier, an diesem seltsamen, abgelegenen Ort? Und wo war dieser Ort überhaupt? Ich war vielleicht zehn Meilen von Eyford entfernt, das war alles, was ich wusste; aber ob nördlich, südlich, östlich oder westlich, davon hatte ich keine Ahnung. Andererseits lagen Reading und womöglich noch andere größere Städte in diesem Umkreis, also musste es vielleicht doch nicht so abgeschieden sein. Und dennoch war es, bei dieser absoluten Stille, völlig sicher, dass wir auf dem Land waren. Ich ging im Zimmer auf und ab, summte leise eine Melodie vor mich hin, um mir Mut zu machen, und hatte das Gefühl, meine fünfzig Guineen wirklich zu verdienen.
 
-The lady flushed deeply and covered her injured wrist. “He is a hard man,” she said, “and perhaps he hardly knows his own strength.”
+„Plötzlich, ohne jedes vorherige Geräusch mitten in dieser völligen Stille, schwang die Tür meines Zimmers langsam auf. Die Frau stand im Türrahmen, hinter ihr die Dunkelheit des Flurs, während das gelbe Licht meiner Lampe auf ihr schönes, angespanntes Gesicht fiel. Auf den ersten Blick sah ich, dass sie krank vor Angst war, und der Anblick jagte mir selbst einen Schauer übers Herz. Sie hob einen zitternden Finger, um mich zum Schweigen zu mahnen, und stieß mir ein paar geflüsterte Worte in gebrochenem Englisch zu, wobei ihre Augen immer wieder zurückglitten – wie die eines scheuenden Pferdes – in das Dunkel hinter ihr.
 
-There was a long silence, during which Holmes rested his chin on his hands and stared into the crackling fire.
+„‚Ich würde gehen‘, sagte sie und bemühte sich, wie mir schien, verzweifelt um einen ruhigen Ton. ‚Ich würde gehen. Ich sollte nicht hierbleiben. Es gibt nichts Gutes, was Sie hier tun können.‘
 
-“This is a very serious business,” he said at last. “There are a thousand details I should like to know before deciding on our course of action. Yet we haven’t a moment to lose. If we came to Stoke Moran today, would it be possible for us to look over these rooms without your stepfather knowing?”
+„‚Aber gnädige Frau‘, sagte ich, ‚ich habe noch nicht getan, weswegen ich gekommen bin. Ich kann unmöglich gehen, bevor ich die Maschine gesehen habe.‘
 
-“As it happens, he mentioned that he was coming into town today on some very important business. It’s likely he’ll be away all day, and there would be nothing to disturb you. We have a housekeeper now, but she is old and foolish, and I could easily get her out of the way.”
+„‚Es lohnt sich nicht, zu warten‘, fuhr sie fort. ‚Sie können durch die Tür hinaus; niemand hält Sie auf.‘ Und als sie sah, dass ich lächelte und den Kopf schüttelte, warf sie plötzlich alle Zurückhaltung ab, machte einen Schritt vor und rang die Hände. ‚Um Himmels willen!‘ flüsterte sie. ‚Gehen Sie weg von hier, bevor es zu spät ist!‘
 
-“Excellent. You don’t object to this trip, Watson?”
+„Doch ich bin von Natur aus etwas starrköpfig, und umso eher bereit, mich auf eine Sache einzulassen, wenn ein Hindernis im Weg steht. Ich dachte an meine fünfzig Guineen, an die ermüdende Reise und an die unangenehme Nacht, die offenbar vor mir lag. Sollte das alles umsonst gewesen sein? Warum sollte ich mich davonschleichen, ohne meinen Auftrag ausgeführt zu haben – und ohne das Honorar, das mir zustand? Diese Frau konnte, soweit ich wusste, eine Besessene sein. Also schüttelte ich, mit möglichst fester Haltung – obwohl mich ihr Auftreten mehr erschüttert hatte, als ich mir eingestehen wollte –, erneut den Kopf und erklärte, ich würde bleiben, wo ich war. Sie wollte gerade wieder ansetzen, mich zu beschwören, da schlug oben eine Tür zu, und man hörte mehrere Schritte auf der Treppe. Sie lauschte einen Augenblick, warf die Hände in einer verzweifelten Geste hoch und verschwand so plötzlich und so lautlos, wie sie gekommen war.
 
-“Not at all.”
+„Die Neuankömmlinge waren Colonel Lysander Stark und ein kleiner, stämmiger Mann mit einem Chinchilla-Bart, der aus den Falten seines Doppelkinns wuchs; man stellte ihn mir als Mr. Ferguson vor.
 
-“Then we shall both come. What are you going to do yourself?”
+„‚Das ist mein Sekretär und Geschäftsführer‘, sagte der Colonel. ‚Übrigens war ich der Meinung, ich hätte diese Tür eben geschlossen. Ich fürchte, Sie haben Zug bekommen.‘
 
-“I have one or two things I’d like to do now that I’m in town. But I’ll return by the twelve o’clock train, so I’ll be there in time for your arrival.”
+„‚Im Gegenteil‘, sagte ich, ‚ich habe die Tür selbst geöffnet, weil mir die Luft im Zimmer etwas stickig vorkam.‘
 
-“And you may expect us early in the afternoon. I also have a few small business matters to attend to. Won’t you stay and have breakfast?”
+„Er warf mir einen seiner misstrauischen Blicke zu. ‚Dann sollten wir vielleicht zur Sache kommen‘, sagte er. ‚Mr. Ferguson und ich bringen Sie hinauf, damit Sie die Maschine sehen.‘
 
-“No, I must go. My heart is already lighter now that I’ve shared my trouble with you. I shall look forward to seeing you again this afternoon.” She dropped her thick black veil over her face and glided from the room.
+„‚Dann setze ich wohl besser meinen Hut auf.‘
 
-“And what do you make of it all, Watson?” asked Sherlock Holmes, leaning back in his chair.
+„‚Oh nein, es ist im Haus.‘
 
-“It seems to me a very dark and sinister affair.”“Which of you is Holmes?” demanded the apparition.
+„‚Wie, Sie graben Walkerde im Haus?‘
 
-“That is my name, sir. But you have the advantage of me,” my companion replied calmly.
+„‚Nein, nein. Hier wird sie nur gepresst. Aber lassen wir das. Wir wollen lediglich, dass Sie die Maschine untersuchen und uns sagen, was mit ihr nicht stimmt.‘
 
-“I am Dr. Grimesby Roylott of Stoke Moran.”
+„Wir gingen gemeinsam nach oben: der Colonel voraus mit der Lampe, der dicke Geschäftsführer und ich hinter ihm. Es war ein Labyrinth aus einem alten Haus – mit Gängen, Korridoren, engen, gewundenen Treppen und kleinen, niedrigen Türen, deren Schwellen von Generationen, die darüber gegangen waren,
 
-“Indeed, Doctor,” said Holmes pleasantly. “Please, have a seat.”
+In dem Augenblick, als ich die Worte ausgesprochen hatte, bereute ich die Unbedachtheit meiner Rede. Sein Gesicht verhärtete sich, und in seinen grauen Augen flammte ein unheilvolles Licht auf.
 
-“I’ll do nothing of the sort. My stepdaughter has been here. I’ve tracked her. What has she been telling you?”
+„Sehr gut“, sagte er, „dann sollen Sie alles über die Maschine erfahren.“ Er trat einen Schritt zurück, schlug die kleine Tür zu und drehte den Schlüssel im Schloss herum. Ich stürzte hin, riss am Griff, doch sie saß fest und gab weder meinen Tritten noch meinen Stößen auch nur einen Zoll nach. „Hallo!“, brüllte ich. „Hallo! Herr Oberst! Lassen Sie mich raus!“
 
-“It’s a little cold for the time of year,” said Holmes.
+Und dann hörte ich plötzlich in der Stille ein Geräusch, das mir das Herz in den Hals trieb: das Klirren der Hebel und das schmatzende Zischen des undichten Zylinders. Er hatte die Maschine in Gang gesetzt. Die Lampe stand noch auf dem Boden, wo ich sie beim Untersuchen der Rinne abgestellt hatte. In ihrem Licht sah ich, wie die schwarze Decke auf mich herabkam – langsam, ruckweise, aber, wie niemand besser wusste als ich, mit einer Kraft, die mich binnen einer Minute zu einem formlosen Brei zermahlen musste. Ich warf mich schreiend gegen die Tür und kratzte mit den Nägeln am Schloss. Ich flehte den Oberst an, mich herauszulassen, doch das erbarmungslose Klappern der Hebel verschluckte meine Rufe. Die Decke war nur noch ein, zwei Fuß über meinem Kopf, und mit erhobener Hand konnte ich ihre harte, raue Oberfläche fühlen. Da schoss mir der Gedanke durch den Kopf, dass der Schmerz meines Todes sehr davon abhängen würde, in welcher Haltung ich ihm begegnete. Wenn ich auf dem Bauch läge, würde das Gewicht auf die Wirbelsäule drücken, und ich schauderte bei dem Gedanken an dieses entsetzliche Knacken. Andersherum vielleicht leichter; und doch – hatte ich die Nerven, mich hinzulegen und hinaufzustarren, während dieser tödliche schwarze Schatten über mir schwankend herabsank? Schon konnte ich nicht mehr aufrecht stehen, als mein Blick etwas streifte, das mir einen Schwall Hoffnung ins Herz zurücktrieb.
 
-“What has she been saying to you?” shrieked the old man, beside himself with rage.
+Ich habe gesagt, dass Boden und Decke aus Eisen waren, die Wände jedoch aus Holz. Als ich mich ein letztes Mal hastig umsah, bemerkte ich zwischen zwei Brettern einen dünnen Streifen gelben Lichts, der breiter und breiter wurde, als ein kleines Paneel nach hinten gedrückt wurde. Einen Augenblick lang konnte ich kaum glauben, dass hier tatsächlich eine Tür war, die vom Tod wegführte. Im nächsten Augenblick warf ich mich hindurch und lag halb ohnmächtig auf der anderen Seite. Das Paneel hatte sich hinter mir wieder geschlossen, doch das Scheppern der Lampe und wenige Augenblicke später das Dröhnen der beiden Metallschienen verrieten mir, wie knapp ich entkommen war.
 
-“I hear the crocuses are doing well,” my companion went on, utterly unruffled.
+Ich kam zu mir durch ein verzweifeltes Zerren an meinem Handgelenk und fand mich auf dem Steinboden eines schmalen Korridors wieder, während sich eine Frau über mich beugte und mit der linken Hand an mir zog, in der rechten eine Kerze hielt. Es war dieselbe gute Freundin, deren Warnung ich so töricht in den Wind geschlagen hatte.
 
-“Ah! Trying to put me off, are you?” snarled our visitor, stepping forward and shaking his hunting crop. “I know you, you scoundrel. I’ve heard of you before. You’re Holmes the meddler.”
+„Kommen Sie! Kommen Sie!“, keuchte sie. „Sie sind gleich hier. Sie werden sehen, dass Sie nicht mehr drin sind. Oh, verschwenden Sie nicht die kostbare Zeit – kommen Sie!“
 
-My friend smiled.
+Diesmal jedenfalls verachtete ich ihren Rat nicht. Ich taumelte auf die Beine und rannte mit ihr den Gang entlang und eine Wendeltreppe hinunter. Unten mündete sie in einen weiteren breiten Korridor, und gerade als wir ihn erreichten, hörten wir rennende Schritte und das Rufen zweier Stimmen – eine antwortete der anderen, von der Etage, auf der wir waren, und von der darunter. Meine Führerin blieb stehen und sah sich um wie jemand, der keinen Ausweg mehr weiß. Dann riss sie eine Tür auf, die in ein Schlafzimmer führte, durch dessen Fenster der Mond hell hereinschien.
 
-“Holmes the busybody!”
+„Das ist Ihre einzige Chance“, sagte sie. „Es ist hoch, aber vielleicht können Sie springen.“
 
-His smile widened.
+Während sie sprach, erschien am anderen Ende des Ganges ein Licht, und ich sah die hagere Gestalt von Oberst Lysander Stark heranstürmen, eine Laterne in der einen Hand und in der anderen eine Waffe, die einem Fleischerbeil glich. Ich rannte quer durch das Schlafzimmer, riss das Fenster auf und blickte hinaus. Wie still, wie süß und gesund der Garten im Mondlicht aussah – und es mochten kaum dreißig Fuß bis hinunter sein. Ich kletterte auf die Fensterbank, doch ich zögerte zu springen, bevor ich nicht gehört hätte, was zwischen meiner Retterin und dem Schurken, der mich verfolgte, geschah. Wenn man sie misshandelte, dann war ich entschlossen, um jeden Preis zurückzugehen und ihr beizustehen. Kaum war mir der Gedanke gekommen, da war er schon an der Tür und drängte sich an ihr vorbei; doch sie schlang die Arme um ihn und versuchte, ihn zurückzuhalten.
 
-“Holmes the Scotland Yard jack-in-office!”
+„Fritz! Fritz!“, rief sie auf Englisch, „denk an dein Versprechen nach dem letzten Mal. Du hast gesagt, es soll nicht wieder geschehen. Er wird schweigen! Oh, er wird schweigen!“
 
-Holmes burst out laughing. “You are a most entertaining conversationalist,” he said. “When you go out, kindly close the door. There’s quite a draft.”
+„Du bist verrückt, Elise
 
-“I’ll go when I’ve had my say. Don’t you dare interfere in my affairs. I know Miss Stoner has been here. I tracked her! I’m a dangerous man to cross. Look here.” He stepped forward suddenly, grabbed the poker, and bent it into a curve with his huge brown hands.
+„Hier ist eine Anzeige, die Sie interessieren wird“, sagte er. „Sie stand vor etwa einem Jahr in allen Zeitungen. Hören Sie: ‚Vermisst, am 9. d. M., Mr. Jeremiah Hayling, sechsundzwanzig Jahre alt, Hydraulikingenieur. Verließ seine Unterkunft um zehn Uhr abends und ist seitdem nicht mehr gesehen worden. War bekleidet mit …‘ und so weiter, und so weiter. Ha! Das war, wie ich vermute, das letzte Mal, dass der Colonel seine Maschine überholen lassen musste.“
 
-“Make sure you keep out of my grip,” he snarled, and, flinging the twisted poker into the fireplace, he strode out of the room.
+„Großer Gott!“, rief mein Patient. „Dann erklärt das, was das Mädchen gesagt hat.“
 
-“He seems a very amiable person,” said Holmes, laughing. “I’m not quite so large as he is, but if he’d stayed a little longer I might have shown him that my grip is not much weaker than his.” As he spoke, he picked up the steel poker and, with a sudden effort, straightened it out again.
+„Zweifellos. Es ist völlig klar, dass der Colonel ein kalter, verzweifelter Mensch war, der fest entschlossen war, dass seinem kleinen Spiel nichts in die Quere kommen sollte – wie jene waschechten Piraten, die von einem gekaperten Schiff keinen Überlebenden übrig lassen. Nun, jede Minute ist jetzt kostbar; wenn Sie sich dazu imstande fühlen, gehen wir sofort nach Scotland Yard – als Vorbereitung, bevor wir nach Eyford aufbrechen.“
 
-“The nerve of the man, lumping me in with the official detective force! Still, this little incident adds some spice to our investigation, and I only hope our young friend won’t suffer for her rashness in letting that brute track her here. And now, Watson, we’ll order breakfast, and afterwards I’ll walk down to Doctors’ Commons. I hope to find some information there that may help us in this matter.”
+Etwa drei Stunden später saßen wir alle zusammen im Zug, unterwegs von Reading in das kleine Dorf in Berkshire. Da waren Sherlock Holmes, der Hydraulikingenieur, Inspector Bradstreet von Scotland Yard, ein Mann in Zivil und ich. Bradstreet hatte eine militärische Karte der Grafschaft auf dem Sitz ausgebreitet und zog mit dem Zirkel einen Kreis, dessen Mittelpunkt Eyford war.
 
-It was nearly one o’clock when Sherlock Holmes returned from his errand. In his hand he held a sheet of blue paper, covered with hurried notes and figures.
+„So“, sagte er. „Dieser Kreis hat einen Radius von zehn Meilen um das Dorf. Der Ort, den wir suchen, muss irgendwo nahe dieser Linie liegen. Sie sagten zehn Meilen, glaube ich, Sir.“
 
-“I’ve seen the will of the deceased wife,” he said. “To pin down its exact meaning I had to work out the current value of the investments it mentions. The total income, which at the time of the wife’s death was just under eleven hundred pounds, is now, thanks to the fall in agricultural prices, no more than seven hundred and fifty. Each daughter is entitled to an income of two hundred and fifty pounds upon marriage. It’s clear, then, that if both girls had married, our friend would be left with a mere pittance, and even one marriage would cripple him very seriously. My morning’s work has not been wasted, since it shows that he has the strongest possible motives for preventing any such event. And now, Watson, this is far too serious a business for us to dawdle, especially as the old man knows we’re taking an interest in his affairs. If you’re ready, we’ll call a cab and drive to Waterloo. I’d be very much obliged if you’d slip your revolver into your pocket. An Eley’s No. 2 is an excellent argument with gentlemen who can twist steel pokers into knots. That, and a toothbrush, are all we need, I think.”
+„Es war eine gute Stunde Fahrt.“
 
-At Waterloo we were lucky enough to catch a train for Leatherhead. There we hired a trap at the station inn and drove four or five miles through the lovely Surrey lanes. It was a perfect day, with bright sunshine and a few fleecy clouds drifting overhead. The trees and hedgerows along the road were just putting out their first green shoots, and the air was full of the pleasant scent of damp earth. To me, at least, there was a strange contrast between the sweet promise of spring and the sinister errand on which we were engaged. My companion sat in the front of the trap, arms folded, hat pulled down over his eyes, chin sunk on his chest, lost in the deepest thought. Suddenly he started, tapped me on the shoulder, and pointed across the meadows.
+„Und Sie glauben, dass man Sie den ganzen Weg zurückgebracht hat, als Sie bewusstlos waren?“
 
-“Look there,” he said.
+„Das müssen sie. Ich habe außerdem eine verschwommene Erinnerung daran, dass man mich hochhob und irgendwohin trug.“
 
-A heavily wooded park rose in a gentle slope, thickening into a grove at the highest point. From among the branches jutted the grey gables and high roof-ridge of a very old house.
+„Was ich nicht verstehe“, sagte ich, „ist, warum sie Sie verschont haben, als sie Sie ohnmächtig im Garten fanden. Vielleicht hat der Schurke auf das Flehen der Frau hin nachgegeben.“
 
-“Stoke Moran?” he asked.
+„Das halte ich kaum für wahrscheinlich. Ich habe in meinem Leben kein unerbittlicheres Gesicht gesehen.“
 
-“Yes, sir, that’s Dr. Grimesby Roylott’s place,” said the driver.
+„Oh, das klären wir bald auf“, sagte Bradstreet. „Gut, der Kreis ist gezogen – und ich wünschte nur, ich wüsste, an welchem Punkt darauf die Leute zu finden sind, nach denen wir suchen.“
 
-“There’s some building work going on there,” said Holmes. “That’s where we’re headed.”
+„Ich glaube, ich könnte den Finger darauf legen“, sagte Holmes ruhig.
 
-“There’s the village,” the driver added, pointing to a cluster of roofs some distance off to the left. “But if you want the house itself, it’s shorter to go over this stile and take the footpath across the fields. There it is, where the lady’s walking.”
+„Tatsächlich!“, rief der Inspector. „Sie haben sich also eine Meinung gebildet! Nun, dann wollen wir sehen, wer mit Ihnen übereinstimmt. Ich sage: Süden – dort ist die Gegend verlassener.“
 
-“And the lady, I imagine, is Miss Stoner,” said Holmes, shading his eyes. “Yes, I think we’d better do as you suggest.”
+„Und ich sage: Osten“, meinte mein Patient.
 
-We got down, paid our fare, and the trap rattled back on the road to Leatherhead.
+„Ich bin für Westen“, bemerkte der Mann in Zivil. „Dort oben gibt es mehrere stille kleine Dörfer.“
 
-“I thought it best,” said Holmes, as we climbed the stile, “that our friend should think we’d come down as architects or on some definite business.“Exactly. But I’m sleeping in the middle room now.”
+„Und ich für Norden“, sagte ich, „weil dort keine Hügel sind, und unser Freund sagt, er habe nicht bemerkt, dass die Kutsche irgendwo hinaufgefahren wäre.“
 
-“While the alterations are going on, if I understand you. By the way, there doesn’t seem to be any urgent need for repairs to that end wall.”
+„Na los“, rief der Inspector lachend, „eine sehr hübsche Meinungsvielfalt. Wir haben zusammen den ganzen Kompass abgedeckt. Wem geben Sie Ihre Stichstimme?“
 
-“There weren’t any. I believe it was just an excuse to move me out of my room.”
+„Sie liegen alle falsch.“
 
-“Ah! That’s suggestive. Now, on the other side of this narrow wing runs the corridor from which these three rooms open. There are windows in it, of course?”
+„Aber wir können doch nicht alle …“
 
-“Yes, but they’re very small. Too narrow for anyone to get through.”
+„Oh doch, das können Sie. Hier ist mein Punkt.“ Er legte den Finger in die Mitte des Kreises. „Hier werden wir sie finden.“
 
-“As you both locked your doors at night, your rooms couldn’t be reached from that side. Now, would you be so kind as to go into your room and bar your shutters?”
+„Aber die Zwölf-Meilen-Fahrt?“, stieß Hatherley hervor.
 
-Miss Stoner did so, and Holmes, after carefully examining them from the open window, tried every possible way to force the shutters, but without success. There was no gap through which a knife could be slipped to lift the bar. Then, with his lens, he examined the hinges, but they were solid iron, firmly built into the heavy stonework.
+„Sechs hin und sechs zurück. Nichts einfacher als das. Sie sagen selbst, das Pferd sei frisch und glänzend gewesen, als Sie einstiegen. Wie hätte das sein können, wenn es zwölf Meilen über schwere Straßen gegangen wäre?“
 
-“Hmm!” he said, scratching his chin in some perplexity. “My theory certainly runs into some difficulties. No one could get past these shutters if they were bolted. Well, let’s see if the inside sheds any light on the matter.”
+„In der Tat, ein durchaus plausibler Trick“, sagte Bradstreet nachdenklich. „Natürlich kann es keinen Zweifel an der Art dieser Bande geben.“
 
-A small side door led into the whitewashed corridor from which the three bedrooms opened. Holmes declined to examine the third room, so we went straight to the second—the one where Miss Stoner now slept, and where her sister had met her death. It was a homely little room, with a low ceiling and a wide, gaping fireplace, in the style of old country houses. A brown chest of drawers stood in one corner, a narrow bed with a white counterpane in another, and a dressing table to the left of the window. These pieces, with two small wicker chairs, were all the furniture in the room, apart from a square of Wilton carpet in the centre. The boards around it and the panelling on the walls were of brown, worm-eaten oak, so old and discoloured that they might date from the original building of the house. Holmes pulled one of the chairs into a corner and sat in silence, his eyes travelling slowly round and round, up and down, taking in every detail of the room.
+„Keinen“, sagte Holmes. „Es sind Falschmünzer im großen Stil, und sie haben die Maschine benutzt, um das Amalgam herzustellen, das an die Stelle von Silber getreten ist.“
 
-“Where does that bell connect to?” he asked at last, pointing to a thick bell-rope that hung beside the bed, its tassel actually lying on the pillow.
+„Wir wissen seit einiger Zeit, dass eine clevere Bande am Werk ist“, sagte der Inspector. „Sie haben Halbkronen zu Tausenden in Umlauf gebracht. Wir haben sie sogar bis Reading zurückverfolgt, kamen aber nicht weiter, denn sie hatten ihre Spuren so verwischt, dass man sah, dass es alte Hasen waren. Aber jetzt – dank dieses glücklichen Zufalls – glaube ich, dass wir sie endlich haben.“
 
-“It goes to the housekeeper’s room.”
+Doch der Inspector irrte sich, denn diese Verbrecher waren nicht dazu bestimmt, in die Hände der Justiz zu fallen. Als wir in den Bahnhof von Eyford einrollten, sahen wir eine gigantische Rauchsäule, die hinter einer kleinen Baumgruppe in der Nähe aufstieg und wie eine ungeheure Straußenfeder über der Landschaft hing.
 
-“It looks newer than the other things.”
+„Ein Hausbrand?“, fragte Bradstreet, als der Zug wieder anfuhr.
 
-“Yes, it was only put there a couple of years ago.”
+„Ja, Sir!“, sagte der Stationsvorsteher.
 
-“Your sister asked for it, I suppose?”
+„Wann ist es ausgebrochen?“
 
-“No, I never heard of her using it. We always used to get what we wanted for ourselves.”
+„Ich höre, in der Nacht, Sir, aber es ist schlimmer geworden, und jetzt steht das ganze Anwesen in Flammen.“
 
-“Indeed. It seems unnecessary to put such a nice bell-pull there. Excuse me for a few minutes while I satisfy myself about this floor.”
+„Wessen Haus ist es?“
 
-He threw himself down on his face with his lens in his hand and crawled quickly back and forth, examining the cracks between the boards minutely. Then he did the same with the woodwork of the panelling. Finally he walked over to the bed and spent some time staring at it and running his eye up and down the wall. At last he took the bell-rope in his hand and gave it a sharp tug.
+„Dr. Bechers.“
 
-“Why, it’s a dummy,” he said.
+„Sagen Sie“, fiel der Ingenieur ein, „ist Dr. Becher ein Deutscher, sehr dünn,
 
-“It won’t ring?”
+„Nun“, sagte unser Ingenieur verdrießlich, als wir Platz nahmen, um wieder nach London zurückzufahren, „das war ja ein hübsches Geschäft für mich! Ich habe meinen Daumen verloren, ich habe ein Honorar von fünfzig Guineen verloren – und was habe ich dafür gewonnen?“
 
-“No. It’s not even attached to a wire. This is very interesting. You can see now that it’s fastened to a hook just above the little opening for the ventilator.”
+„Erfahrung“, sagte Holmes und lachte. „Indirekt kann sie sich als wertvoll erweisen, wissen Sie; Sie müssen das Ganze nur in Worte fassen, und schon haben Sie den Ruf, für den Rest Ihres Lebens eine ausgezeichnete Gesellschaft zu sein.“
 
-“How ridiculous! I never noticed that before.”
+10. DAS ABENTEUER DES ADLIGEN JUNGGESELLEN
 
-“Very strange,” muttered Holmes, pulling at the rope. “There are one or two very peculiar points about this room. For example, what kind of fool of a builder would open a ventilator into another room when, with the same effort, he could have opened it to the outside air?”
+Die Hochzeit Lord St. Simons und ihr merkwürdiges Ende sind in jenen erhabenen Kreisen, in denen sich der unglückliche Bräutigam bewegt, längst kein Gesprächsthema mehr. Neue Skandale haben sie überstrahlt, und ihre pikanten Einzelheiten haben die Klatschmäuler von diesem vier Jahre alten Drama abgelenkt. Da ich jedoch Grund zu der Annahme habe, dass die vollständigen Tatsachen der breiten Öffentlichkeit nie bekannt geworden sind, und da mein Freund Sherlock Holmes einen beträchtlichen Anteil daran hatte, die Angelegenheit aufzuklären, meine ich, dass keine Erinnerung an ihn vollständig wäre ohne eine kleine Skizze dieser bemerkenswerten Episode.
 
-“That’s also quite modern,” said the lady.
+Es war ein paar Wochen vor meiner eigenen Hochzeit, in jener Zeit, als ich noch mit Holmes in der Baker Street zusammenwohnte, da kam er von einem Nachmittagsspaziergang nach Hause und fand einen Brief auf dem Tisch, der auf ihn wartete. Ich hatte den ganzen Tag drinnen verbracht, denn das Wetter war plötzlich umgeschlagen: Regen, dazu heftige Herbstwinde, und die Jezail-Kugel, die ich als Andenken an meinen Afghanistanfeldzug in einem meiner Glieder mit nach Hause gebracht hatte, pochte mit dumpfer Beharrlichkeit. Den Oberkörper in einem bequemen Sessel, die Beine auf einem zweiten, hatte ich mich mit einer Wolke aus Zeitungen umgeben, bis ich schließlich, gesättigt von den Nachrichten des Tages, alles beiseite warf und träge dalag, den riesigen Wappenschild und das Monogramm auf dem Umschlag auf dem Tisch betrachtete und mich müßig fragte, wer wohl der vornehme Absender meines Freundes sein mochte.
 
-“Done about the same time as the bell-rope?” remarked Holmes.
+„Das ist ein ausgesprochen modischer Brief“, bemerkte ich, als er eintrat. „Deine Post von heute Morgen war, wenn ich mich recht erinnere, von einem Fischhändler und einem Zollaufseher.“
 
-“Yes, there were several little changes made about then.”
+„Ja, meine Korrespondenz hat tatsächlich den Reiz der Abwechslung“, erwiderte er lächelnd, „und die bescheideneren sind meist die interessanteren. Das hier sieht aus wie eine jener unerwünschten gesellschaftlichen Vorladungen, die einen Mann zwingen, entweder gelangweilt zu sein oder zu lügen.“
 
-“They seem to have been of a most interesting kind—dummy bell-ropes and ventilators that don’t ventilate. With your permission, Miss Stoner, we’ll now carry our investigation into the inner room.”
+Er brach das Siegel und überflog den Inhalt.
 
-Dr. Grimesby Roylott’s bedroom was larger than his stepdaughter’s, but just as plainly furnished. A camp-bed, a small wooden shelf full of books, mostly technical, an armchair beside the bed, a plain wooden chair against the wall, a round table, and a large iron safe were the main things that met the eye. Holmes walked slowly around and examined each one of them with the keenest interest.
+„Nun, nun — am Ende könnte es doch etwas Interessantes sein.“
 
-“What’s in here?” he asked, tapping the safe.
+„Also nicht gesellschaftlich?“
 
-“My stepfather’s business papers.”
+„Nein, eindeutig beruflich.“
 
-“Oh? You’ve seen inside, then?”
+„Und von einem adligen Klienten?“
 
-“Only once, years ago. I remember it was full of papers.”
+„Von einem der höchsten in England.“
 
-“There isn’t a cat in it, for example?”
+„Mein lieber Freund, ich gratuliere dir.“
 
-“No. What a strange idea!”
+„Ich versichere dir, Watson, ohne jede Pose: Der Rang meines Klienten ist mir weniger wichtig als die Interessantheit seines Falles. Es ist allerdings möglich, dass auch daran in dieser neuen Untersuchung kein Mangel sein wird. Du hast in letzter Zeit fleißig die Zeitungen gelesen, nicht wahr?“
 
-“Well, look at this.” He picked up a small saucer of milk that stood on top of it.
+„Es sieht so aus“, sagte ich unerquicklich und deutete auf ein riesiges Bündel in der Ecke. „Ich hatte nichts anderes zu tun.“
 
-“No, we don’t keep a cat. But there is a cheetah and a baboon.”
+„Das ist ein Glück, denn du wirst mich vielleicht auf den neuesten Stand bringen können. Ich lese nichts außer den Kriminalnachrichten und der Rubrik für Hilferufe. Letztere ist immer lehrreich. Aber wenn du die jüngsten Ereignisse so genau verfolgt hast, dann musst du auch von Lord St. Simon und seiner Hochzeit gelesen haben?“
 
-“Ah yes, of course. Well, a cheetah is just a big cat, and yet a saucer of milk doesn’t go very far toward satisfying it, I imagine. There’s one point I’d like to settle.”
+„Oh ja — mit größtem Interesse.“
 
-He squatted down in front of the wooden chair and examined the seat with the greatest attention.
+„Sehr gut. Der Brief, den ich in der Hand halte, ist von Lord St. Simon. Ich werde ihn dir vorlesen, und dafür wühlst du dich durch diese Zeitungen und gibst mir alles, was mit der Sache zu tun hat. Er schreibt:
 
-“Thank you. That’s quite settled,” he said at last, rising and putting his lens back in his pocket. ““Oh yes, easily.”
+‚MEIN LIEBER MR. SHERLOCK HOLMES, — Lord Backwater teilt mir mit, dass ich mich vorbehaltlos auf Ihr Urteil und Ihre Verschwiegenheit verlassen könne. Ich habe daher beschlossen, mich an Sie zu wenden und Sie wegen des äußerst schmerzlichen Ereignisses zu konsultieren, das sich im Zusammenhang mit meiner Hochzeit zugetragen hat. Mr. Lestrade von Scotland Yard befasst sich bereits mit der Angelegenheit, versichert mir jedoch, er sehe keinerlei Einwand gegen Ihre Mitwirkung und glaube sogar, dass sie von Nutzen sein könnte. Ich werde um vier Uhr nachmittags bei Ihnen vorsprechen, und sollten Sie zu dieser Zeit eine andere Verpflichtung haben, so hoffe ich, dass Sie sie verschieben werden, da diese Angelegenheit von höchster Bedeutung ist.
 
-“You’ll leave the rest to us.”
+Hochachtungsvoll
 
-“But what are you going to do?”
+ROBERT ST. SIMON.‘
 
-“We’re going to spend the night in your room and get to the bottom of this noise that’s been disturbing you.”
+„Datiert aus Grosvenor Mansions, mit einer Feder geschrieben, und der edle Lord hatte das Pech, sich an der Außenseite seines rechten kleinen Fingers einen Tintenfleck zu holen“, bemerkte Holmes, während er den Brief zusammenfaltete.
 
-“I believe, Mr. Holmes, that you’ve already made up your mind,” said Miss Stoner, laying her hand on my companion’s sleeve.
+„Er sagt vier Uhr. Es ist jetzt drei. In einer Stunde ist er hier.“
 
-“Perhaps I have.”
+„Dann habe ich mit deiner Hilfe gerade noch Zeit, mir Klarheit über die Sache zu verschaffen. Durchsuche diese Zeitungen und ordne die Auszüge nach ihrer zeitlichen Reihenfolge, während ich einen Blick darauf werfe, wer unser Klient ist.“ Er zog einen rot eingebundenen Band aus einer Reihe von Nachschlagewerken neben dem Kaminsims. „Hier ist er“, sagte er, setzte sich und schlug das Buch auf seinem Knie glatt. „‚Lord Robert Walsingham de Vere St. Simon, zweiter Sohn des Duke of Balmoral
 
-“Then, for pity’s sake, tell me what caused my sister’s death.”
+„Sonst noch etwas?“, fragte Holmes gähnend.
 
-“I’d rather have clearer proof before I say anything.”
+„Oh ja – eine ganze Menge. Da ist zum Beispiel noch eine Notiz in der *Morning Post*, wonach die Trauung vollkommen still und ohne Aufhebens stattfinden solle; in St. George’s, Hanover Square; eingeladen seien nur ein halbes Dutzend engster Freunde; und anschließend werde die Gesellschaft in das möblierte Haus in Lancaster Gate zurückkehren, das Mr. Aloysius Doran gemietet hat. Zwei Tage später – also am vergangenen Mittwoch – erscheint dann eine knappe Mitteilung, dass die Hochzeit stattgefunden habe und die Flitterwochen auf Lord Backwaters Anwesen bei Petersfield verbracht würden. Das sind alle Meldungen, die vor dem Verschwinden der Braut erschienen.“
 
-“You can at least tell me whether my own idea is right—whether she died from some sudden fright.”
+„Vor dem was?“, fragte Holmes und fuhr auf.
 
-“No, I don’t think so. I believe there was probably some more tangible cause. And now, Miss Stoner, we must leave you, for if Dr. Roylott comes back and finds us here, our whole journey will have been wasted. Good-bye—and be brave, for if you do exactly as I’ve told you, you may rest assured that we’ll soon drive away the danger that threatens you.”
+„Vor dem Verschwinden der Dame.“
 
-Sherlock Holmes and I had no difficulty in getting a bedroom and a sitting room at the Crown Inn. They were on the top floor, and from our window we had a clear view of the avenue gate and the inhabited wing of Stoke Moran Manor House. At dusk we saw Dr. Grimesby Roylott drive past, his huge figure looming beside the small, slight boy who drove him. The lad had some trouble unfastening the heavy iron gates, and we heard the doctor’s hoarse bellow and saw the fury with which he shook his clenched fists at him. The trap rolled on, and a few minutes later we saw a sudden light spring up among the trees as a lamp was lit in one of the sitting rooms.
+„Wann ist sie denn verschwunden?“
 
-“You know, Watson,” said Holmes, as we sat together in the gathering darkness, “I have some scruples about taking you with me tonight. There is a definite element of danger.”
+„Beim Hochzeitsfrühstück.“
 
-“Can I be of any help?”
+„Tatsächlich. Das ist interessanter, als es zunächst klang – geradezu dramatisch.“
 
-“Your presence might be invaluable.”
+„Ja, mir kam es auch etwas… ungewöhnlich vor.“
 
-“Then I’m certainly coming.”
+„Sie verschwinden oft vor der Zeremonie, gelegentlich auch während der Flitterwochen; aber so prompt fällt mir nichts Vergleichbares ein. Bitte geben Sie mir die Einzelheiten.“
 
-“That’s very good of you.”
+„Ich warne Sie: Sie sind sehr lückenhaft.“
 
-“You speak of danger. You’ve clearly seen more in those rooms than I did.”
+„Vielleicht können wir die Lücken schließen.“
 
-“No, but I suspect I may have drawn a few more conclusions. I imagine you saw everything I saw.”
+„So wie sie sind, stehen sie in einem einzigen Artikel aus der gestrigen Morgenzeitung, den ich Ihnen vorlese. Überschrift: ‚Seltsamer Vorfall bei einer Hochzeit der besseren Gesellschaft‘:
 
-“I noticed nothing remarkable except the bell-rope—and what purpose that could serve, I confess I cannot imagine.”
+„‚Die Familie von Lord Robert St. Simon ist durch die merkwürdigen und schmerzlichen Ereignisse, die sich im Zusammenhang mit seiner Hochzeit zugetragen haben, in größte Bestürzung versetzt worden. Die Trauung, wie sie gestern kurz in den Zeitungen vermeldet wurde, fand am Morgen zuvor statt; doch erst jetzt war es möglich, die sonderbaren Gerüchte zu bestätigen, die so hartnäckig im Umlauf waren. Trotz der Versuche der Freunde, die Angelegenheit zu vertuschen, ist die öffentliche Aufmerksamkeit inzwischen so sehr darauf gelenkt worden, dass es keinen Zweck mehr hat, so zu tun, als ginge einen das nichts an – zumal es ohnehin überall Gesprächsstoff ist.
 
-“You saw the ventilator as well?”
+„‚Die Zeremonie, die in St. George’s, Hanover Square, vollzogen wurde, war eine sehr stille; anwesend waren außer dem Vater der Braut, Mr. Aloysius Doran, nur die Duchess of Balmoral, Lord Backwater, Lord Eustace sowie Lady Clara St. Simon (der jüngere Bruder und die Schwester des Bräutigams) und Lady Alicia Whittington. Die gesamte Gesellschaft begab sich anschließend in das Haus von Mr. Aloysius Doran in Lancaster Gate, wo das Frühstück vorbereitet war. Wie es heißt, kam es zu einer kleinen Störung durch eine Frau, deren Name nicht festgestellt werden konnte, die versuchte, sich hinter der Hochzeitsgesellschaft ins Haus zu drängen, und behauptete, sie habe einen Anspruch gegen Lord St. Simon. Erst nach einer peinlichen und langwierigen Szene wurde sie vom Butler und dem Lakaien hinausgeworfen. Die Braut, die glücklicherweise bereits vor dieser unangenehmen Unterbrechung das Haus betreten hatte, saß mit den übrigen beim Frühstück, als sie über ein plötzliches Unwohlsein klagte und sich in ihr Zimmer zurückzog. Da ihr langes Ausbleiben Bemerkungen hervorrief, folgte ihr der Vater, erfuhr jedoch von ihrem Dienstmädchen, sie sei nur einen Augenblick in ihr Zimmer gekommen, habe einen Ulster und einen Hut an sich genommen und sei eilig wieder in den Flur hinuntergegangen. Einer der Lakaien erklärte, er habe eine so gekleidete Dame das Haus verlassen sehen, habe aber nicht glauben wollen, dass es seine Herrin sei, da er sie bei der Gesellschaft wähnte. Als Mr. Aloysius Doran feststellte, dass seine Tochter verschwunden war, setzte er sich gemeinsam mit dem Bräutigam unverzüglich mit der Polizei in Verbindung; es werden sehr energische Nachforschungen angestellt, die vermutlich zu einer baldigen Aufklärung dieses höchst sonderbaren Vorgangs führen werden. Bis spät in die Nacht hinein war jedoch nichts über den Aufenthaltsort der Vermissten bekannt geworden. Es gibt Gerüchte über ein Verbrechen, und man sagt, die Polizei habe die Frau festnehmen lassen, die die ursprüngliche Störung verursacht hatte, in der Annahme, dass sie aus Eifersucht oder aus einem anderen Motiv an dem rätselhaften Verschwinden der Braut beteiligt sein könnte.‘“
 
-“Yes, but I don’t think it’s anything very unusual to have a small opening between two rooms. It was so small a rat could hardly squeeze through.”
+„Und das ist alles?“
 
-“I knew we’d find a ventilator before we ever came to Stoke Moran.”
+„Nur noch eine kleine Notiz in einer anderen Morgenzeitung – aber sie ist bezeichnend.“
 
-“My dear Holmes!”
+„Und zwar—“
 
-“Oh yes, I did. You remember in her statement she said her sister could smell Dr. Roylott’s cigar. That, of course, immediately suggested there must be some connection between the two rooms. It could only be a small one, or it would have been noticed at the coroner’s inquest. I deduced a ventilator.”
+„Dass Miss Flora Millar, die Dame, die die Störung verursacht hatte, tatsächlich verhaftet worden ist. Es heißt, sie sei früher *danseuse* im Allegro gewesen und kenne den Bräutigam seit einigen Jahren. Weitere Einzelheiten gibt es nicht, und der ganze Fall liegt nun in Ihren Händen – soweit er in der Presse dargestellt wurde.“
 
-“But what harm could there be in that?”
+„Und er scheint außerordentlich interessant zu sein. Ich hätte ihn um nichts in der Welt verpassen wollen. Aber da klingelt es, Watson, und da die Uhr ein paar Minuten nach vier zeigt, zweifle ich nicht, dass dies unser vornehmer Klient ist. Denken Sie gar nicht daran zu gehen, Watson; ich habe sehr gern einen Zeugen dabei, wenn auch nur als Kontrolle für mein Gedächtnis.“
 
-“Well, at the very least, the dates form a curious coincidence. A ventilator is installed, a cord is hung, and a lady who sleeps in that bed dies. Doesn’t that strike you?”
+„In San Francisco, vor einem Jahr.“
 
-“I still can’t see any connection.”
+„Sie waren in den Staaten unterwegs?“
 
-“Did you notice anything particularly odd about that bed?”
+„Ja.“
 
-“No.”
+„Haben Sie sich damals verlobt?“
 
-“It was clamped to the floor. Have you ever seen a bed fastened down like that before?”
+„Nein.“
 
-“I can’t say that I have.”
+„Aber Sie standen auf freundschaftlichem Fuß?“
 
-“The lady couldn’t move her bed. It had to remain in the same position relative to the ventilator and to the rope—or so we may call it, since it was clearly never meant to be a bell-pull.”
+„Ich fand ihre Gesellschaft unterhaltsam, und sie merkte, dass ich mich amüsierte.“
 
-“Holmes,” I cried, “I begin to see dimly what you’re getting at. We’ve arrived just in time to prevent some subtle and horrible crime.”
+„Ihr Vater ist sehr reich?“
 
-“Subtle enough, and horrible enough. When a doctor goes wrong, he is the very worst of criminals. He has nerve, and he has knowledge. Palmer and Pritchard were among the leading men of their profession. This man strikes even deeper, but I think, Watson, that we’ll be able to strike deeper still. But we’ll have horrors enough before the night is over; for heaven’s sake let’s have a quiet pipe and turn our minds for a few hours to something more cheerful.”
+„Man sagt, er sei der reichste Mann an der Pazifikküste.“
 
-Around nine o’clock the light among the trees went out, and all was dark in the direction of the Manor House. Two slow hours crawled by, and then, suddenly, just as the clock struck eleven, a single bright light shone out directly in front of us.
+„Und womit hat er sein Geld gemacht?“
 
-“That’s our signal,” said Holmes, springing to his feet. “It comes from the middle window.”
+„Mit Bergbau. Vor ein paar Jahren hatte er noch nichts. Dann stieß er auf Gold, legte es an und machte in kürzester Zeit riesige Sprünge nach oben.“
 
-As we went out, he exchanged a few words with the landlord, explaining that we were paying a late visit to an acquaintance and might possibly spend the night there. A moment later we were out on the dark road, a chill wind blowing in our faces, and one yellow light twinkling ahead of us through the gloom, guiding us on our sombre errand.
+„Nun: Was ist Ihr eigener Eindruck vom Charakter der jungen Dame – Ihrer Frau?“
 
-It was easy enough to get into the grounds, for unrepaired gaps yawned in the old park wall. Picking our way among the trees, we reached the lawn, crossed it, and were just about to climb in through the window when, from a clump of laurel bushes, there darted out what looked like a hideous, twisted child. ItSuddenly, for a split second, a light flashed near the ventilator and vanished, followed at once by a strong smell of burning oil and hot metal. Someone in the next room had lit a dark lantern. I heard a faint movement, and then everything was silent again, though the smell grew stronger. For half an hour I sat there, ears straining. Then another sound reached us—a very soft, steady, soothing noise, like a thin jet of steam hissing from a kettle. The instant we heard it, Holmes leapt from the bed, struck a match, and slashed furiously at the bell-pull with his cane.
+Der Adlige schwenkte sein Monokel ein wenig schneller und starrte ins Feuer hinab. „Sehen Sie, Mr. Holmes“, sagte er, „meine Frau war zwanzig, bevor ihr Vater reich wurde. In dieser Zeit lebte sie frei in einem Minencamp und streifte durch Wälder und Berge, sodass ihre Bildung eher von der Natur stammt als vom Schulmeister. Sie ist das, was wir in England ein Wildfang nennen: ein kräftiges Wesen, wild und frei, von keinerlei Traditionen gebunden. Sie ist impulsiv – vulkanisch, wollte ich gerade sagen. Sie fasst schnell Entschlüsse und ist furchtlos in der Ausführung. Andererseits hätte ich ihr den Namen, den ich die Ehre habe zu tragen“ – er räusperte sich mit einem kleinen, würdevollen Hüsteln – „nicht gegeben, wenn ich sie nicht im Grunde für eine edle Frau gehalten hätte. Ich glaube, sie ist zu heroischer Selbstaufopferung fähig, und alles Unehrenhafte wäre ihr zuwider.“
 
-“You see it, Watson?” he shouted. “Do you see it?”
+„Haben Sie ein Foto von ihr?“
 
-\newpage
+„Das hier habe ich mitgebracht.“ Er öffnete ein Medaillon und zeigte uns das volle Gesicht einer sehr schönen Frau. Es war keine Fotografie, sondern eine Miniatur auf Elfenbein, und der Künstler hatte den ganzen Glanz des tiefschwarzen Haares, die großen dunklen Augen und den exquisiten Mund voll zur Wirkung gebracht. Holmes betrachtete sie lange und aufmerksam. Dann schloss er das Medaillon und reichte es Lord St. Simon zurück.
 
-# I. saw nothing. At the very moment Holmes struck the light, I heard a low, clear whistle, but the sudden glare stabbing into my tired eyes made it impossible for me to see what he was attacking so savagely. I could, however, see that his face was deathly pale, filled with horror and disgust. He had stopped striking and was staring up at the ventilator when, all at once, from the stillness of the night there burst the most horrible cry I have ever heard. It rose louder and louder, a hoarse scream in which pain, terror, and rage were all tangled together in one dreadful shriek. They say that far down in the village, and even at the distant parsonage, that cry dragged sleepers from their beds. It chilled our blood, and I stood staring at Holmes, and he at me, until the last echoes had died back into the silence from which they came.
+„Die junge Dame kam also nach London, und Sie erneuerten die Bekanntschaft?“
 
-“What can it mean?” I gasped.
+„Ja. Ihr Vater brachte sie für diese letzte Londoner Saison herüber. Ich traf sie mehrere Male, verlobte mich mit ihr und habe sie nun geheiratet.“
 
-“It means that it’s all over,” Holmes replied. “And perhaps, in the end, it’s for the best. Take your pistol, and we’ll go into Dr. Roylott’s room.”
+„Sie brachte, wie ich höre, eine beträchtliche Mitgift mit?“
 
-With a grave expression he lit the lamp and led the way down the corridor. Twice he struck the door of the doctor’s room without getting any reply. Then he turned the handle and went in, I right behind him, pistol cocked in my hand.
+„Eine ordentliche Mitgift. Nicht mehr, als in meiner Familie üblich ist.“
 
-The sight that met our eyes was extraordinary. On the table stood a dark lantern with the shutter half open, throwing a sharp beam of light onto an iron safe whose door stood ajar. Beside the table, on a wooden chair, sat Dr. Grimesby Roylott, wearing a long grey dressing gown, his bare ankles showing beneath it, his feet thrust into red, backless Turkish slippers. Across his lap lay the short stick with the long lash that we had noticed earlier that day. His chin was tilted upward and his eyes were fixed in a ghastly, rigid stare at a corner of the ceiling. Around his forehead was a strange yellow band with brownish speckles, apparently tied tightly about his head. As we entered, he neither moved nor made a sound.
+„Und diese bleibt natürlich bei Ihnen, da die Ehe ein _fait accompli_ ist?“
 
-“The band! The speckled band!” Holmes whispered.
+„Ich habe mich ehrlich gesagt nicht danach erkundigt.“
 
-\newpage
+„Ganz natürlich. Haben Sie Miss Doran am Tag vor der Hochzeit gesehen?“
 
-# I. stepped forward. In an instant, that strange headband began to stir, and from among his hair rose the squat, diamond-shaped head and swollen neck of a revolting snake.
+„Ja.“
 
-“It’s a swamp adder!” cried Holmes. “The deadliest snake in India. He died within ten seconds of being bitten. Violence truly recoils upon the violent, and the plotter falls into the pit he digs for another. Let’s drive this creature back into its den, and then we can move Miss Stoner somewhere safe and inform the county police what has happened.”
+„War sie guter Dinge?“
 
-As he spoke, he snatched the dog-whip from the dead man’s lap, slipped the noose around the reptile’s neck, dragged it from its hideous perch, and, holding it at arm’s length, flung it into the iron safe, which he then shut upon it.
+„Nie besser. Sie sprach unaufhörlich davon, was wir in unserem künftigen Leben tun würden.“
 
-Those are the true facts of the death of Dr. Grimesby Roylott of Stoke Moran. It is not necessary for me to prolong a story that has already gone on too long by describing how we broke the sad news to the terrified girl, how we took her by the morning train to the care of her good aunt at Harrow, or how the slow machinery of official inquiry finally concluded that the doctor had met his end while recklessly playing with a dangerous pet. The little that I still had to learn about the case was told to me by Sherlock Holmes as we travelled back the next day.
+„Tatsächlich? Das ist sehr interessant. Und am Morgen der Hochzeit?“
 
-“I had,” he said, “come to a completely wrong conclusion, which shows you, my dear Watson, how dangerous it is to reason from insufficient data. The presence of the gypsies, and the use of the word ‘band’—which the poor girl no doubt used to describe the thing she had glimpsed for a moment in the light of her match—were enough to send me off on an entirely false trail. I can only claim the credit of having instantly reconsidered my position when it became clear to me that whatever danger threatened the occupant of that room could not come from either the window or the door. My attention was quickly drawn, as I’ve already mentioned to you, to the ventilator and to the bell-rope that hung down to the bed. Discovering that the rope was a dummy, and that the bed was bolted to the floor, immediately suggested that the rope was there as a bridge for something passing through the hole and onto the bed. The idea of a snake came to me at once, and when I combined that with my knowledge that the doctor kept a collection of creatures from India, I felt I was probably on the right track.
+„So heiter wie nur möglich – wenigstens bis nach der Zeremonie.“
 
-“The idea of using a kind of poison that no chemical test could possibly detect is exactly the sort of thing that would occur to a clever and ruthless man with an Eastern training. The speed with which such a poison would act would also,9. THE ADVENTURE OF THE ENGINEER’S THUMB
+„Und bemerkten Sie danach eine Veränderung?“
 
-Of all the problems that have been brought to my friend Mr. Sherlock Holmes over the years of our friendship, there were only two that I myself introduced to his attention: the case of Mr. Hatherley’s thumb, and that of Colonel Warburton’s madness. The latter may have offered a richer field for a sharp and original observer, but the former was so strange in its beginning and so dramatic in its details that it may be more deserving of being put on record, even if it gave my friend fewer chances to display those deductive methods by which he achieved such remarkable results. The story has, I believe, appeared more than once in the newspapers, but like all such accounts, it loses much of its force when compressed into a single half-column of print, instead of having the facts unfold slowly before your eyes and the mystery clear bit by bit as each new discovery provides another step toward the whole truth. At the time, the circumstances made a deep impression on me, and even the passing of two years has hardly weakened it.
+„Nun ja, um die Wahrheit zu sagen: Da sah ich zum ersten Mal überhaupt Anzeichen dafür, dass ihr Temperament ein klein wenig scharf sein kann. Der Vorfall war allerdings zu belanglos, um ihn zu erzählen, und kann unmöglich etwas mit der Sache zu tun haben.“
 
-It was in the summer of ’89, not long after my marriage, that the events I am about to relate took place. I had returned to civilian practice and had finally left Holmes in his Baker Street rooms, though I visited him constantly and occasionally even persuaded him to abandon his Bohemian habits far enough to come and see us. My practice had grown steadily, and as I lived not very far from Paddington Station, I picked up a few patients from among the railway officials. One of these, whom I had cured of a painful and lingering illness, was tireless in singing my praises and in sending to me every sufferer over whom he had the slightest influence.
+„Bitte erzählen Sie ihn trotzdem.“
 
-One morning, a little before seven o’clock, I was woken by the maid knocking at the door to tell me that two men had come from Paddington and were waiting in the consulting room. I dressed in haste, for I knew from experience that railway cases were rarely trivial, and hurried downstairs. As I reached the bottom, my old ally, the guard, came out of the room and shut the door firmly behind him.
+„Ach, es ist kindisch. Sie ließ ihren Brautstrauß fallen, als wir auf die Sakristei zugingen. Gerade ging sie an der vordersten Bank vorbei, und der Strauß fiel in die Bank hinein. Es gab einen Moment Verzögerung, aber der Herr, der dort saß, reichte ihn ihr wieder hinauf, und er schien durch den Sturz keinen Schaden genommen zu haben. Als ich sie jedoch darauf ansprach, antwortete sie mir kurz angebunden; und in der Kutsche, auf dem Heimweg, wirkte sie wegen dieser Lappalie geradezu absurd aufgewühlt.“
 
-“I’ve got him here,” he whispered, jerking his thumb over his shoulder. “He’s all right.”
+„Tatsächlich! Sie sagen, da war ein Herr in der Bank. Es waren also auch Leute aus der Öffentlichkeit anwesend?“
 
-“What is it, then?” I asked, for his manner suggested that he had trapped some strange creature in my room.
+„Oh ja. Es ist unmöglich, sie auszuschließen, wenn die Kirche offen ist.“
 
-“It’s a new patient,” he whispered. “I thought I’d bring him round myself; then he couldn’t slip away. There he is, safe and sound. I must go now, Doctor; I’ve got my dooties, same as you.” And off he went, that faithful tout, without even giving me time to thank him.
+„Dieser Herr war keiner von den Freunden Ihrer Frau?“
 
-\newpage
+„Nein, nein; ich nenne ihn nur der Höflichkeit halber einen Herrn, aber er sah ganz gewöhnlich aus. Ich habe sein Äußeres kaum beachtet. Doch ich glaube wirklich, wir entfernen uns ziemlich weit vom Kern der Sache.“
 
-# I. went into my consulting room and found a gentleman seated at the table. He was neatly dressed in a heather-tweed suit, with a soft cloth cap which he had laid down on my books. One of his hands was wrapped in a handkerchief, blotched all over with blood. He was young—no more than five-and-twenty, I should say—with a strong, masculine face; but he was extremely pale and gave me the impression of a man suffering from some powerful agitation which it took all his self-control to master.
+„Lady St. Simon kehrte also von der Trauung in weniger heiterer Stimmung zurück, als sie hingegangen war. Was tat sie, als sie wieder das Haus ihres Vaters betrat?“
 
-“I’m sorry to drag you out so early, Doctor,” he said, “but I’ve had a very serious accident during the night. I came in by train this morning, and when I asked at Paddington where I could find a doctor, a good fellow there kindly brought me here himself. I gave the maid my card, but I see she’s left it on the side table.”
+„Ich sah, wie sie mit ihrem Dienstmädchen sprach.“
 
-\newpage
+„Und wer ist dieses Dienstmädchen?“
 
-# I. picked it up and glanced at it. “Mr. Victor Hatherley, hydraulic engineer, 16A Victoria Street (3rd floor).” That was the name, profession, and address of my early-morning visitor. “I’m sorry to have kept you waiting,” I said, sitting down in my armchair. “You’ve just come off a night journey, I understand, which is in itself a rather monotonous experience.”
+„Sie heißt Alice. Sie ist Amerikanerin und kam mit ihr aus Kalifornien.“
 
-“Oh, my night could hardly be called monotonous,” he said, and laughed.
+„Eine Vertraute?“
 
-He laughed very heartily, with a high, ringing note, leaning back in his chair and shaking with it. Every medical instinct I had rose up against that laugh.
+„Ein bisschen zu sehr. Mir schien, als ließe ihre Herrin sich von ihr große Freiheiten herausnehmen. Aber in Amerika sieht man solche Dinge natürlich anders.“
 
-“Stop that!” I snapped. “Get a hold of yourself.” I poured some water from a carafe.
+„Wie lange sprach sie mit dieser Alice?“
 
-It was no use. He was in the grip of one of those hysterical fits that sometimes seize a strong nature when a great crisis is past. After a while he came to himself again, looking very tired and very pale.
+„Oh, ein paar Minuten. Ich hatte anderes im Kopf.“
 
-“I’ve been making a fool of myself,” he gasped.
+„Sie haben nicht mitgehört, was sie sagten?“
 
-“Not at all. Drink this.” I splashed some brandy into the water, and the colour began to creep back into his bloodless cheeks.
+„Lady St. Simon sagte etwas von
 
-“That’s better,” he said. “And now, Doctor, perhaps you’d be kind enough to look at my thumb—or rather, at the place where my thumb used to be.”
+„Kurz gesagt: Sie ist plötzlich wahnsinnig geworden?“
 
-He unwound the handkerchief and held out his hand. Even my hardened nerves gave a shudder at the sight. Four fingers stuck out, and where the thumb should have been there was a horrible red, spongy surface. It had been hacked or torn clean out by the roots.
+„Nun ja – wenn ich bedenke, dass sie mir den Rücken gekehrt hat – ich will nicht sagen: mir, sondern all dem, wonach so viele ohne Erfolg gestrebt haben –, dann kann ich es mir kaum anders erklären.“
 
-“Good heavens!” I cried. “This is a terrible injury. It must have bled heavily.”
+„Gewiss, das ist ebenfalls eine denkbare Hypothese“, sagte Holmes lächelnd. „Und nun, Lord St. Simon, glaube ich, dass ich fast alle meine Daten beisammenhabe. Darf ich fragen, ob Sie beim Frühstück so saßen, dass Sie aus dem Fenster sehen konnten?“
 
-“Yes, it did. I fainted when it happened, and I think I must have been unconscious for a long time. When I came to, it was still bleeding, so I tied one end of my handkerchief very tight around the wrist and braced it up with a twig.”
+„Wir konnten die andere Straßenseite und den Park sehen.“
 
-“Excellent! You should have been“Yes. I won’t feel at ease until I’ve told my story.”
+„Ganz recht. Dann denke ich, ich muss Sie nicht länger aufhalten. Ich werde mich bei Ihnen melden.“
 
-“Then my servant will call a cab, and I’ll be with you in a moment.” I ran upstairs, gave my wife a brief explanation, and five minutes later I was in a hansom, driving with my new acquaintance to Baker Street.
+„Falls es Ihnen gelingen sollte, dieses Problem zu lösen“, sagte unser Klient und erhob sich.
 
-As I expected, Sherlock Holmes was lounging about his sitting room in his dressing gown, reading the agony column of The Times and smoking his before-breakfast pipe—a mixture made up of all the plugs and dottles left from the previous day’s smokes, carefully dried and kept on the corner of the mantelpiece. He greeted us with his usual quiet good humor, ordered fresh bacon and eggs, and joined us in a hearty breakfast. When we had finished, he settled our new acquaintance on the sofa, slipped a pillow under his head, and set a glass of brandy and water within his reach.
+„Ich habe es gelöst.“
 
-“It’s obvious that what you’ve been through was no ordinary experience, Mr. Hatherley,” he said. “Please, lie back there and make yourself completely at home. Tell us what you can, but stop when you’re tired, and keep your strength up with a little stimulant.”
+„Wie bitte? Was war das?“
 
-“Thank you,” said my patient, “but I’ve felt like a different man since the doctor bandaged me, and I think your breakfast has finished the cure. I’ll take up as little of your valuable time as I can, so I’ll begin at once with my peculiar experiences.”
+„Ich sage, ich habe es gelöst.“
 
-Holmes sat in his large armchair with that weary, heavy-lidded look which masked his sharp and eager nature, while I sat opposite him, and together we listened in silence to the strange story our visitor laid out for us.
+„Wo ist dann meine Frau?“
 
-“You should know,” he began, “that I’m an orphan and a bachelor, living alone in rented rooms in London. I’m a hydraulic engineer by profession, and I gained considerable experience during the seven years I was apprenticed to Venner & Matheson, the well-known Greenwich firm. Two years ago, when I had finished my time and had also inherited a decent sum from my late father, I decided to start my own practice and took professional chambers in Victoria Street.
+„Das ist ein Detail, das ich Ihnen sehr bald nachreichen werde.“
 
-“I suppose everyone finds their first independent start in business rather bleak. For me it has been especially so. In two years I’ve had three consultations and one small job, and that is literally all my profession has brought me. My total earnings come to twenty-seven pounds ten shillings. Every day, from nine in the morning until four in the afternoon, I sat waiting in my little office, until my heart began to sink and I started to believe I would never have any practice at all.
+Lord St. Simon schüttelte den Kopf. „Ich fürchte, dazu braucht es klügere Köpfe als den Ihren oder den meinen“, bemerkte er, und nach einer steifen, altmodischen Verbeugung ging er.
 
-“Yesterday, however, just as I was thinking of leaving, my clerk came in to say there was a gentleman waiting who wanted to see me on business. He brought up a card bearing the name ‘Colonel Lysander Stark.’ Close behind him came the colonel himself, a man a little above middle height, but incredibly thin. I don’t think I’ve ever seen anyone so thin. His whole face tapered away into nose and chin, and the skin of his cheeks was stretched tight over his jutting bones. Yet this gauntness seemed natural rather than the result of illness, for his eyes were bright, his step brisk, and his manner confident. He was plainly but neatly dressed, and I would have put his age nearer forty than thirty.
+„Sehr freundlich von Lord St. Simon, meinen Kopf zu ehren, indem er ihn auf eine Stufe mit dem seinen stellt“, sagte Sherlock Holmes lachend. „Ich glaube, nach diesem Kreuzverhör gönne ich mir doch noch einen Whisky-Soda und eine Zigarre. Ich hatte meine Schlüsse in diesem Fall bereits gezogen, bevor unser Klient überhaupt das Zimmer betreten hat.“
 
-“‘Mr. Hatherley?’ he said, with a slight German accent. ‘You have been recommended to me, Mr. Hatherley, as a man who is not only skilled in his profession but also discreet and capable of keeping a secret.’
+„Mein lieber Holmes!“
 
-“I bowed, feeling as flattered as any young man would by such an introduction. ‘May I ask who spoke so well of me?’
+„Ich habe Notizen zu mehreren ähnlichen Fällen – wenn auch keiner, wie ich vorhin sagte, ganz so prompt ablief. Meine ganze Befragung diente nur dazu, aus einer Vermutung Gewissheit zu machen. Indizien können mitunter äußerst überzeugend sein – so wie, um Thoreaus Beispiel zu zitieren, wenn man eine Forelle in der Milch findet.“
 
-“‘Well, perhaps it’s better that I don’t tell you that just at this moment. I’ve also been informed, from the same source, that you are both an orphan and a bachelor, and that you live alone in London.’
+„Aber ich habe doch alles gehört, was du gehört hast.“
 
-“‘That’s quite true,’ I replied, ‘but you must excuse me if I say I don’t see what that has to do with my professional qualifications. I understood you wished to speak to me on a professional matter?’
+„Nur ohne die Kenntnis früherer Fälle, die mir so sehr zugutekommt. Es gab vor einigen Jahren einen parallelen Fall in Aberdeen, und etwas sehr Ähnliches in München im Jahr nach dem Deutsch-Französischen Krieg. Es ist einer dieser Fälle – aber, hallo, da kommt Lestrade! Guten Tag, Lestrade! Auf dem Sideboard steht ein zusätzliches Glas, und Zigarren sind in der Kiste.“
 
-“‘Certainly. But you’ll find that everything I say is relevant. I have a professional commission for you, but absolute secrecy is essential—absolute secrecy, you understand—and naturally we can expect that more from a man who lives alone than from one surrounded by family.’
+Der Polizeibeamte trug eine kurze, schwere Jacke und ein Halstuch, was ihm ein ausgesprochen seemännisches Aussehen gab, und in der Hand hielt er eine schwarze Segeltuchtasche. Mit einem knappen Gruß setzte er sich und zündete die ihm angebotene Zigarre an.
 
-“‘If I give my word to keep a secret,’ I said, ‘you can depend on me completely.’
+„Na, was gibt’s?“ fragte Holmes mit einem Funkeln in den Augen. „Sie sehen unzufrieden aus.“
 
-“He stared at me very intently as I spoke, and I thought I had never seen such a suspicious, searching eye.
+„Und ich bin unzufrieden. Diese verfluchte St.-Simon-Hochzeitsgeschichte. Ich kann mir keinen Reim darauf machen.“
 
-“‘You promise, then?’ he said at last.
+„Wirklich? Sie überraschen mich.“
 
-“‘Yes, I promise.’
+„Wer hat je von so einer vertrackten Sache gehört? Jede Spur scheint mir durch die Finger zu rutschen. Ich arbeite den ganzen Tag daran.“
 
-“‘Absolute and complete silence before, during, and after? No reference to the matter at all, in either speech or writing?’
+„Und es hat Sie offenbar ziemlich nass gemacht“, sagte Holmes und legte die Hand auf den Ärmel der kurzen Jacke.
 
-“‘I’ve already given you my word.’
+„Ja, ich habe den Serpentine abziehen lassen.“
 
-“‘Very good.’ He suddenly sprang to his feet and, darting across the room like lightning, flung open the door. The passage outside was empty.
+„Um Himmels willen – wozu?“
 
-“‘That’s all right,’ he said, coming back. ‘I know clerks are sometimes curious about their employer’s affairs. Now we can talk safely.’ He drew his chair very close to mine and began to stare at me again with the same thoughtful, questioning look.
+„Auf der Suche nach der Leiche von Lady St. Simon.“
 
-“A feeling of repulsion, and something very like fear, began to rise in me at the strange behavior of this fleshless man. Even my dread of losing a client couldn’t stop me from showing my impatience.
+Sherlock Holmes lehnte sich in seinem Stuhl zurück und lachte herzlich.
 
-“‘I must ask you to state your business, sir,’ I said. ‘My time is valuable.’ Heaven“‘Exactly. Naturally, the secrecy we demanded from you has made you curious. I don’t want to commit you to anything until you’ve had everything laid out clearly. I take it we’re completely safe from eavesdroppers?’
+„Haben Sie auch das Becken des Brunnens am Trafalgar Square abziehen lassen?“ fragte er.
 
-“‘Completely.’
+„Wieso? Was soll das heißen?“
 
-“‘Then here is the situation. You probably know that fuller's earth is valuable, and that it’s only found in one or two places in England?’
+„Weil Sie in dem einen genauso gute Chancen haben, diese Dame zu finden, wie in dem anderen.“
 
-“‘I’ve heard so.’
+Lestrade warf meinem Gefährten einen wütenden Blick zu. „Ich nehme an, Sie wissen natürlich alles“, knurrte er.
 
-“‘Some time ago I bought a small property—a very small property—within ten miles of Reading. I was lucky enough to discover a deposit of fuller's earth in one of my fields. When I examined it, however, I found that the deposit was relatively small, and that it formed a link between two much larger deposits to the right and left—both of them on my neighbours’ land. These good people had no idea that their land contained something as valuable as a gold mine. Naturally, it was in my interest to buy their land before they discovered its true value, but unfortunately I had no capital to do so. I let a few of my friends in on the secret, and they suggested that we quietly and secretly work our own little deposit, and that in this way we could earn the money to buy the neighbouring fields. We’ve been doing this for some time now, and to help our operations we installed a hydraulic press. This press, as I’ve already explained, has broken down, and we want your advice about it. We guard our secret very jealously, and if it became known that hydraulic engineers were coming to our little house, it would quickly arouse suspicion, and then, if the truth came out, we could say good-bye to any chance of getting those fields and carrying out our plans. That’s why I made you promise not to tell a soul that you’re going to Eyford tonight. I hope I’ve made everything clear?’
+„Nun, ich habe die Fakten erst eben gehört, aber mein Urteil steht fest.“
 
-“‘I follow you perfectly,’ I said. ‘The only thing I couldn’t quite understand was what use you could have for a hydraulic press in excavating fuller's earth, which, as I understand it, is dug out like gravel from a pit.’
+„Ach ja? Dann glauben Sie also, dass der Serpentine in der Sache keine Rolle spielt?“
 
-“‘Ah!’ he said carelessly. ‘We have our own process. We compress the earth into bricks so we can remove it without revealing what it is. But that’s just a detail. I’ve taken you completely into my confidence now, Mr. Hatherley, and I’ve shown you how much I trust you.’ He rose as he spoke. ‘So I shall expect you at Eyford at 11:15.’
+„Ich halte es für sehr unwahrscheinlich.“
 
-“‘I’ll certainly be there.’
+„Dann erklären Sie mir vielleicht freundlicherweise, wie es kommt, dass wir das hier darin gefunden haben?“ Während er sprach, öffnete er seine Tasche und kippte auf den Boden ein Brautkleid aus changierender Seide, ein Paar weiße Satinschuhe und einen Brautkranz samt Schleier – alles verfärbt und vom Wasser durchtränkt. „Da“, sagte er und legte einen neuen Ehering obenauf. „Das ist ein kleines Nüsschen für Sie, Master Holmes.“
 
-“‘And not a word to anyone.’ He gave me one last long, searching look and then, pressing my hand in a cold, clammy grip, he hurried out of the room.
+„Ach, tatsächlich!“ sagte mein Freund und blies blaue Ringe in die Luft. „Sie haben das aus dem Serpentine gezogen?“
 
-“When I thought it all over calmly, I was, as you can imagine, very much astonished at this sudden commission that had been entrusted to me. On the one hand, I was pleased, of course, because the fee was at least ten times what I would have asked if I’d named my own price, and there was a chance that this job might lead to others. On the other hand, my patron’s face and manner had left an unpleasant impression on me, and I couldn’t convince myself that his story about the fuller's earth really explained why I had to come at midnight, or why he was so desperately anxious that I should tell no one about my errand. Still, I threw my misgivings to the wind, ate a hearty supper, drove to Paddington, and set off, having obeyed to the letter his injunction to keep my mouth shut.
+„Nein. Ein Parkwächter hat es nahe am Ufer treiben sehen. Es wurde als ihre Kleidung identifiziert, und mir schien: Wenn die Kleider dort sind, kann die Leiche nicht weit sein.“
 
-“At Reading I had to change not only my carriage but my station. Even so, I was in time for the last train to Eyford, and I reached the little, dimly lit station after eleven o’clock. I was the only passenger to get out, and there was no one on the platform except a single sleepy porter with a lantern. But as I passed out through the wicket gate, I found my acquaintance from the morning waiting in the shadows on the other side. Without a word he seized my arm and hurried me into a carriage whose door stood open. He pulled up the windows on both sides, tapped on the woodwork, and off we went as fast as the horse could go.’
+„Nach derselben glänzenden Logik findet man jeden Mannes Leiche in der Nähe seines Kleiderschranks. Und was, bitte, hofften Sie, damit zu erreichen?“
 
-“‘One horse?’ Holmes put in.
+„Einen Beweis, der Flora Millar in das Verschwinden verwickelt.“
 
-“‘Yes, only one.’
+„Ich fürchte, das wird schwierig.“
 
-“‘Did you notice the colour?’
+„Ach, wirklich?“ rief Lestrade mit bitter
 
-“‘Yes, I saw it by the sidelights as I was getting into the carriage. It was a chestnut.’
+Kurz vor neun Uhr trat Sherlock Holmes mit raschem Schritt ins Zimmer.
 
-“‘Tired-looking or fresh?’
+Seine Züge waren ernst und fest, doch in seinen Augen lag ein Glanz, der mich vermuten ließ, dass seine Schlussfolgerungen ihn nicht enttäuscht hatten.
 
-“‘Oh, fresh and glossy.’
+„Also, das Abendessen ist aufgetragen“, sagte er und rieb sich die Hände.
 
-“‘Thank you. I’m sorry to have interrupted. Please go on with your very interesting account.’
+„Sie scheinen Besuch zu erwarten. Es ist für fünf gedeckt.“
 
-“‘Off we went, then, and we drove for at least an hour. Colonel Lysander Stark had said it was only seven miles, but from the speed we seemed to be going and the time it took, I should think it must have been nearer twelve. He sat beside me in silence the whole time, and more than once, when I glanced at him, I became aware that he was staring at me with great intensity. The country roads in that part of the world don’t seem to be very good, for we lurched and jolted terribly. I tried to look out of the windows to see where we were, but they were made of frosted glass, and I could make out nothing except the occasional bright blur of a passing light. Now and then I ventured a remark to break the monotony of the journey, but the colonel answered only in monosyllables, and the conversation soon died away. At last, however, the jolting of the road gave way to the crisp smoothness of a gravelI glanced at the books on the table, and even with my ignorance of German I could tell that two of them were scientific works and the others were volumes of poetry. Then I walked over to the window, hoping I might catch some glimpse of the countryside, but an oak shutter, heavily barred, was folded across it. The house was uncannily silent. Somewhere out in the passage an old clock was ticking loudly, but otherwise everything was deathly still. A vague uneasiness began to creep over me. Who were these Germans, and what were they doing in this strange, out-of-the-way place? And where exactly was I? I knew only that I was about ten miles from Eyford, but whether to the north, south, east, or west I had no idea. Reading, and perhaps other large towns, lay within that radius, so the place might not be so isolated after all. Yet from the absolute stillness it was certain we were in the country. I paced up and down the room, humming under my breath to keep my spirits up, and feeling that I was thoroughly earning my fifty-guinea fee.
+„Ja, ich denke, es könnte noch jemand hereinschneien“, erwiderte er. „Ich wundere mich, dass Lord St. Simon nicht schon da ist. Ha! Ich glaube, ich höre gerade seinen Schritt auf der Treppe.“
 
-Suddenly, without the slightest warning in the midst of that utter stillness, the door of my room swung slowly open. The woman stood in the doorway, the hall behind her in darkness, the yellow light from my lamp striking her eager, beautiful face. One glance told me she was sick with fear, and the sight sent a chill through my own heart. She held up one shaking finger to warn me to be silent, and shot a few whispered words of broken English at me, her eyes flicking back into the gloom behind her like those of a frightened horse.
+Tatsächlich war es unser Besucher vom Nachmittag, der hereinplatzte, seine Brille noch heftiger als zuvor baumelnd, und mit einem sichtlich aufgewühlten Ausdruck auf seinen aristokratischen Zügen.
 
-“I would go,” she said, struggling, it seemed to me, to speak calmly. “I would go. I should not stay here. There is no good for you to do.”
+„Mein Bote hat Sie also erreicht?“, fragte Holmes.
 
-“But, madam,” I said, “I have not yet done what I came for. I cannot possibly leave until I have seen the machine.”
+„Ja, und ich gestehe, der Inhalt hat mich mehr erschüttert, als ich sagen kann. Haben Sie eine zuverlässige Grundlage für das, was Sie behaupten?“
 
-“It is not worth your while to wait,” she went on. “You can pass through the door; no one hinders.” Then, seeing that I smiled and shook my head, she suddenly dropped her restraint and stepped forward, wringing her hands. “For the love of Heaven!” she whispered, “get away from here before it is too late!”
+„Die bestmögliche.“
 
-\newpage
+Lord St. Simon ließ sich in einen Stuhl sinken und fuhr sich mit der Hand über die Stirn.
 
-# I. am, however, somewhat headstrong by nature, and all the more inclined to see a thing through when there is some obstacle in the way. I thought of my fifty-guinea fee, of my tedious journey, and of the unpleasant night that seemed to lie ahead of me. Was it all to go for nothing? Why should I sneak away without carrying out my commission and without receiving the payment that was my due? For all I knew, this woman might be a monomaniac. So, mustering a firm manner—though her agitation had shaken me more than I cared to admit—I still shook my head and stated my intention of staying where I was. She was about to renew her pleas when a door slammed somewhere overhead and the sound of several footsteps came down the stairs. She listened for an instant, flung up her hands in a despairing gesture, and vanished as suddenly and silently as she had appeared.
+„Was wird der Duke sagen“, murmelte er, „wenn er hört, dass eines der Familienmitglieder einer solchen Demütigung ausgesetzt wurde?“
 
-The newcomers were Colonel Lysander Stark and a short, thickset man with a chinchilla beard sprouting from the folds of his double chin, who was introduced to me as Mr. Ferguson.
+„Es ist der reinste Zufall. Von einer Demütigung kann keine Rede sein.“
 
-“This is my secretary and manager,” said the colonel. “By the way, I was under the impression that I left this door shut just now. I’m afraid you’ve felt the draught.”
+„Ah, Sie betrachten solche Dinge aus einem anderen Blickwinkel.“
 
-“On the contrary,” I replied, “I opened the door myself because the room felt a little close.”
+„Ich sehe nicht, dass irgendjemand schuld ist. Ich kann kaum erkennen, wie die Dame anders hätte handeln können, so sehr ihre abrupte Art, es zu tun, auch zu bedauern ist. Da sie keine Mutter hat, gab es niemanden, der ihr in einer solchen Krise hätte raten können.“
 
-He shot one of his suspicious looks at me. “Perhaps we had better get down to business, then,” he said. “Mr. Ferguson and I will take you up to see the machine.”
+„Es war eine Kränkung, Sir, eine öffentliche Kränkung“, sagte Lord St. Simon und trommelte mit den Fingern auf die Tischplatte.
 
-“I had better put my hat on, I suppose.”
+„Sie müssen Nachsicht haben mit diesem armen Mädchen, das in eine völlig beispiellose Lage geraten ist.“
 
-“Oh no, it’s in the house.”
+„Ich werde keine Nachsicht üben. Ich bin äußerst wütend, und man hat mich schändlich behandelt.“
 
-“What, you dig fullers’ earth in the house?”
+„Ich glaube, ich habe geklingelt gehört“, sagte Holmes. „Ja, Schritte auf dem Treppenabsatz. Wenn ich Sie nicht dazu bewegen kann, die Sache milder zu sehen, Lord St. Simon, habe ich einen Fürsprecher hergebracht, der vielleicht mehr Erfolg hat.“ Er öffnete die Tür und ließ eine Dame und einen Herrn eintreten. „Lord St. Simon“, sagte er, „darf ich Ihnen Mr. und Mrs. Francis Hay Moulton vorstellen. Die Dame, denke ich, haben Sie bereits kennengelernt.“
 
-“No, no. This is only where we compress it. But never mind that. All we want you to do is examine the machine and tell us what is wrong with it.”
+Beim Anblick der Neuankömmlinge sprang unser Klient von seinem Sitz auf und stand kerzengerade da, den Blick gesenkt, die Hand in die Brust seines Gehrocks geschoben – ein Bild gekränkter Würde. Die Dame trat rasch einen Schritt vor und streckte ihm die Hand entgegen, doch er weigerte sich weiterhin, die Augen zu heben. Vielleicht war es gut für seine Entschlossenheit; denn ihr flehendes Gesicht war schwer zu widerstehen.
 
-We went upstairs together, the colonel leading with the lamp, the fat manager and I following behind. It was a labyrinth of an old house, with corridors, passages, narrow winding staircases, and little low doors whose thresholds had been hollowed by generations of feet. There were no carpets and no sign of any furniture above the ground floor; the plaster was peeling from the walls, and damp was breaking through in green, unhealthy blotches. I tried to look as unconcerned as possible, but I had not forgotten the lady’s warning, even if I chose to ignore it, and I kept a sharp eye on my two companions. Ferguson seemed a sullen, silent man, but from the little he said I could tell that at least he was an Englishman.
+„Du bist wütend, Robert“, sagte sie. „Na ja, ich schätze, du hast auch allen Grund dazu.“
 
-Colonel Lysander Stark stopped at last before a low door, which he unlocked. Inside was a small, square room in which the three of us could scarcely stand at the same time. Ferguson stayed outside, and the colonel showed me in.
+„Bitte entschuldigen Sie sich nicht bei mir“, sagte Lord St. Simon bitter.
 
-“We are now,” he said, “actually inside the hydraulic press, and it would be particularly unpleasant for us if anyone were to turn it on. The ceiling of this little chamber is really the end of the descending piston, and it comes down with the force of many tons onto this metal floor. Outside are small lateral columns of water which receive the force and transmit and multiply it in the way that is familiar to you. The machine runs readily enough, but there is some stiffness in its action, andThe instant I said the words, I regretted my rashness. His face went rigid, and a murderous light flared in his gray eyes.
+„Oh doch, ich weiß, dass ich dich wirklich übel behandelt habe und dass ich mit dir hätte reden sollen, bevor ich gegangen bin; aber ich war irgendwie völlig durcheinander, und seit dem Moment, als ich Frank hier wieder gesehen habe, wusste ich einfach nicht mehr, was ich tat oder sagte. Ich wundere mich nur, dass ich nicht direkt vor dem Altar umgekippt bin und in Ohnmacht gefallen bin.“
 
-“Very well,” he said. “You shall know all about the machine.” He took a step back, slammed the little door, and turned the key in the lock. I lunged for it and yanked at the handle, but it held firm and didn’t give an inch under my kicks and shoves. “Hallo!” I shouted. “Hallo! Colonel! Let me out!”
+„Vielleicht, Mrs. Moulton, möchten mein Freund und ich das Zimmer verlassen, während Sie diese Angelegenheit erklären?“
 
-Then, in the sudden silence, I heard a sound that made my heart leap into my throat: the clank of levers and the hiss of the leaking cylinder. He had started the engine.
+„Wenn ich meine Meinung sagen darf“, bemerkte der fremde Herr, „hatten wir von dieser Sache schon ein bisschen zu viel Geheimniskrämerei. Meinetwegen soll ganz Europa und Amerika hören, wie es wirklich war.“ Er war ein kleiner, drahtiger, sonnengebräunter Mann, glatt rasiert, mit scharf geschnittenem Gesicht und wachem, entschlossenem Auftreten.
 
-The lamp still stood on the floor where I’d put it while examining the trough. By its light I saw the black ceiling descending on me—slowly, jerkily, but with a force which, as I knew better than anyone, would crush me into a formless pulp within a minute. Screaming, I hurled myself against the door, clawing at the lock with my nails. I begged the colonel to let me out, but the relentless clanking of the machinery drowned my cries. The ceiling was now only a foot or two above my head, and when I raised my hand I could feel its hard, rough surface.
+„Dann erzähle ich unsere Geschichte jetzt sofort“, sagte die Dame. „Frank hier und ich haben uns ’84 kennengelernt, in McQuires Camp, nahe den Rocky Mountains, wo Pa an einem Claim gearbeitet hat. Frank und ich waren verlobt; aber dann hat Vater eines Tages eine reiche Ader getroffen und ein Vermögen gemacht, während der Claim von dem armen Frank hier versiegte und am Ende nichts abwarf. Je reicher Pa wurde, desto ärmer wurde Frank; und schließlich wollte Pa von unserer Verlobung nichts mehr wissen, und er nahm mich mit nach ’Frisco. Frank hat aber nicht aufgegeben; er ist mir dorthin gefolgt und hat mich gesehen, ohne dass Pa etwas davon wusste. Es hätte ihn nur wütend gemacht, wenn er es erfahren hätte, also haben wir es unter uns geregelt. Frank sagte, er würde auch sein Vermögen machen und erst zurückkommen, um mich zu beanspruchen, wenn er genauso viel hätte wie Pa. Also habe ich ihm versprochen, bis ans Ende aller Tage auf ihn zu warten, und mich verpflichtet, niemand anderen zu heiraten, solange er lebte. ‚Warum sollten wir dann nicht gleich heiraten‘, sagte er, ‚
 
-Then it flashed through my mind that the pain of my death would depend greatly on the position in which I met it. If I lay on my face, the weight would fall on my spine, and I shuddered at the thought of that dreadful snap. It might be easier the other way; and yet—did I have the nerve to lie there and stare up at that deadly black shadow wavering down upon me? I could no longer stand upright when my eye caught something that sent a surge of hope through my heart.
+„Ich hab’s in einer Zeitung gelesen“, erklärte der Amerikaner. „Da standen der Name und die Kirche drin, aber nicht, wo die Dame wohnte.“
 
-\newpage
+„Dann haben wir beraten, was wir tun sollten. Frank war ganz für Offenheit, aber ich hab mich für alles so geschämt, dass ich am liebsten einfach verschwunden wäre und keinen von ihnen je wieder gesehen hätte – höchstens Pa vielleicht eine Zeile schicken, damit er weiß, dass ich noch lebe. Es war für mich entsetzlich, mir vorzustellen, wie all diese Lords und Ladies da am Frühstückstisch sitzen und darauf warten, dass ich zurückkomme. Also nahm Frank meine Hochzeitskleider und die Sachen, machte ein Bündel daraus, damit man mich nicht aufspüren konnte, und warf es irgendwo weg, wo es keiner finden würde. Wahrscheinlich wären wir morgen nach Paris weiter, wenn nicht dieser gute Herr, Mr. Holmes, heute Abend zu uns gekommen wäre – wie er uns gefunden hat, ist mir ein Rätsel – und er hat uns sehr klar und sehr freundlich gezeigt, dass ich im Unrecht war und Frank im Recht, und dass wir uns erst recht schuldig machen würden, wenn wir alles heimlich hielten. Dann bot er uns an, Lord St. Simon die Gelegenheit zu geben, allein mit uns zu sprechen, und so sind wir sofort hergekommen, in seine Zimmer. Nun, Robert, du hast alles gehört, und es tut mir sehr leid, wenn ich dir wehgetan habe, und ich hoffe, du denkst jetzt nicht schlecht von mir.“
 
-# I. have said that although the floor and ceiling were iron, the walls were wood. As I cast one last desperate glance around, I saw a thin line of yellow light between two of the boards. It widened and widened as a small panel was pushed back. For a moment I could hardly believe that this was truly a door leading away from death. The next instant I flung myself through it and collapsed, half-fainting, on the other side. The panel closed again behind me, but the crash of the lamp, and a few moments later the clang of the two iron slabs, told me how narrow my escape had been.
+Lord St. Simon hatte seine steife Haltung keineswegs gelockert, doch er hatte dieser langen Erzählung mit gerunzelter Stirn und zusammengepressten Lippen zugehört.
 
-\newpage
+„Verzeihen Sie“, sagte er, „aber es ist nicht meine Gewohnheit, meine intimsten persönlichen Angelegenheiten auf diese öffentliche Weise zu erörtern.“
 
-# I. was brought back to myself by frantic tugging at my wrist. I found I was lying on the stone floor of a narrow corridor, while a woman bent over me, pulling at me with her left hand and holding a candle in her right. It was the same good friend whose warning I had so foolishly ignored.
+„Dann verzeihst du mir nicht? Du gibst mir nicht die Hand, bevor ich gehe?“
 
-“Come! Come!” she gasped. “They will be here in a moment. They will see that you are not there. Oh, do not waste this precious time—come!”
+„Oh, gewiss – wenn es Ihnen eine Freude macht.“ Er streckte die Hand aus und umfasste die, die sie ihm hinhielt, mit kühler Förmlichkeit.
 
-This time, at least, I did not reject her advice. I staggered to my feet and ran with her along the corridor and down a winding staircase. It led to another broad passage, and just as we reached it we heard the pounding of running feet and the shouts of two voices, one answering the other—from the floor we were on and from the one below. My guide stopped and glanced around her like someone at her wits’ end. Then she flung open a door leading into a bedroom, where the moon shone brightly through the window.
+„Ich hatte gehofft“, warf Holmes ein, „Sie würden sich zu einem freundlichen Abendessen zu uns setzen.“
 
-“It is your only chance,” she said. “It is high, but you may be able to jump it.”
+„Ich glaube, da verlangen Sie ein wenig zu viel“, erwiderte Seine Lordschaft. „Ich mag gezwungen sein, mich mit diesen jüngsten Entwicklungen abzufinden, aber man kann kaum erwarten, dass ich darüber fröhlich werde. Mit Ihrer Erlaubnis wünsche ich Ihnen nun allen eine sehr gute Nacht.“ Er schloss uns alle in eine weitausholende Verbeugung ein und schritt aus dem Zimmer.
 
-As she spoke, a light sprang up at the far end of the passage, and I saw the gaunt figure of Colonel Lysander Stark rushing toward us, a lantern in one hand and a weapon like a butcher’s cleaver in the other. I dashed across the bedroom, threw open the window, and looked out. The garden below looked so quiet, sweet, and wholesome in the moonlight, and it could not have been more than thirty feet down. I climbed out onto the sill, but hesitated to jump until I heard what passed between my savior and the brute pursuing me. If he mistreated her, I was determined to go back to help her, whatever the risk.
+„Dann hoffe ich, dass wenigstens Sie mir die Ehre Ihrer Gesellschaft erweisen“, sagte Sherlock Holmes. „Es ist immer eine Freude, einem Amerikaner zu begegnen, Mr. Moulton, denn ich gehöre zu denen, die glauben, dass die Torheit eines Monarchen und das Stümpern eines Ministers vor langer Zeit unsere Kinder nicht daran hindern werden, eines Tages Bürger desselben weltumspannenden Landes zu sein – unter einer Flagge, die den Union Jack mit den Sternen und Streifen geviertelt trägt.“
 
-The thought had barely flashed through my mind before he was at the door, forcing his way past her; but she flung her arms around him and tried to hold him back.
+„Der Fall war ein interessanter“, bemerkte Holmes, als unsere Besucher uns verlassen hatten, „weil er sehr deutlich zeigt, wie schlicht die Erklärung für eine Sache sein kann, die auf den ersten Blick beinahe unerklärlich wirkt. Nichts konnte natürlicher sein als die Abfolge der Ereignisse, wie diese Dame sie geschildert hat – und nichts seltsamer als das Ergebnis, wenn man es zum Beispiel mit den Augen von Mr. Lestrade von Scotland Yard betrachtet.“
 
-“Fritz! Fritz!” she cried in English. “Remember your promise after the last time. You said it should not happen again. He will be silent! Oh, he will be silent!”
+„Dann haben Sie selbst also gar keinen Fehler gemacht?“
 
-“You are mad, Elise!” he shouted, struggling to break free. “You will ruin us. He has seen too much. Let me pass, I say!” He hurled her aside and, rushing to the window, slashed at me with his heavy weapon. I had already let myself down and was hanging by my hands from the sill when his blow fell. I felt a dull pain, my grip loosened, and I plunged into the garden below.
+„Von Anfang an waren mir zwei Tatsachen völlig klar: erstens, dass die Dame durchaus bereit gewesen war, die Trauung zu vollziehen; zweitens, dass sie es innerhalb weniger Minuten nach der Rückkehr nach Hause bereut hatte. Offenkundig musste also am Vormittag etwas geschehen sein, das sie umstimmte. Was konnte das sein? Sie konnte unterwegs mit niemandem gesprochen haben, denn sie war in Begleitung des Bräutigams gewesen. Hatte sie also jemanden gesehen? Wenn ja, dann musste es jemand aus Amerika sein, denn sie war erst so kurze Zeit in diesem Land, dass sie kaum jemandem hätte erlauben können, einen so tiefen Einfluss auf sie zu gewinnen, dass schon sein bloßer Anblick sie ihre Pläne so vollständig ändern ließ. Sie sehen: Durch Ausschluss sind wir bereits bei der Vorstellung angekommen, dass sie einen Amerikaner gesehen haben könnte. Doch wer konnte dieser Amerikaner sein, und warum sollte er so viel Macht über sie besitzen? Es konnte ein Liebhaber sein; es konnte ein Ehemann sein. Ich wusste, dass ihre junge Frauenzeit in rauen Verhältnissen und unter ungewöhnlichen Bedingungen vergangen war. So weit war ich, noch bevor ich Lord St. Simons Bericht überhaupt gehört hatte. Als er uns von einem Mann in einer Kirchenbank erzählte, von der Veränderung im Benehmen der Braut, von einem so durchsichtigen Kunstgriff, um einen Zettel zu bekommen, wie dem Fallenlassen eines Brautstraußes, von ihrem Gang zu ihrer Vertrauten, dem Dienstmädchen, und von ihrer höchst bezeichnenden Anspielung auf claim-jumping – was in der Sprache der Goldgräber bedeutet, sich etwas anzueignen, worauf ein anderer ein vorrangiges Recht hat –, da war die ganze Lage vollkommen klar. Sie war mit einem Mann davongegangen, und der Mann war entweder ein Lieb
 
-\newpage
+**11. DAS ABENTEUER DER BERYLL-KRONE**
 
-# I. was shaken but not injured by the fall, so I scrambled up and ran as fast as I could into the bushes, knowing I was still far from safe. But as I ran, a deadly dizziness and nausea suddenly came over me. I glanced down at my hand, which was throbbing with pain, and saw for the first time that my thumb had been cut off and that blood was pouring from the wound. I tried to tie my handkerchief around it, but a loud buzzing filled my ears, and the next moment I collapsed in a dead faint among the rosebushes.
+„Holmes“, sagte ich, als ich eines Morgens in unserem Erkerfenster stand und die Straße hinunterblickte, „da kommt ein Irrer entlang. Es ist wirklich traurig, dass seine Angehörigen ihn allein hinauslassen.“
 
-How long I lay unconscious I cannot say“Here’s an advertisement that will interest you,” he said. “It ran in all the papers about a year ago. Listen: ‘Missing, on the 9th instant, Mr. Jeremiah Hayling, age twenty-six, hydraulic engineer. Left his lodgings at ten o’clock at night and has not been heard of since. Was dressed in,’ and so on, and so on. Ha! I’d say that marks the last time the colonel needed his machine overhauled.”
+Mein Freund erhob sich träge aus seinem Sessel und trat, die Hände in den Taschen seines Hausrocks, hinter mich, um über meine Schulter zu sehen. Es war ein heller, klarer Februarmorgen, und der Schnee vom Vortag lag noch tief auf dem Boden und glitzerte im winterlichen Sonnenlicht. In der Mitte der Baker Street hatte der Verkehr ihn zu einem braunen, krümeligen Streifen zusammengeschoben, doch an beiden Seiten und auf den aufgetürmten Rändern der Gehwege lag er noch so weiß wie im Moment seines Falls. Das graue Pflaster war gereinigt und abgeschabt, aber immer noch gefährlich glatt, sodass weniger Passanten unterwegs waren als sonst. Tatsächlich kam aus Richtung der Metropolitan Station niemand außer dem einen Herrn, dessen sonderbares Benehmen meine Aufmerksamkeit erregt hatte.
 
-“Good heavens!” cried my patient. “Then that explains what the girl said.”
+Er war etwa fünfzig, groß, beleibt und eindrucksvoll, mit einem massigen, markanten Gesicht und einer gebieterischen Erscheinung. Er trug dunkle, aber kostbare Kleidung: einen schwarzen Gehrock, einen glänzenden Hut, ordentliche braune Gamaschen und gut geschnittene, perlgraue Hosen. Doch sein Verhalten stand in lächerlichem Gegensatz zur Würde von Anzug und Gesichtszügen, denn er rannte, so schnell er konnte, mit gelegentlichen kleinen Sprüngen, wie sie ein erschöpfter Mann macht, der es nicht gewohnt ist, seine Beine überhaupt zu beanspruchen. Beim Laufen riss er die Hände auf und ab, wackelte mit dem Kopf und verzog sein Gesicht zu den erstaunlichsten Grimassen.
 
-“Without a doubt. It’s perfectly clear that the colonel was a cold-blooded, desperate man, absolutely determined that nothing should interfere with his little operation—like those thoroughgoing pirates who leave no one alive on a captured ship. Well, every minute counts now, so if you feel up to it, we’ll go straight down to Scotland Yard as a first step before heading for Eyford.”
+„Was um alles in der Welt ist mit ihm los?“, fragte ich. „Er schaut zu den Hausnummern hoch.“
 
-About three hours later we were all on the train together, traveling from Reading to the little Berkshire village. There were Sherlock Holmes, the hydraulic engineer, Inspector Bradstreet of Scotland Yard, a plainclothes officer, and myself. Bradstreet had spread an ordnance map of the county on the seat and was busy with his compasses, drawing a circle with Eyford at its center.
+„Ich glaube, er kommt hierher“, sagte Holmes und rieb sich die Hände.
 
-“There you are,” he said. “That circle has a radius of ten miles from the village. The place we want must be somewhere near that line. You said ten miles, didn’t you, sir?”
+„Hierher?“
 
-“It was a solid hour’s drive.”
+„Ja; ich denke, er kommt, um mich beruflich zu konsultieren. Ich glaube, ich erkenne die Symptome. Ha! Habe ich es dir nicht gesagt?“ Während er sprach, stürmte der Mann, keuchend und prustend, auf unsere Tür zu und zerrte an der Klingel, bis das ganze Haus vom Scheppern widerhallte.
 
-“And you think they brought you all that way back while you were unconscious?”
+Wenige Augenblicke später stand er in unserem Zimmer, noch immer außer Atem, noch immer gestikulierend, doch mit einem so starren Ausdruck von Kummer und Verzweiflung in den Augen, dass uns das Lächeln im selben Moment verging und Entsetzen und Mitleid an seine Stelle traten. Eine Weile brachte er kein Wort heraus, sondern schwankte hin und her und zupfte sich am Haar wie einer, der an die äußersten Grenzen seines Verstandes getrieben ist. Dann sprang er plötzlich auf und schlug den Kopf mit solcher Wucht gegen die Wand, dass wir beide auf ihn zustürzten und ihn in die Mitte des Zimmers zurückrissen. Sherlock Holmes drückte ihn in den bequemen Sessel, setzte sich neben ihn, klopfte ihm auf die Hand und sprach mit ihm in jenem leichten, beruhigenden Ton, den er so meisterhaft einzusetzen verstand.
 
-“They must have. I also have a hazy memory of being lifted and carried somewhere.”
+„Sie sind zu mir gekommen, um mir Ihre Geschichte zu erzählen, nicht wahr?“, sagte er. „Sie sind von Ihrer Eile erschöpft. Warten Sie, bis Sie sich gefasst haben, und dann werde ich sehr gern jedes kleine Problem prüfen, das Sie mir vorlegen.“
 
-“What I can’t understand,” I said, “is why they spared you when they found you lying faint in the garden. Perhaps the scoundrel was softened by the woman’s pleas.”
+Der Mann saß eine Minute oder länger da, die Brust hob und senkte sich, während er gegen seine Erregung ankämpfte. Dann wischte er sich mit dem Taschentuch über die Stirn, presste die Lippen zusammen und wandte uns das Gesicht zu.
 
-“I hardly think so. I’ve never seen a more merciless face in my life.”
+„Zweifellos halten Sie mich für verrückt?“, sagte er.
 
-“Oh, we’ll soon clear that up,” said Bradstreet. “Well, I’ve drawn my circle, and I only wish I knew at which point on it the people we’re after are to be found.”
+„Ich sehe, dass Sie großes Unglück getroffen hat“, erwiderte Holmes.
 
-“I think I could put my finger on it,” said Holmes quietly.
+„Gott weiß, ja! – ein Unglück, das ausreicht, mir den Verstand zu rauben, so plötzlich und so schrecklich ist es. Öffentliche Schande hätte ich ertragen können, obwohl ich ein Mann bin, dessen Ruf noch nie einen Makel getragen hat. Privates Leid ist das Los jedes Menschen; aber beides zusammen, und in einer so entsetzlichen Gestalt, hat genügt, meine Seele bis ins Mark zu erschüttern. Außerdem betrifft es nicht nur mich. Die edelsten Kreise des Landes können Schaden nehmen, wenn nicht ein Ausweg aus dieser grauenhaften Angelegenheit gefunden wird.“
 
-“Really, now!” exclaimed the inspector. “You’ve already formed an opinion? Come, let’s see who agrees with you. I say south, because the country’s more deserted there.”
+„Fassen Sie sich, Sir“, sagte Holmes, „und geben Sie mir einen klaren Bericht darüber, wer Sie sind und was Ihnen widerfahren ist.“
 
-“And I say east,” said my patient.
+„Mein Name“, antwortete unser Besucher, „ist Ihnen vermutlich bekannt. Ich bin Alexander Holder, von der Bankfirma Holder & Stevenson in der Threadneedle Street.“
 
-“I’m for west,” remarked the plainclothes man. “There are several quiet little villages that way.”
+Der Name war uns tatsächlich geläufig: der des Seniorpartners des zweitgrößten privaten Bankhauses in der City of London. Was konnte geschehen sein, um einen der angesehensten Bürger Londons in einen so erbarmungswürdigen Zustand zu bringen? Voller Neugier warteten wir, bis er sich mit neuer Anstrengung zusammenriss, um seine Geschichte zu erzählen.
 
-“And I vote north,” said I, “because there are no hills there, and our friend says he didn’t notice the carriage going uphill at any point.”
+„Ich weiß, dass Zeit kostbar ist“, sagte er; „darum bin ich hergeeilt, als der Polizeiinspektor vorschlug, ich solle Ihre
 
-“Come,” laughed the inspector, “that’s a very pretty spread of opinions. Between us we’ve covered the whole compass. Who gets your casting vote?”
+„Ganz genau.“ Er öffnete das Etui, und dort, eingebettet in weichen, fleischfarbenen Samt, lag das prachtvolle Schmuckstück, das er genannt hatte. „Es sind neununddreißig gewaltige Berylle“, sagte er, „und der Wert der Goldziselierung ist überhaupt nicht zu beziffern. Selbst die niedrigste Schätzung setzt den Wert der Krone auf das Doppelte der Summe, um die ich gebeten habe. Ich bin bereit, sie Ihnen als Sicherheit hierzulassen.“
 
-“You’re all wrong.”
+Ich nahm das kostbare Etui in die Hände und blickte, etwas verwirrt, von ihm zu meinem hochgestellten Kunden.
 
-“But we can’t all be.”
+„Sie zweifeln an ihrem Wert?“, fragte er.
 
-“Oh yes, you can. This is my point.” He put his finger in the center of the circle. “This is where we’ll find them.”
+„Keineswegs. Ich zweifle nur—“
 
-“But the twelve-mile drive?” gasped Hatherley.
+„An der Angemessenheit, dass ich sie hierlasse. Beruhigen Sie sich. Ich würde nicht im Traum daran denken, wenn ich nicht völlig sicher wäre, sie in vier Tagen wieder auslösen zu können. Es ist eine reine Formsache. Genügt die Sicherheit?“
 
-“Six miles out and six back. Nothing simpler. You said yourself the horse was fresh and glossy when you got in. How could that be if it had already gone twelve miles over heavy roads?”
+„Vollkommen.“
 
-“Indeed, that’s a very likely trick,” Bradstreet said thoughtfully. “And of course there can be no doubt about the nature of this gang.”
+„Sie verstehen, Mr. Holder, dass ich Ihnen damit einen starken Beweis meines Vertrauens gebe, gegründet auf alles, was ich über Sie gehört habe. Ich verlasse mich nicht nur darauf, dass Sie diskret sind und jede Klatscherei unterlassen, sondern vor allem darauf, dass Sie diese Krone mit allen nur denkbaren Vorsichtsmaßnahmen verwahren; denn ich brauche Ihnen nicht zu sagen, dass ein gewaltiger öffentlicher Skandal entstünde, sollte ihr irgendetwas zustoßen. Jede Beschädigung wäre beinahe so schwerwiegend wie ihr vollständiger Verlust, denn es gibt keine Berylle auf der Welt, die diesen gleichkämen, und es wäre unmöglich, sie zu ersetzen. Dennoch lasse ich sie mit vollem Vertrauen bei Ihnen, und ich werde sie am Montagmorgen persönlich abholen.“
 
-“None at all,” said Holmes. “They’re large-scale coiners, and they’ve used the machine to form the amalgam that takes the place of silver.”
+Da ich sah, dass mein Kunde fortwollte, sagte ich nichts weiter, sondern ließ meinen Kassierer rufen und wies ihn an, fünfzig Tausend-Pfund-Noten auszuzahlen. Als ich wieder allein war, das kostbare Etui vor mir auf dem Tisch, konnte ich nicht umhin, mit Unbehagen an die ungeheure Verantwortung zu denken, die ich damit auf mich nahm. Es konnte keinen Zweifel geben: Da es sich um einen nationalen Besitz handelte, würde ein entsetzlicher Skandal folgen, wenn ihm irgendein Unglück zustieße. Schon bereute ich, überhaupt zugestimmt zu haben, es in Verwahrung zu nehmen. Doch jetzt war es zu spät, die Sache zu ändern; also schloss ich es in meinen privaten Safe und wandte mich wieder meiner Arbeit zu.
 
-“We’ve known for some time that a clever gang was at work,” said the inspector. “They’ve been turning out half-crowns by the thousand. We even traced them as far as Reading, but could get no farther, for they had covered their tracks in a way that showed they were very old hands. But now, thanks to this lucky chance, I think we’ve got them at last.”
+Als der Abend kam, fühlte ich, dass es unklug wäre, etwas so Wertvolles im Büro zurückzulassen. Banksafes waren schon früher aufgebrochen worden—warum also nicht auch meiner? Und wenn es geschähe, in welch furchtbarer Lage würde ich mich wiederfinden! Ich beschloss daher, das Etui in den nächsten Tagen stets mit mir hin und her zu tragen, damit es nie wirklich außerhalb meiner Reichweite wäre. In dieser Absicht rief ich eine Droschke, fuhr mit dem Schmuckstück bei mir hinaus zu meinem Haus in Streatham und atmete erst wieder frei, als ich es nach oben gebracht und im Sekretär meines Ankleidezimmers eingeschlossen hatte.
 
-The inspector was mistaken, however, for those criminals were never destined to fall into the hands of justice. As we rolled into Eyford Station we saw a gigantic column of smoke rising from behind a small clump of trees nearby, hanging over the landscape like an enormous ostrich feather.
+Und nun ein Wort zu meinem Haushalt, Mr. Holmes, denn ich möchte, dass Sie die Lage vollständig verstehen. Mein Stallbursche und mein Page schlafen außer Haus und können ganz außer Betracht bleiben. Ich habe drei Dienstmädchen, die seit vielen Jahren bei mir sind und deren absolute Zuverlässigkeit über jeden Verdacht erhaben ist. Eine weitere, Lucy Parr, das zweite Stubenmädchen, steht erst seit ein paar Monaten in meinen Diensten. Sie kam jedoch mit ausgezeichneten Zeugnissen und hat mich stets zufrieden gestellt. Sie ist ein sehr hübsches Mädchen und hat Verehrer angezogen, die sich gelegentlich um das Haus herumtrieben. Das ist der einzige Nachteil, den wir an ihr gefunden haben; im Übrigen halten wir sie in jeder Hinsicht für ein grundanständiges Mädchen.
 
-“A house on fire?” asked Bradstreet, as the train steamed off again on its way.
+So viel zu den Dienstboten. Meine Familie selbst ist so klein, dass ich sie rasch beschreiben kann. Ich bin Witwer und habe nur einen Sohn, Arthur. Er ist mir eine Enttäuschung gewesen, Mr. Holmes—eine bittere Enttäuschung. Ich zweifle nicht, dass ich selbst daran schuld bin. Man sagt mir, ich hätte ihn verwöhnt. Sehr wahrscheinlich habe ich das. Als meine geliebte Frau starb, hatte ich das Gefühl, er sei alles, was mir zum Lieben geblieben war. Ich konnte es nicht ertragen, auch nur für einen Augenblick das Lächeln aus seinem Gesicht schwinden zu sehen. Ich habe ihm nie einen Wunsch abgeschlagen. Vielleicht wäre es für uns beide besser gewesen, wenn ich strenger gewesen wäre—doch ich meinte es gut.
 
-“Yes, sir!” said the stationmaster.
+Natürlich war es meine Absicht, dass er mir im Geschäft nachfolgen sollte, aber er hatte keinen Sinn fürs Geschäft. Er war wild, launenhaft, und, um die Wahrheit zu sagen, ich konnte ihm im Umgang mit großen Geldsummen nicht trauen. Als er jung war, trat er einem aristokratischen Klub bei, und dort wurde er, dank seiner gewinnenden Manieren, bald der Vertraute mehrerer Männer mit langen Geldbörsen und kostspieligen Gewohnheiten. Er lernte, hoch zu spielen, Karten um große Einsätze, und Geld auf der Rennbahn zu verschleudern, bis er immer wieder zu mir kommen
 
-“When did it break out?”
+„Hör mal, Dad“, sagte er, den Blick gesenkt, „kannst du mir zweihundert Pfund geben?“
 
-“I hear it started during the night, sir, but it’s got worse, and the whole place is blazing.”
+„Nein, das kann ich nicht!“, erwiderte ich scharf. „Ich bin in Geldsachen viel zu großzügig mit dir gewesen.“
 
-“Whose house is it?”
+„Du warst sehr gut zu mir“, sagte er, „aber ich muss dieses Geld haben, sonst kann ich mich im Club nie wieder blicken lassen.“
 
-“Dr. Becher’s.”
+„Und das ist auch gut so!“, rief ich.
 
-“Tell me,” the engineer broke in, “is Dr. Becher a German—very thin, with a long, sharp nose?”
+„Ja, aber du willst doch nicht, dass ich als entehrter Mann gehe“, sagte er. „Ich ertrage diese Schande nicht. Ich muss das Geld irgendwie auftreiben, und wenn du es mir nicht gibst, dann muss ich andere Wege versuchen.“
 
-The stationmaster laughed heartily. “No, sir. Dr. Becher’s an Englishman, and there’s not a man in the parish with a better-filled waistcoat. But he has a gentleman staying with him—a patient, I understand—who’s a foreigner, and he looks as if a bit of good Berkshire beef wouldn’t do him any harm.”
+Ich war außer mir vor Wut, denn es war bereits die dritte Forderung in diesem Monat. „Du bekommst keinen Penny von mir“, schrie ich. Darauf verbeugte er sich und verließ das Zimmer, ohne ein weiteres Wort.
 
-The stationmaster had barely finished speaking before we were all hurrying toward the fire. The road rose over a low hill, and beyond it we saw a large, sprawling, whitewashed building in front of us, belching fire from every crack and window, while in the front garden three fire engines were struggling in vain to master the flames.
+Als er fort war, schloss ich mein Schreibmöbel auf, vergewisserte mich, dass mein Schatz sicher lag, und schloss wieder ab. Dann machte ich meinen Rundgang durchs Haus, um zu sehen, ob alles verriegelt war – eine Pflicht, die ich gewöhnlich Mary überlasse, die ich aber an jenem Abend lieber selbst erledigen wollte. Als ich die Treppe hinabkam, sah ich Mary selbst am Seitenfenster der Diele; sie schloss es und verriegelte es, als ich näherkam.
 
-“That’s it!” cried Hatherley, in a state of intense excitement. “There’s the gravel drive, and there are the rosebushes where I lay. That second window is the one“Well,” our engineer said ruefully as we took our seats for the return to London, “this has been quite an affair for me. I’ve lost my thumb, I’ve lost a fifty-guinea fee—and what have I gained?”
+„Sag mal, Dad“, fragte sie – ich fand, ein wenig beunruhigt –, „hast du Lucy, dem Dienstmädchen, erlaubt, heute Abend auszugehen?“
 
-“Experience,” Holmes replied with a laugh. “Indirectly, it may be worth something, you know. All you have to do is put it into words, and you’ll earn a reputation as excellent company for the rest of your life.”10. THE ADVENTURE OF THE NOBLE BACHELOR
+„Natürlich nicht.“
 
-The marriage of Lord St. Simon, and its strange ending, have long since stopped being a topic of interest in those lofty circles in which the unlucky bridegroom moves. New scandals have overshadowed it, and their spicier details have drawn the gossips away from this four-year-old drama. I have reason to believe, however, that the full facts have never been made known to the general public, and since my friend Sherlock Holmes played a considerable part in clearing the matter up, I feel that no memoir of him would be complete without some brief sketch of this remarkable episode.
+„Sie ist eben gerade durch die Hintertür hereingekommen. Ich zweifle nicht, dass sie nur zum Seitentor gegangen ist, um jemanden zu sehen, aber ich glaube, das ist kaum sicher und sollte unterbunden werden.“
 
-It was a few weeks before my own marriage, in the days when I was still sharing rooms with Holmes in Baker Street, that he came home from an afternoon walk and found a letter lying on the table waiting for him. I had stayed indoors all day, for the weather had suddenly broken into rain with strong autumn winds, and the jezail bullet I had brought back in one of my limbs as a souvenir of my Afghan campaign was throbbing with a dull persistence. With my body in one armchair and my legs stretched out on another, I had surrounded myself with a fog of newspapers until at last, saturated with the news of the day, I tossed them all aside and lay idle, staring at the huge crest and monogram on the envelope on the table and lazily wondering who my friend’s noble correspondent might be.
+„Du musst morgen früh mit ihr sprechen – oder ich, wenn du lieber willst. Bist du sicher, dass alles verriegelt ist?“
 
-“This is a very fashionable letter,” I remarked as he came in. “Your morning post, if I remember correctly, was from a fishmonger and a customs officer.”
+„Ganz sicher, Dad.“
 
-“Yes, my correspondence certainly has the charm of variety,” he replied with a smile, “and the humbler letters are usually the more interesting. This looks like one of those unwelcome social invitations that force a man either to be bored or to lie.”
+„Dann gute Nacht.“ Ich küsste sie und ging wieder hinauf in mein Schlafzimmer, wo ich bald einschlief.
 
-He broke the seal and glanced over the contents.
+„Ich bemühe mich, Ihnen alles zu erzählen, Mr. Holmes, was irgendeinen Bezug zu diesem Fall haben könnte; aber ich bitte Sie, mich zu jedem Punkt zu befragen, den ich nicht klar genug darstelle.“
 
-“Well now, this may turn out to be something interesting after all.”
+„Im Gegenteil, Ihre Darstellung ist außerordentlich klar.“
 
-“Not social, then?”
+„Jetzt komme ich zu dem Teil meiner Geschichte, bei dem ich besonders klar sein möchte. Ich schlafe nicht sehr fest, und die Sorge, die mir im Kopf lag, machte mich zweifellos noch leichter weckbar als sonst. Gegen zwei Uhr morgens also wurde ich durch ein Geräusch im Haus geweckt. Es war schon verstummt, ehe ich ganz wach war, doch es hinterließ den Eindruck, als sei irgendwo leise ein Fenster geschlossen worden. Ich lag da und lauschte mit gespitzten Ohren. Plötzlich – zu meinem Entsetzen – hörte ich deutlich Schritte, die sich im Nebenzimmer leise bewegten. Ich glitt aus dem Bett, das Herz wild klopfend vor Angst, und spähte um die Ecke der Tür zu meinem Ankleidezimmer.
 
-“No, definitely professional.”
+„Arthur!“, schrie ich. „Du Schurke! Du Dieb! Wie wagst du es, diese Krone anzufassen?“
 
-“And from a noble client?”
+Das Gaslicht brannte halb hoch, so wie ich es gelassen hatte, und mein unglücklicher Junge, nur in Hemd und Hose, stand neben der Flamme und hielt die Krone in den Händen. Er schien daran zu reißen oder sie mit aller Kraft zu verbiegen. Bei meinem Schrei ließ er sie fallen und wurde kreidebleich. Ich riss sie an mich und untersuchte sie. Eine der goldenen Ecken, mit drei Beryllen darin, fehlte.
 
-“One of the highest in England.”
+„Du Lump!“, brüllte ich, außer mir vor Wut. „Du hast sie zerstört! Du hast mich für immer entehrt! Wo sind die Juwelen, die du gestohlen hast?“
 
-“My dear fellow, I congratulate you.”
+„Gestohlen!“, rief er.
 
-“I assure you, Watson, without any affectation, that my client’s rank matters far less to me than the interest of his case. It is just possible, however, that that too may not be lacking in this new investigation. You’ve been reading the papers closely of late, haven’t you?”
+„Ja, Dieb!“, brüllte ich und packte ihn an der Schulter und schüttelte ihn.
 
-“It looks like it,” I said ruefully, pointing to the huge bundle in the corner. “I’ve had nothing else to do.”
+„Es fehlt nichts. Es kann nichts fehlen“, sagte er.
 
-“Good; then you may be able to bring me up to date. I read nothing except the crime reports and the agony column. The latter is always instructive. But if you’ve followed recent events so closely, you must have read about Lord St. Simon and his wedding?”
+„Drei fehlen. Und du weißt, wo sie sind. Soll ich dich außer einem Dieb auch noch einen Lügner nennen? Habe ich dich nicht gesehen, wie du versucht hast, noch ein Stück abzureißen?“
 
-“Oh yes, with the deepest interest.”
+„Du hast mich oft genug beschimpft“, sagte er. „Ich ertrage das nicht länger. Ich werde zu dieser Sache kein Wort mehr sagen, nachdem du dich entschieden hast, mich zu beleidigen. Morgen früh verlasse ich dein Haus und schlage mich allein in der Welt durch.“
 
-“Excellent. The letter I’m holding is from Lord St. Simon. I’ll read it to you, and in return you can go through those papers and give me everything that bears on the matter. This is what he says:
+„Du wirst es in den Händen der Polizei verlassen!“, rief ich, halb wahnsinnig vor Schmerz und Zorn. „Ich lasse diese Sache bis auf den Grund untersuchen.“
 
-“‘MY DEAR MR. SHERLOCK HOLMES,—Lord Backwater tells me that I may place implicit reliance upon your judgment and discretion. I have therefore decided to call upon you and consult you regarding the very painful incident which has occurred in connection with my wedding. Mr. Lestrade, of Scotland Yard, is already engaged on the matter, but he assures me that he sees no objection to your co-operation, and that he even thinks it might be of some assistance. I will call at four o’clock in the afternoon, and, should you have any other engagement at that time, I hope that you will postpone it, as this matter is of paramount importance. Yours faithfully,
+„Von mir erfährst du nichts“, sagte er mit einer Leidenschaft, wie ich sie ihm nie zugetraut hätte. „Wenn du die Polizei rufen willst, dann soll die Polizei finden, was sie kann.“
 
-“‘ROBERT ST. SIMON.’
+Inzwischen war das ganze Haus auf den Beinen, denn ich hatte in meinem Zorn laut geschrien. Mary stürzte als Erste in mein Zimmer, und beim Anblick der Krone und von Arthurs Gesicht begriff sie die ganze Geschichte – und fiel mit einem Schrei ohnmächtig zu Boden. Ich schickte das Hausmädchen nach der Polizei und übergab die
 
-“It’s dated from Grosvenor Mansions, written with a quill pen, and the noble lord has had the misfortune to smear ink on the outer side of his right little finger,” Holmes remarked, folding up the letter.
+„Diese Sache scheint, nach dem, was Sie sagen, auch für sie ein Schock gewesen zu sein.“
 
-“He says four o’clock. It’s three now. He’ll be here in an hour.”
+„Entsetzlich! Sie nimmt es sogar noch mehr mit als ich.“
 
-“Then, with your help, I have just time to get clear on the subject. Go through those papers and arrange the relevant extracts in chronological order, while I take a look at who our client is.” He picked a red-covered volume from a row of reference books beside the mantelpiece. “Here he is,” he said, sitting down and flattening it on his knee. “‘Lord Robert Walsingham de Vere St. Simon, second son of the Duke of Balmoral.’ Hm. ‘Arms: Azure, three caltrops in chief over a fess sable. Born in 1846.’ He’s forty-one, which is a mature age for marriage. Was Under-Secretary for the Colonies in a recent administration. The Duke, his father, was at one time Secretary for Foreign Affairs. They inherit Plantagenet blood in the direct line, and Tudor on the female side. Ha! Well, there’s nothing very instructive in all that. I think I must turn to you, Watson, for something more substantial.”
+„Sie beide haben also keinerlei Zweifel an der Schuld Ihres Sohnes?“
 
-“I’ve had very little difficulty finding what I want,” I said, “for the facts are quite recent, and the case struck me as remarkable. I hesitated to bring them to you, though, as I knew you had an inquiry on hand and disliked having other matters intrude.”
+„Wie könnten wir, wo ich ihn doch mit eigenen Augen gesehen habe – mit dem Diadem in den Händen.“
 
-“Oh, you mean the little problem of the Grosvenor Square furniture van. That’s quite cleared up now—though it was obvious from the start. Please give me the results of your newspaper search.”
+„Das halte ich kaum für einen schlüssigen Beweis. War der Rest des Diadems denn beschädigt?“
 
-“Here“Anything else?” Holmes asked, stifling a yawn.
+„Ja, es war verbogen.“
 
-“Oh yes, plenty. There’s another notice in the Morning Post saying the wedding would be absolutely quiet, held at St. George’s, Hanover Square; that only half a dozen close friends would be invited; and that the party would return afterward to the furnished house at Lancaster Gate which Mr. Aloysius Doran has taken. Two days later—that is, last Wednesday—there’s a brief announcement that the wedding has taken place, and that the honeymoon will be spent at Lord Backwater’s place near Petersfield. Those are all the notices that appeared before the bride disappeared.”
+„Glauben Sie nicht, dass er vielleicht versucht hat, es wieder geradezubiegen?“
 
-“Before the what?” Holmes asked sharply.
+„Gott segne Sie! Sie tun, was Sie können – für ihn und für mich. Aber es ist eine zu schwere Aufgabe. Was hatte er überhaupt dort zu suchen? Wenn seine Absicht unschuldig war, warum hat er es dann nicht gesagt?“
 
-“The lady’s disappearance.”
+„Ganz genau. Und wenn sie schuldig war – warum hat er sich dann keine Lüge ausgedacht? Sein Schweigen scheint mir in beide Richtungen zu sprechen. Es gibt mehrere merkwürdige Punkte in diesem Fall. Was hielt die Polizei von dem Geräusch, das Sie aus dem Schlaf gerissen hat?“
 
-“When did she disappear, then?”
+„Sie meinten, es könnte daher gekommen sein, dass Arthur die Tür zu seinem Schlafzimmer zugeschlagen hat.“
 
-“During the wedding breakfast.”
+„Eine schöne Geschichte! Als ob ein Mann, der ein Verbrechen plant, seine Tür so knallen ließe, dass er das ganze Haus weckt. Und was sagten sie zum Verschwinden der Steine?“
 
-“Really? This is more interesting than it first sounded—positively dramatic.”
+„Sie klopfen noch immer die Dielen ab und stochern in den Möbeln herum, in der Hoffnung, sie zu finden.“
 
-“Yes, it struck me as being rather out of the ordinary.”
+„Sind sie auf die Idee gekommen, außerhalb des Hauses zu suchen?“
 
-“They often vanish before the ceremony, and occasionally during the honeymoon, but I can’t recall anything quite so prompt as this. Please, let me have the details.”
+„Ja, sie haben eine außergewöhnliche Energie entwickelt. Der ganze Garten ist bereits bis ins Kleinste untersucht worden.“
 
-“I warn you, they’re very incomplete.”
+„Nun, mein lieber Herr“, sagte Holmes, „ist es Ihnen jetzt nicht offensichtlich, dass diese Angelegenheit in Wahrheit sehr viel tiefer reicht, als Sie oder die Polizei anfangs geneigt waren zu glauben? Ihnen erschien es als ein einfacher Fall; mir kommt er äußerst kompliziert vor. Überlegen Sie, was Ihre Theorie voraussetzt. Sie nehmen an, Ihr Sohn sei aus dem Bett aufgestanden, habe sich – unter großem Risiko – in Ihr Ankleidezimmer begeben, Ihre Kommode geöffnet, das Diadem herausgenommen, mit roher Gewalt ein kleines Stück davon abgebrochen, sei an einen anderen Ort gegangen, habe drei Steine von neununddreißig so geschickt verborgen, dass niemand sie finden kann, und sei dann mit den übrigen sechsunddreißig wieder in das Zimmer zurückgekehrt, in dem er sich der größten Gefahr aussetzte, entdeckt zu werden. Ich frage Sie: Ist eine solche Theorie überhaupt haltbar?“
 
-“Perhaps we can make them less so.”
+„Aber welche andere gibt es?“ rief der Bankier mit einer Geste der Verzweiflung. „Wenn seine Motive unschuldig wären – warum erklärt er sie dann nicht?“
 
-“Such as they are, they’re all contained in a single article from yesterday’s morning paper, which I’ll read to you. It’s headed, ‘Singular Occurrence at a Fashionable Wedding’:
+„Das herauszufinden ist unsere Aufgabe“, erwiderte Holmes. „Also, wenn Sie bitte, Mr. Holder: Wir fahren jetzt gemeinsam nach Streatham und widmen eine Stunde dem Versuch, die Einzelheiten etwas genauer anzusehen.“
 
-‘The family of Lord Robert St. Simon has been thrown into the greatest consternation by the strange and distressing events connected with his wedding. The ceremony, as briefly announced in yesterday’s papers, took place on the previous morning; but it is only now that it has been possible to confirm the extraordinary rumours which have been so persistently circulating. In spite of the efforts of the friends to hush the matter up, so much public attention has now been drawn to it that no good purpose can be served by pretending to ignore what has become a common topic of conversation.
+Mein Freund bestand darauf, dass ich sie auf diesem Ausflug begleitete – und ich tat es nur zu gern, denn Neugier und Mitgefühl waren durch die Geschichte, die wir gehört hatten, tief in mir aufgewühlt. Ich gestehe, die Schuld des Bankierssohnes erschien mir ebenso offensichtlich wie seinem unglücklichen Vater; doch ich hatte so viel Vertrauen in Holmes’ Urteil, dass ich meinte, es müsse Gründe zur Hoffnung geben, solange er mit der allgemein akzeptierten Erklärung unzufrieden war. Den ganzen Weg hinaus in den südlichen Vorort sprach er kaum ein Wort, sondern saß mit auf die Brust gesenktem Kinn und tief ins Gesicht gezogenem Hut da, versunken in die dunkelsten Gedanken. Unser Klient schien durch den kleinen Hoffnungsschimmer neuen Mut gefasst zu haben, und er begann sogar, sich in einem zerstreuten Plauderton mit mir über seine geschäftlichen Angelegenheiten zu unterhalten. Eine kurze Bahnfahrt und ein noch kürzerer Fußweg brachten uns nach Fairbank, dem bescheidenen Wohnsitz des großen Finanziers.
 
-‘The ceremony, which was performed at St. George’s, Hanover Square, was a very quiet one, no one being present except the bride’s father, Mr. Aloysius Doran; the Duchess of Balmoral; Lord Backwater; Lord Eustace and Lady Clara St. Simon (the bridegroom’s younger brother and sister); and Lady Alicia Whittington. The whole party then proceeded to the house of Mr. Aloysius Doran at Lancaster Gate, where breakfast had been prepared. It appears that some slight disturbance was caused by a woman, whose name has not been ascertained, who tried to force her way into the house after the bridal party, claiming that she had some claim upon Lord St. Simon. It was only after a painful and prolonged scene that she was ejected by the butler and the footman. The bride, who had fortunately entered the house before this unpleasant interruption, had sat down to breakfast with the others when she complained of a sudden indisposition and retired to her room. Her prolonged absence having caused some comment, her father followed her, but learned from her maid that she had only come up to her bedroom for an instant, snatched up an ulster and a bonnet, and hurried down to the hall. One of the footmen stated that he had seen a lady leave the house so attired, but had refused to believe that it was his mistress, assuming that she was still with the company. On discovering that his daughter had disappeared, Mr. Aloysius Doran, together with the bridegroom, immediately put themselves in communication with the police, and very energetic inquiries are being made, which will probably result in a speedy clearing up of this very singular affair. Up to a late hour last night, however, nothing had come to light as to the whereabouts of the missing lady. There are rumours of foul play, and it is said that the police have arrested the woman who caused the original disturbance, in the belief that, from jealousy or some other motive, she may have been concerned in the strange disappearance of the bride.’”
+Fairbank war ein stattliches, quadratisches Haus aus weißem Stein, das ein wenig von der Straße zurückgesetzt stand. Vorne führte eine doppelte Auffahrt in einem Bogen heran; dazwischen lag ein schneebedeckter Rasen, der sich bis zu zwei großen eisernen Toren erstreckte, welche die Einfahrt schlossen. Rechts befand sich ein kleines Gehölz aus dünnem Holzbestand; von dort führte ein schmaler Weg zwischen zwei sauber geschnittenen Hecken von der Straße bis zur Küchentür – der Eingang für die Lieferanten. Links verlief eine Gasse zu den Stallungen; sie gehörte nicht zum Grundstück, sondern war ein öffentlicher, wenn auch wenig benutzter Durchgang. Holmes ließ uns an der Haustür stehen und ging langsam einmal um das ganze Haus: über die Vorderseite, den Lieferantenweg hinunter und dann hinter dem Garten herum in die Stallgasse. Er blieb so lange fort, dass Mr. Holder und ich ins Speisezimmer gingen und am Feuer warteten, bis er zurückkäme. Wir saßen schweigend da, als die Tür aufging und eine junge Dame eintrat. Sie war etwas über mittelgroß, schlank, mit dunklem Haar und dunklen Augen, die vor der völligen Blässe ihrer Haut noch dunkler wirkten. Ich glaube nicht, dass ich je eine so totenbleiche
 
-“And that’s all?”
+„Aber was nützen mir all diese vagen Theorien“, rief der Bankier ungeduldig, „wenn ich Ihnen doch gesagt habe, dass ich Arthur mit dem Diadem in den Händen gesehen habe?“
 
-“Only one small item in another morning paper, but it’s a suggestive one.”
+„Warten Sie einen Augenblick, Mr. Holder. Darauf müssen wir zurückkommen. Zunächst zu diesem Mädchen, Miss Holder. Sie haben sie, nehme ich an, durch die Küchentür zurückkommen sehen?“
 
-“And that is—?”
+„Ja; als ich nachsehen ging, ob die Tür für die Nacht verriegelt war, begegnete ich ihr, wie sie hineinschlüpfte. Den Mann habe ich im Halbdunkel auch gesehen.“
 
-“That Miss Flora Millar, the woman who caused the disturbance, has actually been arrested. It appears she was formerly a dancer at the Allegro, and that she has known the bridegroom for several years. There are no further details, and the whole case is now in your hands—so far as it has been set out in the public press.”
+„Kennen Sie ihn?“
 
-“And it appears to be an exceedingly interesting case. I wouldn’t have missed it for anything. But there’s the bell, Watson, and as the clock shows it’s a few minutes after four, I’ve no doubt this will be our noble client. Don’t think of leaving, Watson; I very much prefer having a witness, if only as a check on my own memory.”
+„Oh ja! Das ist der Gemüsehändler, der uns das Gemüse bringt. Er heißt Francis Prosper.“
 
-“Lord Robert St. Simon,” announced our page-boy, flinging open the door.
+„Er stand“, sagte Holmes, „links von der Tür – das heißt, weiter oben auf dem Weg, als man stehen müsste, um die Tür zu erreichen?“
 
-A gentleman entered, with a pleasant, cultivated face, high-nosed and pale, with perhaps a touch of petulance about the mouth, and the steady, well-opened eyes of a man whose happy lot it has always been to command and be obeyed. His manner was brisk, yet his general appearance gave an exaggerated impression of age, for he had a slight forward stoop and a little bend in the knees as he walked. His hair, too, as he swept off his very curly-brimmed hat, was grizzled at the edges and thin on top. As for his clothes, they were careful to the point of dandyism: high collar, black frock coat, white waistcoat, yellow gloves, patent-leather shoes, and light-coloured gaiters. He came slowly into the room, turning his head from side to“In San Francisco, a year ago.”
+„Ja, genau.“
 
-“You were traveling in the States?”
+„Und er ist ein Mann mit einem Holzbein?“
 
-“Yes.”
+So etwas wie Angst flackerte in den ausdrucksvollen schwarzen Augen der jungen Dame auf. „Sie sind ja wie ein Zauberer“, sagte sie. „Woher wissen Sie das?“ Sie lächelte, doch auf Holmes’ schmalem, gespannten Gesicht erschien kein Lächeln als Antwort.
 
-“Did you get engaged then?”
+„Ich würde jetzt sehr gern nach oben gehen“, sagte er. „Wahrscheinlich werde ich mir die Außenseite des Hauses noch einmal ansehen wollen. Vielleicht schaue ich mir besser erst die unteren Fenster an, bevor ich hinaufgehe.“
 
-“No.”
+Er ging rasch von einem zum nächsten, hielt nur bei dem großen an, das aus der Halle auf den Weg zu den Ställen hinausging. Dieses öffnete er und untersuchte die Fensterbank mit seiner starken Lupe äußerst sorgfältig. „Nun gehen wir nach oben“, sagte er schließlich.
 
-“But you were on friendly terms?”
+Das Ankleidezimmer des Bankiers war ein kleines, schlicht eingerichtetes Zimmer mit grauem Teppich, einem großen Schreibschrank und einem langen Spiegel. Holmes ging zuerst an den Schreibschrank und betrachtete aufmerksam das Schloss.
 
-“I was entertained by her company, and she could see that I was entertained.”
+„Welcher Schlüssel wurde benutzt, um ihn zu öffnen?“, fragte er.
 
-“Her father is very rich?”
+„Der, den mein Sohn selbst angegeben hat – der vom Schrank in der Rumpelkammer.“
 
-“He’s said to be the richest man on the Pacific coast.”
+„Haben Sie ihn hier?“
 
-“And how did he make his money?”
+„Er liegt dort auf dem Toilettentisch.“
 
-“In mining. A few years ago he had nothing. Then he struck gold, invested it, and rose by leaps and bounds.”
+Sherlock Holmes nahm ihn auf und öffnete den Schreibschrank.
 
-“Now, what’s your own impression of the young lady’s—your wife’s—character?”
+„Ein geräuschloses Schloss“, sagte er. „Kein Wunder, dass es Sie nicht geweckt hat. Dieses Etui enthält, nehme ich an, das Diadem. Wir müssen es uns ansehen.“ Er öffnete das Etui, nahm das Diadem heraus und legte es auf den Tisch. Es war ein prachtvolles Stück Goldschmiedekunst, und die sechsunddreißig Steine waren die schönsten, die ich je gesehen habe. An einer Seite des Reifs war der Rand aufgebrochen, dort, wo ein Eckstück, das drei Edelsteine hielt, herausgerissen worden war.
 
-The nobleman swung his glasses a little faster and stared down into the fire. “You see, Mr. Holmes,” he said, “my wife was twenty before her father became a rich man. Until then she ran wild in a mining camp and roamed through woods and mountains, so her education comes from Nature rather than from any schoolmaster. She’s what we in England call a tomboy, with a strong nature, wild and free, not bound by any sort of tradition. She’s impetuous—volcanic, I was about to say. She decides quickly and is fearless in carrying out her decisions. On the other hand, I would never have given her the name I have the honour to bear”—he gave a small, dignified cough—“if I had not believed that, at heart, she is a noble woman. I believe she’s capable of heroic self‑sacrifice, and that anything dishonourable would be repugnant to her.”
+„Nun, Mr. Holder“, sagte Holmes, „hier ist die Ecke, die zu dem Stück gehört, das so unglücklich verloren gegangen ist. Darf ich Sie bitten, sie abzubrechen.“
 
-“Do you have her picture?”
+Der Bankier wich entsetzt zurück. „Ich würde nicht im Traum daran denken“, sagte er.
 
-“I brought this with me.” He opened a locket and showed us the full face of a very beautiful woman. It was not a photograph but an ivory miniature, and the artist had captured the full effect of the glossy black hair, the large dark eyes, and the exquisite mouth. Holmes gazed at it long and intently. Then he closed the locket and handed it back to Lord St. Simon.
+„Dann tue ich es.“ Holmes setzte plötzlich seine ganze Kraft an, doch ohne Erfolg. „Ich spüre, dass es ein wenig nachgibt“, sagte er, „aber obwohl ich außergewöhnlich starke Finger habe, würde ich eine ganze Weile brauchen, um es zu brechen. Ein gewöhnlicher Mann könnte das nicht. Und nun, was meinen Sie, würde passieren, wenn ich es doch abbräche, Mr. Holder? Es gäbe einen Knall wie ein Pistolenschuss. Und Sie wollen mir sagen, dass das alles nur wenige Schritte von Ihrem Bett entfernt geschah – und Sie haben nichts davon gehört?“
 
-“The young lady came to London, then, and you renewed your acquaintance?”
+„Ich weiß nicht, was ich denken soll. Für mich ist alles dunkel.“
 
-“Yes, her father brought her over for this last London season. I met her several times, became engaged to her, and have now married her.”
+„Aber vielleicht wird es heller, während wir weitergehen. Was meinen Sie, Miss Holder?“
 
-“She brought, I understand, a considerable dowry?”
+„Ich gestehe, ich teile noch immer die Ratlosigkeit meines Onkels.“
 
-“A decent dowry. No more than is usual in my family.”
+„Ihr Sohn hatte keine Schuhe oder Pantoffeln an, als Sie ihn sahen?“
 
-“And this, of course, remains with you, since the marriage is a fait accompli?”
+„Er trug nichts außer Hose und Hemd.“
 
-“I really haven’t made any inquiries on that point.”
+„Danke. Wir sind in dieser Untersuchung tatsächlich mit außergewöhnlichem Glück begünstigt worden, und es wäre einzig unsere eigene Schuld, wenn es uns nicht gelänge, die Sache aufzuklären. Mit Ihrer Erlaubnis, Mr. Holder, werde ich nun draußen weiterermitteln.“
 
-“Quite naturally not. Did you see Miss Doran on the day before the wedding?”
+Er ging auf eigenen Wunsch allein, denn er erklärte, jede unnötige Fußspur könne ihm die Arbeit erschweren. Eine Stunde oder länger war er beschäftigt; schließlich kehrte er zurück, die Füße schwer vom Schnee, und sein Gesicht so undurchdringlich wie zuvor.
 
-“Yes.”
+„Ich glaube, ich habe nun alles gesehen, was es zu sehen gibt, Mr. Holder“, sagte er. „Am besten kann ich Ihnen dienen, indem ich in meine Wohnung zurückkehre.“
 
-“Was she in good spirits?”
+„Aber die Edelsteine, Mr. Holmes. Wo sind sie?“
 
-“Never better. She kept talking about what we would do with our future lives.”
+„Das kann ich Ihnen nicht sagen.“
 
-“Indeed. That is very interesting. And on the morning of the wedding?”
+Der Bankier rang die Hände. „Ich werde sie nie wiedersehen!“, rief er. „Und mein Sohn? Machen Sie mir Hoffnung?“
 
-“She was as bright as could be—at least until after the ceremony.”
+„Meine Meinung hat sich in keiner Weise geändert.“
 
-“And did you notice any change in her then?”
+„Dann, um Gottes willen – was war das für ein finsteres Geschäft, das sich letzte Nacht in meinem Haus abgespielt hat?“
 
-“Well, to tell the truth, that was when I first saw any sign that her temper could be just a little sharp. The incident, however, is too trivial to relate and can’t possibly have any bearing on the case.”
+„Wenn Sie mich morgen früh zwischen neun und zehn in meinen Räumen in der Baker Street aufsuchen, werde ich gern tun, was ich kann,
 
-“Let us have it all the same.”
+„Sie werden es mir nachsehen, dass ich ohne Sie angefangen habe, Watson“, sagte er, „aber Sie erinnern sich: Unser Klient hat heute Morgen einen ziemlich frühen Termin.“
 
-“Oh, it’s childish. She dropped her bouquet as we were walking toward the vestry. She was passing the front pew at the time, and it fell over into the pew. There was a moment’s delay, but the man in the pew handed it back up to her, and it didn’t seem any the worse for the fall. Yet when I spoke to her about it, she answered me abruptly; and in the carriage, on our way home, she seemed absurdly upset over this trifling matter.”
+„Nun, es ist doch schon nach neun“, erwiderte ich. „Ich würde mich nicht wundern, wenn er das wäre. Ich glaube, ich habe es klingeln hören.“
 
-“Indeed. You say there was a gentleman in the pew. So some of the general public were present?”
+Und tatsächlich: Es war unser Freund, der Finanzmann. Ich erschrak über die Veränderung, die mit ihm vorgegangen war. Sein Gesicht, von Natur aus breit und wuchtig geschnitten, wirkte nun eingefallen und spitz, und sein Haar schien mir mindestens um einen Ton weißer. Er trat mit einer Müdigkeit und Trägheit ein, die noch schmerzlicher war als die Heftigkeit des Morgens zuvor, und ließ sich schwer in den Sessel fallen, den ich ihm zurechtrückte.
 
-“Oh yes. It’s impossible to keep them out when the church is open.”
+„Ich weiß nicht, was ich getan habe, um so hart geprüft zu werden“, sagte er. „Noch vor zwei Tagen war ich ein glücklicher, wohlhabender Mann, ohne eine Sorge auf der Welt. Jetzt bleibt mir ein einsames, entehrtes Alter. Ein Kummer folgt dem nächsten auf dem Fuß. Meine Nichte Mary ist fortgelaufen.“
 
-“This gentleman was not one of your wife’s friends?”
+„Fortgelaufen?“
 
-“No, no; I call him a gentleman out of politeness, but he was quite an ordinary‑looking fellow. I hardly noticed what he looked like. But really, I think we’re straying rather far from the point.”
+„Ja. Ihr Bett war heute Morgen unberührt, ihr Zimmer leer, und auf dem Tisch in der Halle lag ein Brief an mich. Ich hatte ihr gestern Abend, aus Kummer und nicht aus Zorn, gesagt, wenn sie meinen Jungen geheiratet hätte, wäre vielleicht alles gut geworden. Vielleicht war es gedankenlos von mir, das zu sagen. Auf diese Bemerkung bezieht sie sich in dem Brief:
 
-“Lady St. Simon, then, came back from the wedding in a less cheerful frame of mind than she had gone to it. What did she do when she re‑entered her father’s house?”
+‚MEIN LIEBSTER ONKEL,—Ich fühle, dass ich Ihnen Kummer bereitet habe, und dass dieses schreckliche Unglück vielleicht nie geschehen wäre, wenn ich anders gehandelt hätte. Mit diesem Gedanken im Kopf kann ich unter Ihrem Dach nie wieder glücklich sein, und ich fühle, dass ich Sie für immer verlassen muss. Sorgen Sie sich nicht um meine Zukunft, dafür ist gesorgt; und vor allem: Suchen Sie nicht nach mir, es wäre vergebliche Mühe und würde mir nur schaden. Im Leben wie im Tod bin ich stets Ihre liebevolle
 
-“I saw her talking with her maid.”
+MARY.‘
 
-“And who is her maid?”
+„Was soll das bedeuten, Mr. Holmes? Glauben Sie, es weist auf Selbstmord hin?“
 
-“Alice is her name. She’s an American and came over from California with her.”
+„Nein, nein, nichts dergleichen. Es ist vielleicht die bestmögliche Lösung. Ich hoffe, Mr. Holder, dass Sie sich dem Ende Ihrer Sorgen nähern.“
 
-“A trusted servant?”
+„Ha! Das sagen Sie so! Sie haben etwas gehört, Mr. Holmes; Sie haben etwas herausgefunden! Wo sind die Steine?“
 
-“A little too much so. It seemed to me that her mistress allowed her to take great liberties. Still, of course, in America they look at these things differently.”
+„Sie würden tausend Pfund pro Stück nicht für eine übertriebene Summe halten?“
 
-“How long did she talk to this Alice?”
+„Ich würde zehn zahlen.“
 
-“Oh, a few minutes. I had other things on my mind.”
+„Das ist nicht nötig. Dreitausend decken die Sache. Und es bleibt, denke ich, noch ein kleiner Überschuss. Haben Sie Ihr Scheckbuch? Hier ist ein Füller. Machen Sie ihn besser über viertausend Pfund aus.“
 
-“You didn’t overhear what they said?”
+Mit benommenem Gesicht stellte der Bankier den verlangten Scheck aus. Holmes ging an seinen Schreibtisch, nahm ein kleines dreieckiges Stück Gold mit drei Edelsteinen heraus und warf es auf den Tisch.
 
-“Lady St. Simon said something about ‘jumping a claim.’ She was in the habit of using that sort of slang. I’ve no idea what she meant.”
+Mit einem Freudenschrei riss unser Klient es an sich.
 
-“American slang is sometimes very expressive. And what did your wife do when she finished speaking to her maid?”
+„Sie haben es!“ keuchte er. „Ich bin gerettet! Ich bin gerettet!“
 
-“She went into the breakfast room.”
+Die Freude brach ebenso leidenschaftlich hervor wie zuvor sein Schmerz, und er presste die wiedergewonnenen Steine an die Brust.
 
-“On your arm?”
+„Es gibt noch etwas, das Sie schuldig sind, Mr. Holder“, sagte Sherlock Holmes ziemlich streng.
 
-“No, alone. She was very independent in little matters like that. Then, after we had been sitting for ten minutes or so, she got up suddenly, muttered some words of apology, and left the room. She never came back.”
+„Schuldig!“ Er griff nach einem Stift. „Nennen Sie die Summe, und ich zahle sie.“
 
-“But this maid, Alice, as I understand, states that she went to her room, covered her bridal dress with a long ulster, put on a bonnet, and went out.”
+„Nein, die Schuld gilt nicht mir. Sie schulden eine sehr demütige Entschuldigung jenem edlen Jungen, Ihrem Sohn, der sich in dieser Sache so verhalten hat, wie ich es mir wünschen würde, dass mein eigener Sohn es täte—falls ich je zufällig einen haben sollte.“
 
-“Exactly. And she was later seen walking into Hyde Park in the company of Flora Millar, a woman who is now in custody, and who had already caused a disturbance at Mr. Doran’s house“In short, that she had suddenly gone mad?”
+„Dann war es nicht Arthur, der sie genommen hat?“
 
-“Well, really, when I think that she has turned her back—not on me, I won’t put it that way—but on so much that so many have longed for and never attained, I can hardly explain it in any other way.”
+„Ich habe es Ihnen gestern gesagt, und ich wiederhole es heute: Er war es nicht.“
 
-“That is certainly one possible theory,” said Holmes, smiling. “And now, Lord St. Simon, I believe I have almost all the information I need. May I ask whether you were seated at breakfast so that you could see out of the window?”
+„Sie sind sicher! Dann lassen Sie uns sofort zu ihm—damit er erfährt, dass die Wahrheit bekannt ist.“
 
-“We could see the opposite side of the road and the Park.”
+„Er weiß es bereits. Als ich alles aufgeklärt hatte, habe ich mit ihm gesprochen, und da er mir die Geschichte nicht erzählen wollte, habe ich sie ihm erzählt. Da musste er eingestehen, dass ich recht hatte, und nur die wenigen Einzelheiten ergänzen, die mir noch nicht ganz klar waren. Ihre Nachricht von heute Morgen jedoch könnte ihm die Zunge lösen.“
 
-“Exactly. Then I don’t think I need keep you any longer. I’ll be in touch with you.”
+„Um Himmels willen, sagen Sie mir endlich, was hinter diesem ungeheuren Rätsel steckt!“
 
-“If you should be fortunate enough to solve this problem,” said our client, rising.
+„Ich werde es tun, und ich werde Ihnen die Schritte zeigen, die mich dorthin geführt haben. Und lassen Sie mich Ihnen zuerst das sagen, was mir am schwersten fällt auszusprechen und Ihnen am schwersten zu hören: Es hat ein Einverständnis zwischen Sir George Burnwell und Ihrer Nichte Mary gegeben. Sie sind nun gemeinsam geflohen.“
 
-“I have solved it.”
+„Meine Mary? Unmöglich!“
 
-“Eh? What was that?”
+„Leider ist es mehr als möglich; es ist gewiss. Weder Sie noch Ihr Sohn kannten den wahren Charakter dieses Mannes, als Sie ihn in Ihren Familienkreis aufnahmen. Er ist einer der gefährlichsten Männer Englands—ein ruinierter Spieler, ein vollkommen verzweifelter Schurke, ein
 
-“I said that I have solved it.”
+„Ist das möglich?“, keuchte der Bankier.
 
-“Then where is my wife?”
+„Sie haben ihn dann zur Weißglut gebracht, indem Sie ihn beschimpften – in einem Augenblick, in dem er meinte, er habe Ihren wärmsten Dank verdient. Den wahren Sachverhalt konnte er nicht erklären, ohne jemanden zu verraten, der von ihm wahrlich kaum Rücksicht verdient hätte. Er hat jedoch die ritterlichere Haltung eingenommen und ihr Geheimnis bewahrt.“
 
-“That is a detail I shall very soon be able to supply.”
+„Und deshalb hat sie aufgeschrien und ist in Ohnmacht gefallen, als sie das Diadem sah!“, rief Mr. Holder. „Oh, mein Gott! Was für ein blinder Narr ich gewesen bin! Und dass er darum bat, fünf Minuten hinausgehen zu dürfen! Der liebe Kerl wollte nachsehen, ob das fehlende Stück am Ort des Gerangels lag. Wie grausam ich ihn verkannt habe!“
 
-Lord St. Simon shook his head. “I’m afraid it will take wiser heads than yours or mine,” he remarked, and with a stately, old-fashioned bow he took his leave.
+„Als ich im Haus ankam“, fuhr Holmes fort, „ging ich sofort sehr sorgfältig einmal ringsherum, um zu sehen, ob es im Schnee irgendwelche Spuren gab, die mir helfen könnten. Ich wusste, dass seit dem Abend zuvor kein Schnee gefallen war, und außerdem, dass ein strenger Frost geherrscht hatte, der Abdrücke konservierte. Ich ging den Weg entlang, den die Lieferanten benutzen, fand ihn jedoch völlig zertreten und nicht mehr zu unterscheiden. Gleich dahinter aber, auf der anderen Seite der Küchentür, hatte eine Frau gestanden und mit einem Mann gesprochen, dessen runde Abdrücke auf der einen Seite zeigten, dass er ein Holzbein hatte. Ich konnte sogar erkennen, dass sie aufgeschreckt worden waren: Die Frau war hastig zur Tür zurückgelaufen – das verrieten die tiefen Zehen- und die leichten Fersenabdrücke –, während Holzbein noch einen Moment gewartet und sich dann entfernt hatte. Damals dachte ich, es könne das Dienstmädchen mit ihrem Verehrer sein, von dem Sie mir bereits erzählt hatten, und eine Nachfrage bestätigte das. Ich ging um den Garten herum, ohne etwas anderes als vereinzelte Spuren zu sehen, die ich der Polizei zuschrieb; doch als ich in die Stallgasse kam, lag vor mir im Schnee eine sehr lange und verwickelte Geschichte.
 
-“It’s very kind of Lord St. Simon to honour my head by placing it on a level with his own,” said Sherlock Holmes, laughing. “I think I’ll have a whisky and soda and a cigar after all that cross-examination. I had already reached my conclusions about the case before our client came into the room.”
+„Da war eine doppelte Spur eines beschuhten Mannes, und eine zweite doppelte Spur, die mich mit Freude erkennen ließ, dass sie zu einem Mann mit nackten Füßen gehörte. Aufgrund dessen, was Sie mir erzählt hatten, war ich sofort überzeugt, dass Letzterer Ihr Sohn war. Der Erste war hin und zurück gegangen, der Andere jedoch war schnell gelaufen, und da sein Tritt stellenweise über die Vertiefung des Stiefels hinwegzeichnete, war klar, dass er nach dem Anderen gekommen war. Ich folgte den Spuren und fand, dass sie zum Fenster der Halle führten, wo Stiefel den Schnee beim Warten völlig weggetreten hatte. Dann ging ich zum anderen Ende, das hundert Yards oder mehr die Gasse hinunter lag. Ich sah, wo Stiefel sich umgedreht hatte, wo der Schnee zerwühlt war, als hätte es einen Kampf gegeben, und schließlich, wo ein paar Blutstropfen gefallen waren – als Beweis, dass ich mich nicht irrte. Stiefel war dann die Gasse hinuntergerannt, und ein weiterer kleiner Blutfleck zeigte mir, dass er es war, der verletzt worden war. Als er am anderen Ende auf die Landstraße kam, stellte ich fest, dass der Gehweg geräumt war – damit war diese Spur zu Ende.
 
-“My dear Holmes!”
+„Als ich jedoch das Haus betrat, untersuchte ich, wie Sie sich erinnern, die Fensterbank und den Rahmen des Hallenfensters mit meiner Lupe, und ich konnte sofort sehen, dass jemand hinausgeklettert war. Ich konnte den Umriss eines Spanns erkennen, wo ein nasser Fuß beim Hineinkommen aufgesetzt hatte. Da begann ich mir bereits eine Meinung darüber zu bilden, was geschehen war. Ein Mann hatte draußen am Fenster gewartet; jemand hatte die Juwelen gebracht; die Tat war von Ihrem Sohn bemerkt worden; er hatte den Dieb verfolgt; er hatte mit ihm gerungen; beide hatten am Diadem gezerrt, und ihre vereinte Kraft hatte Schäden verursacht, die keiner von beiden allein hätte anrichten können. Ihr Sohn war mit der Beute zurückgekehrt, hatte jedoch ein Fragment im Griff seines Gegners zurückgelassen. Bis dahin war mir alles klar. Die Frage war nun: Wer war der Mann, und wer hatte ihm das Diadem gebracht?
 
-“I have notes on several similar cases, though none, as I mentioned before, that were quite so rapid. My whole examination merely turned my guess into a certainty. Circumstantial evidence can sometimes be very convincing—like finding a trout in the milk, to borrow Thoreau’s example.”
+„Es ist ein alter Grundsatz von mir, dass, wenn man das Unmögliche ausgeschlossen hat, das, was übrig bleibt – wie unwahrscheinlich es auch sein mag –, die Wahrheit sein muss. Nun wusste ich, dass Sie es nicht heruntergebracht hatten, also blieben nur noch Ihre Nichte und die Dienstmädchen. Aber wenn es die Dienstmädchen gewesen wären – warum sollte Ihr Sohn zulassen, dass man ihn an ihrer Stelle beschuldigt? Dafür gab es keinen denkbaren Grund. Da er jedoch seine Cousine liebte, gab es eine ausgezeichnete Erklärung, warum er ihr Geheimnis bewahren sollte – umso mehr, als es ein beschämendes Geheimnis war. Als ich mich daran erinnerte, dass Sie sie an jenem Fenster gesehen hatten, und wie sie in Ohnmacht fiel, als sie das Diadem wieder sah, wurde aus meiner Vermutung Gewissheit.
 
-“But I’ve heard everything you’ve heard.”
+„Und wer konnte ihr Komplize sein? Offenkundig ein Liebhaber – denn wer sonst könnte die Liebe und Dankbarkeit überwiegen, die sie Ihnen gegenüber empfinden musste? Ich wusste
 
-“Without, however, the knowledge of the earlier cases which is so useful to me. There was a parallel instance in Aberdeen some years ago, and something very similar in Munich the year after the Franco-Prussian War. It’s one of those cases—but, hello, here’s Lestrade! Good afternoon, Lestrade! You’ll find an extra glass on the sideboard, and there are cigars in the box.”
+„Für einen Menschen, der die Kunst um ihrer selbst willen liebt“, bemerkte Sherlock Holmes, während er das Anzeigenblatt des *Daily Telegraph* beiseite warf, „liegt das schärfste Vergnügen oft gerade in ihren unscheinbarsten und geringsten Erscheinungsformen. Es ist mir angenehm zu sehen, Watson, dass Sie diese Wahrheit inzwischen so weit begriffen haben, dass Sie in diesen kleinen Aufzeichnungen unserer Fälle, die Sie freundlicherweise angefertigt und—wie ich hinzufügen muss—bisweilen auch ausgeschmückt haben, nicht so sehr den vielen *causes célèbres* und sensationellen Prozessen, in denen ich eine Rolle spielte, den Vorrang geben, sondern vielmehr jenen Vorfällen, die an sich vielleicht unbedeutend waren, die aber Raum boten für jene Fähigkeiten der Deduktion und der logischen Synthese, die ich zu meinem besonderen Gebiet gemacht habe.“
 
-The official detective was dressed in a pea coat and a cravat that gave him a distinctly nautical look, and he carried a black canvas bag in his hand. With a brief greeting he sat down and lit the cigar that had been offered to him.
+„Und doch“, sagte ich lächelnd, „kann ich mich nicht ganz von dem Vorwurf freisprechen, der gegen meine Berichte erhoben wurde—dem der Sensationslust.“
 
-“What’s the matter, then?” asked Holmes, a twinkle in his eye. “You look displeased.”
+„Sie haben sich vielleicht vergriffen“, erwiderte er, nahm mit der Zange eine glühende Kohle auf und entzündete damit die lange Pfeife aus Kirschholz, die gewöhnlich seine Tonpfeife ersetzte, wenn er eher streitlustig als nachdenklich gestimmt war—„Sie haben sich vielleicht vergriffen, indem Sie bemüht waren, jeder Darstellung Farbe und Leben zu geben, statt sich darauf zu beschränken, jenes strenge Schließen von Ursache auf Wirkung zu Protokoll zu bringen, das in Wahrheit das einzig Bemerkenswerte an der Sache ist.“
 
-“And I feel displeased. It’s this damned St. Simon marriage case. I can’t make head or tail of it.”
+„Mir scheint, ich habe Ihnen in dieser Hinsicht durchaus gerecht werden lassen“, entgegnete ich mit einer gewissen Kälte; denn mich stieß der Egoismus ab, den ich mehr als einmal als einen starken Zug in dem eigenartigen Charakter meines Freundes beobachtet hatte.
 
-“Really! You astonish me.”
+„Nein, es ist weder Selbstsucht noch Eitelkeit“, sagte er und antwortete—wie so oft—mehr meinen Gedanken als meinen Worten. „Wenn ich volle Gerechtigkeit für meine Kunst fordere, dann deshalb, weil sie etwas Unpersönliches ist—etwas, das über mir steht. Verbrechen sind gewöhnlich. Logik ist selten. Darum sollten Sie bei der Logik verweilen, nicht beim Verbrechen. Sie haben das, was ein Vorlesungszyklus hätte sein sollen, zu einer Reihe von Geschichten herabgezogen.“
 
-“Who ever heard of such a tangled business? Every clue slips through my fingers. I’ve been working on it all day.”
+Es war ein kalter Morgen im frühen Frühjahr, und wir saßen nach dem Frühstück einander gegenüber, beiderseits eines behaglichen Feuers, in dem alten Zimmer in der Baker Street. Dicker Nebel wälzte sich zwischen den Reihen der dumpffarbenen Häuser herab, und die Fenster gegenüber zeichneten sich durch die schweren gelben Schwaden nur als dunkle, formlose Flecken ab. Unser Gaslicht brannte und fiel auf das weiße Tischtuch und den Schimmer von Porzellan und Metall, denn der Tisch war noch nicht abgeräumt. Sherlock Holmes war den ganzen Morgen über schweigsam gewesen, hatte unablässig in den Anzeigenspalten einer Folge von Zeitungen geblättert, bis er schließlich—offenbar mit der Suche am Ende—nicht eben in bester Laune daraus hervorging, um mir eine Standpauke über meine literarischen Mängel zu halten.
 
-“And it seems to have made you very wet,” said Holmes, laying his hand on the sleeve of the pea coat.
+„Gleichzeitig“, fuhr er nach einer Pause fort, während der er an seiner langen Pfeife gezogen und in die Glut hinabgestarrt hatte, „können Sie kaum des Sensationellen bezichtigt werden; denn ein beträchtlicher Teil der Fälle, für die Sie sich so freundlich interessiert haben, behandelt überhaupt kein Verbrechen—im juristischen Sinn. Die kleine Angelegenheit, in der ich dem König von Böhmen beizustehen versuchte, das sonderbare Erlebnis von Miss Mary Sutherland, das Problem um den Mann mit der verdrehten Lippe und der Vorfall mit dem adligen Junggesellen—das alles lag außerhalb des Bereichs des Gesetzes. Doch indem Sie das Sensationelle meiden, fürchte ich, sind Sie bisweilen ans Triviale geraten.“
 
-“Yes, I’ve been dragging the Serpentine.”
+„Das Ergebnis mag so gewesen sein“, antwortete ich, „aber die Methoden halte ich für neuartig und von Interesse.“
 
-“For heaven’s sake, what for?”
+„Ach was, mein lieber Freund—was kümmert das die Öffentlichkeit, die große, unaufmerksame Öffentlichkeit, die kaum einen Weber an seinem Zahn oder einen Setzer an seinem linken Daumen erkennen könnte, um die feineren Abstufungen von Analyse und Deduktion! Aber in der Tat: Wenn Sie trivial sind, kann ich es Ihnen nicht verdenken, denn die Tage der großen Fälle sind vorbei. Der Mensch—oder zumindest der verbrecherische Mensch—hat jeden Unternehmungsgeist und jede Originalität verloren. Was meine eigene kleine Praxis betrifft, so scheint sie zu einer Agentur zu verkommen, die verlorene Bleistifte wiederbeschafft und jungen Damen aus Pensionaten Ratschläge erteilt. Ich glaube allerdings, ich habe nun endgültig den Tiefpunkt erreicht. Diese Notiz, die ich heute Morgen bekam, markiert, so scheint mir, meinen Nullpunkt. Lesen Sie!“ Er warf mir einen zerknitterten Brief hinüber.
 
-“Looking for the body of Lady St. Simon.”
+Er war am Vorabend in Montague Place datiert und lautete:
 
-Sherlock Holmes leaned back in his chair and laughed heartily.
+„LIEBER MR. HOLMES,—ich bin sehr beunruhigt und möchte Sie dringend um Rat fragen, ob ich eine Stellung annehmen soll oder nicht, die man mir als Gouvernante angeboten hat. Ich werde morgen um halb elf vorsprechen, sofern ich Sie nicht störe. Hochachtungsvoll
 
-“Have you dragged the basin of the Trafalgar Square fountain?” he asked.
+VIOLET HUNTER.“
 
-“Why? What are you getting at?”
+„
 
-“Because you’ve just as good a chance of finding the lady in one as in the other.”
+„Das genügt“, sagte er. „Besser könnte ich’s mir nicht wünschen. Großartig! Großartig!“ Er wirkte geradezu begeistert und rieb sich in der herzlichsten Art die Hände. Er sah so behaglich aus, dass es eine Freude war, ihn anzusehen.
 
-Lestrade shot him an angry look. “I suppose you know all about it,” he snarled.
+„Sie suchen eine Stellung, Miss?“, fragte er.
 
-“I’ve only just heard the facts, but my mind is made up.”
+„Ja, Sir.“
 
-“Oh, really! Then you think the Serpentine has nothing to do with the case?”
+„Als Gouvernante?“
 
-“I think it highly unlikely.”
+„Ja, Sir.“
 
-“Then perhaps you’ll be good enough to explain how it is that we found this in it?” He opened his bag as he spoke and dumped onto the floor a wedding dress of watered silk, a pair of white satin shoes, and a bride’s wreath and veil, all stained and dripping wet. “There,” he said, placing a new wedding ring on top of the pile. “There’s a little nut for you to crack, Master Holmes.”
+„Und welches Gehalt stellen Sie sich vor?“
 
-“Oh, really?” said my friend, blowing blue smoke rings into the air. “You dragged them from the Serpentine?”
+„In meiner letzten Stelle bei Colonel Spence Munro erhielt ich vier Pfund im Monat.“
 
-“No. They were found floating near the edge by a park-keeper. They’ve been identified as her clothes, and it seemed to me that if the clothes were there, the body wouldn’t be far away.”
+„Ach was, ach was! Ausbeutung – schamlose Ausbeutung!“, rief er und warf seine dicken Hände in die Luft wie jemand, der vor kochender Wut steht. „Wie kann man einer Dame mit solchen Vorzügen und Fähigkeiten eine derart jämmerliche Summe anbieten?“
 
-“By the same brilliant reasoning, every man’s body is to be found somewhere near his wardrobe. And what exactly did you hope to achieve by this?”
+„Meine Fähigkeiten, Sir, sind vielleicht geringer, als Sie annehmen“, sagte ich. „Ein wenig Französisch, ein wenig Deutsch, Musik und Zeichnen –“
 
-“To get some evidence implicating Flora Millar in the disappearance.”
+„Ach was!“, rief er. „Das ist völlig nebensächlich. Entscheidend ist: Haben Sie – ja oder nein – Haltung und Benehmen einer Dame? Darauf kommt es an, kurz und gut. Wenn nicht, taugen Sie nicht dazu, ein Kind zu erziehen, das eines Tages eine bedeutende Rolle in der Geschichte dieses Landes spielen könnte. Wenn aber doch – wie könnte dann irgendein Gentleman von Ihnen verlangen, sich herabzulassen und weniger als einen dreistelligen Betrag anzunehmen? Ihr Gehalt bei mir, gnädige Frau, würde bei hundert Pfund im Jahr beginnen.“
 
-“I’m afraid you’ll find that difficult.”
+Sie können sich vorstellen, Mr. Holmes, dass mir, so mittellos wie ich war, ein solches Angebot beinahe zu gut erschien, um wahr zu sein. Der Gentleman jedoch, der vielleicht den Ausdruck des Unglaubens in meinem Gesicht bemerkte, öffnete seine Brieftasche und nahm eine Banknote heraus.
 
-“Will I, indeed?” cried Lestrade, with some bitterness. “I’m afraid, Holmes, that you’re not very practical with your deductions and inferences. You’ve made two blunders in as many minutes. This dress does implicate Miss Flora Millar.”
+„Es ist außerdem meine Gewohnheit“, sagte er und lächelte dabei so angenehm, dass seine Augen nur noch zwei kleine glänzende Schlitze zwischen den weißen Falten seines Gesichts waren, „meinen jungen Damen die Hälfte ihres Gehalts im Voraus zu geben, damit sie die kleinen Ausgaben für Reise und Garderobe bestreiten können.“
 
-“How so?”
+Mir schien, ich hätte noch nie einen so faszinierenden und so rücksichtsvollen Mann getroffen. Da ich meinen Händlern bereits Geld schuldete, war der Vorschuss eine große Erleichterung – und doch lag etwas Unnatürliches in dem ganzen Vorgang, das mich veranlasste, erst noch ein wenig mehr zu erfahren, bevor ich mich endgültig band.
 
-“There’s a pocket in the dress. In the pocket is a card case. In the card case is a note. And here is the note itself.” He slapped it down on the table in front of him. “Listen to this: ‘You will see me when all is ready. Come at once. F. H. M.’ Now my theory all along has been that Lady St. Simon was lured away by Flora Millar and that she, with accomplices no doubt, is responsible for her disappearance. Here, signed with her initials, is the very note that was no doubt quietly slipped into her hand at the door and that drew her into their power.”
+„Darf ich fragen, wo Sie wohnen, Sir?“, sagte ich.
 
-“Very good, Lestrade,” said Holmes, laughing. “Just before nine o’clock Sherlock Holmes walked briskly into the room. His features were set and serious, but there was a light in his eye that told me his expectations had been fulfilled.
+„Hampshire. Ein reizender ländlicher Ort. Copper Beeches, fünf Meilen jenseits von Winchester. Es ist die herrlichste Gegend, mein liebes junges Fräulein, und ein entzückendes altes Landhaus.“
 
-“So they’ve laid out supper,” he said, rubbing his hands.
+„Und meine Pflichten, Sir? Ich wüsste gern, worin sie bestehen.“
 
-“You seem to be expecting company. They’ve set places for five.”
+„Ein Kind – ein lieber kleiner Wildfang, gerade sechs Jahre alt. Ach, wenn Sie ihn sehen könnten, wie er Kakerlaken mit dem Pantoffel erschlägt! Klatsch! klatsch! klatsch! Drei weg, ehe man blinzeln kann!“ Er lehnte sich in seinem Stuhl zurück und lachte, bis seine Augen wieder ganz in seinem Kopf verschwanden.
 
-“Yes, I imagine we may have a few visitors dropping in,” he replied. “I’m surprised Lord St. Simon isn’t here already. Ah! I think I hear his step on the stairs now.”
+Die Art des Zeitvertreibs des Kindes erschreckte mich ein wenig, doch das Lachen des Vaters ließ mich glauben, er mache vielleicht nur einen Scherz.
 
-It was indeed our afternoon visitor who came bustling in, swinging his eyeglasses more vigorously than ever, his aristocratic face deeply disturbed.
+„Meine einzigen Pflichten also“, fragte ich, „bestehen darin, mich um ein einzelnes Kind zu kümmern?“
 
-“My messenger reached you, then?” asked Holmes.
+„Nein, nein, nicht die einzigen, nicht die einzigen, mein liebes junges Fräulein“, rief er. „Ihre Pflicht wäre – wie ich sicher bin, dass Ihr gesunder Menschenverstand es Ihnen ohnehin sagen würde –, jeden kleinen Wunsch zu befolgen, den meine Frau äußert, vorausgesetzt natürlich, es sind Wünsche, denen eine Dame mit Anstand nachkommen kann. Sie sehen doch keine Schwierigkeit, he?“
 
-“Yes, and I admit the contents shocked me beyond measure. Are you sure of your information?”
+„Ich wäre froh, mich nützlich machen zu können.“
 
-“Absolutely sure.”
+„Ganz recht. Beim Ankleiden zum Beispiel. Wir sind ein wenig wunderlich, wissen Sie – wunderlich, aber gutherzig. Wenn man Sie bäte, ein Kleid zu tragen, das wir Ihnen geben, würden Sie sich unserer kleinen Laune nicht widersetzen. He?“
 
-Lord St. Simon dropped into a chair and ran his hand over his forehead.
+„Nein“, sagte ich, ziemlich erstaunt über seine Worte.
 
-“What will the Duke say,” he muttered, “when he hears that a member of the family has been subjected to such humiliation?”
+„Oder hier zu sitzen oder dort zu sitzen – das wäre Ihnen nicht unangenehm?“
 
-“It was sheer accident. I really cannot admit that there is any humiliation in it.”
+„Oh nein.“
 
-“Ah, you look at these things from a different point of view.”
+„Oder Ihr Haar ganz kurz zu schneiden, bevor Sie zu uns kommen?“
 
-“I don’t see that anyone is to blame. I can hardly imagine how the lady could have acted differently, though the abrupt way she did it is certainly to be regretted. With no mother, she had no one to advise her at such a crisis.”
+Ich konnte meinen Ohren kaum trauen. Wie Sie sehen, Mr. Holmes, ist mein Haar recht üppig und von einem etwas eigenartigen kastanienbraunen Ton. Man hat es für künstlerisch gehalten. Ich konnte nicht daran denken, es so mir nichts, dir nichts zu opfern.
 
-“It was an insult, sir, a public insult,” said Lord St. Simon, drumming his fingers on the table.
+„Ich fürchte, das ist ganz unmöglich“, sagte ich. Er hatte mich mit seinen kleinen Augen gespannt beobachtet, und ich sah, wie ein Schatten über sein Gesicht glitt, als ich sprach.
 
-“You must make allowances for this poor girl, placed in such an unprecedented position.”
+„Ich fürchte, es ist unbedingt erforderlich“, sagte er. „Es ist eine kleine Marotte meiner Frau, und Marotten von Damen, wissen Sie, gnädige Frau – Marotten von Damen müssen berücksichtigt werden. Und Sie wollen Ihr Haar also nicht schneiden?“
 
-“I will make no allowances. I am extremely angry, and I have been shamefully treated.”
+„Nein, Sir, das kann ich wirklich nicht“, antwortete ich fest.
 
-“I think I just heard the bell,” said Holmes. “Yes, there are footsteps on the landing. If I can’t persuade you to take a more lenient view, Lord St. Simon, I’ve brought an advocate who may succeed where I fail.” He opened the door and showed in a lady and a gentleman. “Lord St. Simon,” he said, “allow me to introduce Mr. and Mrs. Francis Hay Moulton. The lady, I believe, you have already met.”
+„Ah, sehr gut – dann ist die Sache damit entschieden. Schade, denn
 
-At the sight of the newcomers our client had sprung to his feet. He stood very straight, eyes cast down, one hand thrust into the breast of his frock coat—a picture of wounded dignity. The lady had taken a quick step toward him and held out her hand, but he still refused to look up. It was probably just as well for his resolve, for her pleading face would have been hard to resist.
+„JEPHRO RUCASTLE.“
 
-“You’re angry, Robert,” she said. “Well, I guess you’ve every reason to be.”
+„Das ist der Brief, den ich eben erhalten habe, Mr. Holmes, und ich habe mich entschieden, ihn anzunehmen. Ich dachte nur, bevor ich den letzten Schritt tue, möchte ich die ganze Sache gern Ihrer Überlegung unterbreiten.“
 
-“Please don’t apologize to me,” said Lord St. Simon bitterly.
+„Nun, Miss Hunter, wenn Sie sich entschieden haben, ist die Frage damit erledigt“, sagte Holmes lächelnd.
 
-“Oh, yes, I know I’ve treated you really badly, and that I ought to have spoken to you before I went; but I was all rattled, and from the moment I saw Frank here again I didn’t know what I was doing or saying. I only wonder I didn’t drop right down in a faint there at the altar.”
+„Aber Sie würden mir nicht raten, abzulehnen?“
 
-“Perhaps, Mrs. Moulton, you would prefer my friend and me to leave the room while you explain?”
+„Ich gestehe, es ist keine Stellung, um die ich eine Schwester von mir bitten sehen wollte.“
 
-“If I may say so,” put in the stranger, “there’s been just a bit too much secrecy about this business already. For my part, I’d be glad if all Europe and America heard the plain truth of it.” He was a small, wiry, sunburned man, clean-shaven, with a sharp face and an alert manner.
+„Was soll das alles bedeuten, Mr. Holmes?“
 
-“Then I’ll tell our story straight off,” said the lady. “Frank and I met in ’84, in McQuire’s camp near the Rockies, where Pa was working a claim. Frank and I got engaged; but then one day Father struck a rich pocket and made a fortune, while poor Frank’s claim fizzled out and came to nothing. The richer Pa got, the poorer Frank seemed, until at last Pa wouldn’t hear of our engagement going on. He took me away to ’Frisco.
+„Ach, mir fehlen die Daten. Ich kann es nicht sagen. Vielleicht haben Sie selbst schon eine Meinung gebildet?“
 
-“Frank wouldn’t give up, though. He followed me there, and he saw me without Pa knowing anything about it. It would only have made Pa furious if he’d found out, so we just settled it all between ourselves. Frank said he’d go off and make his own pile and never come back to claim me till he had as much as Pa. So I promised to wait for him till the end of time and swore I wouldn’t marry anyone else while he was alive.
+„Nun, mir scheint, es gibt nur eine mögliche Erklärung. Mr. Rucastle wirkte wie ein sehr freundlicher, gutmütiger Mann. Ist es nicht möglich, dass seine Frau geisteskrank ist, dass er die Sache aus Angst, sie könnte in eine Anstalt gebracht werden, geheim halten will, und dass er all ihre Einfälle in jeder Hinsicht unterstützt, um einen Ausbruch zu verhindern?“
 
-“‘Then why shouldn’t we get married right now?’ he said. ‘Then I’ll be sure of you; and I won’t claim to be your husband until I come back.’ Well, we talked it over, and he’d arranged it all so neatly, with a clergyman waiting and ready, that we just went through with it then and there. After that Frank went off to seek his fortune, and I went back to Pa.
+„Das ist eine mögliche Lösung — ja, so wie die Dinge stehen, sogar die wahrscheinlichste. Aber in jedem Fall scheint es kein angenehmer Haushalt für eine junge Dame zu sein.“
 
-“The next I heard of Frank was that he was in Montana, then he went prospecting in Arizona, and then I heard of him from New Mexico. After that came a long newspaper report about a miners’ camp that had been attacked by Apache Indians, and there was my Frank’s name among the dead. I fainted clean away, and I was very ill for months afterward. Pa thought I was in a decline and took me to half the doctors in ’Frisco. Not a word of news came for over a year, so I never doubted Frank was really dead.
+„Aber das Geld, Mr. Holmes, das Geld!“
 
-“Then Lord St. Simon came to ’Frisco, and we came to London, and the marriage was arranged. Pa was delighted, but all the“I saw it in a newspaper,” the American explained. “It gave the name and the church, but not where the lady lived.”
+„Nun ja, natürlich ist die Bezahlung gut — zu gut. Genau das macht mich unruhig. Warum sollten sie Ihnen 120 Pfund im Jahr geben, wenn sie für 40 die freie Auswahl hätten? Dahinter muss ein gewichtiger Grund stecken.“
 
-“Then we talked about what we should do, and Frank wanted to be completely open, but I was so ashamed of everything that I felt as if I just wanted to disappear and never see any of them again—maybe just send Pa a line to let him know I was alive. It was horrible to picture all those lords and ladies sitting around that breakfast table, waiting for me to come back. So Frank took my wedding clothes and things, tied them up in a bundle so I couldn’t be traced, and dropped them somewhere no one would ever find them. We’d probably have gone on to Paris tomorrow, if this good gentleman, Mr. Holmes, hadn’t come to see us this evening—though how he found us I really can’t imagine. He showed us, very clearly and kindly, that I was wrong and Frank was right, and that we’d be putting ourselves in the wrong if we were so secretive. Then he offered to give us a chance to talk to Lord St. Simon alone, so we came straight round to his rooms at once. Now, Robert, you’ve heard everything, and I’m very sorry if I’ve hurt you, and I hope you don’t think too badly of me.”
+„Ich dachte, wenn ich Ihnen die Umstände schildere, würden Sie später verstehen, falls ich Ihre Hilfe brauche. Ich würde mich so viel sicherer fühlen, wenn ich wüsste, dass Sie hinter mir stehen.“
 
-Lord St. Simon had by no means relaxed his stiff posture. He listened to this long story with a furrowed brow and tightly pressed lips.
+„Oh, dieses Gefühl dürfen Sie ruhig mitnehmen. Ich versichere Ihnen, Ihr kleines Problem verspricht das interessanteste zu werden, das mir seit einigen Monaten begegnet ist. Einige Einzelheiten sind ausgesprochen neuartig. Wenn Sie sich unsicher fühlen oder in Gefahr geraten —“
 
-“Excuse me,” he said, “but it is not my habit to discuss my most intimate personal affairs in such a public fashion.”
+„Gefahr! Welche Gefahr sehen Sie denn voraus?“
 
-“So you won’t forgive me? You won’t shake my hand before I go?”
+Holmes schüttelte ernst den Kopf. „Es wäre keine Gefahr mehr, wenn wir sie benennen könnten“, sagte er. „Aber zu jeder Zeit, Tag oder Nacht, würde ein Telegramm mich zu Ihrer Hilfe hinunterbringen.“
 
-“Oh, certainly, if it would give you any pleasure.” He held out his hand and gave a cold grasp to the one she offered him.
+„Das genügt.“ Sie erhob sich rasch von ihrem Stuhl; die Sorge war wie weggeblasen. „Ich fahre jetzt ganz beruhigt nach Hampshire. Ich schreibe Mr. Rucastle sofort, opfere heute Abend mein armes Haar und breche morgen nach Winchester auf.“ Mit ein paar dankbaren Worten an Holmes wünschte sie uns beiden gute Nacht und eilte davon.
 
-“I had hoped,” Holmes suggested, “that you would join us for a friendly supper.”
+„Immerhin“, sagte ich, als wir ihre schnellen, festen Schritte die Treppe hinunter hörten, „scheint sie eine junge Dame zu sein, die sehr gut auf sich selbst aufpassen kann.“
 
-“I think that is asking a little too much,” his Lordship replied. “I may be forced to acquiesce in these recent developments, but I can hardly be expected to celebrate them. With your permission, I will now wish you all a very good night.” He gave us all a sweeping bow and stalked out of the room.
+„Und das wird sie auch müssen“, sagte Holmes ernst. „Ich täusche mich sehr, wenn wir nicht schon in wenigen Tagen von ihr hören.“
 
-“Then I trust that you at least will honour me with your company,” said Sherlock Holmes. “It is always a pleasure to meet an American, Mr. Moulton, for I am one of those who believe that the folly of a king and the blundering of a minister, long ago, will not prevent our children from one day being citizens of the same world-wide nation, under a flag that quarters the Union Jack with the Stars and Stripes.”
+Es dauerte nicht lange, bis sich die Vorhersage meines Freundes erfüllte. Vierzehn Tage vergingen, in denen meine Gedanken oft zu ihr abschweiften, und ich mich fragte, in welche seltsame Seitenstraße menschlicher Erfahrung diese alleinstehende Frau geraten war. Das ungewöhnliche Gehalt, die merkwürdigen Bedingungen, die leichten Pflichten — alles deutete auf etwas Abnormes hin; doch ob es eine Laune war oder ein Plan, ob der Mann ein Wohltäter oder ein Schurke, das lag völlig außerhalb meiner Möglichkeiten. Was Holmes anging, so bemerkte ich, dass er häufig eine halbe Stunde am Stück dasaß, die Stirn in Falten, mit abwesendem Blick; doch wenn ich die Sache erwähnte, wischte er sie mit einer Handbewegung beiseite. „Daten! Daten! Daten!“, rief er ungeduldig. „Ich kann keine Ziegel machen ohne Lehm.“ Und doch endete er stets damit, vor sich hin zu murmeln, keine Schwester von ihm hätte je eine solche Stellung angenommen.
 
-“The case has been an interesting one,” remarked Holmes, after our visitors had left, “because it shows very clearly how simple the explanation can be for an affair that at first sight seems almost inexplicable. Nothing could be more natural than the sequence of events as the lady described them, and nothing stranger than the result when viewed, for example, by Mr. Lestrade of Scotland Yard.”
+Das Telegramm, das wir schließlich erhielten, kam spät in der Nacht, gerade als ich daran dachte, zu Bett zu gehen, und Holmes sich zu einer jener nächtelangen chemischen Untersuchungen niederließ, denen er häufig frönte — wenn ich ihn abends über einem Kolben und einem Reagenzglas gebeugt zurückließ und ihn morgens beim Frühstück in derselben Haltung wiederfand. Er öffnete den gelben Umschlag und warf ihn, nachdem er die Nachricht überflogen hatte, zu mir hinüber.
 
-“So you weren’t at fault at all, then?”
+„Schlagen Sie die Züge in Bradshaw nach“, sagte er und wandte sich wieder seinen chemischen Studien zu.
 
-“From the start, two facts were very obvious to me: first, that the lady had been quite willing to go through with the wedding ceremony; second, that she regretted it within a few minutes of getting home. Clearly, then, something had happened during the morning to make her change her mind. What could that something be? She couldn’t have spoken to anyone while she was out, because she was in the bridegroom’s company the whole time. Had she seen someone, then? If she had, it must have been someone from America, because she had spent so little time in this country that she could hardly have allowed anyone here to gain such influence over her that the mere sight of him would make her change her plans so completely. You see, by a process of elimination, we had already reached the idea that she might have seen an American. Then who could this American be, and why should he have such power over her? He might be a lover; he might be a husband. I knew her girlhood had been spent in rough surroundings and under strange conditions. That was how far I had got before I ever heard Lord St. Simon’s story. When he told us about the man in the pew, the change in the bride’s manner, the transparent trick of dropping a bouquet to get a note, her turning to her confidential maid, and her very pointed reference to ‘claim-jumping’—which, in miners’ slang, means taking possession of something to which someone else already has a prior claim—the whole situation became absolutely clear. She had gone off with a man, and that man was either a lover or a previous husband—with the odds in favour of the latter.”
+Die Aufforderung war kurz und dringend.
 
-“And how on earth did you find them?”
+„Bitte seien Sie morgen Mittag im Black-Swan-Hotel in Winchester“, hieß es. „Kommen Sie unbedingt! Ich bin mit meinem Latein am Ende.
 
-“It might have been difficult, but our friend Lestrade had information in his hands whose value he didn’t recognize. The initials were, of course, of the greatest importance, but even more valuable was knowing that within a week he had settled his bill at one of the most exclusive hotels in London.”
+HUNTER.“
 
-“How did you deduce that it was exclusive?”
+„Kommen Sie mit?“ fragte Holmes und blickte auf.
 
-“From the exclusive prices. Eight shillings for a bed and eightpence for a glass of sherry point to one of the most expensive hotels. There aren’t many in London that charge at that rate. At the second one I visited in Northumberland Avenue, I found, by inspecting the register, that Francis H. Moulton, an American gentleman, had left only the day before, and when I looked over the entries against his name, I came upon the very items I had seen on the duplicate bill. His letters were to be forwarded to 226 Gordon Square,“Holmes,” I said one morning, standing at our bay window and looking down into the street, “there’s a madman coming this way. It’s rather sad that his family lets him go out alone.”
+„Das möchte ich.“
 
-My friend rose lazily from his armchair, slipped his hands into the pockets of his dressing gown, and looked over my shoulder. It was a bright, sharp February morning. Yesterday’s snow still lay deep on the ground, glittering in the cold winter sun. Down the middle of Baker Street it had been churned into a brown, crumbly strip by the traffic, but on either side, and piled along the edges of the pavements, it was still as white as when it fell. The grey flagstones had been swept and scraped, but they were still treacherously slippery, so there were fewer people about than usual. In fact, from the direction of the Metropolitan Station no one was coming except the single gentleman whose strange behaviour had caught my eye.
+„Dann sehen Sie nach.“
 
-He was about fifty, tall, stout, and imposing, with a large, strongly marked face and a commanding presence. He was dressed in a sombre but expensive style: black frock coat, glossy top hat, neat brown gaiters, and well-cut pearl-grey trousers. Yet his movements were absurdly at odds with the dignity of his clothes and features, for he was running hard, with little awkward hops now and then, like a tired man who is quite unused to putting any demand on his legs. As he ran he jerked his hands up and down, wagged his head, and twisted his face into the most extraordinary grimaces.
+„Es gibt einen Zug um halb zehn“, sagte ich und überflog meinen Bradshaw. „Ankunft in Winchester um 11.30.“
 
-“What on earth is the matter with him?” I asked. “He’s looking up at the house numbers.”
+„Das passt sehr gut. Dann verschiebe ich vielleicht besser meine Analyse der Acetone, denn wir müssen morgen womöglich in Bestform sein.“
 
-“I believe he’s coming here,” said Holmes, rubbing his hands.
+Am nächsten Tag waren wir um elf Uhr bereits gut unterwegs in die alte englische Hauptstadt. Holmes hatte sich die ganze Fahrt über in die Morgenzeitungen vergr
 
-“Here?”
+Der „Black Swan“ ist ein angesehenes Gasthaus in der High Street, nicht weit vom Bahnhof, und dort fanden wir die junge Dame, die bereits auf uns wartete. Sie hatte ein kleines Zimmer gemietet, und unser Mittagessen stand schon auf dem Tisch.
 
-“Yes. I rather think he’s coming to consult me professionally. I recognise the symptoms. Ah! Didn’t I tell you?” As he spoke, the man, panting and blowing, rushed up to our door and pulled the bell so violently that the whole house rang with the clanging.
+„Ich bin so froh, dass Sie gekommen sind“, sagte sie eindringlich. „Es ist so freundlich von Ihnen beiden; aber wirklich, ich weiß nicht, was ich tun soll. Ihr Rat wird für mich von unschätzbarem Wert sein.“
 
-A few moments later he was in our room, still panting, still waving his arms, but with such a fixed look of grief and despair in his eyes that our smiles vanished instantly, replaced by horror and pity. For a while he couldn’t get a word out. He swayed where he sat and clutched at his hair like a man driven to the very edge of his sanity. Then, suddenly springing to his feet, he began beating his head against the wall with such force that we both rushed at him and dragged him back to the middle of the room. Sherlock Holmes pushed him down into the easy chair and, sitting beside him, patted his hand and spoke to him in the calm, soothing tones he knew so well how to use.
+„Dann erzählen Sie uns bitte, was Ihnen widerfahren ist.“
 
-“You’ve come to tell me your story, haven’t you?” he said. “You’re exhausted from your haste. Please wait until you’ve recovered yourself, and then I’ll be very glad to look into any little problem you may lay before me.”
+„Das will ich, und ich muss mich beeilen, denn ich habe Mr. Rucastle versprochen, vor drei wieder zurück zu sein. Ich habe mir heute Morgen seine Erlaubnis geholt, in die Stadt zu fahren — obwohl er kaum ahnte, zu welchem Zweck.“
 
-For a minute or more the man sat with his chest heaving, struggling with his emotion. Then he passed his handkerchief over his forehead, pressed his lips together, and turned his face towards us.
+„Dann der Reihe nach.“ Holmes streckte seine langen, dünnen Beine dem Feuer entgegen und machte es sich bequem, um zuzuhören.
 
-“No doubt you think I’m mad,” he said.
+„Zunächst kann ich sagen, dass ich von Mr. und Mrs. Rucastle im Großen und Ganzen nicht wirklich schlecht behandelt worden bin. Das muss man ihnen fairerweise zugutehalten. Aber ich verstehe sie nicht, und ich habe kein gutes Gefühl bei ihnen.“
 
-“I see that you’ve had some great trouble,” Holmes replied.
+„Was verstehen Sie nicht?“
 
-“God knows I have—trouble enough to unhinge my mind, it is so sudden and so terrible. Public disgrace I might have faced, though I am a man whose character has never yet been stained. Private sorrow, too, is every man’s lot. But the two together, and in such a dreadful form, have been enough to shake my very soul. And it is not only myself. The very noblest in the land may suffer unless some way can be found out of this horrible affair.”
+„Ihre Gründe für ihr Verhalten. Aber ich erzähle Ihnen alles, genau so, wie es geschehen ist. Als ich hinunterfuhr, holte mich Mr. Rucastle hier ab und fuhr mich in seinem Dogcart nach Copper Beeches. Es liegt, wie er sagte, sehr schön, aber das Haus selbst ist nicht schön: ein großer, würfelförmiger Bau, weiß getüncht, doch überall von Feuchtigkeit und schlechtem Wetter verschmiert und von dunklen Streifen durchzogen. Ringsherum liegen die Anlagen, auf drei Seiten Wald, und auf der vierten ein Feld, das zur Landstraße nach Southampton abfällt, die in etwa hundert Yards Entfernung vor der Haustür vorbeibiegt. Das Gelände vor dem Haus gehört dazu, aber die Wälder ringsum sind Teil von Lord Southertons Wildgehege. Ein kleiner Hain von Kupferbuchen direkt vor der Eingangstür hat dem Ort seinen Namen gegeben.
 
-“Please compose yourself, sir,” said Holmes, “and give me a clear account of who you are and what has happened to you.”
+„Mein Arbeitgeber fuhr mich selbst hinüber; er war so liebenswürdig wie immer, und am Abend stellte er mich seiner Frau und dem Kind vor. Es war nichts dran, Mr. Holmes, an der Vermutung, die uns in Ihren Zimmern in der Baker Street so wahrscheinlich erschienen war. Mrs. Rucastle ist nicht verrückt. Ich fand sie als eine stille, blasse Frau, viel jünger als ihr Mann — keine dreißig, würde ich sagen — während er kaum unter fünfundvierzig sein kann. Aus ihren Gesprächen habe ich entnommen, dass sie seit etwa sieben Jahren verheiratet sind, dass er Witwer war und dass sein einziges Kind aus erster Ehe die Tochter ist, die nach Philadelphia gegangen ist. Mr. Rucastle sagte mir unter vier Augen, der Grund für ihr Fortgehen sei gewesen, dass sie eine völlig unbegründete Abneigung gegen ihre Stiefmutter gehabt habe. Da die Tochter nicht jünger als zwanzig gewesen sein kann, kann ich mir gut vorstellen, dass ihre Lage neben der jungen Frau ihres Vaters unerquicklich gewesen sein muss.
 
-“My name,” our visitor answered, “is probably familiar to you. I am Alexander Holder, of the banking firm of Holder & Stevenson, Threadneedle Street.”
+„Mrs. Rucastle erschien mir farblos — im Gesicht wie im Geist. Sie machte weder einen guten noch einen schlechten Eindruck auf mich. Sie war ein Niemand. Es war leicht zu sehen, dass sie ihrem Mann und ihrem kleinen Sohn leidenschaftlich ergeben war. Ihre hellgrauen Augen wanderten unablässig von dem einen zum anderen, registrierten jeden kleinen Wunsch und kamen ihm, wenn möglich, zuvor. Er war auch freundlich zu ihr, auf seine derbe, polternde Art, und im Ganzen wirkten sie wie ein glückliches Paar. Und doch trug diese Frau einen geheimen Kummer in sich. Oft versank sie in tiefes Nachdenken, mit dem traurigsten Ausdruck im Gesicht. Mehr als einmal habe ich sie in Tränen überrascht. Manchmal dachte ich, es läge am Wesen ihres Kindes, das ihr so schwer auf der Seele lag, denn ich habe noch nie ein so restlos verzogenes und so bösartiges kleines Geschöpf getroffen. Er ist klein für sein Alter, mit einem Kopf, der ganz unverhältnismäßig groß ist. Sein ganzes Leben scheint zwischen wilden Wutanfällen und düsteren Phasen des Schmollens hin und her zu pendeln. Schwächeren Wesen Schmerzen zuzufügen, ist offenbar seine einzige Vorstellung von Vergnügen, und er zeigt ein geradezu bemerkenswertes Talent darin, Mäuse, kleine Vögel und Insekten zu fangen und Fallen für sie auszutüfteln. Aber ich möchte lieber nicht über das Geschöpf sprechen, Mr. Holmes, und überhaupt hat es mit meiner Geschichte nur wenig zu tun.“
 
-The name was indeed well known to us as that of the senior partner in the second-largest private banking house in the City of London. What could have happened, then, to bring one of London’s foremost citizens to such a pitiable state? We waited, full of curiosity, until, with another effort, he braced himself to tell his story.
+„Ich bin über jedes Detail froh“, bemerkte mein Freund, „ob es Ihnen nun wichtig erscheint oder nicht.“
 
-“I feel that time is important,” he said. “That is why I hurried here as soon as the police inspector suggested that I should seek your help. I came to Baker Street by the Underground and then hurried on foot, for cabs move slowly in this snow. That is why I was so out of breath, for I am a man who takes very little exercise. I feel better now, and I will lay the facts before you as briefly and as clearly as I can.
+„Ich will versuchen, nichts Wesentliches auszulassen. Das eine Unangenehme an dem Haus, das mir sofort auffiel, war das Aussehen und Benehmen der Dienerschaft. Es gibt nur zwei, einen Mann und seine Frau. Toller — so heißt er — ist ein grober, ungehobelter Mensch, mit ergrautem Haar und Koteletten, und er riecht ständig nach Alkohol. Zweimal, seit ich bei ihnen bin, war er völlig betrunken, und doch schien Mr. Rucastle es nicht einmal zu bemerken. Seine Frau ist eine sehr große, kräftige Frau mit saurem Gesicht,
 
-“It is, of course, well known to you that in a successful banking business it is just as important to find profitable investments for our funds as it is to increase our connections and the number of our depositors. One of our most lucrative ways of employing money is in the form of loans where the security is beyond question. We have done a great deal of this in the last few years, and there are many noble families to whom we have advanced large sums on the security of their pictures, libraries, or silver.
+„Sie können sich leicht vorstellen, Mr. Holmes, wie neugierig ich wurde, was der Sinn dieser außergewöhnlichen Vorstellung nur sein konnte. Sie waren, wie ich bemerkte, immer sehr darauf bedacht, mein Gesicht vom Fenster wegzudrehen, sodass mich das Verlangen verzehrte, zu sehen, was hinter meinem Rücken vorging. Zunächst schien es unmöglich, doch bald fand ich einen Weg. Mein Handspiegel war zerbrochen; da kam mir ein glücklicher Einfall, und ich verbarg ein Stück des Glases in meinem Taschentuch. Beim nächsten Mal, mitten in meinem Lachen, hob ich das Taschentuch an die Augen und konnte mit ein wenig Geschick alles sehen, was hinter mir war. Ich gestehe, ich war enttäuscht. Da war nichts. Wenigstens war das mein erster Eindruck. Beim zweiten Hinsehen jedoch bemerkte ich, dass ein Mann in der Southampton Road stand, ein kleiner, bärtiger Mann in einem grauen Anzug, der in meine Richtung zu schauen schien. Die Straße ist eine wichtige Durchgangsstraße, und gewöhnlich sind dort Leute. Dieser Mann jedoch lehnte an dem Geländer, das unser Feld begrenzte, und blickte ernsthaft nach oben. Ich senkte das Taschentuch und sah zu Mrs. Rucastle hinüber; ihre Augen waren mit einem höchst prüfenden Blick auf mich gerichtet. Sie sagte nichts, aber ich bin überzeugt, dass sie erkannt hatte, dass ich einen Spiegel in der Hand hielt und gesehen hatte, was hinter mir war. Sie stand sofort auf.
 
-“Yesterday morning I was sitting in my office at the bank when one of the clerks brought in a card. I started when I saw the name, for it was none other than—well, perhaps even to you I had better say no more than that it is a name that“‘Exactly.’ He opened the case, and there, set in soft, flesh-colored velvet, lay the magnificent piece of jewelry he had named. ‘There are thirty-nine enormous beryls,’ he said, ‘and the value of the gold chasing is beyond calculation. The lowest estimate would put the worth of the coronet at twice the amount I have requested. I am prepared to leave it with you as my security.’
+„‚Jephro‘, sagte sie, ‚da unten auf der Straße steht so ein unverschämter Kerl, der zu Miss Hunter heraufstarrt.‘
 
-“I took the precious case in my hands and looked, puzzled, from it to my distinguished client.
+„‚Kein Freund von Ihnen, Miss Hunter?‘ fragte er.
 
-“‘You doubt its value?’ he asked.
+„‚Nein, ich kenne hier in der Gegend niemanden.‘
 
-“‘Not at all. I only doubt—’
+„‚Ach du meine Güte! Wie unverschämt! Drehen Sie sich bitte um und geben Sie ihm ein Zeichen, dass er verschwinden soll.‘
 
-“‘The propriety of my leaving it. You can set your mind at rest on that point. I would never dream of doing so if I were not absolutely certain that I will be able to reclaim it in four days’ time. It is purely a matter of form. Is the security sufficient?’
+„‚Wäre es nicht besser, ihn einfach zu ignorieren?‘
 
-“‘More than sufficient.’
+„‚Nein, nein, sonst lungert er am Ende ständig hier herum. Drehen Sie sich bitte um und winken Sie ihn weg, so.‘
 
-“‘You understand, Mr. Holder, that I am giving you a strong proof of the confidence I have in you, based on all I have heard about you. I rely on you not only to be discreet and to avoid all gossip about the matter, but, above all, to guard this coronet with every possible precaution, because I need hardly say that a great public scandal would arise if any harm were to befall it. Any damage to it would be almost as serious as its complete loss, for there are no beryls in the world to equal these, and it would be impossible to replace them. I leave it with you, however, in full confidence, and I shall call for it in person on Monday morning.’
+„Ich tat, was man mir sagte, und im selben Augenblick ließ Mrs. Rucastle das Rollo herunter. Das ist eine Woche her, und seitdem habe ich nicht wieder am Fenster gesessen, ich habe das blaue Kleid nicht mehr getragen und den Mann auf der Straße nicht mehr gesehen.“
 
-“Seeing that my client was anxious to leave, I said no more, but, calling in my cashier, I ordered him to pay out fifty notes of one thousand pounds each. When I was alone again, with the precious case lying on the table in front of me, I could not help feeling some misgivings about the immense responsibility I had taken on myself. There could be no doubt that, since it was a national possession, a dreadful scandal would follow if any misfortune should happen to it. I already regretted ever having agreed to take charge of it. However, it was too late to change matters now, so I locked it away in my private safe and turned once more to my work.
+„Bitte fahren Sie fort“, sagte Holmes. „Ihre Erzählung verspricht höchst interessant zu werden.“
 
-“When evening came, I felt it would be unwise to leave so valuable an object behind me at the office. Bankers’ safes have been broken into before now—why should mine be an exception? If that happened, how terrible my position would be! I therefore decided that, for the next few days, I would always carry the case back and forth with me, so that it would never really be out of my reach. With this in mind, I called a cab and drove out to my house at Streatham, taking the jewel with me. I did not breathe freely until I had taken it upstairs and locked it in the bureau in my dressing room.
+„Sie werden sie wohl etwas zusammenhanglos finden, fürchte ich, und am Ende stellt sich vielleicht heraus, dass zwischen den einzelnen Vorfällen, von denen ich berichte, nur wenig Zusammenhang besteht. Gleich am ersten Tag, an dem ich in Copper Beeches war, führte mich Mr. Rucastle zu einem kleinen Nebengebäude, das nahe der Küchentür steht. Als wir uns näherten, hörte ich das scharfe Klirren einer Kette und das Geräusch, als bewege sich ein großes Tier darin.
 
-“And now a word about my household, Mr. Holmes, for I want you to understand the situation thoroughly. My groom and my page sleep out of the house and may be dismissed from consideration altogether. I have three maidservants who have been with me for many years and whose complete reliability is beyond suspicion. Another, Lucy Parr, the second lady’s maid, has only been in my service a few months. She came with an excellent reference, however, and has always given me satisfaction. She is a very pretty girl and has attracted admirers who have occasionally loitered about the place. That is the only drawback we have found in her, but we believe her to be a thoroughly good girl in every respect.
+„‚Schauen Sie hier hinein!‘ sagte Mr. Rucastle und zeigte mir einen Spalt zwischen zwei Brettern. ‚Ist er nicht eine Schönheit?‘
 
-“So much for the servants. My family itself is so small that it will not take me long to describe it. I am a widower and have only one son, Arthur. He has been a disappointment to me, Mr. Holmes—a bitter disappointment. I have no doubt that I am myself to blame. People tell me I have spoiled him. Very likely I have. When my dear wife died, I felt that he was all I had left to love. I could not bear to see the smile fade from his face, even for a moment. I have never refused him anything. Perhaps it would have been better for both of us if I had been stricter, but my intentions were good.
+„Ich blickte hindurch und sah zwei glühende Augen und eine undeutliche Gestalt, die sich in der Dunkelheit zusammengekauert hatte.
 
-“It was naturally my intention that he should succeed me in my business, but he has no head for business. He is wild, wayward, and, to tell the truth, I could not trust him with large sums of money. When he was young he joined an aristocratic club, and there, having charming manners, he soon became intimate with a number of men with deep pockets and extravagant habits. He learned to gamble heavily at cards and to throw away money on the turf, until, again and again, he had to come to me and beg me to advance him money on his allowance so that he could settle his debts of honour. More than once he tried to break away from the dangerous company he was keeping, but each time the influence of his friend, Sir George Burnwell, was enough to draw him back again.
+„‚Nur keine Angst‘, sagte mein Arbeitgeber und lachte über meinen Schreck. ‚Das ist nur Carlo, mein Mastiff. Ich nenne ihn meinen, aber in Wahrheit ist der alte Toller, mein Stallknecht, der einzige Mann, der mit ihm umgehen kann. Wir füttern ihn einmal am Tag, und auch dann nicht zu viel, damit er immer scharf ist wie Senf. Toller lässt ihn jede Nacht los, und Gott helfe dem Eindringling, in den er seine Zähne schlägt. Um Himmels willen setzen Sie nachts unter keinem Vorwand einen Fuß über die Schwelle — das ist so gut wie lebensgefährlich.‘
 
-“And indeed, I cannot be surprised that such a man as Sir George Burnwell should gain influence over him, for he has often brought him to my house, and I myself have found it hard to resist the charm of his manner. He is older than Arthur, a man of the world to his fingertips, one who has been everywhere, seen everything, a brilliant talker, and a man of great personal beauty. Yet when I think of him coolly, away from the glamour of his presence, I am convinced, from his cynical talk and from a look I have sometimes caught“‘Listen, son,’ I said, as he stood there staring at the floor, ‘can you let me have two hundred pounds?’
+„Die Warnung war nicht leer, denn zwei Nächte später schaute ich zufällig gegen zwei Uhr morgens aus meinem Schlafzimmerfenster. Es war eine wunderschöne Mondnacht, und der Rasen vor dem Haus lag wie mit Silber überzogen da, fast so hell wie am Tag. Ich stand dort, ganz versunken in die friedliche Schönheit des Anblicks, als ich bemerkte, dass sich etwas im Schatten der Kupferbuchen bewegte. Als es ins Mondlicht trat, sah ich, was es war: ein riesiger Hund, so groß wie ein Kalb, fahlgelb, mit hängenden Lefzen, schwarzer Schnauze und gewaltig hervortretenden Knochen. Langsam ging er über den Rasen und verschwand auf der anderen Seite wieder im Schatten. Dieser schreckliche Wächter jagte mir einen Frost ins Herz, wie es, glaube ich, kein Einbrecher vermocht hätte.
 
-‘No, I cannot,’ I snapped. ‘I’ve already been far too generous with you about money.’
+„Und nun habe ich Ihnen ein sehr seltsames Erlebnis zu erzählen. Ich hatte, wie Sie wissen, in London mein Haar abgeschnitten und es als große Locke unten in meinen Koffer gelegt. Eines Abends, nachdem das Kind im Bett war, begann ich mich damit zu beschäftigen, die Möbel meines Zimmers zu betrachten und meine kleinen Sachen neu zu ordnen. Im Zimmer stand eine alte Kommode; die beiden oberen Schubladen waren leer und standen offen, die untere war verschlossen. Ich hatte die ersten beiden mit meiner Wäsche gefüllt, und
 
-‘You’ve been very kind,’ he said, ‘but I must have this money, or I’ll never be able to show my face at the club again.’
+„Nun, Mr. Holmes, von dem Augenblick an, als ich begriff, dass es an dieser Zimmerflucht etwas gab, das ich nicht wissen sollte, brannte ich darauf, sie mir anzusehen. Es war nicht bloß Neugier – obwohl ich davon meinen Anteil habe. Es war eher ein Pflichtgefühl, das Gefühl, dass etwas Gutes daraus entstehen könnte, wenn ich in diesen Ort eindrang. Man spricht von weiblicher Intuition; vielleicht war es eben diese Intuition, die mir dieses Gefühl gab. Wie dem auch sei: Es war da, und ich hielt scharf Ausschau nach jeder Gelegenheit, durch die verbotene Tür zu gelangen.
 
-‘And that would be an excellent thing!’ I shouted.
+„Erst gestern ergab sich die Gelegenheit. Ich kann Ihnen sagen, dass außer Mr. Rucastle auch Toller und seine Frau in diesen verlassenen Räumen etwas zu tun finden, und einmal sah ich ihn einen großen schwarzen Leinensack durch die Tür tragen. In letzter Zeit trinkt er stark, und gestern Abend war er sehr betrunken; und als ich die Treppe hinaufkam, steckte der Schlüssel in der Tür. Ich zweifle keinen Augenblick daran, dass er ihn dort stecken gelassen hatte. Mr. und Mrs. Rucastle waren beide unten, und das Kind war bei ihnen, sodass ich eine ausgezeichnete Gelegenheit hatte. Ich drehte den Schlüssel ganz vorsichtig im Schloss, öffnete die Tür und schlüpfte hindurch.
 
-‘Yes, but you wouldn’t have me leave it in disgrace,’ he said. ‘I couldn’t endure the shame. I have to raise the money somehow, and if you won’t give it to me, then I’ll have to find some other way.’
+„Vor mir lag ein schmaler Gang, ohne Tapeten und ohne Teppich, der am hinteren Ende im rechten Winkel abbog. Um diese Ecke herum lagen drei Türen in einer Reihe; die erste und die dritte standen offen. Jede führte in ein leeres Zimmer, staubig und trostlos, das eine mit zwei Fenstern, das andere mit einem; so dick mit Schmutz überzogen, dass das Abendlicht nur matt hindurchschimmerte. Die mittlere Tür war geschlossen, und quer über ihre Außenseite war eine der breiten Stangen eines eisernen Bettgestells befestigt, an einem Ende mit einem Vorhängeschloss an einem Ring in der Wand gesichert und am anderen Ende mit starkem Seil festgebunden. Die Tür selbst war außerdem abgeschlossen, und der Schlüssel steckte nicht. Diese verbarrikadierte Tür musste offensichtlich zu dem von außen verriegelten Fenster gehören, und doch sah ich an dem Schimmer unter der Tür, dass der Raum nicht im Dunkeln lag. Offenbar gab es ein Oberlicht, das von oben Licht hineinließ. Während ich im Gang stand, auf die unheilvolle Tür starrte und mich fragte, welches Geheimnis sie wohl verbarg, hörte ich plötzlich Schritte im Zimmer und sah einen Schatten hinter dem schmalen Spalt des trüben Lichtes hin und her ziehen, das unter der Tür hervordrang. Ein wahnsinniger, grundloser Schrecken stieg in mir auf bei diesem Anblick, Mr. Holmes. Meine überreizten Nerven versagten mir auf der Stelle, und ich drehte mich um und rannte – rannte, als wäre eine schreckliche Hand hinter mir, die nach dem Saum meines Kleides griff. Ich stürzte den Gang hinunter, durch die Tür, und direkt in die Arme von Mr. Rucastle, der draußen gewartet hatte.
 
-\newpage
+„‚So‘, sagte er lächelnd, ‚also waren Sie es. Ich dachte mir schon, dass Sie es sein müssten, als ich die Tür offen sah.‘
 
-# I. was furious; it was the third time he’d asked for money that month. ‘You won’t get a penny from me!’ I cried. He bowed and left the room without another word.
+„‚Oh, ich habe solche Angst!‘ keuchte ich.
 
-When he was gone, I unlocked my desk, checked that my treasure was safe, and locked it again. Then I went round the house to make sure everything was secure—a job I usually leave to Mary, but which I thought it best to do myself that night. As I came down the stairs, I saw Mary at the side window in the hall, closing and fastening it as I approached.
+„‚Meine liebe junge Dame! Meine liebe junge Dame!‘ – Sie können sich nicht vorstellen, wie schmeichelnd und beruhigend sein Ton war – ‚und wovor haben Sie sich erschreckt, meine liebe junge Dame?‘
 
-‘Tell me, Dad,’ she said, looking, I thought, a little unsettled, ‘did you give Lucy, the maid, permission to go out tonight?’
+„Aber seine Stimme war einen Hauch zu beschwichtigend. Er übertrieb es. Ich war sofort auf der Hut.
 
-‘Certainly not.’
+„‚Ich war töricht genug, in den leeren Flügel zu gehen‘, antwortete ich. ‚Aber es ist dort oben in diesem trüben Licht so einsam und unheimlich, dass ich Angst bekam und gleich wieder hinauslief. Oh, es ist so entsetzlich still da drin!‘
 
-‘She just came in by the back door. I’ve no doubt she only went to the side gate to see someone, but I don’t think it’s safe and it ought to be stopped.’
+„‚Nur das?‘ sagte er und musterte mich scharf.
 
-‘You must speak to her in the morning—or I will, if you’d rather. Are you sure everything is fastened?’
+„‚Was haben Sie denn gedacht?‘ fragte ich.
 
-‘Quite sure, Dad.’
+„‚Warum glauben Sie, dass ich diese Tür abschließe?‘
 
-‘Then good night.’ I kissed her and went back up to my bedroom, where I was soon asleep.
+„‚Ich bin sicher, ich weiß es nicht.‘
 
-I’m trying to tell you everything, Mr. Holmes, that might have any bearing on the case, but I beg you to question me about anything I haven’t made clear.’
+„‚Damit Leute draußen bleiben, die dort nichts zu suchen haben. Verstehen Sie?‘ Er lächelte noch immer auf die freundlichste Art.
 
-‘On the contrary, your account is remarkably clear.’
+„‚Wenn ich gewusst hätte –‘
 
-‘I’m coming now to a part of my story where I especially want to be precise. I’m not a very heavy sleeper, and the anxiety on my mind no doubt made me even lighter than usual. Around two in the morning, I was woken by some sound in the house. It had stopped before I was fully awake, but it left the impression that a window had been gently closed somewhere. I lay there listening with all my attention. Then, to my horror, I heard distinct footsteps, moving softly in the next room.
+„‚Nun, jetzt wissen Sie es. Und wenn Sie jemals wieder einen Fuß über diese Schwelle setzen‘ – im selben Augenblick erstarrte das Lächeln zu einem wütenden Grinsen, und er starrte auf mich herab mit einem Gesicht wie ein Dämon – ‚dann werfe ich Sie dem Mastiff vor.‘
 
-\newpage
+„Ich war so entsetzt, dass ich nicht weiß, was ich tat. Ich nehme an, ich muss an ihm vorbeigestürzt sein, in mein Zimmer. Ich erinnere mich an nichts, bis ich mich auf meinem Bett wiederfand, am ganzen Körper zitternd. Dann dachte ich an Sie, Mr. Holmes. Ich konnte dort nicht länger leben, ohne Rat. Ich hatte Angst vor dem Haus, vor dem Mann, vor der Frau, vor den Dienern – sogar vor dem Kind. Sie waren mir alle schrecklich. Wenn ich Sie nur herbringen könnte, wäre alles gut. Natürlich hätte ich aus dem Haus fliehen können, aber meine Neugier war
 
-# I. slipped out of bed, my heart pounding with fear, and peered round the corner of my dressing-room door.
+„Was um alles in der Welt hat das damit zu tun?“, platzte es aus mir heraus.
 
-‘Arthur!’ I screamed. ‘You scoundrel! You thief! How dare you touch that coronet?’
+„Mein lieber Watson, als Arzt gewinnen Sie ständig Aufschluss über die Anlagen eines Kindes, indem Sie die Eltern studieren. Sehen Sie denn nicht, dass auch das Umgekehrt ebenso gilt? Nicht selten habe ich meinen ersten wirklichen Einblick in den Charakter von Eltern gewonnen, indem ich ihre Kinder beobachtete. Dieses Kind hat eine abnorm grausame Veranlagung – grausam um der Grausamkeit willen. Und ob es das von seinem lächelnden Vater hat, wie ich vermute, oder von der Mutter: Es verheißt nichts Gutes für das arme Mädchen, das in ihrer Gewalt ist.“
 
-The gas was turned halfway up, just as I’d left it, and there stood my unfortunate boy, wearing only his shirt and trousers, beside the light, holding the coronet in his hands. He seemed to be wrenching at it, bending it with all his strength. At my cry he dropped it and turned as white as death. I snatched it up and examined it. One of the gold corners, with three of the beryls in it, was missing.
+„Ich bin sicher, Sie haben recht, Mr. Holmes!“, rief unsere Klientin. „Tausend Dinge fallen mir wieder ein, die mich gewiss machen, dass Sie ins Schwarze getroffen haben. Oh, verlieren wir keine Sekunde, um diesem armen Geschöpf Hilfe zu bringen!“
 
-‘You blackguard!’ I shouted, beside myself with rage. ‘You’ve ruined it! You’ve disgraced me forever! Where are the jewels you’ve stolen?’
+„Wir müssen vorsichtig sein, denn wir haben es mit einem äußerst gerissenen Mann zu tun. Vor sieben Uhr können wir nichts unternehmen. Um diese Zeit sind wir bei Ihnen, und es wird nicht lange dauern, bis wir das Rätsel lösen.“
 
-‘Stolen!’ he cried.
+Wir hielten Wort: Es war gerade sieben, als wir bei den Copper Beeches eintrafen, nachdem wir unsere Falle in einem Gasthaus am Wegesrand aufgestellt hatten. Die Baumgruppe mit den dunklen Blättern, die im Licht der untergehenden Sonne wie poliertes Metall glänzten, hätte das Haus auch dann kenntlich gemacht, wenn Miss Hunter nicht lächelnd auf der Türschwelle gestanden hätte.
 
-‘Yes, thief!’ I roared, shaking him by the shoulder.
+„Haben Sie es geschafft?“, fragte Holmes.
 
-‘There are none missing. There can’t be any missing,’ he said.
+Aus irgendeinem Raum unten drang ein lautes dumpfes Poltern. „Das ist Mrs. Toller im Keller“, sagte sie. „Ihr Mann liegt schnarchend auf dem Küchenläufer. Hier sind seine Schlüssel – Duplikate von Mr. Rucastles Schlüsseln.“
 
-‘Three are missing. And you know where they are. Must I call you a liar as well as a thief? Didn’t I see you trying to tear off another piece?’
+„Ausgezeichnet!“, rief Holmes begeistert. „Nun führen Sie uns, und wir werden bald das Ende dieser finsteren Sache sehen.“
 
-‘You’ve called me enough names,’ he said. ‘I won’t stand it any longer. I won’t say another word about this business, since you’ve chosen to insult me. I’ll leave your house in the morning and make my own way in the world.’
+Wir stiegen die Treppe hinauf, schlossen eine Tür auf, gingen einen Gang entlang und standen vor der Barrikade, die Miss Hunter beschrieben hatte. Holmes durchschnitt die Schnur und nahm den Querbalken weg. Dann probierte er die verschiedenen Schlüssel im Schloss – ohne Erfolg. Von drinnen kam kein Laut, und bei dieser Stille verdüsterte sich Holmes’ Gesicht.
 
-‘You’ll leave it in the hands of the police!’ I cried, half mad with grief and fury. ‘I’ll have this matter probed to the very bottom.’
+„Ich hoffe, wir kommen nicht zu spät“, sagte er. „Ich denke, Miss Hunter, es ist besser, wenn wir ohne Sie hineingehen. Nun, Watson, Schulter dagegen – sehen wir, ob wir uns nicht Zutritt verschaffen können.“
 
-‘You’ll learn nothing from me,’ he said, with a passion I’d never imagined in him. ‘If you choose to call the police, let the police find what they can.’
+Es war eine alte, wacklige Tür; sie gab unserer vereinten Kraft sofort nach. Gemeinsam stürmten wir ins Zimmer. Es war leer. Keine Möbel, außer einem schmalen Lager, einem kleinen Tisch und einem Korb voll Wäsche. Das Dachfenster oben stand offen – und die Gefangene war fort.
 
-By now the whole house was awake, for I had raised my voice in my anger. Mary was the first to rush into my room and, at the sight of the coronet and Arthur’s face, she understood everything and, with a scream, collapsed unconscious on the floor. I sent the housemaid for the police and put the investigation into their hands at once. When the inspector and a constable came into the house, Arthur, who had been standing there sullenly with his arms folded, asked me if I intended to charge him with theft. I answered that it was no longer a private matter but a public one, since the damaged coronet was national property. I was determined that the law should take its full course.
+„Hier ist Schurkerei im Spiel“, sagte Holmes. „Dieser Schöne hat Miss Hunters Absicht erraten und sein Opfer weggebracht.“
 
-‘At least,’ he said, ‘you won’t have me arrested immediately. It would be to your advantage as well as mine if I could leave the house for five minutes.’
+„Aber wie?“
 
-‘So you can escape—or perhaps hide what you’ve stolen,’ I said. Then, realising the dreadful position I was in, I begged him to remember that not only my honour, but that of someone far greater than I, was at stake, and that he was threatening to create a scandal that would shake the whole nation. He could prevent it all“From what you say, this has been a shock to her as well, hasn’t it?”
+„Durch das Dachfenster. Wir werden gleich sehen, wie er es angestellt hat.“ Er schwang sich aufs Dach. „Ah, ja“, rief er, „hier ist das Ende einer langen, leichten Leiter, die an der Traufe anliegt. So hat er es gemacht.“
 
-“Terrible! She’s even more affected than I am.”
+„Aber das ist unmöglich“, sagte Miss Hunter. „Die Leiter war nicht da, als die Rucastles weggefahren sind.“
 
-“And neither of you has any doubt about your son’s guilt?”
+„Er ist zurückgekommen und hat es getan. Ich sage Ihnen: Er ist ein kluger und gefährlicher Mann. Es würde mich nicht sehr wundern, wenn das eben derjenige wäre, dessen Schritte ich jetzt auf der Treppe höre. Ich denke, Watson, es wäre gut, wenn Sie Ihre Pistole bereithielten.“
 
-“How could we, when I saw him with my own eyes, the coronet in his hands?”
+Die Worte waren kaum ausgesprochen, da erschien ein Mann in der Tür: sehr fett und massig, mit einem schweren Stock in der Hand. Miss Hunter schrie auf und drückte sich beim Anblick an die Wand, doch Sherlock Holmes sprang vor und stellte sich ihm entgegen.
 
-“I can’t accept that as conclusive proof. Was the rest of the coronet damaged at all?”
+„Sie Schurke!“, sagte er. „Wo ist Ihre Tochter?“
 
-“Yes, it was bent.”
+Der Dicke ließ den Blick im Zimmer umherwandern und dann hinauf zum offenen Dachfenster.
 
-“Then isn’t it possible he was trying to straighten it?”
+„Das frage ich Sie!“, kreischte er. „Ihr Diebe! Spione und Diebe! Ich habe euch erwischt, was? Ihr seid in meiner Gewalt. Ich werde es euch heimzahlen!“ Er drehte sich um und polterte die Treppe hinunter, so schnell er konnte.
 
-“God bless you! You’re doing everything you can for him and for me. But it’s too much to hope for. What was he doing there at all? If his intentions were innocent, why didn’t he say so?”
+„Er holt den Hund!“, schrie Miss Hunter.
 
-“Exactly. And if they were guilty, why didn’t he make up a lie? His silence cuts both ways, in my view. There are several very odd points about this case. What explanation did the police give for the noise that woke you?”
+„Ich habe meinen Revolver“, sagte ich.
 
-“They thought it might have been Arthur shutting his bedroom door.”
+„Besser, wir schließen die Haustür!“, rief Holmes, und wir stürzten alle zusammen die Treppe hinab. Kaum hatten wir die Halle erreicht, da hörten wir das tiefe Bellen eines Hundes, dann einen Schrei der Qual – und ein entsetzliches Würge- und Zerreißgeräusch, dem zuzuhören grauenhaft war. Ein älterer Mann mit rotem Gesicht und zitternden Gliedern taumelte aus einer Seitentür.
 
-“A likely story! As if a man intent on a crime would slam his door and wake the whole household. And what do they say about the disappearance of the gems?”
+„Mein Gott!“, rief er. „Jemand hat den Hund losgelassen. Er hat seit zwei Tagen nichts gefressen. Schnell, schnell, sonst ist es zu spät!“
 
-“They’re still tapping the floorboards and probing the furniture, hoping to find them.”
+Holmes und ich rannten hinaus und um die Hausecke, Toller hastete hinter uns her.
 
-“Have they considered looking outside the house?”
+„Doch Mr. Fowler war ein hartnäckiger Mann, wie es sich für einen guten Seemann gehört. Er legte das Haus praktisch lahm, und als er Ihnen begegnete, brachte er Sie mit gewissen Argumenten – metallischen oder anderen – dazu, sich davon zu überzeugen, dass Ihre Interessen mit den seinen identisch waren.“
 
-“Yes, they’ve been remarkably energetic. The entire garden has already been examined in detail.”
+„Mr. Fowler war ein sehr freundlich sprechender, großzügiger Gentleman“, sagte Mrs. Toller gelassen.
 
-“Now, my dear sir,” said Holmes, “isn’t it clear to you that this matter goes far deeper than either you or the police first supposed? It seemed simple to you; to me it looks extremely complex. Think what your theory involves. You imagine that your son got out of bed, went—at great risk—to your dressing room, opened your bureau, took out the coronet, broke off by sheer force a small piece of it, went somewhere else, hid three gems out of the thirty-nine so cleverly that no one can find them, and then came back with the remaining thirty-six to the very room where he ran the greatest risk of being discovered. I ask you: is such a theory really tenable?”
+„Und auf diese Weise sorgte er dafür, dass es Ihrem braven Mann nicht an Getränk fehlte und dass eine Leiter im entscheidenden Augenblick bereitstand, sobald Ihr Herr das Haus verlassen hatte.“
 
-“But what other theory is there?” cried the banker, throwing up his hands in despair. “If his motives were innocent, why doesn’t he explain them?”
+„Ganz recht, Sir – genau so ist es gewesen.“
 
-“It’s our job to find that out,” Holmes replied. “So now, if you please, Mr. Holder, we’ll go down to Streatham together and spend an hour looking a little more closely into the details.”
+„Ich bin sicher, wir schulden Ihnen eine Entschuldigung, Mrs. Toller“, sagte Holmes, „denn Sie haben tatsächlich alles aufgeklärt, was uns verwirrt hat. Und da kommen auch schon der Landarzt und Mrs. Rucastle; ich denke daher, Watson, wir sollten Miss Hunter zurück nach Winchester begleiten, denn es scheint mir, dass unser _locus standi_ inzwischen ein wenig fragwürdig geworden ist.“
 
-My friend insisted that I accompany them, and I was only too glad to, for my curiosity and sympathy had been deeply stirred by the story we had heard. I admit that the banker’s son’s guilt seemed as obvious to me as it did to his miserable father, but I had such faith in Holmes’s judgment that I felt there must be some ground for hope as long as he was dissatisfied with the accepted explanation. He hardly spoke a word the whole way to the southern suburb, but sat with his chin on his chest and his hat pulled down over his eyes, sunk in the deepest thought. Our client, on the other hand, seemed to have taken fresh heart from the faint glimmer of hope that had been held out to him, and even drifted into a rambling conversation with me about his business affairs. A short train ride and an even shorter walk brought us to Fairbank, the modest home of the great financier.
-
-Fairbank was a solid, square house of white stone, set a little back from the road. A double carriage drive, with a snow-covered lawn between, swept down in front to two large iron gates that closed the entrance. On the right was a small clump of trees, through which ran a narrow path between two neat hedges, stretching from the road to the kitchen door and serving as the tradesmen’s entrance. On the left ran a lane leading to the stables, which was not part of the grounds at all, but a public, though little-used, thoroughfare. Holmes left us at the front door and walked slowly all around the house—across the front, down the tradesmen’s path, and then round through the back garden into the stable lane. He was gone so long that Mr. Holder and I went into the dining room and waited by the fire for his return. We were sitting there in silence when the door opened and a young woman came in.
-
-She was a little taller than average, slim, with dark hair and dark eyes that looked even darker against the absolute pallor of her skin. I do not think I have ever seen such deadly whiteness in a woman’s face. Her lips, too, were bloodless, though her eyes were inflamed with weeping. As she swept silently into the room, she struck me as far more deeply stricken with grief than the banker had appeared that morning, and it was all the more striking because she was clearly a woman of strong character, with great powers of self-control. Ignoring my presence, she went straight to her uncle and passed her hand over his head with a tender, womanly caress.
-
-“You’ve given orders for Arthur to be released, haven’t you, Dad?” she asked.
-
-“No, no, my girl. This matter must be probed to the bottom.”
-
-“But I’m so sure he’s innocent. You know what a woman’s instincts are. I know he’s done nothing wrong, and that you’ll be sorry for having been so harsh.”
-
-“Then why is he silent, if he’s innocent?”
-
-“Who can say? Perhaps because he was so hurt that you could suspect him.”
-
-“How could I help suspecting him when I actually saw him with the coronet in his hand?”
-
-“Oh, but he had only picked it up to look at it. Oh,“What’s the use of all these vague theories,” the banker burst out impatiently, “when I’ve already told you I saw Arthur with the coronet in his hands?”
-
-“Give it a moment, Mr. Holder. We’ll come back to that. Now, about this girl—Miss Holder. You saw her come back in through the kitchen door, I take it?”
-
-“Yes. When I went to make sure the door was locked for the night, I met her slipping in. I saw the man too, in the dark.”
-
-“Do you know him?”
-
-“Oh yes. He’s the greengrocer who brings our vegetables. His name is Francis Prosper.”
-
-“He was standing,” said Holmes, “to the left of the door—in other words, farther up the path than he needed to be to reach it?”
-
-“Yes, he was.”
-
-“And he’s a man with a wooden leg?”
-
-A flicker of fear leapt into the young lady’s expressive dark eyes. “You’re like a magician,” she said. “How do you know that?” She smiled, but there was no answering smile on Holmes’s thin, intent face.
-
-“I’d very much like to go upstairs now,” he said. “I’ll probably want another look at the outside of the house afterward. Perhaps I’d better examine the ground-floor windows before I go up.”
-
-He moved quickly from one window to the next, pausing only at the large one that looked from the hall onto the stable lane. This he opened, and with his powerful magnifying glass he made a very careful inspection of the sill.
-
-“Now we’ll go upstairs,” he said at last.
-
-The banker’s dressing room was a small, plainly furnished chamber, with a gray carpet, a large bureau, and a long mirror. Holmes went straight to the bureau and examined the lock closely.
-
-“Which key was used to open it?” he asked.
-
-“The one my son himself pointed out—the key to the lumber-room cupboard.”
-
-“Do you have it here?”
-
-“It’s there on the dressing table.”
-
-Sherlock Holmes picked it up and opened the bureau.
-
-“It’s a silent lock,” he remarked. “No wonder it didn’t wake you. This case, I assume, holds the coronet. We must have a look at it.”
-
-He opened the case, took out the diadem, and laid it on the table. It was a magnificent piece of jeweller’s work, and the thirty-six stones were the finest I had ever seen. On one side of the coronet the edge was cracked, where a corner holding three gems had been torn away.
-
-“Now, Mr. Holder,” said Holmes, “here is the corner that matches the one so unfortunately lost. May I ask you to break it off?”
-
-The banker recoiled in horror. “I wouldn’t dream of trying,” he said.
-
-“Then I will.” Holmes suddenly bent all his strength upon it, but nothing happened. “I can feel it give a little,” he said, “but even though my fingers are exceptionally strong, it would take me a long time to break it. An ordinary man couldn’t do it. Now, what do you think would happen if I did break it, Mr. Holder? There would be a sound like a pistol shot. And you tell me all this happened within a few yards of your bed, and you heard nothing?”
-
-“I don’t know what to think. It’s all darkness to me.”
-
-“Perhaps it will grow lighter as we go. What do you think, Miss Holder?”
-
-“I admit I’m still as puzzled as my uncle.”
-
-“Your son had no shoes or slippers on when you saw him?”
-
-“He was wearing nothing but his trousers and shirt.”
-
-“Thank you. We’ve certainly had extraordinary luck in this investigation, and if we fail to clear the matter up it will be entirely our own fault. With your permission, Mr. Holder, I’ll now continue my inquiries outside.”
-
-He went alone, at his own request, explaining that any unnecessary footprints might complicate his work. For an hour or more he was busy out there, and when he finally returned his boots were heavy with snow and his features as unreadable as ever.
-
-“I believe I’ve now seen everything there is to see, Mr. Holder,” he said. “The best way I can help you now is by going back to my rooms.”
-
-“But the gems, Mr. Holmes. Where are they?”
-
-“I can’t say.”
-
-The banker wrung his hands. “I’ll never see them again!” he cried. “And my son? Do you still give me hope?”
-
-“My opinion is entirely unchanged.”
-
-“Then, for God’s sake, what was this dark business that took place in my house last night?”
-
-“If you can call on me at my Baker Street rooms tomorrow morning between nine and ten, I’ll gladly do what I can to make it clearer. I understand that you give me carte blanche to act for you, provided I recover the gems, and that you place no limit on the amount I may draw?”
-
-“I’d give my whole fortune to have them back.”
-
-“Very good. I’ll look into the matter between now and then. Good-bye; it’s just possible I may have to come over here again before evening.”
-
-It was obvious to me that my companion’s mind was now made up about the case, though what his conclusions were I couldn’t even faintly guess. Several times on our journey home I tried to sound him on the point, but each time he slipped away to some other topic, until at last I gave it up in despair. It was not yet three when we found ourselves back in our rooms. He hurried to his bedroom and came down again a few minutes later dressed as a common loafer. With his collar turned up, his shiny, shabby coat, his red neckerchief, and his worn boots“You must excuse my starting without you, Watson,” he said. “You remember our client has a rather early appointment this morning.”
-
-“It’s after nine already,” I replied. “I shouldn’t be surprised if that’s him now. I thought I heard the bell.”
-
-It was indeed our friend the financier. I was shocked by the change in him. His face, naturally broad and strong, was now pinched and sunken, and his hair looked to me at least a shade whiter. He came in with a weariness and listlessness even more painful than the wild agitation of the previous morning, and he dropped heavily into the armchair I pulled forward for him.
-
-“I don’t know what I’ve done to be so sorely tested,” he said. “Only two days ago I was a happy, successful man without a care in the world. Now I’m left to a lonely and disgraced old age. One sorrow treads on the heels of another. My niece Mary has deserted me.”
-
-“Deserted you?”
-
-“Yes. Her bed this morning had not been slept in, her room was empty, and a note for me was lying on the hall table. I had said to her last night, in sorrow and not in anger, that if she had married my boy all might have been well with him. Perhaps it was thoughtless of me to say so. It’s to that remark that she refers in this note:
-
-‘MY DEAREST UNCLE,—I feel that I have brought trouble upon you, and that if I had acted differently this terrible misfortune might never have occurred. I cannot, with this thought in my mind, ever again be happy under your roof, and I feel that I must leave you forever. Do not worry about my future, for that is provided for; and, above all, do not search for me, for it will be fruitless labour and an ill-service to me. In life or in death, I am ever your loving,
-
-MARY.’
-
-“What can she mean by that note, Mr. Holmes? Do you think she’s hinting at suicide?”
-
-“No, no, nothing of the sort. In fact, this may be the best possible outcome. I trust, Mr. Holder, that you are nearing the end of your troubles.”
-
-“Ah! You say that! You’ve heard something, Mr. Holmes; you’ve discovered something! Where are the gems?”
-
-“You wouldn’t consider a thousand pounds apiece an excessive price for them, would you?”
-
-“I’d pay ten thousand.”
-
-“That won’t be necessary. Three thousand will settle the matter. And there’s a small reward, I imagine. Do you have your chequebook? Here is a pen. Better make it out for four thousand pounds.”
-
-With a dazed expression, the banker wrote the cheque as requested. Holmes walked over to his desk, took out a small triangular piece of gold set with three gems, and tossed it onto the table.
-
-With a cry of joy, our client snatched it up.
-
-“You have it!” he gasped. “I’m saved! I’m saved!”
-
-The swing from despair to joy was as violent as his grief had been, and he pressed the recovered gems to his chest.
-
-“There is one more thing you owe, Mr. Holder,” said Sherlock Holmes rather sternly.
-
-“Owe?” He seized the pen again. “Name the amount and I’ll pay it.”
-
-“No, the debt is not to me. You owe a very humble apology to that noble lad, your son, who has conducted himself in this affair as I should be proud to see my own son do—if I ever happen to have one.”
-
-“Then it wasn’t Arthur who took them?”
-
-“I told you yesterday, and I repeat today, that it was not.”
-
-“You’re sure of it? Then let’s go to him at once and tell him the truth is known.”
-
-“He already knows. Once I had cleared everything up, I went to see him, and when I found he wouldn’t tell me the story, I told it to him. He had to admit I was right, and he added the very few details that were still unclear to me. But your news this morning may loosen his tongue further.”
-
-“For Heaven’s sake, then, tell me what this extraordinary mystery is!”
-
-“I will, and I’ll show you the steps by which I reached it. Let me first say to you what is hardest for me to say and for you to hear: there has been an understanding between Sir George Burnwell and your niece Mary. They have now run away together.”
-
-“My Mary? Impossible!”
-
-“Unfortunately, it is more than possible; it is certain. Neither you nor your son knew this man’s true character when you admitted him into your family circle. He is one of the most dangerous men in England—a ruined gambler, a completely desperate scoundrel, a man without heart or conscience. Your niece knew nothing of such men. When he poured out his vows to her, as he has done to a hundred women before her, she flattered herself that she alone had touched his heart. The devil alone knows exactly what he said, but at any rate she became his tool and was in the habit of seeing him almost every evening.”
-
-“I cannot, and I will not, believe it!” cried the banker, his face ashen.
-
-“Then let me tell you what happened in your house last night. Your niece, when she thought you had gone to your room, slipped downstairs and spoke to her lover through the window that opens onto the stable lane. His footprints had sunk deep into the snow, he had been standing there so long. She told him about the coronet. His wicked greed for gold flared up at the news, and he bent her to his will. I’ve no“Can it be possible?” gasped the banker.
-
-“You provoked his anger,” said Holmes, “by insulting him at the very moment when he felt he deserved your deepest gratitude. He couldn’t explain what had really happened without betraying someone who certainly deserved very little consideration from him. Still, he chose the more chivalrous course and kept her secret.”
-
-“And that’s why she screamed and fainted when she saw the coronet!” cried Mr. Holder. “My God, what a blind fool I’ve been! And his asking to be allowed out for five minutes! The poor boy only wanted to see if the missing piece was still at the scene of the struggle. How cruelly I misjudged him!”
-
-“When I reached the house,” Holmes went on, “I immediately walked very carefully around it to see if there were any traces in the snow that might help me. I knew that none had fallen since the previous evening, and that the hard frost would preserve any marks. I went along the tradesmen’s path, but it was completely trampled and unreadable. Just beyond it, however, on the far side of the kitchen door, a woman had stood talking with a man whose round footprints on one side showed that he had a wooden leg. I could even see that they had been interrupted, because the woman had run quickly back to the door, as shown by the deep toe and light heel marks, while Wooden-Leg had waited a moment and then gone away. I thought at once that this might be the maid and the sweetheart you had already mentioned, and inquiry proved that it was. I went around the garden without seeing anything except random tracks, which I took to be the police; but when I came into the stable lane, a very long and complicated story was written in the snow in front of me.
-
-“There was a double line of tracks from a man in boots, and a second double line which, to my satisfaction, I saw belonged to a man with bare feet. From what you had told me, I was immediately convinced that the latter were your son’s. The man in boots had walked both ways, but the other had run quickly, and since his footprints overlapped the depressions left by the boots in several places, it was clear that he had passed after the other. I followed the tracks and found that they led to the hall window, where Boots had worn all the snow away while he waited. Then I walked to the far end, a hundred yards or more down the lane. I saw where Boots had turned to face his pursuer, where the snow was churned up as if there had been a struggle, and finally where a few drops of blood had fallen, proving I was not mistaken. Boots had then run down the lane, and another small smear of blood showed that he was the one who had been injured. When he reached the main road at the far end, I found the pavement had been cleared, and that clue came to an end.
-
-“On entering the house, however, I examined the sill and frame of the hall window with my lens, as you’ll remember, and I could immediately see that someone had gone out that way. I could make out the outline of an instep where a wet foot had been placed on coming back in. By then I was beginning to form an opinion of what had happened. A man had waited outside the window; someone had brought him the jewels; your son had witnessed the act; he had chased the thief and struggled with him; they had both pulled at the coronet, and their combined strength had caused damage that neither alone could have done. Your son had returned with the coronet, but had left a fragment in his opponent’s grasp. Up to that point, everything was clear. The remaining questions were: who was the man, and who had brought him the coronet?
-
-“One of my old rules is that when you have eliminated the impossible, whatever remains, however unlikely, must be the truth. Now, I knew it was not you who had brought it down, so that left only your niece and the maids. But if it had been one of the maids, why would your son let himself be accused in her place? There was no possible reason. Since he loved his cousin, however, there was an excellent reason for him to protect her secret—especially as that secret was a shameful one. When I recalled that you had seen her at that window, and how she had fainted when she saw the coronet again, my suspicion became a certainty.
-
-“And who could her accomplice be? Obviously a lover, for who else could outweigh the love and gratitude she must have felt toward you? I knew that you rarely went out and that your circle of friends was very small. But among them was Sir George Burnwell. I had already heard of him as a man with a bad reputation where women were concerned. It had to be he who wore those boots and kept the missing gems. Even though he knew Arthur had discovered him, he might still reassure himself that he was safe, since the boy could not say a word without compromising his own family.
-
-“You can easily imagine what steps I took next. Disguised as a loafer, I went to Sir George’s house, managed to strike up an acquaintance with his valet, learned that his master had cut his head the night before, and finally, for six shillings, made everything certain by buying a pair of his cast-off shoes. With these I went down to Streatham and confirmed that they matched the tracks exactly.”
-
-“I saw a shabby vagabond in the lane last night,” said Mr. Holder.
-
-“Exactly. That was me. Once I knew I had my man, I came home and changed my clothes. What followed was the delicate part, because I saw that we had to avoid“To a man who loves art for its own sake,” said Sherlock Holmes, tossing aside the advertisement page of The Daily Telegraph, “it’s often in its least important and humblest forms that the keenest pleasure is found. I’m pleased to see, Watson, that you’ve grasped this truth to the extent that, in these little records of our cases which you’ve been kind enough to write—and, I must say, occasionally to embellish—you’ve focused not so much on the many famous causes célèbres and sensational trials in which I’ve appeared, but rather on those incidents which may have been trivial in themselves, yet gave scope for those powers of deduction and logical synthesis which I’ve made my special field.”
-
-“And yet,” I said, smiling, “I can’t quite acquit myself of the charge of sensationalism that has been brought against my accounts.”
-
-“You have erred, perhaps,” he replied, picking up a glowing cinder with the tongs and using it to light the long cherry-wood pipe which usually replaced his clay when he was in a combative rather than a reflective mood, “you have erred, perhaps, in trying to put colour and life into each of your narratives instead of confining yourself to the task of recording that rigorous reasoning from cause to effect which is really the only remarkable feature of the matter.”
-
-“I think I’ve done you full justice in that respect,” I answered rather coolly, for I was put off by the egotism which I had more than once noticed as a strong element in my friend’s strange character.
-
-“No, it isn’t selfishness or vanity,” he said, responding, as he so often did, to my thoughts rather than my words. “If I insist on full justice for my art, it’s because it is an impersonal thing—something beyond myself. Crime is common. Logic is rare. Therefore it’s on the logic, rather than on the crime, that you should dwell. You’ve degraded what should have been a course of lectures into a series of stories.”
-
-It was a cold early-spring morning, and after breakfast we sat on either side of a cheerful fire in the old Baker Street room. A thick fog was rolling down between the rows of drab-coloured houses, and the windows opposite loomed like dark, shapeless smudges through the heavy yellow coils. The gas was lit and shone on the white tablecloth and the gleam of china and metal, for the table had not yet been cleared. Sherlock Holmes had been silent all morning, poring steadily over the advertisement columns of one newspaper after another until at last, apparently abandoning his search, he had emerged in no very amiable mood to lecture me on my literary shortcomings.
-
-“At the same time,” he went on after a pause, during which he sat puffing at his long pipe and staring into the fire, “you can hardly be accused of sensationalism, for a fair proportion of the cases you’ve been so kind as to take an interest in don’t concern crime, in the legal sense, at all. The small matter in which I tried to help the King of Bohemia, the curious experience of Miss Mary Sutherland, the problem of the man with the twisted lip, and the incident of the noble bachelor were all outside the scope of the law. But in avoiding the sensational, I’m afraid you may have strayed into the trivial.”
-
-“The outcome may have been trivial,” I replied, “but I maintain that the methods were new and interesting.”
-
-“Nonsense, my dear fellow. What does the public—the great unobservant public, who could hardly tell a weaver by his tooth or a printer by his left thumb—care about the finer shades of analysis and deduction? But in any case, if you are trivial, I can’t blame you, for the days of the great cases are over. Man—or at least the criminal man—has lost all enterprise and originality. As for my own small practice, it seems to be degenerating into an agency for recovering lost lead pencils and giving advice to young ladies from boarding schools. I think I’ve reached the bottom at last, though. This note I received this morning marks my zero point, I fancy. Read it.” He tossed a crumpled letter across to me.
-
-It was dated from Montague Place the previous evening, and ran as follows:
-
-DEAR MR. HOLMES,—I am very anxious to consult you as to whether I should or should not accept a position which has been offered to me as a governess. I shall call at half-past ten to-morrow if I do not inconvenience you. Yours faithfully,
-
-VIOLET HUNTER.
-
-“Do you know the young lady?” I asked.
-
-“Not at all.”
-
-“It’s half-past ten now.”
-
-“Yes, and I’ve no doubt that’s her ring.”
-
-“This may turn out to be more interesting than you think. You remember that the affair of the blue carbuncle, which seemed at first to be a mere whim, developed into a serious investigation. It may be the same in this case.”
-
-“Let’s hope so. But our doubts will soon be resolved, for here, unless I’m very much mistaken, is the person in question.”
-
-As he spoke, the door opened and a young lady entered the room. She was plainly but neatly dressed, with a bright, quick face, freckled like a plover’s egg, and with the brisk manner of a woman who has had to make her own way in the world.
-
-“I’m sure you’ll excuse my troubling you,” she said, as my companion rose to greet her, “but I’ve had a very strange experience, and as I have no parents or relations of any kind from whom I could ask advice, I thought perhaps you would be kind“That will do,” he said. “I couldn’t ask for anything better. Splendid, splendid!” He seemed genuinely delighted and rubbed his hands together in the friendliest way. He was such a comfortable-looking man that it was actually a pleasure just to look at him.
-
-“You’re looking for a position, miss?” he asked.
-
-“Yes, sir.”
-
-“As a governess?”
-
-“Yes, sir.”
-
-“And what salary are you asking?”
-
-“I had four pounds a month in my last place, with Colonel Spence Munro.”
-
-“Oh, tut, tut! Exploitation—sheer exploitation!” he cried, flinging his plump hands into the air like a man in a towering rage. “How could anyone offer such a miserable sum to a lady with your attractions and accomplishments?”
-
-“My accomplishments, sir, may be less than you think,” I said. “A little French, a little German, music, and drawing—”
-
-“Tut, tut!” he broke in. “That’s all quite beside the point. The question is, do you or do you not have the bearing and deportment of a lady? That’s the whole matter in a nutshell. If you do not, you are not fit to bring up a child who may one day play a considerable part in the history of the country. But if you do, then how could any gentleman ask you to stoop to accept anything under three figures? Your salary with me, madam, would begin at a hundred pounds a year.”
-
-You can imagine, Mr. Holmes, that to me, as penniless as I was, such an offer seemed almost too good to be true. The gentleman, however, perhaps noticing the disbelief on my face, opened a pocketbook and took out a banknote.
-
-“It is also my custom,” he said, smiling so pleasantly that his eyes became two little shining slits in the white folds of his face, “to advance my young ladies half their salary beforehand, so that they may meet any small expenses of their journey and wardrobe.”
-
-It seemed to me that I had never met such a charming and considerate man. As I was already in debt to my tradespeople, the advance was extremely convenient, and yet there was something unnatural about the whole arrangement that made me want to know a little more before I fully committed myself.
-
-“May I ask where you live, sir?” I said.
-
-“In Hampshire. Delightful country spot. The Copper Beeches, five miles beyond Winchester. It’s the loveliest countryside, my dear young lady, and the dearest old country house.”
-
-“And my duties, sir? I should be glad to know what they would be.”
-
-“One child—one dear little rascal, just six years old. Oh, if you could see him killing cockroaches with a slipper! Smack! smack! smack! Three gone before you could blink!” He leaned back in his chair and laughed until his eyes disappeared again into his head.
-
-\newpage
-
-# I. was a little shocked at the nature of the child’s amusement, but the father’s laughter made me think that perhaps he was only joking.
-
-“My only duties, then,” I asked, “would be to look after a single child?”
-
-“No, no, not your only duties, not your only duties, my dear young lady,” he cried. “Your duty would be, as I am sure your good sense would suggest, to obey any little commands my wife might give, provided always that they were such commands as a lady might properly obey. You see no difficulty there, eh?”
-
-“I should be happy to make myself useful.”
-
-“Quite so. In matters of dress, for example. We are faddish people, you know—faddish but kind-hearted. If you were asked to wear any dress that we might give you, you would not object to our little whim, eh?”
-
-“No,” I said, considerably astonished by his words.
-
-“Or to sit here, or sit there—that would not offend you?”
-
-“Oh, no.”
-
-“Or to cut your hair quite short before you come to us?”
-
-\newpage
-
-# I. could hardly believe my ears. As you can see, Mr. Holmes, my hair is rather abundant, and of a somewhat unusual shade of chestnut. It has been considered artistic. I could not dream of sacrificing it in such an offhand way.
-
-“I’m afraid that is quite impossible,” I said. He had been watching me intently with his small eyes, and I saw a shadow pass over his face as I spoke.
-
-“I’m afraid it is quite essential,” he said. “It is a little fancy of my wife’s, and ladies’ fancies, you know, madam—ladies’ fancies must be considered. So you won’t cut your hair?”
-
-“No, sir, I really could not,” I answered firmly.
-
-“Ah, very well; that quite settles the matter. It’s a pity, because in other respects you would have done very nicely. In that case, Miss Stoper, I had better look over a few more of your young ladies.”
-
-The manageress had sat there all the while, busy with her papers, without a word to either of us, but she glanced at me now with such annoyance on her face that I could not help suspecting she had lost a handsome commission through my refusal.
-
-“Do you wish your name to be kept on our books?” she asked.
-
-“If you please, Miss Stoper.”
-
-“Well, really, it seems rather pointless, since you refuse the most excellent offers in this way,” she said sharply. “You can hardly expect us to exert ourselves to find another such opening for you. Good day to you, Miss Hunter.” She struck a gong on the table, and the page showed me out.
-
-Well, Mr. Holmes, when I got back to my lodgings and found very little in the cupboard and two or three bills on“‘JEPHRO RUCASTLE.’
-
-“That’s the letter I’ve just received, Mr. Holmes, and I’ve decided to accept the offer. Still, before I take the final step, I wanted to lay the whole matter before you.”
-
-“Well, Miss Hunter, if your mind is made up, that settles it,” said Holmes, smiling.
-
-“But you wouldn’t advise me to turn it down?”
-
-“I admit it’s not the sort of position I’d like a sister of mine to apply for.”
-
-“What does it all mean, Mr. Holmes?”
-
-“Ah, I have no data. I can’t say. Perhaps you’ve formed an opinion yourself?”
-
-“Well, it seems to me there’s only one possible explanation. Mr. Rucastle struck me as a very kind, good-natured man. Isn’t it possible that his wife is insane, that he wants to keep it quiet for fear she’ll be taken to an asylum, and that he indulges all her whims to prevent an outburst?”
-
-“That’s a possible explanation—in fact, as things stand, it’s the most likely one. But even so, it doesn’t sound like a pleasant household for a young woman.”
-
-“But the money, Mr. Holmes—the money!”
-
-“Yes, of course the pay is good—too good. That’s what worries me. Why should they offer you a hundred and twenty pounds a year when they could have their pick for forty? There must be some powerful reason behind it.”
-
-“I thought that if I told you all the circumstances, you’d understand later if I needed your help. I’d feel so much stronger if I knew you were behind me.”
-
-“Oh, you may go with that assurance. I can promise you your little problem is the most interesting that has come my way for some months. There’s something distinctly new about several of its features. If you find yourself in doubt or in danger—”
-
-“Danger! What danger do you foresee?”
-
-Holmes shook his head gravely. “It stops being a danger the moment we can define it,” he said. “But at any time, day or night, a telegram would bring me down to help you.”
-
-“That’s enough.” She sprang up from her chair, the anxiety swept from her face. “I shall go down to Hampshire with an easy mind now. I’ll write to Mr. Rucastle at once, sacrifice my poor hair tonight, and start for Winchester tomorrow.” With a few grateful words to Holmes she wished us both good night and bustled away.
-
-“At least,” I remarked, as we heard her quick, firm steps going down the stairs, “she seems to be a young lady very well able to look after herself.”
-
-“And she’ll need to be,” said Holmes gravely. “I shall be very much surprised if we don’t hear from her within a few days.”
-
-His prediction was fulfilled soon enough. A fortnight passed, during which my thoughts often turned to her and to the strange side-alley of human experience into which this solitary woman seemed to have wandered. The unusually high salary, the odd conditions, the light duties—all pointed to something abnormal, though whether it was a harmless eccentricity or a sinister plot, whether the man was a philanthropist or a villain, was beyond me to decide. As for Holmes, I noticed that he would often sit for half an hour at a stretch, brows knitted, lost in thought; but when I mentioned the matter he brushed it aside with a wave of his hand. “Data! data! data!” he cried impatiently. “I can’t make bricks without clay.” And yet he always ended by muttering that no sister of his should ever have accepted such a position.
-
-The telegram we finally received came late one night, just as I was thinking of going to bed and Holmes was settling down to one of those all-night chemical researches he so often indulged in, when I would leave him bent over a retort and a test tube at night and find him in exactly the same position when I came down to breakfast. He tore open the yellow envelope and, after glancing at the message, tossed it across to me.
-
-“Just look up the trains in Bradshaw,” he said, turning back to his chemical studies.
-
-The summons was brief and urgent:
-
-“Please be at the Black Swan Hotel at Winchester at midday tomorrow. Do come! I am at my wit’s end.
-
-“HUNTER.”
-
-“Will you come with me?” asked Holmes, looking up.
-
-“I should like to, very much.”
-
-“Then look it up.”
-
-“There’s a train at half-past nine,” I said, running my eye over Bradshaw. “It gets to Winchester at eleven-thirty.”
-
-“That will do very well. In that case I’d better postpone my analysis of the acetones, as we may need to be at our best in the morning.”
-
-By eleven o’clock the next day we were well on our way to the old English capital. Holmes had been buried in the morning papers all the way down, but once we crossed the Hampshire border he threw them aside and began to look out at the countryside. It was a perfect spring day: a pale blue sky, flecked with little fleecy white clouds drifting from west to east. The sun shone brightly, and yet there was a bracing nip in the air that sharpened a man’s energy. All across the landscape, away to the rolling hills around Aldershot, the little red and grey roofs of the farmsteads peeped out from the light green of the new leaves.
-
-“Aren’t they fresh and beautiful?” I cried, with all the enthusiasm of a man just escaped from the fogs of Baker Street.
-
-But Holmes shook his head gravely.
-
-“You know, Watson,” he said, “one of the curses of a mind like mine is that I haveThe Black Swan is a well-known inn on the High Street, not far from the station, and there we found the young lady waiting for us. She had taken a private sitting-room, and our lunch was already laid out on the table.
-
-“I’m so delighted you’ve come,” she said earnestly. “It’s so very kind of you both; I really don’t know what I should do without you. Your advice will be absolutely invaluable to me.”
-
-“Please tell us what has happened to you.”
-
-“I will, and I must be quick, for I promised Mr. Rucastle I’d be back before three. I got his permission to come into town this morning, though he has no idea why.”
-
-“Let’s have everything in proper order.” Holmes stretched his long, thin legs out towards the fire and settled himself to listen.
-
-“To begin with, I should say that, on the whole, I’ve not been actually ill-treated by Mr. and Mrs. Rucastle. It’s only fair to them to admit that. But I can’t understand them, and I don’t feel at ease about them.”
-
-“What is it you can’t understand?”
-
-“Their reasons for the way they behave. But I’ll tell you everything exactly as it happened. When I came down, Mr. Rucastle met me here and drove me in his dog-cart to the Copper Beeches. It is, as he said, beautifully situated, but it isn’t beautiful in itself. It’s a big, square block of a house, whitewashed, but all stained and streaked with damp and bad weather. There are grounds around it, woods on three sides, and on the fourth a field that slopes down to the Southampton high road, which curves past about a hundred yards from the front door. The ground in front belongs to the house, but the surrounding woods are all part of Lord Southerton’s preserves. A clump of copper beeches directly in front of the hall door has given the place its name.
-
-“My employer drove me over himself, as amiable as ever, and that evening he introduced me to his wife and the child. There was no truth, Mr. Holmes, in the theory that seemed so likely when we talked in your rooms in Baker Street. Mrs. Rucastle is not insane. I found her to be a silent, pale-faced woman, much younger than her husband—no more than thirty, I should think, while he can hardly be under forty-five. From their conversation I gathered that they have been married about seven years, that he was a widower, and that his only child by his first wife was the daughter who has gone to Philadelphia. Mr. Rucastle told me privately that the reason she left was an irrational dislike of her stepmother. As the daughter could not have been less than twenty, I can easily imagine that her position with her father’s young wife must have been uncomfortable.
-
-“Mrs. Rucastle struck me as colourless in mind as well as in appearance. She made no particular impression on me, either good or bad. She was a nonentity. It was obvious, though, that she was passionately devoted to both her husband and her little son. Her light grey eyes wandered constantly from one to the other, noticing every small need and anticipating it if she could. He was kind to her too, in his bluff, boisterous way, and on the whole they seemed a happy couple. And yet this woman had some secret sorrow. She would often fall into deep thought, with the saddest expression on her face. More than once I’ve come upon her in tears. I’ve sometimes thought that it was the child’s disposition that weighed on her mind, for I have never met such a thoroughly spoiled and ill-natured little creature. He is small for his age, with a head quite out of proportion, far too large for his body. His whole life seems to swing between savage fits of rage and gloomy spells of sulking. Hurting anything weaker than himself appears to be his only idea of fun, and he shows remarkable ingenuity in planning the capture of mice, small birds, and insects. But I would rather not talk about the creature, Mr. Holmes, and in fact he has little to do with my story.”
-
-“I’m glad of every detail,” my friend remarked, “whether they seem relevant to you or not.”
-
-“I’ll try not to leave out anything important. The one unpleasant thing about the house, which struck me at once, was the look and behaviour of the servants. There are only two, a man and his wife. Toller, as he’s called, is a rough, uncouth fellow, with grizzled hair and whiskers and a constant smell of drink about him. Twice since I’ve been there he has been quite drunk, and yet Mr. Rucastle seems to take no notice. His wife is a very tall, strong woman with a sour face, as silent as Mrs. Rucastle and far less pleasant. They are a most disagreeable couple, but fortunately I spend most of my time in the nursery and in my own room, which are next to each other in one corner of the house.
-
-“For two days after my arrival at the Copper Beeches my life was very quiet. On the third day, just after breakfast, Mrs. Rucastle came in and whispered something to her husband.
-
-“‘Oh, yes,’ he said, turning to me, ‘we are very much obliged to you, Miss Hunter, for humoring our whims so far as to cut your hair. I assure you it hasn’t taken away the tiniest fraction from your good looks. We shall now see how the electric-blue dress suits you. You’ll find it laid out on the bed in your room, and if“You can easily imagine, Mr. Holmes, how curious I became about what this extraordinary performance could possibly mean. They were always very careful, I noticed, to turn my face away from the window, and that only made me burn with the desire to see what was happening behind my back. At first it seemed impossible, but I soon thought of a way. My hand-mirror had been broken, and a sudden idea struck me. I hid a piece of the glass in my handkerchief.
-
-The next time, in the middle of my laughing, I raised my handkerchief to my eyes and, with a little maneuvering, I was able to see everything behind me. I must admit I was disappointed at first. There was nothing. At least, that was my first impression. On a second look, however, I noticed a man standing in the Southampton Road—a small, bearded man in a gray suit—who seemed to be looking in my direction. The road is a main thoroughfare, and there are usually people on it. This man, however, was leaning against the railings that border our field and was staring intently up.
-
-\newpage
-
-# I. lowered my handkerchief and glanced at Mrs. Rucastle, only to find her eyes fixed on me with the most searching gaze. She said nothing, but I am convinced she had guessed that I had a mirror in my hand and had seen what was behind me. She stood up at once.
-
-“‘Jephro,’ she said, ‘there is an impertinent fellow on the road who is staring up at Miss Hunter.’
-
-“‘No friend of yours, Miss Hunter?’ he asked.
-
-“‘No, I know no one in this area.’
-
-“‘Dear me! How very impertinent! Please turn around and signal to him to go away.’
-
-“‘Surely it would be better to ignore him.’
-
-“‘No, no, then he’ll be hanging about here all the time. Please turn around and wave him away like this.’
-
-“I did as I was told, and at that very moment Mrs. Rucastle pulled down the blind. That was a week ago, and since then I have not sat in the window, nor worn the blue dress, nor seen the man on the road.”
-
-“Please go on,” said Holmes. “Your story promises to be extremely interesting.”
-
-“You may find it rather disjointed, I’m afraid, and there may turn out to be little connection between the different incidents I describe. On the very first day I arrived at the Copper Beeches, Mr. Rucastle took me to a small outbuilding near the kitchen door. As we approached it I heard the sharp rattle of a chain and the sound of a large animal moving about.
-
-“‘Look in here!’ said Mr. Rucastle, showing me a slit between two planks. ‘Isn’t he a beauty?’
-
-“I looked through and became aware of two glowing eyes and a vague shape hunched in the darkness.
-
-“‘Don’t be frightened,’ said my employer, laughing at the start I had given. ‘It’s only Carlo, my mastiff. I call him mine, but really old Toller, my groom, is the only man who can manage him. We feed him once a day, and not too much even then, so he’s always as keen as mustard. Toller lets him loose every night, and God help the trespasser he sinks his teeth into. For heaven’s sake, never, under any circumstances, set foot outside the door at night, or it will be as much as your life is worth.’
-
-“The warning was no idle one, for two nights later I happened to look out of my bedroom window at about two in the morning. It was a beautiful moonlit night, and the lawn in front of the house was silvered over and almost as bright as day. I was standing there, absorbed in the peaceful beauty of the scene, when I became aware that something was moving under the shadow of the copper beeches. As it stepped out into the moonlight, I saw what it was. It was a gigantic dog, as big as a calf, tawny-colored, with drooping jowls, a black muzzle, and huge, jutting bones. It walked slowly across the lawn and disappeared into the shadow on the far side. That dreadful sentinel sent a chill through my heart such as no burglar could ever have done.
-
-“And now I have a very strange experience to tell you. As you know, I had cut off my hair in London, and I had placed it in a large coil at the bottom of my trunk. One evening, after the child was in bed, I began amusing myself by examining the furniture in my room and rearranging my own little belongings. There was an old chest of drawers there: the two upper drawers were empty and open, the lower one was locked. I had filled the first two with my linen, and as I still had a good deal to put away, I was naturally annoyed at not being able to use the third drawer. It occurred to me that it might have been locked by simple oversight, so I took out my bunch of keys and tried them. The very first key fit perfectly, and I pulled the drawer open. There was only one thing in it, and I’m sure you would never guess what it was. It was my coil of hair.
-
-“I picked it up and examined it. It was the same peculiar shade, the same thickness. But then the impossibility of it struck me. How could my hair be locked in the drawer? With trembling hands I opened my trunk, turned out the contents, and took my own hair from the bottom. I laid the two tresses side by side, and I assure you they were identical. Was that not“Mr. Holmes, from the moment I realized there was something about that suite of rooms I wasn’t supposed to know, I was burning to get into them. It wasn’t just curiosity, though I have plenty of that. It felt more like a duty—a sense that some good might come of my getting into that place. People talk about a woman’s instinct; perhaps it was that which gave me the feeling. Whatever it was, it was strong, and I was constantly watching for any chance to get through that forbidden door.
-
-“The chance only came yesterday. I should tell you that, besides Mr. Rucastle, both Toller and his wife always seem to have some reason to go into those deserted rooms, and once I saw him carrying a large black linen bag through the door. Lately he’s been drinking heavily, and last night he was very drunk; when I came upstairs, the key was still in the door. I’ve no doubt he left it there. Mr. and Mrs. Rucastle were both downstairs, and the child was with them, so I had a perfect opportunity. I turned the key quietly in the lock, opened the door, and slipped inside.
-
-“There was a short passage in front of me, with bare walls and bare boards, which turned at a right angle at the far end. Around this corner were three doors in a row, the first and third standing open. Each led into an empty room, dusty and cheerless, with two windows in one and one in the other, all so thick with grime that the evening light only glimmered faintly through them. The middle door was shut, and across the outside of it they had fastened one of the broad bars of an iron bedstead, padlocked at one end to a ring in the wall and tied at the other with thick cord. The door itself was locked as well, and there was no key.
-
-“This barricaded door clearly matched the shuttered window I had seen from outside, and yet I could see from the faint strip of light beneath it that the room was not dark. There must have been a skylight letting in light from above. As I stood there in the passage, staring at that sinister door and wondering what secret it hid, I suddenly heard footsteps inside the room and saw a shadow pass back and forth across the thin slit of dim light that showed under the door.
-
-“A wild, irrational terror rose up in me at the sight, Mr. Holmes. My overstrained nerves gave way all at once, and I turned and ran—ran as if some dreadful hand were clutching at the hem of my dress. I fled down the passage, through the door—and straight into the arms of Mr. Rucastle, who was waiting outside.
-
-“‘So,’ he said, smiling, ‘it was you, then. I thought it must be when I saw the door open.’
-
-“‘Oh, I’m so frightened!’ I gasped.
-
-“‘My dear young lady! my dear young lady!’—you cannot imagine how soothing and caressing his manner was—‘and what has frightened you, my dear young lady?’
-
-“But his voice was just a shade too coaxing. He overdid it. I was instantly on my guard against him.
-
-“‘I was foolish enough to go into the empty wing,’ I said. ‘But it’s so lonely and eerie in this dim light that I got frightened and ran out again. Oh, it’s so dreadfully still in there!’
-
-“‘Only that?’ he said, looking at me sharply.
-
-“‘Why, what did you think?’ I asked.
-
-“‘Why do you suppose I keep this door locked?’
-
-“‘I’m sure I don’t know.’
-
-“‘It’s to keep out people who have no business there. Do you understand?’ He was still smiling in the most pleasant way.
-
-“‘I’m sure if I had known—’
-
-“‘Well, now you do know. And if you ever set foot over that threshold again’—in an instant the smile twisted into a grin of fury, and he glared down at me with the face of a demon—‘I’ll throw you to the mastiff.’
-
-“I was so terrified I don’t know what I did. I suppose I must have rushed past him into my room. I remember nothing until I found myself lying on my bed, shaking all over. Then I thought of you, Mr. Holmes. I couldn’t stay there any longer without advice. I was afraid of the house, of the man, of the woman, of the servants, even of the child. They all seemed horrible to me. If only I could bring you down, everything would be all right.
-
-“Of course, I might have run away from the house, but my curiosity was almost as strong as my fear. I made up my mind quickly. I would send you a telegram. I put on my hat and cloak, went down to the office, which is about half a mile from the house, and then came back, feeling much easier. As I approached the door, a horrible doubt came over me that the dog might be loose, but I remembered that Toller had drunk himself into a state of insensibility that evening, and I knew he was the only one in the household who had any control over the brute, or who would dare to let it loose. I slipped in safely and lay awake half the night, happy at the thought of seeing you.
-
-“I had no trouble getting permission to come into Winchester this morning, but I must be back before three o’clock, because Mr. and Mrs. Rucastle are going on a visit and will be away all evening, so I must look after the child. Now I’ve told you all my adventures, Mr. Holmes, and I would be very grateful“What on earth has that got to do with it?” I burst out.
-
-“My dear Watson, as a doctor you’re always learning about a child’s tendencies by studying the parents. Don’t you see the reverse is just as true? I’ve often got my first real insight into the parents’ character by studying their children. This child’s nature is abnormally cruel—cruel purely for cruelty’s sake—and whether he gets that from his smiling father, as I suspect, or from his mother, it spells trouble for the poor girl who’s in their power.”
-
-“I’m sure you’re right, Mr. Holmes,” our client cried. “A thousand little things come back to me that prove you’ve hit it. Oh, let’s not lose a single moment in bringing help to that poor creature.”
-
-“We must be cautious. We’re dealing with a very cunning man. We can do nothing before seven o’clock. At that hour we’ll be with you, and it won’t be long after that before we solve this mystery.”
-
-We kept our word, for it was exactly seven when we reached the Copper Beeches, having left our trap at a roadside inn. The clump of trees, their dark leaves gleaming like polished metal in the setting sun, would have marked out the house even if Miss Hunter had not been standing on the doorstep, smiling as she waited for us.
-
-“Have you managed it?” Holmes asked.
-
-A heavy thudding came from somewhere below. “That’s Mrs. Toller in the cellar,” she said. “Her husband is lying on the kitchen rug, snoring. Here are his keys—they’re duplicates of Mr. Rucastle’s.”
-
-“You’ve done splendidly!” Holmes cried, his voice alight with enthusiasm. “Now lead the way, and we’ll soon see the end of this dark business.”
-
-We went upstairs, unlocked the door, followed a passage, and came to the barricade Miss Hunter had described. Holmes cut the cord and removed the crossbar. Then he tried the various keys in the lock, but none of them worked. No sound came from inside, and at that silence Holmes’s face darkened.
-
-“I hope we’re not too late,” he said. “I think, Miss Hunter, it’s better if we go in without you. Now, Watson, put your shoulder to it and let’s see if we can force our way in.”
-
-It was an old, flimsy door and gave at once before our combined strength. We rushed into the room together. It was empty. There was no furniture except a narrow pallet bed, a small table, and a basket of linen. The skylight above was open, and the prisoner was gone.
-
-“There’s been foul play here,” said Holmes. “Our fine gentleman has guessed Miss Hunter’s intentions and carried off his victim.”
-
-“But how?”
-
-“Through the skylight. We’ll soon see how he managed it.” He swung himself up onto the roof. “Ah, yes,” he called, “here’s the top of a long, light ladder against the eaves. That’s how he did it.”
-
-“But that’s impossible,” said Miss Hunter. “The ladder wasn’t there when the Rucastles went away.”
-
-“He’s come back and done it since. I tell you, he’s a clever and dangerous man. I wouldn’t be at all surprised if that were his step I hear now on the stairs. I think, Watson, you’d better have your pistol ready.”
-
-The words were barely out of his mouth when a man appeared in the doorway—a very fat, heavyset man with a thick stick in his hand. At the sight of him, Miss Hunter screamed and shrank back against the wall, but Sherlock Holmes sprang forward and faced him.
-
-“You scoundrel!” he said. “Where is your daughter?”
-
-The fat man’s eyes swept around the room and then up to the open skylight.
-
-“It’s for me to ask you that!” he shrieked. “You thieves! Spies and thieves! I’ve caught you, have I? You’re in my power now. I’ll deal with you!” He spun round and thundered down the stairs as fast as he could go.
-
-“He’s gone for the dog!” cried Miss Hunter.
-
-“I have my revolver,” I said.
-
-“Better shut the front door,” Holmes shouted, and we all rushed down the stairs together. We had barely reached the hall when we heard the deep baying of a hound, followed by a scream of agony and a horrible, tearing worry that was dreadful to hear. An elderly man with a flushed face and shaking limbs came staggering out of a side door.
-
-“My God!” he cried. “Someone’s loosed the dog. It hasn’t been fed for two days. Quick, quick, or it’ll be too late!”
-
-Holmes and I rushed out and around the corner of the house, Toller hurrying behind us. There lay the huge, starving brute, its black muzzle buried in Rucastle’s throat, while he writhed and screamed on the ground. Running up, I put a bullet through the animal’s brain, and it collapsed with its sharp white teeth still locked in the great folds of his neck. With great effort we separated them and carried him—alive, but horribly mangled—back into the house. We laid him on the drawing-room sofa, and after sending the now-sober Toller to take the news to his wife, I did what I could to ease his pain. We were all gathered around him when the door opened and a tall, gaunt woman came into the room.
-
-“Mrs. Toller!” cried Miss Hunter.
-
-“Yes, miss. Mr. Rucastle let me out when he came back, before he went up to you. Ah, miss, it’s a pity you didn“But Mr. Fowler, being a persistent man—as any good seaman should be—laid siege to the house. After meeting you, he managed, by certain arguments, whether in cash or otherwise, to convince you that your interests and his were one and the same.”
-
-“Mr. Fowler was a very pleasant-spoken, generous gentleman,” said Mrs. Toller calmly.
-
-“And so he arranged that your good husband should never be short of drink, and that a ladder should be ready at the exact moment when your master had gone out.”
-
-“You’ve got it, sir, exactly as it happened.”
-
-“I’m sure we owe you an apology, Mrs. Toller,” said Holmes, “for you have certainly cleared up everything that puzzled us. And here come the country doctor and Mrs. Rucastle, so I think, Watson, that we had best escort Miss Hunter back to Winchester, since it seems to me that our legal standing here is now rather doubtful.”
-
-And so the mystery of the sinister house with the copper beeches before the door was brought to an end. Mr. Rucastle survived, but he was a ruined man, kept alive only by the care of his devoted wife. They still live with their old servants, who probably know so much of Rucastle’s past that he finds it hard to let them go. Mr. Fowler and Miss Rucastle were married, by special license, in Southampton the day after their escape, and he now holds a government post on the island of Mauritius. As for Miss Violet Hunter, my friend Holmes—rather to my disappointment—showed no further interest in her once she was no longer at the center of one of his problems, and she is now the head of a private school in Walsall, where I believe she has been very successful.
+Damit war das Geheimnis des unheilvollen Hauses gelöst, vor dessen Tür die Kupferbuchen standen. Mr. Rucastle überlebte, doch er blieb für immer ein gebrochener Mann, am Leben gehalten einzig durch die Pflege seiner ergebenen Frau. Sie leben noch immer mit ihren alten Dienstboten zusammen, die vermutlich so viel aus Rucastles früherem Leben wissen, dass es ihm schwerfällt, sich von ihnen zu trennen. Mr. Fowler und Miss Rucastle wurden – mit besonderer Genehmigung – am Tag nach ihrer Flucht in Southampton getraut, und er bekleidet inzwischen einen Regierungsposten auf der Insel Mauritius. Was Miss Violet Hunter betrifft, so zeigte mein Freund Holmes – zu meiner nicht geringen Enttäuschung – kein weiteres Interesse an ihr, sobald sie nicht mehr im Mittelpunkt eines seiner Probleme stand; sie ist nun Leiterin einer Privatschule in Walsall, wo sie, wie ich glaube, beträchtlichen Erfolg hat.

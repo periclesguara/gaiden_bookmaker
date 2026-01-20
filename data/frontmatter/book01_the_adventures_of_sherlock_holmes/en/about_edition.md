@@ -1,8 +1,4 @@
-# book01_the_adventures_of_sherlock_holmes [en] - The Adventures of Sherlock Holmes
-# author: Arthur Conan Doyle
-# collaborator: Péricles Guará Silva (adapter)
-# pseudonym: Hans Herman Ironside
-# year: 2026
+About this edition
 
 The Adventures of Sherlock Holmes remains one of the most influential works in detective fiction, introducing methods of observation, inference, and analytical reasoning that shaped the genre for generations.
 

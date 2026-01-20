@@ -1,4 +1,5 @@
-# UN ESCÁNDALO EN BOHEMIA
+# CAPÍTULO 01 — UN ESCÁNDALO EN BOHEMIA {.chapter-title}
+
 
 Para Sherlock Holmes ella es siempre *la* mujer. Rara vez le he oído
 nombrarla de otro modo. A sus ojos eclipsa y domina a todo su sexo. No
@@ -481,7 +482,8 @@ honroso título de la Mujer.
 
 \newpage
 
-# LA LIGA DE LOS PELIRROJOS
+# CAPÍTULO 02 — LA LIGA DE LOS PELIRROJOS {.chapter-title}
+
 
 Había ido a visitar a mi amigo, el señor Sherlock Holmes, un día del otoño del año pasado y lo encontré en profunda conversación con un caballero ya entrado en años, muy corpulento, de rostro encendido y con un cabello rojo de un tono de fuego. Tras disculparme por mi intromisión, estaba a punto de retirarme cuando Holmes me atrajo bruscamente hacia la habitación y cerró la puerta a mi espalda.
 
@@ -797,7 +799,8 @@ Se encogió de hombros.
 
 \newpage
 
-# UN CASO DE IDENTIDAD
+# CAPÍTULO 03 — UN CASO DE IDENTIDAD {.chapter-title}
+
 
 —Mire, mi querido amigo —dijo Sherlock Holmes mientras estábamos sentados a ambos lados del fuego, en sus habitaciones de Baker Street—, la vida es infinitamente más extraña que cualquier cosa que la mente humana pueda inventar. No nos atreveríamos a concebir las cosas que en realidad son simples lugares comunes de la existencia. Si pudiéramos salir volando por esa ventana, de la mano, cernirnos sobre esta gran ciudad, levantar suavemente los tejados y echar un vistazo a las cosas tan raras que están ocurriendo, a las extrañas coincidencias, a los planes, a los desencuentros, a las maravillosas cadenas de acontecimientos que se extienden a lo largo de generaciones y desembocan en los resultados más _outré_, toda la ficción, con sus convencionalismos y sus desenlaces previsibles, nos parecería rancia y sin el menor provecho.
 
@@ -993,7 +996,8 @@ Nuestro visitante había recuperado algo de aplomo mientras Holmes hablaba, y ah
 
 \newpage
 
-# EL MISTERIO DEL VALLE DE BOSCOMBE
+# CAPÍTULO 04 — EL MISTERIO DEL VALLE DE BOSCOMBE {.chapter-title}
+
 
 Estábamos sentados desayunando una mañana, mi esposa y yo, cuando la doncella trajo un telegrama. Era de Sherlock Holmes y decía lo siguiente:
 
@@ -1295,7 +1299,8 @@ Holmes se levantó y se sentó a la mesa, con la pluma en la mano y un fajo de p
 
 \newpage
 
-# LAS CINCO SEMILLAS DE NARANJA
+# CAPÍTULO 05 — LAS CINCO SEMILLAS DE NARANJA {.chapter-title}
+
 
 Cuando hojeo mis notas y registros de los casos de Sherlock Holmes entre los años del 82 al 90, me encuentro con tantos que presentan rasgos extraños e interesantes, que no es tarea fácil saber cuáles elegir y cuáles dejar de lado. Algunos, sin embargo, ya han alcanzado notoriedad a través de la prensa, y otros no han ofrecido un campo propicio para esas cualidades peculiares que mi amigo poseía en tan alto grado y que es el objetivo de estos relatos poner de relieve. Algunos, además, han desafiado su habilidad analítica y serían, como narraciones, comienzos sin desenlace, mientras que otros solo se han aclarado parcialmente y sus explicaciones se basan más en conjeturas y suposiciones que en esa prueba lógica absoluta que tanto apreciaba. Hay, sin embargo, uno de estos últimos que fue tan notable en sus detalles y tan sobrecogedor en sus resultados, que me siento tentado a relatarlo a pesar de que hay puntos relacionados con él que nunca han sido, y probablemente nunca serán, completamente aclarados.
 
@@ -1575,7 +1580,8 @@ jamás del destino del _Lone Star_.
 
 \newpage
 
-# EL HOMBRE DEL LABIO TORCIDO
+# CAPÍTULO 06 — EL HOMBRE DEL LABIO TORCIDO {.chapter-title}
+
 
 Isa Whitney, hermano del difunto Elias Whitney, doctor en Teología y director del Colegio Teológico de San Jorge, era muy adicto al opio. El hábito se le fue arraigando, según tengo entendido, a partir de una chiquillada cuando estaba en la universidad; pues, después de leer la descripción que hace De Quincey de sus sueños y sensaciones, empapó su tabaco en láudano intentando producir los mismos efectos. Descubrió, como tantos otros, que es más fácil adquirir la costumbre que librarse de ella, y durante muchos años siguió siendo esclavo de la droga, objeto a un tiempo de horror y de lástima para sus amigos y parientes. Aún puedo verlo, con el rostro amarillento y pastoso, los párpados caídos y las pupilas como cabezas de alfiler, encogido en una silla, los restos y ruinas de un hombre noble.
 
@@ -1879,7 +1885,8 @@ El preso se volvió con el aire despreocupado de quien se abandona a su destino.
 
 \newpage
 
-# LA AVENTURA DEL CARBUNCLO AZUL
+# CAPÍTULO 07 — LA AVENTURA DEL CARBUNCLO AZUL {.chapter-title}
+
 
 Había ido a visitar a mi amigo Sherlock Holmes la mañana del segundo día después de Navidad, con la intención de desearle las felicitaciones de la temporada. Estaba tirado en el sofá, con una bata de casa color púrpura, un soporte para pipas al alcance de la mano derecha y, muy cerca, un montón de periódicos matutinos arrugados, evidentemente recién estudiados. Junto al sofá había una silla de madera, y en el ángulo del respaldo colgaba un sombrero hongo de fieltro duro, muy raído y desastroso, muy maltrecho por el uso y rajado en varios sitios. Una lupa y unas pinzas, que yacían sobre el asiento de la silla, sugerían que el sombrero había sido colgado de ese modo con el propósito de examinarlo.
 
@@ -2215,7 +2222,8 @@ Y no hicieron falta más palabras. Se oyó una carrera precipitada, un estrépit
 
 \newpage
 
-# LA AVENTURA DE LA BANDA MOTEADA
+# CAPÍTULO 08 — LA AVENTURA DE LA BANDA MOTEADA {.chapter-title}
+
 
 Al repasar mis notas de los setenta y tantos casos en los que, durante los últimos ocho años, he estudiado los métodos de mi amigo Sherlock Holmes, encuentro muchos trágicos, algunos cómicos, un gran número simplemente extraños, pero ninguno vulgar; porque, trabajando como trabajaba, más por amor a su arte que por afán de riqueza, se negaba a asociarse con cualquier investigación que no tendiera a lo insólito, e incluso a lo fantástico. Sin embargo, de todos estos casos tan variados, no recuerdo ninguno que presentara rasgos más singulares que el que estuvo relacionado con la conocida familia de los Roylott de Stoke Moran, en Surrey. Los hechos en cuestión ocurrieron en los primeros tiempos de mi relación con Holmes, cuando compartíamos piso, como solteros, en Baker Street. Es posible que los hubiera consignado por escrito antes, pero en su momento hice una promesa de secreto, de la que solo he quedado liberado el mes pasado, a raíz de la prematura muerte de la dama a quien di mi palabra. Quizá sea mejor que los hechos salgan ahora a la luz, pues sé con certeza que circulan rumores muy extendidos sobre la muerte del doctor Grimesby Roylott, que tienden a hacer el asunto aún más terrible que la verdad.
 
@@ -2555,7 +2563,8 @@ Tales son los verdaderos hechos de la muerte del doctor Grimesby Roylott, de Sto
 
 \newpage
 
-# LA AVENTURA DEL PULGAR DEL INGENIERO
+# CAPÍTULO 09 — LA AVENTURA DEL PULGAR DEL INGENIERO {.chapter-title}
+
 
 De todos los casos que se han sometido a mi amigo, el señor Sherlock Holmes, para que les diera solución durante los años de nuestra amistad, solo hubo dos que yo mismo le llevé a su atención: el del pulgar del señor Hatherley y el de la locura del coronel Warburton. De estos, el segundo quizá ofreciera un campo más amplio para un observador agudo y original, pero el primero fue tan extraño en su origen y tan dramático en sus detalles que quizá merezca más ser puesto por escrito, aunque diera a mi amigo menos ocasiones para desplegar esos métodos deductivos de razonamiento con los que obtenía resultados tan extraordinarios. La historia se ha contado, creo, más de una vez en los periódicos, pero, como ocurre con todos esos relatos, su efecto es mucho menos impactante cuando se expone _en bloque_ en una sola media columna impresa que cuando los hechos se van desarrollando lentamente ante los propios ojos, y el misterio se disipa poco a poco a medida que cada nuevo descubrimiento proporciona un peldaño más hacia la verdad completa. En su momento las circunstancias me impresionaron profundamente, y el transcurso de dos años apenas ha servido para atenuar ese efecto.
 
@@ -2857,7 +2866,8 @@ El jefe de estación soltó una sonora carcajada.
 
 \newpage
 
-# LA AVENTURA DEL NOBLE SOLTERO
+# CAPÍTULO 10 — LA AVENTURA DEL NOBLE SOLTERO {.chapter-title}
+
 
 El matrimonio de lord St. Simon y su curiosa conclusión hace ya tiempo que dejaron de ser tema de interés en esos círculos encumbrados en los que se mueve el desdichado novio. Nuevos escándalos lo han eclipsado, y sus detalles más picantes han apartado a los chismosos de este drama de hace cuatro años. Sin embargo, como tengo motivos para creer que los hechos completos nunca se han revelado al gran público, y dado que mi amigo Sherlock Holmes tuvo una participación considerable en el esclarecimiento del asunto, considero que ninguna memoria suya estaría completa sin un pequeño esbozo de este episodio tan notable.
 
@@ -3217,7 +3227,8 @@ Nos abarcó a todos con una reverencia amplia y salió de la habitación con pas
 
 \newpage
 
-# LA AVENTURA DE LA CORONA DE BERILOS
+# CAPÍTULO 11 — LA AVENTURA DE LA CORONA DE BERILOS {.chapter-title}
+
 
 —Holmes —dije una mañana, mientras estaba de pie en nuestro mirador, contemplando la calle—, ahí viene un loco. Es bastante triste que sus parientes le permitan salir solo.
 
@@ -3551,7 +3562,8 @@ La reacción de alegría fue tan intensa como lo había sido su pena, y estrech�
 
 \newpage
 
-# LA AVENTURA DE LAS HAYAS DE COBRE
+# CAPÍTULO 12 — LA AVENTURA DE LAS HAYAS DE COBRE {.chapter-title}
+
 
 —Para el hombre que ama el arte por el arte mismo —comentó Sherlock Holmes, dejando a un lado la página de anuncios de _The Daily Telegraph_—, es con frecuencia en sus manifestaciones más humildes y aparentemente menos importantes donde se obtiene el placer más intenso. Me resulta grato observar, Watson, que has llegado a comprender esta verdad hasta el punto de que, en esos pequeños relatos de nuestros casos que has tenido la amabilidad de redactar y, debo decirlo, en ocasiones embellecer, has dado relieve no tanto a las muchas _causes célèbres_ y juicios sensacionales en los que he intervenido, como a aquellos incidentes que quizá fueran triviales en sí mismos, pero que han dado margen a esas facultades de deducción y de síntesis lógica que he hecho mi especialidad.
 
