@@ -1,0 +1,11 @@
+{% autoescape off %}
+Copyright © {{ edition.publication_year }} {{ edition.author }}.
+Gemeinfrei in den Vereinigten Staaten und in anderen Gebieten.
+
+Diese moderne Ausgabe von *{{ edition.title }}* wurde unter dem Imprint {{ edition.seal_name }} herausgegeben.
+{{ edition.seal_name }} ist eine eingetragene Marke von {{ edition.imprint_name }}.
+
+Verlag:
+Alle Rechte vorbehalten © {{ edition.imprint_name }}.
+{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% endautoescape %}

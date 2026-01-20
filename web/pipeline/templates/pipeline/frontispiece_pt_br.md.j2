@@ -1,0 +1,12 @@
+{% autoescape off %}
+{{ edition.title }}
+{{ edition.subtitle }}
+
+Autor: {{ edition.author }}
+Adaptado por {{ edition.adapter }}
+
+Edicao moderna em {{ language_label }}
+
+{{ edition.seal_name }}
+{{ edition.city }}, {{ country_label }} · {{ edition.publication_year }}
+{% endautoescape %}

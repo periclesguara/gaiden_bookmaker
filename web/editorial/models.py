@@ -74,6 +74,27 @@ class Work(models.Model):
 
 
 class Edition(models.Model):
+    LANGUAGE_CHOICES = [
+        ("en", "English"),
+        ("pt-br", "Português (Brasil)"),
+        ("es", "Español"),
+        ("de", "Deutsch"),
+    ]
+
+    IMPRINT_CHOICES = [
+        ("RinoBooks", "RinoBooks"),
+    ]
+
+    SEAL_CHOICES = [
+        ("MantaQuest", "MantaQuest"),
+    ]
+
+    COUNTRY_CHOICES = [
+        ("Brasil", "Brasil"),
+        ("Brazil", "Brazil"),
+        ("Brazile", "Brazile"),
+    ]
+
     work = models.ForeignKey(
         Work,
         on_delete=models.CASCADE,
@@ -99,6 +120,33 @@ class Edition(models.Model):
     publisher = models.CharField(max_length=255, blank=True)
     edition_year = models.IntegerField(null=True, blank=True)
     raw_source_path = models.CharField(max_length=500, blank=True)
+    title = models.CharField(max_length=255, blank=True)
+    subtitle = models.CharField(max_length=255, blank=True)
+    author = models.CharField(max_length=255, blank=True)
+    adapter = models.CharField(max_length=255, blank=True)
+    about_edition_text = models.TextField(blank=True)
+    publication_year = models.IntegerField(default=2026)
+    city = models.CharField(max_length=100, default="Rio de Janeiro")
+    country = models.CharField(
+        max_length=100,
+        choices=COUNTRY_CHOICES,
+        default="Brasil",
+    )
+    imprint_name = models.CharField(
+        max_length=100,
+        choices=IMPRINT_CHOICES,
+        default="RinoBooks",
+    )
+    seal_name = models.CharField(
+        max_length=100,
+        choices=SEAL_CHOICES,
+        default="MantaQuest",
+    )
+    language_code = models.CharField(
+        max_length=10,
+        choices=LANGUAGE_CHOICES,
+        default="en",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Editorial - Frontmatter</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 980px; }
+    h1 { margin-bottom: 16px; }
+    form div { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 80px; font-family: monospace; }
+    .preview { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
+    .preview-title { font-weight: 600; margin: 6px 0 4px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; }
+    button { padding: 6px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Editorial · Frontmatter</h1>
+  {% if is_generic %}
+  <div class="preview">
+    Modo generico: nenhum Edition cadastrado para este livro/idioma.
+  </div>
+  {% endif %}
+
+  <div class="actions">
+    <label for="language_select">Idioma</label>
+    <select id="language_select" aria-label="Selecionar idioma" data-book-code="{{ book_code }}">
+      {% for code, label in language_options %}
+        <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div>
+      <label for="{{ form.book_code.id_for_label }}">Book code</label>
+      {{ form.book_code }}
+    </div>
+
+    <div>
+      <label for="{{ form.language.id_for_label }}">Idioma</label>
+      {{ form.language }}
+    </div>
+
+    <div>
+      <label for="{{ form.seal_name.id_for_label }}">Selo</label>
+      {{ form.seal_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.title.id_for_label }}">Titulo do livro</label>
+      {{ form.title }}
+    </div>
+
+    <div>
+      <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+      {{ form.subtitle }}
+    </div>
+
+    <div>
+      <label for="{{ form.author_name.id_for_label }}">Autor</label>
+      {{ form.author_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.publication_year.id_for_label }}">Ano de publicacao</label>
+      {{ form.publication_year }}
+    </div>
+
+    <div>
+      <label for="{{ form.imprint_name.id_for_label }}">Imprint</label>
+      {{ form.imprint_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.city_name.id_for_label }}">Cidade</label>
+      {{ form.city_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.country_name.id_for_label }}">Pais</label>
+      {{ form.country_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.editor_name.id_for_label }}">Editor</label>
+      {{ form.editor_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.translator_name.id_for_label }}">Tradutor</label>
+      {{ form.translator_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.adapter_name.id_for_label }}">Adaptador</label>
+      {{ form.adapter_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispicio (template)</label>
+      {{ form.frontispiece_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ frontmatter_preview }}</div>
+    </div>
+
+    <div>
+      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
+      {{ form.copyright_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ copyright_preview }}</div>
+    </div>
+
+    <div>
+      <label for="{{ form.about_edition_text.id_for_label }}">About edition</label>
+      {{ form.about_edition_text }}
+    </div>
+
+    <div class="actions">
+      <button type="submit">Salvar</button>
+      <a href="{% url 'book_edition_list' %}">Voltar</a>
+    </div>
+  </form>
+  <script>
+    const langSelect = document.getElementById("language_select");
+    if (langSelect) {
+      langSelect.addEventListener("change", (event) => {
+        const code = event.target.value;
+        const bookCode = event.target.dataset.bookCode;
+        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/?apply_defaults=1`;
+      });
+    }
+  </script>
+</body>
+</html>

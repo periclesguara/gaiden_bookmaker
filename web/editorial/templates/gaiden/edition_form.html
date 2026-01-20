@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edition - Frontmatter</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
+    h1 { margin-bottom: 16px; }
+    form div { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .actions { margin-top: 20px; display: flex; gap: 12px; }
+    button { padding: 6px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Edition · Frontmatter</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="apply_defaults" id="apply_defaults" value="0" />
+    <div>
+      <label for="{{ form.title.id_for_label }}">Titulo</label>
+      {{ form.title }}
+    </div>
+    <div>
+      <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+      {{ form.subtitle }}
+    </div>
+    <div>
+      <label for="{{ form.author.id_for_label }}">Autor</label>
+      {{ form.author }}
+    </div>
+    <div>
+      <label for="{{ form.adapter.id_for_label }}">Adaptador</label>
+      {{ form.adapter }}
+    </div>
+    <div>
+      <label for="{{ form.language_code.id_for_label }}">Idioma</label>
+      {{ form.language_code }}
+    </div>
+    <div>
+      <label for="{{ form.publication_year.id_for_label }}">Ano de publicacao</label>
+      {{ form.publication_year }}
+    </div>
+    <div>
+      <label for="{{ form.city.id_for_label }}">Cidade</label>
+      {{ form.city }}
+    </div>
+    <div>
+      <label for="{{ form.country.id_for_label }}">Pais</label>
+      {{ form.country }}
+      {% if form.country.help_text %}
+      <small>{{ form.country.help_text }}</small>
+      {% endif %}
+    </div>
+    <div>
+      <label for="{{ form.imprint_name.id_for_label }}">Imprint</label>
+      {{ form.imprint_name }}
+    </div>
+    <div>
+      <label for="{{ form.seal_name.id_for_label }}">Selo</label>
+      {{ form.seal_name }}
+    </div>
+    <div>
+      <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
+      {{ form.about_edition_text }}
+    </div>
+
+    <div class="actions">
+      <button type="submit">Salvar</button>
+      <a href="?apply_defaults=1">Aplicar defaults por idioma</a>
+      <a href="{% url 'frontispiece_preview' edition.id %}">Preview frontispicio</a>
+    </div>
+  </form>
+
+  <h2>Preview Frontispicio</h2>
+  <pre>{{ frontispiece_preview }}</pre>
+
+  <h2>Preview Copyright</h2>
+  <pre>{{ copyright_preview }}</pre>
+
+  <h2>Preview About this edition</h2>
+  <pre>{{ about_edition_preview }}</pre>
+  <script>
+    const langSelect = document.getElementById("{{ form.language_code.id_for_label }}");
+    const defaultsInput = document.getElementById("apply_defaults");
+    if (langSelect && defaultsInput) {
+      langSelect.addEventListener("change", () => {
+        defaultsInput.value = "1";
+        langSelect.form.submit();
+      });
+    }
+  </script>
+</body>
+</html>

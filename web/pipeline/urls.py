@@ -19,6 +19,11 @@ urlpatterns = [
         name="preview_merge_translate",
     ),
     path(
+        "editions/<int:edition_id>/save-merge-translate/",
+        views.save_merge_translate_preview,
+        name="save_merge_translate_preview",
+    ),
+    path(
         "editions/<str:book_code>/<str:language>/build-md/",
         views.build_book_md,
         name="build_book_md",

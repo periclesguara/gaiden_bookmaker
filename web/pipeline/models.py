@@ -2,6 +2,8 @@ from pathlib import Path
 
 from django.db import models
 
+from editorial.models import Edition as EditorialEdition
+
 
 class PipelineJob(models.Model):
     STAGES = [
@@ -37,6 +39,25 @@ class PipelineJob(models.Model):
         return f"{self.book_code} [{self.language}] - {self.stage} ({self.status})"
 
 
+class TextSnapshot(models.Model):
+    edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="text_snapshots",
+    )
+    language = models.CharField(max_length=10)
+    stage = models.CharField(max_length=50)
+    source_path = models.TextField(blank=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Snapshot({self.edition} [{self.language}] - {self.stage})"
+
+
 LANGUAGE_DEFAULT_TEMPLATES = {
     "en": {
         "frontispiece_text": (
@@ -47,7 +68,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "adapted by {adapter}\n"
             "\n"
             "{imprint}\n"
-            "{city} · {year}"
+            "{city}, {country} · {year}"
         ),
         "copyright_text": (
             "Title\n"
@@ -69,109 +90,109 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "\n"
             "Publisher: {publisher}\n"
             "All rights reserved to RinoBooks.\n"
-            "Rio de Janeiro, Brazil — {year}"
+            "{city}, {country} — {year}"
         ),
     },
     "ptbr": {
         "frontispiece_text": (
             "{title}\n"
-            "by {author}\n"
+            "por {author}\n"
             "\n"
-            "Modern {language} Edition\n"
-            "adapted by {adapter}\n"
+            "Edicao moderna em {language}\n"
+            "adaptado por {adapter}\n"
             "\n"
             "{imprint}\n"
-            "{city} · {year}"
+            "{city}, {country} · {year}"
         ),
         "copyright_text": (
-            "Title\n"
+            "Titulo\n"
             "{title}\n"
-            "Subtitle\n"
+            "Subtitulo\n"
             "{subtitle}\n"
-            "Author\n"
+            "Autor\n"
             "{author}\n"
-            "Adapter\n"
+            "Adaptacao\n"
             "{adapter}\n"
-            "Publication year\n"
+            "Ano de publicacao\n"
             "{year}\n"
             "\n"
             "Copyright © {year} Arthur Conan Doyle.\n"
-            "Public Domain in the United States and other territories.\n"
+            "Dominio publico nos Estados Unidos e em outros territorios.\n"
             "\n"
-            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
-            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "Esta versao moderna de *{title}* foi produzida sob o selo MantaQuest.\n"
+            "MantaQuest e uma marca registrada da RinoBooks.\n"
             "\n"
-            "Publisher: {publisher}\n"
-            "All rights reserved to RinoBooks.\n"
-            "Rio de Janeiro, Brazil — {year}"
+            "Editora: {publisher}\n"
+            "Todos os direitos reservados a RinoBooks.\n"
+            "{city}, {country} — {year}"
         ),
     },
     "es": {
         "frontispiece_text": (
             "{title}\n"
-            "by {author}\n"
+            "por {author}\n"
             "\n"
-            "Modern {language} Edition\n"
-            "adapted by {adapter}\n"
+            "Edicion moderna en {language}\n"
+            "adaptado por {adapter}\n"
             "\n"
             "{imprint}\n"
-            "{city} · {year}"
+            "{city}, {country} · {year}"
         ),
         "copyright_text": (
-            "Title\n"
+            "Titulo\n"
             "{title}\n"
-            "Subtitle\n"
+            "Subtitulo\n"
             "{subtitle}\n"
-            "Author\n"
+            "Autor\n"
             "{author}\n"
-            "Adapter\n"
+            "Adaptacion\n"
             "{adapter}\n"
-            "Publication year\n"
+            "Ano de publicacion\n"
             "{year}\n"
             "\n"
             "Copyright © {year} Arthur Conan Doyle.\n"
-            "Public Domain in the United States and other territories.\n"
+            "Dominio publico en los Estados Unidos y otros territorios.\n"
             "\n"
-            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
-            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "Esta version moderna de *{title}* fue producida bajo el sello MantaQuest.\n"
+            "MantaQuest es una marca registrada de RinoBooks.\n"
             "\n"
-            "Publisher: {publisher}\n"
-            "All rights reserved to RinoBooks.\n"
-            "Rio de Janeiro, Brazil — {year}"
+            "Editorial: {publisher}\n"
+            "Todos los derechos reservados a RinoBooks.\n"
+            "{city}, {country} — {year}"
         ),
     },
     "de": {
         "frontispiece_text": (
             "{title}\n"
-            "by {author}\n"
+            "von {author}\n"
             "\n"
-            "Modern {language} Edition\n"
-            "adapted by {adapter}\n"
+            "Moderne {language}-Ausgabe\n"
+            "bearbeitet von {adapter}\n"
             "\n"
             "{imprint}\n"
-            "{city} · {year}"
+            "{city}, {country} · {year}"
         ),
         "copyright_text": (
-            "Title\n"
+            "Titel\n"
             "{title}\n"
-            "Subtitle\n"
+            "Untertitel\n"
             "{subtitle}\n"
-            "Author\n"
+            "Autor\n"
             "{author}\n"
-            "Adapter\n"
+            "Bearbeitung\n"
             "{adapter}\n"
-            "Publication year\n"
+            "Erscheinungsjahr\n"
             "{year}\n"
             "\n"
             "Copyright © {year} Arthur Conan Doyle.\n"
-            "Public Domain in the United States and other territories.\n"
+            "Gemeinfrei in den Vereinigten Staaten und anderen Gebieten.\n"
             "\n"
-            "This modern version of *{title}* was produced under the MantaQuest imprint.\n"
-            "MantaQuest is a registered trademark of RinoBooks.\n"
+            "Diese moderne Ausgabe von *{title}* wurde unter dem MantaQuest-Imprint erstellt.\n"
+            "MantaQuest ist eine eingetragene Marke von RinoBooks.\n"
             "\n"
-            "Publisher: {publisher}\n"
-            "All rights reserved to RinoBooks.\n"
-            "Rio de Janeiro, Brazil — {year}"
+            "Verlag: {publisher}\n"
+            "Alle Rechte vorbehalten für RinoBooks.\n"
+            "{city}, {country} — {year}"
         ),
     },
 }
@@ -197,9 +218,9 @@ class BookEditionTemplate(models.Model):
     LANG_DE = "de"
 
     LANG_CHOICES = [
-        (LANG_EN, "English"),
-        (LANG_PTBR, "Portugues (Brasil)"),
-        (LANG_ES, "Espanol"),
+        (LANG_EN, "en"),
+        (LANG_ES, "es"),
+        (LANG_PTBR, "pt-br"),
         (LANG_DE, "Deutsch"),
     ]
 
@@ -245,6 +266,12 @@ class BookEditionTemplate(models.Model):
             "author,preface,introduction,epilogue,illustrator"
         ),
     )
+    seal_name = models.CharField(max_length=255, blank=True)
+    editor_name = models.CharField(max_length=255, blank=True)
+    translator_name = models.CharField(max_length=255, blank=True)
+    adapter_name = models.CharField(max_length=255, blank=True)
+    city_name = models.CharField(max_length=255, blank=True)
+    country_name = models.CharField(max_length=255, blank=True)
     cover_filepath = models.CharField(
         "Cover file path",
         max_length=500,
@@ -297,11 +324,13 @@ class BookEditionTemplate(models.Model):
 
     def get_placeholder_context(self) -> dict:
         pseudonym = self.collaborator_pseudonym or self.collaborator_name
+        adapter = self.adapter_name or pseudonym or self.collaborator_name
+        imprint = self.seal_name or self.imprint_name
         language_map = {
             "en": "English",
-            "ptbr": "Portuguese",
-            "es": "Spanish",
-            "de": "German",
+            "ptbr": "Português",
+            "es": "Español",
+            "de": "Deutsch",
         }
         language_label = language_map.get(self.language, (self.language or "").upper())
         return {
@@ -311,12 +340,16 @@ class BookEditionTemplate(models.Model):
             "year": self.publication_year,
             "collaborator": self.collaborator_name,
             "pseudonym": pseudonym,
-            "imprint": self.imprint_name,
+            "imprint": imprint,
             "role_label": self.primary_role_label,
             "publisher": self.collaborator_name,
-            "adapter": pseudonym,
+            "adapter": adapter,
+            "translator": self.translator_name,
+            "editor": self.editor_name,
+            "seal": self.seal_name,
             "language": language_label,
-            "city": "Rio de Janeiro",
+            "city": self.city_name or "Rio de Janeiro",
+            "country": self.country_name or "Brasil",
         }
 
     def _render_text(self, raw_text: str) -> str:

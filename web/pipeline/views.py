@@ -9,6 +9,7 @@ from django.core.management import call_command
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from editorial.models import (
@@ -18,7 +19,7 @@ from editorial.models import (
     PipelineStage,
 )
 
-from .models import get_book_md_path
+from .models import BookEditionTemplate, PipelineJob, TextSnapshot, get_book_md_path
 from .services import (
     book_manifest,
     build_book,
@@ -99,7 +100,7 @@ def _select_contract_path(language: str) -> Path:
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
         raise ValueError(f"No translate contract for language={language}")
-    return Path(rel)
+    return Path(settings.BASE_DIR).parent / rel
 
 
 def _select_refine_contract(language: str) -> Path:
@@ -111,7 +112,7 @@ def _select_refine_contract(language: str) -> Path:
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
         raise ValueError(f"No refine contract for language={language}")
-    return Path(rel)
+    return Path(settings.BASE_DIR).parent / rel
 
 
 def _contract_target_lang(payload: dict) -> str:
@@ -141,7 +142,10 @@ def _resolve_contract_out_dir(contract_path: Path, edition) -> Path:
     payload = json.loads(contract_path.read_text(encoding="utf-8"))
     out_dir = payload.get("out_dir")
     if out_dir:
-        return Path(out_dir)
+        out_dir_path = Path(out_dir)
+        if out_dir_path.is_absolute():
+            return out_dir_path
+        return Path(settings.BASE_DIR).parent / out_dir_path
     book_id = _parse_book_id(_edition_codes(edition)[0])
     if book_id is None:
         raise ValueError("book_code must be like book_0001 to resolve out_dir.")
@@ -220,8 +224,23 @@ def edition_steps(request, edition_id: int):
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
             pipeline_state.translation_language = target_language
             pipeline_state.save(update_fields=["translation_language"])
-            messages.success(request, f"Idioma de traducao salvo: {target_language}")
-            return redirect("edition_steps", edition_id=edition.id)
+            messages.info(
+                request,
+                f"Idioma salvo ({target_language}). Refine ou Next Step.",
+            )
+            result = md_transform.run_txt_to_md(edition)
+            items = result.get("items") or []
+            if len(items) > 1:
+                outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)
+                msg = f"TXT to MD OK: {outputs}"
+            else:
+                msg = f"TXT to MD OK: {result['path']}"
+                if result.get("path_pre_qa"):
+                    msg = f"{msg} (PRE_QA: {result['path_pre_qa']})"
+            messages.success(request, msg)
+            return redirect(
+                f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}#transformacao-editorial"
+            )
         if action == "insert_headlines":
             build_dir = paths.edition_build_dir(edition)
             md_targets = sorted(build_dir.glob("BOOK.PRE_QA*.md"))
@@ -332,6 +351,36 @@ def edition_steps(request, edition_id: int):
         except json.JSONDecodeError:
             issues = []
 
+    frontmatter_lang = utils.normalize_lang(
+        request.GET.get("frontmatter_lang") or language
+    )
+    frontmatter_langs = [choice[0] for choice in BookEditionTemplate.LANG_CHOICES]
+    if frontmatter_lang not in frontmatter_langs:
+        frontmatter_lang = language
+
+    default_year = edition.edition_year or edition.work.year or datetime.now().year
+    default_collab = (
+        edition.main_contributor.name if edition.main_contributor else edition.work.author.name
+    )
+    frontmatter_template, created = BookEditionTemplate.objects.get_or_create(
+        book_code=book_code,
+        language=frontmatter_lang,
+        defaults={
+            "title": edition.work.title,
+            "subtitle": "",
+            "author_name": edition.work.author.name,
+            "publication_year": default_year,
+            "imprint_name": edition.seal.name,
+            "collection_name": "",
+            "collaborator_name": default_collab,
+            "collaborator_pseudonym": "",
+            "collaborator_roles": "",
+        },
+    )
+    updated_fields = frontmatter_template.apply_language_defaults_if_empty()
+    if created or updated_fields:
+        frontmatter_template.save()
+
     context = {
         "edition": edition,
         "status": {
@@ -362,6 +411,11 @@ def edition_steps(request, edition_id: int):
         "pdf_path": str(pdf_path) if pdf_path.exists() else None,
         "book_code": book_code,
         "language": language,
+        "frontmatter_lang": frontmatter_lang,
+        "frontmatter_lang_choices": BookEditionTemplate.LANG_CHOICES,
+        "frontmatter_template": frontmatter_template,
+        "frontmatter_preview": frontmatter_template.frontispiece_rendered,
+        "copyright_preview": frontmatter_template.copyright_rendered,
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -695,6 +749,52 @@ def preview_merge_translate(request, edition_id: int):
         "content": content,
     }
     return render(request, "pipeline/preview_md.html", context)
+
+
+def save_merge_translate_preview(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("edition_steps", edition_id=edition_id)
+
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    book_code, language = _edition_codes(edition)
+
+    target_language = utils.normalize_lang(
+        (pipeline_state.translation_language if pipeline_state else None) or language
+    )
+    contract_path = _select_contract_path(target_language)
+    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+    merged_path = _detect_merged_path(out_dir_path)
+    if not merged_path:
+        messages.error(request, "Merged translation file not found.")
+        return redirect("edition_steps", edition_id=edition_id)
+
+    content = merged_path.read_text(encoding="utf-8")
+    build_dir = paths.edition_build_dir_for_language(book_code, target_language)
+    build_dir.mkdir(parents=True, exist_ok=True)
+    saved_path = build_dir / f"merge_translate_{target_language}.txt"
+    saved_path.write_text(content, encoding="utf-8")
+
+    TextSnapshot.objects.create(
+        edition=edition,
+        language=target_language,
+        stage="merge_translate_preview",
+        source_path=str(merged_path),
+        content=content,
+    )
+
+    PipelineJob.objects.create(
+        book_code=book_code,
+        book_title=edition.work.title,
+        language=target_language,
+        stage="translate",
+        status="SUCCESS",
+        filepath=str(saved_path),
+        message="Saved preview merge translate to build dir.",
+    )
+
+    messages.success(request, f"Arquivo salvo: {saved_path}")
+    return redirect("edition_steps", edition_id=edition_id)
 
 
 def preview_miolo_md(request, book_code, language):

@@ -2,7 +2,39 @@ from __future__ import annotations
 
 from django.template.loader import render_to_string
 
+from gaiden_portal.utils import country_for_language
 from . import paths
+
+
+def _language_code(edition) -> str:
+    lang = getattr(edition, "language_code", None)
+    if not lang:
+        lang_obj = getattr(edition, "language", None)
+        lang = getattr(lang_obj, "code", None) or getattr(edition, "language", None)
+    if not lang:
+        return "en"
+    if lang == "ptbr":
+        return "pt-br"
+    return lang
+
+
+def _language_label(lang: str) -> str:
+    return {
+        "en": "English",
+        "pt-br": "Português",
+        "es": "Español",
+        "de": "Deutsch",
+    }.get(lang, lang.upper())
+
+
+def _frontmatter_template(name: str, lang: str) -> str:
+    suffix = {
+        "pt-br": "pt_br",
+        "en": "en",
+        "es": "es",
+        "de": "de",
+    }.get(lang, "en")
+    return f"pipeline/{name}_{suffix}.md.j2"
 
 
 def run_build(edition) -> dict:
@@ -12,9 +44,15 @@ def run_build(edition) -> dict:
 
     md_text = final_md.read_text(encoding="utf-8")
 
-    front = render_to_string("pipeline/frontispiece.md.j2", {"edition": edition})
-    copyright_page = render_to_string("pipeline/copyright.md.j2", {"edition": edition})
-    about_edition = render_to_string("pipeline/about_edition.md.j2", {"edition": edition})
+    lang = _language_code(edition)
+    context = {
+        "edition": edition,
+        "language_label": _language_label(lang),
+        "country_label": country_for_language(lang, getattr(edition, "country", "")),
+    }
+    front = render_to_string(_frontmatter_template("frontispiece", lang), context)
+    copyright_page = render_to_string(_frontmatter_template("copyright", lang), context)
+    about_edition = render_to_string(_frontmatter_template("about_edition", lang), context)
     about_contrib = render_to_string("pipeline/about_contributor.md.j2", {"edition": edition})
 
     parts = [
