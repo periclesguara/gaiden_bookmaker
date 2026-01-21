@@ -124,6 +124,8 @@ class Edition(models.Model):
     subtitle = models.CharField(max_length=255, blank=True)
     author = models.CharField(max_length=255, blank=True)
     adapter = models.CharField(max_length=255, blank=True)
+    translator = models.CharField(max_length=255, blank=True)
+    editor = models.CharField(max_length=255, blank=True)
     about_edition_text = models.TextField(blank=True)
     publication_year = models.IntegerField(default=2026)
     city = models.CharField(max_length=100, default="Rio de Janeiro")
@@ -141,6 +143,50 @@ class Edition(models.Model):
         max_length=100,
         choices=SEAL_CHOICES,
         default="MantaQuest",
+    )
+    frontispiece_template = models.TextField(
+        default=(
+            "{title}\n"
+            "by {author}\n"
+            "\n"
+            "Modern {language} Edition\n"
+            "adapted by {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city}, {country} · {year}"
+        )
+    )
+    copyright_template = models.TextField(
+        default=(
+            "Title\n"
+            "{title}\n"
+            "Subtitle\n"
+            "{subtitle}\n"
+            "Author\n"
+            "{author}\n"
+            "Adapter\n"
+            "{adapter}\n"
+            "Publication year\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} {author}.\n"
+            "Public Domain in the United States and other territories.\n"
+            "\n"
+            "This modern version of *{title}* was produced under the {imprint} imprint.\n"
+            "{imprint} is a registered trademark of RinoBooks.\n"
+            "\n"
+            "Publisher: {publisher}\n"
+            "All rights reserved © RinoBooks.\n"
+            "{city}, {country} — {year}\n"
+        )
+    )
+    about_edition_template = models.TextField(blank=True)
+    about_contributor_template = models.TextField(blank=True)
+    cover_filepath = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Path inside the project (e.g., data/covers/book_0001/en/cover.jpg).",
     )
     language_code = models.CharField(
         max_length=10,
@@ -178,6 +224,10 @@ class EditionPipeline(models.Model):
         on_delete=models.CASCADE,
         related_name="pipeline",
     )
+    core_last_txt_path = models.CharField(max_length=500, blank=True, null=True)
+    md_language = models.CharField(max_length=10, blank=True, null=True)
+    frontmatter_language = models.CharField(max_length=10, blank=True, null=True)
+    frontmatter_locked = models.BooleanField(default=False)
     current_stage = models.CharField(
         max_length=20,
         choices=PipelineStage.choices,

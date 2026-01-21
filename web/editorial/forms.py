@@ -23,11 +23,13 @@ class FrontmatterTemplateForm(forms.ModelForm):
             "frontispiece_text",
             "copyright_text",
             "about_edition_text",
+            "about_contributor_text",
         ]
         widgets = {
             "frontispiece_text": forms.Textarea(attrs={"rows": 8}),
             "copyright_text": forms.Textarea(attrs={"rows": 14}),
             "about_edition_text": forms.Textarea(attrs={"rows": 8}),
+            "about_contributor_text": forms.Textarea(attrs={"rows": 8}),
         }
 
     def __init__(self, *args, **kwargs):

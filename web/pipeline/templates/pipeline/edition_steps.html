@@ -236,6 +236,14 @@
         RAW: <strong>{{ status.raw }}</strong>
       </div>
       <div class="status">
+        Core salvo:
+        {% if core_last_txt_path %}
+          <strong>{{ core_last_txt_path }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
         RAW path:
         {% if raw_path %}
           <strong>{{ raw_path }}</strong>
@@ -273,47 +281,46 @@
       <div class="status">
         Polish: <strong>{{ status.polish }}</strong>
       </div>
+      <div class="actions">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_core_txt" />
+          <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
+        </form>
+      </div>
     </article>
 
     <article class="card" id="transformacao-editorial">
       <h2>Transformacao Editorial &amp; Qualidade</h2>
       <h3>Frontmatter por Idioma</h3>
       <form method="get" class="actions">
-        <label for="frontmatter_lang">Idioma:</label>
+        <label for="frontmatter_lang">Idioma</label>
         <select id="frontmatter_lang" name="frontmatter_lang" aria-label="Selecionar idioma do frontmatter" onchange="this.form.submit()">
           {% for code, label in frontmatter_lang_choices %}
             <option value="{{ code }}" {% if frontmatter_lang == code %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
+        <label class="ml-2">
+          <input type="checkbox" name="frontmatter_lock" value="1" {% if frontmatter_locked %}checked{% endif %} onchange="this.form.submit()" />
+          Lock idioma
+        </label>
+        <a class="btn secondary ml-2" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang %}">
+          Frontmatter
+        </a>
         <noscript>
           <button class="btn secondary" type="submit">Atualizar</button>
         </noscript>
       </form>
-      <div class="status">
-        Selo: <strong>{{ edition.seal.name }}</strong>
-      </div>
-      <div class="status">
-        Lingua: <strong>{{ frontmatter_lang }}</strong>
-      </div>
-      <div class="status">
-        Autor: <strong>{{ edition.work.author.name }}</strong>
-      </div>
-      <div class="status">
-        Tradutor: <strong>{{ frontmatter_template.collaborator_name }}</strong>
-      </div>
-      <div class="status">
-        <strong>Frontispicio (preview)</strong>
-        <pre class="preview">{{ frontmatter_preview }}</pre>
-      </div>
-      <div class="status">
-        <strong>Copyright (preview)</strong>
-        <pre class="preview">{{ copyright_preview }}</pre>
-      </div>
-      <div class="actions">
-        <a class="btn secondary" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang %}">
-          Editar frontmatter (Editorial)
-        </a>
-      </div>
+      <form method="post" class="actions" action="{% url 'editorial_frontmatter_actions' edition.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
+        <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
+          Regerar Frontmatter (.md)
+        </button>
+        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
+          Frontmatter + BOOK.BUILD.MD
+        </button>
+      </form>
       <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
       <p>
         A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
@@ -321,12 +328,35 @@
       <div class="actions">
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
           {% csrf_token %}
+          <label for="md_language">Idioma</label>
+          <select id="md_language" name="md_language">
+            <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
+            <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
+            <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
+            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE (Krimi)</option>
+          </select>
           <button class="btn" type="submit">Convert TXT to MD</button>
         </form>
-        <a class="btn secondary" href="{% url 'preview_book_md' book_code=book_code language=language %}">
+        <div class="status">
+          Arquivo selecionado:
+          <strong id="md_source_path"></strong>
+        </div>
+        <a class="btn secondary" href="{% url 'preview_book_md' book_code=book_code language=md_language_default|default:language %}">
           Preview MD
         </a>
       </div>
+      <form method="post" class="mt-3" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_cover" />
+        <label for="cover_file">Cover</label>
+        <input id="cover_file" type="file" name="cover_file" accept="image/*" />
+        <button type="submit" class="btn btn-sm btn-secondary">Salvar capa (JPG)</button>
+        {% if cover_filepath %}
+        <p class="form-text">
+          Capa atual: <strong>{{ cover_filepath }}</strong>
+        </p>
+        {% endif %}
+      </form>
       <form method="post" class="mt-3">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_images" />
@@ -338,7 +368,7 @@
         </p>
       </form>
       <div class="actions">
-        <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=book_code language=language %}">
+        <a class="btn secondary" href="{% url 'preview_pre_edition_md' book_code=book_code language=md_language_default|default:language %}">
           Preview (Pre-Edition)
         </a>
       </div>
@@ -435,5 +465,19 @@
       </div>
     </article>
   </section>
+  <script>
+    const mdSourceMap = {{ md_source_map|safe }};
+    const mdSelect = document.getElementById("md_language");
+    const mdSourceLabel = document.getElementById("md_source_path");
+    function updateMdSource() {
+      if (!mdSelect || !mdSourceLabel) return;
+      const lang = mdSelect.value;
+      mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
+    }
+    if (mdSelect) {
+      mdSelect.addEventListener("change", updateMdSource);
+      updateMdSource();
+    }
+  </script>
 </body>
 </html>

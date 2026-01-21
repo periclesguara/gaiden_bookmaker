@@ -17,9 +17,13 @@ def language_code(edition: Any) -> str:
 
 
 def title(edition: Any) -> str:
-    if hasattr(edition, "work") and getattr(edition.work, "title", None):
-        return edition.work.title
-    return getattr(edition, "title", "")
+    edition_title = getattr(edition, "title", "") or ""
+    if not edition_title and hasattr(edition, "work"):
+        edition_title = getattr(edition.work, "title", "") or ""
+    subtitle = getattr(edition, "subtitle", "") or ""
+    if subtitle:
+        return f"{edition_title} - {subtitle}".strip()
+    return edition_title
 
 
 def author_name(edition: Any) -> str:

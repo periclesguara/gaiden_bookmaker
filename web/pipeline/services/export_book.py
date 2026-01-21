@@ -69,12 +69,21 @@ def _ensure_epub_cover_meta(epub_path: Path) -> None:
             tmp_path.unlink(missing_ok=True)
 
 
-def run_export_epub(edition) -> dict:
-    in_path = paths.build_md_path(edition)
+def _resolve_build_dir(edition, language_override: str | None = None) -> Path:
+    if language_override:
+        return paths.edition_build_dir_for_language(
+            edition_meta.book_code(edition), language_override
+        )
+    return paths.edition_build_dir(edition)
+
+
+def run_export_epub(edition, language_override: str | None = None) -> dict:
+    build_dir = _resolve_build_dir(edition, language_override)
+    in_path = build_dir / "BOOK.BUILD.MD"
     if not in_path.exists():
         raise FileNotFoundError(f"Build file not found: {in_path}")
 
-    out_path = paths.epub_path(edition)
+    out_path = build_dir / "BOOK.epub"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
@@ -91,7 +100,7 @@ def run_export_epub(edition) -> dict:
         "--metadata",
         f"author={edition_meta.author_name(edition)}",
     ]
-    css_path = paths.edition_build_dir(edition) / "BOOK.epub.css"
+    css_path = build_dir / "BOOK.epub.css"
     if css_path.exists():
         cmd.extend(["--css", str(css_path)])
     cover_path = _resolve_cover_path(edition)
@@ -104,12 +113,13 @@ def run_export_epub(edition) -> dict:
     return {"path": str(out_path), "cmd": " ".join(cmd)}
 
 
-def run_export_pdf(edition) -> dict:
-    in_path = paths.build_md_path(edition)
+def run_export_pdf(edition, language_override: str | None = None) -> dict:
+    build_dir = _resolve_build_dir(edition, language_override)
+    in_path = build_dir / "BOOK.BUILD.MD"
     if not in_path.exists():
         raise FileNotFoundError(f"Build file not found: {in_path}")
 
-    out_path = paths.pdf_path(edition)
+    out_path = build_dir / "BOOK.PRINT.PDF"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
@@ -123,8 +133,9 @@ def run_export_pdf(edition) -> dict:
     return {"path": str(out_path), "cmd": " ".join(cmd)}
 
 
-def run_epubcheck(edition) -> dict:
-    epub = paths.epub_path(edition)
+def run_epubcheck(edition, language_override: str | None = None) -> dict:
+    build_dir = _resolve_build_dir(edition, language_override)
+    epub = build_dir / "BOOK.epub"
     if not epub.exists():
         raise FileNotFoundError(f"EPUB not found: {epub}")
 

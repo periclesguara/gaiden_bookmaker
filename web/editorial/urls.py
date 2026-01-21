@@ -9,6 +9,11 @@ urlpatterns = [
         name="frontmatter_template_edit",
     ),
     path(
+        "edition/<int:edition_id>/frontmatter-actions/",
+        views.editorial_frontmatter_actions,
+        name="editorial_frontmatter_actions",
+    ),
+    path(
         "edition/<int:edition_id>/edit/",
         views.edition_edit,
         name="edition_edit",

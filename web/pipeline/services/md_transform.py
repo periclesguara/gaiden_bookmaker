@@ -41,6 +41,46 @@ def _selected_txt_sources(edition):
     return sources
 
 
+def _selected_txt_sources_for_language(edition, language: str):
+    from . import text_source
+
+    book_code = getattr(edition, "work", None)
+    if book_code and getattr(book_code, "code", None):
+        book_code = book_code.code
+    else:
+        book_code = getattr(edition, "book_code", "")
+    build_dir = paths.edition_build_dir_for_language(book_code, language)
+    marker = build_dir / paths.FORCE_MERGE_TRANSLATE_MARKER
+    if marker.exists():
+        order = ["merge_translate", "merge_refine", "merge_polish"]
+    else:
+        order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
+    candidates: list[Path] = []
+    for base in order:
+        candidates.append(build_dir / f"{base}_{language}.txt")
+        candidates.append(build_dir / f"{base}.txt")
+    for path in candidates:
+        if path.exists():
+            return [
+                text_source.SelectedTextSource(
+                    language=language,
+                    path=path,
+                    name=path.name,
+                    label=f"{path.name} ({language})",
+                )
+            ]
+    for path in sorted(build_dir.glob("*.txt")):
+        return [
+            text_source.SelectedTextSource(
+                language=language,
+                path=path,
+                name=path.name,
+                label=f"{path.name} ({language})",
+            )
+        ]
+    raise FileNotFoundError(f"No merge_* file found for language {language}.")
+
+
 def _clean_raw_text(txt: str) -> str:
     txt = PAGE_MARKER_RE.sub("\n\n", txt)
     txt = txt.replace("\r\n", "\n").replace("\r", "\n")
@@ -195,9 +235,16 @@ def pre_edition_txt_to_md(
     return md_path
 
 
-def run_txt_to_md(edition) -> Dict[str, str]:
-    sources = _selected_txt_sources(edition)
-    build_dir = paths.edition_build_dir(edition)
+def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, str]:
+    if language_override:
+        sources = _selected_txt_sources_for_language(edition, language_override)
+        build_dir = paths.edition_build_dir_for_language(
+            getattr(getattr(edition, "work", None), "code", "") or getattr(edition, "book_code", ""),
+            language_override,
+        )
+    else:
+        sources = _selected_txt_sources(edition)
+        build_dir = paths.edition_build_dir(edition)
     subtitle = getattr(edition, "subtitle", None) or None
     items: list[dict[str, str]] = []
     for source in sources:
@@ -213,8 +260,8 @@ def run_txt_to_md(edition) -> Dict[str, str]:
             language=source.language,
         )
         if len(sources) == 1:
-            out_pre_edition = paths.pre_edition_md_path(edition)
-            out_pre_qa = paths.pre_qa_md_path(edition)
+            out_pre_edition = build_dir / "BOOK.PRE_EDITION.md"
+            out_pre_qa = build_dir / "BOOK.PRE_QA.md"
         else:
             out_pre_edition = build_dir / f"BOOK.PRE_EDITION.{source.language}.md"
             out_pre_qa = build_dir / f"BOOK.PRE_QA.{source.language}.md"

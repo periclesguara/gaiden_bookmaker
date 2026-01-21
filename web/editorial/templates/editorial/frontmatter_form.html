@@ -19,6 +19,26 @@
     .preview-title { font-weight: 600; margin: 6px 0 4px; }
     .actions { margin-top: 20px; display: flex; gap: 12px; }
     button { padding: 6px 12px; font-size: 14px; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
+      width: min(480px, 90vw);
+      border: 1px solid #ddd;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+    .modal h3 { margin: 0 0 8px; font-size: 16px; }
+    .modal p { margin: 0 0 12px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
   </style>
 </head>
 <body>
@@ -38,8 +58,9 @@
     </select>
   </div>
 
-  <form method="post">
+  <form method="post" id="frontmatter_form">
     {% csrf_token %}
+    <input type="hidden" name="confirm_overwrite" id="confirm_overwrite" value="0" />
 
     <div>
       <label for="{{ form.book_code.id_for_label }}">Book code</label>
@@ -125,11 +146,30 @@
       {{ form.about_edition_text }}
     </div>
 
+    <div>
+      <label for="{{ form.about_contributor_text.id_for_label }}">About contributor</label>
+      {{ form.about_contributor_text }}
+    </div>
+
     <div class="actions">
       <button type="submit">Salvar</button>
       <a href="{% url 'book_edition_list' %}">Voltar</a>
     </div>
   </form>
+  {% if overwrite_warning %}
+  <div class="preview">{{ overwrite_warning }}</div>
+  {% endif %}
+
+  <div class="modal-backdrop" id="overwrite_modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overwrite_title">
+      <h3 id="overwrite_title">Substituir frontmatter?</h3>
+      <p>Ja existem arquivos salvos. Deseja sobrescrever?</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel_overwrite">Cancelar</button>
+        <button type="button" id="confirm_overwrite_btn">Sobrescrever</button>
+      </div>
+    </div>
+  </div>
   <script>
     const langSelect = document.getElementById("language_select");
     if (langSelect) {
@@ -137,6 +177,28 @@
         const code = event.target.value;
         const bookCode = event.target.dataset.bookCode;
         window.location.href = `/editorial/frontmatter/${bookCode}/${code}/?apply_defaults=1`;
+      });
+    }
+    const form = document.getElementById("frontmatter_form");
+    const confirmInput = document.getElementById("confirm_overwrite");
+    const modal = document.getElementById("overwrite_modal");
+    const cancelBtn = document.getElementById("cancel_overwrite");
+    const confirmBtn = document.getElementById("confirm_overwrite_btn");
+    if (form && confirmInput && modal && cancelBtn && confirmBtn) {
+      form.addEventListener("submit", (event) => {
+        const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};
+        if (hasFiles && confirmInput.value !== "1") {
+          event.preventDefault();
+          modal.style.display = "flex";
+        }
+      });
+      cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+      confirmBtn.addEventListener("click", () => {
+        confirmInput.value = "1";
+        modal.style.display = "none";
+        form.submit();
       });
     }
   </script>

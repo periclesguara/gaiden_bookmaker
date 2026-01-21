@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from django.template.loader import render_to_string
-
-from gaiden_portal.utils import country_for_language
-from . import paths
+from editorial.frontmatter import build_merged_frontmatter
+from . import edition_meta, paths
 
 
 def _language_code(edition) -> str:
@@ -27,49 +25,26 @@ def _language_label(lang: str) -> str:
     }.get(lang, lang.upper())
 
 
-def _frontmatter_template(name: str, lang: str) -> str:
-    suffix = {
-        "pt-br": "pt_br",
-        "en": "en",
-        "es": "es",
-        "de": "de",
-    }.get(lang, "en")
-    return f"pipeline/{name}_{suffix}.md.j2"
-
-
-def run_build(edition) -> dict:
-    final_md = paths.final_md_path(edition)
+def run_build(edition, language_override: str | None = None) -> dict:
+    book_code = edition_meta.book_code(edition)
+    build_dir = (
+        paths.edition_build_dir_for_language(book_code, language_override)
+        if language_override
+        else paths.edition_build_dir(edition)
+    )
+    final_md = build_dir / "BOOK.MD_FINAL"
     if not final_md.exists():
         raise FileNotFoundError(f"MD final not found: {final_md}")
 
     md_text = final_md.read_text(encoding="utf-8")
 
-    lang = _language_code(edition)
-    context = {
-        "edition": edition,
-        "language_label": _language_label(lang),
-        "country_label": country_for_language(lang, getattr(edition, "country", "")),
-    }
-    front = render_to_string(_frontmatter_template("frontispiece", lang), context)
-    copyright_page = render_to_string(_frontmatter_template("copyright", lang), context)
-    about_edition = render_to_string(_frontmatter_template("about_edition", lang), context)
-    about_contrib = render_to_string("pipeline/about_contributor.md.j2", {"edition": edition})
+    frontmatter = build_merged_frontmatter(edition).strip()
+    if frontmatter:
+        build_text = f"{frontmatter}\n\n{md_text.strip()}\n"
+    else:
+        build_text = md_text.strip() + "\n"
 
-    parts = [
-        front.strip(),
-        "",
-        copyright_page.strip(),
-        "",
-        about_edition.strip(),
-        "",
-        about_contrib.strip(),
-        "",
-        md_text.strip(),
-        "",
-    ]
-    build_text = "\n".join(parts)
-
-    out_path = paths.build_md_path(edition)
+    out_path = build_dir / "BOOK.BUILD.MD"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(build_text, encoding="utf-8")
 

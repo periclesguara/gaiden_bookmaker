@@ -3,6 +3,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from editorial.models import Edition as EditorialEdition
+from editorial.frontmatter import build_frontmatter_files
 
 
 class Command(BaseCommand):
@@ -54,25 +55,11 @@ class Command(BaseCommand):
         )
 
         for edition in qs:
-            target_dir = base_dir / edition.work.code / edition.language.code
-            target_dir.mkdir(parents=True, exist_ok=True)
-
-            frontispiece = f"{edition.work.title}\nby {edition.work.author.name}\n"
-            files = {
-                "frontispiece.md": frontispiece,
-                "copyright.md": "",
-                "about_edition.md": "",
-                "about_contributor.md": "",
-            }
-
-            for filename, content in files.items():
-                target_path = target_dir / filename
-                text = content or ""
-                target_path.write_text(text, encoding="utf-8")
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"[{edition.work.code} {edition.language.code}] -> {target_path}"
-                    )
+            build_frontmatter_files(edition, base_dir)
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"[{edition.work.code} {edition.language.code}] -> {base_dir / edition.work.code / edition.language.code}"
                 )
+            )
 
         self.stdout.write(self.style.SUCCESS("Export de frontmatter concluido."))

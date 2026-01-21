@@ -66,11 +66,13 @@ def _safe_path(path: Path) -> Optional[str]:
 
 def build_manifest(
     edition,
+    target_edition=None,
     *,
     export_user: str = "system",
     epubcheck_status: str = "unknown",
 ) -> BookManifest:
-    ts = text_source.get_effective_text_source(edition)
+    effective = target_edition or edition
+    ts = text_source.get_effective_text_source(effective)
 
     text_source_info = ManifestTextSource(
         canonical_name=ts.canonical_name,
@@ -81,13 +83,13 @@ def build_manifest(
     )
 
     md_files = ManifestMdFiles(
-        pre_qa=_safe_path(paths.pre_qa_md_path(edition)),
-        qa=_safe_path(paths.qa_md_path(edition)),
-        final=_safe_path(paths.final_md_path(edition)),
+        pre_qa=_safe_path(paths.pre_qa_md_path(effective)),
+        qa=_safe_path(paths.qa_md_path(effective)),
+        final=_safe_path(paths.final_md_path(effective)),
     )
 
     build_info = ManifestBuildInfo(
-        path=_safe_path(paths.build_md_path(edition)),
+        path=_safe_path(paths.build_md_path(effective)),
         frontispiece_template="frontispiece.md.j2",
         copyright_template="copyright.md.j2",
         about_edition_template="about_edition.md.j2",
@@ -95,20 +97,20 @@ def build_manifest(
     )
 
     export_info = ManifestExportInfo(
-        epub=_safe_path(paths.epub_path(edition)),
-        pdf=_safe_path(paths.pdf_path(edition)),
+        epub=_safe_path(paths.epub_path(effective)),
+        pdf=_safe_path(paths.pdf_path(effective)),
         epubcheck_status=epubcheck_status,
     )
 
     export_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     return BookManifest(
-        edition_id=edition.id,
-        book_code=edition_meta.book_code(edition),
-        language=edition_meta.language_code(edition),
-        edition_type=getattr(edition, "edition_type", None),
-        imprint_name=getattr(edition, "imprint_name", None),
-        collection_name=getattr(edition, "collection_name", None),
+        edition_id=effective.id,
+        book_code=edition_meta.book_code(effective),
+        language=edition_meta.language_code(effective),
+        edition_type=getattr(effective, "edition_type", None),
+        imprint_name=getattr(effective, "imprint_name", None),
+        collection_name=getattr(effective, "collection_name", None),
         text_source=text_source_info,
         md_files=md_files,
         build=build_info,

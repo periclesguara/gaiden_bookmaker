@@ -93,6 +93,10 @@ def merge_polish_path(edition) -> Path:
     return edition_build_dir(edition) / "merge_polish.txt"
 
 
+def core_last_txt_path(edition) -> Path:
+    return data_dir() / "editions" / str(edition.id) / "core" / "core_last.txt"
+
+
 def pre_qa_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.PRE_QA.md"
 

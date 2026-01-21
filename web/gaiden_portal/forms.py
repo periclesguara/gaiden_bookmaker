@@ -8,7 +8,7 @@ class EditionForm(forms.ModelForm):
         "en": "Brazil",
         "pt-br": "Brasil",
         "es": "Brasil",
-        "de": "Brazile",
+        "de": "Brasilien",
     }
 
     def __init__(self, *args, **kwargs):
@@ -37,6 +37,9 @@ class EditionForm(forms.ModelForm):
             "subtitle",
             "author",
             "adapter",
+            "translator",
+            "editor",
+            "publisher",
             "about_edition_text",
             "publication_year",
             "city",
@@ -44,4 +47,8 @@ class EditionForm(forms.ModelForm):
             "imprint_name",
             "seal_name",
             "language_code",
+            "frontispiece_template",
+            "copyright_template",
+            "about_edition_template",
+            "about_contributor_template",
         ]
