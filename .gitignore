@@ -69,3 +69,24 @@ exports/
 *.pdf
 *.sqlite3
 *.db
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# OS/editor
+.DS_Store
+.vscode/
+
+# build artifacts
+dist/
+build/
+*.log
+
+# latex
+*.aux
+*.toc
+*.out
+*.lof
+*.lot
