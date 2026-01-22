@@ -1,92 +1,27 @@
 # Python
 __pycache__/
-*.py[cod]
-*.pyo
-*.so
-*.egg-info/
-.eggs/
-build/
-dist/
-pip-wheel-metadata/
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-
-# Virtual env / secrets
-.venv/
-.env
-.env.*
-
-# OS / IDE
-.DS_Store
-.idea/
-.vscode/
-
-# Editorial exports / binaries
-*.epub
-*.mobi
-*.azw3
-*.pdf
-*.docx
-
-# Generated / cache-ish folders (adjust as needed)
-tmp/
-output/
-exports/
-cache/
-
-# Backups (usually huge + noisy)
-backups/
-
-# DB / local data (be careful: keep schema, ignore runtime dbs)
-sqlite3/*.db
-sqlite3/*.sqlite
-sqlite3/*.sqlite3
-
-# Data dumps (keep only small fixtures tracked if needed)
-data/**/*.parquet
-data/**/*.csv
-data/**/*.jsonl
-data/**/raw/
-
-# generated artifacts
-backups/
-exports/
-*.epub
-*.mobi
-*.azw3
-*.pdf
-*.sqlite3
-*.db
-
-# generated artifacts
-backups/
-exports/
-*.epub
-*.mobi
-*.azw3
-*.pdf
-*.sqlite3
-*.db
-
-# python
-__pycache__/
 *.pyc
 .venv/
 
-# OS/editor
+# OS / IDE
 .DS_Store
 .vscode/
 
-# build artifacts
+# Build artifacts
 dist/
 build/
 *.log
 
-# latex
+# LaTeX
 *.aux
 *.toc
 *.out
 *.lof
 *.lot
+
+# Editorial artifacts
+backups/*
+exports/*
+
+!backups/README.md
+!exports/README.md
