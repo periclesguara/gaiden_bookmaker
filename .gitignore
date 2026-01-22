@@ -59,3 +59,13 @@ exports/
 *.pdf
 *.sqlite3
 *.db
+
+# generated artifacts
+backups/
+exports/
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.sqlite3
+*.db
