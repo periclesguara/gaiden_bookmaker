@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views_artifacts import artifacts_reindex, artifacts_table
 
 urlpatterns = [
     path(
@@ -14,6 +15,11 @@ urlpatterns = [
         name="editorial_frontmatter_actions",
     ),
     path(
+        "edition/<int:edition_id>/toggle-stage-lock/",
+        views.toggle_stage_lock,
+        name="toggle_stage_lock",
+    ),
+    path(
         "edition/<int:edition_id>/edit/",
         views.edition_edit,
         name="edition_edit",
@@ -22,5 +28,15 @@ urlpatterns = [
         "edition/<int:edition_id>/frontispiece/",
         views.frontispiece_preview,
         name="frontispiece_preview",
+    ),
+    path(
+        "artifacts/<str:work_code>/<str:lang>/",
+        artifacts_table,
+        name="artifacts_table",
+    ),
+    path(
+        "artifacts/<str:work_code>/reindex/",
+        artifacts_reindex,
+        name="artifacts_reindex",
     ),
 ]

@@ -9,6 +9,7 @@ from pathlib import Path
 
 from django.conf import settings
 
+from editorial import kdp_mode
 from . import edition_meta, paths
 
 
@@ -78,39 +79,19 @@ def _resolve_build_dir(edition, language_override: str | None = None) -> Path:
 
 
 def run_export_epub(edition, language_override: str | None = None) -> dict:
-    build_dir = _resolve_build_dir(edition, language_override)
-    in_path = build_dir / "BOOK.BUILD.MD"
-    if not in_path.exists():
-        raise FileNotFoundError(f"Build file not found: {in_path}")
+    target = edition
+    if language_override:
+        target = edition.__class__.objects.get(
+            work__code=edition_meta.book_code(edition),
+            language__code=language_override,
+        )
 
-    out_path = build_dir / "BOOK.epub"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-
-    cmd = [
-        "pandoc",
-        str(in_path),
-        "-o",
-        str(out_path),
-        "--toc",
-        "--toc-depth=2",
-        "-t",
-        "epub3",
-        "--metadata",
-        f"title={edition_meta.title(edition)}",
-        "--metadata",
-        f"author={edition_meta.author_name(edition)}",
-    ]
-    css_path = build_dir / "BOOK.epub.css"
-    if css_path.exists():
-        cmd.extend(["--css", str(css_path)])
-    cover_path = _resolve_cover_path(edition)
+    out_path = kdp_mode.build_epub_for_edition(target, epub_filename="BOOK.epub")
+    cover_path = _resolve_cover_path(target)
     if cover_path:
-        cmd.extend(["--metadata", f"cover-image={cover_path}"])
-    subprocess.run(cmd, check=True)
-    if cover_path:
-        _ensure_epub_cover_meta(out_path)
+        _ensure_epub_cover_meta(Path(out_path))
 
-    return {"path": str(out_path), "cmd": " ".join(cmd)}
+    return {"path": str(out_path), "cmd": "kdp_mode.build_epub_for_edition"}
 
 
 def run_export_pdf(edition, language_override: str | None = None) -> dict:

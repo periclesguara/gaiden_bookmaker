@@ -32,6 +32,7 @@ from .services import (
     md_transform,
     miolo_transform,
     paths,
+    stage_policy,
     utils,
 )
 
@@ -79,6 +80,25 @@ def _parse_book_id(book_code: str) -> int | None:
 
 def _edition_codes(edition) -> tuple[str, str]:
     return edition.work.code, edition.language.code
+
+
+def _global_core_edition(edition) -> EditorialEdition:
+    if utils.normalize_lang(edition.language.code) == "en":
+        return edition
+    try:
+        return EditorialEdition.objects.get(work__code=edition.work.code, language__code="en")
+    except EditorialEdition.DoesNotExist as exc:
+        raise ValueError(f"Edicao EN nao encontrada para {edition.work.code}.") from exc
+
+
+def _edition_for_language(edition, target_lang: str) -> EditorialEdition:
+    normalized = utils.normalize_lang(target_lang)
+    if utils.normalize_lang(edition.language.code) == normalized:
+        return edition
+    try:
+        return EditorialEdition.objects.get(work__code=edition.work.code, language__code=normalized)
+    except EditorialEdition.DoesNotExist as exc:
+        raise ValueError(f"Edicao nao encontrada: {edition.work.code} [{normalized}]") from exc
 
 
 def _raw_upload_path(edition, uploaded_name: str) -> Path:
@@ -306,7 +326,12 @@ def edition_steps(request, edition_id: int):
             return redirect("edition_steps", edition_id=edition.id)
         if action == "save_translation_language":
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            try:
+                target_edition = _edition_for_language(edition, target_language)
+            except ValueError as exc:
+                messages.error(request, str(exc))
+                return redirect("edition_steps", edition_id=edition.id)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.translation_language = target_language
             pipeline_state.md_language = target_language
             pipeline_state.save(update_fields=["translation_language", "md_language"])
@@ -314,7 +339,7 @@ def edition_steps(request, edition_id: int):
                 request,
                 f"Idioma salvo ({target_language}). Refine ou Next Step.",
             )
-            result = md_transform.run_txt_to_md(edition, language_override=target_language)
+            result = md_transform.run_txt_to_md(target_edition, language_override=target_language)
             items = result.get("items") or []
             if len(items) > 1:
                 outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)
@@ -325,7 +350,7 @@ def edition_steps(request, edition_id: int):
                     msg = f"{msg} (PRE_QA: {result['path_pre_qa']})"
             messages.success(request, msg)
             return redirect(
-                f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}#transformacao-editorial"
+                f"{reverse('edition_steps', kwargs={'edition_id': target_edition.id})}#transformacao-editorial"
             )
         if action == "insert_headlines":
             build_dir = paths.edition_build_dir(edition)
@@ -570,28 +595,29 @@ def run_edition_step(request, edition_id: int, step: str):
         return edition.language.code
 
     def _target_edition():
-        target_lang = _target_lang()
-        if target_lang == edition.language.code:
+        target_lang = utils.normalize_lang(_target_lang())
+        if target_lang == utils.normalize_lang(edition.language.code):
             return edition
         return EditorialEdition.objects.get(work__code=book_code, language__code=target_lang)
 
     try:
         if step == "raw":
+            core_edition = _global_core_edition(edition)
             uploaded = request.FILES.get("raw_file")
             if not uploaded:
                 raise ValueError("No raw file uploaded.")
-            dest_path = _raw_upload_path(edition, uploaded.name)
+            dest_path = _raw_upload_path(core_edition, uploaded.name)
             with dest_path.open("wb+") as dest:
                 for chunk in uploaded.chunks():
                     dest.write(chunk)
-            edition.raw_source_path = str(dest_path)
-            edition.save(update_fields=["raw_source_path", "updated_at"])
+            core_edition.raw_source_path = str(dest_path)
+            core_edition.save(update_fields=["raw_source_path", "updated_at"])
 
-            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            texts, _ = EditionText.objects.get_or_create(edition=core_edition)
             texts.raw_path = str(dest_path)
             texts.save(update_fields=["raw_path", "updated_at"])
 
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.RAW
             pipeline_state.raw_at = timezone.now()
             pipeline_state.last_log = ""
@@ -599,10 +625,11 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"RAW saved: {dest_path}")
 
         elif step == "normalize":
+            core_edition = _global_core_edition(edition)
             from gaiden import ingest, normalize as gaiden_normalize
 
-            texts = EditionText.objects.filter(edition=edition).first()
-            raw_path_str = (texts.raw_path if texts else "") or edition.raw_source_path
+            texts = EditionText.objects.filter(edition=core_edition).first()
+            raw_path_str = (texts.raw_path if texts else "") or core_edition.raw_source_path
             if not raw_path_str:
                 raise FileNotFoundError("RAW file not found. Upload it first.")
 
@@ -615,17 +642,18 @@ def run_edition_step(request, edition_id: int, step: str):
             normalized = gaiden_normalize.normalize_text_v2(text)
             data_dir = Path(settings.BASE_DIR).parent / "data" / "normalized"
             data_dir.mkdir(parents=True, exist_ok=True)
-            out_path = data_dir / f"{book_code}_{language}_v2.txt"
+            _, core_language = _edition_codes(core_edition)
+            out_path = data_dir / f"{book_code}_{core_language}_v2.txt"
             out_path.write_text(normalized, encoding="utf-8")
 
-            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            texts, _ = EditionText.objects.get_or_create(edition=core_edition)
             texts.raw_text = text
             texts.normalized_text = normalized
             texts.raw_path = str(raw_path)
             texts.normalized_path = str(out_path)
             texts.save()
 
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             if pipeline_state.raw_at is None:
                 pipeline_state.raw_at = timezone.now()
             pipeline_state.current_stage = PipelineStage.NORMALIZED
@@ -636,8 +664,9 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Normalize OK: {out_path}")
 
         elif step == "split":
-            count = editorial_split.run_split_struct(edition)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            core_edition = _global_core_edition(edition)
+            count = editorial_split.run_split_struct(core_edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.SPLIT
             pipeline_state.split_at = timezone.now()
             pipeline_state.last_log = ""
@@ -645,10 +674,11 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Split struct OK: {count} units")
 
         elif step == "chunk":
-            count = editorial_split.run_split_01(edition)
+            core_edition = _global_core_edition(edition)
+            count = editorial_split.run_split_01(core_edition)
             book_id = _parse_book_id(book_code)
             chunks_dir = Path("data/chunks") / f"book_{book_id:04d}" / "split_01"
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.CHUNKED
             pipeline_state.chunked_at = timezone.now()
             pipeline_state.last_log = ""
@@ -668,9 +698,13 @@ def run_edition_step(request, edition_id: int, step: str):
             from gaiden.translate import run_translate_with_contract
 
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            target_edition = _edition_for_language(edition, target_language)
+            stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             if target_language == "de":
-                core_path_value = pipeline_state.core_last_txt_path or ""
+                core_edition = _global_core_edition(edition)
+                core_state = EditionPipeline.objects.filter(edition=core_edition).first()
+                core_path_value = (core_state.core_last_txt_path if core_state else "") or ""
                 if not core_path_value:
                     messages.error(request, "Salve o Core antes de traduzir.")
                     return redirect("edition_steps", edition_id=edition.id)
@@ -683,7 +717,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     Path(settings.BASE_DIR).parent
                     / "data"
                     / "editions"
-                    / str(edition.id)
+                    / str(target_edition.id)
                     / "core"
                     / "chunks_de"
                 )
@@ -698,7 +732,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 contract_payload["out_dir"] = str(
                     Path("data")
                     / "editions"
-                    / str(edition.id)
+                    / str(target_edition.id)
                     / "translate"
                     / "de_krimi"
                 )
@@ -706,7 +740,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     Path(settings.BASE_DIR).parent
                     / "data"
                     / "editions"
-                    / str(edition.id)
+                    / str(target_edition.id)
                     / "core"
                     / "contract_de.json"
                 )
@@ -716,16 +750,20 @@ def run_edition_step(request, edition_id: int, step: str):
                     encoding="utf-8",
                 )
                 run_translate_with_contract(core_contract_path)
-                out_dir_path = _resolve_contract_out_dir(core_contract_path, edition)
+                out_dir_path = _resolve_contract_out_dir(core_contract_path, target_edition)
             else:
                 contract_path = _select_contract_path(target_language)
                 run_translate_with_contract(contract_path)
-                out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+                out_dir_path = _resolve_contract_out_dir(contract_path, target_edition)
 
             merged_path = _detect_merged_path(out_dir_path)
             if not merged_path:
                 raise FileNotFoundError(f"Merged translation not found in {out_dir_path}")
-            build_path = _copy_merge_to_build(edition, merged_path, paths.merge_translate_path(edition))
+            build_path = _copy_merge_to_build(
+                target_edition,
+                merged_path,
+                paths.merge_translate_path(target_edition),
+            )
             pipeline_state.current_stage = PipelineStage.TRANSLATED
             pipeline_state.translation_language = target_language
             pipeline_state.translated_at = timezone.now()
@@ -736,16 +774,22 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "refine":
             from gaiden.translate import run_translate_with_contract
 
-            contract_path = _select_refine_contract(language)
+            target_edition = edition
+            stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
+            contract_path = _select_refine_contract(target_edition.language.code)
             run_translate_with_contract(contract_path)
 
-            out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+            out_dir_path = _resolve_contract_out_dir(contract_path, target_edition)
 
             merged_path = _detect_merged_path(out_dir_path)
             if not merged_path:
                 raise FileNotFoundError(f"Merged refine not found in {out_dir_path}")
-            build_path = _copy_merge_to_build(edition, merged_path, paths.merge_refine_path(edition))
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            build_path = _copy_merge_to_build(
+                target_edition,
+                merged_path,
+                paths.merge_refine_path(target_edition),
+            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.REFINED
             pipeline_state.refined_at = timezone.now()
             pipeline_state.last_log = ""
@@ -755,16 +799,22 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "polish":
             from gaiden.polish_en_2025 import run_polish_en_2025
 
+            target_edition = edition
+            stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
             book_id = _parse_book_id(book_code)
             if book_id is None:
                 raise ValueError("book_code must be like book_0001 to polish.")
-            if language != "en":
+            if utils.normalize_lang(target_edition.language.code) != "en":
                 raise ValueError("Polish is only available for English.")
 
             run_polish_en_2025(book_id=book_id, lang_key="en_modern_2025")
             out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
-            build_path = _copy_merge_to_build(edition, out_path, paths.merge_polish_path(edition))
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            build_path = _copy_merge_to_build(
+                target_edition,
+                out_path,
+                paths.merge_polish_path(target_edition),
+            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.POLISHED
             pipeline_state.polished_at = timezone.now()
             pipeline_state.last_log = ""
@@ -773,8 +823,10 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "txt_to_md":
             md_language = request.POST.get("md_language") or None
-            result = md_transform.run_txt_to_md(edition, language_override=md_language)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            target_language = md_language or edition.language.code
+            target_edition = _edition_for_language(edition, target_language)
+            result = md_transform.run_txt_to_md(target_edition, language_override=md_language)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.md_language = md_language or ""
             pipeline_state.save(update_fields=["md_language"])
             items = result.get("items") or []
@@ -788,7 +840,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, msg)
 
         elif step == "txt_to_miolo":
-            result = miolo_transform.run_txt_to_miolo(edition)
+            result = miolo_transform.run_txt_to_miolo_from_reference(edition)
             items = result.get("items") or []
             if len(items) > 1:
                 outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)

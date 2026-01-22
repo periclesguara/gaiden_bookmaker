@@ -65,7 +65,7 @@ class Command(BaseCommand):
             return
 
         try:
-            epub_path = build_epub_for_edition(edition)
+            epub_path = build_epub_for_edition(edition, epub_filename="BOOK.epub")
         except RuntimeError as exc:
             raise CommandError(str(exc))
 

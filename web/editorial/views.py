@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
@@ -12,6 +13,7 @@ from gaiden_portal.utils import (
     get_section_template_for_language,
 )
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
+from pipeline.services import utils
 from editorial.frontmatter import build_frontmatter_files
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
@@ -316,6 +318,44 @@ def editorial_frontmatter_actions(request, edition_id: int):
         messages.warning(request, f"Acao desconhecida: {action}")
 
     return redirect("edition_steps", edition_id=edition.id)
+
+
+@require_POST
+def toggle_stage_lock(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    target_lang = utils.normalize_lang(request.POST.get("target_lang") or edition.language.code)
+
+    if target_lang != utils.normalize_lang(edition.language.code):
+        edition = get_object_or_404(
+            EditorialEdition,
+            work__code=edition.work.code,
+            language__code=target_lang,
+        )
+
+    lock_name = request.POST.get("lock_name") or ""
+    value = request.POST.get("value")
+    if lock_name not in ("lock_translate", "lock_refine", "lock_polish"):
+        messages.error(request, f"Lock invalido: {lock_name}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    lock_value = value == "1"
+    if lock_value:
+        for other in ("lock_translate", "lock_refine", "lock_polish"):
+            if other != lock_name:
+                setattr(edition, other, False)
+    setattr(edition, lock_name, lock_value)
+    update_fields = [lock_name]
+    if lock_value:
+        update_fields.extend(
+            [other for other in ("lock_translate", "lock_refine", "lock_polish") if other != lock_name]
+        )
+    edition.save(update_fields=update_fields)
+    state = "ON" if lock_value else "OFF"
+    messages.success(
+        request,
+        f"{lock_name}={state} para {edition.work.code} [{edition.language.code}]",
+    )
+    return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 def edition_edit(request, edition_id: int):

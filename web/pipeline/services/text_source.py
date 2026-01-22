@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import edition_meta, paths
+from . import edition_meta, paths, stage_policy, utils
 
 
 @dataclass
@@ -181,3 +181,74 @@ def _build_selected_values(mode: str, language: str) -> list[str]:
 
 def resolve_selected_text_sources(edition) -> list[SelectedTextSource]:
     return _resolve_selected_sources(edition)
+
+
+def resolve_txt_source(edition) -> SelectedTextSource:
+    build_dir = paths.edition_build_dir(edition)
+    lang_code = edition_meta.language_code(edition)
+    normalized_lang = utils.normalize_lang(lang_code)
+    policy = stage_policy.POLICY
+
+    def pick(candidates: list[str]) -> Path | None:
+        for name in candidates:
+            path = build_dir / name
+            if path.exists():
+                return path
+        return None
+
+    def stage_candidates(stage: str) -> list[str]:
+        names = [
+            f"merge_{stage}_{normalized_lang}.txt",
+            f"{stage}_{normalized_lang}.txt",
+        ]
+        if normalized_lang != lang_code:
+            names.extend(
+                [
+                    f"merge_{stage}_{lang_code}.txt",
+                    f"{stage}_{lang_code}.txt",
+                ]
+            )
+        names.extend([f"merge_{stage}.txt", f"{stage}.txt"])
+        return names
+
+    manual_stage = getattr(edition, "miolo_source_stage", "") or ""
+    if manual_stage:
+        manual_path = pick(stage_candidates(manual_stage))
+        if not manual_path:
+            raise FileNotFoundError(
+                f"Stage '{manual_stage}' selecionado, mas TXT nao encontrado em {build_dir}."
+            )
+        return SelectedTextSource(
+            language=normalized_lang,
+            path=manual_path,
+            name=manual_path.name,
+            label=f"{manual_path.name} ({normalized_lang})",
+        )
+
+    locked_stage = policy.locked_reference_stage(edition)
+    if locked_stage:
+        locked_path = pick(stage_candidates(locked_stage))
+        if not locked_path:
+            raise FileNotFoundError(
+                f"Stage '{locked_stage}' esta LOCKED, mas TXT nao encontrado em {build_dir}."
+            )
+        return SelectedTextSource(
+            language=normalized_lang,
+            path=locked_path,
+            name=locked_path.name,
+            label=f"{locked_path.name} ({normalized_lang})",
+        )
+
+    for stage in policy.stages:
+        stage_path = pick(stage_candidates(stage))
+        if stage_path:
+            return SelectedTextSource(
+                language=normalized_lang,
+                path=stage_path,
+                name=stage_path.name,
+                label=f"{stage_path.name} ({normalized_lang})",
+            )
+
+    raise FileNotFoundError(
+        f"Nenhum TXT fonte encontrado em {build_dir} (lang={normalized_lang})."
+    )

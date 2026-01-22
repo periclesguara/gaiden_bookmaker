@@ -193,6 +193,20 @@ class Edition(models.Model):
         choices=LANGUAGE_CHOICES,
         default="en",
     )
+    lock_translate = models.BooleanField(default=False)
+    lock_refine = models.BooleanField(default=False)
+    lock_polish = models.BooleanField(default=False)
+    miolo_source_stage = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        choices=[
+            ("", "AUTO"),
+            ("translate", "translate"),
+            ("refine", "refine"),
+            ("polish", "polish"),
+        ],
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -270,5 +284,39 @@ class EditionText(models.Model):
 
     def __str__(self) -> str:
         return f"Texts({self.edition})"
+
+
+class PipelineArtifact(models.Model):
+    STAGE_CHOICES = [
+        ("raw", "RAW"),
+        ("normalize", "NORMALIZE"),
+        ("split", "SPLIT/CHUNK"),
+        ("translate", "TRANSLATE"),
+        ("refine", "REFINE"),
+        ("polish", "POLISH"),
+        ("miolo", "MIOLO"),
+        ("frontmatter", "FRONTMATTER"),
+        ("build", "BUILD"),
+        ("epub", "EPUB"),
+        ("pdf", "PDF"),
+        ("cover", "COVER"),
+    ]
+
+    work_code = models.CharField(max_length=200, db_index=True)
+    language_code = models.CharField(max_length=20, db_index=True)
+    stage = models.CharField(max_length=50, choices=STAGE_CHOICES, db_index=True)
+    relpath = models.TextField()
+    filename = models.CharField(max_length=255, db_index=True)
+    size_bytes = models.BigIntegerField(default=0)
+    mtime_iso = models.CharField(max_length=40, default="")
+    exists = models.BooleanField(default=True)
+    is_candidate = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("work_code", "language_code", "stage", "relpath")
+
+    def __str__(self) -> str:
+        return f"{self.work_code} [{self.language_code}] {self.stage}: {self.filename}"
 
 # Create your models here.

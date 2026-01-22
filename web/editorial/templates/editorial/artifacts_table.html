@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Artifacts — {{ work_code }} [{{ lang }}]</title>
+    <style>
+      body {
+        font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+        margin: 24px;
+        color: #111;
+        background: #f7f5f2;
+      }
+      h2 {
+        margin: 0 0 12px;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 10px 0 16px;
+      }
+      .card {
+        padding: 12px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #f0eee9;
+      }
+      code {
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 0.9em;
+      }
+      a {
+        color: #0f3d57;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Artifacts — {{ work_code }} [{{ lang }}]</h2>
+
+    <div class="actions">
+      <a href="{% url 'artifacts_reindex' work_code=work_code %}">Reindex</a>
+      <span>|</span>
+      <a href="{% url 'artifacts_table' work_code=work_code lang='en' %}">EN</a>
+      <a href="{% url 'artifacts_table' work_code=work_code lang='de' %}">DE</a>
+      <a href="{% url 'artifacts_table' work_code=work_code lang='es' %}">ES</a>
+      <a href="{% url 'artifacts_table' work_code=work_code lang='ptbr' %}">PT-BR</a>
+    </div>
+
+    {% if edition %}
+    <div class="card">
+      <strong>Locks:</strong>
+      translate={{ edition.lock_translate }} |
+      refine={{ edition.lock_refine }} |
+      polish={{ edition.lock_polish }}
+    </div>
+    {% endif %}
+
+    <table>
+      <thead>
+        <tr>
+          <th>Stage</th>
+          <th>File</th>
+          <th>Relpath</th>
+          <th>Size</th>
+          <th>Modified</th>
+          <th>Candidate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in artifacts %}
+        <tr>
+          <td>{{ a.stage }}</td>
+          <td><strong>{{ a.filename }}</strong></td>
+          <td><code>{{ a.relpath }}</code></td>
+          <td>{{ a.size_bytes }}</td>
+          <td>{{ a.mtime_iso }}</td>
+          <td>{{ a.is_candidate }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6">Nada encontrado. Clique Reindex.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

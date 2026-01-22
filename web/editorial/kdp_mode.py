@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -19,6 +20,31 @@ def translated_miolo_path(edition: Edition) -> Path:
     return Path("data") / "translated" / edition.work.code / edition.language.code / "miolo.md"
 
 
+_PAGEBREAK_RE = re.compile(r"^:::\s*pagebreak\s*$", re.MULTILINE)
+
+
+def _resolve_cover_path(edition: Edition) -> Path | None:
+    cover_value = (getattr(edition, "cover_filepath", "") or "").strip()
+    project_root = Path(__file__).resolve().parents[2]
+    if cover_value:
+        cover_path = Path(cover_value)
+        if not cover_path.is_absolute():
+            cover_path = project_root / cover_path
+        if cover_path.exists():
+            return cover_path
+
+    cover_dir = project_root / "data" / "covers" / edition.work.code / edition.language.code
+    for name in ("cover.jpg", "cover.png"):
+        candidate = cover_dir / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _normalize_pagebreaks(text: str) -> str:
+    return _PAGEBREAK_RE.sub("::: pagebreak\n:::", text)
+
+
 def build_merged_kdp_source(edition: Edition) -> Path:
     fm_base = frontmatter_dir(edition)
     builds_base = builds_dir(edition)
@@ -28,7 +54,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     for name in ["frontispiece", "copyright", "about_edition", "about_contributor"]:
         path = fm_base / f"{name}.md"
         if path.exists():
-            txt = path.read_text(encoding="utf-8").rstrip()
+            txt = _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
             sections.append(txt + "\n\n")
 
     miolo_path = translated_miolo_path(edition)
@@ -47,7 +73,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     return kdp_merged_path
 
 
-def build_epub_for_edition(edition: Edition) -> Path:
+def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") -> Path:
     builds_base = builds_dir(edition)
     builds_base.mkdir(parents=True, exist_ok=True)
 
@@ -55,7 +81,11 @@ def build_epub_for_edition(edition: Edition) -> Path:
     if not merged_path.exists():
         raise FileNotFoundError(f"Arquivo de merge nao encontrado: {merged_path}")
 
-    epub_path = builds_base / "ebook.epub"
+    epub_path = builds_base / epub_filename
+
+    title = (edition.title or "").strip() or "Die Abenteuer des Sherlock Holmes"
+    lang = edition.language.code
+    subtitle = (getattr(edition, "subtitle", "") or "").strip()
 
     cmd = [
         "pandoc",
@@ -63,9 +93,17 @@ def build_epub_for_edition(edition: Edition) -> Path:
         "--toc",
         "--toc-depth=2",
         "--epub-chapter-level=1",
-        "-o",
-        str(epub_path),
+        "--split-level=1",
+        f"--metadata=title:{title}",
+        f"--metadata=lang:{lang}",
+        f"--metadata=language:{lang}",
     ]
+    cover_path = _resolve_cover_path(edition)
+    if cover_path:
+        cmd.append(f"--epub-cover-image={cover_path}")
+    if subtitle:
+        cmd.append(f"--metadata=subtitle:{subtitle}")
+    cmd += ["-o", str(epub_path)]
 
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
@@ -163,3 +201,11 @@ def gaiden_build_full_book(edition: Edition) -> dict:
         "epub": epub_path,
         "pdf": pdf_path,
     }
+
+def run_txt_to_miolo_from_reference(edition):
+    """
+    Bridge: centraliza a geração do miolo a partir do TXT referência (locks).
+    Mantém API usada pela UI/commands.
+    """
+    from pipeline.services.miolo_transform import run_txt_to_miolo_from_reference as _impl
+    return _impl(edition)
