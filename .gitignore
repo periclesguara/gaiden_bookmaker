@@ -49,3 +49,13 @@ data/**/*.parquet
 data/**/*.csv
 data/**/*.jsonl
 data/**/raw/
+
+# generated artifacts
+backups/
+exports/
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.sqlite3
+*.db
