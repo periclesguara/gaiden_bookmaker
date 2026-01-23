@@ -1,0 +1,51 @@
+diff --git a/data/builds/book01_the_adventures_of_sherlock_holmes/es/BOOK.MD_FINAL.normalized.md b/data/builds/book01_the_adventures_of_sherlock_holmes/es/BOOK.MD_FINAL.ready.md
+index dd5e455..a8f11d5 100644
+--- a/data/builds/book01_the_adventures_of_sherlock_holmes/es/BOOK.MD_FINAL.normalized.md
++++ b/data/builds/book01_the_adventures_of_sherlock_holmes/es/BOOK.MD_FINAL.ready.md
+@@ -1415,16 +1415,16 @@ encima de su hombro.
+ —El reloj de sol del jardín. No hay otro —dije—; pero los papeles
+ —tienen que ser los que fueron destruidos.
+ 
+-—¡Bah!» —dijo, aferrándose al valor—. «Estamos en un país civilizado,
++—¡Bah! —dijo, aferrándose al valor—. «Estamos en un país civilizado,
+ —y no podemos tolerar payasadas de este tipo. ¿De dónde viene esto?
+ 
+-—De Dundee» —respondí, mirando el matasellos.
++—De Dundee —respondí, mirando el matasellos.
+ 
+ —Alguna broma pesada y absurda —dijo—. ¿Qué tengo yo que ver con
+ relojes de sol y papeles? No voy a hacer el menor caso de semejantes
+ —tonterías.
+ 
+-—Yo, desde luego, hablaría con la policía» —dije.
++—Yo, desde luego, hablaría con la policía —dije.
+ 
+ —Y que se rían de mí por las molestias. Ni hablar.
+ 
+@@ -1483,8 +1483,8 @@ este. Dentro están exactamente las mismas palabras que figuraban en el
+ 
+ —¿Nada?
+ 
+-—A decir verdad…» —se hundió el rostro entre sus manos finas y
+-pálidas— «me he sentido impotente. Me he sentido como uno de esos
++—A decir verdad… —se hundió el rostro entre sus manos finas y
++pálidas—me he sentido impotente. Me he sentido como uno de esos
+ pobres conejos cuando la serpiente se le va acercando retorciéndose. Me
+ parece estar en las garras de algún mal irresistible e inexorable,
+ contra el que ninguna previsión ni precaución puede protegerme.
+@@ -3283,7 +3283,7 @@ Nos abarcó a todos con una reverencia amplia y salió de la habitación con pas
+ 
+ —Entonces usted no cometió ningún error.
+ 
+-—Desde el principio, dos hechos me resultaron muy evidentes: uno, que la dama había estado perfectamente dispuesta a pasar por la ceremonia de la boda; el otro, que se había arrepentido de ello a los pocos minutos de regresar a casa. Evidentemente, algo había ocurrido durante la mañana que la llevó a cambiar de opinión. ¿Qué podía ser ese algo? No podía haber hablado con nadie mientras estuvo fuera, porque había ido en compañía del novio. ¿Había visto entonces a alguien? Si así era, tenía que tratarse de alguien venido de Estados Unidos, porque llevaba tan poco tiempo en este país que difícilmente habría podido permitir que nadie ejerciera sobre ella una influencia tan profunda como para que la mera visión de esa persona la impulsara a cambiar sus planes de forma tan radical. Como ve, ya habíamos llegado, por un proceso de exclusión, a la idea de que quizá hubiera visto a un estadounidense. ¿Quién podía ser ese estadounidense, y por qué habría de tener tanta influencia sobre ella? Podía ser un amante; podía ser un marido. Sabía que su juventud se había desarrollado en ambientes rudos y en circunstancias extrañas. Hasta ahí había llegado antes siquiera de oír el relato de lord St. Simon. Cuando nos habló de un hombre en un banco de la iglesia, del cambio en la actitud de la novia, de un recurso tan transparente para conseguir una nota como dejar caer un ramo de flores, de su recurso a la doncella de confianza, y de su alusión tan significativa al «claim-jumping» —que, en la jerga de los mineros, significa apropiarse de algo sobre lo que otra persona tiene un derecho previo—, toda la situación se volvió absolutamente clara. Se había marchado con un hombre, y ese hombre era o un amante o un marido anterior; y las probabilidades estaban a favor de lo segundo.
++—Desde el principio, dos hechos me resultaron muy evidentes: uno, que la dama había estado perfectamente dispuesta a pasar por la ceremonia de la boda; el otro, que se había arrepentido de ello a los pocos minutos de regresar a casa. Evidentemente, algo había ocurrido durante la mañana que la llevó a cambiar de opinión. ¿Qué podía ser ese algo? No podía haber hablado con nadie mientras estuvo fuera, porque había ido en compañía del novio. ¿Había visto entonces a alguien? Si así era, tenía que tratarse de alguien venido de Estados Unidos, porque llevaba tan poco tiempo en este país que difícilmente habría podido permitir que nadie ejerciera sobre ella una influencia tan profunda como para que la mera visión de esa persona la impulsara a cambiar sus planes de forma tan radical. Como ve, ya habíamos llegado, por un proceso de exclusión, a la idea de que quizá hubiera visto a un estadounidense. ¿Quién podía ser ese estadounidense, y por qué habría de tener tanta influencia sobre ella? Podía ser un amante; podía ser un marido. Sabía que su juventud se había desarrollado en ambientes rudos y en circunstancias extrañas. Hasta ahí había llegado antes siquiera de oír el relato de lord St. Simon. Cuando nos habló de un hombre en un banco de la iglesia, del cambio en la actitud de la novia, de un recurso tan transparente para conseguir una nota como dejar caer un ramo de flores, de su recurso a la doncella de confianza, y de su alusión tan significativa al «claim-jumping —que, en la jerga de los mineros, significa apropiarse de algo sobre lo que otra persona tiene un derecho previo—, toda la situación se volvió absolutamente clara. Se había marchado con un hombre, y ese hombre era o un amante o un marido anterior; y las probabilidades estaban a favor de lo segundo.
+ 
+ —¿Y cómo demonios los encontró?
+ 
+@@ -3960,4 +3960,4 @@ Holmes y yo salimos corriendo y doblamos la esquina de la casa, con Toller apres
+ 
+ —Estoy seguro de que le debemos una disculpa, señora Toller —dijo Holmes—, porque sin duda ha aclarado todo aquello que nos tenía perplejos. Y aquí llegan el médico del pueblo y la señora Rucastle, así que creo, Watson, que será mejor que acompañemos a la señorita Hunter de vuelta a Winchester, ya que me parece que nuestro *locus standi* aquí es ahora bastante discutible.
+ 
+-Y así quedó resuelto el misterio de la siniestra casa con los hayedos de cobre frente a la puerta. El señor Rucastle sobrevivió, pero quedó para siempre como un hombre destrozado, mantenido con vida únicamente gracias a los cuidados de su abnegada esposa. Siguen viviendo con sus antiguos sirvientes, que probablemente saben tanto del pasado de Rucastle que a este le resulta difícil separarse de ellos. El señor Fowler y la señorita Rucastle se casaron, con licencia especial, en Southampton, al día siguiente de su huida, y él ocupa ahora un cargo gubernamental en la isla de Mauricio. En cuanto a la señorita Violet Hunter, mi amigo Holmes, para mi disgusto, no mostró ya el menor interés por ella una vez que dejó de ser el centro de uno de sus problemas, y ahora dirige una escuela privada en Walsall, donde creo que ha alcanzado un éxito considerable.
++Y así quedó resuelto el misterio de la siniestra casa con los hayedos de cobre frente a la puerta. El señor Rucastle sobrevivió, pero quedó para siempre como un hombre destrozado, mantenido con vida únicamente gracias a los cuidados de su abnegada esposa. Siguen viviendo con sus antiguos sirvientes, que probablemente saben tanto del pasado de Rucastle que a este le resulta difícil separarse de ellos. El señor Fowler y la señorita Rucastle se casaron, con licencia especial, en Southampton, al día siguiente de su huida, y él ocupa ahora un cargo gubernamental en la isla de Mauricio. En cuanto a la señorita Violet Hunter, mi amigo Holmes, para mi disgusto, no mostró ya el menor interés por ella una vez que dejó de ser el centro de uno de sus problemas, y ahora dirige una escuela privada en Walsall, donde creo que ha alcanzado un éxito considerable.
+\ No newline at end of file

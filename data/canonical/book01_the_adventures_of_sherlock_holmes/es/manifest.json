@@ -1,0 +1,11 @@
+{
+  "work_code": "book01_the_adventures_of_sherlock_holmes",
+  "lang": "es",
+  "canonical_file": "BOOK.MD_FINAL.ready.md",
+  "source_build_dir": "data/builds/book01_the_adventures_of_sherlock_holmes/es",
+  "scripts": [
+    "scripts/normalize_book_es.py",
+    "scripts/finalize_es_editorial.py"
+  ],
+  "notes": "Spanish text fixed via agent/scripts; canonical approved."
+}
