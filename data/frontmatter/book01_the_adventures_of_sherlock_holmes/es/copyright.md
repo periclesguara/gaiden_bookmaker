@@ -1,11 +1,24 @@
-Derechos de autor
+# Copyright
 
-Copyright © 1892 Arthur Conan Doyle.
-Dominio público en Estados Unidos y otros territorios.
+Titulo
+Las Aventuras de Sherlock Holmes
+Subtitulo
+Edición en Español Moderno
+Autor
+Arthur Conan Doyle
+Adaptacion
+Hans Herman Ironside
+Ano de publicacion
+2026
 
-Esta versión moderna de *Las aventuras de Sherlock Holmes* fue producida bajo el sello MantaQuest.
+Copyright © 2026 Arthur Conan Doyle.
+Dominio publico en los Estados Unidos y otros territorios.
+
+Esta version moderna de *Las Aventuras de Sherlock Holmes* fue producida bajo el sello MantaQuest.
 MantaQuest es una marca registrada de RinoBooks.
 
-Editor: Péricles Guará Silva
+Editorial: RinoBooks
 Todos los derechos reservados a RinoBooks.
-Río de Janeiro, Brasil — 2026
+Rio de Janeiro, Brasil — 2026
+
+::: pagebreak

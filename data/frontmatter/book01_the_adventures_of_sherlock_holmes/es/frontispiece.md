@@ -1,10 +1,12 @@
-Frontispicio
+# Frontispicio
 
-Las aventuras de Sherlock Holmes
+Las Aventuras de Sherlock Holmes
 por Arthur Conan Doyle
 
-Edición en español moderno
-adaptada por Hans Herman Ironside
+Edicion moderna en es
+adaptado por Hans Herman Ironside
 
-MantaQuest
-Río de Janeiro · 2026
+Rinobooks
+Rio de Janeiro, Brasil · 2026
+
+::: pagebreak

@@ -40,3 +40,8 @@ p b {
 .frontmatter-title strong {
   font-weight: bold;
 }
+
+.pagebreak {
+  page-break-after: always;
+  break-after: page;
+}
