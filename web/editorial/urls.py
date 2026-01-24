@@ -30,6 +30,16 @@ urlpatterns = [
         name="frontispiece_preview",
     ),
     path(
+        "organizer/",
+        views.organizer_home,
+        name="organizer_home",
+    ),
+    path(
+        "organizer/open/",
+        views.organizer_open,
+        name="organizer_open",
+    ),
+    path(
         "artifacts/<str:work_code>/<str:lang>/",
         artifacts_table,
         name="artifacts_table",

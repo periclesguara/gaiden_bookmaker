@@ -1,23 +1,7 @@
-{{ edition.title }}
-{{ edition.subtitle }}
-
-{% if edition.about_edition_text %}
-Sobre esta edicion
-{{ edition.about_edition_text }}
-{% endif %}
+::: center
+# {{ edition.title }}
+{% if edition.subtitle %}## {{ edition.subtitle }}{% endif %}
+:::
 
 Autor: {{ edition.author }}
-Adaptado por {{ edition.adapter }}
-
-Año de publicación: {{ edition.publication_year }}
-
-Copyright © {{ edition.publication_year }} {{ edition.imprint_name }}.
-
-La obra original de Arthur Conan Doyle es de dominio público en los Estados Unidos y en otros territorios.
-Esta edición moderna ha sido adaptada, revisada y estructurada editorialmente por {{ edition.imprint_name }}.
-
-{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
-
-Editorial: {{ edition.imprint_name }}
-Todos los derechos reservados.
-Río de Janeiro, Brasil — {{ edition.publication_year }}
+{% if edition.adapter %}Adaptado por {{ edition.adapter }}{% endif %}

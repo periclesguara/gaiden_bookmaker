@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Organizer - Editorial</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 720px; }
+    h1 { margin-bottom: 12px; }
+    form { display: grid; gap: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    select, button { width: 100%; padding: 8px; font-size: 14px; }
+    .note { color: #666; font-size: 13px; }
+    .messages { margin: 12px 0; padding: 8px; background: #f6f6f6; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>Organizer · Editorial</h1>
+  <p class="note">Selecione a obra e o idioma para abrir a edicao correta.</p>
+
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+      <div>{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="get" action="{% url 'organizer_open' %}">
+    <div>
+      <label for="work_code">Obra</label>
+      <select id="work_code" name="work_code" required>
+        <option value="" selected>Selecione...</option>
+        {% for work in works %}
+          <option value="{{ work.code }}">{{ work.title }} ({{ work.code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="language_code">Idioma</label>
+      <select id="language_code" name="language_code" required>
+        <option value="" selected>Selecione...</option>
+        {% for code, label in languages %}
+          <option value="{{ code }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Abrir edicao</button>
+  </form>
+</body>
+</html>

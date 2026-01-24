@@ -90,3 +90,13 @@ build/
 *.out
 *.lof
 *.lot
+
+# --- Generated artifacts ---
+data/builds/
+web/data/builds/
+data/frontmatter/
+data/translated/
+data/images/
+*.epub
+*.pdf
+*.log

@@ -41,6 +41,8 @@ class EditionForm(forms.ModelForm):
             "editor",
             "publisher",
             "about_edition_text",
+            "introduction_text",
+            "epilogue_text",
             "publication_year",
             "city",
             "country",

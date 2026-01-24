@@ -6,18 +6,25 @@ from pathlib import Path
 
 from editorial.frontmatter import build_frontmatter_files
 from editorial.models import Edition
+from pipeline.services import inserts, paths as ppaths
 
 
 def builds_dir(edition: Edition) -> Path:
-    return Path("data") / "builds" / edition.work.code / edition.language.code
+    builds_base = ppaths.edition_build_dir(edition)
+    assert "web/data" not in str(builds_base), "BUG: builds_dir apontando para web/data"
+    return builds_base
 
 
 def frontmatter_dir(edition: Edition) -> Path:
-    return Path("data") / "frontmatter" / edition.work.code / edition.language.code
+    fm = ppaths.data_dir() / "frontmatter" / edition.work.code / edition.language.code
+    assert "/web/" not in str(fm), "BUG: frontmatter_dir apontando para web/"
+    return fm
 
 
 def translated_miolo_path(edition: Edition) -> Path:
-    return Path("data") / "translated" / edition.work.code / edition.language.code / "miolo.md"
+    mp = ppaths.miolo_md_path(edition)
+    assert "/web/" not in str(mp), "BUG: miolo_path apontando para web/"
+    return mp
 
 
 _PAGEBREAK_RE = re.compile(r"^:::\s*pagebreak\s*$", re.MULTILINE)
@@ -51,7 +58,14 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     builds_base.mkdir(parents=True, exist_ok=True)
 
     sections: list[str] = []
-    for name in ["frontispiece", "copyright", "about_edition", "about_contributor"]:
+    for name in [
+        "frontispiece",
+        "copyright",
+        "about_edition",
+        "introduction",
+        "epilogue",
+        "about_contributor",
+    ]:
         path = fm_base / f"{name}.md"
         if path.exists():
             txt = _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
@@ -62,6 +76,10 @@ def build_merged_kdp_source(edition: Edition) -> Path:
         raise FileNotFoundError(f"Miolo traduzido nao encontrado: {miolo_path}")
 
     miolo_txt = miolo_path.read_text(encoding="utf-8").strip()
+    inserts_path = builds_base / "inserts.json"
+    spec = inserts.load_inserts_json(inserts_path)
+    if spec:
+        miolo_txt = inserts.inject_images_into_miolo_md(miolo_txt, spec).strip()
     merged_txt = "".join(sections) + "\n\n" + miolo_txt + "\n"
 
     kdp_merged_path = builds_base / "kdp_merged.md"
@@ -117,7 +135,7 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") 
 
 
 def build_kdp_for_edition(edition: Edition) -> dict:
-    build_frontmatter_files(edition, Path("data") / "frontmatter")
+    build_frontmatter_files(edition, ppaths.data_dir() / "frontmatter")
     merged_path = build_merged_kdp_source(edition)
     epub_path = build_epub_for_edition(edition)
 
@@ -182,7 +200,7 @@ def run_epubcheck_for_edition(edition: Edition, epubcheck_cmd: str = "epubcheck"
 
 
 def gaiden_build_full_book(edition: Edition) -> dict:
-    build_frontmatter_files(edition, Path("data") / "frontmatter")
+    build_frontmatter_files(edition, ppaths.data_dir() / "frontmatter")
     merged_path = build_merged_kdp_source(edition)
     book_build_path = builds_dir(edition) / "BOOK.BUILD.MD"
 

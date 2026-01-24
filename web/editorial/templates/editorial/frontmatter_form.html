@@ -153,6 +153,7 @@
 
     <div class="actions">
       <button type="submit">Salvar</button>
+      <button type="button" id="cancel_form">Cancelar</button>
       <a href="{% url 'book_edition_list' %}">Voltar</a>
     </div>
   </form>
@@ -162,11 +163,11 @@
 
   <div class="modal-backdrop" id="overwrite_modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overwrite_title">
-      <h3 id="overwrite_title">Substituir frontmatter?</h3>
-      <p>Ja existem arquivos salvos. Deseja sobrescrever?</p>
+      <h3 id="overwrite_title">Conteudo ja existente</h3>
+      <p>Esta acao ira sobrescrever o texto atual do frontmatter desta edicao. Esta operacao nao pode ser desfeita.</p>
       <div class="modal-actions">
         <button type="button" id="cancel_overwrite">Cancelar</button>
-        <button type="button" id="confirm_overwrite_btn">Sobrescrever</button>
+        <button type="button" id="confirm_overwrite_btn">Sobrescrever e salvar</button>
       </div>
     </div>
   </div>
@@ -184,10 +185,12 @@
     const modal = document.getElementById("overwrite_modal");
     const cancelBtn = document.getElementById("cancel_overwrite");
     const confirmBtn = document.getElementById("confirm_overwrite_btn");
+    const cancelFormBtn = document.getElementById("cancel_form");
     if (form && confirmInput && modal && cancelBtn && confirmBtn) {
       form.addEventListener("submit", (event) => {
         const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};
-        if (hasFiles && confirmInput.value !== "1") {
+        const hasExistingText = {{ has_existing_text|yesno:"true,false" }};
+        if ((hasFiles || hasExistingText) && confirmInput.value !== "1") {
           event.preventDefault();
           modal.style.display = "flex";
         }
@@ -199,6 +202,11 @@
         confirmInput.value = "1";
         modal.style.display = "none";
         form.submit();
+      });
+    }
+    if (cancelFormBtn) {
+      cancelFormBtn.addEventListener("click", () => {
+        window.location.href = "{% url 'book_edition_list' %}";
       });
     }
   </script>

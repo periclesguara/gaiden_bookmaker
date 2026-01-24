@@ -714,8 +714,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     return redirect("edition_steps", edition_id=edition.id)
 
                 core_chunks_dir = (
-                    Path(settings.BASE_DIR).parent
-                    / "data"
+                    paths.data_dir()
                     / "editions"
                     / str(target_edition.id)
                     / "core"
@@ -730,15 +729,14 @@ def run_edition_step(request, edition_id: int, step: str):
                 contract_payload = json.loads(contract_path.read_text(encoding="utf-8"))
                 contract_payload["chunk_dir"] = str(core_chunks_dir)
                 contract_payload["out_dir"] = str(
-                    Path("data")
+                    paths.data_dir()
                     / "editions"
                     / str(target_edition.id)
                     / "translate"
                     / "de_krimi"
                 )
                 core_contract_path = (
-                    Path(settings.BASE_DIR).parent
-                    / "data"
+                    paths.data_dir()
                     / "editions"
                     / str(target_edition.id)
                     / "core"
@@ -897,7 +895,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "build":
             target_edition = _target_edition()
-            kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+            kdp_mode.build_frontmatter_files(target_edition, paths.data_dir() / "frontmatter")
             merged_path = kdp_mode.build_merged_kdp_source(target_edition)
             result = {"path": str(kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"), "merged": str(merged_path)}
             messages.success(request, f"Build OK: {result['path']}")

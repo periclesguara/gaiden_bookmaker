@@ -7,14 +7,10 @@ from django.utils import timezone
 
 from editorial.models import Edition as EditorialEdition
 from gaiden_portal.forms import EditionForm
-from gaiden_portal.utils import (
-    country_for_language,
-    get_frontispiece_template_for_edition,
-    get_section_template_for_language,
-)
+from gaiden_portal.utils import country_for_language, get_frontispiece_template_for_edition
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
-from pipeline.services import utils
-from editorial.frontmatter import build_frontmatter_files
+from pipeline.services import paths as ppaths, utils
+from editorial.frontmatter import build_frontmatter_files, render_frontmatter_module
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
 
@@ -132,7 +128,17 @@ def _write_frontmatter_files(edition: EditorialEdition) -> None:
 
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
-    return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_edition.md"))
+    return any(
+        (out_dir / name).exists()
+        for name in (
+            "frontispiece.md",
+            "copyright.md",
+            "about_edition.md",
+            "introduction.md",
+            "epilogue.md",
+            "about_contributor.md",
+        )
+    )
 
 
 def frontmatter_template_edit(request, book_code: str, language: str):
@@ -250,14 +256,22 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         if updated_fields:
             template.save(update_fields=updated_fields)
     files_exist = _frontmatter_files_exist(book_code, language)
+    has_existing_text = bool(
+        edition
+        and (
+            edition.about_edition_text
+            or getattr(edition, "introduction_text", "")
+            or getattr(edition, "epilogue_text", "")
+        )
+    )
     warning = ""
 
     if request.method == "POST":
         form = FrontmatterTemplateForm(request.POST, instance=template)
         if form.is_valid():
             confirm_overwrite = request.POST.get("confirm_overwrite") == "1"
-            if files_exist and not confirm_overwrite:
-                warning = "Substituir arquivos atuais do frontmatter?"
+            if (files_exist or has_existing_text) and not confirm_overwrite:
+                warning = "Conteudo ja existe. Confirmar sobrescrita para continuar."
             else:
                 form.save()
                 if edition:
@@ -278,9 +292,57 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "book_code": book_code,
         "language": language,
         "frontmatter_files_exist": files_exist,
+        "has_existing_text": has_existing_text,
         "overwrite_warning": warning,
     }
     return render(request, "editorial/frontmatter_form.html", context)
+
+
+def organizer_home(request):
+    editions = EditorialEdition.objects.select_related("work").order_by(
+        "work__title",
+        "work__code",
+    )
+    works = []
+    seen = set()
+    for edition in editions:
+        work = edition.work
+        if not work or work.code in seen:
+            continue
+        seen.add(work.code)
+        works.append({"code": work.code, "title": work.title})
+
+    languages = [
+        ("en", "EN (Modern English)"),
+        ("es", "ES (Español)"),
+        ("ptbr", "PT-BR"),
+        ("de", "DE (Krimi)"),
+    ]
+    context = {
+        "works": works,
+        "languages": languages,
+    }
+    return render(request, "editorial/organizer_home.html", context)
+
+
+def organizer_open(request):
+    work_code = request.GET.get("work_code") or ""
+    language_code = request.GET.get("language_code") or ""
+    if not work_code or not language_code:
+        messages.error(request, "Selecione uma obra e um idioma para abrir.")
+        return redirect("organizer_home")
+
+    edition = (
+        EditorialEdition.objects.select_related("work", "language")
+        .filter(work__code=work_code, language_code=language_code)
+        .order_by("-id")
+        .first()
+    )
+    if not edition:
+        messages.error(request, f"Nenhuma edicao encontrada para {work_code} [{language_code}].")
+        return redirect("organizer_home")
+
+    return redirect("edition_edit", edition_id=edition.id)
 
 
 def editorial_frontmatter_actions(request, edition_id: int):
@@ -305,13 +367,13 @@ def editorial_frontmatter_actions(request, edition_id: int):
         return redirect("edition_steps", edition_id=edition.id)
 
     if action == "rebuild_frontmatter":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
         messages.success(
             request,
             f"Frontmatter regenerado para {target_edition.work.code} [{target_edition.language.code}]",
         )
     elif action == "build_frontmatter_and_merged":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
         merged_path = kdp_mode.build_merged_kdp_source(target_edition)
         messages.success(request, f"Frontmatter + BOOK.BUILD.MD regenerados: {merged_path}")
     else:
@@ -401,30 +463,23 @@ def edition_edit(request, edition_id: int):
             form = EditionForm(instance=edition)
 
     country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_template = get_frontispiece_template_for_edition(edition)
-    copyright_template = get_section_template_for_language("copyright", edition.language_code)
-    about_template = get_section_template_for_language("about_edition", edition.language_code)
-
-    about_context = {
-        "edition": edition,
-        "country_label": country_label,
-        "about_edition_text": edition.about_edition_text,
-    }
+    frontispiece_preview = render_frontmatter_module(edition, "frontispiece", edition.language_code)
+    copyright_preview = render_frontmatter_module(edition, "copyright", edition.language_code)
+    about_edition_preview = render_frontmatter_module(edition, "about_edition", edition.language_code)
+    introduction_preview = render_frontmatter_module(edition, "introduction", edition.language_code)
+    epilogue_preview = render_frontmatter_module(edition, "epilogue", edition.language_code)
+    about_contributor_preview = render_frontmatter_module(edition, "about_contributor", edition.language_code)
+    if not copyright_preview:
+        copyright_preview = ""
     context = {
         "edition": edition,
         "form": form,
-        "frontispiece_preview": render_to_string(
-            frontispiece_template,
-            {"edition": edition, "country_label": country_label},
-        ),
-        "copyright_preview": render_to_string(
-            copyright_template,
-            {"edition": edition, "country_label": country_label},
-        ),
-        "about_edition_preview": render_to_string(
-            about_template,
-            about_context,
-        ),
+        "frontispiece_preview": frontispiece_preview,
+        "copyright_preview": copyright_preview,
+        "about_edition_preview": about_edition_preview,
+        "introduction_preview": introduction_preview,
+        "epilogue_preview": epilogue_preview,
+        "about_contributor_preview": about_contributor_preview,
     }
     return render(request, "gaiden/edition_form.html", context)
 

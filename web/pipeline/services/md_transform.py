@@ -210,7 +210,7 @@ def pre_edition_txt_to_md(
         cfg = PreEditionConfig()
 
     txt_path = Path(txt_path)
-    md_path = Path(md_path)
+    md_path = _clean_md_double_suffix(Path(md_path))
 
     raw = txt_path.read_text(encoding="utf-8")
     cleaned = _normalize_txt_for_md(raw)
@@ -233,6 +233,13 @@ def pre_edition_txt_to_md(
     md_path.write_text(final_md, encoding="utf-8")
 
     return md_path
+
+
+def _clean_md_double_suffix(path: Path) -> Path:
+    cleaned = str(path)
+    while cleaned.endswith(".md.md"):
+        cleaned = cleaned[:-3]
+    return Path(cleaned)
 
 
 def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, str]:
@@ -265,6 +272,8 @@ def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, st
         else:
             out_pre_edition = build_dir / f"BOOK.PRE_EDITION.{source.language}.md"
             out_pre_qa = build_dir / f"BOOK.PRE_QA.{source.language}.md"
+        out_pre_edition = _clean_md_double_suffix(out_pre_edition)
+        out_pre_qa = _clean_md_double_suffix(out_pre_qa)
         pre_edition_txt_to_md(source.path, out_pre_edition, cfg)
         md_text = out_pre_edition.read_text(encoding="utf-8")
         out_pre_qa.parent.mkdir(parents=True, exist_ok=True)

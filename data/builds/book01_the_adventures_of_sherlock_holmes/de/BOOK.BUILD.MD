@@ -1,28 +1,36 @@
 <div align="center">Frontispiz</div>
 
-Die Abenteuer des Sherlock Holmes - Moderne deutsche Ausgabe
+Die Abenteuer des Sherlock Holmes
+von Arthur Conan Doyle
 
-Autor: Arthur Conan Doyle
-Adaptiert von Hans Herman Ironside
+Moderne Deutsch-Ausgabe
+bearbeitet von Hans Herman Ironside
 
 MantaQuest
 Rio de Janeiro, Brasilien · 2026
 
-::: pagebreak
-
 <div align="center">Copyright</div>
 
+Titel
+Die Abenteuer des Sherlock Holmes
+Untertitel
+Moderne deutsche Ausgabe
+Autor
+Arthur Conan Doyle
+Bearbeitung
+Hans Herman Ironside
+Erscheinungsjahr
+2026
+
 Copyright © 2026 Arthur Conan Doyle.
-Gemeinfrei in den Vereinigten Staaten und in anderen Gebieten.
+Gemeinfrei in den Vereinigten Staaten und anderen Gebieten.
 
-Diese moderne Ausgabe von *Die Abenteuer des Sherlock Holmes* wurde unter dem Imprint MantaQuest herausgegeben.
-MantaQuest ist eine eingetragene Marke von Rinobooks.
+Diese moderne Ausgabe von *Die Abenteuer des Sherlock Holmes* wurde unter dem MantaQuest-Imprint erstellt.
+MantaQuest ist eine eingetragene Marke von RinoBooks.
 
-Verlag:
-Alle Rechte vorbehalten © Rinobooks.
+Verlag: Arthur Conan Doyle
+Alle Rechte vorbehalten für RinoBooks.
 Rio de Janeiro, Brasilien — 2026
-
-::: pagebreak
 
 <div align="center">Über diese Ausgabe</div>
 
@@ -34,9 +42,12 @@ Die Sammlung zeigt Sherlock Holmes auf dem Höhepunkt seiner analytischen Fähig
 
 Für Leser, die zum ersten Mal in die Welt von Holmes eintauchen, ist diese Ausgabe ein idealer Einstieg. Für Kenner ist sie eine frische Rückkehr zu einer Ikone der Literatur, die das Genre des Kriminalromans bis heute prägt.
 
-::: pagebreak
 
-## 1. EIN SKANDAL IN BÖHMEN
+
+# 1. EIN SKANDAL IN BÖHMEN
+
+![](data/images/book01_the_adventures_of_sherlock_holmes/de/CH01_01.jpg)
+
 
 Für Sherlock Holmes war sie immer *die* Frau. Selten habe ich ihn sie unter einem anderen Namen erwähnen hören. In seinen Augen überstrahlte sie und beherrschte sie das ganze Geschlecht. Es war nicht, dass er für Irene Adler irgendein Gefühl empfunden hätte, das der Liebe auch nur nahekam. Alle Regungen, und diese ganz besonders, waren seinem kalten, präzisen, dabei bewundernswert ausgewogenen Geist zuwider. Er war, wie ich meine, die vollkommenste Maschine zum Schlussfolgern und Beobachten, die die Welt je gesehen hat; doch als Liebender hätte er sich in eine falsche Lage gebracht. Von den zarteren Leidenschaften sprach er nie, außer mit Spott und Hohn. Für den Beobachter waren sie großartige Dinge – ausgezeichnet, um den Schleier von den Motiven und Handlungen der Menschen zu ziehen. Doch für den geschulten Denker bedeutete es, solche Einbrüche in sein eigenes feines, empfindlich abgestimmtes Temperament zuzulassen, einen störenden Faktor einzuführen, der alle Ergebnisse seines Denkens in Zweifel ziehen konnte. Sandkorn in einem empfindlichen Instrument, oder ein Sprung in einer seiner eigenen starken Linsen – nichts wäre beunruhigender gewesen als eine heftige Emotion in einer Natur wie der seinen. Und doch gab es für ihn nur diese eine Frau, und diese Frau war die verstorbene Irene Adler, deren Andenken zweifelhaft und unerquicklich war.
 
@@ -348,6 +359,7 @@ Es waren zu der Zeit mehrere Leute auf dem Gehweg, doch der Gruß schien von ein
 
 „Diese Stimme habe ich schon einmal gehört“, sagte Holmes und starrte die schwach beleuchtete Straße hinunter. „Nun, wer zum Teufel könnte das gewesen sein?“
 
+
 Ich schlief in jener Nacht in der Baker Street, und wir saßen morgens bei Toast und Kaffee, als der König von Böhmen ins Zimmer stürzte.
 
 „Sie haben es wirklich!“, rief er und packte Sherlock Holmes an beiden Schultern, während er ihm gierig ins Gesicht sah.
@@ -382,11 +394,11 @@ Ich schlief in jener Nacht in der Baker Street, und wir saßen morgens bei Toast
 
 „Und warum hoffen Sie das?“
 
-„Weil es Eure Majestät jede Furcht vor künftiger Belästigung ersparen würde. Wenn die Dame ihren Mann liebt sie Eure Majestät nicht. Wenn sie Eure Majestät nicht liebt, gibt es keinen Grund, weshalb sie sich in Eure Majestät’ Pläne einmischen sollte.“
+„Weil es Eure Majestät jede Furcht vor künftiger Belästigung ersparen würde. Wenn die Dame ihren Mann liebt, liebt sie Eure Majestät nicht. Wenn sie Eure Majestät nicht liebt, gibt es keinen Grund, weshalb sie sich in Eure Majestät’ Pläne einmischen sollte.“
 
 „Mit vorzüglicher Hochachtung,
 
-„IRENE NORTON, geborene ADLER.“
+    „IRENE NORTON, geborene ADLER.“
 
 „Was für eine Frau – oh, was für eine Frau!“, rief der König von Böhmen, nachdem wir drei dieses Schreiben gelesen hatten. „Habe ich Ihnen nicht gesagt, wie schnell sie begreift und wie entschlossen sie handelt? Wäre sie nicht eine bewundernswerte Königin gewesen? Ist es nicht jammerschade, dass sie nicht meinesgleichen ist?“
 
@@ -412,7 +424,7 @@ Der König starrte ihn verblüfft an.
 
 Und so kam es, dass ein großer Skandal drohte, das Königreich Böhmen zu erschüttern – und dass die besten Pläne Mr. Sherlock Holmes’ vom Witz einer Frau zunichtegemacht wurden. Er pflegte sich gern über die Klugheit der Frauen lustig zu machen, doch in letzter Zeit habe ich ihn das nicht mehr tun hören. Und wenn er von Irene Adler spricht oder auf ihre Fotografie zu sprechen kommt, dann stets unter dem ehrenden Titel: *die* Frau.
 
-## 2. DER ROTHARIGEN-BUND
+# 2. DER ROTHARIGEN-BUND
 
 Ich hatte im Herbst des vergangenen Jahres eines Tages meinen Freund Mr. Sherlock Holmes aufgesucht und fand ihn in ein ernstes Gespräch vertieft mit einem sehr korpulenten, rotgesichtigen älteren Herrn, dessen Haar in einem grellen Feuerrot leuchtete. Mit einer Entschuldigung für mein Eindringen wollte ich mich gerade zurückziehen, als Holmes mich abrupt ins Zimmer zog und die Tür hinter mir schloss.
 
@@ -704,9 +716,9 @@ Zuerst war es nur ein fahler Funke auf dem Steinpflaster. Dann zog er sich in di
 
 Er zuckte die Schultern. „Nun ja, vielleicht ist es am Ende doch zu irgendetwas gut“, meinte er.
 
-## 3. EIN FALL VON IDENTITÄT
+# 3. EIN FALL VON IDENTITÄT
 
-„Mein lieber Freund“, sagte Sherlock Holmes, während wir in seiner Wohnung in der Baker Street zu beiden Seiten des Kamins saßen, „das Leben ist unendlich viel seltsamer als alles, was der menschliche Geist sich ausdenken könnte. Wir würden uns nicht einmal trauen, uns Dinge vorzustellen, die in Wahrheit bloße Alltäglichkeiten des Daseins sind. Wenn wir Hand in Hand aus jenem Fenster fliegen könnten, über dieser großen Stadt schweben, behutsam die Dächer abheben und in die merkwürdigen Vorgänge hineinschauen würden – in die seltsamen Zufälle, die Pläne, die Missverständnisse und Gegenziele, die wunderbaren Ketten von Ereignissen, die sich durch Generationen ziehen und zu den unerquicklichsten Ergebnissen führen –, dann erschiene jede Dichtung mit ihren Konventionen und vorhersehbaren Schlüssen unerquicklich schal und unerquicklich, ja geradezu unerquicklich.“
+„Mein lieber Freund“, sagte Sherlock Holmes, während wir in seiner Wohnung in der Baker Street zu beiden Seiten des Kamins saßen, „das Leben ist unendlich viel seltsamer als alles, was der menschliche Geist sich ausdenken könnte. Wir würden uns nicht einmal trauen, uns Dinge vorzustellen, die in Wahrheit bloße Alltäglichkeiten des Daseins sind. Wenn wir Hand in Hand aus jenem Fenster fliegen könnten, über dieser großen Stadt schweben, behutsam die Dächer abheben und in die merkwürdigen Vorgänge hineinschauen würden – in die seltsamen Zufälle, die Pläne, die Missverständnisse und Gegenziele, die wunderbaren Ketten von Ereignissen, die sich durch Generationen ziehen und zu den unerquicklichsten Ergebnissen führen –, dann erschiene jede Dichtung mit ihren Konventionen und vorhersehbaren Schlüssen unerquicklich schal und unerquicklich unerquicklich, ja geradezu unerquicklich und unerquicklich.“
 
 „Und doch bin ich davon nicht überzeugt“, erwiderte ich. „Die Fälle, die in den Zeitungen ans Licht kommen, sind in der Regel unerquicklich genug und unerquicklich genug. In unseren Polizeiberichten wird der Realismus bis an seine äußersten Grenzen getrieben, und dennoch ist das Ergebnis, man muss es zugeben, weder fesselnd noch künstlerisch.“
 
@@ -882,7 +894,7 @@ Der Mann kauerte in seinem Stuhl zusammen, den Kopf auf die Brust gesunken, wie 
 
 „Wenn ich es ihr sage, wird sie mir nicht glauben. Sie erinnern sich vielleicht an das alte persische Sprichwort: ‚Gefahr droht dem, der ein Tigerjunges an sich nimmt, und Gefahr auch dem, der einer Frau eine Illusion entreißt.‘ In Hafis steckt ebenso viel Verstand wie in Horaz – und ebenso viel Kenntnis der Welt.“
 
-## 4. DAS GEHEIMNIS VON BOSCOMBE VALLEY
+# 4. DAS GEHEIMNIS VON BOSCOMBE VALLEY
 
 Eines Morgens saßen meine Frau und ich beim Frühstück, als das Dienstmädchen ein Telegramm hereinbrachte. Es war von Sherlock Holmes und lautete:
 
@@ -1164,7 +1176,7 @@ Holmes stand auf, setzte sich an den Tisch, nahm den Füllhalter zur Hand und zo
 
 „Sein Sohn, verstehen Sie, war herangewachsen, und mein Mädchen auch, und da ich als gesundheitlich angeschlagen galt, schien es ihm ein genialer Zug, dass sein Junge einmal das ganze Anwesen übernehmen sollte. Aber da blieb ich hart. Ich wollte sein verfluchtes Blut nicht mit meinem vermischt sehen; nicht, dass ich den Jungen nicht mochte, aber sein Blut steckte in ihm — und das genügte. Ich blieb standhaft. McCarthy drohte. Ich forderte ihn heraus, sein Schlimmstes zu tun. Wir wollten uns am Teich treffen, auf halbem Weg zwischen unseren Häusern.“
 
-## 5. DIE FÜNF ORANGENKERNE
+# 5. DIE FÜNF ORANGENKERNE
 
 Wenn ich meine Notizen und Aufzeichnungen über die Fälle Sherlock Holmes’ aus den Jahren ’82 bis ’90 durchsehe, stehe ich vor so vielen, die seltsame und interessante Züge tragen, dass es keineswegs leicht ist zu entscheiden, welche ich auswählen und welche ich beiseitelassen soll. Einige haben allerdings bereits durch die Zeitungen Bekanntheit erlangt, andere wiederum boten keinen Raum für jene besonderen Fähigkeiten, die mein Freund in so hohem Maße besaß und die diese Aufzeichnungen vor allem veranschaulichen sollen. Manche haben sogar seinen analytischen Scharfsinn überfordert und wären als Erzählungen nichts als Anfänge ohne Ende, während andere nur teilweise aufgeklärt wurden und ihre Erklärungen eher auf Vermutungen und Mutmaßungen beruhen als auf jenem strengen logischen Beweis, der ihm so teuer war. Es gibt jedoch einen dieser letzteren Fälle, der in seinen Einzelheiten so bemerkenswert und in seinen Folgen so erschütternd war, dass ich versucht bin, ihn zu schildern, obwohl es dabei Punkte gibt, die niemals vollständig aufgeklärt worden sind – und es wahrscheinlich auch nie werden.
 
@@ -1364,7 +1376,7 @@ Er zog ein großes Blatt Papier aus der Tasche, dicht bedeckt mit Daten und Name
 
 Doch selbst in den bestdurchdachten menschlichen Plänen steckt immer ein Fehler, und die Mörder von John Openshaw sollten niemals die Orangenkerne erhalten, die ihnen gezeigt hätten, dass ein anderer – ebenso listig und ebenso entschlossen wie sie – ihnen auf den Fersen war. Sehr lang und sehr heftig waren in jenem Jahr die Herbststürme zur Tagundnachtgleiche. Wir warteten lange auf Nachricht von der *Lone Star* aus Savannah, aber keine erreichte uns je. Schließlich hörten wir, dass irgendwo weit draußen im Atlantik ein zertrümmerter Heckpfosten eines Bootes gesehen worden sei, der in der Mulde einer Welle schaukelte, und das ist alles, was wir jemals über das Schicksal der *Lone Star* erfahren werden.
 
-## 6. DER MANN MIT DER VERDREHTEN LIPPE
+# 6. DER MANN MIT DER VERDREHTEN LIPPE
 
 Isa Whitney, Bruder des verstorbenen Elias Whitney, Direktors des Theologischen Kollegs von St. George’s, war dem Opium stark verfallen. Die Gewohnheit, wie ich erfahren habe, hatte sich aus einer törichten Laune während seiner Studienzeit entwickelt; denn nachdem er De Quinceys Schilderung seiner Träume und Empfindungen gelesen hatte, tränkte er seinen Tabak mit Laudanum, um dieselben Wirkungen hervorzurufen. Er stellte fest – wie so viele nach ihm –, dass man sich diese Praxis leichter aneignet, als man sie wieder loswird, und über viele Jahre blieb er ein Sklave der Droge, für Freunde und Verwandte ein Anblick, der zugleich Abscheu und Mitleid weckte. Ich sehe ihn noch vor mir: das gelbliche, teigige Gesicht, die schweren Lider, die stecknadelkopfgroßen Pupillen, wie er zusammengekauert in einem Sessel sitzt – das Wrack eines einst vornehmen Menschen.
 
@@ -1650,7 +1662,7 @@ Der Gefangene wandte sich mit der verwegenen Miene eines Mannes, der sich seinem
 
 „Zu diesem hier“, sagte mein Freund, „bin ich gelangt, indem ich auf fünf Kissen saß und eine Unze Shag-Tabak verrauchte. Ich denke, Watson, wenn wir nach Baker Street fahren, sind wir gerade noch rechtzeitig zum Frühstück.“
 
-## 7. DAS ABENTEUER DES BLAUEN KARFUNKELS
+# 7. DAS ABENTEUER DES BLAUEN KARFUNKELS
 
 Ich hatte meinen Freund Sherlock Holmes am zweiten Morgen nach Weihnachten aufgesucht, um ihm die üblichen Festtagsgrüße zu überbringen. Er lag lässig auf dem Sofa, in einen violetten Hausrock gehüllt; rechts, in Griffweite, stand ein Pfeifenständer, und daneben lag ein Haufen zerknitterter Morgenzeitungen, offenbar eben erst durchgearbeitet. Neben der Couch stand ein Holzstuhl, und über einer Ecke der Lehne hing ein äußerst schäbiger, heruntergekommener Filzhut — ein hartes, rundes Stück, deutlich vom Leben gezeichnet und an mehreren Stellen eingerissen. Eine Lupe und eine Pinzette auf der Sitzfläche ließen keinen Zweifel: Der Hut hing dort zum Zweck einer Untersuchung.
 
@@ -1950,9 +1962,9 @@ Es folgte eine lange Stille, nur unterbrochen von seinem schweren Atem und dem g
 
 Und mehr Worte brauchte es nicht.
 
-## 8. DAS ABENTEUER DES GEFLECKTEN BANDES
+# 8. DAS ABENTEUER DES GEFLECKTEN BANDES
 
-Wenn ich meine Aufzeichnungen über die gut siebzig Fälle durchsehe, in denen ich in den letzten acht Jahren die Methoden meines Freundes Sherlock Holmes studiert habe, so finde ich viele tragische, einige komische, eine große Zahl bloß seltsame – aber keinen einzigen alltäglichen. Denn da er, wie er es tat, eher aus Liebe zu seiner Kunst arbeitete als aus dem Wunsch nach Reichtum, weigerte er sich mit irgendeiner Untersuchung einzulassen, die nicht ins Ungewöhnliche, ja sogar ins Fantastische führte. Unter all diesen verschiedenartigen Fällen kann ich mich jedoch an keinen erinnern, der eigentümlichere Züge trug als jener, der mit der bekannten Surrey-Familie der Roylotts von Stoke Moran verknüpft war. Die betreffenden Ereignisse spielten sich in den frühen Tagen meiner Verbindung mit Holmes ab, als wir als Junggesellen gemeinsam Zimmer in der Baker Street bewohnten. Es ist möglich, dass ich sie schon früher zu Protokoll gegeben hätte, doch damals wurde ein Versprechen der Verschwiegenheit abgelegt, von dem ich erst im vergangenen Monat durch den unzeitigen Tod der Dame entbunden wurde, der dieses Gelöbnis galt. Vielleicht ist es sogar gut, dass die Tatsachen nun ans Licht kommen; denn ich weiß, dass weitverbreitete Gerüchte über den Tod von Dr. Grimesby Roylott im Umlauf sind, die die Sache noch schrecklicher erscheinen lassen, als es die Wahrheit tut.
+Wenn ich meine Aufzeichnungen über die gut siebzig Fälle durchsehe, in denen ich in den letzten acht Jahren die Methoden meines Freundes Sherlock Holmes studiert habe, so finde ich viele tragische, einige komische, eine große Zahl bloß seltsame – aber keinen einzigen alltäglichen. Denn da er, wie er es tat, eher aus Liebe zu seiner Kunst arbeitete als aus dem Wunsch nach Reichtum, weigerte er sich, sich mit irgendeiner Untersuchung einzulassen, die nicht ins Ungewöhnliche, ja sogar ins Fantastische führte. Unter all diesen verschiedenartigen Fällen kann ich mich jedoch an keinen erinnern, der eigentümlichere Züge trug als jener, der mit der bekannten Surrey-Familie der Roylotts von Stoke Moran verknüpft war. Die betreffenden Ereignisse spielten sich in den frühen Tagen meiner Verbindung mit Holmes ab, als wir als Junggesellen gemeinsam Zimmer in der Baker Street bewohnten. Es ist möglich, dass ich sie schon früher zu Protokoll gegeben hätte, doch damals wurde ein Versprechen der Verschwiegenheit abgelegt, von dem ich erst im vergangenen Monat durch den unzeitigen Tod der Dame entbunden wurde, der dieses Gelöbnis galt. Vielleicht ist es sogar gut, dass die Tatsachen nun ans Licht kommen; denn ich weiß, dass weitverbreitete Gerüchte über den Tod von Dr. Grimesby Roylott im Umlauf sind, die die Sache noch schrecklicher erscheinen lassen, als es die Wahrheit tut.
 
 Es war Anfang April des Jahres ’83, als ich eines Morgens erwachte und Sherlock Holmes, vollständig angekleidet, neben meinem Bett stehen sah. Er war gewöhnlich ein Spätaufsteher, und als mir die Uhr auf dem Kaminsims zeigte, dass es erst Viertel nach sieben war, blinzelte ich ihn nicht ohne Verwunderung an – und vielleicht auch mit einem kleinen Anflug von Verdruss, denn ich selbst war in meinen Gewohnheiten regelmäßig.
 
@@ -2258,7 +2270,7 @@ Während er sprach, zog er die Hundpeitsche rasch aus dem Schoß des Toten, warf
 
 Dies sind die wahren Tatsachen über den Tod des Dr. Grimesby Roylott von Stoke Moran. Es ist nicht nötig, dass ich eine Erzählung, die ohnehin schon zu lang geraten ist, noch weiter ausdehne, indem ich berichte, wie wir dem verängstigten Mädchen die traurige Nachricht überbrachten, wie wir sie mit dem Morgenzug in die Obhut ihrer guten Tante nach Harrow brachten, oder wie der langsame Gang der amtlichen Untersuchung schließlich zu dem Schluss kam, der Doktor habe sein Ende gefunden.
 
-## 9. DAS ABENTEUER MIT DEM DAUMEN DES INGENIEURS
+# 9. DAS ABENTEUER MIT DEM DAUMEN DES INGENIEURS
 
 Von all den Problemen, die meinem Freund Mr. Sherlock Holmes in den Jahren unserer Bekanntschaft zur Lösung vorgelegt wurden, gab es nur zwei, die ich ihm überhaupt erst zugetragen habe: die Sache mit Mr. Hatherleys Daumen und die mit Colonel Warburtons Wahnsinn. Letztere hätte einem scharfsinnigen und originellen Beobachter vielleicht das ergiebigere Feld geboten; doch die andere war in ihrem Ursprung so seltsam und in ihren Einzelheiten so dramatisch, dass sie umso eher verdient, festgehalten zu werden – auch wenn sie meinem Freund weniger Ansatzpunkte für jene deduktiven Schlussketten bot, mit denen er so erstaunliche Ergebnisse erzielte. Die Geschichte ist, wie ich glaube, mehr als einmal in den Zeitungen erzählt worden; aber wie bei allen solchen Berichten wirkt sie weit weniger eindringlich, wenn man sie en bloc in einer halben Spalte Druckerschwärze serviert bekommt, als wenn sich die Tatsachen langsam vor den eigenen Augen entfalten und das Rätsel sich Schritt für Schritt lichtet, sobald jede neue Entdeckung einen weiteren Tritt zur ganzen Wahrheit liefert. Damals machten die Umstände einen tiefen Eindruck auf mich, und selbst zwei Jahre später hat die Zeit diese Wirkung kaum abgeschwächt.
 
@@ -2474,7 +2486,7 @@ Doch der Inspector irrte sich, denn diese Verbrecher waren nicht dazu bestimmt, 
 
 „Erfahrung“, sagte Holmes und lachte. „Indirekt kann sie sich als wertvoll erweisen, wissen Sie; Sie müssen das Ganze nur in Worte fassen, und schon haben Sie den Ruf, für den Rest Ihres Lebens eine ausgezeichnete Gesellschaft zu sein.“
 
-## 10. DAS ABENTEUER DES ADLIGEN JUNGGESELLEN
+# 10. DAS ABENTEUER DES ADLIGEN JUNGGESELLEN
 
 Die Hochzeit Lord St. Simons und ihr merkwürdiges Ende sind in jenen erhabenen Kreisen, in denen sich der unglückliche Bräutigam bewegt, längst kein Gesprächsthema mehr. Neue Skandale haben sie überstrahlt, und ihre pikanten Einzelheiten haben die Klatschmäuler von diesem vier Jahre alten Drama abgelenkt. Da ich jedoch Grund zu der Annahme habe, dass die vollständigen Tatsachen der breiten Öffentlichkeit nie bekannt geworden sind, und da mein Freund Sherlock Holmes einen beträchtlichen Anteil daran hatte, die Angelegenheit aufzuklären, meine ich, dass keine Erinnerung an ihn vollständig wäre ohne eine kleine Skizze dieser bemerkenswerten Episode.
 
@@ -2508,11 +2520,22 @@ Er brach das Siegel und überflog den Inhalt.
 
 „Sehr gut. Der Brief, den ich in der Hand halte, ist von Lord St. Simon. Ich werde ihn dir vorlesen, und dafür wühlst du dich durch diese Zeitungen und gibst mir alles, was mit der Sache zu tun hat. Er schreibt:
 
-‚MEIN LIEBER MR. SHERLOCK HOLMES, — Lord Backwater teilt mir mit, dass ich mich vorbehaltlos auf Ihr Urteil und Ihre Verschwiegenheit verlassen könne. Ich habe daher beschlossen, mich an Sie zu wenden und Sie wegen des äußerst schmerzlichen Ereignisses zu konsultieren, das sich im Zusammenhang mit meiner Hochzeit zugetragen hat. Mr. Lestrade von Scotland Yard befasst sich bereits mit der Angelegenheit, versichert mir jedoch, er sehe keinerlei Einwand gegen Ihre Mitwirkung und glaube sogar, dass sie von Nutzen sein könnte. Ich werde um vier Uhr nachmittags bei Ihnen vorsprechen, und sollten Sie zu dieser Zeit eine andere Verpflichtung haben, so hoffe ich, dass Sie sie verschieben werden, da diese Angelegenheit von höchster Bedeutung ist.
+    ‚MEIN LIEBER MR. SHERLOCK HOLMES, — Lord Backwater teilt mir mit,
+    dass ich mich vorbehaltlos auf Ihr Urteil und Ihre Verschwiegenheit
+    verlassen könne. Ich habe daher beschlossen, mich an Sie zu wenden
+    und Sie wegen des äußerst schmerzlichen Ereignisses zu konsultieren,
+    das sich im Zusammenhang mit meiner Hochzeit zugetragen hat.
+    Mr. Lestrade von Scotland Yard befasst sich bereits mit der
+    Angelegenheit, versichert mir jedoch, er sehe keinerlei Einwand gegen
+    Ihre Mitwirkung und glaube sogar, dass sie von Nutzen sein könnte.
+    Ich werde um vier Uhr nachmittags bei Ihnen vorsprechen, und sollten
+    Sie zu dieser Zeit eine andere Verpflichtung haben, so hoffe ich,
+    dass Sie sie verschieben werden, da diese Angelegenheit von
+    höchster Bedeutung ist.
 
-Hochachtungsvoll
+    Hochachtungsvoll
 
-ROBERT ST. SIMON.‘
+    ROBERT ST. SIMON.‘
 
 „Datiert aus Grosvenor Mansions, mit einer Feder geschrieben, und der edle Lord hatte das Pech, sich an der Außenseite seines rechten kleinen Fingers einen Tintenfleck zu holen“, bemerkte Holmes, während er den Brief zusammenfaltete.
 
@@ -2804,7 +2827,7 @@ Lord St. Simon hatte seine steife Haltung keineswegs gelockert, doch er hatte di
 
 „Von Anfang an waren mir zwei Tatsachen völlig klar: erstens, dass die Dame durchaus bereit gewesen war, die Trauung zu vollziehen; zweitens, dass sie es innerhalb weniger Minuten nach der Rückkehr nach Hause bereut hatte. Offenkundig musste also am Vormittag etwas geschehen sein, das sie umstimmte. Was konnte das sein? Sie konnte unterwegs mit niemandem gesprochen haben, denn sie war in Begleitung des Bräutigams gewesen. Hatte sie also jemanden gesehen? Wenn ja, dann musste es jemand aus Amerika sein, denn sie war erst so kurze Zeit in diesem Land, dass sie kaum jemandem hätte erlauben können, einen so tiefen Einfluss auf sie zu gewinnen, dass schon sein bloßer Anblick sie ihre Pläne so vollständig ändern ließ. Sie sehen: Durch Ausschluss sind wir bereits bei der Vorstellung angekommen, dass sie einen Amerikaner gesehen haben könnte. Doch wer konnte dieser Amerikaner sein, und warum sollte er so viel Macht über sie besitzen? Es konnte ein Liebhaber sein; es konnte ein Ehemann sein. Ich wusste, dass ihre junge Frauenzeit in rauen Verhältnissen und unter ungewöhnlichen Bedingungen vergangen war. So weit war ich, noch bevor ich Lord St. Simons Bericht überhaupt gehört hatte. Als er uns von einem Mann in einer Kirchenbank erzählte, von der Veränderung im Benehmen der Braut, von einem so durchsichtigen Kunstgriff, um einen Zettel zu bekommen, wie dem Fallenlassen eines Brautstraußes, von ihrem Gang zu ihrer Vertrauten, dem Dienstmädchen, und von ihrer höchst bezeichnenden Anspielung auf claim-jumping – was in der Sprache der Goldgräber bedeutet, sich etwas anzueignen, worauf ein anderer ein vorrangiges Recht hat –, da war die ganze Lage vollkommen klar. Sie war mit einem Mann davongegangen, und der Mann war entweder ein Liebhaber oder ein Ehemann.
 
-## 11. DAS ABENTEUER DER BERYLL-KRONE
+# 11. DAS ABENTEUER DER BERYLL-KRONE
 
 „Holmes“, sagte ich, als ich eines Morgens in unserem Erkerfenster stand und die Straße hinunterblickte, „da kommt ein Irrer entlang. Es ist wirklich traurig, dass seine Angehörigen ihn allein hinauslassen.“
 
@@ -3038,9 +3061,16 @@ Und tatsächlich: Es war unser Freund, der Finanzmann. Ich erschrak über die Ve
 
 „Ja. Ihr Bett war heute Morgen unberührt, ihr Zimmer leer, und auf dem Tisch in der Halle lag ein Brief an mich. Ich hatte ihr gestern Abend, aus Kummer und nicht aus Zorn, gesagt, wenn sie meinen Jungen geheiratet hätte, wäre vielleicht alles gut geworden. Vielleicht war es gedankenlos von mir, das zu sagen. Auf diese Bemerkung bezieht sie sich in dem Brief:
 
-‚MEIN LIEBSTER ONKEL,—Ich fühle, dass ich Ihnen Kummer bereitet habe, und dass dieses schreckliche Unglück vielleicht nie geschehen wäre, wenn ich anders gehandelt hätte. Mit diesem Gedanken im Kopf kann ich unter Ihrem Dach nie wieder glücklich sein, und ich fühle, dass ich Sie für immer verlassen muss. Sorgen Sie sich nicht um meine Zukunft, dafür ist gesorgt; und vor allem: Suchen Sie nicht nach mir, es wäre vergebliche Mühe und würde mir nur schaden. Im Leben wie im Tod bin ich stets Ihre liebevolle Tochter
+    ‚MEIN LIEBSTER ONKEL,—Ich fühle, dass ich Ihnen Kummer bereitet habe,
+    und dass dieses schreckliche Unglück vielleicht nie geschehen wäre,
+    wenn ich anders gehandelt hätte. Mit diesem Gedanken im Kopf kann ich
+    unter Ihrem Dach nie wieder glücklich sein, und ich fühle, dass ich
+    Sie für immer verlassen muss. Sorgen Sie sich nicht um meine Zukunft,
+    dafür ist gesorgt; und vor allem: Suchen Sie nicht nach mir, es wäre
+    vergebliche Mühe und würde mir nur schaden. Im Leben wie im Tod bin
+    ich stets Ihre liebevolle Tochter
 
-MARY.‘
+    MARY.‘
 
 „Was soll das bedeuten, Mr. Holmes? Glauben Sie, es weist auf Selbstmord hin?“
 
@@ -3100,7 +3130,7 @@ Die Freude brach ebenso leidenschaftlich hervor wie zuvor sein Schmerz, und er p
 
 „Und wer konnte ihr Komplize sein? Offenkundig ein Liebhaber – denn wer sonst könnte die Liebe und Dankbarkeit überwiegen, die sie Ihnen gegenüber empfinden musste? Ich wusste, dass es Sir George Burnwell war.
 
-## 12. DAS ABENTEUER DER KUPFERBUCHEN
+# 12. DAS ABENTEUER DER KUPFERBUCHEN
 
 „Für einen Menschen, der die Kunst um ihrer selbst willen liebt“, bemerkte Sherlock Holmes, während er das Anzeigenblatt des *Daily Telegraph* beiseite warf, „liegt das schärfste Vergnügen oft gerade in ihren unscheinbarsten und geringsten Erscheinungsformen. Es ist mir angenehm zu sehen, Watson, dass Sie diese Wahrheit inzwischen so weit begriffen haben, dass Sie in diesen kleinen Aufzeichnungen unserer Fälle, die Sie freundlicherweise angefertigt und—wie ich hinzufügen muss—bisweilen auch ausgeschmückt haben, nicht so sehr den vielen *causes célèbres* und sensationellen Prozessen, in denen ich eine Rolle spielte, den Vorrang geben, sondern vielmehr jenen Vorfällen, die an sich vielleicht unbedeutend waren, die aber Raum boten für jene Fähigkeiten der Deduktion und der logischen Synthese, die ich zu meinem besonderen Gebiet gemacht habe.“
 
@@ -3266,7 +3296,7 @@ Der „Black Swan“ ist ein angesehenes Gasthaus in der High Street, nicht weit
 
 „Ihre Gründe für ihr Verhalten. Aber ich erzähle Ihnen alles, genau so, wie es geschehen ist. Als ich hinunterfuhr, holte mich Mr. Rucastle hier ab und fuhr mich in seinem Dogcart nach Copper Beeches. Es liegt, wie er sagte, sehr schön, aber das Haus selbst ist nicht schön: ein großer, würfelförmiger Bau, weiß getüncht, doch überall von Feuchtigkeit und schlechtem Wetter verschmiert und von dunklen Streifen durchzogen. Ringsherum liegen die Anlagen, auf drei Seiten Wald, und auf der vierten ein Feld, das zur Landstraße nach Southampton abfällt, die in etwa hundert Yards Entfernung vor der Haustür vorbeibiegt. Das Gelände vor dem Haus gehört dazu, aber die Wälder ringsum sind Teil von Lord Southertons Wildgehege. Ein kleiner Hain von Kupferbuchen direkt vor der Eingangstür hat dem Ort seinen Namen gegeben.
 
-„Mein Arbeitgeber fuhr mich selbst hinüber; er war so liebenswürdig wie immer, und am Abend stellte er mich seiner Frau und dem Kind vor. Es war nichts dran, Mr. Holmes, an der Vermutung, die uns in Ihren Zimmern in der Baker Street so wahrscheinlich erschienen war. Mrs. Rucastle ist nicht verrückt. Ich fand sie als eine stille, blasse Frau, viel jünger als ihr Mann — keine dreißig, würde ich sagen — während er kaum unter fünfundvierzig sein kann. Aus ihren Gesprächen habe ich entnommen, dass sie seit etwa sieben Jahren verheiratet sind, dass er Witwer war und dass sein einziges Kind aus erster Ehe die Tochter ist, die nach Philadelphia gegangen ist. Mr. Rucastle sagte mir unter vier Augen, der Grund für ihr Fortgehen sei gewesen, dass sie eine völlig unbegründete Abneigung gegen ihre Stiefmutter gehabt habe. Da die Tochter nicht jünger als zwanzig gewesen sein kann ich mir gut vorstellen, dass ihre Lage neben der jungen Frau ihres Vaters unerquicklich gewesen sein muss.
+„Mein Arbeitgeber fuhr mich selbst hinüber; er war so liebenswürdig wie immer, und am Abend stellte er mich seiner Frau und dem Kind vor. Es war nichts dran, Mr. Holmes, an der Vermutung, die uns in Ihren Zimmern in der Baker Street so wahrscheinlich erschienen war. Mrs. Rucastle ist nicht verrückt. Ich fand sie als eine stille, blasse Frau, viel jünger als ihr Mann — keine dreißig, würde ich sagen — während er kaum unter fünfundvierzig sein kann. Aus ihren Gesprächen habe ich entnommen, dass sie seit etwa sieben Jahren verheiratet sind, dass er Witwer war und dass sein einziges Kind aus erster Ehe die Tochter ist, die nach Philadelphia gegangen ist. Mr. Rucastle sagte mir unter vier Augen, der Grund für ihr Fortgehen sei gewesen, dass sie eine völlig unbegründete Abneigung gegen ihre Stiefmutter gehabt habe. Da die Tochter nicht jünger als zwanzig gewesen sein kann, kann ich mir gut vorstellen, dass ihre Lage neben der jungen Frau ihres Vaters unerquicklich gewesen sein muss.
 
 „Mrs. Rucastle erschien mir farblos — im Gesicht wie im Geist. Sie machte weder einen guten noch einen schlechten Eindruck auf mich. Sie war ein Niemand. Es war leicht zu sehen, dass sie ihrem Mann und ihrem kleinen Sohn leidenschaftlich ergeben war. Ihre hellgrauen Augen wanderten unablässig von dem einen zum anderen, registrierten jeden kleinen Wunsch und kamen ihm, wenn möglich, zuvor. Er war auch freundlich zu ihr, auf seine derbe, polternde Art, und im Ganzen wirkten sie wie ein glückliches Paar. Und doch trug diese Frau einen geheimen Kummer in sich. Oft versank sie in tiefes Nachdenken, mit dem traurigsten Ausdruck im Gesicht. Mehr als einmal habe ich sie in Tränen überrascht. Manchmal dachte ich, es läge am Wesen ihres Kindes, das ihr so schwer auf der Seele lag, denn ich habe noch nie ein so restlos verzogenes und so bösartiges kleines Geschöpf getroffen. Er ist klein für sein Alter, mit einem Kopf, der ganz unverhältnismäßig groß ist. Sein ganzes Leben scheint zwischen wilden Wutanfällen und düsteren Phasen des Schmollens hin und her zu pendeln. Schwächeren Wesen Schmerzen zuzufügen, ist offenbar seine einzige Vorstellung von Vergnügen, und er zeigt ein geradezu bemerkenswertes Talent darin, Mäuse, kleine Vögel und Insekten zu fangen und Fallen für sie auszutüfteln. Aber ich möchte lieber nicht über das Geschöpf sprechen, Mr. Holmes, und überhaupt hat es mit meiner Geschichte nur wenig zu tun.“
 
@@ -3308,7 +3338,7 @@ Der „Black Swan“ ist ein angesehenes Gasthaus in der High Street, nicht weit
 
 „Erst gestern ergab sich die Gelegenheit. Ich kann Ihnen sagen, dass außer Mr. Rucastle auch Toller und seine Frau in diesen verlassenen Räumen etwas zu tun finden, und einmal sah ich ihn einen großen schwarzen Leinensack durch die Tür tragen. In letzter Zeit trinkt er stark, und gestern Abend war er sehr betrunken; und als ich die Treppe hinaufkam, steckte der Schlüssel in der Tür. Ich zweifle keinen Augenblick daran, dass er ihn dort stecken gelassen hatte. Mr. und Mrs. Rucastle waren beide unten, und das Kind war bei ihnen, sodass ich eine ausgezeichnete Gelegenheit hatte. Ich drehte den Schlüssel ganz vorsichtig im Schloss, öffnete die Tür und schlüpfte hindurch.
 
-„Vor mir lag ein schmaler Gang, ohne Tapeten und ohne Teppich, der am hinteren Ende im rechten Winkel abbog. Um diese Ecke herum lagen drei Türen in einer Reihe; die erste und die dritte standen offen. Jede führte in ein leeres Zimmer, staubig und trostlos, das eine mit zwei Fenstern, das andere mit einem; so dick mit Schmutz überzogen, dass das Abendlicht nur matt hindurchschimmerte. Die mittlere Tür war geschlossen, und quer über ihre Außenseite war eine der breiten Stangen eines eisernen Bettgestells befestigt, an einem Ende mit einem Vorhängeschloss an einem Ring in der Wand gesichert und am anderen Ende mit starkem Seil festgebunden. Die Tür selbst war außerdem abgeschlossen, und der Schlüssel steckte nicht. Diese verbarrikadierte Tür musste offensichtlich zu dem von außen verriegelten Fenster gehören, und doch sah ich an dem Schimmer unter der Tür, dass der Raum nicht im Dunkeln lag. Offenbar gab es ein Oberlicht, das von oben Licht hineinließ. Während ich im Gang stand, auf die unheilvolle Tür starrte und mich fragte, welches Geheimnis sie wohl verbarg, hörte ich plötzlich Schritte im Zimmer und sah einen Schatten hinter dem schmalen Spalt des trüben Lichtes hin und her ziehen, das unter der Tür hervordrang. Ein wahnsinniger, grundloser Schrecken stieg in mir auf bei diesem Anblick, Mr. Holmes. Meine überreizten Nerven versagten mir auf der Stelle, und ich drehte mich um und rannte, als wäre eine schreckliche Hand hinter mir, die nach dem Saum meines Kleides griff. Ich stürzte den Gang hinunter, durch die Tür, und direkt in die Arme von Mr. Rucastle, der draußen gewartet hatte.
+„Vor mir lag ein schmaler Gang, ohne Tapeten und ohne Teppich, der am hinteren Ende im rechten Winkel abbog. Um diese Ecke herum lagen drei Türen in einer Reihe; die erste und die dritte standen offen. Jede führte in ein leeres Zimmer, staubig und trostlos, das eine mit zwei Fenstern, das andere mit einem; so dick mit Schmutz überzogen, dass das Abendlicht nur matt hindurchschimmerte. Die mittlere Tür war geschlossen, und quer über ihre Außenseite war eine der breiten Stangen eines eisernen Bettgestells befestigt, an einem Ende mit einem Vorhängeschloss an einem Ring in der Wand gesichert und am anderen Ende mit starkem Seil festgebunden. Die Tür selbst war außerdem abgeschlossen, und der Schlüssel steckte nicht. Diese verbarrikadierte Tür musste offensichtlich zu dem von außen verriegelten Fenster gehören, und doch sah ich an dem Schimmer unter der Tür, dass der Raum nicht im Dunkeln lag. Offenbar gab es ein Oberlicht, das von oben Licht hineinließ. Während ich im Gang stand, auf die unheilvolle Tür starrte und mich fragte, welches Geheimnis sie wohl verbarg, hörte ich plötzlich Schritte im Zimmer und sah einen Schatten hinter dem schmalen Spalt des trüben Lichtes hin und her ziehen, das unter der Tür hervordrang. Ein wahnsinniger, grundloser Schrecken stieg in mir auf bei diesem Anblick, Mr. Holmes. Meine überreizten Nerven versagten mir auf der Stelle, und ich drehte mich um und rannte – rannte, als wäre eine schreckliche Hand hinter mir, die nach dem Saum meines Kleides griff. Ich stürzte den Gang hinunter, durch die Tür, und direkt in die Arme von Mr. Rucastle, der draußen gewartet hatte.
 
 „‚So‘, sagte er lächelnd, ‚also waren Sie es. Ich dachte mir schon, dass Sie es sein müssten, als ich die Tür offen sah.‘
 

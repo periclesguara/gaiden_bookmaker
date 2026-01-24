@@ -127,6 +127,8 @@ class Edition(models.Model):
     translator = models.CharField(max_length=255, blank=True)
     editor = models.CharField(max_length=255, blank=True)
     about_edition_text = models.TextField(blank=True)
+    introduction_text = models.TextField(blank=True, null=True, default="")
+    epilogue_text = models.TextField(blank=True, null=True, default="")
     publication_year = models.IntegerField(default=2026)
     city = models.CharField(max_length=100, default="Rio de Janeiro")
     country = models.CharField(

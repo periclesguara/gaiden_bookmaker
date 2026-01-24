@@ -6,7 +6,7 @@ import shutil
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from . import edition_meta, utils
+from . import edition_meta, paths, utils
 
 PATTERN_EN = r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$"
 PATTERN_ES = r"^(CAP[IÍ]TULO)\s+\d+\s*[-–:]?\s*(.*)$"
@@ -190,7 +190,7 @@ def txt_to_md(
 
 def publish_miolo_for_kdp(edition, miolo_md_path: Path) -> Path:
     target = (
-        Path("data")
+        paths.data_dir()
         / "translated"
         / edition_meta.book_code(edition)
         / edition_meta.language_code(edition)
