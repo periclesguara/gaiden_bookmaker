@@ -1,0 +1,12 @@
+STOPPOINT — 2026-01-23
+
+- Ambiente OK: Django 5.2.10 roda na .venv.
+- Corrigido vazamento: evitar escrita em web/data/builds; usar data/builds via pipeline.paths.
+- Frontmatter ES: 'Sobre esta edicion' deve ficar SOMENTE em about_edition_es.md.j2 (não em frontispiece/copyright).
+- build_kdp agora gera kdp_merged.md/BOOK.BUILD.MD no data/builds (DE validado).
+- ES: build_kdp falha se MIOL_TERM.v1.md não existir; miolo canônico atual parece estar em BOOK.MD_FINAL (ver data/builds/.../es).
+- Situação atual: template ainda “não está certo” — revisar fluxo de renderização e origem do miolo ES (kdp_mode.py).
+Próximo passo:
+1) Conferir templates ES efetivamente renderizados (frontispiece/copyright/about_edition).
+2) Garantir MIOL_TERM.v1.md gerado a partir do último texto ES correto.
+3) Rodar build_kdp ES e validar output.
