@@ -20,6 +20,13 @@ def language_display(code: str) -> str:
     }
     return mapping.get(code, code)
 
+def _edition_language_code(edition: Edition, fallback: str = "en") -> str:
+    related_lang = getattr(getattr(edition, "language", None), "code", "")
+    if related_lang:
+        return related_lang
+    legacy_code = getattr(edition, "language_code", "") or ""
+    return legacy_code or fallback
+
 
 def build_context(edition: Edition) -> dict:
     language_code = getattr(edition, "language_code", None) or getattr(
@@ -70,9 +77,12 @@ def _frontmatter_template_candidates(module: str, lang_code: str) -> list[str]:
     candidates = [
         f"gaiden/{module}_{normalized}.md.j2",
         f"gaiden/{module}.md.j2",
+        f"pipeline/{module}_{normalized}.md.j2",
+        f"pipeline/{module}.md.j2",
     ]
     if normalized != "en":
         candidates.append(f"gaiden/{module}_en.md.j2")
+        candidates.append(f"pipeline/{module}_en.md.j2")
     return candidates
 
 
@@ -81,9 +91,7 @@ def render_frontmatter_module(
     module_name: str,
     lang_code: str | None = None,
 ) -> str:
-    language_code = lang_code or getattr(edition, "language_code", None) or getattr(
-        getattr(edition, "language", None), "code", "en"
-    )
+    language_code = lang_code or _edition_language_code(edition, "en")
     country_label = country_for_language(language_code, edition.country)
     context = {
         "edition": edition,
@@ -99,9 +107,7 @@ def render_frontmatter_module(
 
 def render_frontmatter(edition: Edition) -> Dict[str, str]:
     fm: Dict[str, str] = {}
-    language_code = getattr(edition, "language_code", None) or getattr(
-        getattr(edition, "language", None), "code", "en"
-    )
+    language_code = _edition_language_code(edition, "en")
     for name in [
         "frontispiece",
         "copyright",

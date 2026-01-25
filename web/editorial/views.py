@@ -422,6 +422,9 @@ def toggle_stage_lock(request, edition_id: int):
 
 def edition_edit(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    if edition.language_id and edition.language_code != edition.language.code:
+        edition.language_code = edition.language.code
+        edition.save(update_fields=["language_code", "updated_at"])
     apply_defaults = request.GET.get("apply_defaults") == "1" or request.POST.get("apply_defaults") == "1"
 
     if request.method == "POST":

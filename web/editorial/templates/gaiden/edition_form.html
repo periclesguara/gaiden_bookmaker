@@ -68,6 +68,10 @@
       {{ form.seal_name }}
     </div>
     <div>
+      <label for="{{ form.cover_filepath.id_for_label }}">Caminho da capa</label>
+      {{ form.cover_filepath }}
+    </div>
+    <div>
       <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
       {{ form.about_edition_text }}
     </div>

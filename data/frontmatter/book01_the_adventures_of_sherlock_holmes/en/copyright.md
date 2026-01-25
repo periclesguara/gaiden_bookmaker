@@ -1,11 +1,10 @@
-Copyright
+Obra original: .
+Dominio público en los Estados Unidos y en otros territorios.
 
-Copyright © 1892 Arthur Conan Doyle.
-Public Domain in the United States and other territories.
+Edición moderna © 2026 RinoBooks.
+Esta edición moderna de ** fue producida bajo el sello MantaQuest.
+MantaQuest es una marca registrada de RinoBooks.
 
-This modern version of *The Adventures of Sherlock Holmes* was produced under the MantaQuest imprint.
-MantaQuest is a registered trademark of RinoBooks.
+Rio de Janeiro, Brasil — 2026
 
-Publisher: Péricles Guará Silva
-All rights reserved to RinoBooks.
-Rio de Janeiro, Brazil — 2026
+::: pagebreak

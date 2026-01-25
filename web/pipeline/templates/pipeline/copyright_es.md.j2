@@ -1,6 +1,15 @@
 {% autoescape off %}
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
+{% if edition.work.is_public_domain %}
+Obra original: {{ edition.author }}.
 Dominio público en los Estados Unidos y en otros territorios.
+
+Edición moderna © {{ edition.publication_year }} {{ edition.imprint_name }}.
+Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
+{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
+
+{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% else %}
+Copyright © {{ edition.publication_year }} {{ edition.author }}.
 
 Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
 {{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
@@ -8,4 +17,5 @@ Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ ed
 Editorial:
 Todos los derechos reservados a {{ edition.imprint_name }}.
 {{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% endif %}
 {% endautoescape %}

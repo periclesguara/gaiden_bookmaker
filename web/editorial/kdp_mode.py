@@ -28,6 +28,13 @@ def translated_miolo_path(edition: Edition) -> Path:
 
 
 _PAGEBREAK_RE = re.compile(r"^:::\s*pagebreak\s*$", re.MULTILINE)
+_TRAILING_PAGEBREAK_RE = re.compile(r"(?:\n*:::\s*pagebreak\s*:::\s*)+$", re.MULTILINE)
+_EMPTY_SECTION_RE = re.compile(r"^\s*(?:<!--.*?-->\s*)*$", re.DOTALL)
+_CHAPTER_TITLE_RE = re.compile(r"^#\s+.*\{\.chapter-title\b.*\}$", re.MULTILINE)
+_GENERIC_CHAPTER_RE = re.compile(
+    r"^#\s+(CAP[IÍ]TULO|CAPITULO|CHAPTER|KAPITEL|CAPITOL)\b",
+    re.MULTILINE,
+)
 
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
@@ -51,6 +58,19 @@ def _resolve_cover_path(edition: Edition) -> Path | None:
 def _normalize_pagebreaks(text: str) -> str:
     return _PAGEBREAK_RE.sub("::: pagebreak\n:::", text)
 
+def _strip_trailing_pagebreaks(text: str) -> str:
+    return _TRAILING_PAGEBREAK_RE.sub("", text).rstrip()
+
+def _is_effectively_empty(text: str) -> bool:
+    return _EMPTY_SECTION_RE.match(text) is not None
+
+def _strip_canonical_frontmatter(text: str) -> str:
+    for regex in (_CHAPTER_TITLE_RE, _GENERIC_CHAPTER_RE):
+        match = regex.search(text)
+        if match:
+            return text[match.start():].lstrip()
+    return text.strip()
+
 
 def build_merged_kdp_source(edition: Edition) -> Path:
     fm_base = frontmatter_dir(edition)
@@ -68,19 +88,30 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     ]:
         path = fm_base / f"{name}.md"
         if path.exists():
-            txt = _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
-            sections.append(txt + "\n\n")
+            txt = _strip_trailing_pagebreaks(
+                _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
+            )
+            if txt and not _is_effectively_empty(txt):
+                sections.append(txt)
 
-    miolo_path = translated_miolo_path(edition)
+    canonical_ready = ppaths.canonical_ready_md_path(edition)
+    miolo_path = canonical_ready if canonical_ready.exists() else translated_miolo_path(edition)
     if not miolo_path.exists():
         raise FileNotFoundError(f"Miolo traduzido nao encontrado: {miolo_path}")
 
     miolo_txt = miolo_path.read_text(encoding="utf-8").strip()
+    if canonical_ready.exists():
+        miolo_txt = _strip_canonical_frontmatter(miolo_txt)
     inserts_path = builds_base / "inserts.json"
     spec = inserts.load_inserts_json(inserts_path)
     if spec:
         miolo_txt = inserts.inject_images_into_miolo_md(miolo_txt, spec).strip()
-    merged_txt = "".join(sections) + "\n\n" + miolo_txt + "\n"
+    pagebreak = "\n\n::: pagebreak\n:::\n\n"
+    merged_txt = pagebreak.join(sections).rstrip()
+    if merged_txt:
+        merged_txt = f"{merged_txt}{pagebreak}{miolo_txt}\n"
+    else:
+        merged_txt = f"{miolo_txt}\n"
 
     kdp_merged_path = builds_base / "kdp_merged.md"
     book_build_path = builds_base / "BOOK.BUILD.MD"

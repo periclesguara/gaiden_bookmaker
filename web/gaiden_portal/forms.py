@@ -49,6 +49,7 @@ class EditionForm(forms.ModelForm):
             "imprint_name",
             "seal_name",
             "language_code",
+            "cover_filepath",
             "frontispiece_template",
             "copyright_template",
             "about_edition_template",

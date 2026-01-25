@@ -138,6 +138,10 @@ def build_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.BUILD.MD"
 
 
+def canonical_ready_md_path(edition) -> Path:
+    return data_dir() / "canonical" / edition_meta.book_code(edition) / edition_meta.language_code(edition) / "BOOK.MD_FINAL.ready.md"
+
+
 def epub_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.epub"
 
