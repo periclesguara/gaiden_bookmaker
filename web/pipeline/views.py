@@ -1,16 +1,19 @@
 import json
+import os
 from pathlib import Path
 import shutil
 from datetime import datetime
 import re
+import subprocess
 
 from django.conf import settings
 from django.core.management import call_command
 from django.contrib import messages
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from editorial.models import (
     Edition as EditorialEdition,
@@ -124,18 +127,6 @@ def _select_contract_path(language: str) -> Path:
     return Path(settings.BASE_DIR).parent / rel
 
 
-def _select_refine_contract(language: str) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/refine/en_refine_2025.json",
-        "es": "gaiden/contracts/refine/es_refine_2025.json",
-        "ptbr": "gaiden/contracts/refine/ptbr_refine_2025.json",
-    }
-    rel = mapping.get(utils.normalize_lang(language))
-    if not rel:
-        raise ValueError(f"No refine contract for language={language}")
-    return Path(settings.BASE_DIR).parent / rel
-
-
 def _contract_target_lang(payload: dict) -> str:
     candidates = [
         ("target_language",),
@@ -189,7 +180,13 @@ def _copy_merge_to_build(edition, merged_path: Path, target_path: Path) -> Path:
 
 def _legacy_gaiden_merge_path(book_id: int, language: str, stage: str) -> Path | None:
     lang = utils.normalize_lang(language)
-    base_dir = Path("data/chunks") / f"book_{book_id:04d}" / f"refine_{lang}_01"
+    base_dir = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "chunks"
+        / f"book_{book_id:04d}"
+        / f"refine_{lang}_01"
+    )
     if not base_dir.exists():
         return None
 
@@ -337,7 +334,7 @@ def edition_steps(request, edition_id: int):
             pipeline_state.save(update_fields=["translation_language", "md_language"])
             messages.info(
                 request,
-                f"Idioma salvo ({target_language}). Refine ou Next Step.",
+                f"Idioma salvo ({target_language}). Proximo passo.",
             )
             result = md_transform.run_txt_to_md(target_edition, language_override=target_language)
             items = result.get("items") or []
@@ -769,31 +766,6 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.save()
             messages.success(request, "Translate OK")
 
-        elif step == "refine":
-            from gaiden.translate import run_translate_with_contract
-
-            target_edition = edition
-            stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
-            contract_path = _select_refine_contract(target_edition.language.code)
-            run_translate_with_contract(contract_path)
-
-            out_dir_path = _resolve_contract_out_dir(contract_path, target_edition)
-
-            merged_path = _detect_merged_path(out_dir_path)
-            if not merged_path:
-                raise FileNotFoundError(f"Merged refine not found in {out_dir_path}")
-            build_path = _copy_merge_to_build(
-                target_edition,
-                merged_path,
-                paths.merge_refine_path(target_edition),
-            )
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            pipeline_state.current_stage = PipelineStage.REFINED
-            pipeline_state.refined_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, "Refine OK")
-
         elif step == "polish":
             from gaiden.polish_en_2025 import run_polish_en_2025
 
@@ -1045,12 +1017,17 @@ def preview_merge_translate(request, edition_id: int):
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     book_code, language = _edition_codes(edition)
 
-    target_language = utils.normalize_lang(
+    override_language = utils.normalize_lang(request.GET.get("lang") or "")
+    target_language = override_language or utils.normalize_lang(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
     contract_path = _select_contract_path(target_language)
     out_dir_path = _resolve_contract_out_dir(contract_path, edition)
     merged_path = _detect_merged_path(out_dir_path)
+    if not merged_path:
+        book_id = _parse_book_id(book_code)
+        if book_id is not None:
+            merged_path = _legacy_gaiden_merge_path(book_id, target_language, "translate")
     if not merged_path:
         raise Http404("Merged translation file not found.")
 
@@ -1072,12 +1049,17 @@ def save_merge_translate_preview(request, edition_id: int):
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     book_code, language = _edition_codes(edition)
 
-    target_language = utils.normalize_lang(
+    override_language = utils.normalize_lang(request.POST.get("target_language") or "")
+    target_language = override_language or utils.normalize_lang(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
     contract_path = _select_contract_path(target_language)
     out_dir_path = _resolve_contract_out_dir(contract_path, edition)
     merged_path = _detect_merged_path(out_dir_path)
+    if not merged_path:
+        book_id = _parse_book_id(book_code)
+        if book_id is not None:
+            merged_path = _legacy_gaiden_merge_path(book_id, target_language, "translate")
     if not merged_path:
         messages.error(request, "Merged translation file not found.")
         return redirect("edition_steps", edition_id=edition_id)
@@ -1110,6 +1092,89 @@ def save_merge_translate_preview(request, edition_id: int):
     return redirect("edition_steps", edition_id=edition_id)
 
 
+@require_POST
+def refine_es_mx(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    stage_policy.POLICY.assert_stage_allowed(edition, "refine")
+
+    lang_code = utils.normalize_lang(edition.language.code)
+    if lang_code != "es":
+        return JsonResponse(
+            {"ok": False, "error": "Refine ES-MX is only available for ES editions."},
+            status=400,
+        )
+
+    book_id = _parse_book_id(edition.work.code)
+    if book_id is None:
+        return JsonResponse(
+            {"ok": False, "error": "book_code must contain an id like book_0001."},
+            status=400,
+        )
+    book_code = f"book_{book_id:04d}"
+
+    from gaiden import secrets as gaiden_secrets
+
+    project_root = Path(settings.BASE_DIR).parent
+    env = os.environ.copy()
+    api_key = gaiden_secrets.get_openai_key()
+    if not api_key:
+        return JsonResponse(
+            {"ok": False, "error": "Missing OPENAI_API_KEY in .gaiden_secrets"},
+            status=500,
+        )
+    env["OPENAI_API_KEY"] = api_key
+    cmd = ["node", "scripts/es/run_refine_es_mx_workflow.mjs"]
+    result = subprocess.run(
+        cmd,
+        cwd=str(project_root),
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    if result.returncode != 0:
+        return JsonResponse(
+            {"ok": False, "stdout": result.stdout, "stderr": result.stderr},
+            status=500,
+        )
+
+    out_path = (
+        project_root
+        / "data"
+        / "chunks"
+        / book_code
+        / "refine_es_01"
+        / "refined_es_mx_2025.txt"
+    )
+    if not out_path.exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Refined output not found: {out_path}"},
+            status=500,
+        )
+
+    build_path = _copy_merge_to_build(
+        edition,
+        out_path,
+        paths.merge_refine_path(edition),
+    )
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.current_stage = PipelineStage.REFINED
+    pipeline_state.refined_at = timezone.now()
+    pipeline_state.last_log = result.stdout.strip()
+    pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log"])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "variant": "es_mx",
+            "out_path": str(out_path),
+            "build_path": str(build_path),
+            "stdout": result.stdout,
+        }
+    )
+
+
 def preview_miolo_md(request, book_code, language):
     edition = get_object_or_404(
         EditorialEdition,
@@ -1119,7 +1184,17 @@ def preview_miolo_md(request, book_code, language):
     candidates = [
         paths.miolo_md_path_for_language(book_code, language),
         paths.miolo_md_path(edition),
+        paths.data_dir() / "translated" / book_code / language / "miolo.md",
     ]
+    book_id = _parse_book_id(book_code)
+    if book_id is not None:
+        candidates.append(
+            paths.data_dir()
+            / "translated"
+            / f"book_{book_id:04d}"
+            / language
+            / "miolo.md"
+        )
     path = next((p for p in candidates if p.exists()), None)
     if not path:
         raise Http404("Miolo markdown file not found for preview.")
