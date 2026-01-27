@@ -1,11 +1,15 @@
 {% autoescape off %}
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
+{% if edition.edition_year and edition.edition_copyright_holder %}
+Copyright © {{ edition.edition_year }} {{ edition.edition_copyright_holder }}.
+{% else %}
+(Copyright: preencher no cadastro da edição.)
+{% endif %}
+
 Domínio público nos Estados Unidos e em outros territórios.
 
-Esta versão moderna de *{{ edition.title }}* foi produzida sob o selo {{ edition.seal_name }}.
-{{ edition.seal_name }} é uma marca registrada da {{ edition.imprint_name }}.
-
-Editora:
-Todos os direitos reservados a {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% if edition.editorial_name %}
+Editorial: {{ edition.editorial_name }}
+{% else %}
+Editorial: (preencher editorial)
+{% endif %}
 {% endautoescape %}

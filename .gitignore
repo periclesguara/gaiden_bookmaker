@@ -100,3 +100,14 @@ data/images/
 *.epub
 *.pdf
 *.log
+.gaiden_secrets
+data/builds/
+data/canonical/
+data/chunks/
+data/frontmatter/
+web/db.sqlite3
+*.epub
+*.pdf
+*.log
+__pycache__/
+.venv/

@@ -1,21 +1,15 @@
 {% autoescape off %}
-{% if edition.work.is_public_domain %}
-Obra original: {{ edition.author }}.
-Dominio público en los Estados Unidos y en otros territorios.
-
-Edición moderna © {{ edition.publication_year }} {{ edition.imprint_name }}.
-Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
-{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
-
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% if edition.edition_year and edition.edition_copyright_holder %}
+Copyright © {{ edition.edition_year }} {{ edition.edition_copyright_holder }}.
 {% else %}
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
+(Copyright: preencher no cadastro da edição.)
+{% endif %}
 
-Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
-{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
+Dominio publico en los Estados Unidos y otros territorios.
 
-Editorial:
-Todos los derechos reservados a {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+{% if edition.editorial_name %}
+Editorial: {{ edition.editorial_name }}
+{% else %}
+Editorial: (preencher editorial)
 {% endif %}
 {% endautoescape %}
