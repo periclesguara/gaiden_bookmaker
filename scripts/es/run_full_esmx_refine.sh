@@ -75,7 +75,7 @@ PY
     echo "Cached output invalid, re-running: $out"
   fi
 
-  node "$ROOT/scripts/es/refine_one_part.mjs" --in "$f" --out "$out"
+  node "$ROOT/scripts/es/refine_one_part.mjs" "$f" "$out"
 
   python - <<PY
 import sys, re, pathlib
