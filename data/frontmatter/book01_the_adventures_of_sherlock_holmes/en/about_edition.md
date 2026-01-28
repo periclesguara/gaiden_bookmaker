@@ -1,3 +1,0 @@
-## Sobre esta edicion
-
-::: pagebreak

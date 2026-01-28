@@ -1,8 +1,0 @@
-::: center
-# 
-
-:::
-
-Autor:
-
-::: pagebreak

@@ -111,3 +111,9 @@ web/db.sqlite3
 *.log
 __pycache__/
 .venv/
+
+# local backups
+/backups/
+
+# generated artifacts
+/data/frontmatter/
