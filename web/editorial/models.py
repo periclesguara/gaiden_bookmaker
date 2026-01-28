@@ -182,6 +182,9 @@ class Edition(models.Model):
             "{city}, {country} — {year}\n"
         )
     )
+    copyright_text = models.TextField(blank=True, default="")
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
+    edition_copyright_holder = models.CharField(max_length=120, blank=True, default="")
     about_edition_template = models.TextField(blank=True)
     about_contributor_template = models.TextField(blank=True)
     cover_filepath = models.CharField(
@@ -195,6 +198,7 @@ class Edition(models.Model):
         choices=LANGUAGE_CHOICES,
         default="en",
     )
+    language_variant = models.CharField(max_length=20, blank=True, default="")
     lock_translate = models.BooleanField(default=False)
     lock_refine = models.BooleanField(default=False)
     lock_polish = models.BooleanField(default=False)
@@ -294,6 +298,7 @@ class PipelineArtifact(models.Model):
         ("normalize", "NORMALIZE"),
         ("split", "SPLIT/CHUNK"),
         ("translate", "TRANSLATE"),
+        ("merge_translate", "MERGE_TRANSLATE"),
         ("refine", "REFINE"),
         ("polish", "POLISH"),
         ("miolo", "MIOLO"),
@@ -307,6 +312,8 @@ class PipelineArtifact(models.Model):
     work_code = models.CharField(max_length=200, db_index=True)
     language_code = models.CharField(max_length=20, db_index=True)
     stage = models.CharField(max_length=50, choices=STAGE_CHOICES, db_index=True)
+    status = models.CharField(max_length=16, default="OK")
+    sha256 = models.CharField(max_length=64, blank=True, default="")
     relpath = models.TextField()
     filename = models.CharField(max_length=255, db_index=True)
     size_bytes = models.BigIntegerField(default=0)
