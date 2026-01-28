@@ -10,25 +10,40 @@ if [ -f "backups/db/local_pg_env.sh" ]; then
   source "backups/db/local_pg_env.sh"
 fi
 
+# Resolver interpretador Python (ordem: venv ativo -> .venv raiz -> web/.venv -> python do sistema)
+PY="python"
+if [ -n "${VIRTUAL_ENV:-}" ]; then
+  PY="python"
+elif [ -x "${ROOT_DIR}/.venv/bin/python" ]; then
+  PY="${ROOT_DIR}/.venv/bin/python"
+elif [ -x "${ROOT_DIR}/web/.venv/bin/python" ]; then
+  PY="${ROOT_DIR}/web/.venv/bin/python"
+else
+  echo "ERROR: Nenhum venv encontrado."
+  echo "Ative um venv (source .venv/bin/activate) OU crie ${ROOT_DIR}/.venv/bin/python."
+  exit 1
+fi
+
 echo "== gaiden_doctor =="
 echo "Repo: $ROOT_DIR"
 echo "Branch: $(git branch --show-current)"
+echo "Python: $PY"
 echo "PGHOST=${PGHOST:-} PGPORT=${PGPORT:-} PGDATABASE=${PGDATABASE:-} PGUSER=${PGUSER:-}"
 
 cd web
 
 echo
 echo "-- Django check --"
-python manage.py check
+"$PY" manage.py check
 
 echo
 echo "-- Migrations (editorial/pipeline) --"
-python manage.py showmigrations editorial | tail -n 25
-python manage.py showmigrations pipeline  | tail -n 25
+"$PY" manage.py showmigrations editorial | tail -n 25
+"$PY" manage.py showmigrations pipeline  | tail -n 25
 
 echo
 echo "-- Smoke: required fields exist in ORM --"
-python manage.py shell -c "
+"$PY" manage.py shell -c "
 from editorial.models import Edition, PipelineArtifact
 from pipeline.models import BookEditionTemplate
 print('Edition.copyright_text:', Edition._meta.get_field('copyright_text'))
@@ -44,7 +59,7 @@ print('BookEditionTemplate.edition_copyright_holder:', BookEditionTemplate._meta
 
 echo
 echo "-- Smoke: export frontmatter ES (book_0001) --"
-python manage.py export_frontmatter --book-code book_0001 --language es
+"$PY" manage.py export_frontmatter --book-code book_0001 --language es
 
 echo
 echo "OK: gaiden_doctor passou."
