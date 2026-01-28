@@ -8,6 +8,11 @@ from django.template.loader import render_to_string
 
 from editorial.models import Edition
 from gaiden_portal.utils import country_for_language
+from pipeline.models import BookEditionTemplate
+
+
+DEFAULT_PUBLISHER = "Péricles Guará Silva"
+DEFAULT_IMPRINT = "MantaQuest"
 
 
 def language_display(code: str) -> str:
@@ -40,7 +45,8 @@ def build_context(edition: Edition) -> dict:
     if hasattr(author, "name"):
         author = author.name
 
-    return {
+    year_value = edition.edition_year or edition.publication_year
+    ctx = {
         "book_code": getattr(getattr(edition, "work", None), "code", ""),
         "language": language_code,
         "imprint": imprint,
@@ -50,12 +56,45 @@ def build_context(edition: Edition) -> dict:
         "adapter": edition.adapter or "",
         "translator": edition.translator or "",
         "editor": edition.editor or "",
-        "year": edition.publication_year,
+        "year": year_value,
         "city": edition.city,
         "country": edition.country,
         "publisher": publisher,
         "language_display": language_display(language_code),
     }
+
+    work_code = getattr(getattr(edition, "work", None), "code", "")
+    try:
+        tmpl = BookEditionTemplate.objects.filter(
+            book_code=work_code,
+            language=language_code,
+        ).first()
+    except Exception:
+        tmpl = None
+
+    if tmpl:
+        imprint_val = (
+            getattr(tmpl, "imprint_name", None)
+            or getattr(tmpl, "imprint", None)
+            or getattr(tmpl, "seal", None)
+            or getattr(tmpl, "seal_name", None)
+        )
+        publisher_val = (
+            getattr(tmpl, "publisher", None)
+            or getattr(tmpl, "publisher_name", None)
+            or getattr(tmpl, "editorial", None)
+            or getattr(tmpl, "editorial_name", None)
+        )
+
+        if imprint_val:
+            ctx["imprint"] = imprint_val
+        if publisher_val:
+            ctx["publisher"] = publisher_val
+
+    ctx["imprint"] = (ctx.get("imprint") or DEFAULT_IMPRINT).strip()
+    ctx["publisher"] = (ctx.get("publisher") or DEFAULT_PUBLISHER).strip()
+
+    return ctx
 
 
 def render_template(tpl: str, ctx: dict) -> str:
@@ -96,6 +135,7 @@ def render_frontmatter_module(
     context = {
         "edition": edition,
         "country_label": country_label,
+        **build_context(edition),
     }
     for template_name in _frontmatter_template_candidates(module_name, language_code):
         try:
@@ -131,8 +171,21 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     fm = render_frontmatter(edition)
-    for key, value in fm.items():
-        (out_dir / f"{key}.md").write_text(value, encoding="utf-8")
+    modules = [
+        "frontispiece",
+        "copyright",
+        "about_edition",
+        "introduction",
+        "epilogue",
+        "about_contributor",
+    ]
+    for key in modules:
+        out_path = out_dir / f"{key}.md"
+        content = fm.get(key, "")
+        if content.strip():
+            out_path.write_text(content, encoding="utf-8")
+        elif out_path.exists():
+            out_path.unlink()
 
 
 def build_merged_frontmatter(edition: Edition) -> str:

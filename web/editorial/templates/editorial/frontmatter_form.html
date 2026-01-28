@@ -142,8 +142,27 @@
     </div>
 
     <div>
-      <label for="{{ form.about_edition_text.id_for_label }}">About edition</label>
+      <label for="{{ form.introduction_text.id_for_label }}">Introdução</label>
+      {{ form.introduction_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ introduction_preview }}</div>
+      <small>Deixe vazio para remover essa seção do export.</small>
+    </div>
+
+    <div>
+      <label for="{{ form.about_edition_text.id_for_label }}">Sobre esta edição</label>
       {{ form.about_edition_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ about_edition_preview }}</div>
+      <small>Deixe vazio para remover essa seção do export.</small>
+    </div>
+
+    <div>
+      <label for="{{ form.epilogue_text.id_for_label }}">Epílogo</label>
+      {{ form.epilogue_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ epilogue_preview }}</div>
+      <small>Deixe vazio para remover essa seção do export.</small>
     </div>
 
     <div>

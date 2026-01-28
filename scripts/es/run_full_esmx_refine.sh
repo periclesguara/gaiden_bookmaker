@@ -10,7 +10,7 @@ CLEAN="$ROOT/data/chunks/book_0001/refine_es_01/merged_es_2025.clean.txt"
 mkdir -p "$OUTDIR"
 
 # 1) clean determinístico
-python scripts/es/clean_es_merged.py
+python scripts/es/clean_merged_es.py
 
 # 2) split por capítulo/conto
 python scripts/es/split_by_story_heading_clean.py

@@ -1,15 +1,23 @@
 {% autoescape off %}
-{% if edition.edition_year and edition.edition_copyright_holder %}
-Copyright © {{ edition.edition_year }} {{ edition.edition_copyright_holder }}.
-{% else %}
-(Copyright: preencher no cadastro da edição.)
-{% endif %}
+Titulo
+{{ title }}
+Subtitulo
+{{ subtitle }}
+Autor
+{{ author }}
+Adaptacao
+{{ adapter }}
+Ano de publicacion
+{{ year }}
+
+Copyright © {{ year }} RinoBooks.
 
 Domínio público nos Estados Unidos e em outros territórios.
 
-{% if edition.editorial_name %}
-Editorial: {{ edition.editorial_name }}
-{% else %}
-Editorial: (preencher editorial)
-{% endif %}
+Esta versão moderna de *{{ title }}* foi produzida sob o selo {{ imprint|default:"MantaQuest" }}.
+{{ imprint|default:"MantaQuest" }} é uma marca registrada da RinoBooks.
+
+Editorial: {{ publisher|default:"Péricles Guará Silva" }}
+Todos os direitos reservados a RinoBooks.
+{{ city }}, {{ country }} — {{ year }}
 {% endautoescape %}

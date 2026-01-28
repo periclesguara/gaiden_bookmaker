@@ -3,5 +3,10 @@
 {% if edition.subtitle %}## {{ edition.subtitle }}{% endif %}
 :::
 
-Autor: {{ edition.author }}
-{% if edition.adapter %}Adaptado por {{ edition.adapter }}{% endif %}
+**Autor:** {{ edition.author }}
+
+{% if edition.adapter %}
+**Adaptación:** {{ edition.adapter }}
+{% endif %}
+
+{{ edition.publication_year }}
