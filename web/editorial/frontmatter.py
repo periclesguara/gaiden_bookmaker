@@ -74,16 +74,10 @@ def _normalize_lang_code(code: str) -> str:
 
 def _frontmatter_template_candidates(module: str, lang_code: str) -> list[str]:
     normalized = _normalize_lang_code(lang_code)
-    candidates = [
+    return [
         f"gaiden/{module}_{normalized}.md.j2",
-        f"gaiden/{module}.md.j2",
         f"pipeline/{module}_{normalized}.md.j2",
-        f"pipeline/{module}.md.j2",
     ]
-    if normalized != "en":
-        candidates.append(f"gaiden/{module}_en.md.j2")
-        candidates.append(f"pipeline/{module}_en.md.j2")
-    return candidates
 
 
 def render_frontmatter_module(
@@ -130,9 +124,18 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
     out_dir = base_dir / book_code / language_code
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fm = render_frontmatter(edition)
-    for key, value in fm.items():
-        (out_dir / f"{key}.md").write_text(value, encoding="utf-8")
+    modules = [
+        "frontispiece",
+        "copyright",
+        "about_edition",
+        "introduction",
+        "epilogue",
+        "about_contributor",
+    ]
+    for key in modules:
+        rendered = render_frontmatter_module(edition, key, language_code)
+        content = f"{rendered}\n\n::: pagebreak\n" if rendered else ""
+        (out_dir / f"{key}.md").write_text(content, encoding="utf-8")
 
 
 def build_merged_frontmatter(edition: Edition) -> str:
