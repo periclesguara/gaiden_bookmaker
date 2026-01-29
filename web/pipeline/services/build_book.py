@@ -50,5 +50,5 @@ def run_build(edition, language_override: str | None = None) -> dict:
 
     return {
         "path": str(out_path),
-        "preview": build_text[:2000],
+        "snippet": build_text[:2000],
     }

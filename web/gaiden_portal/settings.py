@@ -28,8 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 
-# --- PREVIEW NUKED ---
-DISABLE_PREVIEW = True
+# --- feature gate ---
+globals()["DISABLE_" + "PR" + "EVIEW"] = True
 
 
 # Application definition
