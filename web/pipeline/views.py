@@ -494,7 +494,9 @@ def edition_steps(request, edition_id: int):
         if not build_dir.exists():
             return ""
         marker = build_dir / paths.FORCE_MERGE_TRANSLATE_MARKER
-        if marker.exists():
+        if lang == "es":
+            order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
+        elif marker.exists():
             order = ["merge_translate", "merge_refine", "merge_polish"]
         else:
             order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
@@ -1031,4 +1033,3 @@ def refine_es_mx(request, edition_id: int):
             "stdout": result.stdout,
         }
     )
-
