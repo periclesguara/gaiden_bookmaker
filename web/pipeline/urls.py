@@ -14,33 +14,8 @@ urlpatterns = [
         name="pipeline_run_edition_step",
     ),
     path(
-        "editions/<int:edition_id>/preview-merge-translate/",
-        views.preview_merge_translate,
-        name="preview_merge_translate",
-    ),
-    path(
-        "editions/<int:edition_id>/save-merge-translate/",
-        views.save_merge_translate_preview,
-        name="save_merge_translate_preview",
-    ),
-    path(
         "editions/<str:book_code>/<str:language>/build-md/",
         views.build_book_md,
         name="build_book_md",
-    ),
-    path(
-        "editions/<str:book_code>/<str:language>/preview-md/",
-        views.preview_book_md,
-        name="preview_book_md",
-    ),
-    path(
-        "editions/<str:book_code>/<str:language>/preview-pre-edition/",
-        views.preview_pre_edition_md,
-        name="preview_pre_edition_md",
-    ),
-    path(
-        "editions/<str:book_code>/<str:language>/preview-miolo/",
-        views.preview_miolo_md,
-        name="preview_miolo_md",
     ),
 ]

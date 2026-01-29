@@ -440,16 +440,6 @@ def edition_steps(request, edition_id: int):
     else:
         md_status = "NONE"
 
-    md_preview = ""
-    if qa_path.exists():
-        preview_path = qa_path
-    elif pre_edition_path.exists():
-        preview_path = pre_edition_path
-    else:
-        preview_path = pre_qa_path
-    if preview_path.exists():
-        md_preview = preview_path.read_text(encoding="utf-8")[:10000]
-
     issues = []
     if qa_log_path.exists():
         try:
@@ -547,9 +537,6 @@ def edition_steps(request, edition_id: int):
         "chunk_count": chunk_count,
         "sync_log": sync_log,
         "md_status": md_status,
-        "md_preview": md_preview,
-        "md_pre_edition_path": str(pre_edition_path) if pre_edition_path.exists() else None,
-        "md_pre_qa_path": str(pre_qa_path) if pre_qa_path.exists() else None,
         "md_final_path": str(final_md_path) if final_md_path.exists() else None,
         "miolo_paths": miolo_paths,
         "miolo_filename": paths.miolo_md_filename(),
@@ -563,8 +550,6 @@ def edition_steps(request, edition_id: int):
         "frontmatter_lang": frontmatter_lang,
         "frontmatter_lang_choices": BookEditionTemplate.LANG_CHOICES,
         "frontmatter_template": frontmatter_template,
-        "frontmatter_preview": frontmatter_template.frontispiece_rendered,
-        "copyright_preview": frontmatter_template.copyright_rendered,
         "frontmatter_locked": frontmatter_locked,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
@@ -962,134 +947,7 @@ def build_book_md(request, book_code, language):
         language=edition.language.code,
     )
 
-    return redirect("preview_book_md", book_code=book_code, language=language)
-
-
-def preview_book_md(request, book_code, language):
-    build_dir = paths.edition_build_dir_for_language(book_code, language)
-    candidates = [
-        get_book_md_path(book_code, language),
-        build_dir / "BOOK.BUILD.MD",
-        build_dir / "BOOK.MD_FINAL",
-        build_dir / f"BOOK.PRE_EDITION.{language}.md",
-        build_dir / f"BOOK.PRE_QA.{language}.md",
-        build_dir / "BOOK.PRE_EDITION.md",
-        build_dir / "BOOK.PRE_QA.md",
-    ]
-    path = next((p for p in candidates if p.exists()), None)
-    if not path:
-        raise Http404("Markdown file not found for preview.")
-
-    content = path.read_text(encoding="utf-8")
-    context = {
-        "book_code": book_code,
-        "language": language,
-        "md_path": str(path),
-        "content": content,
-    }
-    return render(request, "pipeline/preview_md.html", context)
-
-
-def preview_pre_edition_md(request, book_code, language):
-    build_dir = paths.edition_build_dir_for_language(book_code, language)
-    candidates = [
-        build_dir / f"BOOK.PRE_EDITION.{language}.md",
-        build_dir / f"BOOK.PRE_QA.{language}.md",
-        build_dir / "BOOK.PRE_EDITION.md",
-        build_dir / "BOOK.PRE_QA.md",
-    ]
-    path = next((p for p in candidates if p.exists()), None)
-    if not path:
-        raise Http404("Markdown file not found for preview.")
-
-    content = path.read_text(encoding="utf-8")
-    context = {
-        "book_code": book_code,
-        "language": language,
-        "md_path": str(path),
-        "content": content,
-    }
-    return render(request, "pipeline/preview_md.html", context)
-
-
-def preview_merge_translate(request, edition_id: int):
-    edition = get_object_or_404(EditorialEdition, id=edition_id)
-    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
-    book_code, language = _edition_codes(edition)
-
-    override_language = utils.normalize_lang(request.GET.get("lang") or "")
-    target_language = override_language or utils.normalize_lang(
-        (pipeline_state.translation_language if pipeline_state else None) or language
-    )
-    contract_path = _select_contract_path(target_language)
-    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
-    merged_path = _detect_merged_path(out_dir_path)
-    if not merged_path:
-        book_id = _parse_book_id(book_code)
-        if book_id is not None:
-            merged_path = _legacy_gaiden_merge_path(book_id, target_language, "translate")
-    if not merged_path:
-        raise Http404("Merged translation file not found.")
-
-    content = merged_path.read_text(encoding="utf-8")
-    context = {
-        "book_code": book_code,
-        "language": target_language,
-        "md_path": str(merged_path),
-        "content": content,
-    }
-    return render(request, "pipeline/preview_md.html", context)
-
-
-def save_merge_translate_preview(request, edition_id: int):
-    if request.method != "POST":
-        return redirect("edition_steps", edition_id=edition_id)
-
-    edition = get_object_or_404(EditorialEdition, id=edition_id)
-    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
-    book_code, language = _edition_codes(edition)
-
-    override_language = utils.normalize_lang(request.POST.get("target_language") or "")
-    target_language = override_language or utils.normalize_lang(
-        (pipeline_state.translation_language if pipeline_state else None) or language
-    )
-    contract_path = _select_contract_path(target_language)
-    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
-    merged_path = _detect_merged_path(out_dir_path)
-    if not merged_path:
-        book_id = _parse_book_id(book_code)
-        if book_id is not None:
-            merged_path = _legacy_gaiden_merge_path(book_id, target_language, "translate")
-    if not merged_path:
-        messages.error(request, "Merged translation file not found.")
-        return redirect("edition_steps", edition_id=edition_id)
-
-    content = merged_path.read_text(encoding="utf-8")
-    build_dir = paths.edition_build_dir_for_language(book_code, target_language)
-    build_dir.mkdir(parents=True, exist_ok=True)
-    saved_path = build_dir / f"merge_translate_{target_language}.txt"
-    saved_path.write_text(content, encoding="utf-8")
-
-    TextSnapshot.objects.create(
-        edition=edition,
-        language=target_language,
-        stage="merge_translate_preview",
-        source_path=str(merged_path),
-        content=content,
-    )
-
-    PipelineJob.objects.create(
-        book_code=book_code,
-        book_title=edition.work.title,
-        language=target_language,
-        stage="translate",
-        status="SUCCESS",
-        filepath=str(saved_path),
-        message="Saved preview merge translate to build dir.",
-    )
-
-    messages.success(request, f"Arquivo salvo: {saved_path}")
-    return redirect("edition_steps", edition_id=edition_id)
+    return redirect("edition_steps", edition_id=edition.id)
 
 
 @require_POST
@@ -1174,36 +1032,3 @@ def refine_es_mx(request, edition_id: int):
         }
     )
 
-
-def preview_miolo_md(request, book_code, language):
-    edition = get_object_or_404(
-        EditorialEdition,
-        work__code=book_code,
-        language__code=language,
-    )
-    candidates = [
-        paths.miolo_md_path_for_language(book_code, language),
-        paths.miolo_md_path(edition),
-        paths.data_dir() / "translated" / book_code / language / "miolo.md",
-    ]
-    book_id = _parse_book_id(book_code)
-    if book_id is not None:
-        candidates.append(
-            paths.data_dir()
-            / "translated"
-            / f"book_{book_id:04d}"
-            / language
-            / "miolo.md"
-        )
-    path = next((p for p in candidates if p.exists()), None)
-    if not path:
-        raise Http404("Miolo markdown file not found for preview.")
-
-    content = path.read_text(encoding="utf-8")
-    context = {
-        "book_code": book_code,
-        "language": language,
-        "md_path": str(path),
-        "content": content,
-    }
-    return render(request, "pipeline/preview_md.html", context)

@@ -87,29 +87,8 @@
     <div class="actions">
       <button type="submit">Salvar</button>
       <a href="?apply_defaults=1">Aplicar defaults por idioma</a>
-      <a href="{% url 'frontispiece_preview' edition.id %}">Preview frontispicio</a>
     </div>
   </form>
-
-  <h2>Preview Frontispicio</h2>
-  <pre>{{ frontispiece_preview }}</pre>
-
-  <h2>Preview Copyright</h2>
-  <pre>{{ copyright_preview }}</pre>
-
-  <h2>Preview About this edition</h2>
-  <pre>{{ about_edition_preview }}</pre>
-
-  <h2>Preview Introduction</h2>
-  <pre>{{ introduction_preview }}</pre>
-
-  <h2>Preview Epilogue</h2>
-  <pre>{{ epilogue_preview }}</pre>
-
-  {% if about_contributor_preview %}
-  <h2>Preview About contributor</h2>
-  <pre>{{ about_contributor_preview }}</pre>
-  {% endif %}
   <script>
     const langSelect = document.getElementById("{{ form.language_code.id_for_label }}");
     const defaultsInput = document.getElementById("apply_defaults");

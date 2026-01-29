@@ -1,13 +1,12 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
 from editorial.models import Edition as EditorialEdition
 from gaiden_portal.forms import EditionForm
-from gaiden_portal.utils import country_for_language, get_frontispiece_template_for_edition
+from gaiden_portal.utils import country_for_language
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
 from pipeline.services import paths as ppaths, utils
 from editorial.frontmatter import build_frontmatter_files, render_frontmatter_module
@@ -286,8 +285,6 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "edition": edition,
         "is_generic": is_generic,
         "form": form,
-        "frontmatter_preview": template.frontispiece_rendered,
-        "copyright_preview": template.copyright_rendered,
         "language_options": BookEditionTemplate.LANG_CHOICES,
         "book_code": book_code,
         "language": language,
@@ -466,40 +463,8 @@ def edition_edit(request, edition_id: int):
             form = EditionForm(instance=edition)
 
     country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_preview = render_frontmatter_module(edition, "frontispiece", edition.language_code)
-    copyright_preview = render_frontmatter_module(edition, "copyright", edition.language_code)
-    about_edition_preview = render_frontmatter_module(edition, "about_edition", edition.language_code)
-    introduction_preview = render_frontmatter_module(edition, "introduction", edition.language_code)
-    epilogue_preview = render_frontmatter_module(edition, "epilogue", edition.language_code)
-    about_contributor_preview = render_frontmatter_module(edition, "about_contributor", edition.language_code)
-    if not copyright_preview:
-        copyright_preview = ""
     context = {
         "edition": edition,
         "form": form,
-        "frontispiece_preview": frontispiece_preview,
-        "copyright_preview": copyright_preview,
-        "about_edition_preview": about_edition_preview,
-        "introduction_preview": introduction_preview,
-        "epilogue_preview": epilogue_preview,
-        "about_contributor_preview": about_contributor_preview,
     }
     return render(request, "gaiden/edition_form.html", context)
-
-
-def frontispiece_preview(request, edition_id: int):
-    edition = get_object_or_404(EditorialEdition, pk=edition_id)
-    template_name = get_frontispiece_template_for_edition(edition)
-    country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_md = render_to_string(
-        template_name,
-        {"edition": edition, "country_label": country_label},
-    )
-    return render(
-        request,
-        "gaiden/frontispiece_preview.html",
-        {
-            "edition": edition,
-            "frontispiece_md": frontispiece_md,
-        },
-    )
