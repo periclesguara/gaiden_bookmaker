@@ -172,7 +172,7 @@
       langSelect.addEventListener("change", (event) => {
         const code = event.target.value;
         const bookCode = event.target.dataset.bookCode;
-        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/?apply_defaults=1`;
+        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/`;
       });
     }
     const form = document.getElementById("frontmatter_form");

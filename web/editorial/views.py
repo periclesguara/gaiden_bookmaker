@@ -198,7 +198,8 @@ def frontmatter_template_edit(request, book_code: str, language: str):
     )
     updated_fields = []
     if created:
-        template.apply_language_defaults_if_empty()
+        if language != "es":
+            template.apply_language_defaults_if_empty()
         template.save()
     else:
         language_overrides = BOOK_LANGUAGE_DEFAULTS.get(book_code, {})
@@ -248,7 +249,9 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         elif not template.country_name:
             template.country_name = country_name
             updated_fields.append("country_name")
-        default_updates = template.apply_language_defaults_if_empty()
+        default_updates = []
+        if language != "es":
+            default_updates = template.apply_language_defaults_if_empty()
         if default_updates:
             updated_fields.extend(default_updates)
 

@@ -380,6 +380,8 @@ class BookEditionTemplate(models.Model):
         return self._render_text(self.about_contributor_text)
 
     def apply_language_defaults_if_empty(self):
+        if self.language == "es":
+            return []
         defaults = LANGUAGE_DEFAULT_TEMPLATES.get(self.language)
         if not defaults:
             return []
