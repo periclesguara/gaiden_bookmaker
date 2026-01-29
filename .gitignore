@@ -120,3 +120,4 @@ __pycache__/
 
 # backups editor/IDE
 *.bak.*
+data/miolo/
