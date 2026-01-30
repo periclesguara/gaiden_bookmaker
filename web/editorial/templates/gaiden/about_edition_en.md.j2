@@ -1,5 +1,5 @@
-{% if edition.about_edition_text %}
+{% if text %}
 ## About this edition
 
-{{ edition.about_edition_text }}
+{{ text|trim }}
 {% endif %}

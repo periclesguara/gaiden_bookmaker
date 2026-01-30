@@ -1,7 +1,5 @@
-{% if edition.epilogue_text %}
-{{ edition.epilogue_text }}
-{% else %}
+{% if text %}
 ## Epilogue
 
-This edition closes with the original stories intact, offering a modern reading experience without altering the authorial voice.
+{{ text|trim }}
 {% endif %}

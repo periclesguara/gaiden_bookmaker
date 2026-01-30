@@ -121,3 +121,5 @@ __pycache__/
 # backups editor/IDE
 *.bak.*
 data/miolo/
+
+*_BUILD_STAMP_*.txt

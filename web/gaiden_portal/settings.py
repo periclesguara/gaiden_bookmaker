@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'gaiden_portal.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("PGDATABASE", "gaiden_django"),
+        "NAME": os.environ.get("PGDATABASE", "gaiden"),
         "USER": os.environ.get("PGUSER", "gaiden"),
         "PASSWORD": os.environ.get("PGPASSWORD", "gaiden"),
         "HOST": os.environ.get("PGHOST", "127.0.0.1"),

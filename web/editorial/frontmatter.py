@@ -6,7 +6,7 @@ from typing import Dict
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 
-from editorial.models import Edition
+from editorial.models import Edition, EditionBlock
 from gaiden_portal.utils import country_for_language
 
 
@@ -84,13 +84,23 @@ def render_frontmatter_module(
     edition: Edition,
     module_name: str,
     lang_code: str | None = None,
+    extra_context: dict | None = None,
 ) -> str:
     language_code = lang_code or _edition_language_code(edition, "en")
     country_label = country_for_language(language_code, edition.country)
     context = {
         "edition": edition,
         "country_label": country_label,
+        **(extra_context or {}),
     }
+    if "text" not in context:
+        block = (
+            EditionBlock.objects.filter(edition=edition, block_type=module_name, is_locked=False)
+            .only("text_md")
+            .first()
+        )
+        if block and block.text_md:
+            context["text"] = block.text_md
     for template_name in _frontmatter_template_candidates(module_name, language_code):
         try:
             return render_to_string(template_name, context).strip()
@@ -102,17 +112,31 @@ def render_frontmatter_module(
 def render_frontmatter(edition: Edition) -> Dict[str, str]:
     fm: Dict[str, str] = {}
     language_code = _edition_language_code(edition, "en")
+    blocks = {
+        block.block_type: block
+        for block in EditionBlock.objects.filter(edition=edition)
+    }
     for name in [
         "frontispiece",
         "copyright",
         "about_edition",
         "introduction",
         "epilogue",
-        "about_contributor",
     ]:
-        rendered = render_frontmatter_module(edition, name, language_code)
+        block = blocks.get(name)
+        if not block or block.is_locked:
+            continue
+        text = (block.text_md or "").strip()
+        if not text:
+            continue
+        rendered = render_frontmatter_module(
+            edition,
+            name,
+            language_code,
+            extra_context={"text": text},
+        )
         if rendered:
-            fm[name] = rendered + "\n\n::: pagebreak\n"
+            fm[name] = rendered.strip()
     return fm
 
 
@@ -130,12 +154,15 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
         "about_edition",
         "introduction",
         "epilogue",
-        "about_contributor",
     ]
+    fm = render_frontmatter(edition)
     for key in modules:
-        rendered = render_frontmatter_module(edition, key, language_code)
-        content = f"{rendered}\n\n::: pagebreak\n" if rendered else ""
-        (out_dir / f"{key}.md").write_text(content, encoding="utf-8")
+        out_path = out_dir / f"{key}.md"
+        content = fm.get(key, "")
+        if content.strip():
+            out_path.write_text(content + "\n", encoding="utf-8")
+        elif out_path.exists():
+            out_path.unlink()
 
 
 def build_merged_frontmatter(edition: Edition) -> str:
@@ -146,10 +173,16 @@ def build_merged_frontmatter(edition: Edition) -> str:
         "about_edition",
         "introduction",
         "epilogue",
-        "about_contributor",
     ]
     merged = ""
+    pagebreak = "\n\n<div style=\"page-break-after: always;\"></div>\n\n"
+    first = True
     for key in order:
-        if key in fm:
-            merged += fm[key].rstrip() + "\n\n"
+        content = fm.get(key, "").strip()
+        if not content:
+            continue
+        if not first:
+            merged += pagebreak
+        merged += content.rstrip() + "\n"
+        first = False
     return merged.rstrip() + "\n"

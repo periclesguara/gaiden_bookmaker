@@ -1,3 +1,5 @@
-{% if edition.introduction_text %}
-{{ edition.introduction_text }}
+{% if text %}
+## Introducción
+
+{{ text|trim }}
 {% endif %}

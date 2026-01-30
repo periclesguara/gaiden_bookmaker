@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
-from editorial.models import Edition as EditorialEdition
+from editorial.models import Edition as EditorialEdition, EditionBlock
 from gaiden_portal.forms import EditionForm
 from gaiden_portal.utils import country_for_language
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
@@ -65,6 +65,57 @@ BOOK_LANGUAGE_DEFAULTS = {
 
 def _frontmatter_overrides(book_code: str, language: str) -> dict:
     return BOOK_LANGUAGE_DEFAULTS.get(book_code, {}).get(language, {})
+
+
+FRONTMATTER_BLOCK_TYPES = (
+    "frontispiece",
+    "copyright",
+    "about_edition",
+    "introduction",
+    "epilogue",
+)
+
+
+def _block_titles_for_language(language_code: str) -> dict[str, str]:
+    titles = {
+        "en": {
+            "frontispiece": "Frontispiece",
+            "copyright": "Copyright",
+            "about_edition": "About this edition",
+            "introduction": "Introduction",
+            "epilogue": "Epilogue",
+        },
+        "es": {
+            "frontispiece": "Frontispicio",
+            "copyright": "Copyright",
+            "about_edition": "Sobre esta edición",
+            "introduction": "Introducción",
+            "epilogue": "Epílogo",
+        },
+        "ptbr": {
+            "frontispiece": "Frontispício",
+            "copyright": "Direitos autorais",
+            "about_edition": "Sobre esta edição",
+            "introduction": "Introdução",
+            "epilogue": "Epílogo",
+        },
+        "de": {
+            "frontispiece": "Frontispiz",
+            "copyright": "Copyright",
+            "about_edition": "Über diese Ausgabe",
+            "introduction": "Einleitung",
+            "epilogue": "Epilog",
+        },
+    }
+    return titles.get(language_code, titles["en"])
+
+
+def get_or_create_block(edition: EditorialEdition, block_type: str) -> EditionBlock:
+    block, _ = EditionBlock.objects.get_or_create(
+        edition=edition,
+        block_type=block_type,
+    )
+    return block
 
 
 def _auto_value_match(value: str, candidates: list[str]) -> bool:
@@ -295,7 +346,60 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "has_existing_text": has_existing_text,
         "overwrite_warning": warning,
     }
+    if edition:
+        block_titles = _block_titles_for_language(language)
+        block_items = []
+        for block_type in FRONTMATTER_BLOCK_TYPES:
+            block_items.append(
+                {
+                    "type": block_type,
+                    "title": block_titles.get(block_type, block_type),
+                    "block": get_or_create_block(edition, block_type),
+                }
+            )
+        context.update(
+            {
+                "block_items": block_items,
+            }
+        )
     return render(request, "editorial/frontmatter_form.html", context)
+
+
+@require_POST
+def save_block(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.text_md = request.POST.get("text_md", "")
+    block.save(update_fields=["text_md", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@require_POST
+def clear_block(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.text_md = ""
+    block.is_locked = False
+    block.save(update_fields=["text_md", "is_locked", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@require_POST
+def toggle_block_lock(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.is_locked = not block.is_locked
+    block.save(update_fields=["is_locked", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 def organizer_home(request):

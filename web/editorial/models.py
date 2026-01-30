@@ -224,6 +224,34 @@ class Edition(models.Model):
         return f"{self.work.title} [{self.language.code} · {self.seal.slug}]"
 
 
+class EditionBlock(models.Model):
+    BLOCK_TYPES = [
+        ("frontispiece", "Frontispício"),
+        ("copyright", "Copyright"),
+        ("about_edition", "About this Edition"),
+        ("introduction", "Introdução"),
+        ("epilogue", "Epílogo"),
+    ]
+
+    edition = models.ForeignKey(
+        Edition,
+        on_delete=models.CASCADE,
+        related_name="blocks",
+    )
+    block_type = models.CharField(max_length=32, choices=BLOCK_TYPES)
+    text_md = models.TextField(blank=True)
+    is_locked = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("edition", "block_type")
+
+    def __str__(self) -> str:
+        return f"{self.edition} :: {self.block_type}"
+
+
 class PipelineStage(models.TextChoices):
     RAW = "RAW", "Original (raw)"
     NORMALIZED = "NORMALIZED", "Normalizado"

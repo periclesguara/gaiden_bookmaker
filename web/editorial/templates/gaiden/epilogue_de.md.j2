@@ -1,7 +1,5 @@
-{% if edition.epilogue_text %}
-{{ edition.epilogue_text }}
-{% else %}
+{% if text %}
 ## Epilog
 
-Diese Ausgabe schließt mit den unveränderten Erzählungen und bleibt der Stimme des Originals treu.
+{{ text|trim }}
 {% endif %}
