@@ -26,6 +26,8 @@ COVER_JPG = ROOT / "data" / "builds" / "book01_the_adventures_of_sherlock_holmes
 
 OUT_EPUB = BUILD_DIR / "BOOK.epub"
 
+FMT = "epub"
+
 BOOK_TITLE = "Las Aventuras de Sherlock Holmes"
 BOOK_SUBTITLE = "Edición en Español Moderno"
 AUTHOR = "Arthur Conan Doyle"
@@ -36,6 +38,27 @@ COUNTRY = "Brasil"
 YEAR = "2026"
 LANG = "es"
 
+# Quebras reais (sem vazar marcador no texto)
+PAGEBREAK_HTML = "\n\n<div style=\"page-break-after: always;\"></div>\n\n"
+PAGEBREAK_TEX = "\n\n\\newpage\n\n"
+
+
+def pagebreak(fmt: str) -> str:
+    if (fmt or "").lower() in ("epub", "epub3", "html"):
+        return PAGEBREAK_HTML
+    return PAGEBREAK_TEX
+
+
+def sanitize_text(s: str, fmt: str = "epub") -> str:
+    if not s:
+        return ""
+    s = s.replace("\r\n", "\n").replace("\r", "\n")
+    # marcações proibidas viram quebra real
+    s = re.sub(r"(?m)^\s*::: pagebreak\s*$", pagebreak(fmt).strip(), s)
+    s = re.sub(r"(?m)^\s*__FM_ES__.*$", "", s)
+    s = re.sub(r"(?m)^\s*\[TEST\].*$", "", s)
+    s = re.sub(r"\n{3,}", "\n\n", s)
+    return s.strip() + "\n"
 # Lista oficial (12 contos) – serve como fallback e também como validação.
 STORIES_ES = [
     "UN ESCÁNDALO EN BOHEMIA",
@@ -62,11 +85,6 @@ def norm(s: str) -> str:
     return s
 
 
-def pagebreak_html() -> str:
-    # Pandoc respeita isso no EPUB (Kindle Previewer também costuma respeitar).
-    return '<div style="page-break-before: always;"></div>\n'
-
-
 def read_text(p: Path) -> str:
     if not p.exists():
         raise FileNotFoundError(f"Fonte não encontrada: {p}")
@@ -86,12 +104,8 @@ def load_frontmatter() -> dict[str, str]:
     }
     for k, f in mapping.items():
         if f.exists():
-            txt = f.read_text(encoding="utf-8", errors="replace").strip()
-            # sanitização: remove carimbo acidental no conteúdo
-            txt = re.sub(r"__FM_ES__\d{4}-\d{2}-\d{2}.*", "", txt).strip()
-            # remove “::: pagebreak” que vira texto
-            txt = re.sub(r"^:::\s*pagebreak\s*$", "", txt, flags=re.M).strip()
-            fm[k] = txt
+            txt = f.read_text(encoding="utf-8", errors="replace")
+            fm[k] = sanitize_text(txt, FMT).strip()
         else:
             fm[k] = ""
     return fm
@@ -124,13 +138,13 @@ def detect_numbered_headings(lines: list[str]) -> list[tuple[int, int, str, str]
       1 - ...
     """
     hits: list[tuple[int, int, str, str]] = []
-    rx = re.compile(r"^\s*(\d{1,2})\s*[\.\)\-]\s*(.+?)\s*$")
+    rx = re.compile(r"(?m)^(?P<n>[0-9]{1,2})\.\s+(?P<title>[A-ZÁÉÍÓÚÜÑ0-9 ,.'-]+)\s*$")
     for i, ln in enumerate(lines):
         m = rx.match(ln)
         if not m:
             continue
-        n = int(m.group(1))
-        raw_title = m.group(2).strip()
+        n = int(m.group("n"))
+        raw_title = m.group("title").strip()
         title, remainder = _split_title_remainder(raw_title)
         # heurística: títulos tendem a ser curtos e em maiúsculas
         if 1 <= n <= 12 and _is_title_like(title):
@@ -146,7 +160,7 @@ def detect_numbered_headings(lines: list[str]) -> list[tuple[int, int, str, str]
     return out
 
 
-def insert_story_headings(text: str) -> tuple[str, list[str]]:
+def insert_story_headings(text: str, fmt: str) -> tuple[str, list[str]]:
     """
     Tenta:
     A) detectar 1..12 via regex de numbering
@@ -176,7 +190,7 @@ def insert_story_headings(text: str) -> tuple[str, list[str]]:
             if i in mark:
                 n, title, remainder = mark[i]
                 if not first:
-                    out.append(pagebreak_html().rstrip("\n"))
+                    out.append(pagebreak(fmt).rstrip("\n"))
                 first = False
                 out.append(f"## {n}. {title.strip()}")
                 out.append("")  # linha em branco
@@ -222,7 +236,7 @@ def insert_story_headings(text: str) -> tuple[str, list[str]]:
         if matched and norm(matched) not in found_norm:
             # quebra antes de cada história (exceto se for a primeira encontrada)
             if found_norm:
-                out_lines.append(pagebreak_html().rstrip("\n"))
+                out_lines.append(pagebreak(fmt).rstrip("\n"))
             found_norm.add(norm(matched))
 
             # numeração: se veio do texto, usa; senão usa ordem oficial
@@ -268,7 +282,7 @@ div[style*="page-break-before"] { page-break-before: always; }
     )
 
 
-def write_build_md(miolo_md: str):
+def write_build_md(miolo_md: str, fmt: str):
     fm = load_frontmatter()
 
     # YAML metadata: isso ajuda MUITO o OPF (dc:title etc.)
@@ -285,12 +299,12 @@ rights: "Dominio público en los Estados Unidos y otros territorios."
     parts = [yaml]
 
     def add_section(txt: str):
-        txt = (txt or "").strip()
+        txt = sanitize_text(txt, fmt).strip()
         if not txt:
             return
         parts.append(txt)
         parts.append("")  # newline
-        parts.append(pagebreak_html().rstrip("\n"))
+        parts.append(pagebreak(fmt).rstrip("\n"))
         parts.append("")
 
     # Ordem recomendada (sem índice manual no frontmatter):
@@ -302,12 +316,12 @@ rights: "Dominio público en los Estados Unidos y otros territorios."
     add_section(fm.get("about_contributor", ""))
     add_section(fm.get("introduction", ""))
 
-    parts.append(miolo_md.strip())
+    parts.append(sanitize_text(miolo_md, fmt).strip())
     parts.append("")
     # opcional epílogo (quebra antes)
-    ep = (fm.get("epilogue", "") or "").strip()
+    ep = sanitize_text(fm.get("epilogue", ""), fmt).strip()
     if ep:
-        parts.append(pagebreak_html().rstrip("\n"))
+        parts.append(pagebreak(fmt).rstrip("\n"))
         parts.append("")
         parts.append(ep)
         parts.append("")
@@ -345,7 +359,7 @@ def main():
     raw = read_text(SRC_TXT)
 
     # 1) inserir headings e pagebreaks por história
-    miolo_md, story_titles = insert_story_headings(raw)
+    miolo_md, story_titles = insert_story_headings(raw, FMT)
     OUT_MIOL_MD.write_text(miolo_md, encoding="utf-8")
     print(f"[OK] Miolo MD: {OUT_MIOL_MD}")
     print(f"[OK] Histórias detectadas: {len(story_titles)} (esperado 12)")
@@ -355,7 +369,7 @@ def main():
     print(f"[OK] CSS: {CSS_FILE}")
 
     # 3) build concatenado (frontmatter + miolo)
-    write_build_md(miolo_md)
+    write_build_md(miolo_md, FMT)
     print(f"[OK] Build MD: {OUT_BUILD_MD}")
 
     # 4) pandoc -> epub
