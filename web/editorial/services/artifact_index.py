@@ -74,6 +74,8 @@ def _scan_builds(work_code: str, lang: str) -> None:
             ],
         ),
     ]
+    if lang == "de":
+        patterns = [item for item in patterns if item[0] != "polish"]
     for stage, names in patterns:
         for name in names:
             path = bdir / name

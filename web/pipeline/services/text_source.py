@@ -51,7 +51,7 @@ def _unpack_value(raw_value: str, fallback_language: str) -> tuple[str, str]:
 def _discover_merge_candidates(build_dir: Path, language: str) -> list[TextSourceCandidate]:
     candidates: list[TextSourceCandidate] = []
     names: set[str] = set()
-    for name in paths.MERGE_PRIORITY:
+    for name in paths.merge_priority_names_for_language(language, build_dir):
         if (build_dir / name).exists():
             names.add(name)
             candidates.append(
@@ -135,7 +135,8 @@ def get_effective_text_source(edition) -> TextSourceInfo:
     build_dir = paths.edition_build_dir(edition)
     language_code = edition_meta.language_code(edition)
     candidates = _discover_merge_candidates(build_dir, language_code)
-    candidates.extend(_latest_job_candidates(edition, ("translate", "refine", "polish")))
+    policy = stage_policy.POLICY
+    candidates.extend(_latest_job_candidates(edition, policy.stages_for(edition)))
     candidates = _dedupe_candidates(candidates)
 
     mode = getattr(edition, "text_source_mode", "auto") or "auto"
@@ -239,7 +240,7 @@ def resolve_txt_source(edition) -> SelectedTextSource:
             label=f"{locked_path.name} ({normalized_lang})",
         )
 
-    for stage in policy.stages:
+    for stage in policy.stages_for(edition):
         stage_path = pick(stage_candidates(stage))
         if stage_path:
             return SelectedTextSource(

@@ -493,13 +493,10 @@ def edition_steps(request, edition_id: int):
         build_dir = paths.edition_build_dir_for_language(book_code, lang)
         if not build_dir.exists():
             return ""
-        marker = build_dir / paths.FORCE_MERGE_TRANSLATE_MARKER
-        if lang == "es":
-            order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
-        elif marker.exists():
-            order = ["merge_translate", "merge_refine", "merge_polish"]
-        else:
-            order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
+        order = [
+            p.replace(".txt", "")
+            for p in paths.merge_priority_names_for_language(lang, build_dir)
+        ]
         candidates: list[Path] = []
         for base in order:
             candidates.append(build_dir / f"{base}_{lang}.txt")
@@ -752,6 +749,24 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.last_log = ""
             pipeline_state.save()
             messages.success(request, "Translate OK")
+
+        elif step == "refine":
+            stage_policy.POLICY.assert_stage_allowed(edition, "refine")
+            lang_code = utils.normalize_lang(edition.language.code)
+            if lang_code != "de":
+                raise ValueError("Refine disponivel apenas para DE (KAISER->BISMARCK).")
+
+            from .services import refine_de as refine_de_service
+
+            result = refine_de_service.run_refine_de_kaiser_bismarck(edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.REFINED
+            pipeline_state.refined_at = timezone.now()
+            pipeline_state.last_log = (
+                f"KAISER->BISMARCK chunks={result.chunks} input={result.input_path}"
+            )
+            pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log"])
+            messages.success(request, f"Refine DE OK: {result.output_path}")
 
         elif step == "polish":
             from gaiden.polish_en_2025 import run_polish_en_2025

@@ -37,7 +37,7 @@ def _selected_txt_sources(edition):
 
     sources = text_source.resolve_selected_text_sources(edition)
     if not sources:
-        raise FileNotFoundError("No merge_* file found. Run translate/refine/polish first.")
+        raise FileNotFoundError("No merge_* file found. Run translate/refine (polish if enabled) first.")
     return sources
 
 
@@ -50,11 +50,10 @@ def _selected_txt_sources_for_language(edition, language: str):
     else:
         book_code = getattr(edition, "book_code", "")
     build_dir = paths.edition_build_dir_for_language(book_code, language)
-    marker = build_dir / paths.FORCE_MERGE_TRANSLATE_MARKER
-    if marker.exists():
-        order = ["merge_translate", "merge_refine", "merge_polish"]
-    else:
-        order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
+    order = [
+        p.replace(".txt", "")
+        for p in paths.merge_priority_names_for_language(language, build_dir)
+    ]
     candidates: list[Path] = []
     for base in order:
         candidates.append(build_dir / f"{base}_{language}.txt")

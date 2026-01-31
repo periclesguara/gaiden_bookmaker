@@ -31,17 +31,24 @@ LEGACY_MERGE_NAMES = [
     "MERGE_TRANSLATE.TXT",
 ]
 
+def merge_priority_names_for_language(language: str, build_dir: Path | None = None) -> list[str]:
+    if language == "es":
+        return list(MERGE_PRIORITY)
+    if language == "de":
+        if build_dir and (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
+            return ["merge_translate.txt", "merge_refine.txt"]
+        return ["merge_refine.txt", "merge_translate.txt"]
+    if build_dir and (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
+        return ["merge_translate.txt", "merge_refine.txt", "merge_polish.txt"]
+    return list(MERGE_PRIORITY)
+
 
 def merge_priority_names(edition) -> list[str]:
     build_dir = edition_build_dir(edition)
     edition_lang = getattr(getattr(edition, "language", None), "code", "") or getattr(
         edition, "language_code", ""
     )
-    if edition_lang == "es":
-        return list(MERGE_PRIORITY)
-    if (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
-        return ["merge_translate.txt", "merge_refine.txt", "merge_polish.txt"]
-    return list(MERGE_PRIORITY)
+    return merge_priority_names_for_language(edition_lang, build_dir)
 
 
 def merge_paths(edition) -> list[Path]:
