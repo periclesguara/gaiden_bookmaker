@@ -152,6 +152,7 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
         "frontispiece",
         "copyright",
         "about_edition",
+        "about_contributor",
         "introduction",
         "epilogue",
     ]
