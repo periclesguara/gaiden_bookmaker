@@ -83,6 +83,7 @@ __pycache__/
 dist/
 build/
 *.log
+docs/gaiden_pipeline_log.*
 
 # latex
 *.aux
