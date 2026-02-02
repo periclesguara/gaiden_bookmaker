@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Dict
+import json
+import re
 
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 
 from editorial.models import Edition, EditionBlock
 from gaiden_portal.utils import country_for_language
+from pipeline.services import paths as ppaths
 
 
 def language_display(code: str) -> str:
@@ -112,6 +115,8 @@ def render_frontmatter_module(
 def render_frontmatter(edition: Edition) -> Dict[str, str]:
     fm: Dict[str, str] = {}
     language_code = _edition_language_code(edition, "en")
+    illustrated = _is_illustrated_edition(edition)
+    illustrated_notice = _illustrated_notice(language_code) if illustrated else ""
     blocks = {
         block.block_type: block
         for block in EditionBlock.objects.filter(edition=edition)
@@ -129,6 +134,9 @@ def render_frontmatter(edition: Edition) -> Dict[str, str]:
         text = (block.text_md or "").strip()
         if not text:
             continue
+        if illustrated and name in ("frontispiece", "about_edition"):
+            text = _normalize_illustrated_phrase(text, illustrated_notice, language_code)
+            text = _append_illustrated_notice(text, illustrated_notice)
         rendered = render_frontmatter_module(
             edition,
             name,
@@ -138,6 +146,61 @@ def render_frontmatter(edition: Edition) -> Dict[str, str]:
         if rendered:
             fm[name] = rendered.strip()
     return fm
+
+
+def _illustrated_notice(lang_code: str) -> str:
+    normalized = _normalize_lang_code(lang_code)
+    mapping = {
+        "en": "Illustrated edition.",
+        "de": "Illustrierte Ausgabe · Modernes Deutsch",
+        "es": "Edición ilustrada.",
+        "pt_br": "Edição ilustrada.",
+    }
+    return mapping.get(normalized, "Illustrated edition.")
+
+
+def _append_illustrated_notice(text: str, notice: str) -> str:
+    if not notice:
+        return text
+    if notice.lower() in text.lower():
+        return text
+    return f"{text.rstrip()}\n\n{notice}"
+
+
+def _normalize_illustrated_phrase(text: str, notice: str, lang_code: str) -> str:
+    normalized = _normalize_lang_code(lang_code)
+    if normalized != "de":
+        return text
+    if not notice:
+        return text
+    pattern = re.compile(
+        r"Illustrierte Ausgabe(?:\s*[\(\[·\-–—]\s*Modernes Deutsch\s*[\)\]]?)?",
+        flags=re.IGNORECASE,
+    )
+    return pattern.sub(notice, text)
+
+
+def _is_illustrated_edition(edition: Edition) -> bool:
+    book_code = getattr(getattr(edition, "work", None), "code", "")
+    language_code = _edition_language_code(edition, "en")
+    build_dir = ppaths.edition_build_dir_for_language(book_code, language_code)
+    inserts_path = build_dir / "inserts.json"
+    if inserts_path.exists():
+        try:
+            payload = json.loads(inserts_path.read_text(encoding="utf-8"))
+            image_dir = payload.get("image_dir")
+            if image_dir:
+                return True
+        except json.JSONDecodeError:
+            return True
+        return True
+
+    images_dir = ppaths.data_dir() / "images" / book_code / language_code
+    if images_dir.is_dir():
+        for path in images_dir.rglob("*"):
+            if path.is_file():
+                return True
+    return False
 
 
 def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:

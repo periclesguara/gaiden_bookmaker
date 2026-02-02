@@ -50,3 +50,11 @@ def sync_legacy_merges_from_translated(edition) -> None:
                     if not target.exists():
                         target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
                     break
+
+    canonical = build_dir / "merge_refine.txt"
+    if not canonical.exists():
+        fallback = build_dir / "merge_polish.txt"
+        if not fallback.exists():
+            fallback = build_dir / "merge_translate.txt"
+        if fallback.exists():
+            canonical.write_text(fallback.read_text(encoding="utf-8"), encoding="utf-8")

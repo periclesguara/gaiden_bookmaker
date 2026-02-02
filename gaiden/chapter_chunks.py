@@ -7,6 +7,8 @@ from typing import Any
 
 from gaiden import chunker
 
+MAX_BLOCKS_PER_CHAPTER = 4
+
 ROMAN_MAP = {
     "I": 1, "II": 2, "III": 3, "IV": 4,
     "V": 5, "VI": 6, "VII": 7, "VIII": 8,
@@ -159,6 +161,75 @@ def _extract_chapters_from_numbers(text: str) -> list[dict[str, Any]]:
     return chapters
 
 
+def _split_chapter_blocks(
+    chapter_text: str,
+    language: str,
+    min_tokens: int,
+    target_tokens: int,
+    max_tokens: int,
+    max_blocks: int = MAX_BLOCKS_PER_CHAPTER,
+) -> list[str]:
+    lines = chapter_text.splitlines()
+    para_spans = chunker.split_into_paragraphs(lines)
+    paragraphs: list[str] = []
+    para_tokens: list[int] = []
+
+    for start, end in para_spans:
+        para = "\n".join(lines[start:end + 1]).strip()
+        if not para:
+            continue
+        para_text = para + "\n"
+        paragraphs.append(para_text)
+        para_tokens.append(chunker.estimate_tokens(para_text, language))
+
+    if not paragraphs:
+        cleaned = chapter_text.strip()
+        if not cleaned:
+            return []
+        return [cleaned + "\n"]
+
+    total_tokens = sum(para_tokens)
+    if total_tokens <= max_tokens:
+        block_count = 1
+    else:
+        block_count = int((total_tokens + target_tokens - 1) / target_tokens)
+        if block_count < 2:
+            block_count = 2
+        if block_count > max_blocks:
+            block_count = max_blocks
+        if block_count > len(paragraphs):
+            block_count = len(paragraphs)
+
+    target_per_block = max(min_tokens, int((total_tokens + block_count - 1) / block_count))
+
+    blocks: list[str] = []
+    buffer: list[str] = []
+    buffer_tokens = 0
+    remaining_paras = len(paragraphs)
+    remaining_blocks = block_count
+
+    for para_text, tok in zip(paragraphs, para_tokens):
+        remaining_paras -= 1
+        buffer.append(para_text)
+        buffer_tokens += tok
+
+        should_flush = (
+            buffer_tokens >= target_per_block
+            and remaining_blocks > 1
+            and remaining_paras >= (remaining_blocks - 1)
+        )
+        if should_flush:
+            blocks.append("".join(buffer).rstrip() + "\n")
+            buffer = []
+            buffer_tokens = 0
+            remaining_blocks -= 1
+
+    if buffer:
+        blocks.append("".join(buffer).rstrip() + "\n")
+
+    return blocks
+
+
 def build_chapter_chunks(
     raw_text: str,
     output_dir: Path,
@@ -178,10 +249,10 @@ def build_chapter_chunks(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest: dict[str, Any] = {"chapters": []}
-    for chapter in chapters:
-        chapter_num = chapter.get("number", 0)
+    for idx, chapter in enumerate(chapters, start=1):
+        chapter_num = chapter.get("number", 0) or idx
         chapter_text = chapter["text"]
-        chunks = chunker.make_chunks_from_text(
+        chunks = _split_chapter_blocks(
             chapter_text,
             language,
             min_tokens,
@@ -190,15 +261,15 @@ def build_chapter_chunks(
         )
 
         entries: list[dict[str, Any]] = []
-        for idx, c in enumerate(chunks, start=1):
-            filename = f"chunk{idx:02d}_cap_{chapter_num:02d}.txt"
+        for idx, chunk_text in enumerate(chunks, start=1):
+            filename = f"cap_{chapter_num:02d}_chunk{idx:02d}.txt"
             out_path = output_dir / filename
-            out_path.write_text(c.text, encoding="utf-8")
+            out_path.write_text(chunk_text, encoding="utf-8")
             entries.append(
                 {
                     "filename": filename,
-                    "est_tokens": c.est_tokens,
-                    "char_count": c.char_count,
+                    "est_tokens": chunker.estimate_tokens(chunk_text, language),
+                    "char_count": len(chunk_text),
                 }
             )
 

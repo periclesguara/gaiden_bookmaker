@@ -37,7 +37,9 @@ def _selected_txt_sources(edition):
 
     sources = text_source.resolve_selected_text_sources(edition)
     if not sources:
-        raise FileNotFoundError("No merge_* file found. Run translate/refine (polish if enabled) first.")
+        raise FileNotFoundError(
+            "No merge_* file found. Run Translate (NEW) or legacy refine/polish first."
+        )
     return sources
 
 
@@ -241,7 +243,11 @@ def _clean_md_double_suffix(path: Path) -> Path:
     return Path(cleaned)
 
 
-def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, str]:
+def run_txt_to_md(
+    edition,
+    language_override: str | None = None,
+    version_override: str | None = None,
+) -> Dict[str, str]:
     if language_override:
         sources = _selected_txt_sources_for_language(edition, language_override)
         build_dir = paths.edition_build_dir_for_language(
@@ -265,12 +271,15 @@ def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, st
             subtitle=subtitle,
             language=source.language,
         )
-        if len(sources) == 1:
-            out_pre_edition = build_dir / "BOOK.PRE_EDITION.md"
-            out_pre_qa = build_dir / "BOOK.PRE_QA.md"
-        else:
-            out_pre_edition = build_dir / f"BOOK.PRE_EDITION.{source.language}.md"
-            out_pre_qa = build_dir / f"BOOK.PRE_QA.{source.language}.md"
+        version = paths.md_version(
+            edition,
+            language=source.language,
+            override=version_override,
+            build_dir=build_dir,
+        )
+        base = paths.book_md_basename(source.language, version)
+        out_pre_edition = build_dir / f"{base}.pre_edition.md"
+        out_pre_qa = build_dir / f"{base}.pre_qa.md"
         out_pre_edition = _clean_md_double_suffix(out_pre_edition)
         out_pre_qa = _clean_md_double_suffix(out_pre_qa)
         pre_edition_txt_to_md(source.path, out_pre_edition, cfg)
@@ -363,7 +372,6 @@ def insert_image_placeholders(md_path: Path) -> None:
     i = 0
     while i < len(lines):
         line = lines[i]
-        out_lines.append(line)
         is_chapter = False
         if line.startswith("## "):
             is_chapter = True
@@ -373,13 +381,26 @@ def insert_image_placeholders(md_path: Path) -> None:
         if is_chapter:
             chapter_idx += 1
             idx_str = f"{chapter_idx:02d}"
+            k = i - 1
+            while k >= 0 and not lines[k].strip():
+                k -= 1
+            if k >= 0 and IMAGE_PLACEHOLDER_RE.search(lines[k]):
+                out_lines.append(line)
+                i += 1
+                continue
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
             if j < len(lines) and IMAGE_PLACEHOLDER_RE.search(lines[j]):
+                out_lines.append(line)
                 i += 1
                 continue
             out_lines.append(f"{{{{IMAGE:CH{idx_str}:01}}}}")
+            out_lines.append("")
+            out_lines.append(line)
+            i += 1
+            continue
+        out_lines.append(line)
         i += 1
 
     new_text = "\n".join(out_lines)

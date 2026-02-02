@@ -45,7 +45,7 @@ class Command(BaseCommand):
         if md_path_opt:
             md_path = Path(md_path_opt)
         else:
-            md_path = paths.edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
+            md_path = paths.pre_edition_md_path(edition, language=language)
 
         cfg = PreEditionConfig(
             title=options.get("title") or edition.work.title,

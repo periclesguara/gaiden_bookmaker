@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from . import paths
+from . import edition_meta, paths
 
 
 @dataclass
@@ -83,10 +84,42 @@ def _remove_foreign_publisher(text: str) -> Tuple[str, List[QAIssue]]:
     return text, issues
 
 
-def run_quality_analysis(edition) -> Dict[str, object]:
-    pre_path = paths.pre_qa_md_path(edition)
+def _legacy_pre_qa_candidates(edition, build_dir: Path, language: str) -> list[Path]:
+    return [
+        build_dir / f"BOOK.PRE_QA.{language}.md",
+        build_dir / "BOOK.PRE_QA.md",
+    ]
+
+
+def _legacy_qa_candidates(edition, build_dir: Path, language: str) -> list[Path]:
+    return [
+        build_dir / f"BOOK.QA.{language}.md",
+        build_dir / "BOOK.QA.md",
+    ]
+
+
+def _legacy_pre_edition_candidates(edition, build_dir: Path, language: str) -> list[Path]:
+    return [
+        build_dir / f"BOOK.PRE_EDITION.{language}.md",
+        build_dir / "BOOK.PRE_EDITION.md",
+    ]
+
+
+def run_quality_analysis(
+    edition,
+    language_override: str | None = None,
+    version_override: str | None = None,
+) -> Dict[str, object]:
+    lang = language_override or edition_meta.language_code(edition)
+    build_dir = paths.edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    pre_path = paths.pre_qa_md_path(edition, language=lang, version=version_override)
     if not pre_path.exists():
-        raise FileNotFoundError(f"PRE_QA file not found: {pre_path}")
+        pre_path = next(
+            (p for p in _legacy_pre_qa_candidates(edition, build_dir, lang) if p.exists()),
+            None,
+        )
+    if not pre_path:
+        raise FileNotFoundError("PRE_QA file not found.")
 
     md_text = pre_path.read_text(encoding="utf-8")
     lines = md_text.splitlines()
@@ -96,7 +129,7 @@ def run_quality_analysis(edition) -> Dict[str, object]:
 
     issues = toc_issues + pub_issues
 
-    qa_path = paths.qa_md_path(edition)
+    qa_path = paths.qa_md_path(edition, language=lang, version=version_override)
     qa_path.parent.mkdir(parents=True, exist_ok=True)
     qa_path.write_text(text, encoding="utf-8")
 
@@ -114,10 +147,16 @@ def run_quality_analysis(edition) -> Dict[str, object]:
     }
 
 
-def approve_md_final(edition) -> Dict[str, str]:
-    qa_path = paths.qa_md_path(edition)
-    pre_path = paths.pre_qa_md_path(edition)
-    pre_edition_path = paths.pre_edition_md_path(edition)
+def approve_md_final(
+    edition,
+    language_override: str | None = None,
+    version_override: str | None = None,
+) -> Dict[str, str]:
+    lang = language_override or edition_meta.language_code(edition)
+    build_dir = paths.edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    qa_path = paths.qa_md_path(edition, language=lang, version=version_override)
+    pre_path = paths.pre_qa_md_path(edition, language=lang, version=version_override)
+    pre_edition_path = paths.pre_edition_md_path(edition, language=lang, version=version_override)
     if qa_path.exists():
         source_path = qa_path
     elif pre_edition_path.exists():
@@ -125,9 +164,16 @@ def approve_md_final(edition) -> Dict[str, str]:
     elif pre_path.exists():
         source_path = pre_path
     else:
-        raise FileNotFoundError("No QA, PRE_EDITION, or PRE_QA file found to approve.")
+        legacy_candidates = (
+            _legacy_qa_candidates(edition, build_dir, lang)
+            + _legacy_pre_edition_candidates(edition, build_dir, lang)
+            + _legacy_pre_qa_candidates(edition, build_dir, lang)
+        )
+        source_path = next((p for p in legacy_candidates if p.exists()), None)
+        if not source_path:
+            raise FileNotFoundError("No QA, PRE_EDITION, or PRE_QA file found to approve.")
 
-    final_path = paths.final_md_path(edition)
+    final_path = paths.final_md_path(edition, language=lang, version=version_override)
     final_path.parent.mkdir(parents=True, exist_ok=True)
     final_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
 

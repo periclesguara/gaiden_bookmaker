@@ -470,6 +470,7 @@ def editorial_frontmatter_actions(request, edition_id: int):
         messages.error(request, f"Edicao nao encontrada: {edition.work.code} [{target_lang}]")
         return redirect("edition_steps", edition_id=edition.id)
 
+    md_version = request.POST.get("md_version") or None
     if action == "rebuild_frontmatter":
         kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
         messages.success(
@@ -478,8 +479,8 @@ def editorial_frontmatter_actions(request, edition_id: int):
         )
     elif action == "build_frontmatter_and_merged":
         kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
-        merged_path = kdp_mode.build_merged_kdp_source(target_edition)
-        messages.success(request, f"Frontmatter + BOOK.BUILD.MD regenerados: {merged_path}")
+        merged_path = kdp_mode.build_merged_kdp_source(target_edition, version_override=md_version)
+        messages.success(request, f"Frontmatter + build.md regenerados: {merged_path}")
     else:
         messages.warning(request, f"Acao desconhecida: {action}")
 

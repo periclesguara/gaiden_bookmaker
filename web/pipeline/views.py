@@ -1,5 +1,6 @@
 import json
 import os
+import zipfile
 from pathlib import Path
 import shutil
 from datetime import datetime
@@ -29,6 +30,7 @@ from .services import (
     build_book,
     chapter_chunks,
     editorial_split,
+    agent_pipeline,
     export_book,
     legacy_merges,
     md_quality,
@@ -233,6 +235,9 @@ def _count_split_chunks(book_code: str) -> int | None:
     if book_id is None:
         return None
     data_dir = Path(settings.BASE_DIR).parent / "data"
+    chapter_dir = data_dir / "chunks" / f"book_{book_id:04d}" / "split_01_by_chapter"
+    if chapter_dir.is_dir():
+        return len(list(chapter_dir.glob("*.txt")))
     chunks_dir = data_dir / "chunks" / f"book_{book_id:04d}" / "split_01"
     if not chunks_dir.is_dir():
         return None
@@ -304,6 +309,177 @@ def edition_steps(request, edition_id: int):
             edition.save(update_fields=["cover_filepath"])
             messages.success(request, f"Capa salva: {edition.cover_filepath}")
             return redirect("edition_steps", edition_id=edition.id)
+        if action == "upload_images_zip":
+            images_zip = request.FILES.get("images_zip")
+            if not images_zip:
+                messages.error(request, "Selecione um ZIP de imagens.")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            lang_code = utils.normalize_lang(edition.language.code)
+            images_base = (
+                Path(settings.BASE_DIR).parent
+                / "data"
+                / "images"
+                / book_code
+                / lang_code
+            )
+
+            allowed_exts = {".png", ".webp", ".tif", ".tiff", ".bmp", ".jpg", ".jpeg"}
+            chapter_re = re.compile(r"^\d{2}$")
+            extracted: list[tuple[zipfile.ZipInfo, Path]] = []
+            invalid: list[str] = []
+            seen: set[str] = set()
+
+            try:
+                with zipfile.ZipFile(images_zip) as zf:
+                    for info in zf.infolist():
+                        if info.is_dir():
+                            continue
+                        name = info.filename
+                        if "__MACOSX" in name or name.endswith(".DS_Store") or name.startswith("."):
+                            continue
+                        if name.startswith("/") or ".." in Path(name).parts:
+                            invalid.append(name)
+                            continue
+                        parts = [p for p in Path(name).parts if p not in ("", ".")]
+                        filename = parts[-1]
+                        folder = ""
+                        idx = next((i for i, p in enumerate(parts) if chapter_re.match(p)), None)
+                        if idx is not None and idx == len(parts) - 2:
+                            folder = parts[idx]
+                        elif len(parts) == 1:
+                            stem = Path(filename).stem
+                            match = re.match(r"^(\d{2})", stem)
+                            if match:
+                                folder = match.group(1)
+                        if not folder or not chapter_re.match(folder):
+                            invalid.append(name)
+                            continue
+                        ext = Path(filename).suffix.lower()
+                        if ext not in allowed_exts:
+                            invalid.append(name)
+                            continue
+                        dest_rel = Path(folder) / filename
+                        if dest_rel.as_posix() in seen:
+                            invalid.append(name)
+                            continue
+                        seen.add(dest_rel.as_posix())
+                        extracted.append((info, dest_rel))
+            except zipfile.BadZipFile:
+                messages.error(request, "ZIP invalido.")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            if invalid:
+                preview = ", ".join(invalid[:5])
+                messages.error(
+                    request,
+                    f"ZIP contem arquivos invalidos (ex: {preview}). Use pastas 00..NN ou nomes 00..NN.*.",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+
+            if not extracted:
+                messages.error(request, "ZIP nao contem imagens validas.")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            if images_base.exists():
+                shutil.rmtree(images_base)
+            images_base.mkdir(parents=True, exist_ok=True)
+
+            images_zip.seek(0)
+            with zipfile.ZipFile(images_zip) as zf:
+                for info, dest_rel in extracted:
+                    dest_path = images_base / dest_rel
+                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(info) as src, dest_path.open("wb") as dst:
+                        shutil.copyfileobj(src, dst)
+
+            inserts_path = paths.edition_build_dir(edition) / "inserts.json"
+            inserts_data = {}
+            if inserts_path.exists():
+                try:
+                    inserts_data = json.loads(inserts_path.read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    inserts_data = {}
+            inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
+            inserts_path.parent.mkdir(parents=True, exist_ok=True)
+            inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
+
+            messages.success(
+                request,
+                f"Imagens extraidas em {inserts_data['image_dir']} e inserts.json atualizado.",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+        if action == "upload_images_individual":
+            files = request.FILES.getlist("images_files")
+            folder_input = (request.POST.get("images_folder") or "").strip()
+            if not files:
+                messages.error(request, "Selecione uma ou mais imagens.")
+                return redirect("edition_steps", edition_id=edition.id)
+            if folder_input and not re.match(r"^\d{2}$", folder_input):
+                messages.error(request, "Pasta invalida. Use 00..NN ou deixe vazio.")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            lang_code = utils.normalize_lang(edition.language.code)
+            images_base = (
+                Path(settings.BASE_DIR).parent
+                / "data"
+                / "images"
+                / book_code
+                / lang_code
+            )
+            allowed_exts = {".png", ".webp", ".tif", ".tiff", ".bmp", ".jpg", ".jpeg"}
+            saved = 0
+            saved_folders: set[str] = set()
+            for upload in files:
+                name = Path(upload.name).name
+                ext = Path(name).suffix.lower()
+                if ext not in allowed_exts:
+                    messages.error(request, f"Formato invalido: {name}")
+                    return redirect("edition_steps", edition_id=edition.id)
+                folder = folder_input
+                if not folder:
+                    stem = Path(name).stem
+                    match = re.match(r"^(\d{2})", stem)
+                    if match:
+                        folder = match.group(1)
+                if not folder or not re.match(r"^\d{2}$", folder):
+                    messages.error(
+                        request,
+                        f"Nome invalido: {name}. Use prefixo 00..NN no arquivo ou selecione a pasta.",
+                    )
+                    return redirect("edition_steps", edition_id=edition.id)
+                target_dir = images_base / folder
+                target_dir.mkdir(parents=True, exist_ok=True)
+                dest_path = target_dir / name
+                if dest_path.exists():
+                    messages.error(request, f"Arquivo ja existe: {dest_path.name}")
+                    return redirect("edition_steps", edition_id=edition.id)
+                with dest_path.open("wb+") as dest:
+                    for chunk in upload.chunks():
+                        dest.write(chunk)
+                saved += 1
+                saved_folders.add(folder)
+
+            inserts_path = paths.edition_build_dir(edition) / "inserts.json"
+            inserts_data = {}
+            if inserts_path.exists():
+                try:
+                    inserts_data = json.loads(inserts_path.read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    inserts_data = {}
+            inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
+            inserts_path.parent.mkdir(parents=True, exist_ok=True)
+            inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
+
+            if len(saved_folders) == 1:
+                folder_suffix = f"/{next(iter(saved_folders))}"
+            else:
+                folder_suffix = ""
+            messages.success(
+                request,
+                f"{saved} imagem(ns) salvas em {inserts_data['image_dir']}{folder_suffix}.",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
         if action == "save_core_txt":
             core_text = _core_text()
             if not core_text.strip():
@@ -351,7 +527,9 @@ def edition_steps(request, edition_id: int):
             )
         if action == "insert_headlines":
             build_dir = paths.edition_build_dir(edition)
-            md_targets = sorted(build_dir.glob("BOOK.PRE_QA*.md"))
+            md_targets = sorted(build_dir.glob("book.*.pre_qa.md"))
+            if not md_targets:
+                md_targets = sorted(build_dir.glob("BOOK.PRE_QA*.md"))
             md_targets = [path for path in md_targets if path.is_file()]
             if not md_targets:
                 messages.error(
@@ -362,11 +540,22 @@ def edition_steps(request, edition_id: int):
             for md_path in md_targets:
                 out_path = md_path
                 lang = language.lower()
-                if md_path.name.startswith("BOOK.PRE_QA."):
+                match = re.match(r"^book\.([a-z0-9]+)\.(v\d+)\.pre_qa\.md$", md_path.name, re.IGNORECASE)
+                if match:
+                    lang = match.group(1).lower()
+                    out_path = md_path.with_name(md_path.name.replace(".pre_qa.md", ".pre_edition.md"))
+                elif md_path.name.startswith("BOOK.PRE_QA."):
                     lang = md_path.name.split(".", 2)[-1].lower()
                     out_path = md_path.with_name(f"BOOK.PRE_EDITION.{lang}.md")
                 else:
-                    out_path = paths.pre_edition_md_path(edition)
+                    out_path = paths.pre_edition_md_path(
+                        edition,
+                        version=paths.md_version(
+                            edition,
+                            language=language,
+                            build_dir=build_dir,
+                        ),
+                    )
                 out_path.write_text(md_path.read_text(encoding="utf-8"), encoding="utf-8")
                 md_transform.insert_page_headlines(out_path, lang=lang)
             messages.success(
@@ -376,7 +565,9 @@ def edition_steps(request, edition_id: int):
             return redirect("edition_steps", edition_id=edition.id)
         if action == "insert_images":
             build_dir = paths.edition_build_dir(edition)
-            md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
+            md_targets = sorted(build_dir.glob("book.*.pre_edition.md"))
+            if not md_targets:
+                md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
             md_targets = [path for path in md_targets if path.is_file()]
             if not md_targets:
                 messages.error(
@@ -414,14 +605,6 @@ def edition_steps(request, edition_id: int):
 
     chunk_count = _count_split_chunks(book_code)
 
-    pre_edition_path = paths.pre_edition_md_path(edition)
-    pre_qa_path = paths.pre_qa_md_path(edition)
-    qa_path = paths.qa_md_path(edition)
-    final_md_path = paths.final_md_path(edition)
-    build_md_path = paths.build_md_path(edition)
-    epub_path = paths.epub_path(edition)
-    pdf_path = paths.pdf_path(edition)
-    qa_log_path = paths.qa_log_path(edition)
     miolo_paths = []
     miolo_path = paths.miolo_md_path(edition)
     if miolo_path.exists():
@@ -432,20 +615,6 @@ def edition_steps(request, edition_id: int):
                 "label": miolo_path.name,
             }
         )
-
-    if final_md_path.exists():
-        md_status = "QA_DONE"
-    elif pre_qa_path.exists():
-        md_status = "PRE_QA"
-    else:
-        md_status = "NONE"
-
-    issues = []
-    if qa_log_path.exists():
-        try:
-            issues = json.loads(qa_log_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            issues = []
 
     frontmatter_langs = [choice[0] for choice in BookEditionTemplate.LANG_CHOICES]
     frontmatter_lang_param = utils.normalize_lang(request.GET.get("frontmatter_lang") or "")
@@ -519,6 +688,39 @@ def edition_steps(request, edition_id: int):
     }
     md_source_map_json = json.dumps(md_source_map)
 
+    md_version_default = paths.md_version(
+        edition,
+        language=md_language_default,
+        build_dir=paths.edition_build_dir_for_language(book_code, md_language_default),
+    )
+    pre_edition_path = paths.pre_edition_md_path(edition, version=md_version_default)
+    pre_qa_path = paths.pre_qa_md_path(edition, version=md_version_default)
+    qa_path = paths.qa_md_path(edition, version=md_version_default)
+    final_md_path = paths.final_md_path(edition, version=md_version_default)
+    build_md_path = paths.build_md_path(edition, version=md_version_default)
+    epub_path = paths.epub_path(edition)
+    pdf_path = paths.pdf_path(edition)
+    qa_log_path = paths.qa_log_path(edition)
+
+    legacy_final = paths.edition_build_dir(edition) / "BOOK.MD_FINAL"
+    legacy_pre_qa = paths.edition_build_dir(edition) / "BOOK.PRE_QA.md"
+    if final_md_path.exists() or legacy_final.exists():
+        md_status = "QA_DONE"
+    elif pre_qa_path.exists() or legacy_pre_qa.exists():
+        md_status = "PRE_QA"
+    else:
+        md_status = "NONE"
+
+    issues = []
+    if qa_log_path.exists():
+        try:
+            issues = json.loads(qa_log_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            issues = []
+
+    images_dir = f"data/images/{book_code}/{utils.normalize_lang(language)}"
+    inserts_json_path = str(paths.edition_build_dir(edition) / "inserts.json")
+
     context = {
         "edition": edition,
         "status": {
@@ -536,7 +738,7 @@ def edition_steps(request, edition_id: int):
         "chunk_count": chunk_count,
         "sync_log": sync_log,
         "md_status": md_status,
-        "md_final_path": str(final_md_path) if final_md_path.exists() else None,
+        "md_final_path": str(final_md_path) if final_md_path.exists() else (str(legacy_final) if legacy_final.exists() else None),
         "miolo_paths": miolo_paths,
         "miolo_filename": paths.miolo_md_filename(),
         "qa_issues": issues,
@@ -551,9 +753,12 @@ def edition_steps(request, edition_id: int):
         "frontmatter_template": frontmatter_template,
         "frontmatter_locked": frontmatter_locked,
         "md_language_default": md_language_default,
+        "md_version_default": md_version_default,
         "md_source_map": md_source_map_json,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "cover_filepath": edition.cover_filepath,
+        "illustrated_images_dir": images_dir,
+        "illustrated_inserts_path": inserts_json_path,
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -667,8 +872,9 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Chunks OK: {count}")
 
         elif step == "split_by_chapter":
-            result = chapter_chunks.run_split_by_chapter(edition)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            core_edition = _global_core_edition(edition)
+            result = chapter_chunks.run_split_by_chapter(core_edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.SPLIT
             pipeline_state.split_at = timezone.now()
             pipeline_state.last_log = ""
@@ -676,79 +882,39 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Split by chapter OK: {result['path']}")
 
         elif step == "translate":
-            from gaiden.translate import run_translate_with_contract
-
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
             target_edition = _edition_for_language(edition, target_language)
             stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            if target_language == "de":
-                core_edition = _global_core_edition(edition)
-                core_state = EditionPipeline.objects.filter(edition=core_edition).first()
-                core_path_value = (core_state.core_last_txt_path if core_state else "") or ""
-                if not core_path_value:
-                    messages.error(request, "Salve o Core antes de traduzir.")
-                    return redirect("edition_steps", edition_id=edition.id)
-                core_path = _resolve_core_path(core_path_value)
-                if not core_path.exists():
-                    messages.error(request, "Core salvo nao encontrado. Re-salve o Core.")
-                    return redirect("edition_steps", edition_id=edition.id)
-
-                core_chunks_dir = (
-                    paths.data_dir()
-                    / "editions"
-                    / str(target_edition.id)
-                    / "core"
-                    / "chunks_de"
-                )
-                core_chunks_dir.mkdir(parents=True, exist_ok=True)
-                (core_chunks_dir / "0001.txt").write_text(
-                    core_path.read_text(encoding="utf-8"),
-                    encoding="utf-8",
-                )
-                contract_path = _select_contract_path(target_language)
-                contract_payload = json.loads(contract_path.read_text(encoding="utf-8"))
-                contract_payload["chunk_dir"] = str(core_chunks_dir)
-                contract_payload["out_dir"] = str(
-                    paths.data_dir()
-                    / "editions"
-                    / str(target_edition.id)
-                    / "translate"
-                    / "de_krimi"
-                )
-                core_contract_path = (
-                    paths.data_dir()
-                    / "editions"
-                    / str(target_edition.id)
-                    / "core"
-                    / "contract_de.json"
-                )
-                core_contract_path.parent.mkdir(parents=True, exist_ok=True)
-                core_contract_path.write_text(
-                    json.dumps(contract_payload, ensure_ascii=False, indent=2),
-                    encoding="utf-8",
-                )
-                run_translate_with_contract(core_contract_path)
-                out_dir_path = _resolve_contract_out_dir(core_contract_path, target_edition)
-            else:
-                contract_path = _select_contract_path(target_language)
-                run_translate_with_contract(contract_path)
-                out_dir_path = _resolve_contract_out_dir(contract_path, target_edition)
-
-            merged_path = _detect_merged_path(out_dir_path)
-            if not merged_path:
-                raise FileNotFoundError(f"Merged translation not found in {out_dir_path}")
-            build_path = _copy_merge_to_build(
-                target_edition,
-                merged_path,
-                paths.merge_translate_path(target_edition),
+            core_edition = _global_core_edition(edition)
+            core_book_code, _ = _edition_codes(core_edition)
+            core_book_id = _parse_book_id(core_book_code)
+            if core_book_id is None:
+                raise ValueError("book_code must be like book_0001 to translate.")
+            split_by_chapter_dir = (
+                paths.data_dir()
+                / "chunks"
+                / f"book_{core_book_id:04d}"
+                / "split_01_by_chapter"
             )
-            pipeline_state.current_stage = PipelineStage.TRANSLATED
+            if not split_by_chapter_dir.exists():
+                messages.error(request, "Split by Chapter nao encontrado. Rode Split by Chapter antes de traduzir.")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            result = agent_pipeline.run_new_mode_pipeline(target_edition, target_language)
+            pipeline_state.current_stage = (
+                PipelineStage.POLISHED if result.polished else PipelineStage.REFINED
+            )
             pipeline_state.translation_language = target_language
             pipeline_state.translated_at = timezone.now()
-            pipeline_state.last_log = ""
+            pipeline_state.refined_at = timezone.now()
+            if result.polished:
+                pipeline_state.polished_at = timezone.now()
+            pipeline_state.last_log = (
+                f"NEW_MODE canonical={result.canonical_path} polished={result.polished}"
+            )
             pipeline_state.save()
-            messages.success(request, "Translate OK")
+            messages.success(request, "Translate NEW MODE OK")
 
         elif step == "refine":
             stage_policy.POLICY.assert_stage_allowed(edition, "refine")
@@ -795,9 +961,14 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "txt_to_md":
             md_language = request.POST.get("md_language") or None
+            md_version = request.POST.get("md_version") or None
             target_language = md_language or edition.language.code
             target_edition = _edition_for_language(edition, target_language)
-            result = md_transform.run_txt_to_md(target_edition, language_override=md_language)
+            result = md_transform.run_txt_to_md(
+                target_edition,
+                language_override=md_language,
+                version_override=md_version,
+            )
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.md_language = md_language or ""
             pipeline_state.save(update_fields=["md_language"])
@@ -840,10 +1011,21 @@ def run_edition_step(request, edition_id: int, step: str):
                 or (pipeline_state.md_language if pipeline_state else None)
                 or edition.language.code
             )
+            md_version = request.POST.get("md_version") or None
 
             if target_lang and target_lang != edition.language.code:
                 build_dir = paths.edition_build_dir_for_language(book_code, target_lang)
+                version = paths.md_version(
+                    edition,
+                    language=target_lang,
+                    override=md_version,
+                    build_dir=build_dir,
+                )
+                base = paths.book_md_basename(target_lang, version)
                 candidates = [
+                    build_dir / f"{base}.qa.md",
+                    build_dir / f"{base}.pre_edition.md",
+                    build_dir / f"{base}.pre_qa.md",
                     build_dir / f"BOOK.QA.{target_lang}.md",
                     build_dir / f"BOOK.PRE_EDITION.{target_lang}.md",
                     build_dir / f"BOOK.PRE_QA.{target_lang}.md",
@@ -856,12 +1038,20 @@ def run_edition_step(request, edition_id: int, step: str):
                     raise FileNotFoundError(
                         f"No QA/PRE file found for language {target_lang} to approve."
                     )
-                final_path = build_dir / "BOOK.MD_FINAL"
+                final_path = paths.final_md_path(
+                    edition,
+                    language=target_lang,
+                    version=version,
+                )
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 final_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
                 result = {"path": str(final_path), "source": str(source_path)}
             else:
-                result = md_quality.approve_md_final(edition)
+                result = md_quality.approve_md_final(
+                    edition,
+                    language_override=target_lang,
+                    version_override=md_version,
+                )
             messages.success(
                 request,
                 f"MD final saved: {result['path']}",
@@ -869,19 +1059,25 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "build":
             target_edition = _target_edition()
+            md_version = request.POST.get("md_version") or None
             kdp_mode.build_frontmatter_files(target_edition, paths.data_dir() / "frontmatter")
-            merged_path = kdp_mode.build_merged_kdp_source(target_edition)
-            result = {"path": str(kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"), "merged": str(merged_path)}
+            merged_path = kdp_mode.build_merged_kdp_source(target_edition, version_override=md_version)
+            result = {
+                "path": str(paths.build_md_path(target_edition, version=md_version)),
+                "merged": str(merged_path),
+            }
             messages.success(request, f"Build OK: {result['path']}")
 
         elif step == "export_epub":
             target_edition = _target_edition()
-            result = {"path": str(kdp_mode.build_epub_for_edition(target_edition))}
+            md_version = request.POST.get("md_version") or None
+            result = {"path": str(kdp_mode.build_epub_for_edition(target_edition, version_override=md_version))}
             messages.success(request, f"EPUB OK: {result['path']}")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
-            result = {"path": str(kdp_mode.build_print_pdf_for_edition(target_edition))}
+            md_version = request.POST.get("md_version") or None
+            result = {"path": str(kdp_mode.build_print_pdf_for_edition(target_edition, version_override=md_version))}
             messages.success(request, f"PDF OK: {result['path']}")
 
         elif step == "epubcheck":
@@ -892,6 +1088,7 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "gaiden":
             target_lang = _target_lang()
             target_edition = _target_edition()
+            md_version = request.POST.get("md_version") or None
 
             build_dir = (
                 paths.edition_build_dir_for_language(book_code, target_lang)
@@ -899,7 +1096,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 else paths.edition_build_dir(edition)
             )
 
-            md_final = kdp_mode.builds_dir(target_edition) / "BOOK.MD_FINAL"
+            md_final = paths.final_md_path(target_edition)
             if not md_final.exists():
                 alt_md_final = build_dir / "BOOK.MD_FINAL"
                 if alt_md_final.exists():
@@ -907,11 +1104,12 @@ def run_edition_step(request, edition_id: int, step: str):
                 else:
                     raise FileNotFoundError("No BOOK.MD_FINAL found. Run QA + Approve first.")
 
-            build_md = kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"
+            build_md = paths.build_md_path(target_edition)
             if not build_md.exists():
                 build_result = build_book.run_build(
                     edition,
                     language_override=target_lang if target_lang != edition.language.code else None,
+                    version_override=md_version,
                 )
                 messages.info(request, f"Build auto (legacy): {build_result['path']}")
 
@@ -921,7 +1119,7 @@ def run_edition_step(request, edition_id: int, step: str):
             )
             messages.success(request, f"EPUB legacy OK: {epub_result['path']}")
 
-            result = kdp_mode.gaiden_build_full_book(target_edition)
+            result = kdp_mode.gaiden_build_full_book(target_edition, version_override=md_version)
             messages.success(request, f"Gaiden full OK: EPUB={result['epub']} PDF={result['pdf']}")
 
             export_user = (

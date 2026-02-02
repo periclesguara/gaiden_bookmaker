@@ -86,6 +86,15 @@ def _scan_builds(work_code: str, lang: str) -> None:
     if miolo.exists():
         _upsert(work_code, lang, "miolo", miolo, is_candidate=True)
 
+    md_candidates = sorted(bdir.glob(f"book.{lang}.v*.md"))
+    for path in md_candidates:
+        if any(tag in path.name for tag in [".pre_qa.", ".pre_edition.", ".qa.", ".build.", ".kdp_merged."]):
+            continue
+        _upsert(work_code, lang, "build", path, is_candidate=True)
+    build_candidates = sorted(bdir.glob(f"book.{lang}.v*.build.md"))
+    for path in build_candidates:
+        _upsert(work_code, lang, "build", path, is_candidate=True)
+
     finals = [
         ("BOOK.MD_FINAL", "build"),
         ("BOOK.BUILD.MD", "build"),

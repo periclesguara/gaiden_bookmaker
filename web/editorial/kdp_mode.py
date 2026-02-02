@@ -72,10 +72,16 @@ def _strip_canonical_frontmatter(text: str) -> str:
     return text.strip()
 
 
-def build_merged_kdp_source(edition: Edition) -> Path:
+def build_merged_kdp_source(edition: Edition, version_override: str | None = None) -> Path:
     fm_base = frontmatter_dir(edition)
     builds_base = builds_dir(edition)
     builds_base.mkdir(parents=True, exist_ok=True)
+    inserts_path = builds_base / "inserts.json"
+    spec = inserts.load_inserts_json(inserts_path)
+    post_cover_block = ""
+    if spec:
+        inserts.prepare_build_images(builds_base, spec)
+        post_cover_block = inserts.build_post_cover_blocks(spec)
 
     sections: list[str] = []
     for name in [
@@ -93,8 +99,20 @@ def build_merged_kdp_source(edition: Edition) -> Path:
             )
             if txt and not _is_effectively_empty(txt):
                 sections.append(txt)
+    if post_cover_block:
+        sections.insert(0, post_cover_block)
 
     canonical_ready = ppaths.canonical_ready_md_path(edition)
+    if not canonical_ready.exists():
+        legacy_ready = (
+            ppaths.data_dir()
+            / "canonical"
+            / edition.work.code
+            / edition.language.code
+            / "BOOK.MD_FINAL.ready.md"
+        )
+        if legacy_ready.exists():
+            canonical_ready = legacy_ready
     miolo_path = canonical_ready if canonical_ready.exists() else translated_miolo_path(edition)
     if not miolo_path.exists():
         raise FileNotFoundError(f"Miolo traduzido nao encontrado: {miolo_path}")
@@ -102,10 +120,9 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     miolo_txt = miolo_path.read_text(encoding="utf-8").strip()
     if canonical_ready.exists():
         miolo_txt = _strip_canonical_frontmatter(miolo_txt)
-    inserts_path = builds_base / "inserts.json"
-    spec = inserts.load_inserts_json(inserts_path)
     if spec:
         miolo_txt = inserts.inject_images_into_miolo_md(miolo_txt, spec).strip()
+        inserts.validate_illustrated_miolo(miolo_txt, spec)
     pagebreak = "\n\n::: pagebreak\n:::\n\n"
     merged_txt = pagebreak.join(sections).rstrip()
     if merged_txt:
@@ -113,8 +130,8 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     else:
         merged_txt = f"{miolo_txt}\n"
 
-    kdp_merged_path = builds_base / "kdp_merged.md"
-    book_build_path = builds_base / "BOOK.BUILD.MD"
+    kdp_merged_path = ppaths.kdp_merged_md_path(edition, version=version_override)
+    book_build_path = ppaths.build_md_path(edition, version=version_override)
 
     kdp_merged_path.write_text(merged_txt, encoding="utf-8")
     book_build_path.write_text(merged_txt, encoding="utf-8")
@@ -122,11 +139,15 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     return kdp_merged_path
 
 
-def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") -> Path:
+def build_epub_for_edition(
+    edition: Edition,
+    epub_filename: str = "ebook.epub",
+    version_override: str | None = None,
+) -> Path:
     builds_base = builds_dir(edition)
     builds_base.mkdir(parents=True, exist_ok=True)
 
-    merged_path = builds_base / "kdp_merged.md"
+    merged_path = ppaths.kdp_merged_md_path(edition, version=version_override)
     if not merged_path.exists():
         raise FileNotFoundError(f"Arquivo de merge nao encontrado: {merged_path}")
 
@@ -136,13 +157,18 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") 
     lang = edition.language.code
     subtitle = (getattr(edition, "subtitle", "") or "").strip()
 
+    inserts_path = builds_base / "inserts.json"
+    spec = inserts.load_inserts_json(inserts_path)
+    split_level = "1"
+
     cmd = [
         "pandoc",
         str(merged_path),
+        "--from=markdown+markdown_in_html_blocks",
         "--toc",
         "--toc-depth=2",
         "--epub-chapter-level=1",
-        "--split-level=1",
+        f"--split-level={split_level}",
         f"--metadata=title:{title}",
         f"--metadata=lang:{lang}",
         f"--metadata=language:{lang}",
@@ -162,27 +188,35 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") 
             f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
         )
 
+    if spec:
+        inserts.rewrite_epub_illustrated_images(epub_path, spec, builds_base)
+        inserts.validate_epub_images(epub_path, spec)
+
     return epub_path
 
 
-def build_kdp_for_edition(edition: Edition) -> dict:
+def build_kdp_for_edition(edition: Edition, version_override: str | None = None) -> dict:
     build_frontmatter_files(edition, ppaths.data_dir() / "frontmatter")
-    merged_path = build_merged_kdp_source(edition)
-    epub_path = build_epub_for_edition(edition)
+    merged_path = build_merged_kdp_source(edition, version_override=version_override)
+    epub_path = build_epub_for_edition(edition, version_override=version_override)
 
     return {
         "frontmatter_dir": frontmatter_dir(edition),
         "merged": merged_path,
-        "book_build": builds_dir(edition) / "BOOK.BUILD.MD",
+        "book_build": ppaths.build_md_path(edition, version=version_override),
         "epub": epub_path,
     }
 
 
-def build_print_pdf_for_edition(edition: Edition, variant: str = "print") -> Path:
+def build_print_pdf_for_edition(
+    edition: Edition,
+    variant: str = "print",
+    version_override: str | None = None,
+) -> Path:
     builds_base = builds_dir(edition)
     builds_base.mkdir(parents=True, exist_ok=True)
 
-    merged_path = builds_base / "kdp_merged.md"
+    merged_path = ppaths.kdp_merged_md_path(edition, version=version_override)
     if not merged_path.exists():
         raise FileNotFoundError(f"Arquivo de merge nao encontrado: {merged_path}")
 
@@ -190,6 +224,7 @@ def build_print_pdf_for_edition(edition: Edition, variant: str = "print") -> Pat
     cmd = [
         "pandoc",
         str(merged_path),
+        "--from=markdown+markdown_in_html_blocks",
         "-V",
         "geometry:margin=2cm",
         "-V",
@@ -230,18 +265,18 @@ def run_epubcheck_for_edition(edition: Edition, epubcheck_cmd: str = "epubcheck"
     return epub_path
 
 
-def gaiden_build_full_book(edition: Edition) -> dict:
+def gaiden_build_full_book(edition: Edition, version_override: str | None = None) -> dict:
     build_frontmatter_files(edition, ppaths.data_dir() / "frontmatter")
-    merged_path = build_merged_kdp_source(edition)
-    book_build_path = builds_dir(edition) / "BOOK.BUILD.MD"
+    merged_path = build_merged_kdp_source(edition, version_override=version_override)
+    book_build_path = ppaths.build_md_path(edition, version=version_override)
 
-    epub_path = build_epub_for_edition(edition)
+    epub_path = build_epub_for_edition(edition, version_override=version_override)
     book_epub3 = builds_dir(edition) / "BOOK.EPUB3"
     if not book_epub3.exists():
         book_epub3.write_bytes(epub_path.read_bytes())
         epub_path = book_epub3
 
-    pdf_path = build_print_pdf_for_edition(edition, variant="print")
+    pdf_path = build_print_pdf_for_edition(edition, variant="print", version_override=version_override)
 
     return {
         "frontmatter_dir": frontmatter_dir(edition),

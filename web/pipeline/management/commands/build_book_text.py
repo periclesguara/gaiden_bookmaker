@@ -66,11 +66,10 @@ class Command(BaseCommand):
         )
 
         front_dir = frontmatter_base / book_code / language
+        # Only these are required to build a minimal book file.
         front_files = {
             "frontispiece.md",
             "copyright.md",
-            "about_edition.md",
-            "about_contributor.md",
         }
 
         if not front_dir.exists() or not all((front_dir / f).exists() for f in front_files):
@@ -104,8 +103,10 @@ class Command(BaseCommand):
 
         frontispiece = read_file(front_dir / "frontispiece.md")
         copyright_text = read_file(front_dir / "copyright.md")
-        about_edition = read_file(front_dir / "about_edition.md")
-        about_contributor = read_file(front_dir / "about_contributor.md")
+        about_edition_path = front_dir / "about_edition.md"
+        about_contributor_path = front_dir / "about_contributor.md"
+        about_edition = read_file(about_edition_path) if about_edition_path.exists() else ""
+        about_contributor = read_file(about_contributor_path) if about_contributor_path.exists() else ""
         content = read_file(content_path)
 
         sections = []
