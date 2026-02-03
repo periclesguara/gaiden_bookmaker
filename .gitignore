@@ -124,3 +124,19 @@ __pycache__/
 data/miolo/
 
 *_BUILD_STAMP_*.txt
+
+# ===============================
+# Runtime / build artifacts
+# ===============================
+data/builds/
+data/covers/
+
+# Local DB
+db.sqlite3
+
+# Logs
+docs/*.log
+docs/*pipeline_log*
+
+# Loose scripts (if not canonical)
+scripts/
