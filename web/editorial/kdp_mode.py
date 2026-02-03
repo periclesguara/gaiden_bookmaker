@@ -173,6 +173,9 @@ def build_epub_for_edition(
         f"--metadata=lang:{lang}",
         f"--metadata=language:{lang}",
     ]
+    css_path = Path(__file__).resolve().parent / "epub.css"
+    if css_path.exists():
+        cmd += ["--css", str(css_path)]
     cover_path = _resolve_cover_path(edition)
     if cover_path:
         cmd.append(f"--epub-cover-image={cover_path}")

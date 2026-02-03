@@ -446,16 +446,18 @@
       <form method="post" class="mt-3" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_zip" />
+        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
         <label for="images_zip">Illustrated: Images ZIP</label>
         <input id="images_zip" type="file" name="images_zip" accept=".zip" />
         <button type="submit" class="btn btn-sm btn-secondary">Upload imagens (ZIP)</button>
         <p class="form-text">
-          Extrai para <code>{{ illustrated_images_dir }}</code> e atualiza <code>{{ illustrated_inserts_path }}</code>.
+          Extrai para <code class="illustrated-images-dir">{{ illustrated_images_dir }}</code> e atualiza <code class="illustrated-inserts-path">{{ illustrated_inserts_path }}</code>.
         </p>
       </form>
       <form method="post" class="mt-3" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_individual" />
+        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
         <label for="images_folder">Illustrated: Pasta (00..NN) — opcional</label>
         <input id="images_folder" name="images_folder" type="text" inputmode="numeric" pattern="\\d{2}" placeholder="01" list="chapter_folders" />
         <datalist id="chapter_folders">
@@ -499,12 +501,13 @@
         </div>
         <button id="images_files_submit" type="submit" class="btn">Salvar imagens (individual)</button>
         <p class="form-text">
-          Salva em <code>{{ illustrated_images_dir }}</code>/<code>00..NN</code>. Se a pasta estiver vazia, usa o prefixo 00..NN do nome do arquivo (ex.: <code>01.png</code>).
+          Salva em <code class="illustrated-images-dir">{{ illustrated_images_dir }}</code>/<code>00..NN</code>. Se a pasta estiver vazia, usa o prefixo 00..NN do nome do arquivo (ex.: <code>01.png</code>).
         </p>
       </form>
       <form method="post" class="mt-3">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_images" />
+        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
         <button type="submit" class="btn btn-sm btn-secondary">
           Insert image placeholders
         </button>
@@ -579,16 +582,35 @@
   </section>
   <script>
     const mdSourceMap = {{ md_source_map|safe }};
+    const bookCode = "{{ book_code }}";
     const mdSelect = document.getElementById("md_language");
     const mdSourceLabel = document.getElementById("md_source_path");
+    const illustratedLangInputs = document.querySelectorAll(".illustrated-language");
+    const illustratedImagesDirs = document.querySelectorAll(".illustrated-images-dir");
+    const illustratedInsertsPaths = document.querySelectorAll(".illustrated-inserts-path");
     function updateMdSource() {
       if (!mdSelect || !mdSourceLabel) return;
       const lang = mdSelect.value;
       mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
     }
+    function updateIllustratedLang() {
+      if (!mdSelect) return;
+      const lang = mdSelect.value;
+      illustratedLangInputs.forEach((input) => {
+        input.value = lang;
+      });
+      illustratedImagesDirs.forEach((label) => {
+        label.textContent = `data/images/${bookCode}/${lang}`;
+      });
+      illustratedInsertsPaths.forEach((label) => {
+        label.textContent = `data/builds/${bookCode}/${lang}/inserts.json`;
+      });
+    }
     if (mdSelect) {
       mdSelect.addEventListener("change", updateMdSource);
+      mdSelect.addEventListener("change", updateIllustratedLang);
       updateMdSource();
+      updateIllustratedLang();
     }
     const imagesInput = document.getElementById("images_files");
     const imagesSummary = document.getElementById("images_files_summary");
