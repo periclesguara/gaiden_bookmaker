@@ -6,8 +6,8 @@
   "imprint_name": "Manta Quest",
   "collection_name": "",
   "text_source": {
-    "canonical_name": "merge_translate.txt",
-    "canonical_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book01_the_adventures_of_sherlock_holmes/en/merge_translate.txt",
+    "canonical_name": "canonical_EN.txt",
+    "canonical_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book01_the_adventures_of_sherlock_holmes/en/canonical_EN.txt",
     "pipeline_step": null,
     "pipeline_job_id": null,
     "pipeline_filepath": null

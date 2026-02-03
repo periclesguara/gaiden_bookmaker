@@ -95,6 +95,12 @@ def _normalize_images_dir(image_dir: Path) -> None:
             _normalize_image(image_dir, rel)
 
 
+def normalize_image_dir(image_dir: Path) -> None:
+    _normalize_images_dir(image_dir)
+    _validate_image_dir_structure(image_dir)
+    logger.info("Illustrated images normalized to JPG in %s", image_dir)
+
+
 def _normalize_spec_images(image_dir: Path, images: List[str]) -> List[str]:
     normalized: List[str] = []
     for img in images:
@@ -215,6 +221,16 @@ def load_inserts_json(path: Path) -> Optional[InsertSpec]:
         or []
     )
 
+    def _dedupe(values: List[str]) -> List[str]:
+        seen: set[str] = set()
+        ordered: List[str] = []
+        for item in values:
+            if item in seen:
+                continue
+            seen.add(item)
+            ordered.append(item)
+        return ordered
+
     chapters: Dict[int, List[str]] = {}
     post_cover: List[str] = []
     for key, value in chapters_raw.items():
@@ -228,9 +244,10 @@ def load_inserts_json(path: Path) -> Optional[InsertSpec]:
         if idx == 0:
             post_cover.extend(imgs)
         else:
-            chapters[idx] = imgs
+            chapters[idx] = _dedupe(imgs)
 
     post_cover += [str(x).strip() for x in (post_cover_raw or []) if str(x).strip()]
+    post_cover = _dedupe(post_cover)
 
     if not image_dir:
         return None
@@ -551,7 +568,9 @@ def rewrite_epub_illustrated_images(
                 text = pattern.sub(_flatten, text)
 
             chapter_block_re = re.compile(
-                r'<div class="chapter-break"></div>.*?<div class="chapter-start"></div>',
+                r'<div\s+class="chapter-break"[^>]*>.*?</div>\s*'
+                r'(?:<figure\s+class="chapter-illustration">.*?</figure>\s*)+'
+                r'<div\s+class="chapter-start"[^>]*>.*?</div>',
                 flags=re.IGNORECASE | re.DOTALL,
             )
             text = chapter_block_re.sub("", text)

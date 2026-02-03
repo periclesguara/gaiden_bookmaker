@@ -45,14 +45,14 @@ class EditionPaths:
         )
         return cls(
             base=base,
-            merge_txt=base / "merge_translate.txt",
+            merge_txt=base / "canonical_EN.txt",
             miolo_md=base / "MIOL_TERM.v1.md",
             final_md=base / "BOOK.MD_FINAL",
             build_md=base / "BOOK.BUILD.MD",
             frontmatter_dir=BASE_DIR
             / "data"
             / "frontmatter"
-            / "book01_the_adventures_of_sherlock_holmes"
+            / "book_0001"
             / "en",
         )
 
@@ -89,7 +89,7 @@ def _build_miolo_md(chapters: dict[int, str]) -> str:
     parts: list[str] = []
     for idx, title in enumerate(CHAPTER_TITLES, start=1):
         body = chapters.get(idx, "")
-        parts.append(f"# CHAPTER {idx:02d} — {title.upper()} {{.chapter-title}}")
+        parts.append(f"# CHAPTER {idx:02d} — {title.upper()}")
         parts.append("")
         if body:
             parts.append(body)

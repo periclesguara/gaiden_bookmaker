@@ -250,6 +250,10 @@ def edition_steps(request, edition_id: int):
     texts = EditionText.objects.filter(edition=edition).first()
     raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
 
+    def _asset_lang_from_request() -> str:
+        raw = (request.POST.get("asset_language") or "").strip()
+        return utils.normalize_lang(raw or language)
+
     def _core_text() -> str:
         if texts and getattr(texts, "normalized_text", ""):
             return texts.normalized_text
@@ -315,7 +319,7 @@ def edition_steps(request, edition_id: int):
                 messages.error(request, "Selecione um ZIP de imagens.")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            lang_code = utils.normalize_lang(edition.language.code)
+            lang_code = _asset_lang_from_request()
             images_base = (
                 Path(settings.BASE_DIR).parent
                 / "data"
@@ -393,7 +397,9 @@ def edition_steps(request, edition_id: int):
                     with zf.open(info) as src, dest_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
 
-            inserts_path = paths.edition_build_dir(edition) / "inserts.json"
+            inserts_path = (
+                paths.edition_build_dir_for_language(book_code, lang_code) / "inserts.json"
+            )
             inserts_data = {}
             if inserts_path.exists():
                 try:
@@ -403,6 +409,14 @@ def edition_steps(request, edition_id: int):
             inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
             inserts_path.parent.mkdir(parents=True, exist_ok=True)
             inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
+
+            try:
+                from .services.inserts import normalize_image_dir
+
+                normalize_image_dir(images_base)
+            except Exception as exc:
+                messages.error(request, f"Falha ao normalizar imagens: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
 
             messages.success(
                 request,
@@ -419,7 +433,7 @@ def edition_steps(request, edition_id: int):
                 messages.error(request, "Pasta invalida. Use 00..NN ou deixe vazio.")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            lang_code = utils.normalize_lang(edition.language.code)
+            lang_code = _asset_lang_from_request()
             images_base = (
                 Path(settings.BASE_DIR).parent
                 / "data"
@@ -460,7 +474,9 @@ def edition_steps(request, edition_id: int):
                 saved += 1
                 saved_folders.add(folder)
 
-            inserts_path = paths.edition_build_dir(edition) / "inserts.json"
+            inserts_path = (
+                paths.edition_build_dir_for_language(book_code, lang_code) / "inserts.json"
+            )
             inserts_data = {}
             if inserts_path.exists():
                 try:
@@ -470,6 +486,14 @@ def edition_steps(request, edition_id: int):
             inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
             inserts_path.parent.mkdir(parents=True, exist_ok=True)
             inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
+
+            try:
+                from .services.inserts import normalize_image_dir
+
+                normalize_image_dir(images_base)
+            except Exception as exc:
+                messages.error(request, f"Falha ao normalizar imagens: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
 
             if len(saved_folders) == 1:
                 folder_suffix = f"/{next(iter(saved_folders))}"
@@ -564,7 +588,8 @@ def edition_steps(request, edition_id: int):
             )
             return redirect("edition_steps", edition_id=edition.id)
         if action == "insert_images":
-            build_dir = paths.edition_build_dir(edition)
+            target_lang = _asset_lang_from_request()
+            build_dir = paths.edition_build_dir_for_language(book_code, target_lang)
             md_targets = sorted(build_dir.glob("book.*.pre_edition.md"))
             if not md_targets:
                 md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
@@ -718,8 +743,11 @@ def edition_steps(request, edition_id: int):
         except json.JSONDecodeError:
             issues = []
 
-    images_dir = f"data/images/{book_code}/{utils.normalize_lang(language)}"
-    inserts_json_path = str(paths.edition_build_dir(edition) / "inserts.json")
+    asset_lang = utils.normalize_lang(md_language_default or language)
+    images_dir = f"data/images/{book_code}/{asset_lang}"
+    inserts_json_path = str(
+        paths.edition_build_dir_for_language(book_code, asset_lang) / "inserts.json"
+    )
 
     context = {
         "edition": edition,
