@@ -140,3 +140,7 @@ docs/*pipeline_log*
 
 # Loose scripts (if not canonical)
 scripts/
+
+# --- local / derived artifacts ---
+/data/db/
+/data/normalized/
