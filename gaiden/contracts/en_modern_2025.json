@@ -1,16 +1,13 @@
 {
   "name": "Sherlock Holmes – EN → EN modern (2025)",
-  "model": "gpt-5.1",
+  "model": "gpt-5.2",
   "temperature": 0.4,
   "max_output_tokens": 1200,
-
-  "chunk_dir": "data/chunks/book_0001/split_01",
-  "out_dir": "data/translated/book_0001/en_modern_2025",
-
+  "chunk_dir": "data/chunks/{BOOK_ID}/en",
+  "out_dir": "data/translated/{BOOK_ID}/EN",
   "output": {
     "language": "en"
   },
-
   "system_prompt": "You are a professional literary editor in 2025. Your job is to modernize the English of Sherlock Holmes stories while preserving meaning, tone, and rhythm. Keep the text fluent, cinematic, and faithful. Do NOT summarize, do NOT comment. Return only the rewritten text.",
   "user_prompt": "Rewrite the following Sherlock Holmes passage in modern, fluent English, preserving all information, tension, and atmosphere. Do NOT summarize. Do NOT add explanations.\n\n{text}"
 }

@@ -255,7 +255,6 @@ class EditionBlock(models.Model):
 class PipelineStage(models.TextChoices):
     RAW = "RAW", "Original (raw)"
     NORMALIZED = "NORMALIZED", "Normalizado"
-    SPLIT = "SPLIT", "Split"
     CHUNKED = "CHUNKED", "Chunked"
     TRANSLATED = "TRANSLATED", "Traduzido"
     REFINED = "REFINED", "Refine"
@@ -324,7 +323,7 @@ class PipelineArtifact(models.Model):
     STAGE_CHOICES = [
         ("raw", "RAW"),
         ("normalize", "NORMALIZE"),
-        ("split", "SPLIT/CHUNK"),
+        ("chunk", "CHUNK"),
         ("translate", "TRANSLATE"),
         ("merge_translate", "MERGE_TRANSLATE"),
         ("refine", "REFINE"),

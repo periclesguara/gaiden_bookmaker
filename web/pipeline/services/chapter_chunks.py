@@ -53,10 +53,10 @@ def _resolve_normalized_path(edition) -> Path:
     return fallback
 
 
-def run_split_by_chapter(edition) -> dict[str, str]:
+def run_chapter_chunks(edition) -> dict[str, str]:
     language_code = edition_meta.language_code(edition)
     if language_code != "en":
-        raise ValueError("split_by_chapter so suporta ingles no momento.")
+        raise ValueError("chapter_chunks so suporta ingles no momento.")
 
     book_code = edition_meta.book_code(edition)
     book_id = _parse_book_id(book_code)
@@ -66,9 +66,9 @@ def run_split_by_chapter(edition) -> dict[str, str]:
     normalized_path = _resolve_normalized_path(edition)
     raw = normalized_path.read_text(encoding="utf-8")
 
-    output_dir = paths.data_dir() / "chunks" / f"book_{book_id:04d}" / "split_01_by_chapter"
-    manifest_path = output_dir / "chunks_by_chapter.json"
-    normalized_out = output_dir / "normalized_chapterized.txt"
+    output_dir = paths.data_dir() / "chunks" / f"book_{book_id:04d}" / "en"
+    manifest_path = output_dir / "chunks_manifest.json"
+    normalized_out = output_dir / "normalized.txt"
 
     result = build_chapter_chunks(raw, output_dir, manifest_path, language=language_code)
     normalized_out.write_text(result["normalized_text"], encoding="utf-8")

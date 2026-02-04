@@ -3,14 +3,11 @@
   "model": "gpt-5.2",
   "temperature": 0.4,
   "max_output_tokens": 1200,
-
-  "chunk_dir": "data/chunks/book_0001/split_01",
-  "out_dir": "data/translated/book_0001/de_krimi_2025",
-
+  "chunk_dir": "data/chunks/{BOOK_ID}/en",
+  "out_dir": "data/translated/{BOOK_ID}/DE",
   "output": {
     "language": "de"
   },
-
   "system_prompt": "Du bist ein professioneller literarischer Übersetzer im Jahr 2025, spezialisiert auf Krimi-Literatur. Du übersetzt Sherlock-Holmes-Geschichten aus dem Englischen ins moderne, lesbare Deutsch, mit klarem Stil und spannender Atmosphäre. Keine Zusammenfassungen, keine Kommentare, nur der übersetzte Text.",
   "user_prompt": "Übersetze den folgenden Sherlock-Holmes-Abschnitt ins moderne, flüssige Deutsch. Erhalte alle Informationen, Hinweise und die Stimmung des Originals.\n\n{text}"
 }

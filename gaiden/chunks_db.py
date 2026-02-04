@@ -9,13 +9,13 @@ DB = Path("data/db/gaiden.sqlite3")
 def _conn():
     return sqlite3.connect(DB.as_posix())
 
-def get_split01_status(book_id: int) -> Dict:
+def get_chunks_status(book_id: int) -> Dict:
     conn = _conn()
     try:
         row = conn.execute("""
           SELECT id, method, target_tokens, min_tokens, max_tokens, language, created_at
           FROM book_chunks
-          WHERE book_id=? AND stage='split_01'
+          WHERE book_id=? AND stage='chunks'
         """, (book_id,)).fetchone()
         if not row:
             return {"exists": False}
@@ -35,10 +35,10 @@ def get_split01_status(book_id: int) -> Dict:
     finally:
         conn.close()
 
-def list_split01_chunks(book_id: int, limit: int = 200) -> List[Dict]:
+def list_chunks(book_id: int, limit: int = 200) -> List[Dict]:
     conn = _conn()
     try:
-        row = conn.execute("SELECT id FROM book_chunks WHERE book_id=? AND stage='split_01'", (book_id,)).fetchone()
+        row = conn.execute("SELECT id FROM book_chunks WHERE book_id=? AND stage='chunks'", (book_id,)).fetchone()
         if not row:
             return []
         chunks_id = row[0]

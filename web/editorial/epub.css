@@ -1,0 +1,22 @@
+/* EPUB layout helpers (frontmatter + illustrated mode). */
+.pagebreak,
+.page-break,
+.chapter-break,
+.chapter-start {
+  break-before: page;
+  page-break-before: always;
+}
+
+figure.chapter-illustration,
+figure.post-cover-illustration {
+  text-align: center;
+  margin: 1.2em auto;
+}
+
+figure.chapter-illustration img,
+figure.post-cover-illustration img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}

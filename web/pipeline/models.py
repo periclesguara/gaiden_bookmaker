@@ -9,7 +9,7 @@ class PipelineJob(models.Model):
     STAGES = [
         ("raw", "Raw"),
         ("normalize", "Normalize"),
-        ("split", "Split"),
+        ("chunk", "Chunk"),
         ("translate", "Translate"),
         ("refine", "Refine"),
         ("polish", "Polish"),

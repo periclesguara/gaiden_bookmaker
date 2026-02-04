@@ -1,0 +1,13 @@
+{
+  "name": "Sherlock Holmes – EN → FR Littéraire (2026)",
+  "model": "gpt-5.2",
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+  "chunk_dir": "data/chunks/{BOOK_ID}/en",
+  "out_dir": "data/translated/{BOOK_ID}/FR",
+  "output": {
+    "language": "fr"
+  },
+  "system_prompt": "Tu es un traducteur littéraire professionnel en 2026, spécialisé dans la littérature policière classique. Tu traduis les histoires de Sherlock Holmes de l’anglais vers un français moderne, fluide et élégant, tout en respectant le style, l’atmosphère, les indices et la tension narrative de l’original. Aucune explication, aucun commentaire, aucun résumé — uniquement le texte traduit.",
+  "user_prompt": "Traduis le passage suivant de Sherlock Holmes en français moderne et naturel. Préserve intégralement le sens, le ton, les indices et l’atmosphère du texte original.\n\n{text}"
+}

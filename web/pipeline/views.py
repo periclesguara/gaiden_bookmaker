@@ -21,6 +21,11 @@ from editorial.models import (
     EditionPipeline,
     EditionText,
     PipelineStage,
+    Language,
+    Seal,
+    Work,
+    Contributor,
+    ContributorRole,
 )
 from editorial import kdp_mode
 
@@ -29,8 +34,6 @@ from .services import (
     book_manifest,
     build_book,
     chapter_chunks,
-    editorial_split,
-    agent_pipeline,
     export_book,
     legacy_merges,
     md_quality,
@@ -61,7 +64,106 @@ def book_edition_list(request):
 
 
 def book_edition_edit(request, book_code=None, language=None):
-    messages.info(request, "Edicoes sao criadas via seed_editorial ou admin.")
+    if request.method == "GET":
+        languages = Language.objects.filter(is_active=True).order_by("code")
+        seals = Seal.objects.filter(is_active=True).order_by("name")
+        context = {
+            "languages": languages,
+            "seals": seals,
+        }
+        return render(request, "pipeline/book_edition_form.html", context)
+
+    book_code = request.POST.get("book_code", "").strip()
+    lang_code = request.POST.get("language", "").strip()
+    title = request.POST.get("title", "").strip()
+    author_name = request.POST.get("author", "").strip()
+    year_raw = request.POST.get("year", "").strip()
+    seal_slug = request.POST.get("seal", "").strip() or "MantaQuest"
+
+    if not book_code or not lang_code:
+        messages.error(request, "Book code e idioma são obrigatórios.")
+        return redirect("book_edition_new")
+
+    language_obj, _ = Language.objects.get_or_create(
+        code=lang_code,
+        defaults={
+            "name": lang_code.upper(),
+            "native_name": lang_code.upper(),
+            "is_active": True,
+        },
+    )
+
+    seal_obj, _ = Seal.objects.get_or_create(
+        slug=seal_slug,
+        defaults={"name": seal_slug, "is_active": True},
+    )
+
+    author_obj = None
+    if author_name:
+        author_obj, _ = Contributor.objects.get_or_create(
+            name=author_name,
+            defaults={"role": ContributorRole.AUTHOR},
+        )
+
+    year = None
+    if year_raw:
+        try:
+            year = int(year_raw)
+        except ValueError:
+            messages.warning(request, "Ano inválido; salvando sem ano.")
+
+    work_obj, created = Work.objects.get_or_create(
+        code=book_code,
+        defaults={
+            "title": title or book_code,
+            "original_language": language_obj,
+            "author": author_obj if author_obj else Contributor.objects.first(),
+            "year": year,
+        },
+    )
+    if not created:
+        updated = False
+        if title and not work_obj.title:
+            work_obj.title = title
+            updated = True
+        if author_obj and not work_obj.author_id:
+            work_obj.author = author_obj
+            updated = True
+        if year and not work_obj.year:
+            work_obj.year = year
+            updated = True
+        if updated:
+            work_obj.save()
+
+    existing = EditorialEdition.objects.filter(work=work_obj, language=language_obj).first()
+    if existing:
+        messages.info(request, "Edição já existe.")
+        return redirect("book_edition_list")
+
+    edition = EditorialEdition.objects.create(
+        work=work_obj,
+        language=language_obj,
+        seal=seal_obj,
+        title=title or work_obj.title,
+        author=author_name or (work_obj.author.name if work_obj.author_id else ""),
+        edition_year=year,
+    )
+
+    EditionPipeline.objects.get_or_create(edition=edition)
+    EditionText.objects.get_or_create(edition=edition)
+
+    raw_file = request.FILES.get("raw_file")
+    if raw_file:
+        dest = _raw_upload_path(edition, raw_file.name)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with dest.open("wb") as f:
+            for chunk in raw_file.chunks():
+                f.write(chunk)
+        edition.raw_source_path = dest.as_posix()
+        edition.save(update_fields=["raw_source_path"])
+        EditionText.objects.filter(edition=edition).update(raw_path=dest.as_posix())
+
+    messages.success(request, "Edição criada.")
     return redirect("book_edition_list")
 
 
@@ -122,6 +224,8 @@ def _select_contract_path(language: str) -> Path:
         "es": "gaiden/contracts/en_es_2025.json",
         "ptbr": "gaiden/contracts/en_ptbr_2025.json",
         "de": "gaiden/contracts/en_de_krimi_2025.json",
+        "fr": "gaiden/contracts/translate_fr_2026.json",
+        "it": "gaiden/contracts/translate_it_2026.json",
     }
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
@@ -164,7 +268,8 @@ def _resolve_contract_out_dir(contract_path: Path, edition) -> Path:
     if book_id is None:
         raise ValueError("book_code must be like book_0001 to resolve out_dir.")
     target_lang = _contract_target_lang(payload)
-    return Path("data/translated") / f"book_{book_id:04d}" / "split_01" / target_lang
+    lang_dir = target_lang.strip().upper()
+    return Path("data/translated") / f"book_{book_id:04d}" / lang_dir
 
 
 def _resolve_core_path(path_value: str) -> Path:
@@ -218,7 +323,7 @@ def _legacy_gaiden_merge_path(book_id: int, language: str, stage: str) -> Path |
 
 def _detect_merged_path(out_dir: Path) -> Path | None:
     lang_key = out_dir.name
-    merged = out_dir / f"merged_{lang_key}.txt"
+    merged = out_dir / f"merge_translate_{lang_key}.txt"
     if merged.exists():
         return merged
     alt = out_dir / "merged.txt"
@@ -230,18 +335,15 @@ def _detect_merged_path(out_dir: Path) -> Path | None:
     return None
 
 
-def _count_split_chunks(book_code: str) -> int | None:
+def _count_chunks(book_code: str) -> int | None:
     book_id = _parse_book_id(book_code)
     if book_id is None:
         return None
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    chapter_dir = data_dir / "chunks" / f"book_{book_id:04d}" / "split_01_by_chapter"
-    if chapter_dir.is_dir():
-        return len(list(chapter_dir.glob("*.txt")))
-    chunks_dir = data_dir / "chunks" / f"book_{book_id:04d}" / "split_01"
+    chunks_dir = data_dir / "chunks" / f"book_{book_id:04d}" / "en"
     if not chunks_dir.is_dir():
         return None
-    return len(list(chunks_dir.glob("*.txt")))
+    return len(list(chunks_dir.glob("ch_*_chunk_*.txt")))
 
 
 def edition_steps(request, edition_id: int):
@@ -618,17 +720,7 @@ def edition_steps(request, edition_id: int):
         return "OK" if flag else "falta"
 
     book_id = _parse_book_id(book_code)
-    split_by_chapter_dir = None
-    if book_id is not None:
-        split_by_chapter_dir = (
-            Path(settings.BASE_DIR).parent
-            / "data"
-            / "chunks"
-            / f"book_{book_id:04d}"
-            / "split_01_by_chapter"
-        )
-
-    chunk_count = _count_split_chunks(book_code)
+    chunk_count = _count_chunks(book_code)
 
     miolo_paths = []
     miolo_path = paths.miolo_md_path(edition)
@@ -754,14 +846,14 @@ def edition_steps(request, edition_id: int):
         "status": {
             "raw": _status(bool(raw_path)),
             "normalize": _status(bool(pipeline_state.normalized_at)),
-            "split": _status(bool(pipeline_state.split_at)),
-            "split_by_chapter": _status(bool(split_by_chapter_dir and split_by_chapter_dir.exists())),
+            "chunk": _status(bool(pipeline_state.chunked_at)),
             "translate": _status(bool(pipeline_state.translated_at)),
             "refine": _status(bool(pipeline_state.refined_at)),
             "polish": _status(bool(pipeline_state.polished_at)),
         },
         "raw_path": raw_path,
         "raw_name": raw_name,
+        "normalized_path": (texts.normalized_path if texts else None),
         "translate_language": pipeline_state.translation_language or language,
         "chunk_count": chunk_count,
         "sync_log": sync_log,
@@ -853,11 +945,15 @@ def run_edition_step(request, edition_id: int, step: str):
             if not text:
                 raise ValueError("Could not extract text from RAW file.")
 
-            normalized = gaiden_normalize.normalize_text_v2(text)
-            data_dir = Path(settings.BASE_DIR).parent / "data" / "normalized"
-            data_dir.mkdir(parents=True, exist_ok=True)
             _, core_language = _edition_codes(core_edition)
-            out_path = data_dir / f"{book_code}_{core_language}_v2.txt"
+            if utils.normalize_lang(core_language) != "en":
+                raise ValueError("Normalize stage is EN-only (normalize_policy_v1_en).")
+
+            normalized = gaiden_normalize.normalize_text_policy_v1_en(text)
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "normalized"
+            out_dir = data_dir / book_code / "en"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out_path = out_dir / "normalized.txt"
             out_path.write_text(normalized, encoding="utf-8")
 
             texts, _ = EditionText.objects.get_or_create(edition=core_edition)
@@ -877,37 +973,16 @@ def run_edition_step(request, edition_id: int, step: str):
 
             messages.success(request, f"Normalize OK: {out_path}")
 
-        elif step == "split":
-            core_edition = _global_core_edition(edition)
-            count = editorial_split.run_split_struct(core_edition)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
-            pipeline_state.current_stage = PipelineStage.SPLIT
-            pipeline_state.split_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, f"Split struct OK: {count} units")
-
         elif step == "chunk":
             core_edition = _global_core_edition(edition)
-            count = editorial_split.run_split_01(core_edition)
-            book_id = _parse_book_id(book_code)
-            chunks_dir = Path("data/chunks") / f"book_{book_id:04d}" / "split_01"
+            result = chapter_chunks.run_chapter_chunks(core_edition)
+            chunks_dir = Path(result["path"])
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.CHUNKED
             pipeline_state.chunked_at = timezone.now()
             pipeline_state.last_log = ""
             pipeline_state.save()
-            messages.success(request, f"Chunks OK: {count}")
-
-        elif step == "split_by_chapter":
-            core_edition = _global_core_edition(edition)
-            result = chapter_chunks.run_split_by_chapter(core_edition)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
-            pipeline_state.current_stage = PipelineStage.SPLIT
-            pipeline_state.split_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, f"Split by chapter OK: {result['path']}")
+            messages.success(request, f"Chunks OK: {chunks_dir}")
 
         elif step == "translate":
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
@@ -919,32 +994,32 @@ def run_edition_step(request, edition_id: int, step: str):
             core_book_id = _parse_book_id(core_book_code)
             if core_book_id is None:
                 raise ValueError("book_code must be like book_0001 to translate.")
-            split_by_chapter_dir = (
-                paths.data_dir()
-                / "chunks"
-                / f"book_{core_book_id:04d}"
-                / "split_01_by_chapter"
-            )
-            if not split_by_chapter_dir.exists():
-                messages.error(request, "Split by Chapter nao encontrado. Rode Split by Chapter antes de traduzir.")
+            chunks_dir = paths.data_dir() / "chunks" / f"book_{core_book_id:04d}" / "en"
+            if not chunks_dir.exists():
+                messages.error(request, "Chunks nao encontrados. Rode Chunk antes de traduzir.")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            result = agent_pipeline.run_new_mode_pipeline(target_edition, target_language)
-            pipeline_state.current_stage = (
-                PipelineStage.POLISHED if result.polished else PipelineStage.REFINED
+            from gaiden.translate import run_translate_with_contract
+            contract_path = _select_contract_path(target_language)
+            lang_dir = "PT-BR" if target_language == "ptbr" else target_language.upper()
+            out_dir = paths.data_dir() / "translated" / f"book_{core_book_id:04d}" / lang_dir
+            run_translate_with_contract(
+                contract_path,
+                chunk_dir_override=chunks_dir,
+                out_dir_override=out_dir,
             )
+            merged_path = _detect_merged_path(out_dir)
+            pipeline_state.current_stage = PipelineStage.TRANSLATED
             pipeline_state.translation_language = target_language
             pipeline_state.translated_at = timezone.now()
-            pipeline_state.refined_at = timezone.now()
-            if result.polished:
-                pipeline_state.polished_at = timezone.now()
-            pipeline_state.last_log = (
-                f"NEW_MODE canonical={result.canonical_path} polished={result.polished}"
-            )
+            if merged_path:
+                pipeline_state.core_last_txt_path = str(merged_path)
+            pipeline_state.last_log = f"TRANSLATE_ONLY out={out_dir}"
             pipeline_state.save()
-            messages.success(request, "Translate NEW MODE OK")
+            messages.success(request, f"Translate OK: {merged_path or out_dir}")
 
         elif step == "refine":
+            raise ValueError("Refine por chunks desativado por política (translate-only).")
             stage_policy.POLICY.assert_stage_allowed(edition, "refine")
             lang_code = utils.normalize_lang(edition.language.code)
             if lang_code != "de":
@@ -963,6 +1038,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Refine DE OK: {result.output_path}")
 
         elif step == "polish":
+            raise ValueError("Polish por chunks desativado por política (translate-only).")
             from gaiden.polish_en_2025 import run_polish_en_2025
 
             target_edition = edition

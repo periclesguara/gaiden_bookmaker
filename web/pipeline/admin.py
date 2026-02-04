@@ -44,7 +44,7 @@ class EditionAdmin(admin.ModelAdmin):
 
 @admin.register(EditionPipeline)
 class EditionPipelineAdmin(admin.ModelAdmin):
-    list_display = ("edition", "current_stage", "translation_language", "raw_at", "normalized_at", "split_at")
+    list_display = ("edition", "current_stage", "translation_language", "raw_at", "normalized_at", "chunked_at")
     list_filter = ("current_stage",)
 
 

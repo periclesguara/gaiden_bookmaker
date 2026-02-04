@@ -7,7 +7,7 @@ from typing import Any
 
 from gaiden import chunker
 
-MAX_BLOCKS_PER_CHAPTER = 4
+MAX_BLOCKS_PER_CHAPTER = 9999
 
 ROMAN_MAP = {
     "I": 1, "II": 2, "III": 3, "IV": 4,
@@ -32,73 +32,21 @@ TITLE_MAP = {
 
 ROMAN_LINE_RE = re.compile(r"^\s*([IVXLCDM]+)\s*$")
 CHAPTER_HEADING_RE = re.compile(r"^#\s+([IVXLCDM]+)\.\s+(.+)$")
-ALT_CHAPTER_RE = re.compile(r"^(\d+)\.\s+(.+)$")
+ALT_CHAPTER_RE = re.compile(r"^(\d+)\s*-\s+(.+)$")
 
 FIRST_STORY_START_RE = re.compile(r"^To Sherlock Holmes\b")
 
 DEFAULT_MIN_TOKENS = 1500
-DEFAULT_TARGET_TOKENS = 1800
-DEFAULT_MAX_TOKENS = 2200
+DEFAULT_TARGET_TOKENS = 1500
+DEFAULT_MAX_TOKENS = 2000
 
 
 def normalize_sherlock_text(raw: str) -> str:
-    lines = raw.splitlines()
-    output_lines: list[str] = []
-
-    started_narrative = False
-    current_chapter: int | None = None
-    sub_idx = 0
-
-    for line in lines:
-        stripped = line.strip()
-
-        if not started_narrative:
-            if FIRST_STORY_START_RE.search(line):
-                current_chapter = 1
-                sub_idx = 0
-
-                output_lines.append(":: center")
-                output_lines.append(f"# I. {TITLE_MAP[1]}")
-                output_lines.append(":::")
-                output_lines.append("")
-
-                started_narrative = True
-                output_lines.append(line)
-            continue
-
-        m = ROMAN_LINE_RE.match(stripped)
-        if m:
-            roman = m.group(1)
-            num = ROMAN_MAP.get(roman)
-
-            if num is None:
-                output_lines.append(line)
-                continue
-
-            if num in TITLE_MAP and (current_chapter != num):
-                current_chapter = num
-                sub_idx = 0
-
-                output_lines.append("")
-                output_lines.append(":: center")
-                output_lines.append(f"# {roman}. {TITLE_MAP[num]}")
-                output_lines.append(":::")
-                output_lines.append("")
-                continue
-
-            if current_chapter is not None:
-                sub_idx += 1
-                output_lines.append("")
-                output_lines.append(f"## {sub_idx}")
-                output_lines.append("")
-                continue
-
-            output_lines.append(line)
-            continue
-
-        output_lines.append(line)
-
-    return "\n".join(output_lines)
+    """
+    For chunking, trust normalized input (N - TITLE).
+    Do not inject headings or sub-headings here.
+    """
+    return raw.strip()
 
 
 def _extract_chapters(text: str) -> list[dict[str, Any]]:
@@ -147,9 +95,9 @@ def _extract_chapters_from_numbers(text: str) -> list[dict[str, Any]]:
             current = {
                 "number": num,
                 "roman": "",
-                "title": m.group(2).strip().title(),
+                "title": m.group(2).strip(),
             }
-            buffer.append(f"# {num}. {current['title']}")
+            buffer.append(line)
             continue
         if current:
             buffer.append(line)
@@ -262,7 +210,7 @@ def build_chapter_chunks(
 
         entries: list[dict[str, Any]] = []
         for idx, chunk_text in enumerate(chunks, start=1):
-            filename = f"cap_{chapter_num:02d}_chunk{idx:02d}.txt"
+            filename = f"ch_{chapter_num:02d}_chunk_{idx:03d}.txt"
             out_path = output_dir / filename
             out_path.write_text(chunk_text, encoding="utf-8")
             entries.append(
@@ -288,6 +236,9 @@ def build_chapter_chunks(
             json.dumps(manifest, ensure_ascii=True, indent=2),
             encoding="utf-8",
         )
+
+    if not manifest["chapters"]:
+        raise ValueError("Chunking failed: no chapters produced.")
 
     return {
         "normalized_text": normalized_text,

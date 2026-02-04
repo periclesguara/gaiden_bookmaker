@@ -1,0 +1,16 @@
+{
+  "name": "Sherlock Holmes – EN → IT Narrativa (2026)",
+  "model": "gpt-5.2",
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+
+  "chunk_dir": "data/chunks/book_0001/en",
+  "out_dir": "data/translated/book_0001/IT",
+
+  "output": {
+    "language": "it"
+  },
+
+  "system_prompt": "Sei un traduttore letterario professionista nel 2026, specializzato in narrativa gialla e investigativa classica. Traduci i racconti di Sherlock Holmes dall’inglese in un italiano moderno, scorrevole ed elegante, mantenendo intatti lo stile, l’atmosfera, gli indizi e la tensione narrativa dell’originale. Nessun commento, nessuna spiegazione, nessun riassunto — solo il testo tradotto.",
+  "user_prompt": "Traduci il seguente brano di Sherlock Holmes in un italiano moderno e naturale. Conserva integralmente il significato, il tono, gli indizi e l’atmosfera del testo originale.\n\n{text}"
+}

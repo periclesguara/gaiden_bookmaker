@@ -18,7 +18,7 @@ def _book_dir(book_id: int) -> Path:
 def list_languages_for_book(book_id: int) -> List[str]:
     """
     Lista os diretórios de idiomas existentes para um book_id.
-    Ex.: ["en_modern_2025", "ptbr_2025", "es_2025", "de_krimi_2025"]
+    Ex.: ["EN", "PT-BR", "ES", "DE"]
     """
     book_dir = _book_dir(book_id)
     if not book_dir.is_dir():
@@ -36,17 +36,17 @@ def merge_language(book_id: int, lang_key: str, *, suffix: str | None = None) ->
 
     Entrada:
       - book_id: ex. 1 -> book_0001
-      - lang_key: ex. "en_modern_2025", "ptbr_2025", "es_2025"
-      - suffix (opcional): sufixo do arquivo de saída; se None, usa f"merged_{lang_key}.txt"
+      - lang_key: ex. "EN", "PT-BR", "ES"
+      - suffix (opcional): sufixo do arquivo de saída; se None, usa f"merge_translate_{lang_key}.txt"
 
     Saída:
       - Path do arquivo mesclado.
 
     Convenção de diretórios atual do Gaiden:
-      data/translated/book_0001/<lang_key>/0001.txt ... 0084.txt
+      data/translated/book_0001/<lang_key>/ch_01_chunk_001.<lang_key>.txt ...
 
     Saída:
-      data/translated/book_0001/<lang_key>/merged_<lang_key>.txt
+      data/translated/book_0001/<lang_key>/merge_translate_<lang_key>.txt
       (ou outro nome, se suffix for passado).
     """
     book_dir = _book_dir(book_id)
@@ -55,16 +55,14 @@ def merge_language(book_id: int, lang_key: str, *, suffix: str | None = None) ->
     if not in_dir.is_dir():
         raise FileNotFoundError(f"Diretório de tradução não encontrado: {in_dir}")
 
-    txt_files = sorted(
-        p for p in in_dir.glob("*.txt")
-        if not (p.name.startswith("merged_") or p.name == "merged.txt")
-    )
+    pattern = f"ch_*_chunk_*.{lang_key}.txt"
+    txt_files = sorted(in_dir.glob(pattern))
     if not txt_files:
         print(f"[WARN] Nenhum .txt encontrado em {in_dir} (ignorando).")
         return None
 
     if suffix is None:
-        out_name = f"merged_{lang_key}.txt"
+        out_name = f"merge_translate_{lang_key}.txt"
     else:
         out_name = suffix
 

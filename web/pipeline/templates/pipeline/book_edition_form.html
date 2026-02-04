@@ -2,147 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Book Edition - Gaiden</title>
+  <title>Nova edição - Gaiden</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
-    h1 { margin-bottom: 16px; }
-    form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
-    input[type="text"], input[type="number"], select, textarea {
-      width: 100%;
-      padding: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    textarea { min-height: 80px; font-family: monospace; }
-    .roles { display: flex; flex-wrap: wrap; gap: 12px; }
-    .roles label { font-weight: 400; display: flex; align-items: center; gap: 4px; }
-    .actions { margin-top: 20px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    body { font-family: system-ui, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 12px; font-size: 14px; }
+    input, select { width: 100%; padding: 8px; font-size: 14px; }
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+    .actions { margin-top: 16px; }
+    button { padding: 8px 12px; font-size: 14px; }
   </style>
 </head>
 <body>
-  <h1>Book Edition</h1>
+  <h1>Nova edição</h1>
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <label>Book code</label>
+    <input type="text" name="book_code" placeholder="book_0002" required />
 
-    <div>
-      <label for="{{ form.book_code.id_for_label }}">Book code</label>
-      {{ form.book_code }}
-    </div>
+    <label>Idioma</label>
+    <select name="language" required>
+      {% for lang in languages %}
+      <option value="{{ lang.code }}">{{ lang.native_name }} ({{ lang.code }})</option>
+      {% endfor %}
+    </select>
 
-    <div>
-      <label for="{{ form.language.id_for_label }}">Language</label>
-      {{ form.language }}
-    </div>
-
-    <hr />
-
-    <div>
-      <label for="{{ form.source_file.id_for_label }}">Raw file (original text)</label>
-      {{ form.source_file }}
-    </div>
-
-    <div>
-      <label for="{{ form.cover_file.id_for_label }}">Cover file</label>
-      {{ form.cover_file }}
-      {% if form.instance.cover_filepath %}
-      <small>Current: {{ form.instance.cover_filepath }}</small>
-      {% endif %}
-    </div>
-
-    <div>
-      <label for="{{ form.images_zip.id_for_label }}">Images ZIP (optional)</label>
-      {{ form.images_zip }}
-      {% if form.instance.images_dir %}
-      <small>Current: {{ form.instance.images_dir }}</small>
-      {% endif %}
-    </div>
-
-    <div>
-      <label for="{{ form.title.id_for_label }}">Title</label>
-      {{ form.title }}
-    </div>
-
-    <div>
-      <label for="{{ form.subtitle.id_for_label }}">Subtitle</label>
-      {{ form.subtitle }}
-    </div>
-
-    <div>
-      <label for="{{ form.author_name.id_for_label }}">Author</label>
-      {{ form.author_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.publication_year.id_for_label }}">Publication year</label>
-      {{ form.publication_year }}
-    </div>
-
-    <div>
-      <label for="{{ form.imprint_name.id_for_label }}">Imprint name</label>
-      {{ form.imprint_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.collection_name.id_for_label }}">Collection name</label>
-      {{ form.collection_name }}
-    </div>
-
-    <hr />
-
-    <div>
-      <label for="{{ form.collaborator_name.id_for_label }}">Contributor name (you)</label>
-      {{ form.collaborator_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.collaborator_pseudonym.id_for_label }}">Pseudonimo</label>
-      {{ form.collaborator_pseudonym }}
-    </div>
-
-    <div>
-      <span>Roles</span>
-      <div class="roles">
-        {{ form.collaborator_roles }}
+    <div class="row">
+      <div>
+        <label>Título</label>
+        <input type="text" name="title" />
+      </div>
+      <div>
+        <label>Autor</label>
+        <input type="text" name="author" />
+      </div>
+      <div>
+        <label>Ano</label>
+        <input type="text" name="year" />
       </div>
     </div>
 
-    <hr />
+    <label>Selo</label>
+    <select name="seal">
+      {% for s in seals %}
+      <option value="{{ s.slug }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
 
-    <div>
-      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispiece (template)</label>
-      {{ form.frontispiece_text }}
-    </div>
-
-    <div>
-      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
-      {{ form.copyright_text }}
-    </div>
-
-    <div>
-      <label for="{{ form.about_edition_text.id_for_label }}" data-label-key="about_edition_text">About this edition</label>
-      {{ form.about_edition_text }}
-    </div>
-
-    <div>
-      <label for="{{ form.about_contributor_text.id_for_label }}" data-label-key="about_contributor_text">About the contributor</label>
-      {{ form.about_contributor_text }}
-    </div>
+    <label>RAW (opcional)</label>
+    <input type="file" name="raw_file" />
 
     <div class="actions">
-      <button type="submit">Save</button>
-      <a href="{% url 'book_edition_list' %}">Back</a>
+      <button type="submit">Criar edição</button>
     </div>
   </form>
-  {% if form.instance.pk %}
-  <form method="post" action="{% url 'build_book_md' book_code=form.instance.book_code language=form.instance.language %}">
-    {% csrf_token %}
-    <div class="actions">
-      <button type="submit">Build Markdown (.md)</button>
-    </div>
-  </form>
-  {% endif %}
 </body>
 </html>

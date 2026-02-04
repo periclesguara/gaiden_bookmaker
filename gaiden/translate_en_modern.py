@@ -40,16 +40,16 @@ class ChunkInfo:
     text: str
 
 
-def iter_chunks_for_book(book_id: int, split_name: str = "split_01") -> Iterable[ChunkInfo]:
+def iter_chunks_for_book(book_id: int) -> Iterable[ChunkInfo]:
     """
     Itera sobre os arquivos de chunk de um livro:
-    data/chunks/book_XXXX/split_01/NNNN.txt
+    data/chunks/book_XXXX/en/NNNN.txt
     """
-    book_dir = CHUNKS_BASE / f"book_{book_id:04d}" / split_name
+    book_dir = CHUNKS_BASE / f"book_{book_id:04d}" / "en"
     if not book_dir.exists():
         raise FileNotFoundError(f"Chunks não encontrados em {book_dir}")
 
-    paths = sorted(book_dir.glob("*.txt"))
+    paths = sorted(book_dir.glob("ch_*_chunk_*.txt"))
     for i, p in enumerate(paths, start=1):
         txt = p.read_text(encoding="utf-8", errors="replace")
         yield ChunkInfo(book_id=book_id, chunk_index=i, path=p, text=txt)
@@ -95,8 +95,8 @@ def run_translate_for_book(
 ) -> None:
     """
     Traduz (moderniza) todos os chunks de um livro, ou apenas 'limit' chunks se especificado.
-    Salva saída em data/translated/book_XXXX/split_01/NNNN.txt
-    e um arquivo unificado data/translated/book_XXXX/book_en_modern.txt
+    Salva saída em data/translated/book_XXXX/EN/ch_<NN>_chunk_<SEQ>.EN.txt
+    e um arquivo unificado data/translated/book_XXXX/EN/merge_translate_EN.txt
     """
     chunks: List[ChunkInfo] = list(iter_chunks_for_book(book_id))
     if limit is not None:
@@ -115,7 +115,7 @@ def run_translate_for_book(
         print("Dry-run solicitado: não será feita chamada à OpenAI.")
         return
 
-    out_dir = TRANSLATED_BASE / f"book_{book_id:04d}" / "split_01"
+    out_dir = TRANSLATED_BASE / f"book_{book_id:04d}" / "EN"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     merged: List[str] = []
@@ -123,11 +123,11 @@ def run_translate_for_book(
     for info in chunks:
         print(f"[book {book_id:04d}] Chunk {info.chunk_index}/{n} → {info.path.name}")
         modern = translate_chunk_text(info.text, model=model)
-        out_path = out_dir / f"{info.chunk_index:04d}.txt"
+        out_path = out_dir / f"{info.path.stem}.EN.txt"
         out_path.write_text(modern, encoding="utf-8")
         merged.append(modern)
 
-    merged_book_path = TRANSLATED_BASE / f"book_{book_id:04d}" / "book_en_modern.txt"
+    merged_book_path = TRANSLATED_BASE / f"book_{book_id:04d}" / "EN" / "merge_translate_EN.txt"
     merged_book_path.parent.mkdir(parents=True, exist_ok=True)
     merged_book_path.write_text("\n\n".join(merged), encoding="utf-8")
 

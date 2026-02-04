@@ -95,7 +95,7 @@ def _pattern_for_language(language: str) -> str:
     return PATTERN_EN
 
 
-def split_chapters(raw_text: str, header_pattern: str) -> List[Tuple[str, str]]:
+def chunk_chapters(raw_text: str, header_pattern: str) -> List[Tuple[str, str]]:
     """Divide o TXT em capítulos baseado no pattern."""
     pattern = re.compile(header_pattern, flags=re.IGNORECASE)
     lines = raw_text.splitlines()
@@ -175,7 +175,7 @@ def txt_to_md(
 
     raw = source.read_text(encoding="utf-8")
 
-    chapters = split_chapters(raw, chapter_pattern)
+    chapters = chunk_chapters(raw, chapter_pattern)
     if not chapters:
         md = raw.strip() + "\n"
     else:

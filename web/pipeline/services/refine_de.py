@@ -65,7 +65,7 @@ def _resolve_output_paths(edition, lang: str) -> tuple[Path, Path]:
     return output_lang, output_generic
 
 
-def _split_by_chapter(text: str) -> list[str]:
+def _chunk_by_chapter(text: str) -> list[str]:
     lines = text.splitlines()
     chunks: list[str] = []
     current: list[str] = []
@@ -153,7 +153,7 @@ def run_refine_de_kaiser_bismarck(
     source_path = input_path or _resolve_input_path(edition)
     raw_text = source_path.read_text(encoding="utf-8")
 
-    chunks = _split_by_chapter(raw_text)
+    chunks = _chunk_by_chapter(raw_text)
     if not chunks:
         chunks = [raw_text.strip()]
 

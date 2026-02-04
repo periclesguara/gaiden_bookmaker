@@ -219,23 +219,25 @@
           {% csrf_token %}
           <button class="btn" type="submit">Normalize</button>
         </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split_by_chapter' %}">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
           {% csrf_token %}
-          <button class="btn secondary" type="submit">Split by Chapter</button>
+          <button class="btn secondary" type="submit">Chunk (EN)</button>
         </form>
         <div class="status"><span class="badge">EN source only</span></div>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao (NEW MODE)? Usa Split by Chapter e salva merge_refine.txt.');">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao (Translate only + Merge)?');">
           {% csrf_token %}
           <select name="target_language" aria-label="Idioma de traducao">
             <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
             <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
             <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
+            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
           </select>
-          <button class="btn" type="submit">Translate (NEW)</button>
+          <button class="btn" type="submit">Translate</button>
         </form>
         <div class="status">
-          NEW MODE: Split by Chapter → Translate (saída final em <code>merge_refine.txt</code>).
+          Translate only + merge (saída final em <code>merge_translate_&lt;LANG&gt;.txt</code>).
         </div>
         <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
           {% csrf_token %}
@@ -272,48 +274,11 @@
             <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
             <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
+            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
           </select>
           <button class="btn secondary" type="submit">Next step</button>
         </form>
-        <details class="legacy">
-          <summary>Legacy / Maintenance (Refine/Polish + chunk-based)</summary>
-          <div class="actions" style="margin-top: 8px;">
-            <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split' %}">
-              {% csrf_token %}
-              <button class="btn ghost" type="submit">Split (legacy)</button>
-            </form>
-            <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
-              {% csrf_token %}
-              <button class="btn ghost" type="submit">Chunk (legacy)</button>
-            </form>
-            <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'refine' %}">
-              {% csrf_token %}
-              <button class="btn ghost" type="submit">Refine (legacy)</button>
-            </form>
-            <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
-              {% csrf_token %}
-              <button class="btn ghost" type="submit">Polish (legacy)</button>
-            </form>
-            <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-              {% csrf_token %}
-              <input type="hidden" name="lock_name" value="lock_refine" />
-              <input type="hidden" name="target_lang" value="{{ language }}" />
-              <input type="hidden" name="value" value="{% if edition.lock_refine %}0{% else %}1{% endif %}" />
-              <button class="btn ghost" type="submit">
-                Lock refine: {% if edition.lock_refine %}ON{% else %}OFF{% endif %}
-              </button>
-            </form>
-            <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-              {% csrf_token %}
-              <input type="hidden" name="lock_name" value="lock_polish" />
-              <input type="hidden" name="target_lang" value="{{ language }}" />
-              <input type="hidden" name="value" value="{% if edition.lock_polish %}0{% else %}1{% endif %}" />
-              <button class="btn ghost" type="submit">
-                Lock polish: {% if edition.lock_polish %}ON{% else %}OFF{% endif %}
-              </button>
-            </form>
-          </div>
-        </details>
       </div>
       <div class="status">
         RAW: <strong>{{ status.raw }}</strong>
@@ -346,11 +311,19 @@
         Normalize: <strong>{{ status.normalize }}</strong>
       </div>
       <div class="status">
-        Split (legacy): <strong>{{ status.split }}</strong>
+        Normalize status: <span class="badge">non-canonical</span>
       </div>
       <div class="status">
-        Split by Chapter: <strong>{{ status.split_by_chapter }}</strong>
-        {% if status.split_by_chapter == "OK" %}
+        Normalized path:
+        {% if normalized_path %}
+          <strong>{{ normalized_path }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        Chunk: <strong>{{ status.chunk }}</strong>
+        {% if status.chunk == "OK" %}
           <span class="badge ok">ready</span>
         {% endif %}
       </div>
@@ -358,14 +331,11 @@
         Translate:
         <strong>{{ status.translate }}</strong>
         {% if chunk_count %}
-        <span class="badge ok">{{ chunk_count }} blocks</span>
+        <span class="badge ok">{{ chunk_count }} chunks</span>
         {% endif %}
       </div>
       <div class="status">
-        Refine (legacy): <strong>{{ status.refine }}</strong>
-      </div>
-      <div class="status">
-        Polish (legacy): <strong>{{ status.polish }}</strong>
+        Chunks status: <span class="badge">non-canonical</span>
       </div>
       <div class="actions">
         <form method="post">
