@@ -4,7 +4,7 @@ import os
 from typing import Optional
 
 from openai import OpenAI
-from gaiden.secrets import get_openai_key
+from gaiden.secrets_loader import get_openai_config
 
 _client: Optional[OpenAI] = None
 
@@ -12,25 +12,51 @@ _client: Optional[OpenAI] = None
 def get_client() -> OpenAI:
     """
     Retorna um client OpenAI singleton para o projeto Gaiden.
-
-    Ordem de resolução da chave:
-      1) .gaiden_secrets (get_openai_key)
-      2) variável de ambiente OPENAI_API_KEY
-
-    Erra alto se não encontrar.
     """
     global _client
     if _client is not None:
         return _client
 
-    api_key = get_openai_key() or os.environ.get("OPENAI_API_KEY")
+    cfg = get_openai_config()
+
+    api_key = (
+        cfg.get("api_key")
+        or cfg.get("OPENAI_API_KEY")
+        or cfg.get("openai_api_key")
+        or ""
+    ).strip()
+
     if not api_key:
         raise RuntimeError(
-            "OPENAI_API_KEY não encontrada. "
-            "Defina em .gaiden_secrets ou no ambiente."
+            "OpenAI API key não encontrada: verifique .gaiden_secrets (OPENAI_API_KEY=...)"
         )
 
-    _client = OpenAI(api_key=api_key)
+    base_url = cfg.get("base_url") or cfg.get("OPENAI_BASE_URL") or None
+    if base_url:
+        base_url = base_url.strip().rstrip("/")
+        if not base_url.endswith("/v1"):
+            base_url = f"{base_url}/v1"
+    default_model = cfg.get("default_model") or "gpt5-chat-latest"
+
+    print(
+        f"[OPENAI] api_key_len={len(api_key)} base_url={base_url} default_model={default_model}"
+    )
+
+    # Ensure process env is populated for downstream libs.
+    os.environ["OPENAI_API_KEY"] = api_key
+    if base_url:
+        os.environ["OPENAI_BASE_URL"] = base_url
+    if default_model:
+        os.environ["GAIDEN_DEFAULT_MODEL"] = default_model
+    for k in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY"]:
+        if cfg.get(k):
+            os.environ[k] = cfg[k]
+
+    client_kwargs = {"api_key": api_key}
+    if base_url:
+        client_kwargs["base_url"] = base_url
+
+    _client = OpenAI(**client_kwargs)
     return _client
 
 
