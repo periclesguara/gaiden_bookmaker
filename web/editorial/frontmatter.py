@@ -20,6 +20,8 @@ def language_display(code: str) -> str:
         "es": "Español",
         "ptbr": "Português",
         "pt-br": "Português",
+        "fr": "Français",
+        "it": "Italiano",
     }
     return mapping.get(code, code)
 

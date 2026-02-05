@@ -195,6 +195,74 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "{city}, {country} — {year}"
         ),
     },
+    "fr": {
+        "frontispiece_text": (
+            "{title}\n"
+            "par {author}\n"
+            "\n"
+            "Édition moderne en {language}\n"
+            "adapté par {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city}, {country} · {year}"
+        ),
+        "copyright_text": (
+            "Titre\n"
+            "{title}\n"
+            "Sous-titre\n"
+            "{subtitle}\n"
+            "Auteur\n"
+            "{author}\n"
+            "Adaptation\n"
+            "{adapter}\n"
+            "Année de publication\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Domaine public aux États-Unis et dans d'autres territoires.\n"
+            "\n"
+            "Cette version moderne de *{title}* a été produite sous l’empreinte MantaQuest.\n"
+            "MantaQuest est une marque déposée de RinoBooks.\n"
+            "\n"
+            "Éditeur : {publisher}\n"
+            "Tous droits réservés à RinoBooks.\n"
+            "{city}, {country} — {year}"
+        ),
+    },
+    "it": {
+        "frontispiece_text": (
+            "{title}\n"
+            "di {author}\n"
+            "\n"
+            "Edizione moderna in {language}\n"
+            "adattato da {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city}, {country} · {year}"
+        ),
+        "copyright_text": (
+            "Titolo\n"
+            "{title}\n"
+            "Sottotitolo\n"
+            "{subtitle}\n"
+            "Autore\n"
+            "{author}\n"
+            "Adattamento\n"
+            "{adapter}\n"
+            "Anno di pubblicazione\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Di pubblico dominio negli Stati Uniti e in altri territori.\n"
+            "\n"
+            "Questa versione moderna di *{title}* è stata prodotta sotto il marchio MantaQuest.\n"
+            "MantaQuest è un marchio registrato di RinoBooks.\n"
+            "\n"
+            "Editore: {publisher}\n"
+            "Tutti i diritti riservati a RinoBooks.\n"
+            "{city}, {country} — {year}"
+        ),
+    },
 }
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -216,12 +284,16 @@ class BookEditionTemplate(models.Model):
     LANG_PTBR = "ptbr"
     LANG_ES = "es"
     LANG_DE = "de"
+    LANG_FR = "fr"
+    LANG_IT = "it"
 
     LANG_CHOICES = [
         (LANG_EN, "en"),
         (LANG_ES, "es"),
         (LANG_PTBR, "pt-br"),
         (LANG_DE, "Deutsch"),
+        (LANG_FR, "fr"),
+        (LANG_IT, "it"),
     ]
 
     ROLE_TRANSLATOR = "translator"
@@ -334,6 +406,8 @@ class BookEditionTemplate(models.Model):
             "ptbr": "Português",
             "es": "Español",
             "de": "Deutsch",
+            "fr": "Français",
+            "it": "Italiano",
         }
         language_label = language_map.get(self.language, (self.language or "").upper())
         return {

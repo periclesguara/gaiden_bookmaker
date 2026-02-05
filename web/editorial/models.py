@@ -79,6 +79,8 @@ class Edition(models.Model):
         ("pt-br", "Português (Brasil)"),
         ("es", "Español"),
         ("de", "Deutsch"),
+        ("fr", "Français"),
+        ("it", "Italiano"),
     ]
 
     IMPRINT_CHOICES = [

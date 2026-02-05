@@ -55,7 +55,7 @@
   {% endif %}
 
   <div class="actions">
-    <label for="language_select">Idioma</label>
+    <label for="language_select">{{ form_labels.language_select }}</label>
     <select id="language_select" aria-label="Selecionar idioma" data-book-code="{{ book_code }}">
       {% for code, label in language_options %}
         <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ label }}</option>
@@ -68,67 +68,67 @@
     <input type="hidden" name="confirm_overwrite" id="confirm_overwrite" value="0" />
 
     <div>
-      <label for="{{ form.book_code.id_for_label }}">Book code</label>
+      <label for="{{ form.book_code.id_for_label }}">{{ form_labels.book_code }}</label>
       {{ form.book_code }}
     </div>
 
     <div>
-      <label for="{{ form.language.id_for_label }}">Idioma</label>
+      <label for="{{ form.language.id_for_label }}">{{ form_labels.language }}</label>
       {{ form.language }}
     </div>
 
     <div>
-      <label for="{{ form.seal_name.id_for_label }}">Selo</label>
+      <label for="{{ form.seal_name.id_for_label }}">{{ form_labels.seal_name }}</label>
       {{ form.seal_name }}
     </div>
 
     <div>
-      <label for="{{ form.title.id_for_label }}">Titulo do livro</label>
+      <label for="{{ form.title.id_for_label }}">{{ form_labels.title }}</label>
       {{ form.title }}
     </div>
 
     <div>
-      <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+      <label for="{{ form.subtitle.id_for_label }}">{{ form_labels.subtitle }}</label>
       {{ form.subtitle }}
     </div>
 
     <div>
-      <label for="{{ form.author_name.id_for_label }}">Autor</label>
+      <label for="{{ form.author_name.id_for_label }}">{{ form_labels.author_name }}</label>
       {{ form.author_name }}
     </div>
 
     <div>
-      <label for="{{ form.publication_year.id_for_label }}">Ano de publicacao</label>
+      <label for="{{ form.publication_year.id_for_label }}">{{ form_labels.publication_year }}</label>
       {{ form.publication_year }}
     </div>
 
     <div>
-      <label for="{{ form.imprint_name.id_for_label }}">Imprint</label>
+      <label for="{{ form.imprint_name.id_for_label }}">{{ form_labels.imprint_name }}</label>
       {{ form.imprint_name }}
     </div>
 
     <div>
-      <label for="{{ form.city_name.id_for_label }}">Cidade</label>
+      <label for="{{ form.city_name.id_for_label }}">{{ form_labels.city_name }}</label>
       {{ form.city_name }}
     </div>
 
     <div>
-      <label for="{{ form.country_name.id_for_label }}">Pais</label>
+      <label for="{{ form.country_name.id_for_label }}">{{ form_labels.country_name }}</label>
       {{ form.country_name }}
     </div>
 
     <div>
-      <label for="{{ form.editor_name.id_for_label }}">Editor</label>
+      <label for="{{ form.editor_name.id_for_label }}">{{ form_labels.editor_name }}</label>
       {{ form.editor_name }}
     </div>
 
     <div>
-      <label for="{{ form.translator_name.id_for_label }}">Tradutor</label>
+      <label for="{{ form.translator_name.id_for_label }}">{{ form_labels.translator_name }}</label>
       {{ form.translator_name }}
     </div>
 
     <div>
-      <label for="{{ form.adapter_name.id_for_label }}">Adaptador</label>
+      <label for="{{ form.adapter_name.id_for_label }}">{{ form_labels.adapter_name }}</label>
       {{ form.adapter_name }}
     </div>
 

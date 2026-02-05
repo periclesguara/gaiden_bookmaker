@@ -12,8 +12,11 @@ def country_for_language(language_code: str, fallback: str) -> str:
     return {
         "en": "Brazil",
         "pt-br": "Brasil",
+        "ptbr": "Brasil",
         "es": "Brasil",
         "de": "Brasilien",
+        "fr": "Brésil",
+        "it": "Brasile",
     }.get(language_code, fallback)
 
 
