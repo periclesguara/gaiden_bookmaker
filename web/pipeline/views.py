@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import zipfile
 from pathlib import Path
 import shutil
@@ -277,6 +278,30 @@ def _resolve_core_path(path_value: str) -> Path:
     if candidate.is_absolute():
         return candidate
     return Path(settings.BASE_DIR).parent / candidate
+
+
+def _maybe_sync_book_0002_images(book_code: str) -> None:
+    if book_code != "book_0002":
+        return
+    project_root = Path(settings.BASE_DIR).parent
+    script_path = project_root / "gaiden" / "scripts" / "book_0002_prebuild_images.sh"
+    if not script_path.exists():
+        raise FileNotFoundError(f"Prebuild script not found: {script_path}")
+
+    result = subprocess.run(
+        ["bash", str(script_path)],
+        cwd=str(project_root),
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Prebuild images failed.\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}"
+        )
 
 
 def _copy_merge_to_build(edition, merged_path: Path, target_path: Path) -> Path:
@@ -1018,6 +1043,91 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.save()
             messages.success(request, f"Translate OK: {merged_path or out_dir}")
 
+        elif step == "return_en":
+            target_edition = _edition_for_language(edition, "en")
+            stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
+            stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
+            book_id = _parse_book_id(target_edition.work.code)
+            if book_id is None:
+                raise ValueError("book_code must be like book_0001 to return EN.")
+            book_code = f"book_{book_id:04d}"
+
+            split_dir = (
+                paths.data_dir()
+                / "translated"
+                / book_code
+                / "EN"
+                / "split_chapters_for_refine"
+            )
+            if not split_dir.exists():
+                raise FileNotFoundError(
+                    f"Split EN não encontrado: {split_dir}. Rode o split antes."
+                )
+
+            project_root = Path(settings.BASE_DIR).parent
+            cmd = [
+                sys.executable,
+                "-m",
+                "gaiden.return_en",
+                "gaiden/contracts/return_aldebaran_en_2026.json",
+                "gaiden/contracts/return_yoda_ming_en_2026.json",
+                "--book",
+                book_code,
+            ]
+
+            result = subprocess.run(
+                cmd,
+                cwd=str(project_root),
+                capture_output=True,
+                text=True,
+                env=os.environ.copy(),
+                check=False,
+            )
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"return_en falhou.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+                )
+
+            out_path = (
+                project_root
+                / "data"
+                / "builds"
+                / book_code
+                / "en"
+                / "return"
+                / "merge_refine_en.txt"
+            )
+            if not out_path.exists():
+                raise FileNotFoundError(
+                    f"merge_refine_en.txt não encontrado: {out_path}"
+                )
+
+            build_path = _copy_merge_to_build(
+                target_edition,
+                out_path,
+                paths.merge_refine_path(target_edition),
+            )
+
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            pipeline_state.current_stage = PipelineStage.POLISHED
+            pipeline_state.refined_at = timezone.now()
+            pipeline_state.polished_at = timezone.now()
+            pipeline_state.core_last_txt_path = str(build_path)
+            pipeline_state.last_log = result.stdout.strip()
+            pipeline_state.save(
+                update_fields=[
+                    "current_stage",
+                    "refined_at",
+                    "polished_at",
+                    "core_last_txt_path",
+                    "last_log",
+                ]
+            )
+            messages.success(
+                request,
+                f"Return EN OK: {out_path}",
+            )
+
         elif step == "refine":
             raise ValueError("Refine por chunks desativado por política (translate-only).")
             stage_policy.POLICY.assert_stage_allowed(edition, "refine")
@@ -1163,6 +1273,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "build":
             target_edition = _target_edition()
+            _maybe_sync_book_0002_images(book_code)
             md_version = request.POST.get("md_version") or None
             kdp_mode.build_frontmatter_files(target_edition, paths.data_dir() / "frontmatter")
             merged_path = kdp_mode.build_merged_kdp_source(target_edition, version_override=md_version)
@@ -1174,6 +1285,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "export_epub":
             target_edition = _target_edition()
+            _maybe_sync_book_0002_images(book_code)
             md_version = request.POST.get("md_version") or None
             result = {"path": str(kdp_mode.build_epub_for_edition(target_edition, version_override=md_version))}
             messages.success(request, f"EPUB OK: {result['path']}")
@@ -1192,6 +1304,7 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "gaiden":
             target_lang = _target_lang()
             target_edition = _target_edition()
+            _maybe_sync_book_0002_images(book_code)
             md_version = request.POST.get("md_version") or None
 
             build_dir = (
