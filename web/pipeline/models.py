@@ -58,6 +58,73 @@ class TextSnapshot(models.Model):
         return f"Snapshot({self.edition} [{self.language}] - {self.stage})"
 
 
+class PipelineRun(models.Model):
+    MODE_CHOICES = [
+        ("MATRIX", "Matrix"),
+    ]
+
+    ACTION_CHOICES = [
+        ("TRANSLATE", "Translate"),
+        ("SPLIT", "Split"),
+        ("RETURN_REFINE", "Return Refine"),
+        ("BUILD", "Build"),
+    ]
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pendente"),
+        ("RUNNING", "Rodando"),
+        ("DONE", "Concluido"),
+        ("FAILED", "Falhou"),
+    ]
+
+    mode = models.CharField(max_length=20, choices=MODE_CHOICES, default="MATRIX")
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES, default="TRANSLATE")
+    options = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Run {self.id} ({self.action}) - {self.status}"
+
+
+class PipelineRunItem(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pendente"),
+        ("RUNNING", "Rodando"),
+        ("DONE", "Ok"),
+        ("FAILED", "Falhou"),
+        ("SKIPPED", "Pulado"),
+    ]
+
+    run = models.ForeignKey(
+        PipelineRun,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    book_id = models.IntegerField(null=True, blank=True)
+    book_code = models.CharField(max_length=50, blank=True)
+    lang = models.CharField(max_length=10)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    out_path = models.TextField(blank=True)
+    log_path = models.TextField(blank=True)
+    skipped_reason = models.TextField(blank=True)
+    overwrote = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self) -> str:
+        code = self.book_code or f"book_{self.book_id:04d}" if self.book_id else "book"
+        return f"{code} [{self.lang}] - {self.status}"
+
+
 LANGUAGE_DEFAULT_TEMPLATES = {
     "en": {
         "frontispiece_text": (

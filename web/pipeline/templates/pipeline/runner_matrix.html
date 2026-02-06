@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Runner Matrix</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --accent-dark: #a63f22;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+      --bad: #b30000;
+      --info: #2b5bb3;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      padding: 18px 24px 10px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--ink);
+    }
+    .btn.small {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 13px;
+    }
+    .list {
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+    }
+    .list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 4px 2px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 24px 18px;
+    }
+    table {
+      width: calc(100% - 48px);
+      margin: 0 24px 28px;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    th {
+      background: #f4ece2;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .badge.info { color: var(--info); }
+    .log {
+      white-space: pre-wrap;
+      max-width: 520px;
+      max-height: 120px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      background: #fff;
+      border: 1px dashed var(--border);
+      padding: 6px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Runner Matrix</h1>
+    <p class="subtitle">Orquestração em fila (1 a 1) para execução de etapas do pipeline.</p>
+  </header>
+
+  <form method="post" action="{% url 'pipeline_runner_run' %}">
+    {% csrf_token %}
+    <section class="grid">
+      <div class="card">
+        <h2>Books</h2>
+        <div class="list">
+          {% for work in works %}
+            <label>
+              <input type="checkbox" name="books" value="{{ work.code }}" />
+              <span>{{ work.code }} — {{ work.title }}</span>
+            </label>
+          {% empty %}
+            <p class="subtitle">Nenhum book encontrado.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Languages</h2>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <button type="button" class="btn small secondary" onclick="toggleLangs('all')">All</button>
+          <button type="button" class="btn small secondary" onclick="toggleLangs('clear')">Clear</button>
+          <button type="button" class="btn small secondary" onclick="toggleLangs('only-en')">Only EN</button>
+        </div>
+        <div class="list" id="lang-list">
+          {% for lang in languages %}
+            <label>
+              <input type="checkbox" name="languages" value="{{ lang.code }}" {% if lang.code == 'en' %}checked{% endif %} />
+              <span>{{ lang.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Action</h2>
+        <label class="option">
+          <input type="radio" name="action" value="TRANSLATE" checked />
+          <span>TRANSLATE (MVP)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="action" value="SPLIT" disabled />
+          <span>SPLIT (em breve)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="action" value="RETURN_REFINE" disabled />
+          <span>RETURN_REFINE (em breve)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="action" value="BUILD" disabled />
+          <span>BUILD (em breve)</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Options</h2>
+        <label class="option">
+          <input type="checkbox" checked disabled />
+          <span>Queue mode (1-by-1)</span>
+        </label>
+        <label class="option">
+          <input type="checkbox" name="skip_existing" checked />
+          <span>Do not regenerate if output already exists</span>
+        </label>
+        <label class="option">
+          <input type="checkbox" name="stop_on_error" />
+          <span>Stop on error</span>
+        </label>
+        <label class="option">
+          <input type="checkbox" name="dry_run" />
+          <span>Dry-run</span>
+        </label>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="submit" class="btn">Run</button>
+      <a href="{% url 'pipeline_runner_matrix' %}" class="btn ghost">Refresh</a>
+      {% if run %}
+        <a href="{% url 'pipeline_runner_matrix_detail' run.id %}" class="btn secondary">View Run #{{ run.id }}</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if run %}
+    <header>
+      <h1>Last Run #{{ run.id }}</h1>
+      <p class="subtitle">Status: <strong>{{ run.status }}</strong> · Action: {{ run.action }} · Created: {{ run.created_at }}</p>
+      {% if run.started_at %}<p class="subtitle">Started: {{ run.started_at }} · Finished: {{ run.finished_at }}</p>{% endif %}
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Lang</th>
+          <th>Status</th>
+          <th>Out Path</th>
+          <th>Started</th>
+          <th>Finished</th>
+          <th>Skipped Reason</th>
+          <th>Overwrote</th>
+          <th>Log Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.book_code }}{% if item.book_id %} ({{ item.book_id }}){% endif %}</td>
+            <td>{{ item.lang }}</td>
+            <td>
+              {% if item.status == 'DONE' %}
+                <span class="badge ok">OK</span>
+              {% elif item.status == 'FAILED' %}
+                <span class="badge bad">FAIL</span>
+              {% elif item.status == 'SKIPPED' %}
+                <span class="badge warn">SKIPPED</span>
+              {% elif item.status == 'RUNNING' %}
+                <span class="badge info">RUNNING</span>
+              {% else %}
+                <span class="badge">{{ item.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ item.out_path }}</td>
+            <td>{{ item.started_at }}</td>
+            <td>{{ item.finished_at }}</td>
+            <td>{{ item.skipped_reason }}</td>
+            <td>{% if item.overwrote %}yes{% else %}no{% endif %}</td>
+            <td>{{ item.log_path }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9">No items.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <script>
+    function toggleLangs(mode) {
+      const list = document.getElementById('lang-list');
+      const boxes = list.querySelectorAll('input[type="checkbox"]');
+      if (mode === 'all') {
+        boxes.forEach((b) => { b.checked = true; });
+      } else if (mode === 'clear') {
+        boxes.forEach((b) => { b.checked = false; });
+      } else if (mode === 'only-en') {
+        boxes.forEach((b) => { b.checked = (b.value === 'en'); });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -30,7 +30,14 @@ from editorial.models import (
 )
 from editorial import kdp_mode
 
-from .models import BookEditionTemplate, PipelineJob, TextSnapshot, get_book_md_path
+from .models import (
+    BookEditionTemplate,
+    PipelineJob,
+    PipelineRun,
+    PipelineRunItem,
+    TextSnapshot,
+    get_book_md_path,
+)
 from .services import (
     book_manifest,
     build_book,
@@ -62,6 +69,113 @@ def pipeline_dashboard(request):
 def pipeline_jobs(request):
     pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("-id")
     return render(request, "pipeline/jobs.html", {"pipelines": pipelines})
+
+
+def runner_matrix_view(request):
+    works = Work.objects.order_by("code")
+    languages = [
+        {"code": "en", "label": "EN"},
+        {"code": "de", "label": "DE"},
+        {"code": "fr", "label": "FR"},
+        {"code": "it", "label": "IT"},
+        {"code": "es", "label": "ES"},
+        {"code": "ptbr", "label": "PT-BR"},
+    ]
+
+    run_id = request.GET.get("run_id")
+    if run_id:
+        run = get_object_or_404(PipelineRun, id=run_id)
+    else:
+        run = PipelineRun.objects.order_by("-created_at").first()
+    items = run.items.all() if run else []
+
+    context = {
+        "works": works,
+        "languages": languages,
+        "run": run,
+        "items": items,
+    }
+    return render(request, "pipeline/runner_matrix.html", context)
+
+
+@require_POST
+def runner_matrix_run_view(request):
+    book_codes = [b for b in request.POST.getlist("books") if b.strip()]
+    languages = [l for l in request.POST.getlist("languages") if l.strip()]
+    action = (request.POST.get("action") or "TRANSLATE").upper()
+
+    running = PipelineRun.objects.filter(action=action, status="RUNNING").first()
+    if running:
+        messages.warning(request, f"Já existe um run em execução (#{running.id}).")
+        return redirect("pipeline_runner_matrix_detail", run_id=running.id)
+
+    if not book_codes or not languages:
+        messages.error(request, "Selecione ao menos 1 book e 1 idioma.")
+        return redirect("pipeline_runner_matrix")
+
+    if action != "TRANSLATE":
+        messages.error(request, "Ação inválida no MVP (apenas TRANSLATE).")
+        return redirect("pipeline_runner_matrix")
+
+    skip_existing = request.POST.get("skip_existing") == "on"
+    stop_on_error = request.POST.get("stop_on_error") == "on"
+    dry_run = request.POST.get("dry_run") == "on"
+
+    run = PipelineRun.objects.create(
+        mode="MATRIX",
+        action="TRANSLATE",
+        options={
+            "queue_mode": True,
+            "skip_existing": skip_existing,
+            "stop_on_error": stop_on_error,
+            "dry_run": dry_run,
+        },
+        status="PENDING",
+    )
+
+    items = []
+    for book_code in book_codes:
+        book_id = _parse_book_id(book_code)
+        for lang in languages:
+            out_path = ""
+            if book_id is not None:
+                out_path = str(_runner_merge_translate_path(book_id, lang))
+            items.append(
+                PipelineRunItem(
+                    run=run,
+                    book_id=book_id,
+                    book_code=book_code,
+                    lang=utils.normalize_lang(lang),
+                    out_path=out_path,
+                    status="PENDING",
+                )
+            )
+    PipelineRunItem.objects.bulk_create(items)
+
+    _spawn_runner_process(run.id)
+
+    return redirect("pipeline_runner_matrix_detail", run_id=run.id)
+
+
+def runner_matrix_detail_view(request, run_id: int):
+    run = get_object_or_404(PipelineRun, id=run_id)
+    items = run.items.all()
+    works = Work.objects.order_by("code")
+    languages = [
+        {"code": "en", "label": "EN"},
+        {"code": "de", "label": "DE"},
+        {"code": "fr", "label": "FR"},
+        {"code": "it", "label": "IT"},
+        {"code": "es", "label": "ES"},
+        {"code": "ptbr", "label": "PT-BR"},
+    ]
+    context = {
+        "works": works,
+        "languages": languages,
+        "run": run,
+        "items": items,
+    }
+    return render(request, "pipeline/runner_matrix.html", context)
 
 
 def book_edition_list(request):
@@ -333,6 +447,43 @@ def _resolve_return_flow_contract(language: str) -> Path:
 def _extract_book_code(value: str) -> str | None:
     m = re.search(r"(book_\d{4})", value)
     return m.group(1) if m else None
+
+
+def _runner_lang_dir(lang: str) -> str:
+    norm = utils.normalize_lang(lang)
+    if norm == "ptbr":
+        return "PT-BR"
+    return norm.upper()
+
+
+def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    lang_dir = _runner_lang_dir(lang)
+    return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / f"merge_translate_{lang_dir}.txt"
+
+
+def _runner_python_path() -> Path:
+    venv_python = _project_root() / ".venv" / "bin" / "python"
+    if venv_python.exists():
+        return venv_python
+    return Path(sys.executable)
+
+
+def _spawn_runner_process(run_id: int) -> None:
+    cmd = [
+        str(_runner_python_path()),
+        "web/manage.py",
+        "run_pipeline_matrix",
+        str(run_id),
+    ]
+    subprocess.Popen(
+        cmd,
+        cwd=str(_project_root()),
+        env=os.environ.copy(),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
 
 
 def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]:
