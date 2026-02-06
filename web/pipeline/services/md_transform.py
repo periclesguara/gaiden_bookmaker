@@ -16,6 +16,7 @@ CHAPTER_PATTERNS = [
     r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*",
     r"^CHAPTER\s+[IVXLCDM]+(\.|:)?\s*.*",
     r"^CAPITULO\s+[IVXLCDM]+(\.|:)?\s*.*",
+    r"^\d+\.\s+.+",
     r"^[IVXLCDM]+\.\s+.*",
     r"^[IVXLCDM]+$",
 ]

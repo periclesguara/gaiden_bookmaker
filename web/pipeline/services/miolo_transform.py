@@ -38,6 +38,23 @@ def promote_chapter_h2_to_h1(md_text: str) -> tuple[str, int]:
 CHAPTER_PATTERNS_BY_LANG = {
     "en": [
         ChapterPattern("CHAPTER_NUM", re.compile(r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "es": [
+        ChapterPattern("CAPITULO_NUM", re.compile(r"^CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "ptbr": [
+        ChapterPattern("CAPITULO_NUM", re.compile(r"^CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "fr": [
+        ChapterPattern("CHAPITRE_NUM", re.compile(r"^CHAPITRE\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "it": [
+        ChapterPattern("CAPITOLO_NUM", re.compile(r"^CAPITOLO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
     ],
     "de": [
         ChapterPattern("ROMAN_DOT", re.compile(r"^[IVXLCDM]+\.\s+.+$", re.I)),

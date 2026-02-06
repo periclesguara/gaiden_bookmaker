@@ -826,7 +826,7 @@ def edition_steps(request, edition_id: int):
     )
     md_source_map = {
         lang: _resolve_md_source_path(lang)
-        for lang in ("en", "es", "ptbr", "de")
+        for lang in ("en", "es", "ptbr", "de", "fr", "it")
     }
     md_source_map_json = json.dumps(md_source_map)
 

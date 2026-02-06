@@ -157,6 +157,8 @@ def _illustrated_notice(lang_code: str) -> str:
         "de": "Illustrierte Ausgabe · Modernes Deutsch",
         "es": "Edición ilustrada.",
         "pt_br": "Edição ilustrada.",
+        "fr": "Édition illustrée",
+        "it": "Edizione illustrata",
     }
     return mapping.get(normalized, "Illustrated edition.")
 
