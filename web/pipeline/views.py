@@ -284,7 +284,7 @@ def _maybe_sync_book_0002_images(book_code: str) -> None:
     if book_code != "book_0002":
         return
     project_root = Path(settings.BASE_DIR).parent
-    script_path = project_root / "gaiden" / "scripts" / "book_0002_prebuild_images.sh"
+    script_path = project_root / "gaiden" / "bin" / "book_0002_prebuild_images.sh"
     if not script_path.exists():
         raise FileNotFoundError(f"Prebuild script not found: {script_path}")
 
