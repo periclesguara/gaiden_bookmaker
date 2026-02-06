@@ -45,6 +45,14 @@ from .services import (
     utils,
 )
 
+RETURN_FLOW_CONTRACTS = {
+    "en": "gaiden/contracts/return_flow_en_2026.json",
+    "es": "gaiden/contracts/return_flow_es_2026.json",
+    "ptbr": "gaiden/contracts/return_flow_ptbr_2026.json",
+    "de": "gaiden/contracts/return_flow_de_2026.json",
+    "fr": "gaiden/contracts/return_flow_fr_2026.json",
+    "it": "gaiden/contracts/return_flow_it_2026.json",
+}
 
 def pipeline_dashboard(request):
     pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
@@ -310,40 +318,65 @@ def _copy_merge_to_build(edition, merged_path: Path, target_path: Path) -> Path:
     return target_path
 
 
-def _legacy_gaiden_merge_path(book_id: int, language: str, stage: str) -> Path | None:
+def _project_root() -> Path:
+    return Path(settings.BASE_DIR).parent
+
+
+def _resolve_return_flow_contract(language: str) -> Path:
     lang = utils.normalize_lang(language)
-    base_dir = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "chunks"
-        / f"book_{book_id:04d}"
-        / f"refine_{lang}_01"
+    contract = RETURN_FLOW_CONTRACTS.get(lang)
+    if not contract:
+        raise ValueError(f"Refine/Polish via agente não disponível para language={lang}")
+    return _project_root() / contract
+
+
+def _extract_book_code(value: str) -> str | None:
+    m = re.search(r"(book_\d{4})", value)
+    return m.group(1) if m else None
+
+
+def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]:
+    payload = json.loads(contract_path.read_text(encoding="utf-8"))
+    splits_dir = payload.get("splits_dir", "")
+    out_dir = payload.get("out_dir", "")
+    merge_name = payload.get("merge_name", "merge_refine.txt")
+
+    for probe in (splits_dir, out_dir):
+        found = _extract_book_code(str(probe))
+        if found and found != book_code:
+            raise ValueError(
+                f"Contrato {contract_path} aponta para {found}, mas edição é {book_code}."
+            )
+
+    splits_path = Path(splits_dir)
+    if not splits_path.is_absolute():
+        splits_path = _project_root() / splits_path
+    if not splits_path.exists():
+        raise FileNotFoundError(f"Split dir não encontrado: {splits_path}")
+
+    out_path = Path(out_dir)
+    if not out_path.is_absolute():
+        out_path = _project_root() / out_path
+    merge_path = out_path / merge_name
+
+    cmd = [sys.executable, "-m", "gaiden.return_splits", str(contract_path)]
+    result = subprocess.run(
+        cmd,
+        cwd=str(_project_root()),
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        check=False,
     )
-    if not base_dir.exists():
-        return None
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"return_splits falhou.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        )
 
-    if stage == "polish":
-        candidates = [
-            base_dir / "merged_polished_en_2025.txt",
-            base_dir / "merged_polished_en.txt",
-        ]
-    elif stage == "refine":
-        candidates = [
-            base_dir / f"merged_refined_{lang}_2025.txt",
-            base_dir / f"merged_refined_{lang}.txt",
-        ]
-    else:
-        candidates = [
-            base_dir / f"merged_{lang}_2025.txt",
-            base_dir / f"merged_{lang}.txt",
-        ]
-        if lang == "en":
-            candidates.insert(0, base_dir / "merged_en_modern_2025.txt")
+    if not merge_path.exists():
+        raise FileNotFoundError(f"Merge não encontrado: {merge_path}")
 
-    for path in candidates:
-        if path.exists():
-            return path
-    return None
+    return merge_path, result.stdout.strip()
 
 
 def _detect_merged_path(out_dir: Path) -> Path | None:
@@ -1129,49 +1162,41 @@ def run_edition_step(request, edition_id: int, step: str):
             )
 
         elif step == "refine":
-            raise ValueError("Refine por chunks desativado por política (translate-only).")
             stage_policy.POLICY.assert_stage_allowed(edition, "refine")
-            lang_code = utils.normalize_lang(edition.language.code)
-            if lang_code != "de":
-                raise ValueError("Refine disponivel apenas para DE (KAISER->BISMARCK).")
-
-            from .services import refine_de as refine_de_service
-
-            result = refine_de_service.run_refine_de_kaiser_bismarck(edition)
+            book_code = edition.work.code
+            contract_path = _resolve_return_flow_contract(edition.language.code)
+            merge_path, log = _run_return_flow(contract_path, book_code=book_code)
+            build_path = _copy_merge_to_build(
+                edition,
+                merge_path,
+                paths.merge_refine_path(edition),
+            )
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
             pipeline_state.current_stage = PipelineStage.REFINED
             pipeline_state.refined_at = timezone.now()
-            pipeline_state.last_log = (
-                f"KAISER->BISMARCK chunks={result.chunks} input={result.input_path}"
-            )
-            pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log"])
-            messages.success(request, f"Refine DE OK: {result.output_path}")
+            pipeline_state.core_last_txt_path = str(build_path)
+            pipeline_state.last_log = log
+            pipeline_state.save(update_fields=["current_stage", "refined_at", "core_last_txt_path", "last_log"])
+            messages.success(request, f"Refine OK (via agente): {build_path}")
 
         elif step == "polish":
-            raise ValueError("Polish por chunks desativado por política (translate-only).")
-            from gaiden.polish_en_2025 import run_polish_en_2025
-
             target_edition = edition
             stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
-            book_id = _parse_book_id(book_code)
-            if book_id is None:
-                raise ValueError("book_code must be like book_0001 to polish.")
-            if utils.normalize_lang(target_edition.language.code) != "en":
-                raise ValueError("Polish is only available for English.")
-
-            run_polish_en_2025(book_id=book_id, lang_key="en_modern_2025")
-            out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
+            book_code = target_edition.work.code
+            contract_path = _resolve_return_flow_contract(target_edition.language.code)
+            merge_path, log = _run_return_flow(contract_path, book_code=book_code)
             build_path = _copy_merge_to_build(
                 target_edition,
-                out_path,
+                merge_path,
                 paths.merge_polish_path(target_edition),
             )
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.POLISHED
             pipeline_state.polished_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, "Polish OK")
+            pipeline_state.core_last_txt_path = str(build_path)
+            pipeline_state.last_log = log
+            pipeline_state.save(update_fields=["current_stage", "polished_at", "core_last_txt_path", "last_log"])
+            messages.success(request, f"Polish OK (via agente): {build_path}")
 
         elif step == "txt_to_md":
             md_language = request.POST.get("md_language") or None
@@ -1394,72 +1419,28 @@ def refine_es_mx(request, edition_id: int):
             status=400,
         )
 
-    book_id = _parse_book_id(edition.work.code)
-    if book_id is None:
-        return JsonResponse(
-            {"ok": False, "error": "book_code must contain an id like book_0001."},
-            status=400,
-        )
-    book_code = f"book_{book_id:04d}"
+    book_code = edition.work.code
+    contract_path = _resolve_return_flow_contract(lang_code)
+    try:
+        merge_path, log = _run_return_flow(contract_path, book_code=book_code)
+    except Exception as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=500)
 
-    from gaiden import secrets as gaiden_secrets
-
-    project_root = Path(settings.BASE_DIR).parent
-    env = os.environ.copy()
-    api_key = gaiden_secrets.get_openai_key()
-    if not api_key:
-        return JsonResponse(
-            {"ok": False, "error": "Missing OPENAI_API_KEY in .gaiden_secrets"},
-            status=500,
-        )
-    env["OPENAI_API_KEY"] = api_key
-    cmd = ["node", "scripts/es/run_refine_es_mx_workflow.mjs"]
-    result = subprocess.run(
-        cmd,
-        cwd=str(project_root),
-        capture_output=True,
-        text=True,
-        env=env,
-        check=False,
-    )
-    if result.returncode != 0:
-        return JsonResponse(
-            {"ok": False, "stdout": result.stdout, "stderr": result.stderr},
-            status=500,
-        )
-
-    out_path = (
-        project_root
-        / "data"
-        / "chunks"
-        / book_code
-        / "refine_es_01"
-        / "refined_es_mx_2025.txt"
-    )
-    if not out_path.exists():
-        return JsonResponse(
-            {"ok": False, "error": f"Refined output not found: {out_path}"},
-            status=500,
-        )
-
-    build_path = _copy_merge_to_build(
-        edition,
-        out_path,
-        paths.merge_refine_path(edition),
-    )
+    build_path = _copy_merge_to_build(edition, merge_path, paths.merge_refine_path(edition))
 
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
     pipeline_state.current_stage = PipelineStage.REFINED
     pipeline_state.refined_at = timezone.now()
-    pipeline_state.last_log = result.stdout.strip()
-    pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log"])
+    pipeline_state.core_last_txt_path = str(build_path)
+    pipeline_state.last_log = log
+    pipeline_state.save(update_fields=["current_stage", "refined_at", "core_last_txt_path", "last_log"])
 
     return JsonResponse(
         {
             "ok": True,
             "variant": "es_mx",
-            "out_path": str(out_path),
+            "out_path": str(merge_path),
             "build_path": str(build_path),
-            "stdout": result.stdout,
+            "stdout": log,
         }
     )
