@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Pipeline Steps - {{ book_code }} ({{ language }})</title>
+  <title>Production Console — {{ book_code }} ({{ language }})</title>
   <style>
     :root {
       --bg: #f7f2ea;
@@ -14,6 +14,7 @@
       --border: #e2d9cf;
       --ok: #1f7a3b;
       --warn: #b56a00;
+      --bad: #b30000;
     }
     body {
       margin: 0;
@@ -34,36 +35,23 @@
       color: var(--muted);
       font-size: 14px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
-      padding: 18px 24px 36px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
-    }
-    .card h2 {
-      margin: 0 0 10px;
-      font-size: 18px;
-    }
-    .actions {
-      display: grid;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    header .actions {
+    .nav {
       display: flex;
-      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid transparent;
+    }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-top: 12px;
-    }
-    .actions form {
-      margin: 0;
     }
     .btn {
       display: inline-flex;
@@ -88,13 +76,27 @@
       border-color: var(--border);
       color: var(--ink);
     }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      padding: 18px 24px 36px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
     .status {
       font-size: 13px;
       color: var(--muted);
       margin: 6px 0 0;
-    }
-    .status strong {
-      color: var(--ink);
     }
     .badge {
       display: inline-block;
@@ -104,87 +106,53 @@
       background: #fff;
       border: 1px solid var(--border);
     }
-    .badge.ok {
-      color: var(--ok);
-    }
-    .badge.warn {
-      color: var(--warn);
-    }
-    .file-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin: 6px 0 10px;
-    }
-    .file-summary {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
+      margin-top: 8px;
     }
-    details.legacy {
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      background: #fff;
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      vertical-align: top;
     }
-    details.legacy summary {
-      cursor: pointer;
+    th {
+      background: #f4ece2;
       font-weight: 600;
       color: var(--muted);
     }
-    details.legacy[open] summary {
-      color: var(--ink);
-    }
-    textarea {
-      width: 100%;
-      min-height: 180px;
-      resize: vertical;
-      padding: 10px;
-      font-family: "Courier New", monospace;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #fff;
-      box-sizing: border-box;
-    }
-    .links {
-      margin-top: 10px;
+    .inline-form {
       display: grid;
-      gap: 6px;
-      font-size: 13px;
-    }
-    .links a {
-      color: var(--accent-dark);
-      text-decoration: none;
-    }
-    .meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 10px;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Pipeline Steps — {{ book_code }} ({{ language }})</h1>
-    <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Production Console — Assets & Status</h1>
+    <p class="subtitle">{{ book_code }} · {{ edition.work.title }} · {{ edition.work.author.name }}</p>
     <div class="actions">
-      <a class="btn secondary" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=language %}">
-        Edition (Editorial)
-      </a>
+      <a class="btn secondary" href="/pipeline/runner/?book_code={{ book_code }}">Open Runner Matrix</a>
+      <a class="btn secondary" href="/editorial/frontmatter/{{ book_code }}/{{ language }}/">Open Frontmatter</a>
+      <a class="btn secondary" href="/pipeline/dashboard/">Open Global Dashboard</a>
     </div>
   </header>
+
   {% if messages %}
   <section class="grid" style="padding-top: 0;">
     <article class="card">
@@ -195,408 +163,97 @@
     </article>
   </section>
   {% endif %}
-  {% if sync_log %}
-  <section class="grid" style="padding-top: 0;">
-    <article class="card">
-      <h2>Sync</h2>
-      {% for line in sync_log %}
-      <div class="status">{{ line }}</div>
-      {% endfor %}
-    </article>
-  </section>
-  {% endif %}
 
   <section class="grid">
     <article class="card">
-      <h2>Texto / Pipeline Core</h2>
-      <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'raw' %}" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="file" name="raw_file" required />
-          <button class="btn secondary" type="submit">Salvar RAW (upload)</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'normalize' %}">
-          {% csrf_token %}
-          <button class="btn" type="submit">Normalize</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
-          {% csrf_token %}
-          <button class="btn secondary" type="submit">Chunk (EN)</button>
-        </form>
-        <div class="status"><span class="badge">EN source only</span></div>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao (Translate only + Merge)?');">
-          {% csrf_token %}
-          <select name="target_language" aria-label="Idioma de traducao">
-            <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
-            <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
-            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
-          </select>
-          <button class="btn" type="submit">Translate</button>
-        </form>
-        <div class="status">
-          Translate only + merge (saída final em <code>merge_translate_&lt;LANG&gt;.txt</code>).
-        </div>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_translate" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_translate %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock translate: {% if edition.lock_translate %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_refine" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_refine %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock refine: {% if edition.lock_refine %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_polish" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_polish %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock polish: {% if edition.lock_polish %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_translation_language" />
-          <select name="target_language" aria-label="Salvar idioma de traducao">
-            <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
-            <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
-            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
-          </select>
-          <button class="btn secondary" type="submit">Next step</button>
-        </form>
-      </div>
-      <div class="status">
-        RAW: <strong>{{ status.raw }}</strong>
-      </div>
-      <div class="status">
-        Core salvo:
-        {% if core_last_txt_path %}
-          <strong>{{ core_last_txt_path }}</strong>
-        {% else %}
-          <span class="badge">nenhum arquivo</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        RAW path:
-        {% if raw_path %}
-          <strong>{{ raw_path }}</strong>
-        {% else %}
-          <span class="badge">nenhum arquivo</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        RAW arquivo:
-        {% if raw_name %}
-          <strong>{{ raw_name }}</strong>
-        {% else %}
-          <span class="badge">nenhum arquivo</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        Normalize: <strong>{{ status.normalize }}</strong>
-      </div>
-      <div class="status">
-        Normalize status: <span class="badge">non-canonical</span>
-      </div>
-      <div class="status">
-        Normalized path:
-        {% if normalized_path %}
-          <strong>{{ normalized_path }}</strong>
-        {% else %}
-          <span class="badge">nenhum arquivo</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        Chunk: <strong>{{ status.chunk }}</strong>
-        {% if status.chunk == "OK" %}
-          <span class="badge ok">ready</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        Translate:
-        <strong>{{ status.translate }}</strong>
-        {% if chunk_count %}
-        <span class="badge ok">{{ chunk_count }} chunks</span>
-        {% endif %}
-      </div>
-      <div class="status">
-        Chunks status: <span class="badge">non-canonical</span>
-      </div>
-      <div class="actions">
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_core_txt" />
-          <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
-        </form>
-      </div>
-    </article>
-
-    <article class="card" id="transformacao-editorial">
-      <h2>Transformacao Editorial &amp; Qualidade</h2>
-      <h3>Frontmatter por Idioma</h3>
-      <form method="get" class="actions">
-        <label for="frontmatter_lang">Idioma</label>
-        <select id="frontmatter_lang" name="frontmatter_lang" aria-label="Selecionar idioma do frontmatter" onchange="this.form.submit()">
-          {% for code, label in frontmatter_lang_choices %}
-            <option value="{{ code }}" {% if frontmatter_lang == code %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-        <label class="ml-2">
-          <input type="checkbox" name="frontmatter_lock" value="1" {% if frontmatter_locked %}checked{% endif %} onchange="this.form.submit()" />
-          Lock idioma
-        </label>
-        <a class="btn secondary ml-2" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang %}">
-          Frontmatter
-        </a>
-        <noscript>
-          <button class="btn secondary" type="submit">Atualizar</button>
-        </noscript>
-      </form>
-      <form method="post" class="actions" action="{% url 'editorial_frontmatter_actions' edition.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
-        <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-        <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
-          Regerar Frontmatter (.md)
-        </button>
-        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
-          Frontmatter + Build MD
-        </button>
-      </form>
-      <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
-      <p>
-        A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
-      </p>
-      <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
-          {% csrf_token %}
-          <label for="md_language">Idioma</label>
-          <select id="md_language" name="md_language">
-            <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
-            <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE (Krimi)</option>
-            <option value="fr" {% if md_language_default == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if md_language_default == "it" %}selected{% endif %}>IT</option>
-          </select>
-          <label for="md_version">Versao (vNN)</label>
-          <input id="md_version" name="md_version" type="text" value="{{ md_version_default }}" />
-          <button class="btn" type="submit">Convert TXT to MD</button>
-        </form>
-        <div class="status">
-          Arquivo selecionado:
-          <strong id="md_source_path"></strong>
-        </div>
-      </div>
-      <form method="post" class="mt-3" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="upload_cover" />
-        <label for="cover_file">Cover</label>
-        <input id="cover_file" type="file" name="cover_file" accept="image/*" />
-        <button type="submit" class="btn btn-sm btn-secondary">Salvar capa (JPG)</button>
-        {% if cover_filepath %}
-        <p class="form-text">
-          Capa atual: <strong>{{ cover_filepath }}</strong>
-        </p>
-        {% endif %}
-      </form>
-      <form method="post" class="mt-3" enctype="multipart/form-data">
+      <h2>Assets — Images</h2>
+      <form method="post" class="inline-form" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_zip" />
-        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
-        <label for="images_zip">Illustrated: Images ZIP</label>
-        <input id="images_zip" type="file" name="images_zip" accept=".zip" />
-        <button type="submit" class="btn btn-sm btn-secondary">Upload imagens (ZIP)</button>
-        <p class="form-text">
-          Extrai para <code class="illustrated-images-dir">{{ illustrated_images_dir }}</code> e atualiza <code class="illustrated-inserts-path">{{ illustrated_inserts_path }}</code>.
-        </p>
+        <label>
+          ZIP de imagens:
+          <input type="file" name="images_zip" required />
+        </label>
+        <label>
+          Idioma:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == language %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn secondary" type="submit">Upload ZIP</button>
       </form>
-      <form method="post" class="mt-3" enctype="multipart/form-data">
+
+      <form method="post" class="inline-form" enctype="multipart/form-data" style="margin-top: 12px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_individual" />
-        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
-        <label for="images_folder">Illustrated: Pasta (00..NN) — opcional</label>
-        <input id="images_folder" name="images_folder" type="text" inputmode="numeric" pattern="\\d{2}" placeholder="01" list="chapter_folders" />
-        <datalist id="chapter_folders">
-          <option value="00"></option>
-          <option value="01"></option>
-          <option value="02"></option>
-          <option value="03"></option>
-          <option value="04"></option>
-          <option value="05"></option>
-          <option value="06"></option>
-          <option value="07"></option>
-          <option value="08"></option>
-          <option value="09"></option>
-          <option value="10"></option>
-          <option value="11"></option>
-          <option value="12"></option>
-          <option value="13"></option>
-          <option value="14"></option>
-          <option value="15"></option>
-          <option value="16"></option>
-          <option value="17"></option>
-          <option value="18"></option>
-          <option value="19"></option>
-          <option value="20"></option>
-          <option value="21"></option>
-          <option value="22"></option>
-          <option value="23"></option>
-          <option value="24"></option>
-          <option value="25"></option>
-          <option value="26"></option>
-          <option value="27"></option>
-          <option value="28"></option>
-          <option value="29"></option>
-          <option value="30"></option>
-        </datalist>
-        <label for="images_files">Illustrated: Imagens</label>
-        <input id="images_files" class="visually-hidden" type="file" name="images_files" accept="image/*" multiple />
-        <div class="file-actions">
-          <label class="btn secondary" for="images_files">Selecionar imagens</label>
-          <span class="file-summary" id="images_files_summary">Nenhum arquivo selecionado</span>
-        </div>
-        <button id="images_files_submit" type="submit" class="btn">Salvar imagens (individual)</button>
-        <p class="form-text">
-          Salva em <code class="illustrated-images-dir">{{ illustrated_images_dir }}</code>/<code>00..NN</code>. Se a pasta estiver vazia, usa o prefixo 00..NN do nome do arquivo (ex.: <code>01.png</code>).
-        </p>
+        <label>
+          Imagens (múltiplas):
+          <input type="file" name="images_files" multiple required />
+        </label>
+        <label>
+          Pasta (00..NN) opcional:
+          <input type="text" name="images_folder" placeholder="ex: 05" />
+        </label>
+        <label>
+          Idioma:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == language %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn secondary" type="submit">Upload Individual</button>
       </form>
-      <form method="post" class="mt-3">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="insert_images" />
-        <input type="hidden" name="asset_language" class="illustrated-language" value="{{ md_language_default }}" />
-        <button type="submit" class="btn btn-sm btn-secondary">
-          Insert image placeholders
-        </button>
-        <p class="form-text">
-          Insere placeholders de imagem (&#123;&#123;IMAGE:CHXX:01&#125;&#125;) no MD atual.
-        </p>
-      </form>
-      <div class="actions" style="margin-top: 12px;">
-        <div class="status"><strong>QA suspenso</strong></div>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'approve_md' %}">
-          {% csrf_token %}
-          <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-          <button class="btn" type="submit">Approve MD Final</button>
-        </form>
-      </div>
 
-      <div class="status">
-        MD status: <strong>{{ md_status }}</strong>
-      </div>
-
+      <div class="status">Images dir: <strong>{{ illustrated_images_dir }}</strong></div>
+      <div class="status">Inserts path: <strong>{{ illustrated_inserts_path }}</strong></div>
     </article>
 
     <article class="card">
-      <h2>Build &amp; Export</h2>
-      <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">
-          {% csrf_token %}
-          <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-          <button class="btn" type="submit">Build (Cover + Edition + Miolo)</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_epub' %}">
-          {% csrf_token %}
-          <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-          <button class="btn secondary" type="submit">Export EPUB3 (Pandoc)</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_pdf' %}">
-          {% csrf_token %}
-          <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-          <button class="btn secondary" type="submit">Export Print PDF (Pandoc)</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'epubcheck' %}">
-          {% csrf_token %}
-          <button class="btn ghost" type="submit">Run epubcheck</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
-          {% csrf_token %}
-          <input type="hidden" name="md_version" value="{{ md_version_default }}" />
-          <button class="btn" type="submit">Gaiden: Montar Livro Completo</button>
-        </form>
-      </div>
-      <div class="status">
-        Build status: <strong>{{ build_status }}</strong>
-      </div>
-      <div class="links">
-      {% if build_path %}
-        <a href="{{ build_path }}">Build MD</a>
-      {% else %}
-        <span class="badge">Build MD</span>
-      {% endif %}
-        {% if epub_path %}
-        <a href="{{ epub_path }}">BOOK.EPUB3</a>
-        {% else %}
-        <span class="badge">BOOK.EPUB3</span>
-        {% endif %}
-        {% if pdf_path %}
-        <a href="{{ pdf_path }}">BOOK.PRINT.PDF</a>
-        {% else %}
-        <span class="badge">BOOK.PRINT.PDF</span>
-        {% endif %}
-      </div>
+      <h2>Assets — Cover</h2>
+      <form method="post" class="inline-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_cover" />
+        <label>
+          Capa (JPG/PNG):
+          <input type="file" name="cover_file" required />
+        </label>
+        <button class="btn secondary" type="submit">Upload Cover</button>
+      </form>
+      <div class="status">Cover path: <strong>{{ cover_filepath|default:'(none)' }}</strong></div>
     </article>
   </section>
-  <script>
-    const mdSourceMap = {{ md_source_map|safe }};
-    const bookCode = "{{ book_code }}";
-    const mdSelect = document.getElementById("md_language");
-    const mdSourceLabel = document.getElementById("md_source_path");
-    const illustratedLangInputs = document.querySelectorAll(".illustrated-language");
-    const illustratedImagesDirs = document.querySelectorAll(".illustrated-images-dir");
-    const illustratedInsertsPaths = document.querySelectorAll(".illustrated-inserts-path");
-    function updateMdSource() {
-      if (!mdSelect || !mdSourceLabel) return;
-      const lang = mdSelect.value;
-      mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
-    }
-    function updateIllustratedLang() {
-      if (!mdSelect) return;
-      const lang = mdSelect.value;
-      illustratedLangInputs.forEach((input) => {
-        input.value = lang;
-      });
-      illustratedImagesDirs.forEach((label) => {
-        label.textContent = `data/images/${bookCode}/${lang}`;
-      });
-      illustratedInsertsPaths.forEach((label) => {
-        label.textContent = `data/builds/${bookCode}/${lang}/inserts.json`;
-      });
-    }
-    if (mdSelect) {
-      mdSelect.addEventListener("change", updateMdSource);
-      mdSelect.addEventListener("change", updateIllustratedLang);
-      updateMdSource();
-      updateIllustratedLang();
-    }
-    const imagesInput = document.getElementById("images_files");
-    const imagesSummary = document.getElementById("images_files_summary");
-    const imagesSubmit = document.getElementById("images_files_submit");
-    if (imagesInput && imagesSummary && imagesSubmit) {
-      const updateImagesSummary = () => {
-        const count = imagesInput.files ? imagesInput.files.length : 0;
-        imagesSummary.textContent = count
-          ? `${count} arquivo(s) selecionado(s)`
-          : "Nenhum arquivo selecionado";
-      };
-      imagesInput.addEventListener("change", updateImagesSummary);
-      updateImagesSummary();
-    }
-  </script>
+
+  <section class="grid" style="padding-top: 0;">
+    <article class="card" style="grid-column: 1 / -1;">
+      <h2>Status — Pipeline Progress</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Lang</th>
+            <th>Translate</th>
+            <th>Split</th>
+            <th>Refine</th>
+            <th>Polish</th>
+            <th>EPUB</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in status_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td>{% if row.translated_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>{% if row.split_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>{% if row.refine_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
+            <td>{% if row.polish_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
+            <td>{% if row.epub_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </article>
+  </section>
 </body>
 </html>

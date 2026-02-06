@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Hub</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header { padding: 28px 24px 8px; }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: 0.4px; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 14px; }
+    .nav { display: flex; gap: 12px; font-size: 13px; margin-bottom: 8px; }
+    .nav a { text-decoration: none; color: var(--ink); border-bottom: 1px solid transparent; }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; text-decoration: none; }
+    .btn.secondary { background: #fff; color: var(--accent); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 18px 24px; box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08); }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; }
+    th { background: #f4ece2; font-weight: 600; color: var(--muted); }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 11px; background: #fff; border: 1px solid var(--border); }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Project Hub</h1>
+    <p class="subtitle">{{ work.code }} · {{ work.title }}</p>
+    <div class="actions">
+      <a class="btn secondary" href="/pipeline/runner/?book_code={{ work.code }}">Runner Matrix</a>
+      {% if base_edition_id %}
+        <a class="btn secondary" href="/pipeline/editions/{{ base_edition_id }}/steps/">Assets/Steps</a>
+      {% endif %}
+      <a class="btn secondary" href="/editorial/frontmatter/{{ work.code }}/{{ base_language }}/">Frontmatter</a>
+      <a class="btn secondary" href="/pipeline/dashboard/?book_code={{ work.code }}">Dashboard</a>
+      <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/edit/">Edit Metadata</a>
+      <a class="btn secondary" href="/pipeline/projects/">All Projects</a>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="subtitle">Base language: <strong>{{ base_language }}</strong></div>
+    <div class="subtitle">Enabled languages: <strong>{{ enabled_languages|join:", " }}</strong></div>
+    <div class="subtitle">Imprint: <strong>{{ work.publisher }}</strong></div>
+    <div class="subtitle">Source format: <strong>{{ work.source_format }}</strong></div>
+  </div>
+
+  <div class="card">
+    <h2>RAW status per language</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Language</th>
+          <th>Status</th>
+          <th>Path</th>
+          <th>Size</th>
+          <th>Modified</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in raw_rows %}
+        <tr>
+          <td>{{ row.label }}</td>
+          <td>
+            {% if row.exists %}
+              <span class="badge ok">OK</span>
+            {% else %}
+              <span class="badge warn">MISSING</span>
+            {% endif %}
+          </td>
+          <td>{{ row.path }}</td>
+          <td>{{ row.size|default:"-" }}</td>
+          <td>{{ row.mtime|default:"-" }}</td>
+          <td><a class="btn secondary" href="/pipeline/projects/{{ work.code }}/upload/{{ row.code }}/">Upload RAW</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

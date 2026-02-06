@@ -11,50 +11,61 @@
     .row > div { flex: 1; }
     .actions { margin-top: 16px; }
     button { padding: 8px 12px; font-size: 14px; }
+    .nav { display: flex; gap: 10px; margin-bottom: 14px; font-size: 13px; }
+    .nav a { text-decoration: none; border-bottom: 1px solid transparent; }
+    .nav a:hover { border-bottom-color: #444; }
+    .banner { padding: 10px 12px; border: 1px solid #f0c36d; background: #fff7df; border-radius: 6px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
-  <h1>Nova edição</h1>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/">Editions</a>
+  </nav>
+
+  <h1>Editar edição (Advanced)</h1>
+  <div class="banner">
+    Cadastro oficial de livros é em Projects. Esta tela (Edições) é avançada, para ajustes finos por idioma.
+    <div style="margin-top: 10px;">
+      <a href="/pipeline/projects/" class="btn">Ir para Projects</a>
+      <a href="/pipeline/projects/new/" class="btn">Criar novo Project</a>
+    </div>
+  </div>
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <label>Book code</label>
-    <input type="text" name="book_code" placeholder="book_0002" required />
+    <input type="text" name="book_code" value="{{ work.code }}" readonly required />
 
     <label>Idioma</label>
-    <select name="language" required>
-      {% for lang in languages %}
-      <option value="{{ lang.code }}">{{ lang.native_name }} ({{ lang.code }})</option>
-      {% endfor %}
-    </select>
+    <input type="text" name="language" value="{{ edition.language.code }}" readonly required />
 
     <div class="row">
       <div>
         <label>Título</label>
-        <input type="text" name="title" />
+        <input type="text" name="title" value="{{ edition.title|default_if_none:'' }}" />
       </div>
       <div>
         <label>Autor</label>
-        <input type="text" name="author" />
+        <input type="text" name="author" value="{{ edition.author|default_if_none:'' }}" />
       </div>
       <div>
         <label>Ano</label>
-        <input type="text" name="year" />
+        <input type="text" name="year" value="{{ edition.edition_year|default_if_none:'' }}" />
       </div>
     </div>
 
     <label>Selo</label>
     <select name="seal">
       {% for s in seals %}
-      <option value="{{ s.slug }}">{{ s.name }}</option>
+      <option value="{{ s.slug }}" {% if edition.seal.slug == s.slug %}selected{% endif %}>{{ s.name }}</option>
       {% endfor %}
     </select>
 
-    <label>RAW (opcional)</label>
-    <input type="file" name="raw_file" />
-
     <div class="actions">
-      <button type="submit">Criar edição</button>
+      <button type="submit">Salvar edição</button>
     </div>
   </form>
 </body>

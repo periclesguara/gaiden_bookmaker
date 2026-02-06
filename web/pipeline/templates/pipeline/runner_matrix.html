@@ -36,6 +36,18 @@
       color: var(--muted);
       font-size: 14px;
     }
+    .nav {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid transparent;
+    }
+    .nav a:hover { border-bottom-color: var(--accent); }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -156,6 +168,12 @@
 </head>
 <body>
   <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
     <h1>Runner Matrix</h1>
     <p class="subtitle">Orquestração em fila (1 a 1) para execução de etapas do pipeline.</p>
   </header>
@@ -168,7 +186,7 @@
         <div class="list">
           {% for work in works %}
             <label>
-              <input type="checkbox" name="books" value="{{ work.code }}" />
+              <input type="checkbox" name="books" value="{{ work.code }}" {% if selected_book_code == work.code %}checked{% endif %} />
               <span>{{ work.code }} — {{ work.title }}</span>
             </label>
           {% empty %}
@@ -187,11 +205,32 @@
         <div class="list" id="lang-list">
           {% for lang in languages %}
             <label>
-              <input type="checkbox" name="languages" value="{{ lang.code }}" {% if lang.code == 'en' %}checked{% endif %} />
+              <input
+                type="checkbox"
+                name="languages"
+                value="{{ lang.code }}"
+                {% if default_langs %}
+                  {% if lang.code in default_langs %}checked{% endif %}
+                {% else %}
+                  {% if lang.code == 'en' %}checked{% endif %}
+                {% endif %}
+              />
               <span>{{ lang.label }}</span>
             </label>
           {% endfor %}
         </div>
+      </div>
+
+      <div class="card">
+        <h2>Mode</h2>
+        <label class="option">
+          <input type="radio" name="mode" value="MULTILANGUAGE" checked />
+          <span>Multilanguage mode (1 book, many languages)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="mode" value="SEQUENTIAL" />
+          <span>Sequential mode (many books, 1 language)</span>
+        </label>
       </div>
 
       <div class="card">
@@ -201,8 +240,8 @@
           <span>TRANSLATE (MVP)</span>
         </label>
         <label class="option">
-          <input type="radio" name="action" value="SPLIT" disabled />
-          <span>SPLIT (em breve)</span>
+          <input type="radio" name="action" value="SPLIT_FOR_REFINE" />
+          <span>SPLIT_FOR_REFINE</span>
         </label>
         <label class="option">
           <input type="radio" name="action" value="RETURN_REFINE" disabled />
@@ -308,7 +347,56 @@
       } else if (mode === 'only-en') {
         boxes.forEach((b) => { b.checked = (b.value === 'en'); });
       }
+      enforceMode();
     }
+
+    function getMode() {
+      const selected = document.querySelector('input[name="mode"]:checked');
+      return selected ? selected.value : 'MULTILANGUAGE';
+    }
+
+    function enforceMode() {
+      const mode = getMode();
+      const bookBoxes = document.querySelectorAll('input[name="books"]');
+      const langBoxes = document.querySelectorAll('input[name="languages"]');
+
+      if (mode === 'MULTILANGUAGE') {
+        let firstBook = null;
+        bookBoxes.forEach((b) => { if (b.checked && !firstBook) { firstBook = b; } });
+        bookBoxes.forEach((b) => {
+          if (!firstBook || b === firstBook) {
+            b.disabled = false;
+          } else {
+            b.checked = false;
+            b.disabled = true;
+          }
+        });
+        langBoxes.forEach((b) => { b.disabled = false; });
+      } else {
+        let firstLang = null;
+        langBoxes.forEach((b) => { if (b.checked && !firstLang) { firstLang = b; } });
+        langBoxes.forEach((b) => {
+          if (!firstLang || b === firstLang) {
+            b.disabled = false;
+          } else {
+            b.checked = false;
+            b.disabled = true;
+          }
+        });
+        bookBoxes.forEach((b) => { b.disabled = false; });
+      }
+    }
+
+    document.querySelectorAll('input[name="mode"]').forEach((el) => {
+      el.addEventListener('change', enforceMode);
+    });
+    document.querySelectorAll('input[name="books"]').forEach((el) => {
+      el.addEventListener('change', enforceMode);
+    });
+    document.querySelectorAll('input[name="languages"]').forEach((el) => {
+      el.addEventListener('change', enforceMode);
+    });
+    enforceMode();
   </script>
 </body>
 </html>

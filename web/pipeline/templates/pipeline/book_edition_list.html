@@ -6,6 +6,10 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 20px; }
     h1 { margin-bottom: 16px; }
+    .nav { display: flex; gap: 10px; margin-bottom: 14px; font-size: 13px; }
+    .nav a { text-decoration: none; border-bottom: 1px solid transparent; }
+    .nav a:hover { border-bottom-color: #444; }
+    .banner { padding: 10px 12px; border: 1px solid #f0c36d; background: #fff7df; border-radius: 6px; margin-bottom: 16px; }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
     th { background: #f2f2f2; text-align: left; }
@@ -13,11 +17,24 @@
   </style>
 </head>
 <body>
-  <h1>Book Editions</h1>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/">Editions</a>
+  </nav>
+
+  <h1>Book Editions (Advanced)</h1>
+  <div class="banner">
+    Cadastro oficial de livros é em Projects. Esta tela (Edições) é avançada, para ajustes finos por idioma.
+    <div style="margin-top: 10px;">
+      <a href="/pipeline/projects/" class="btn">Ir para Projects</a>
+      <a href="/pipeline/projects/new/" class="btn">Criar novo Project</a>
+    </div>
+  </div>
 
   <p>
     <a href="{% url 'pipeline_jobs' %}" class="btn">Ver pipelines</a>
-    <a href="{% url 'book_edition_new' %}" class="btn">Nova edição</a>
   </p>
 
   <table>

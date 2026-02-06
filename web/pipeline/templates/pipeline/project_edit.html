@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Project</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header { padding: 28px 24px 8px; }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: 0.4px; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 14px; }
+    .nav { display: flex; gap: 12px; font-size: 13px; margin-bottom: 8px; }
+    .nav a { text-decoration: none; color: var(--ink); border-bottom: 1px solid transparent; }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 18px 24px; box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08); }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    label { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+    input, select, textarea { padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; text-decoration: none; }
+    .btn.secondary { background: #fff; color: var(--accent); }
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Edit Project</h1>
+    <p class="subtitle">{{ work.code }} · {{ work.title }}</p>
+  </header>
+
+  {% if messages %}
+  <div class="card">
+    {% for message in messages %}
+      <div class="subtitle"><strong>{{ message.tags|upper }}</strong>: {{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card">
+      <div class="row">
+        <label>book_code
+          <input type="text" value="{{ work.code }}" disabled />
+        </label>
+        <label>Title
+          <input type="text" name="title" value="{{ work.title }}" required />
+        </label>
+        <label>Subtitle
+          <input type="text" name="subtitle" value="{{ work.subtitle }}" />
+        </label>
+        <label>Author
+          <input type="text" name="author" value="{{ work.author.name }}" />
+        </label>
+        <label>Imprint / Selo
+          <input type="text" name="imprint" value="{{ work.publisher }}" required />
+        </label>
+        <label>Base language
+          <select name="base_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == work.original_language.code|lower %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Source format
+          <select name="source_format">
+            {% for fmt in source_formats %}
+              <option value="{{ fmt }}" {% if fmt == work.source_format %}selected{% endif %}>{{ fmt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Enabled languages
+          <select name="enabled_languages" multiple size="6">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code in work.enabled_languages %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Notes
+          <textarea name="notes" rows="4">{{ work.notes }}</textarea>
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit">Save</button>
+        <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/">Back</a>
+      </div>
+    </div>
+  </form>
+</body>
+</html>
