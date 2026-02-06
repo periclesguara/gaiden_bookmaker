@@ -6,6 +6,10 @@
 - [ ] `python manage.py showmigrations editorial pipeline | tail -n 30` (sem pendências)
 - [ ] (Opcional) `psql ... -c "\d editorial_edition"` (colunas críticas presentes)
 
+## Sanity checks
+- [ ] `.venv/bin/python web/manage.py check`
+- [ ] `bash scripts/gaiden_no_legacy_guard.sh`
+
 ## Pipeline / Frontmatter
 - [ ] `python manage.py export_frontmatter --book-code book_0001 --language es`
 - [ ] Conferir headings e acentos: `rg -n "edicion|edición" -S data/frontmatter/book_0001/es`

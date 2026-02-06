@@ -17,3 +17,7 @@ Sanity Checks
 - `rg -n "scripts/es/|scripts/legacy_refine/|rebuild_es_from_refine|refine_de" web`
 - `rg -n "refine_.*2025|polish_en_2025" .`
 - `.venv/bin/python web/manage.py check`
+
+Local Hook (Optional)
+- `cp scripts/hooks/pre-commit.example .git/hooks/pre-commit`
+- `chmod +x .git/hooks/pre-commit`
