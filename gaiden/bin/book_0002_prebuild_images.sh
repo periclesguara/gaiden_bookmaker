@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BOOK="book_0002"
-LANGS=("EN" "DE" "ES" "FR" "IT" "PT-BR")
+LANGS=("en" "de" "es" "fr" "it" "ptbr")
 
 # 1) Canonizar imagens do miolo a partir do EN upload
 python gaiden/sync_images_from_en_to_shared.py --book "$BOOK"

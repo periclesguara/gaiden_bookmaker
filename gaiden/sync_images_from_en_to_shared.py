@@ -11,7 +11,7 @@ def main() -> None:
     ap.add_argument(
         "--en_images_dir",
         default=None,
-    )  # if None: data/builds/<book>/EN/images
+    )  # if None: data/images/<book>/en
     ap.add_argument("--shared_base", default="data/images")
     ap.add_argument("--clean", action="store_true")
     args = ap.parse_args()
@@ -20,7 +20,7 @@ def main() -> None:
     en_dir = (
         Path(args.en_images_dir)
         if args.en_images_dir
-        else Path("data/builds") / book / "EN" / "images"
+        else Path("data/images") / book / "en"
     )
     shared_dir = Path(args.shared_base) / book / "shared"
 
@@ -29,17 +29,21 @@ def main() -> None:
     shared_dir.mkdir(parents=True, exist_ok=True)
 
     if args.clean:
-        for p in shared_dir.glob("*"):
-            if p.is_file():
+        for p in shared_dir.iterdir():
+            if p.is_dir():
+                shutil.rmtree(p)
+            else:
                 p.unlink()
 
-    files = sorted(en_dir.glob("*.jpg"))
+    files = sorted(en_dir.rglob("*.jpg"))
     if not files:
         raise SystemExit(f"[FATAL] No JPG images found in: {en_dir}")
 
     copied = 0
     for src in files:
-        dst = shared_dir / src.name
+        rel = src.relative_to(en_dir)
+        dst = shared_dir / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         copied += 1
 

@@ -23,13 +23,17 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if args.clean:
-        for p in out_dir.glob("*"):
-            if p.is_file():
+        for p in out_dir.iterdir():
+            if p.is_dir():
+                shutil.rmtree(p)
+            else:
                 p.unlink()
 
     copied = 0
-    for src in sorted(shared_dir.glob("*.jpg")):
-        dst = out_dir / src.name
+    for src in sorted(shared_dir.rglob("*.jpg")):
+        rel = src.relative_to(shared_dir)
+        dst = out_dir / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         copied += 1
 
