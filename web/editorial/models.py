@@ -52,6 +52,7 @@ class Contributor(models.Model):
 class Work(models.Model):
     code = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, blank=True)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,
@@ -65,6 +66,13 @@ class Work(models.Model):
     publisher = models.CharField(max_length=255, blank=True)
     year = models.IntegerField(null=True, blank=True)
     is_public_domain = models.BooleanField(default=True)
+    enabled_languages = models.JSONField(default=list, blank=True)
+    source_format = models.CharField(
+        max_length=10,
+        choices=[("TXT", "TXT"), ("MD", "MD")],
+        default="TXT",
+    )
+    notes = models.TextField(blank=True)
 
     class Meta:
         db_table = "work"

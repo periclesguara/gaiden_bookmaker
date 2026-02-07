@@ -64,8 +64,10 @@ class PipelineRun(models.Model):
     ]
 
     ACTION_CHOICES = [
+        ("NORMALIZE", "Normalize"),
+        ("CHUNK", "Chunk"),
         ("TRANSLATE", "Translate"),
-        ("SPLIT", "Split"),
+        ("SPLIT_FOR_REFINE", "Split for Refine"),
         ("RETURN_REFINE", "Return Refine"),
         ("BUILD", "Build"),
     ]

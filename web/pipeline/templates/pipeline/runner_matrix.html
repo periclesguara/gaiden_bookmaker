@@ -20,6 +20,7 @@
     body {
       margin: 0;
       font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
       background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
       color: var(--ink);
     }
@@ -28,25 +29,27 @@
     }
     h1 {
       margin: 0 0 6px;
-      font-size: 28px;
+      font-size: 30px;
+      font-weight: 700;
       letter-spacing: 0.4px;
     }
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 16px;
     }
     .nav {
       display: flex;
       gap: 12px;
-      font-size: 13px;
+      font-size: 15px;
       margin-bottom: 8px;
     }
     .nav a {
       text-decoration: none;
       color: var(--ink);
-      border-bottom: 1px solid transparent;
+      border-bottom: 2px solid transparent;
     }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
     .nav a:hover { border-bottom-color: var(--accent); }
     .grid {
       display: grid;
@@ -63,19 +66,21 @@
     }
     .card h2 {
       margin: 0 0 10px;
-      font-size: 18px;
+      font-size: 22px;
+      font-weight: 600;
     }
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px 10px;
+      padding: 10px 16px;
       border-radius: 8px;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: #fff;
-      font-size: 13px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
       text-decoration: none;
     }
@@ -89,15 +94,16 @@
       color: var(--ink);
     }
     .btn.small {
-      padding: 5px 8px;
-      font-size: 12px;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 600;
     }
     .option {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 6px 0;
-      font-size: 13px;
+      margin: 8px 0;
+      font-size: 16px;
     }
     .list {
       max-height: 220px;
@@ -111,8 +117,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
-      padding: 4px 2px;
+      font-size: 16px;
+      padding: 6px 4px;
     }
     .actions {
       display: flex;
@@ -130,9 +136,9 @@
     }
     th, td {
       text-align: left;
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
-      font-size: 13px;
+      font-size: 16px;
       vertical-align: top;
     }
     th {
@@ -142,9 +148,10 @@
     }
     .badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 16px;
+      font-weight: 700;
       background: #fff;
       border: 1px solid var(--border);
     }
@@ -158,7 +165,7 @@
       max-height: 120px;
       overflow: auto;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
+      font-size: 15px;
       background: #fff;
       border: 1px dashed var(--border);
       padding: 6px;
@@ -170,7 +177,7 @@
   <header>
     <nav class="nav">
       <a href="/pipeline/projects/">Projects</a>
-      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/runner/" class="current">Runner</a>
       <a href="/pipeline/dashboard/">Dashboard</a>
       <a href="/pipeline/editions/">Editions</a>
     </nav>
@@ -235,6 +242,14 @@
 
       <div class="card">
         <h2>Action</h2>
+        <label class="option">
+          <input type="radio" name="action" value="NORMALIZE" />
+          <span>NORMALIZE (remove Gutenberg + frontmatter)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="action" value="CHUNK" />
+          <span>CHUNK (EN)</span>
+        </label>
         <label class="option">
           <input type="radio" name="action" value="TRANSLATE" checked />
           <span>TRANSLATE (MVP)</span>
@@ -355,6 +370,11 @@
       return selected ? selected.value : 'MULTILANGUAGE';
     }
 
+    function getAction() {
+      const selected = document.querySelector('input[name="action"]:checked');
+      return selected ? selected.value : 'TRANSLATE';
+    }
+
     function enforceMode() {
       const mode = getMode();
       const bookBoxes = document.querySelectorAll('input[name="books"]');
@@ -387,16 +407,42 @@
       }
     }
 
+    function enforceAction() {
+      const action = getAction();
+      const langBoxes = document.querySelectorAll('input[name="languages"]');
+      if (action === 'NORMALIZE' || action === 'CHUNK') {
+        langBoxes.forEach((b) => {
+          if (b.value === 'en') {
+            b.checked = true;
+            b.disabled = false;
+          } else {
+            b.checked = false;
+            b.disabled = true;
+          }
+        });
+      } else {
+        langBoxes.forEach((b) => { b.disabled = false; });
+      }
+    }
+
+    function enforceAll() {
+      enforceMode();
+      enforceAction();
+    }
+
     document.querySelectorAll('input[name="mode"]').forEach((el) => {
-      el.addEventListener('change', enforceMode);
+      el.addEventListener('change', enforceAll);
     });
     document.querySelectorAll('input[name="books"]').forEach((el) => {
-      el.addEventListener('change', enforceMode);
+      el.addEventListener('change', enforceAll);
     });
     document.querySelectorAll('input[name="languages"]').forEach((el) => {
-      el.addEventListener('change', enforceMode);
+      el.addEventListener('change', enforceAll);
     });
-    enforceMode();
+    document.querySelectorAll('input[name="action"]').forEach((el) => {
+      el.addEventListener('change', enforceAll);
+    });
+    enforceAll();
   </script>
 </body>
 </html>

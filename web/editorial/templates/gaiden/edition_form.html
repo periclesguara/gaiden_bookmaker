@@ -4,21 +4,34 @@
   <meta charset="UTF-8" />
   <title>Edition - Frontmatter</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
-    h1 { margin-bottom: 16px; }
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 900px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    h3 { font-size: 18px; font-weight: 600; }
     form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
     input[type="text"], input[type="number"], select, textarea {
       width: 100%;
-      padding: 6px;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 16px;
+      min-height: 40px;
       box-sizing: border-box;
     }
-    .actions { margin-top: 20px; display: flex; gap: 12px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    textarea { min-height: 120px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+    button { padding: 10px 16px; font-size: 15px; font-weight: 600; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/" class="current">Editions</a>
+  </nav>
   <h1>Edition · Frontmatter</h1>
 
   <form method="post">

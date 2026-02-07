@@ -208,6 +208,117 @@ def _project_get_or_create_language(code: str) -> Language:
     return obj
 
 
+def normalize_book_code(raw: str) -> tuple[str | None, str | None]:
+    if raw is None:
+        raw = ""
+    value = raw.strip().lower()
+    if not value:
+        return None, "book_code deve seguir o padrão book_#### (ex: book_0002)."
+
+    value = value.replace("-", "_").replace(" ", "_")
+    while "__" in value:
+        value = value.replace("__", "_")
+
+    digits = ""
+    if re.fullmatch(r"\d+", value):
+        digits = value
+    else:
+        match = re.match(r"^book_?(\d+)$", value)
+        if not match:
+            return None, "book_code deve seguir o padrão book_#### (ex: book_0002)."
+        digits = match.group(1)
+
+    if len(digits) > 4:
+        return None, "book_code deve ter no máximo 4 dígitos (ex: book_0002)."
+
+    try:
+        number = int(digits)
+    except ValueError:
+        return None, "book_code deve seguir o padrão book_#### (ex: book_0002)."
+
+    if number < 1 or number > 9999:
+        return None, "book_code deve estar entre 0001 e 9999."
+
+    return f"book_{number:04d}", None
+
+
+def _normalize_preview_allowed_lang(raw: str | None) -> str | None:
+    if not raw:
+        return "en"
+    code = utils.normalize_lang(raw)
+    if code in PROJECT_LANG_CODES:
+        return code
+    return None
+
+
+def _resolve_normalize_preview_path(book_code: str, lang: str) -> tuple[Path | None, str]:
+    data_dir = _project_root() / "data"
+    lang_code = utils.normalize_lang(lang)
+    lang_dir = _runner_lang_dir(lang_code)
+    base_name_v2 = f"{book_code}_{lang_code}_v2.txt"
+    base_name_v1 = f"{book_code}_{lang_code}_v1.txt"
+
+    candidates = [
+        data_dir / "normalized" / book_code / lang_dir / base_name_v2,
+        data_dir / "normalized" / base_name_v2,
+        data_dir / "normalized" / book_code / lang_dir / base_name_v1,
+        data_dir / "normalized" / base_name_v1,
+    ]
+    for path in candidates:
+        if path.exists():
+            return path, "NORMALIZED"
+
+    raw_txt = data_dir / "raw" / book_code / lang_dir / "source.txt"
+    if raw_txt.exists():
+        return raw_txt, "RAW"
+    raw_md = data_dir / "raw" / book_code / lang_dir / "source.md"
+    if raw_md.exists():
+        return raw_md, "RAW"
+
+    return None, "MISSING"
+
+
+def _read_head_lines(path: Path, max_lines: int = 40, max_bytes: int = 65536) -> list[str]:
+    with path.open("rb") as f:
+        raw = f.read(max_bytes)
+    text = raw.decode("utf-8", errors="replace")
+    lines = text.splitlines()
+    return lines[:max_lines]
+
+
+def _read_tail_lines(path: Path, max_lines: int = 40, max_bytes: int = 131072) -> list[str]:
+    with path.open("rb") as f:
+        f.seek(0, os.SEEK_END)
+        size = f.tell()
+        read_size = min(size, max_bytes)
+        f.seek(-read_size, os.SEEK_END)
+        raw = f.read(read_size)
+    text = raw.decode("utf-8", errors="replace")
+    lines = text.splitlines()
+    return lines[-max_lines:]
+
+
+def _count_lines_if_small(path: Path, max_bytes: int = 262144) -> int | None:
+    try:
+        if path.stat().st_size > max_bytes:
+            return None
+        text = path.read_text(encoding="utf-8", errors="replace")
+        return len(text.splitlines())
+    except Exception:
+        return None
+
+
+def _normalize_preview_signals(sample: str) -> dict:
+    low = sample.lower()
+    return {
+        "has_project_gutenberg": "project gutenberg" in low,
+        "has_gutenberg_license": "gutenberg license" in low,
+        "has_gutenberg_url": "www.gutenberg.org" in low,
+        "has_start_marker": "*** start of" in low or "start of the project gutenberg" in low,
+        "has_end_marker": "*** end of" in low or "end of the project gutenberg" in low,
+    }
+
+
 def projects_list(request):
     works = Work.objects.order_by("code")
     rows = []
@@ -264,9 +375,64 @@ def projects_hub(request, book_code: str):
     return render(request, "pipeline/project_hub.html", context)
 
 
+def projects_normalize_preview(request, book_code: str, language: str = "en"):
+    canonical, error = normalize_book_code(book_code)
+    if error:
+        messages.error(request, "book_code inválido.")
+        return redirect("projects_list")
+    if canonical != book_code:
+        if language:
+            return redirect("projects_normalize_preview_lang", book_code=canonical, language=language)
+        return redirect("projects_normalize_preview", book_code=canonical)
+
+    lang_code = _normalize_preview_allowed_lang(language)
+    if not lang_code:
+        messages.error(request, "Idioma inválido.")
+        return redirect("projects_hub", book_code=canonical)
+
+    file_path, file_kind = _resolve_normalize_preview_path(canonical, lang_code)
+    if not file_path:
+        context = {
+            "book_code": canonical,
+            "language": lang_code,
+            "file_kind": "MISSING",
+        }
+        return render(request, "pipeline/normalize_preview.html", context)
+
+    head_lines = _read_head_lines(file_path)
+    tail_lines = _read_tail_lines(file_path)
+    total_lines = _count_lines_if_small(file_path)
+
+    head_display = [(idx + 1, line) for idx, line in enumerate(head_lines)]
+    if total_lines is not None:
+        start_line = max(1, total_lines - len(tail_lines) + 1)
+        tail_display = [(start_line + idx, line) for idx, line in enumerate(tail_lines)]
+    else:
+        tail_display = [("…", line) for line in tail_lines]
+
+    sample = "\n".join(head_lines + tail_lines)
+    signals = _normalize_preview_signals(sample)
+
+    stat = file_path.stat()
+    context = {
+        "book_code": canonical,
+        "language": lang_code,
+        "file_kind": file_kind,
+        "file_path": str(file_path),
+        "file_size": stat.st_size,
+        "file_mtime": datetime.fromtimestamp(stat.st_mtime),
+        "head_lines": head_display,
+        "tail_lines": tail_display,
+        "signals": signals,
+        "total_lines": total_lines,
+    }
+    return render(request, "pipeline/normalize_preview.html", context)
+
+
 def projects_new(request):
     if request.method == "POST":
-        book_code = (request.POST.get("book_code") or "").strip()
+        raw_book_code = request.POST.get("book_code") or ""
+        book_code, book_code_error = normalize_book_code(raw_book_code)
         title = (request.POST.get("title") or "").strip()
         subtitle = (request.POST.get("subtitle") or "").strip()
         author = (request.POST.get("author") or "").strip()
@@ -276,8 +442,8 @@ def projects_new(request):
         source_format = (request.POST.get("source_format") or "TXT").upper()
         notes = (request.POST.get("notes") or "").strip()
 
-        if not _project_validate_book_code(book_code):
-            messages.error(request, "book_code deve seguir o padrão book_####.")
+        if book_code_error:
+            messages.error(request, book_code_error)
             return redirect("projects_new")
         if Work.objects.filter(code=book_code).exists():
             messages.error(request, "book_code já existe.")
@@ -301,6 +467,25 @@ def projects_new(request):
         enabled_languages = list(dict.fromkeys(enabled_languages))
         if source_format not in PROJECT_SOURCE_FORMATS:
             messages.error(request, "Formato de origem inválido.")
+            return redirect("projects_new")
+
+        if raw_book_code.strip().lower() != book_code:
+            messages.info(request, f"book_code normalizado para: {book_code}")
+
+        upload = request.FILES.get("raw_file")
+        if not upload:
+            messages.error(request, "Selecione um arquivo RAW para criar o projeto.")
+            return redirect("projects_new")
+        if upload.size > MAX_RAW_UPLOAD_BYTES:
+            messages.error(request, "Arquivo RAW muito grande.")
+            return redirect("projects_new")
+        expected_ext = ".txt" if source_format == "TXT" else ".md"
+        upload_ext = Path(upload.name).suffix.lower()
+        if upload_ext not in {".txt", ".md"}:
+            messages.error(request, "Formato inválido. Use .txt ou .md.")
+            return redirect("projects_new")
+        if upload_ext != expected_ext:
+            messages.error(request, f"Formato esperado: {expected_ext}")
             return redirect("projects_new")
 
         base_lang_obj = _project_get_or_create_language(base_language)
@@ -332,7 +517,7 @@ def projects_new(request):
             notes=notes,
         )
 
-        EditorialEdition.objects.get_or_create(
+        base_edition, _ = EditorialEdition.objects.get_or_create(
             work=work,
             language=base_lang_obj,
             seal=seal_obj,
@@ -346,7 +531,22 @@ def projects_new(request):
             },
         )
 
-        return redirect("projects_upload_raw", book_code=work.code, language=base_language)
+        dest_path = _project_raw_path(book_code, base_language, source_format)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = dest_path.with_suffix(dest_path.suffix + ".tmp")
+        with tmp_path.open("wb+") as dest:
+            for chunk in upload.chunks():
+                dest.write(chunk)
+        tmp_path.replace(dest_path)
+
+        base_edition.raw_source_path = str(dest_path)
+        base_edition.save(update_fields=["raw_source_path", "updated_at"])
+        text, _ = EditionText.objects.get_or_create(edition=base_edition)
+        text.raw_path = str(dest_path)
+        text.save(update_fields=["raw_path", "updated_at"])
+
+        messages.success(request, "Projeto criado e RAW salvo.")
+        return redirect("projects_hub", book_code=work.code)
 
     context = {
         "languages": PROJECT_LANGS,
@@ -580,7 +780,7 @@ def runner_matrix_run_view(request):
         messages.error(request, "Selecione ao menos 1 book e 1 idioma.")
         return redirect("pipeline_runner_matrix")
 
-    if action not in {"TRANSLATE", "SPLIT_FOR_REFINE"}:
+    if action not in {"NORMALIZE", "CHUNK", "TRANSLATE", "SPLIT_FOR_REFINE"}:
         messages.error(request, "Ação inválida no MVP.")
         return redirect("pipeline_runner_matrix")
 
@@ -594,6 +794,10 @@ def runner_matrix_run_view(request):
     if mode == "SEQUENTIAL" and len(languages) != 1:
         messages.error(request, "Sequential mode exige 1 idioma.")
         return redirect("pipeline_runner_matrix")
+    if action in {"NORMALIZE", "CHUNK"}:
+        if len(languages) != 1 or utils.normalize_lang(languages[0]) != "en":
+            messages.error(request, "Esta ação só suporta EN no momento.")
+            return redirect("pipeline_runner_matrix")
 
     skip_existing = request.POST.get("skip_existing") == "on"
     stop_on_error = request.POST.get("stop_on_error") == "on"
@@ -618,7 +822,11 @@ def runner_matrix_run_view(request):
         for lang in languages:
             out_path = ""
             if book_id is not None:
-                if action == "SPLIT_FOR_REFINE":
+                if action == "NORMALIZE":
+                    out_path = str(_runner_normalized_path(book_code, lang))
+                elif action == "CHUNK":
+                    out_path = str((_project_root() / "data" / "chunks" / f"book_{book_id:04d}" / "en" / "manifest.json"))
+                elif action == "SPLIT_FOR_REFINE":
                     out_path = str(_runner_split_dir_path(book_id, lang))
                 else:
                     out_path = str(_runner_merge_translate_path(book_id, lang))
@@ -921,6 +1129,12 @@ def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_dir = _runner_lang_dir(lang)
     return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / f"merge_translate_{lang_dir}.txt"
+
+
+def _runner_normalized_path(book_code: str, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    lang_code = utils.normalize_lang(lang)
+    return data_dir / "normalized" / f"{book_code}_{lang_code}_v2.txt"
 
 
 def _runner_split_dir_path(book_id: int, lang: str) -> Path:

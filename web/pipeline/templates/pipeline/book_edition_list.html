@@ -4,16 +4,17 @@
   <meta charset="UTF-8" />
   <title>Book Editions - Gaiden</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; }
-    h1 { margin-bottom: 16px; }
-    .nav { display: flex; gap: 10px; margin-bottom: 14px; font-size: 13px; }
-    .nav a { text-decoration: none; border-bottom: 1px solid transparent; }
+    body { font-family: system-ui, sans-serif; margin: 24px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
     .nav a:hover { border-bottom-color: #444; }
-    .banner { padding: 10px 12px; border: 1px solid #f0c36d; background: #fff7df; border-radius: 6px; margin-bottom: 16px; }
+    .banner { padding: 14px 16px; border: 1px solid #f0c36d; background: #fff7df; border-radius: 8px; margin-bottom: 18px; font-size: 16px; }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
-    th { background: #f2f2f2; text-align: left; }
-    a.btn { display: inline-block; padding: 6px 10px; border-radius: 4px; border: 1px solid #444; text-decoration: none; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 12px 14px; font-size: 16px; }
+    th { background: #f2f2f2; text-align: left; font-weight: 600; }
+    a.btn { display: inline-block; padding: 10px 16px; border-radius: 6px; border: 1px solid #444; text-decoration: none; font-size: 15px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -21,7 +22,7 @@
     <a href="/pipeline/projects/">Projects</a>
     <a href="/pipeline/runner/">Runner</a>
     <a href="/pipeline/dashboard/">Dashboard</a>
-    <a href="/pipeline/editions/">Editions</a>
+    <a href="/pipeline/editions/" class="current">Editions</a>
   </nav>
 
   <h1>Book Editions (Advanced)</h1>
@@ -59,7 +60,7 @@
         <td>{{ ed.work.year }}</td>
         <td>{{ ed.seal.name }}</td>
         <td>
-          <a href="{% url 'edition_steps' edition_id=ed.id %}">Pipeline steps</a>
+          <a class="btn" href="{% url 'edition_steps' edition_id=ed.id %}">Pipeline steps</a>
         </td>
       </tr>
       {% empty %}

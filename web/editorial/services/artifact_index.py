@@ -134,6 +134,17 @@ def _scan_translated(work_code: str, lang: str) -> None:
         _upsert(work_code, lang, "miolo", path, is_candidate=True)
 
 
+def _scan_chunks(work_code: str, lang: str) -> None:
+    if lang != "en":
+        return
+    cdir = ROOT / "data" / "chunks" / work_code / "en"
+    if not cdir.exists():
+        return
+    manifest = cdir / "manifest.json"
+    if manifest.exists():
+        _upsert(work_code, lang, "chunk", manifest, is_candidate=True)
+
+
 def _scan_cover(work_code: str, lang: str) -> None:
     cdir = ROOT / "data" / "covers" / work_code / lang
     if not cdir.exists():
@@ -152,4 +163,5 @@ def reindex_artifacts_for_work(work_code: str, langs: tuple[str, ...] = ("en", "
         _scan_builds(work_code, lang)
         _scan_frontmatter(work_code, lang)
         _scan_translated(work_code, lang)
+        _scan_chunks(work_code, lang)
         _scan_cover(work_code, lang)

@@ -4,26 +4,32 @@
   <meta charset="UTF-8" />
   <title>Editorial - Frontmatter</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 980px; }
-    h1 { margin-bottom: 16px; }
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 980px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    h3 { font-size: 18px; font-weight: 600; }
     form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
     input[type="text"], select, textarea {
       width: 100%;
-      padding: 6px;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 16px;
+      min-height: 40px;
       box-sizing: border-box;
     }
-    textarea { min-height: 80px; font-family: monospace; }
-    .notice { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
-    .actions { margin-top: 20px; display: flex; gap: 12px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    textarea { min-height: 120px; font-family: monospace; }
+    .notice { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; white-space: pre-wrap; font-family: monospace; font-size: 16px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+    button { padding: 10px 16px; font-size: 15px; font-weight: 600; }
     .cards { margin-top: 24px; display: grid; gap: 16px; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #fafafa; }
-    .card h3 { margin: 0 0 8px; }
-    .card textarea { min-height: 120px; }
-    .card-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 14px; background: #fafafa; }
+    .card h3 { margin: 0 0 10px; }
+    .card textarea { min-height: 140px; }
+    .card-actions { display: flex; gap: 10px; margin-top: 10px; }
     .card-actions form { margin: 0; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -41,12 +47,19 @@
       border: 1px solid #ddd;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
     }
-    .modal h3 { margin: 0 0 8px; font-size: 16px; }
+    .modal h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
     .modal p { margin: 0 0 12px; }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/">Editions</a>
+    <a href="/editorial/frontmatter/{{ book_code }}/{{ language }}/" class="current">Frontmatter</a>
+  </nav>
   <h1>Editorial · Frontmatter</h1>
   {% if is_generic %}
   <div class="notice">

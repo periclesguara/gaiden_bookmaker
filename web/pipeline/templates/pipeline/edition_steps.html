@@ -19,6 +19,7 @@
     body {
       margin: 0;
       font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
       background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
       color: var(--ink);
     }
@@ -27,25 +28,27 @@
     }
     h1 {
       margin: 0 0 6px;
-      font-size: 28px;
+      font-size: 30px;
+      font-weight: 700;
       letter-spacing: 0.4px;
     }
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 16px;
     }
     .nav {
       display: flex;
       gap: 12px;
-      font-size: 13px;
+      font-size: 15px;
       margin-bottom: 8px;
     }
     .nav a {
       text-decoration: none;
       color: var(--ink);
-      border-bottom: 1px solid transparent;
+      border-bottom: 2px solid transparent;
     }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
     .nav a:hover { border-bottom-color: var(--accent); }
     .actions {
       display: flex;
@@ -58,12 +61,13 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px 10px;
+      padding: 10px 16px;
       border-radius: 8px;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: #fff;
-      font-size: 13px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
       text-decoration: none;
     }
@@ -91,18 +95,20 @@
     }
     .card h2 {
       margin: 0 0 10px;
-      font-size: 18px;
+      font-size: 22px;
+      font-weight: 600;
     }
     .status {
-      font-size: 13px;
+      font-size: 16px;
       color: var(--muted);
-      margin: 6px 0 0;
+      margin: 8px 0 0;
     }
     .badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 16px;
+      font-weight: 700;
       background: #fff;
       border: 1px solid var(--border);
     }
@@ -120,9 +126,9 @@
     }
     th, td {
       text-align: left;
-      padding: 8px 10px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
-      font-size: 12px;
+      font-size: 16px;
       vertical-align: top;
     }
     th {
@@ -142,7 +148,7 @@
       <a href="/pipeline/projects/">Projects</a>
       <a href="/pipeline/runner/">Runner</a>
       <a href="/pipeline/dashboard/">Dashboard</a>
-      <a href="/pipeline/editions/">Editions</a>
+      <a href="/pipeline/editions/" class="current">Editions</a>
     </nav>
     <h1>Production Console — Assets & Status</h1>
     <p class="subtitle">{{ book_code }} · {{ edition.work.title }} · {{ edition.work.author.name }}</p>

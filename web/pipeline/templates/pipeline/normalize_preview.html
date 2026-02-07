@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Normalize Preview — {{ book_code|default:"" }} ({{ language|upper }})</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+      --bad: #b30000;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header { padding: 28px 24px 8px; }
+    h1 { margin: 0 0 6px; font-size: 30px; font-weight: 700; letter-spacing: 0.4px; }
+    h2 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; }
+    .nav { display: flex; gap: 12px; font-size: 15px; margin-bottom: 8px; }
+    .nav a { text-decoration: none; color: var(--ink); border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn.secondary { background: #fff; color: var(--accent); }
+    .grid { display: grid; gap: 18px; padding: 18px 24px 36px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08); }
+    .meta { display: grid; gap: 8px; font-size: 16px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 16px; font-weight: 700; background: #fff; border: 1px solid var(--border); }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+    .panel-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 15px; white-space: pre-wrap; line-height: 1.45; }
+    .line { display: grid; grid-template-columns: 64px 1fr; gap: 10px; }
+    .line .num { color: var(--muted); }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .notice { font-size: 16px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/" class="current">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Normalize Preview — {{ book_code }} ({{ language|upper }})</h1>
+    <p class="subtitle">Leitura rápida (head + tail) do texto normalizado.</p>
+  </header>
+
+  <section class="grid">
+    <article class="card">
+      <h2>Metadata</h2>
+      {% if file_kind == "MISSING" %}
+        <div class="notice">Arquivo normalizado não encontrado. Rode NORMALIZE no Runner.</div>
+      {% else %}
+        <div class="meta">
+          <div><strong>Tipo:</strong> {{ file_kind }}</div>
+          <div><strong>Path:</strong> {{ file_path }}</div>
+          <div><strong>Tamanho:</strong> {{ file_size }} bytes</div>
+          <div><strong>Modificado:</strong> {{ file_mtime }}</div>
+          {% if total_lines %}
+            <div><strong>Linhas:</strong> {{ total_lines }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+      <div class="actions">
+        <a class="btn secondary" href="/pipeline/projects/{{ book_code }}/">Back to Hub</a>
+        <a class="btn secondary" href="/pipeline/runner/?book_code={{ book_code }}">Open Runner</a>
+        <a class="btn" href="/pipeline/runner/?book_code={{ book_code }}">Run NORMALIZE</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>Gutenberg Signals</h2>
+      {% if file_kind == "MISSING" %}
+        <div class="notice">Sem arquivo para analisar.</div>
+      {% else %}
+        <div class="meta">
+          <div>Project Gutenberg: <span class="badge {% if signals.has_project_gutenberg %}bad{% else %}ok{% endif %}">{{ signals.has_project_gutenberg|yesno:"YES,NO" }}</span></div>
+          <div>Gutenberg License: <span class="badge {% if signals.has_gutenberg_license %}bad{% else %}ok{% endif %}">{{ signals.has_gutenberg_license|yesno:"YES,NO" }}</span></div>
+          <div>Gutenberg URL: <span class="badge {% if signals.has_gutenberg_url %}bad{% else %}ok{% endif %}">{{ signals.has_gutenberg_url|yesno:"YES,NO" }}</span></div>
+          <div>START marker: <span class="badge {% if signals.has_start_marker %}warn{% else %}ok{% endif %}">{{ signals.has_start_marker|yesno:"YES,NO" }}</span></div>
+          <div>END marker: <span class="badge {% if signals.has_end_marker %}warn{% else %}ok{% endif %}">{{ signals.has_end_marker|yesno:"YES,NO" }}</span></div>
+        </div>
+      {% endif %}
+    </article>
+
+    {% if file_kind != "MISSING" %}
+    <article class="card">
+      <h2>Preview</h2>
+      <div class="panels">
+        <div class="panel">
+          <div class="actions">
+            <button class="btn secondary" type="button" onclick="copyPanel('head')">Copy Head</button>
+          </div>
+          <div id="head" class="panel-content">
+{% for line in head_lines %}<div class="line"><span class="num">{{ line.0 }}</span><span>{{ line.1 }}</span></div>
+{% endfor %}</div>
+        </div>
+        <div class="panel">
+          <div class="actions">
+            <button class="btn secondary" type="button" onclick="copyPanel('tail')">Copy Tail</button>
+          </div>
+          <div id="tail" class="panel-content">
+{% for line in tail_lines %}<div class="line"><span class="num">{{ line.0 }}</span><span>{{ line.1 }}</span></div>
+{% endfor %}</div>
+        </div>
+      </div>
+    </article>
+    {% endif %}
+  </section>
+
+  <script>
+    function copyPanel(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = el.innerText || '';
+      navigator.clipboard.writeText(text);
+    }
+  </script>
+</body>
+</html>

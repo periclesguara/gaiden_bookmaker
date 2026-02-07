@@ -9,6 +9,16 @@ urlpatterns = [
     path("projects/<str:book_code>/", views.projects_hub, name="projects_hub"),
     path("projects/<str:book_code>/edit/", views.projects_edit, name="projects_edit"),
     path("projects/<str:book_code>/upload/<str:language>/", views.projects_upload_raw, name="projects_upload_raw"),
+    path(
+        "projects/<str:book_code>/normalize-preview/",
+        views.projects_normalize_preview,
+        name="projects_normalize_preview",
+    ),
+    path(
+        "projects/<str:book_code>/normalize-preview/<str:language>/",
+        views.projects_normalize_preview,
+        name="projects_normalize_preview_lang",
+    ),
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("runner/", views.runner_matrix_view, name="pipeline_runner_matrix"),
     path("runner/run/", views.runner_matrix_run_view, name="pipeline_runner_run"),

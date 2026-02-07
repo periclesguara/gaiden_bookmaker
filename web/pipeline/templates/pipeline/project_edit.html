@@ -15,20 +15,23 @@
     body {
       margin: 0;
       font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
       background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
       color: var(--ink);
     }
     header { padding: 28px 24px 8px; }
-    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: 0.4px; }
-    .subtitle { margin: 0; color: var(--muted); font-size: 14px; }
-    .nav { display: flex; gap: 12px; font-size: 13px; margin-bottom: 8px; }
-    .nav a { text-decoration: none; color: var(--ink); border-bottom: 1px solid transparent; }
+    h1 { margin: 0 0 6px; font-size: 30px; font-weight: 700; letter-spacing: 0.4px; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; }
+    .nav { display: flex; gap: 12px; font-size: 15px; margin-bottom: 8px; }
+    .nav a { text-decoration: none; color: var(--ink); border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
     .nav a:hover { border-bottom-color: var(--accent); }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 18px 24px; box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08); }
     .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-    label { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
-    input, select, textarea { padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; text-decoration: none; }
+    label { font-size: 15px; font-weight: 600; color: var(--muted); display: grid; gap: 8px; }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 16px; min-height: 40px; }
+    textarea { min-height: 120px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; }
     .btn.secondary { background: #fff; color: var(--accent); }
     .actions { display: flex; gap: 10px; margin-top: 12px; }
   </style>
@@ -36,7 +39,7 @@
 <body>
   <header>
     <nav class="nav">
-      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/projects/" class="current">Projects</a>
       <a href="/pipeline/runner/">Runner</a>
       <a href="/pipeline/dashboard/">Dashboard</a>
       <a href="/pipeline/editions/">Editions</a>

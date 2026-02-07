@@ -4,27 +4,50 @@
   <meta charset="UTF-8" />
   <title>Status da Pipeline</title>
   <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 20px; }
-    h1 { margin-bottom: 16px; }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
-    th { background: #f2f2f2; text-align: left; }
+    th, td { border: 1px solid #ddd; padding: 12px 14px; font-size: 16px; }
+    th { background: #f2f2f2; text-align: left; font-weight: 600; }
     tr:nth-child(even) { background: #f9f9f9; }
     .status-PENDING { color: #aa8800; font-weight: bold; }
     .status-RUNNING { color: #0066cc; font-weight: bold; }
     .status-SUCCESS { color: #008800; font-weight: bold; }
     .status-FAIL { color: #cc0000; font-weight: bold; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+      background: #fff;
+    }
     .badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 16px;
+      font-weight: 700;
       background: #eee;
     }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/" class="current">Dashboard</a>
+    <a href="/pipeline/editions/">Editions</a>
+  </nav>
   <h1>Status da Pipeline</h1>
   <table>
     <thead>
@@ -50,7 +73,7 @@
         <td>{{ pipeline.raw_at|default:"—" }}</td>
         <td>{{ pipeline.normalized_at|default:"—" }}</td>
         <td>
-          <a href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
+          <a class="btn" href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
         </td>
       </tr>
       {% empty %}
