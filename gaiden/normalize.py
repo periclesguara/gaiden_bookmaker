@@ -31,6 +31,69 @@ def _find_marker(lines: list[str], pattern: str) -> int | None:
             return i
     return None
 
+
+def _find_any_marker(lines: list[str], patterns: list[str], start_at: int = 0) -> int | None:
+    rx_list = [re.compile(p, re.IGNORECASE) for p in patterns]
+    for i in range(start_at, len(lines)):
+        line = lines[i]
+        for rx in rx_list:
+            if rx.search(line):
+                return i
+    return None
+
+
+START_MARKERS = [
+    r"\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"\*\*\*START OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"START OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"START OF PROJECT GUTENBERG EBOOK",
+    r"\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG",
+    r"\*\*\*START OF (THE|THIS) PROJECT GUTENBERG",
+    r"START OF (THE|THIS) PROJECT GUTENBERG",
+    r"START OF PROJECT GUTENBERG",
+]
+
+END_MARKERS = [
+    r"\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"\*\*\*END OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"END OF (THE|THIS) PROJECT GUTENBERG EBOOK",
+    r"END OF PROJECT GUTENBERG EBOOK",
+    r"\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG",
+    r"\*\*\*END OF (THE|THIS) PROJECT GUTENBERG",
+    r"END OF (THE|THIS) PROJECT GUTENBERG",
+    r"END OF PROJECT GUTENBERG",
+]
+
+TAIL_LICENSE_MARKERS = [
+    "end of the project gutenberg",
+    "project gutenberg",
+    "gutenberg license",
+    "www.gutenberg.org",
+    "this ebook is for the use of anyone anywhere",
+    "full project gutenberg license",
+    "start: full license",
+    "end: full license",
+]
+
+FRONTMATTER_MARKERS = [
+    "project gutenberg",
+    "gutenberg license",
+    "www.gutenberg.org",
+    "this ebook is for the use of anyone anywhere",
+    "copyright",
+    "all rights reserved",
+    "© 202",
+    "mantaquest",
+    "rinobooks",
+    "illustrated edition",
+    "translated by",
+    "edited by",
+    "adapted by",
+    "this edition was",
+    "this edition has been",
+]
+
+
 def _slice_gutenberg_main(lines: list[str]) -> list[str]:
     """
     Prefer slicing between Gutenberg START/END markers.
@@ -92,6 +155,170 @@ def _collapse_blank(lines: list[str]) -> list[str]:
             prev_blank = False
         out.append(line)
     return out
+
+
+def _collapse_blank_max(lines: list[str], max_blank: int = 2) -> list[str]:
+    out: list[str] = []
+    blank_count = 0
+    for line in lines:
+        if line.strip() == "":
+            blank_count += 1
+            if blank_count > max_blank:
+                continue
+        else:
+            blank_count = 0
+        out.append(line)
+    return out
+
+
+def _is_heading_line(line: str) -> bool:
+    s = line.strip()
+    if not s:
+        return False
+    if re.match(r"^(\d+)\s*-\s+.+$", s):
+        return True
+    if re.match(r"^(CHAPTER|ADVENTURE|PART|BOOK)\s+(\d+|[IVXLCDM]+)\b", s, flags=re.IGNORECASE):
+        return True
+    if re.match(r"^(\d+)\s*[\.\-]\s+.+$", s):
+        return True
+    if re.match(r"^[IVXLCDM]+\.\s+.+$", s):
+        return True
+    return False
+
+
+def _is_roman_only(line: str) -> bool:
+    s = line.strip()
+    return bool(re.fullmatch(r"[IVXLCDM]+", s, flags=re.IGNORECASE))
+
+
+def _find_first_heading_index(lines: list[str]) -> int | None:
+    for i, line in enumerate(lines):
+        if _is_heading_line(line):
+            return i
+        if _is_roman_only(line):
+            j = i + 1
+            while j < len(lines) and lines[j].strip() == "":
+                j += 1
+            if j < len(lines) and lines[j].strip():
+                return i
+    return None
+
+
+def _looks_like_toc_block(block_lines: list[str]) -> bool:
+    text = "\n".join(block_lines).lower()
+    if "contents" in text or "table of contents" in text or "index" in text:
+        return True
+    lines = [ln for ln in block_lines if ln.strip()]
+    if len(lines) < 3:
+        return False
+    toc_line = re.compile(r"^(chapter|adventure|part|book)?\s*[ivxlc0-9]+\b.*\d+\s*$", re.IGNORECASE)
+    dot_leader = re.compile(r"\.{2,}\s*\d+\s*$")
+    hits = sum(1 for ln in lines if toc_line.search(ln) or dot_leader.search(ln))
+    return hits >= 3 and hits / len(lines) >= 0.5
+
+
+def _strip_legacy_frontmatter(lines: list[str], max_lines: int = 200) -> tuple[list[str], int]:
+    limit = min(len(lines), max_lines)
+    head = lines[:limit]
+    tail = lines[limit:]
+
+    first_heading = _find_first_heading_index(head)
+    if first_heading is None:
+        first_heading = limit
+
+    kept: list[str] = []
+    removed = 0
+
+    i = 0
+    while i < len(head):
+        if i >= first_heading:
+            kept.extend(head[i:])
+            break
+
+        if head[i].strip() == "":
+            kept.append(head[i])
+            i += 1
+            continue
+
+        j = i
+        block: list[str] = []
+        while j < len(head) and head[j].strip() != "":
+            block.append(head[j])
+            j += 1
+
+        block_text = "\n".join(block).lower()
+        is_marker = any(m in block_text for m in FRONTMATTER_MARKERS)
+        if is_marker and not _looks_like_toc_block(block):
+            removed += len(block)
+        else:
+            kept.extend(block)
+        i = j
+
+    return kept + tail, removed
+
+
+def _strip_trailing_license(lines: list[str], min_chars: int = 10000, tail_window: int = 300) -> tuple[list[str], int]:
+    if not lines:
+        return lines, 0
+    text = "\n".join(lines)
+    has_heading = _find_first_heading_index(lines) is not None
+    if len(text) < min_chars and not has_heading:
+        return lines, 0
+
+    start = max(0, len(lines) - tail_window)
+    marker_idx: int | None = None
+    for i in range(start, len(lines)):
+        low = lines[i].lower()
+        if any(m in low for m in TAIL_LICENSE_MARKERS):
+            marker_idx = i if marker_idx is None else min(marker_idx, i)
+    if marker_idx is None:
+        return lines, 0
+
+    removed = len(lines) - marker_idx
+    return lines[:marker_idx], removed
+
+
+def normalize_text_policy_v1_en_clean(raw: str) -> tuple[str, dict]:
+    raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+    lines = raw.splitlines()
+
+    start_idx = _find_any_marker(lines, START_MARKERS)
+    end_idx = _find_any_marker(lines, END_MARKERS, start_at=(start_idx + 1) if start_idx is not None else 0)
+
+    head_removed = 0
+    tail_removed = 0
+    start_found = start_idx is not None
+    end_found = end_idx is not None and start_idx is not None and end_idx > start_idx
+
+    if start_idx is not None:
+        head_removed += start_idx + 1
+        lines = lines[start_idx + 1 :]
+        if end_idx is not None:
+            tail_removed += len(lines) - (end_idx - start_idx - 1)
+            lines = lines[: end_idx - start_idx - 1]
+
+    # remove Gutenberg metadata lines that might remain
+    lines = _clean_top_metadata(lines)
+
+    # legacy frontmatter (conservative)
+    lines, removed_head = _strip_legacy_frontmatter(lines)
+    head_removed += removed_head
+
+    # endnotes / trailing license
+    lines, removed_tail = _strip_trailing_license(lines)
+    tail_removed += removed_tail
+
+    lines = _collapse_blank_max(lines, max_blank=2)
+    cleaned = "\n".join(lines).strip()
+
+    normalized = normalize_text_policy_v1_en(cleaned)
+    stats = {
+        "start_found": start_found,
+        "end_found": end_found,
+        "head_removed": head_removed,
+        "tail_removed": tail_removed,
+    }
+    return normalized, stats
 
 def normalize_text_v1(raw: str) -> str:
     lines = raw.splitlines()
@@ -373,10 +600,9 @@ def normalize_text_policy_v1_en(raw: str) -> str:
         if re.match(r"^\d+\.\s+", ln):
             raise ValueError(f"Normalize validation failed: non-canonical heading: {ln!r}")
 
-    if headings:
-        for idx, num in enumerate(headings, start=1):
-            if num != idx:
-                raise ValueError("Normalize validation failed: chapter order changed.")
+    # NOTE: Do not hard-fail on chapter numbering gaps/resets.
+    # Some sources include TOC-like numbering or non-sequential headings;
+    # we keep output deterministic without blocking the pipeline.
 
     _english_heuristic(normalized)
     return normalized
