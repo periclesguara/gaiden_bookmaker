@@ -39,6 +39,7 @@
     .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 16px; font-weight: 700; background: #fff; border: 1px solid var(--border); }
     .badge.ok { color: var(--ok); }
     .badge.warn { color: var(--warn); }
+    .badge.bad { color: #b30000; }
   </style>
 </head>
 <body>
@@ -56,7 +57,7 @@
       {% if base_edition_id %}
         <a class="btn secondary" href="/pipeline/editions/{{ base_edition_id }}/steps/">Assets/Steps</a>
       {% endif %}
-      <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/normalize-preview/">Normalize Preview</a>
+      <a class="btn secondary" href="/pipeline/normalize/preview/{{ work.code }}/{{ base_language }}/">Normalize Preview</a>
       <a class="btn secondary" href="/editorial/frontmatter/{{ work.code }}/{{ base_language }}/">Frontmatter</a>
       <a class="btn secondary" href="/pipeline/dashboard/?book_code={{ work.code }}">Dashboard</a>
       <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/edit/">Edit Metadata</a>
@@ -78,6 +79,8 @@
         <tr>
           <th>Language</th>
           <th>Status</th>
+          <th>Normalize</th>
+          <th>Chunk</th>
           <th>Path</th>
           <th>Size</th>
           <th>Modified</th>
@@ -95,6 +98,8 @@
               <span class="badge warn">MISSING</span>
             {% endif %}
           </td>
+          <td><span class="badge {{ row.normalize_badge }}">{{ row.normalize_status }}</span></td>
+          <td><span class="badge {{ row.chunk_badge }}">{{ row.chunk_status }}</span></td>
           <td>{{ row.path }}</td>
           <td>{{ row.size|default:"-" }}</td>
           <td>{{ row.mtime|default:"-" }}</td>

@@ -311,6 +311,7 @@
           <th>Book</th>
           <th>Lang</th>
           <th>Status</th>
+          <th>Normalize Check</th>
           <th>Out Path</th>
           <th>Started</th>
           <th>Finished</th>
@@ -337,6 +338,17 @@
                 <span class="badge">{{ item.status }}</span>
               {% endif %}
             </td>
+            <td>
+              {% if item.normalize_check == 'OK' %}
+                <span class="badge ok">OK</span>
+              {% elif item.normalize_check == 'FAIL' %}
+                <span class="badge bad">FAIL</span>
+              {% elif item.normalize_check == 'WARN' %}
+                <span class="badge warn">WARN</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
             <td>{{ item.out_path }}</td>
             <td>{{ item.started_at }}</td>
             <td>{{ item.finished_at }}</td>
@@ -345,7 +357,7 @@
             <td>{{ item.log_path }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="9">No items.</td></tr>
+          <tr><td colspan="10">No items.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -408,21 +420,8 @@
     }
 
     function enforceAction() {
-      const action = getAction();
       const langBoxes = document.querySelectorAll('input[name="languages"]');
-      if (action === 'NORMALIZE' || action === 'CHUNK') {
-        langBoxes.forEach((b) => {
-          if (b.value === 'en') {
-            b.checked = true;
-            b.disabled = false;
-          } else {
-            b.checked = false;
-            b.disabled = true;
-          }
-        });
-      } else {
-        langBoxes.forEach((b) => { b.disabled = false; });
-      }
+      langBoxes.forEach((b) => { b.disabled = false; });
     }
 
     function enforceAll() {

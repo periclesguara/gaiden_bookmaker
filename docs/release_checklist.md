@@ -9,6 +9,8 @@
 ## Sanity checks
 - [ ] `.venv/bin/python web/manage.py check`
 - [ ] `bash scripts/gaiden_no_legacy_guard.sh`
+- [ ] `rg -n "PROJECT GUTENBERG" -S data/normalized || true` (deve retornar 0 hits)
+- [ ] `ls -lah data/chunks/book_0003/en/chunks_manifest.json` (manifest existe para book teste)
 
 ## Pipeline / Frontmatter
 - [ ] `python manage.py export_frontmatter --book-code book_0001 --language es`

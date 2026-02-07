@@ -96,7 +96,7 @@ def pipeline_project_dashboard(request):
 
     latest_map: dict[tuple[str, str], PipelineRunItem] = {}
     for item in PipelineRunItem.objects.order_by("-id"):
-        key = (item.book_code, item.lang)
+        key = (item.book_code, utils.normalize_lang(item.lang))
         if key not in latest_map:
             latest_map[key] = item
 
@@ -104,14 +104,15 @@ def pipeline_project_dashboard(request):
     for work in works:
         book_code = work.code
         book_id = _parse_book_id(book_code)
-        normalized_dir = data_dir / "normalized" / book_code
-        normalized_ok = normalized_dir.exists() or bool(list((data_dir / "normalized").glob(f"{book_code}*")))
-        chunked_ok = book_id is not None and (data_dir / "chunks" / f"book_{book_id:04d}").exists()
 
         langs = []
         for lang in languages:
             lang_code = utils.normalize_lang(lang["code"])
             lang_dir = _runner_lang_dir(lang_code)
+            raw_path = data_dir / "raw" / book_code / lang_dir / "source.txt"
+            normalized_path = data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
+            normalize_report = data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
+            chunks_manifest = data_dir / "chunks" / book_code / lang_code / "chunks_manifest.json"
             translated_path = None
             split_dir = None
             refine_path = None
@@ -125,11 +126,44 @@ def pipeline_project_dashboard(request):
                 polish_path = build_dir / "merge_polish.txt"
                 epub_exists = bool(list(build_dir.glob("*.epub"))) if build_dir.exists() else False
 
+            normalize_status = "MISSING"
+            normalize_badge = "bad"
+            if normalized_path.exists():
+                report = _read_json(normalize_report)
+                if report and report.get("check_ok") is True:
+                    normalize_status = "OK"
+                    normalize_badge = "ok"
+                elif report and report.get("check_ok") is False:
+                    normalize_status = "FAIL"
+                    normalize_badge = "bad"
+                else:
+                    normalize_status = "WARN"
+                    normalize_badge = "warn"
+
+            chunk_status = "MISSING"
+            chunk_badge = "bad"
+            if chunks_manifest.exists():
+                manifest = _read_json(chunks_manifest)
+                if manifest and manifest.get("check_ok") is True:
+                    chunk_status = "OK"
+                    chunk_badge = "ok"
+                elif manifest and manifest.get("check_ok") is False:
+                    chunk_status = "FAIL"
+                    chunk_badge = "bad"
+                else:
+                    chunk_status = "WARN"
+                    chunk_badge = "warn"
+
             latest = latest_map.get((book_code, lang_code))
             langs.append(
                 {
                     "code": lang_code,
                     "label": lang["label"],
+                    "raw_ok": raw_path.exists(),
+                    "normalize_status": normalize_status,
+                    "normalize_badge": normalize_badge,
+                    "chunk_status": chunk_status,
+                    "chunk_badge": chunk_badge,
                     "translated_ok": bool(translated_path and translated_path.exists()),
                     "split_ok": bool(split_dir and split_dir.exists()),
                     "refine_ok": bool(refine_path and refine_path.exists()),
@@ -144,8 +178,6 @@ def pipeline_project_dashboard(request):
             {
                 "code": book_code,
                 "title": work.title,
-                "normalized_ok": normalized_ok,
-                "chunked_ok": chunked_ok,
                 "langs": langs,
             }
         )
@@ -154,6 +186,15 @@ def pipeline_project_dashboard(request):
         "books": books,
     }
     return render(request, "pipeline/project_dashboard.html", context)
+
+
+def _read_json(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
 
 
 def _project_lang_db_code(code: str) -> str:
@@ -167,10 +208,10 @@ def _project_lang_dir(code: str) -> str:
     return _runner_lang_dir(code)
 
 
-def _project_raw_path(book_code: str, lang_code: str, source_format: str) -> Path:
-    ext = "txt" if source_format.upper() == "TXT" else "md"
+def _project_raw_path(book_code: str, lang_code: str, source_format: str | None = None) -> Path:
+    del source_format
     lang_dir = _project_lang_dir(lang_code)
-    return _project_root() / "data" / "raw" / book_code / lang_dir / f"source.{ext}"
+    return _project_root() / "data" / "raw" / book_code / lang_dir / "source.txt"
 
 
 def _project_raw_status(book_code: str, lang_code: str, source_format: str) -> dict:
@@ -256,24 +297,18 @@ def _resolve_normalize_preview_path(book_code: str, lang: str) -> tuple[Path | N
     lang_code = utils.normalize_lang(lang)
     lang_dir = _runner_lang_dir(lang_code)
     base_name_v2 = f"{book_code}_{lang_code}_v2.txt"
-    base_name_v1 = f"{book_code}_{lang_code}_v1.txt"
 
-    candidates = [
-        data_dir / "normalized" / book_code / lang_dir / base_name_v2,
-        data_dir / "normalized" / base_name_v2,
-        data_dir / "normalized" / book_code / lang_dir / base_name_v1,
-        data_dir / "normalized" / base_name_v1,
-    ]
-    for path in candidates:
-        if path.exists():
-            return path, "NORMALIZED"
+    preview = data_dir / "normalized" / book_code / lang_dir / "normalize_preview.txt"
+    if preview.exists():
+        return preview, "PREVIEW"
+
+    normalized = data_dir / "normalized" / book_code / lang_dir / base_name_v2
+    if normalized.exists():
+        return normalized, "NORMALIZED"
 
     raw_txt = data_dir / "raw" / book_code / lang_dir / "source.txt"
     if raw_txt.exists():
         return raw_txt, "RAW"
-    raw_md = data_dir / "raw" / book_code / lang_dir / "source.md"
-    if raw_md.exists():
-        return raw_md, "RAW"
 
     return None, "MISSING"
 
@@ -354,12 +389,51 @@ def projects_hub(request, book_code: str):
     base_lang = work.original_language.code
 
     raw_rows = []
+    data_dir = _project_root() / "data"
     for lang in enabled_langs:
+        lang_code = utils.normalize_lang(lang)
+        lang_dir = _runner_lang_dir(lang_code)
+        normalized_path = data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
+        normalize_report = data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
+        chunks_manifest = data_dir / "chunks" / book_code / lang_code / "chunks_manifest.json"
+
+        normalize_status = "MISSING"
+        normalize_badge = "bad"
+        if normalized_path.exists():
+            report = _read_json(normalize_report)
+            if report and report.get("check_ok") is True:
+                normalize_status = "OK"
+                normalize_badge = "ok"
+            elif report and report.get("check_ok") is False:
+                normalize_status = "FAIL"
+                normalize_badge = "bad"
+            else:
+                normalize_status = "WARN"
+                normalize_badge = "warn"
+
+        chunk_status = "MISSING"
+        chunk_badge = "bad"
+        if chunks_manifest.exists():
+            manifest = _read_json(chunks_manifest)
+            if manifest and manifest.get("check_ok") is True:
+                chunk_status = "OK"
+                chunk_badge = "ok"
+            elif manifest and manifest.get("check_ok") is False:
+                chunk_status = "FAIL"
+                chunk_badge = "bad"
+            else:
+                chunk_status = "WARN"
+                chunk_badge = "warn"
+
         raw_rows.append(
             {
                 "code": lang,
                 "label": _runner_lang_dir(lang),
                 **_project_raw_status(book_code, lang, work.source_format),
+                "normalize_status": normalize_status,
+                "normalize_badge": normalize_badge,
+                "chunk_status": chunk_status,
+                "chunk_badge": chunk_badge,
             }
         )
 
@@ -391,11 +465,16 @@ def projects_normalize_preview(request, book_code: str, language: str = "en"):
         return redirect("projects_hub", book_code=canonical)
 
     file_path, file_kind = _resolve_normalize_preview_path(canonical, lang_code)
+    data_dir = _project_root() / "data"
+    report_path = data_dir / "normalized" / canonical / _runner_lang_dir(lang_code) / "normalize_report.json"
+    report = _read_json(report_path)
     if not file_path:
         context = {
             "book_code": canonical,
             "language": lang_code,
             "file_kind": "MISSING",
+            "report": report,
+            "report_path": str(report_path),
         }
         return render(request, "pipeline/normalize_preview.html", context)
 
@@ -425,6 +504,8 @@ def projects_normalize_preview(request, book_code: str, language: str = "en"):
         "tail_lines": tail_display,
         "signals": signals,
         "total_lines": total_lines,
+        "report": report,
+        "report_path": str(report_path),
     }
     return render(request, "pipeline/normalize_preview.html", context)
 
@@ -752,6 +833,19 @@ def runner_matrix_view(request):
     else:
         run = PipelineRun.objects.order_by("-created_at").first()
     items = run.items.all() if run else []
+    if run and run.action == "NORMALIZE":
+        for item in items:
+            item.normalize_check = ""
+            item.normalize_report_path = ""
+            if item.out_path:
+                out_path = Path(item.out_path)
+                report_path = out_path.parent / "normalize_report.json"
+                report = _read_json(report_path)
+                if report and "check_ok" in report:
+                    item.normalize_check = "OK" if report.get("check_ok") else "FAIL"
+                elif report_path.exists():
+                    item.normalize_check = "WARN"
+                item.normalize_report_path = str(report_path)
 
     context = {
         "works": works,
@@ -795,8 +889,8 @@ def runner_matrix_run_view(request):
         messages.error(request, "Sequential mode exige 1 idioma.")
         return redirect("pipeline_runner_matrix")
     if action in {"NORMALIZE", "CHUNK"}:
-        if len(languages) != 1 or utils.normalize_lang(languages[0]) != "en":
-            messages.error(request, "Esta ação só suporta EN no momento.")
+        if len(languages) != 1:
+            messages.error(request, "Esta ação exige 1 idioma.")
             return redirect("pipeline_runner_matrix")
 
     skip_existing = request.POST.get("skip_existing") == "on"
@@ -825,7 +919,8 @@ def runner_matrix_run_view(request):
                 if action == "NORMALIZE":
                     out_path = str(_runner_normalized_path(book_code, lang))
                 elif action == "CHUNK":
-                    out_path = str((_project_root() / "data" / "chunks" / f"book_{book_id:04d}" / "en" / "manifest.json"))
+                    lang_code = utils.normalize_lang(lang)
+                    out_path = str((_project_root() / "data" / "chunks" / book_code / lang_code / "chunks_manifest.json"))
                 elif action == "SPLIT_FOR_REFINE":
                     out_path = str(_runner_split_dir_path(book_id, lang))
                 else:
@@ -1134,7 +1229,8 @@ def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
 def _runner_normalized_path(book_code: str, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_code = utils.normalize_lang(lang)
-    return data_dir / "normalized" / f"{book_code}_{lang_code}_v2.txt"
+    lang_dir = _runner_lang_dir(lang_code)
+    return data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
 
 
 def _runner_split_dir_path(book_id: int, lang: str) -> Path:

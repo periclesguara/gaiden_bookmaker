@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Tuple
+
+from gaiden.normalize_rules import compute_normalize_report, normalize_to_headings_only
 
 NORMALIZED_DIR = Path("data/normalized")
 
@@ -279,45 +283,9 @@ def _strip_trailing_license(lines: list[str], min_chars: int = 10000, tail_windo
 
 
 def normalize_text_policy_v1_en_clean(raw: str) -> tuple[str, dict]:
-    raw = raw.replace("\r\n", "\n").replace("\r", "\n")
-    lines = raw.splitlines()
-
-    start_idx = _find_any_marker(lines, START_MARKERS)
-    end_idx = _find_any_marker(lines, END_MARKERS, start_at=(start_idx + 1) if start_idx is not None else 0)
-
-    head_removed = 0
-    tail_removed = 0
-    start_found = start_idx is not None
-    end_found = end_idx is not None and start_idx is not None and end_idx > start_idx
-
-    if start_idx is not None:
-        head_removed += start_idx + 1
-        lines = lines[start_idx + 1 :]
-        if end_idx is not None:
-            tail_removed += len(lines) - (end_idx - start_idx - 1)
-            lines = lines[: end_idx - start_idx - 1]
-
-    # remove Gutenberg metadata lines that might remain
-    lines = _clean_top_metadata(lines)
-
-    # legacy frontmatter (conservative)
-    lines, removed_head = _strip_legacy_frontmatter(lines)
-    head_removed += removed_head
-
-    # endnotes / trailing license
-    lines, removed_tail = _strip_trailing_license(lines)
-    tail_removed += removed_tail
-
-    lines = _collapse_blank_max(lines, max_blank=2)
-    cleaned = "\n".join(lines).strip()
-
+    cleaned = normalize_to_headings_only(raw)
     normalized = normalize_text_policy_v1_en(cleaned)
-    stats = {
-        "start_found": start_found,
-        "end_found": end_found,
-        "head_removed": head_removed,
-        "tail_removed": tail_removed,
-    }
+    stats = compute_normalize_report(raw, normalized)
     return normalized, stats
 
 def normalize_text_v1(raw: str) -> str:
@@ -613,3 +581,191 @@ def write_normalized(book_id: int, text: str, version: str = "v2") -> Tuple[Path
     path = NORMALIZED_DIR / f"book_{book_id:04d}_{version}.txt"
     path.write_text(text, encoding="utf-8")
     return path, sha
+
+
+LANG_DIR_MAP = {
+    "ptbr": ("PT-BR", "ptbr"),
+    "pt-br": ("PT-BR", "ptbr"),
+    "pt_br": ("PT-BR", "ptbr"),
+    "en": ("EN", "en"),
+    "es": ("ES", "es"),
+    "de": ("DE", "de"),
+    "fr": ("FR", "fr"),
+    "it": ("IT", "it"),
+}
+
+
+def _normalize_lang(lang: str) -> tuple[str, str]:
+    raw = (lang or "en").strip()
+    key = raw.lower()
+    if key in LANG_DIR_MAP:
+        return LANG_DIR_MAP[key]
+    normalized = key.replace("-", "").replace("_", "")
+    return normalized.upper(), normalized
+
+
+def _normalize_book_code(value: str) -> str:
+    raw = (value or "").strip().lower()
+    raw = raw.replace("-", "_").replace(" ", "_")
+    if raw.isdigit():
+        digits = raw
+    else:
+        m = re.match(r"^book_?(\d+)$", raw)
+        if not m:
+            raise ValueError("book_code deve seguir o padrão book_#### (ex: book_0003).")
+        digits = m.group(1)
+    try:
+        num = int(digits)
+    except ValueError as exc:
+        raise ValueError("book_code inválido.") from exc
+    if num < 1 or num > 9999:
+        raise ValueError("book_code deve estar entre 0001 e 9999.")
+    return f"book_{num:04d}"
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _data_dir() -> Path:
+    return _project_root() / "data"
+
+
+def canonical_raw_path(book_code: str, lang: str) -> Path:
+    lang_upper, _ = _normalize_lang(lang)
+    return _data_dir() / "raw" / book_code / lang_upper / "source.txt"
+
+
+def canonical_normalized_path(book_code: str, lang: str) -> Path:
+    lang_upper, lang_lower = _normalize_lang(lang)
+    filename = f"{book_code}_{lang_lower}_v2.txt"
+    return _data_dir() / "normalized" / book_code / lang_upper / filename
+
+
+def normalize_preview_path(book_code: str, lang: str) -> Path:
+    lang_upper, _ = _normalize_lang(lang)
+    return _data_dir() / "normalized" / book_code / lang_upper / "normalize_preview.txt"
+
+
+def normalize_report_path(book_code: str, lang: str) -> Path:
+    lang_upper, _ = _normalize_lang(lang)
+    return _data_dir() / "normalized" / book_code / lang_upper / "normalize_report.json"
+
+
+def _build_preview(text: str, max_lines: int = 320, max_chars: int = 20000) -> str:
+    lines = text.splitlines()
+    out: list[str] = []
+    char_count = 0
+    for line in lines:
+        if len(out) >= max_lines:
+            break
+        cand = char_count + len(line) + 1
+        if cand > max_chars:
+            break
+        out.append(line)
+        char_count = cand
+    return "\n".join(out).strip() + "\n"
+
+
+def normalize_check(raw: str, normalized: str) -> tuple[bool, list[str]]:
+    reasons: list[str] = []
+    raw_chars = len(raw.strip())
+    norm_chars = len(normalized.strip())
+
+    if norm_chars == 0:
+        reasons.append("normalized vazio")
+    if raw_chars > 0 and norm_chars / raw_chars < 0.2:
+        reasons.append("normalized muito menor que raw (<20%)")
+
+    upper_norm = normalized.upper()
+    forbidden = [
+        "PROJECT GUTENBERG",
+        "FULL LICENSE",
+        "START OF THIS PROJECT GUTENBERG EBOOK",
+        "END OF THIS PROJECT GUTENBERG EBOOK",
+    ]
+    for marker in forbidden:
+        if marker in upper_norm:
+            reasons.append(f"marker proibido encontrado: {marker}")
+            break
+
+    return (len(reasons) == 0), reasons
+
+
+def normalize_book(book_code: str, lang: str, preview: bool = False) -> dict:
+    canonical_code = _normalize_book_code(book_code)
+    raw_path = canonical_raw_path(canonical_code, lang)
+    if not raw_path.exists():
+        raise FileNotFoundError(f"RAW não encontrado: {raw_path}")
+
+    raw_text = raw_path.read_text(encoding="utf-8", errors="replace")
+    cleaned = normalize_to_headings_only(raw_text)
+
+    lang_upper, lang_lower = _normalize_lang(lang)
+    normalized = cleaned
+    policy_error = None
+    if lang_lower == "en":
+        try:
+            normalized = normalize_text_policy_v1_en(cleaned)
+        except Exception as exc:
+            policy_error = f"{type(exc).__name__}: {exc}"
+            normalized = cleaned
+
+    report = compute_normalize_report(raw_text, normalized)
+    check_ok, check_reasons = normalize_check(raw_text, normalized)
+    if policy_error:
+        check_ok = False
+        check_reasons.append(f"normalize_policy_error: {policy_error}")
+
+    report["check_ok"] = check_ok
+    report["check_fail_reasons"] = check_reasons
+    report["language"] = lang_upper
+
+    normalized_path = canonical_normalized_path(canonical_code, lang)
+    preview_path = normalize_preview_path(canonical_code, lang)
+    report_path = normalize_report_path(canonical_code, lang)
+    preview_text = _build_preview(normalized)
+
+    preview_path.parent.mkdir(parents=True, exist_ok=True)
+    preview_path.write_text(preview_text, encoding="utf-8")
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    if not preview:
+        normalized_path.write_text(normalized, encoding="utf-8")
+
+    return {
+        "book_code": canonical_code,
+        "lang": lang_upper,
+        "raw_path": str(raw_path),
+        "normalized_path": str(normalized_path),
+        "preview_path": str(preview_path),
+        "report_path": str(report_path),
+        "check_ok": check_ok,
+        "check_fail_reasons": check_reasons,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Normalize RAW into canonical normalized output.")
+    parser.add_argument("book_code", help="book code (book_0003) or numeric id (0003)")
+    parser.add_argument("lang", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
+    parser.add_argument("--preview", action="store_true", help="Generate preview/report without writing final output")
+    args = parser.parse_args(argv)
+
+    result = normalize_book(args.book_code, args.lang, preview=args.preview)
+    status = "OK" if result["check_ok"] else "FAIL"
+    print(f"[{status}] normalize_check")
+    if result["check_fail_reasons"]:
+        for reason in result["check_fail_reasons"]:
+            print(f"[FAIL] {reason}")
+    if args.preview:
+        print(f"[PREVIEW] {result['preview_path']}")
+        print(f"[REPORT] {result['report_path']}")
+    else:
+        print(f"[OUTPUT] {result['normalized_path']}")
+        print(f"[REPORT] {result['report_path']}")
+    return 0 if result["check_ok"] else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

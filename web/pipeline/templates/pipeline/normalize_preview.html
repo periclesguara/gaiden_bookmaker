@@ -97,6 +97,24 @@
       {% endif %}
     </article>
 
+    <article class="card">
+      <h2>Normalize Report</h2>
+      {% if report %}
+        <div class="meta">
+          <div>Check: <span class="badge {% if report.check_ok %}ok{% else %}bad{% endif %}">{{ report.check_ok|yesno:"OK,FAIL" }}</span></div>
+          <div>Markers removidos: {{ report.removed_markers_found|default:"-"|join:", " }}</div>
+          <div>License removida: <span class="badge {% if report.removed_license_blocks %}ok{% else %}warn{% endif %}">{{ report.removed_license_blocks|yesno:"YES,NO" }}</span></div>
+          <div>Frontmatter legado: <span class="badge {% if report.removed_frontmatter_legacy %}ok{% else %}warn{% endif %}">{{ report.removed_frontmatter_legacy|yesno:"YES,NO" }}</span></div>
+          <div>Raw chars: {{ report.raw_char_count }}</div>
+          <div>Normalized chars: {{ report.normalized_char_count }}</div>
+          <div>Delta ratio: {{ report.delta_ratio }}</div>
+          <div>Report: {{ report_path }}</div>
+        </div>
+      {% else %}
+        <div class="notice">normalize_report.json não encontrado.</div>
+      {% endif %}
+    </article>
+
     {% if file_kind != "MISSING" %}
     <article class="card">
       <h2>Preview</h2>

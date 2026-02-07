@@ -100,9 +100,10 @@
     <thead>
       <tr>
         <th>Book</th>
-        <th>Normalized</th>
-        <th>Chunked</th>
         <th>Lang</th>
+        <th>RAW</th>
+        <th>Normalize</th>
+        <th>Chunk</th>
         <th>Translated</th>
         <th>Split</th>
         <th>Refine</th>
@@ -117,22 +118,11 @@
           <tr>
             {% if forloop.first %}
               <td rowspan="{{ book.langs|length }}">{{ book.code }} — {{ book.title }}</td>
-              <td rowspan="{{ book.langs|length }}">
-                {% if book.normalized_ok %}
-                  <span class="badge ok">OK</span>
-                {% else %}
-                  <span class="badge bad">MISSING</span>
-                {% endif %}
-              </td>
-              <td rowspan="{{ book.langs|length }}">
-                {% if book.chunked_ok %}
-                  <span class="badge ok">OK</span>
-                {% else %}
-                  <span class="badge bad">MISSING</span>
-                {% endif %}
-              </td>
             {% endif %}
             <td>{{ lang.label }}</td>
+            <td>{% if lang.raw_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td><span class="badge {{ lang.normalize_badge }}">{{ lang.normalize_status }}</span></td>
+            <td><span class="badge {{ lang.chunk_badge }}">{{ lang.chunk_status }}</span></td>
             <td>{% if lang.translated_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
             <td>{% if lang.split_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
             <td>{% if lang.refine_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
