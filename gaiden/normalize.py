@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import shutil
 from pathlib import Path
 from typing import Tuple
 
-from gaiden.normalize_rules import compute_normalize_report, normalize_to_headings_only
+from gaiden.normalize_rules import compute_normalize_report, count_headings, normalize_to_headings_only
 
 NORMALIZED_DIR = Path("data/normalized")
 
@@ -575,33 +577,34 @@ def normalize_text_policy_v1_en(raw: str) -> str:
     _english_heuristic(normalized)
     return normalized
 
-def write_normalized(book_id: int, text: str, version: str = "v2") -> Tuple[Path, str]:
-    NORMALIZED_DIR.mkdir(parents=True, exist_ok=True)
+def write_normalized(book_id: int, text: str, version: str = "v2", lang: str = "en") -> Tuple[Path, str]:
+    del version
     sha = sha256_text(text)
-    path = NORMALIZED_DIR / f"book_{book_id:04d}_{version}.txt"
+    book_code = f"book_{book_id:04d}"
+    path = canonical_normalized_path(book_code, lang)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     return path, sha
 
 
 LANG_DIR_MAP = {
-    "ptbr": ("PT-BR", "ptbr"),
-    "pt-br": ("PT-BR", "ptbr"),
-    "pt_br": ("PT-BR", "ptbr"),
-    "en": ("EN", "en"),
-    "es": ("ES", "es"),
-    "de": ("DE", "de"),
-    "fr": ("FR", "fr"),
-    "it": ("IT", "it"),
+    "ptbr": "ptbr",
+    "pt-br": "ptbr",
+    "pt_br": "ptbr",
+    "en": "en",
+    "es": "es",
+    "de": "de",
+    "fr": "fr",
+    "it": "it",
 }
 
 
-def _normalize_lang(lang: str) -> tuple[str, str]:
+def _normalize_lang(lang: str) -> str:
     raw = (lang or "en").strip()
     key = raw.lower()
     if key in LANG_DIR_MAP:
         return LANG_DIR_MAP[key]
-    normalized = key.replace("-", "").replace("_", "")
-    return normalized.upper(), normalized
+    return key.replace("-", "").replace("_", "")
 
 
 def _normalize_book_code(value: str) -> str:
@@ -631,25 +634,61 @@ def _data_dir() -> Path:
     return _project_root() / "data"
 
 
-def canonical_raw_path(book_code: str, lang: str) -> Path:
-    lang_upper, _ = _normalize_lang(lang)
-    return _data_dir() / "raw" / book_code / lang_upper / "source.txt"
+def resolve_raw_path(book_code: str, lang: str) -> Path:
+    lang_code = _normalize_lang(lang)
+    lang_upper = "PT-BR" if lang_code == "ptbr" else lang_code.upper()
+    base = _data_dir() / "raw" / book_code
+    lower_dir = base / lang_code
+    upper_dir = base / lang_upper
+
+    def _select_source(dir_path: Path) -> Path | None:
+        txt_path = dir_path / "source.txt"
+        md_path = dir_path / "source.md"
+        txt_exists = txt_path.exists()
+        md_exists = md_path.exists()
+        if txt_exists and md_exists:
+            raise ValueError(f"INVALID_STATE: multiple RAW sources ({txt_path}, {md_path})")
+        if txt_exists:
+            return txt_path
+        if md_exists:
+            return md_path
+        return None
+
+    lower_source = _select_source(lower_dir)
+    if lower_source:
+        return lower_source
+
+    upper_source = _select_source(upper_dir)
+    if upper_source:
+        lower_dir.mkdir(parents=True, exist_ok=True)
+        alias_path = lower_dir / upper_source.name
+        if not alias_path.exists():
+            try:
+                os.symlink(upper_source, alias_path)
+            except OSError:
+                try:
+                    shutil.copy2(upper_source, alias_path)
+                except OSError:
+                    pass
+        return alias_path if alias_path.exists() else upper_source
+
+    raise FileNotFoundError(f"RAW_MISSING: {lower_dir}/source.(txt|md)")
 
 
 def canonical_normalized_path(book_code: str, lang: str) -> Path:
-    lang_upper, lang_lower = _normalize_lang(lang)
-    filename = f"{book_code}_{lang_lower}_v2.txt"
-    return _data_dir() / "normalized" / book_code / lang_upper / filename
+    lang_code = _normalize_lang(lang)
+    filename = f"{book_code}_{lang_code}_v2.txt"
+    return _data_dir() / "normalized" / book_code / lang_code / filename
 
 
 def normalize_preview_path(book_code: str, lang: str) -> Path:
-    lang_upper, _ = _normalize_lang(lang)
-    return _data_dir() / "normalized" / book_code / lang_upper / "normalize_preview.txt"
+    lang_code = _normalize_lang(lang)
+    return _data_dir() / "normalized" / book_code / lang_code / "normalize_preview.txt"
 
 
 def normalize_report_path(book_code: str, lang: str) -> Path:
-    lang_upper, _ = _normalize_lang(lang)
-    return _data_dir() / "normalized" / book_code / lang_upper / "normalize_report.json"
+    lang_code = _normalize_lang(lang)
+    return _data_dir() / "normalized" / book_code / lang_code / "normalize_report.json"
 
 
 def _build_preview(text: str, max_lines: int = 320, max_chars: int = 20000) -> str:
@@ -694,17 +733,15 @@ def normalize_check(raw: str, normalized: str) -> tuple[bool, list[str]]:
 
 def normalize_book(book_code: str, lang: str, preview: bool = False) -> dict:
     canonical_code = _normalize_book_code(book_code)
-    raw_path = canonical_raw_path(canonical_code, lang)
-    if not raw_path.exists():
-        raise FileNotFoundError(f"RAW não encontrado: {raw_path}")
+    raw_path = resolve_raw_path(canonical_code, lang)
 
     raw_text = raw_path.read_text(encoding="utf-8", errors="replace")
     cleaned = normalize_to_headings_only(raw_text)
 
-    lang_upper, lang_lower = _normalize_lang(lang)
+    lang_code = _normalize_lang(lang)
     normalized = cleaned
     policy_error = None
-    if lang_lower == "en":
+    if lang_code == "en":
         try:
             normalized = normalize_text_policy_v1_en(cleaned)
         except Exception as exc:
@@ -717,25 +754,34 @@ def normalize_book(book_code: str, lang: str, preview: bool = False) -> dict:
         check_ok = False
         check_reasons.append(f"normalize_policy_error: {policy_error}")
 
-    report["check_ok"] = check_ok
-    report["check_fail_reasons"] = check_reasons
-    report["language"] = lang_upper
-
     normalized_path = canonical_normalized_path(canonical_code, lang)
     preview_path = normalize_preview_path(canonical_code, lang)
     report_path = normalize_report_path(canonical_code, lang)
     preview_text = _build_preview(normalized)
 
+    report["input_path"] = str(raw_path)
+    report["output_path"] = str(normalized_path)
+    report["chapters_detected"] = count_headings(normalized)
+    report["boilerplate_removed"] = bool(
+        report.get("removed_markers_found")
+        or report.get("removed_license_blocks")
+        or report.get("removed_frontmatter_legacy")
+    )
+    report["status"] = "OK" if check_ok else "FAIL"
+    report["check_fail_reasons"] = check_reasons
+
     preview_path.parent.mkdir(parents=True, exist_ok=True)
-    preview_path.write_text(preview_text, encoding="utf-8")
+    if preview:
+        preview_path.write_text(preview_text, encoding="utf-8")
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    if not preview:
+    write_normalized = not preview or not normalized_path.exists()
+    if write_normalized:
         normalized_path.write_text(normalized, encoding="utf-8")
 
     return {
         "book_code": canonical_code,
-        "lang": lang_upper,
+        "lang": lang_code,
         "raw_path": str(raw_path),
         "normalized_path": str(normalized_path),
         "preview_path": str(preview_path),
@@ -749,21 +795,32 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Normalize RAW into canonical normalized output.")
     parser.add_argument("book_code", help="book code (book_0003) or numeric id (0003)")
     parser.add_argument("lang", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
-    parser.add_argument("--preview", action="store_true", help="Generate preview/report without writing final output")
+    parser.add_argument("--preview", action="store_true", help="Generate preview/report alongside normalized output")
     args = parser.parse_args(argv)
 
-    result = normalize_book(args.book_code, args.lang, preview=args.preview)
+    try:
+        result = normalize_book(args.book_code, args.lang, preview=args.preview)
+    except FileNotFoundError as exc:
+        msg = str(exc)
+        if "RAW_MISSING" in msg:
+            print("[FAIL] RAW_MISSING")
+            return 2
+        raise
+    except ValueError as exc:
+        msg = str(exc)
+        if "INVALID_STATE" in msg:
+            print("[FAIL] INVALID_STATE")
+            return 2
+        raise
     status = "OK" if result["check_ok"] else "FAIL"
     print(f"[{status}] normalize_check")
     if result["check_fail_reasons"]:
         for reason in result["check_fail_reasons"]:
             print(f"[FAIL] {reason}")
+    print(f"[OUTPUT] {result['normalized_path']}")
+    print(f"[REPORT] {result['report_path']}")
     if args.preview:
         print(f"[PREVIEW] {result['preview_path']}")
-        print(f"[REPORT] {result['report_path']}")
-    else:
-        print(f"[OUTPUT] {result['normalized_path']}")
-        print(f"[REPORT] {result['report_path']}")
     return 0 if result["check_ok"] else 2
 
 

@@ -10,14 +10,14 @@ from typing import Any
 ROMAN_MAP = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 
 LANG_DIR_MAP = {
-    "ptbr": ("PT-BR", "ptbr"),
-    "pt-br": ("PT-BR", "ptbr"),
-    "pt_br": ("PT-BR", "ptbr"),
-    "en": ("EN", "en"),
-    "es": ("ES", "es"),
-    "de": ("DE", "de"),
-    "fr": ("FR", "fr"),
-    "it": ("IT", "it"),
+    "ptbr": "ptbr",
+    "pt-br": "ptbr",
+    "pt_br": "ptbr",
+    "en": "en",
+    "es": "es",
+    "de": "de",
+    "fr": "fr",
+    "it": "it",
 }
 
 HEADING_WORDS = (
@@ -46,13 +46,12 @@ def _roman_to_int(s: str) -> int | None:
     return total
 
 
-def _normalize_lang(lang: str) -> tuple[str, str]:
+def _normalize_lang(lang: str) -> str:
     raw = (lang or "en").strip()
     key = raw.lower()
     if key in LANG_DIR_MAP:
         return LANG_DIR_MAP[key]
-    normalized = key.replace("-", "").replace("_", "")
-    return normalized.upper(), normalized
+    return key.replace("-", "").replace("_", "")
 
 
 def _normalize_book_code(value: str) -> str:
@@ -76,8 +75,14 @@ def _project_root() -> Path:
 
 
 def canonical_chunks_dir(book_code: str, lang: str) -> Path:
-    _, lang_lower = _normalize_lang(lang)
-    return _project_root() / "data" / "chunks" / book_code / lang_lower
+    lang_code = _normalize_lang(lang)
+    return _project_root() / "data" / "chunks" / book_code / lang_code
+
+
+def canonical_normalized_path(book_code: str, lang: str) -> Path:
+    lang_code = _normalize_lang(lang)
+    filename = f"{book_code}_{lang_code}_v2.txt"
+    return _project_root() / "data" / "normalized" / book_code / lang_code / filename
 
 
 def _is_heading_line(line: str) -> bool:
@@ -304,7 +309,7 @@ def chunk_book(
     max_chars: int = 6000,
 ) -> dict[str, Any]:
     canonical_code = _normalize_book_code(book_code)
-    _, lang_lower = _normalize_lang(lang)
+    lang_lower = _normalize_lang(lang)
 
     if not normalized_path.exists():
         raise FileNotFoundError(f"Normalized não encontrado: {normalized_path}")
@@ -313,18 +318,9 @@ def chunk_book(
     raw = raw.replace("\r\n", "\n").replace("\r", "\n")
     lines = raw.splitlines()
 
-    preamble_lines, chapters = _split_chapters(lines)
-    if not chapters and preamble_lines:
-        chapters = [
-            {
-                "index": 1,
-                "heading": "",
-                "title": "UNLABELED",
-                "number": 1,
-                "lines": preamble_lines,
-            }
-        ]
-        preamble_lines = []
+    _, chapters = _split_chapters(lines)
+    if not chapters:
+        raise ValueError("INVALID_STATE: nenhum capítulo detectado no texto normalizado.")
 
     out_dir = out_dir or canonical_chunks_dir(canonical_code, lang)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -336,6 +332,7 @@ def chunk_book(
         "out_dir": str(out_dir),
         "chapter_count": 0,
         "chunk_count": 0,
+        "total_chunks": 0,
         "target_chars": target_chars,
         "max_chars": max_chars,
         "per_chapter": [],
@@ -347,6 +344,8 @@ def chunk_book(
         chunk_files: list[str] = []
         char_counts: list[int] = []
         for idx, chunk_text in enumerate(chunks, start=1):
+            if not chunk_text.strip():
+                continue
             filename = f"ch_{chapter_id:02d}_chunk_{idx:03d}.txt"
             out_path = out_dir / filename
             out_path.write_text(chunk_text + "\n", encoding="utf-8")
@@ -362,9 +361,6 @@ def chunk_book(
             }
         )
 
-    if preamble_lines:
-        write_chapter(0, "PREAMBLE", preamble_lines)
-
     for chapter in chapters:
         chap_num = chapter.get("number")
         if not chap_num:
@@ -372,12 +368,16 @@ def chunk_book(
         write_chapter(int(chap_num), chapter.get("title", ""), chapter.get("lines", []))
 
     manifest["chapter_count"] = len(manifest["per_chapter"])
+    manifest["total_chunks"] = manifest["chunk_count"]
 
     check_ok = True
     check_reasons: list[str] = []
     oversize = []
     cross = []
     for entry in manifest["per_chapter"]:
+        if not entry["chunk_files"]:
+            check_ok = False
+            check_reasons.append(f"capítulo sem chunks: {entry.get('chapter_id')}")
         for file_name, char_count in zip(entry["chunk_files"], entry["char_counts"]):
             if char_count > max_chars:
                 oversize.append(file_name)
@@ -404,19 +404,27 @@ def chunk_book(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Chunk normalized book into per-chapter chunks.")
-    parser.add_argument("--book", required=True, help="book_code (book_0003)")
-    parser.add_argument("--lang", required=True, help="Language code (EN, PT-BR, ES, DE, FR, IT)")
-    parser.add_argument("--normalized", required=True, help="Path to normalized file")
+    parser.add_argument("book_code", nargs="?", help="book_code (book_0003)")
+    parser.add_argument("language", nargs="?", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
+    parser.add_argument("--book", help="book_code (book_0003)")
+    parser.add_argument("--lang", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
+    parser.add_argument("--normalized", help="Path to normalized file")
     parser.add_argument("--out", required=False, help="Output directory (optional)")
     parser.add_argument("--target-chars", type=int, default=5600)
     parser.add_argument("--max-chars", type=int, default=6000)
     args = parser.parse_args(argv)
 
+    book_code = args.book or args.book_code
+    lang = args.lang or args.language
+    if not book_code or not lang:
+        raise SystemExit("book_code e language são obrigatórios.")
+
     out_dir = Path(args.out) if args.out else None
+    normalized_path = Path(args.normalized) if args.normalized else canonical_normalized_path(book_code, lang)
     manifest = chunk_book(
-        args.book,
-        args.lang,
-        Path(args.normalized),
+        book_code,
+        lang,
+        normalized_path,
         out_dir=out_dir,
         target_chars=args.target_chars,
         max_chars=args.max_chars,

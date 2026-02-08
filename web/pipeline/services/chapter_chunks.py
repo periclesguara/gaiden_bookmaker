@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from gaiden.chapter_chunks import build_chapter_chunks
 
-from . import edition_meta, paths
+from . import edition_meta, paths, utils
 
 
 def _parse_book_id(book_code: str) -> int | None:
@@ -47,10 +47,11 @@ def _resolve_normalized_path(edition) -> Path:
     book_id = _parse_book_id(book_code)
     if book_id is None:
         raise ValueError("book_code must be like book_0001.")
-    fallback = paths.data_dir() / "normalized" / f"{book_code}_{language_code}_v2.txt"
-    if not fallback.exists():
-        raise FileNotFoundError(f"Normalized text not found: {fallback}")
-    return fallback
+    lang_dir = utils.normalize_lang(language_code)
+    canonical = paths.data_dir() / "normalized" / book_code / lang_dir / f"{book_code}_{lang_dir}_v2.txt"
+    if not canonical.exists():
+        raise FileNotFoundError(f"Normalized text not found: {canonical}")
+    return canonical
 
 
 def run_chapter_chunks(edition) -> dict[str, str]:

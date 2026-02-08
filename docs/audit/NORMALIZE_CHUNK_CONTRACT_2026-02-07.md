@@ -1,12 +1,16 @@
 # Normalize + Chunk Contract (2026-02-07)
 
 ## Canonical Paths
-- RAW: `data/raw/<book_code>/<LANG>/source.txt`
-- NORMALIZED: `data/normalized/<book_code>/<LANG>/<book_code>_<lang_lower>_v2.txt`
-- NORMALIZE report: `data/normalized/<book_code>/<LANG>/normalize_report.json`
-- NORMALIZE preview: `data/normalized/<book_code>/<LANG>/normalize_preview.txt`
+- RAW: `data/raw/<book_code>/<lang>/source.(txt|md)`
+- NORMALIZED: `data/normalized/<book_code>/<lang>/<book_code>_<lang>_v2.txt`
+- NORMALIZE report: `data/normalized/<book_code>/<lang>/normalize_report.json`
+- NORMALIZE preview: `data/normalized/<book_code>/<lang>/normalize_preview.txt`
 - CHUNKS dir: `data/chunks/<book_code>/<lang_lower>/`
 - CHUNKS manifest: `data/chunks/<book_code>/<lang_lower>/chunks_manifest.json`
+
+## Language Canonical Form
+- Sempre lower-case no filesystem: `en`, `es`, `fr`, `it`, `de`, `ptbr`.
+- Compatibilidade de leitura: RAW pode existir em `EN`/`PT-BR` etc., mas escrita sempre em lower-case.
 
 ## Gutenberg Removal
 - Remover blocos `START OF THIS PROJECT GUTENBERG EBOOK` e `END OF THIS PROJECT GUTENBERG EBOOK`.
@@ -27,6 +31,13 @@
 - FAIL se normalized < 20% do raw.
 - FAIL se ainda contém `PROJECT GUTENBERG` / `FULL LICENSE` / `START OF ...` / `END OF ...`.
 - OK caso contrário.
+
+## Normalize Report (normalize_report.json)
+- `input_path`
+- `output_path`
+- `chapters_detected`
+- `boilerplate_removed`
+- `status` (OK|FAIL)
 
 ## Chunk Check (OK/FAIL)
 - FAIL se qualquer chunk > max_chars.

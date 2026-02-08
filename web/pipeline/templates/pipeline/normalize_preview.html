@@ -64,6 +64,8 @@
       <h2>Metadata</h2>
       {% if file_kind == "MISSING" %}
         <div class="notice">Arquivo normalizado não encontrado. Rode NORMALIZE no Runner.</div>
+      {% elif file_kind == "INVALID" %}
+        <div class="notice">RAW inválido: múltiplas fontes (txt + md). Corrija antes de normalizar.</div>
       {% else %}
         <div class="meta">
           <div><strong>Tipo:</strong> {{ file_kind }}</div>
@@ -78,7 +80,6 @@
       <div class="actions">
         <a class="btn secondary" href="/pipeline/projects/{{ book_code }}/">Back to Hub</a>
         <a class="btn secondary" href="/pipeline/runner/?book_code={{ book_code }}">Open Runner</a>
-        <a class="btn" href="/pipeline/runner/?book_code={{ book_code }}">Run NORMALIZE</a>
       </div>
     </article>
 
@@ -86,6 +87,8 @@
       <h2>Gutenberg Signals</h2>
       {% if file_kind == "MISSING" %}
         <div class="notice">Sem arquivo para analisar.</div>
+      {% elif file_kind == "INVALID" %}
+        <div class="notice">RAW inválido: corrija o arquivo antes de normalizar.</div>
       {% else %}
         <div class="meta">
           <div>Project Gutenberg: <span class="badge {% if signals.has_project_gutenberg %}bad{% else %}ok{% endif %}">{{ signals.has_project_gutenberg|yesno:"YES,NO" }}</span></div>
@@ -101,10 +104,11 @@
       <h2>Normalize Report</h2>
       {% if report %}
         <div class="meta">
-          <div>Check: <span class="badge {% if report.check_ok %}ok{% else %}bad{% endif %}">{{ report.check_ok|yesno:"OK,FAIL" }}</span></div>
-          <div>Markers removidos: {{ report.removed_markers_found|default:"-"|join:", " }}</div>
-          <div>License removida: <span class="badge {% if report.removed_license_blocks %}ok{% else %}warn{% endif %}">{{ report.removed_license_blocks|yesno:"YES,NO" }}</span></div>
-          <div>Frontmatter legado: <span class="badge {% if report.removed_frontmatter_legacy %}ok{% else %}warn{% endif %}">{{ report.removed_frontmatter_legacy|yesno:"YES,NO" }}</span></div>
+          <div>Status: <span class="badge {% if report.status == 'OK' %}ok{% else %}bad{% endif %}">{{ report.status|default:"FAIL" }}</span></div>
+          <div>Input: {{ report.input_path }}</div>
+          <div>Output: {{ report.output_path }}</div>
+          <div>Chapters detectados: {{ report.chapters_detected }}</div>
+          <div>Boilerplate removido: <span class="badge {% if report.boilerplate_removed %}ok{% else %}warn{% endif %}">{{ report.boilerplate_removed|yesno:"YES,NO" }}</span></div>
           <div>Raw chars: {{ report.raw_char_count }}</div>
           <div>Normalized chars: {{ report.normalized_char_count }}</div>
           <div>Delta ratio: {{ report.delta_ratio }}</div>
@@ -115,7 +119,7 @@
       {% endif %}
     </article>
 
-    {% if file_kind != "MISSING" %}
+    {% if file_kind != "MISSING" and file_kind != "INVALID" %}
     <article class="card">
       <h2>Preview</h2>
       <div class="panels">

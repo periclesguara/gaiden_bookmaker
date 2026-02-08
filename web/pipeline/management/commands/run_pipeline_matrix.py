@@ -37,7 +37,7 @@ def _lang_dir(lang: str) -> str:
     return utils.normalize_lang(lang).upper()
 
 
-def _lang_lower(lang: str) -> str:
+def _lang_fs(lang: str) -> str:
     return utils.normalize_lang(lang)
 
 
@@ -65,22 +65,21 @@ def _split_paths(book_id: int, lang: str) -> tuple[Path, Path, Path]:
 
 def _normalized_path(book_code: str, lang: str) -> Path:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    lang_dir = _lang_dir(lang)
-    lang_code = _lang_lower(lang)
+    lang_code = _lang_fs(lang)
     name_v2 = f"{book_code}_{lang_code}_v2.txt"
-    return data_dir / "normalized" / book_code / lang_dir / name_v2
+    return data_dir / "normalized" / book_code / lang_code / name_v2
 
 
 def _normalized_report_path(book_code: str, lang: str) -> Path:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    lang_dir = _lang_dir(lang)
-    return data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
+    lang_code = _lang_fs(lang)
+    return data_dir / "normalized" / book_code / lang_code / "normalize_report.json"
 
 
 def _normalized_preview_path(book_code: str, lang: str) -> Path:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    lang_dir = _lang_dir(lang)
-    return data_dir / "normalized" / book_code / lang_dir / "normalize_preview.txt"
+    lang_code = _lang_fs(lang)
+    return data_dir / "normalized" / book_code / lang_code / "normalize_preview.txt"
 
 
 def _resolve_normalized_path(book_code: str, lang: str) -> Path | None:
@@ -88,15 +87,52 @@ def _resolve_normalized_path(book_code: str, lang: str) -> Path | None:
     return path if path.exists() else None
 
 
-def _raw_path(book_code: str, lang: str) -> Path:
+def _raw_lang_upper(lang: str) -> str:
+    norm = utils.normalize_lang(lang)
+    return "PT-BR" if norm == "ptbr" else norm.upper()
+
+
+def _raw_dirs(book_code: str, lang: str) -> tuple[Path, Path]:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    lang_dir = _lang_dir(lang)
-    return data_dir / "raw" / book_code / lang_dir / "source.txt"
+    lang_lower = _lang_fs(lang)
+    base = data_dir / "raw" / book_code
+    return base / lang_lower, base / _raw_lang_upper(lang)
+
+
+def _resolve_raw_path(book_code: str, lang: str) -> tuple[Path | None, Path, str | None]:
+    lower_dir, upper_dir = _raw_dirs(book_code, lang)
+
+    def _select_source(dir_path: Path) -> tuple[Path | None, str | None]:
+        txt_path = dir_path / "source.txt"
+        md_path = dir_path / "source.md"
+        txt_exists = txt_path.exists()
+        md_exists = md_path.exists()
+        if txt_exists and md_exists:
+            return None, "INVALID_STATE"
+        if txt_exists:
+            return txt_path, None
+        if md_exists:
+            return md_path, None
+        return None, "RAW_MISSING"
+
+    lower_source, lower_reason = _select_source(lower_dir)
+    if lower_source:
+        return lower_source, lower_dir, None
+    if lower_reason == "INVALID_STATE":
+        return None, lower_dir, "INVALID_STATE"
+
+    upper_source, upper_reason = _select_source(upper_dir)
+    if upper_source:
+        return upper_source, upper_dir, None
+    if upper_reason == "INVALID_STATE":
+        return None, upper_dir, "INVALID_STATE"
+
+    return None, lower_dir, "RAW_MISSING"
 
 
 def _chunks_dir(book_code: str, lang: str) -> Path:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    return data_dir / "chunks" / book_code / _lang_lower(lang)
+    return data_dir / "chunks" / book_code / _lang_fs(lang)
 
 
 def _chunks_manifest_path(chunks_dir: Path) -> Path:
@@ -204,7 +240,7 @@ class Command(BaseCommand):
                     log_file.write("ERROR: INVALID_BOOK_CODE\n")
                 item.status = "FAILED"
                 item.finished_at = timezone.now()
-                item.skipped_reason = "INVALID_BOOK_CODE"
+                item.skipped_reason = "INVALID_STATE"
                 item.save(update_fields=["status", "finished_at", "skipped_reason"])
                 any_fail = True
                 if stop_on_error:
@@ -218,7 +254,7 @@ class Command(BaseCommand):
                     norm_path = _normalized_path(book_code, item.lang)
                     item.out_path = str(norm_path)
                     item.save(update_fields=["out_path"])
-                    command_line = f"python -m gaiden.normalize {book_code} {_lang_dir(item.lang)}"
+                    command_line = f"python -m gaiden.normalize {book_code} {_lang_fs(item.lang)}"
                 elif run.action == "CHUNK":
                     chunk_dir = _chunks_dir(book_code, item.lang)
                     manifest_path = _chunks_manifest_path(chunk_dir)
@@ -227,7 +263,7 @@ class Command(BaseCommand):
                     normalized_path = _resolve_normalized_path(book_code, item.lang)
                     command_line = (
                         "python -m gaiden.chunk_book "
-                        f"--book {book_code} --lang {_lang_dir(item.lang)} "
+                        f"--book {book_code} --lang {_lang_fs(item.lang)} "
                         f"--normalized {normalized_path or 'MISSING'} "
                         f"--out {chunk_dir} --target-chars 5600 --max-chars 6000"
                     )
@@ -257,7 +293,7 @@ class Command(BaseCommand):
                         log_file.write(f"COMMAND: {command_line}\n")
                         log_file.write("DRY-RUN: no execution\n")
                     item.status = "SKIPPED"
-                    item.skipped_reason = "DRY_RUN"
+                    item.skipped_reason = "INVALID_STATE"
                     item.finished_at = timezone.now()
                     item.save(update_fields=["status", "skipped_reason", "finished_at"])
                     continue
@@ -272,13 +308,14 @@ class Command(BaseCommand):
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
 
-                    raw_path = _raw_path(book_code, item.lang)
-                    if not raw_path.exists():
+                    raw_path, raw_dir, raw_reason = _resolve_raw_path(book_code, item.lang)
+                    if raw_reason:
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: missing RAW source\n")
+                            log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                            log_file.write(f"SKIP: {raw_reason}\n")
                         item.status = "SKIPPED"
-                        item.skipped_reason = "RAW_MISSING"
+                        item.skipped_reason = raw_reason
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
@@ -287,7 +324,7 @@ class Command(BaseCommand):
                     if skip_existing and norm_path.exists():
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: output exists\n")
+                            log_file.write("SKIP: normalized exists\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "NORMALIZED_EXISTS"
                         item.finished_at = timezone.now()
@@ -296,15 +333,16 @@ class Command(BaseCommand):
 
                     had_existing = norm_path.exists()
                     with log_path.open("w", encoding="utf-8") as log_file:
-                        log_file.write(f"RAW: {raw_path}\n")
+                        log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                        log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
                         log_file.write(f"OUTPUT: {norm_path}\n")
                         if had_existing:
-                            log_file.write("NOTE: overwrite existing output\n")
-                        _run_module(log_file, "gaiden.normalize", [book_code, _lang_dir(item.lang)])
+                            log_file.write("OVERWRITTEN: existing output replaced\n")
+                        _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(item.lang)])
                         report = _read_json(_normalized_report_path(book_code, item.lang))
                         if report:
                             log_file.write(
-                                f"NORMALIZE_CHECK: {'OK' if report.get('check_ok') else 'FAIL'}\n"
+                                f"NORMALIZE_CHECK: {report.get('status', 'FAIL')}\n"
                             )
                             if report.get("check_fail_reasons"):
                                 log_file.write(
@@ -315,6 +353,12 @@ class Command(BaseCommand):
 
                     if not norm_path.exists():
                         raise FileNotFoundError(f"Normalized output not found: {norm_path}")
+                    report = _read_json(_normalized_report_path(book_code, item.lang))
+                    if report and report.get("status") == "FAIL":
+                        item.status = "FAILED"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "finished_at"])
+                        continue
 
                     texts, _ = EditionText.objects.get_or_create(edition=edition)
                     texts.normalized_path = str(norm_path)
@@ -342,24 +386,27 @@ class Command(BaseCommand):
                     if not norm_path:
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("ERROR: normalized output missing (precondition)\n")
+                            log_file.write("FAIL: precondition missing normalized\n")
+                            expected = _normalized_path(book_code, item.lang)
+                            log_file.write(f"EXPECTED_NORMALIZED_PATH: {expected}\n")
                         item.status = "FAILED"
+                        item.skipped_reason = "PRECONDITION_MISSING_NORMALIZED"
                         item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "finished_at"])
+                        item.save(update_fields=["status", "finished_at", "skipped_reason"])
                         continue
 
                     chunk_dir = _chunks_dir(book_code, item.lang)
                     command_line = (
                         "python -m gaiden.chunk_book "
-                        f"--book {book_code} --lang {_lang_dir(item.lang)} --normalized {norm_path} "
+                        f"--book {book_code} --lang {_lang_fs(item.lang)} --normalized {norm_path} "
                         f"--out {chunk_dir} --target-chars 5600 --max-chars 6000"
                     )
                     if skip_existing and _chunks_exist(chunk_dir):
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: output exists\n")
+                            log_file.write("SKIP: chunks exist\n")
                         item.status = "SKIPPED"
-                        item.skipped_reason = "OUTPUT_EXISTS"
+                        item.skipped_reason = "CHUNKS_EXIST"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
@@ -370,7 +417,7 @@ class Command(BaseCommand):
 
                     with log_path.open("a", encoding="utf-8") as log_file:
                         if had_existing:
-                            log_file.write("NOTE: overwrite existing output\n")
+                            log_file.write("OVERWRITTEN: existing output replaced\n")
                         _run_module(
                             log_file,
                             "gaiden.chunk_book",
@@ -378,7 +425,7 @@ class Command(BaseCommand):
                                 "--book",
                                 book_code,
                                 "--lang",
-                                _lang_dir(item.lang),
+                                _lang_fs(item.lang),
                                 "--normalized",
                                 str(norm_path),
                                 "--out",
@@ -403,6 +450,11 @@ class Command(BaseCommand):
 
                     if not _chunks_exist(chunk_dir):
                         raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
+                    if manifest and manifest.get("check_ok") is False:
+                        item.status = "FAILED"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "finished_at"])
+                        continue
 
                     pipeline_state.chunked_at = timezone.now()
                     pipeline_state.current_stage = PipelineStage.CHUNKED
@@ -427,24 +479,27 @@ class Command(BaseCommand):
                         source_lang = "en"
                         norm_path = _normalized_path(book_code, source_lang)
                         if not norm_path.exists():
-                            raw_path = _raw_path(book_code, source_lang)
-                            if not raw_path.exists():
+                            raw_path, raw_dir, raw_reason = _resolve_raw_path(book_code, source_lang)
+                            if raw_reason:
                                 with log_path.open("a", encoding="utf-8") as log_file:
-                                    log_file.write("SKIP: missing RAW source for normalize\n")
-                                    log_file.write(f"RAW: {raw_path}\n")
+                                    log_file.write(f"SKIP: {raw_reason}\n")
+                                    log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                                    log_file.write(f"RAW_SOURCE_FOUND: {raw_path or 'MISSING'}\n")
                                 item.status = "SKIPPED"
-                                item.skipped_reason = "RAW_MISSING"
+                                item.skipped_reason = raw_reason
                                 item.finished_at = timezone.now()
                                 item.save(update_fields=["status", "skipped_reason", "finished_at"])
                                 continue
 
                             with log_path.open("a", encoding="utf-8") as log_file:
                                 log_file.write("AUTO: normalize before translate\n")
-                                _run_module(log_file, "gaiden.normalize", [book_code, _lang_dir(source_lang)])
+                                log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                                log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
+                                _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(source_lang)])
                                 report = _read_json(_normalized_report_path(book_code, source_lang))
                                 if report:
                                     log_file.write(
-                                        f"NORMALIZE_CHECK: {'OK' if report.get('check_ok') else 'FAIL'}\n"
+                                        f"NORMALIZE_CHECK: {report.get('status', 'FAIL')}\n"
                                     )
                                     if report.get("check_fail_reasons"):
                                         log_file.write(
@@ -452,6 +507,8 @@ class Command(BaseCommand):
                                             + "; ".join(report["check_fail_reasons"])
                                             + "\n"
                                         )
+                            if report and report.get("status") == "FAIL":
+                                raise RuntimeError("Normalize check failed during auto-dependency.")
 
                             if not norm_path.exists():
                                 raise FileNotFoundError(f"Normalized output not found: {norm_path}")
@@ -475,7 +532,7 @@ class Command(BaseCommand):
                                         "--book",
                                         book_code,
                                         "--lang",
-                                        _lang_dir(source_lang),
+                                        _lang_fs(source_lang),
                                         "--normalized",
                                         str(norm_path),
                                         "--out",
@@ -497,6 +554,8 @@ class Command(BaseCommand):
                                             + "; ".join(manifest["check_fail_reasons"])
                                             + "\n"
                                         )
+                            if manifest and manifest.get("check_ok") is False:
+                                raise RuntimeError("Chunk check failed during auto-dependency.")
                             if not _chunks_exist(chunk_dir):
                                 raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
                             pipeline_state.chunked_at = timezone.now()
@@ -508,7 +567,7 @@ class Command(BaseCommand):
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: output exists\n")
                         item.status = "SKIPPED"
-                        item.skipped_reason = "OUTPUT_EXISTS"
+                        item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
@@ -545,7 +604,7 @@ class Command(BaseCommand):
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: missing merge_translate\n")
                         item.status = "SKIPPED"
-                        item.skipped_reason = "MISSING_MERGE_TRANSLATE"
+                        item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
@@ -555,7 +614,7 @@ class Command(BaseCommand):
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: output exists\n")
                         item.status = "SKIPPED"
-                        item.skipped_reason = "OUTPUT_EXISTS"
+                        item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
@@ -596,7 +655,7 @@ class Command(BaseCommand):
             for item in remaining:
                 item.status = "SKIPPED"
                 item.finished_at = timezone.now()
-                item.skipped_reason = "STOP_ON_ERROR"
+                item.skipped_reason = "INVALID_STATE"
                 item.save(update_fields=["status", "finished_at", "skipped_reason"])
 
         run.finished_at = timezone.now()

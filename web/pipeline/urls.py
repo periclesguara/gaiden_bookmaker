@@ -24,6 +24,11 @@ urlpatterns = [
         views.projects_normalize_preview,
         name="normalize_preview",
     ),
+    path(
+        "chunks/manifest/<str:book_code>/<str:language>/",
+        views.projects_chunks_manifest,
+        name="projects_chunks_manifest",
+    ),
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("runner/", views.runner_matrix_view, name="pipeline_runner_matrix"),
     path("runner/run/", views.runner_matrix_run_view, name="pipeline_runner_run"),

@@ -47,6 +47,14 @@ FRONTMATTER_KEYWORDS = [
     "frontispiece",
     "copyright",
     "about this edition",
+    "disclaimer",
+    "all rights reserved",
+    "rights reserved",
+    "contract",
+    "terms of use",
+    "terms of this license",
+    "printed in",
+    "publication",
 ]
 
 META_PREFIXES = (
@@ -98,6 +106,10 @@ def _is_heading_line(line: str) -> bool:
     if re.match(r"^[IVXLCDM]+\.\s+.+$", s, flags=re.IGNORECASE):
         return True
     return False
+
+
+def count_headings(text: str) -> int:
+    return sum(1 for line in text.splitlines() if _is_heading_line(line))
 
 
 def strip_gutenberg_boilerplate(text: str) -> str:

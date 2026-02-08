@@ -81,6 +81,7 @@
           <th>Status</th>
           <th>Normalize</th>
           <th>Chunk</th>
+          <th>Links</th>
           <th>Path</th>
           <th>Size</th>
           <th>Modified</th>
@@ -92,7 +93,9 @@
         <tr>
           <td>{{ row.label }}</td>
           <td>
-            {% if row.exists %}
+            {% if row.invalid_state %}
+              <span class="badge bad">INVALID</span>
+            {% elif row.exists %}
               <span class="badge ok">OK</span>
             {% else %}
               <span class="badge warn">MISSING</span>
@@ -100,6 +103,10 @@
           </td>
           <td><span class="badge {{ row.normalize_badge }}">{{ row.normalize_status }}</span></td>
           <td><span class="badge {{ row.chunk_badge }}">{{ row.chunk_status }}</span></td>
+          <td>
+            <a class="btn secondary" href="/pipeline/normalize/preview/{{ work.code }}/{{ row.code }}/">Preview</a>
+            <a class="btn secondary" href="/pipeline/chunks/manifest/{{ work.code }}/{{ row.code }}/">Manifest</a>
+          </td>
           <td>{{ row.path }}</td>
           <td>{{ row.size|default:"-" }}</td>
           <td>{{ row.mtime|default:"-" }}</td>

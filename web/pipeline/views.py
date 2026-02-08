@@ -108,17 +108,18 @@ def pipeline_project_dashboard(request):
         langs = []
         for lang in languages:
             lang_code = utils.normalize_lang(lang["code"])
-            lang_dir = _runner_lang_dir(lang_code)
-            raw_path = data_dir / "raw" / book_code / lang_dir / "source.txt"
-            normalized_path = data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
-            normalize_report = data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
-            chunks_manifest = data_dir / "chunks" / book_code / lang_code / "chunks_manifest.json"
+            fs_lang = _fs_lang_dir(lang_code)
+            raw_status = _project_raw_status(book_code, lang_code, work.source_format)
+            normalized_path = data_dir / "normalized" / book_code / fs_lang / f"{book_code}_{lang_code}_v2.txt"
+            normalize_report = data_dir / "normalized" / book_code / fs_lang / "normalize_report.json"
+            chunks_manifest = data_dir / "chunks" / book_code / fs_lang / "chunks_manifest.json"
             translated_path = None
             split_dir = None
             refine_path = None
             polish_path = None
             epub_exists = False
             if book_id is not None:
+                lang_dir = _runner_lang_dir(lang_code)
                 translated_path = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / f"merge_translate_{lang_dir}.txt"
                 split_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / "split_chapters_for_refine"
                 build_dir = data_dir / "builds" / book_code / lang_code
@@ -130,10 +131,10 @@ def pipeline_project_dashboard(request):
             normalize_badge = "bad"
             if normalized_path.exists():
                 report = _read_json(normalize_report)
-                if report and report.get("check_ok") is True:
+                if report and report.get("status") == "OK":
                     normalize_status = "OK"
                     normalize_badge = "ok"
-                elif report and report.get("check_ok") is False:
+                elif report and report.get("status") == "FAIL":
                     normalize_status = "FAIL"
                     normalize_badge = "bad"
                 else:
@@ -159,7 +160,9 @@ def pipeline_project_dashboard(request):
                 {
                     "code": lang_code,
                     "label": lang["label"],
-                    "raw_ok": raw_path.exists(),
+                    "raw_ok": raw_status.get("exists", False),
+                    "raw_invalid": raw_status.get("invalid_state", False),
+                    "raw_path": raw_status.get("path", ""),
                     "normalize_status": normalize_status,
                     "normalize_badge": normalize_badge,
                     "chunk_status": chunk_status,
@@ -205,26 +208,100 @@ def _project_lang_db_code(code: str) -> str:
 
 
 def _project_lang_dir(code: str) -> str:
-    return _runner_lang_dir(code)
+    return _fs_lang_dir(code)
+
+
+def _fs_lang_dir(code: str) -> str:
+    return utils.normalize_lang(code)
+
+def _raw_lang_upper(code: str) -> str:
+    norm = utils.normalize_lang(code)
+    return "PT-BR" if norm == "ptbr" else norm.upper()
+
+
+def _raw_dir_candidates(book_code: str, lang_code: str) -> tuple[Path, Path]:
+    base = _project_root() / "data" / "raw" / book_code
+    lower_dir = base / _fs_lang_dir(lang_code)
+    upper_dir = base / _raw_lang_upper(lang_code)
+    return lower_dir, upper_dir
+
+
+def _raw_source_candidates(book_code: str, lang_code: str) -> dict[str, Path]:
+    lower_dir, upper_dir = _raw_dir_candidates(book_code, lang_code)
+    return {
+        "lower_txt": lower_dir / "source.txt",
+        "lower_md": lower_dir / "source.md",
+        "upper_txt": upper_dir / "source.txt",
+        "upper_md": upper_dir / "source.md",
+        "lower_dir": lower_dir,
+        "upper_dir": upper_dir,
+    }
+
+
+def _project_raw_paths(book_code: str, lang_code: str) -> tuple[Path, Path]:
+    candidates = _raw_source_candidates(book_code, lang_code)
+    return candidates["lower_txt"], candidates["lower_md"]
 
 
 def _project_raw_path(book_code: str, lang_code: str, source_format: str | None = None) -> Path:
-    del source_format
-    lang_dir = _project_lang_dir(lang_code)
-    return _project_root() / "data" / "raw" / book_code / lang_dir / "source.txt"
+    txt_path, md_path = _project_raw_paths(book_code, lang_code)
+    if source_format:
+        return txt_path if source_format.upper() == "TXT" else md_path
+    return txt_path
 
 
 def _project_raw_status(book_code: str, lang_code: str, source_format: str) -> dict:
+    candidates = _raw_source_candidates(book_code, lang_code)
+    lower_txt = candidates["lower_txt"]
+    lower_md = candidates["lower_md"]
+    upper_txt = candidates["upper_txt"]
+    upper_md = candidates["upper_md"]
+
+    lower_txt_exists = lower_txt.exists()
+    lower_md_exists = lower_md.exists()
+    upper_txt_exists = upper_txt.exists()
+    upper_md_exists = upper_md.exists()
+
+    if lower_txt_exists and lower_md_exists:
+        return {
+            "exists": True,
+            "path": f"{lower_txt} | {lower_md}",
+            "size": "-",
+            "mtime": "-",
+            "invalid_state": True,
+        }
+
+    if lower_txt_exists or lower_md_exists:
+        selected = lower_txt if lower_txt_exists else lower_md
+        stat = selected.stat()
+        return {
+            "exists": True,
+            "path": str(selected),
+            "size": stat.st_size,
+            "mtime": datetime.fromtimestamp(stat.st_mtime),
+        }
+
+    if upper_txt_exists and upper_md_exists:
+        return {
+            "exists": True,
+            "path": f"{upper_txt} | {upper_md}",
+            "size": "-",
+            "mtime": "-",
+            "invalid_state": True,
+        }
+
+    if upper_txt_exists or upper_md_exists:
+        selected = upper_txt if upper_txt_exists else upper_md
+        stat = selected.stat()
+        return {
+            "exists": True,
+            "path": str(selected),
+            "size": stat.st_size,
+            "mtime": datetime.fromtimestamp(stat.st_mtime),
+        }
+
     path = _project_raw_path(book_code, lang_code, source_format)
-    if not path.exists():
-        return {"exists": False, "path": str(path)}
-    stat = path.stat()
-    return {
-        "exists": True,
-        "path": str(path),
-        "size": stat.st_size,
-        "mtime": datetime.fromtimestamp(stat.st_mtime),
-    }
+    return {"exists": False, "path": str(path)}
 
 
 def _project_validate_book_code(code: str) -> bool:
@@ -292,10 +369,39 @@ def _normalize_preview_allowed_lang(raw: str | None) -> str | None:
     return None
 
 
+def _resolve_raw_source_any(book_code: str, lang_code: str) -> tuple[Path | None, str]:
+    candidates = _raw_source_candidates(book_code, lang_code)
+    lower_txt = candidates["lower_txt"]
+    lower_md = candidates["lower_md"]
+    upper_txt = candidates["upper_txt"]
+    upper_md = candidates["upper_md"]
+
+    lower_txt_exists = lower_txt.exists()
+    lower_md_exists = lower_md.exists()
+    upper_txt_exists = upper_txt.exists()
+    upper_md_exists = upper_md.exists()
+
+    if lower_txt_exists and lower_md_exists:
+        return None, "INVALID"
+    if lower_txt_exists:
+        return lower_txt, "RAW"
+    if lower_md_exists:
+        return lower_md, "RAW"
+
+    if upper_txt_exists and upper_md_exists:
+        return None, "INVALID"
+    if upper_txt_exists:
+        return upper_txt, "RAW"
+    if upper_md_exists:
+        return upper_md, "RAW"
+
+    return None, "MISSING"
+
+
 def _resolve_normalize_preview_path(book_code: str, lang: str) -> tuple[Path | None, str]:
     data_dir = _project_root() / "data"
     lang_code = utils.normalize_lang(lang)
-    lang_dir = _runner_lang_dir(lang_code)
+    lang_dir = _fs_lang_dir(lang_code)
     base_name_v2 = f"{book_code}_{lang_code}_v2.txt"
 
     preview = data_dir / "normalized" / book_code / lang_dir / "normalize_preview.txt"
@@ -306,10 +412,11 @@ def _resolve_normalize_preview_path(book_code: str, lang: str) -> tuple[Path | N
     if normalized.exists():
         return normalized, "NORMALIZED"
 
-    raw_txt = data_dir / "raw" / book_code / lang_dir / "source.txt"
-    if raw_txt.exists():
-        return raw_txt, "RAW"
-
+    raw_path, raw_kind = _resolve_raw_source_any(book_code, lang_code)
+    if raw_kind == "RAW":
+        return raw_path, "RAW"
+    if raw_kind == "INVALID":
+        return None, "INVALID"
     return None, "MISSING"
 
 
@@ -392,19 +499,19 @@ def projects_hub(request, book_code: str):
     data_dir = _project_root() / "data"
     for lang in enabled_langs:
         lang_code = utils.normalize_lang(lang)
-        lang_dir = _runner_lang_dir(lang_code)
+        lang_dir = _fs_lang_dir(lang_code)
         normalized_path = data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
         normalize_report = data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
-        chunks_manifest = data_dir / "chunks" / book_code / lang_code / "chunks_manifest.json"
+        chunks_manifest = data_dir / "chunks" / book_code / lang_dir / "chunks_manifest.json"
 
         normalize_status = "MISSING"
         normalize_badge = "bad"
         if normalized_path.exists():
             report = _read_json(normalize_report)
-            if report and report.get("check_ok") is True:
+            if report and report.get("status") == "OK":
                 normalize_status = "OK"
                 normalize_badge = "ok"
-            elif report and report.get("check_ok") is False:
+            elif report and report.get("status") == "FAIL":
                 normalize_status = "FAIL"
                 normalize_badge = "bad"
             else:
@@ -427,7 +534,7 @@ def projects_hub(request, book_code: str):
 
         raw_rows.append(
             {
-                "code": lang,
+                "code": lang_code,
                 "label": _runner_lang_dir(lang),
                 **_project_raw_status(book_code, lang, work.source_format),
                 "normalize_status": normalize_status,
@@ -466,8 +573,18 @@ def projects_normalize_preview(request, book_code: str, language: str = "en"):
 
     file_path, file_kind = _resolve_normalize_preview_path(canonical, lang_code)
     data_dir = _project_root() / "data"
-    report_path = data_dir / "normalized" / canonical / _runner_lang_dir(lang_code) / "normalize_report.json"
+    report_path = data_dir / "normalized" / canonical / _fs_lang_dir(lang_code) / "normalize_report.json"
     report = _read_json(report_path)
+    if file_kind == "INVALID":
+        context = {
+            "book_code": canonical,
+            "language": lang_code,
+            "file_kind": "INVALID",
+            "report": report,
+            "report_path": str(report_path),
+        }
+        return render(request, "pipeline/normalize_preview.html", context)
+
     if not file_path:
         context = {
             "book_code": canonical,
@@ -508,6 +625,27 @@ def projects_normalize_preview(request, book_code: str, language: str = "en"):
         "report_path": str(report_path),
     }
     return render(request, "pipeline/normalize_preview.html", context)
+
+
+def projects_chunks_manifest(request, book_code: str, language: str = "en"):
+    canonical, error = normalize_book_code(book_code)
+    if error:
+        raise Http404("book_code inválido.")
+    lang_code = utils.normalize_lang(language)
+    if lang_code not in PROJECT_LANG_CODES:
+        raise Http404("Idioma inválido.")
+
+    data_dir = _project_root() / "data"
+    manifest_path = data_dir / "chunks" / canonical / lang_code / "chunks_manifest.json"
+    if not manifest_path.exists():
+        raise Http404("Manifest não encontrado.")
+
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception:
+        raise Http404("Manifest inválido.")
+
+    return JsonResponse(payload)
 
 
 def projects_new(request):
@@ -841,8 +979,8 @@ def runner_matrix_view(request):
                 out_path = Path(item.out_path)
                 report_path = out_path.parent / "normalize_report.json"
                 report = _read_json(report_path)
-                if report and "check_ok" in report:
-                    item.normalize_check = "OK" if report.get("check_ok") else "FAIL"
+                if report and "status" in report:
+                    item.normalize_check = "OK" if report.get("status") == "OK" else "FAIL"
                 elif report_path.exists():
                     item.normalize_check = "WARN"
                 item.normalize_report_path = str(report_path)
@@ -1229,7 +1367,7 @@ def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
 def _runner_normalized_path(book_code: str, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_code = utils.normalize_lang(lang)
-    lang_dir = _runner_lang_dir(lang_code)
+    lang_dir = _fs_lang_dir(lang_code)
     return data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
 
 

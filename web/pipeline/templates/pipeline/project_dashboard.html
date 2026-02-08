@@ -82,6 +82,7 @@
     .badge.ok { color: var(--ok); }
     .badge.warn { color: var(--warn); }
     .badge.bad { color: var(--bad); }
+    .raw-path { font-size: 12px; color: var(--muted); margin-top: 4px; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -104,6 +105,7 @@
         <th>RAW</th>
         <th>Normalize</th>
         <th>Chunk</th>
+        <th>Links</th>
         <th>Translated</th>
         <th>Split</th>
         <th>Refine</th>
@@ -120,9 +122,24 @@
               <td rowspan="{{ book.langs|length }}">{{ book.code }} — {{ book.title }}</td>
             {% endif %}
             <td>{{ lang.label }}</td>
-            <td>{% if lang.raw_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>
+              {% if lang.raw_invalid %}
+                <span class="badge bad">INVALID</span>
+              {% elif lang.raw_ok %}
+                <span class="badge ok">OK</span>
+              {% else %}
+                <span class="badge bad">MISSING</span>
+              {% endif %}
+              {% if lang.raw_path %}
+                <div class="raw-path">{{ lang.raw_path }}</div>
+              {% endif %}
+            </td>
             <td><span class="badge {{ lang.normalize_badge }}">{{ lang.normalize_status }}</span></td>
             <td><span class="badge {{ lang.chunk_badge }}">{{ lang.chunk_status }}</span></td>
+            <td>
+              <a href="/pipeline/normalize/preview/{{ book.code }}/{{ lang.code }}/">Preview</a>
+              <a href="/pipeline/chunks/manifest/{{ book.code }}/{{ lang.code }}/">Manifest</a>
+            </td>
             <td>{% if lang.translated_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
             <td>{% if lang.split_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
             <td>{% if lang.refine_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
