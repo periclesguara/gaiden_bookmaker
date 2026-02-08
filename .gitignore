@@ -140,6 +140,8 @@ docs/*pipeline_log*
 
 # Loose scripts (if not canonical)
 scripts/
+!scripts/
+!scripts/fix_raw_casing_aliases.sh
 
 # --- local / derived artifacts ---
 /data/db/
