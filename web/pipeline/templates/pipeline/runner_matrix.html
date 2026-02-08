@@ -193,7 +193,16 @@
         <div class="list">
           {% for work in works %}
             <label>
-              <input type="checkbox" name="books" value="{{ work.code }}" {% if selected_book_code == work.code %}checked{% endif %} />
+              <input
+                type="checkbox"
+                name="books"
+                value="{{ work.code }}"
+                {% if selected_books %}
+                  {% if work.code in selected_books %}checked{% endif %}
+                {% elif selected_book_code == work.code %}
+                  checked
+                {% endif %}
+              />
               <span>{{ work.code }} — {{ work.title }}</span>
             </label>
           {% empty %}
@@ -216,7 +225,9 @@
                 type="checkbox"
                 name="languages"
                 value="{{ lang.code }}"
-                {% if default_langs %}
+                {% if selected_languages %}
+                  {% if lang.code in selected_languages %}checked{% endif %}
+                {% elif default_langs %}
                   {% if lang.code in default_langs %}checked{% endif %}
                 {% else %}
                   {% if lang.code == 'en' %}checked{% endif %}
@@ -231,11 +242,11 @@
       <div class="card">
         <h2>Mode</h2>
         <label class="option">
-          <input type="radio" name="mode" value="MULTILANGUAGE" checked />
+          <input type="radio" name="mode" value="MULTILANGUAGE" {% if pipeline_mode == "MULTILANGUAGE" %}checked{% endif %} />
           <span>Multilanguage mode (1 book, many languages)</span>
         </label>
         <label class="option">
-          <input type="radio" name="mode" value="SEQUENTIAL" />
+          <input type="radio" name="mode" value="SEQUENTIAL" {% if pipeline_mode == "SEQUENTIAL" %}checked{% endif %} />
           <span>Sequential mode (many books, 1 language)</span>
         </label>
       </div>
@@ -248,7 +259,7 @@
         </label>
         <label class="option">
           <input type="radio" name="action" value="CHUNK" />
-          <span>CHUNK (EN)</span>
+          <span>CHUNK (shared EN)</span>
         </label>
         <label class="option">
           <input type="radio" name="action" value="TRANSLATE" checked />
@@ -429,7 +440,30 @@
       enforceAction();
     }
 
+    function persistMode() {
+      const selected = document.querySelector('input[name="mode"]:checked');
+      if (selected) {
+        localStorage.setItem('pipeline_mode', selected.value);
+      }
+    }
+
+    function restoreModeFromStorage() {
+      const selected = document.querySelector('input[name="mode"]:checked');
+      if (selected) {
+        return;
+      }
+      const saved = localStorage.getItem('pipeline_mode');
+      if (!saved) {
+        return;
+      }
+      const input = document.querySelector(`input[name="mode"][value="${saved}"]`);
+      if (input) {
+        input.checked = true;
+      }
+    }
+
     document.querySelectorAll('input[name="mode"]').forEach((el) => {
+      el.addEventListener('change', persistMode);
       el.addEventListener('change', enforceAll);
     });
     document.querySelectorAll('input[name="books"]').forEach((el) => {
@@ -441,6 +475,7 @@
     document.querySelectorAll('input[name="action"]').forEach((el) => {
       el.addEventListener('change', enforceAll);
     });
+    restoreModeFromStorage();
     enforceAll();
   </script>
 </body>

@@ -985,10 +985,29 @@ def runner_matrix_view(request):
                     item.normalize_check = "WARN"
                 item.normalize_report_path = str(report_path)
 
+    session_mode = request.session.get("pipeline_mode") or "MULTILANGUAGE"
+    session_books = request.session.get("pipeline_books") or []
+    session_langs = request.session.get("pipeline_languages") or []
+
+    if selected_book_code:
+        selected_books = [selected_book_code]
+    else:
+        selected_books = session_books
+
+    if session_langs:
+        selected_languages = session_langs
+    elif default_langs:
+        selected_languages = default_langs
+    else:
+        selected_languages = ["en"]
+
     context = {
         "works": works,
         "languages": languages,
         "selected_book_code": selected_book_code,
+        "selected_books": selected_books,
+        "selected_languages": selected_languages,
+        "pipeline_mode": session_mode,
         "default_langs": default_langs,
         "run": run,
         "items": items,
@@ -1001,15 +1020,27 @@ def runner_matrix_run_view(request):
     book_codes = [b for b in request.POST.getlist("books") if b.strip()]
     languages = [l for l in request.POST.getlist("languages") if l.strip()]
     action = (request.POST.get("action") or "TRANSLATE").upper()
-    mode = (request.POST.get("mode") or "MULTILANGUAGE").upper()
+    posted_mode = (request.POST.get("mode") or "").upper()
+    mode = posted_mode if posted_mode in {"MULTILANGUAGE", "SEQUENTIAL"} else (request.session.get("pipeline_mode") or "MULTILANGUAGE")
+
+    if posted_mode in {"MULTILANGUAGE", "SEQUENTIAL"}:
+        request.session["pipeline_mode"] = posted_mode
+    if book_codes:
+        request.session["pipeline_books"] = book_codes
+    if languages:
+        request.session["pipeline_languages"] = languages
 
     running = PipelineRun.objects.filter(action=action, status="RUNNING").first()
     if running:
         messages.warning(request, f"Já existe um run em execução (#{running.id}).")
         return redirect("pipeline_runner_matrix_detail", run_id=running.id)
 
-    if not book_codes or not languages:
-        messages.error(request, "Selecione ao menos 1 book e 1 idioma.")
+    if not book_codes:
+        messages.error(request, "Selecione ao menos 1 book.")
+        return redirect("pipeline_runner_matrix")
+
+    if action == "TRANSLATE" and not languages:
+        messages.error(request, "Selecione ao menos 1 idioma.")
         return redirect("pipeline_runner_matrix")
 
     if action not in {"NORMALIZE", "CHUNK", "TRANSLATE", "SPLIT_FOR_REFINE"}:
@@ -1020,20 +1051,21 @@ def runner_matrix_run_view(request):
         messages.error(request, "Modo inválido.")
         return redirect("pipeline_runner_matrix")
 
-    if mode == "MULTILANGUAGE" and len(book_codes) != 1:
-        messages.error(request, "Multilanguage mode exige 1 book.")
-        return redirect("pipeline_runner_matrix")
-    if mode == "SEQUENTIAL" and len(languages) != 1:
-        messages.error(request, "Sequential mode exige 1 idioma.")
-        return redirect("pipeline_runner_matrix")
-    if action in {"NORMALIZE", "CHUNK"}:
-        if len(languages) != 1:
-            messages.error(request, "Esta ação exige 1 idioma.")
+    if action == "TRANSLATE":
+        if mode == "MULTILANGUAGE" and len(book_codes) != 1:
+            messages.error(request, "Multilanguage mode exige 1 book.")
+            return redirect("pipeline_runner_matrix")
+        if mode == "SEQUENTIAL" and len(languages) != 1:
+            messages.error(request, "Sequential mode exige 1 idioma.")
             return redirect("pipeline_runner_matrix")
 
     skip_existing = request.POST.get("skip_existing") == "on"
     stop_on_error = request.POST.get("stop_on_error") == "on"
     dry_run = request.POST.get("dry_run") == "on"
+
+    run_languages = languages
+    if action in {"NORMALIZE", "CHUNK"}:
+        run_languages = ["en"]
 
     run = PipelineRun.objects.create(
         mode="MATRIX",
@@ -1051,7 +1083,7 @@ def runner_matrix_run_view(request):
     items = []
     for book_code in book_codes:
         book_id = _parse_book_id(book_code)
-        for lang in languages:
+        for lang in run_languages:
             out_path = ""
             if book_id is not None:
                 if action == "NORMALIZE":
@@ -1092,9 +1124,17 @@ def runner_matrix_detail_view(request, run_id: int):
         {"code": "es", "label": "ES"},
         {"code": "ptbr", "label": "PT-BR"},
     ]
+    session_mode = request.session.get("pipeline_mode") or "MULTILANGUAGE"
+    session_books = request.session.get("pipeline_books") or []
+    session_langs = request.session.get("pipeline_languages") or []
+
     context = {
         "works": works,
         "languages": languages,
+        "selected_book_code": "",
+        "selected_books": session_books,
+        "selected_languages": session_langs,
+        "pipeline_mode": session_mode,
         "run": run,
         "items": items,
     }
