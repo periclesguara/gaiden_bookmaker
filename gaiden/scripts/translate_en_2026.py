@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -13,6 +14,10 @@ CHUNKS_DIR = DATA_DIR / "chunks"
 TRANSLATED_DIR = DATA_DIR / "translated"
 CONTRACTS_DIR = REPO_ROOT / "gaiden" / "contracts"
 
+# Ensure repo root is on sys.path when running as a script
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 # ---- utils ----
 def read_text(p: Path) -> str:
     return p.read_text(encoding="utf-8", errors="ignore")
@@ -21,6 +26,14 @@ def read_text(p: Path) -> str:
 def write_text(p: Path, s: str) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(s, encoding="utf-8")
+
+
+def write_failed_output(out_dir_path: Path, chunk_file: str, out_text: str, reason: str) -> None:
+    failed_dir = out_dir_path / "FAILED"
+    failed_dir.mkdir(parents=True, exist_ok=True)
+    base = chunk_file.replace(".txt", "")
+    write_text(failed_dir / f"{base}.FAILED.txt", out_text.strip() + "\n")
+    write_text(failed_dir / f"{base}.reason.txt", reason.strip() + "\n")
 
 
 def count_paragraphs(s: str) -> int:
@@ -48,7 +61,7 @@ def call_openai(contract: Dict[str, Any], input_text: str) -> str:
     This is intentionally minimal and project-aligned:
     - Uses .gaiden_secrets via your existing openai_client.py.
     """
-    from gaiden.openai_client import call_agent_text
+    from gaiden.openai_client import get_client
 
     model = contract.get("model", "gpt-5.2")
     temperature = contract.get("temperature", 0.3)
@@ -56,14 +69,41 @@ def call_openai(contract: Dict[str, Any], input_text: str) -> str:
     system_prompt = contract["system_prompt"]
     user_prompt = render_user_prompt(contract["user_prompt"], input_text)
 
-    resp_text = call_agent_text(
-        model,
-        user_prompt,
-        system_prompt=system_prompt,
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
+    client = get_client()
+    messages = [
+        {"role": "system", "content": system_prompt.strip()},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    resp = client.responses.create(
+        model=model,
+        input=messages,
+        temperature=float(temperature),
+        max_output_tokens=int(max_output_tokens),
     )
-    return resp_text
+
+    # Prefer full output_text when available; otherwise join all text parts.
+    try:
+        out = getattr(resp, "output_text", None)
+        if out:
+            return out.strip()
+    except Exception:
+        pass
+
+    parts: List[str] = []
+    try:
+        for out_item in resp.output:
+            for c in getattr(out_item, "content", []) or []:
+                text = getattr(c, "text", None)
+                if text:
+                    parts.append(text)
+    except Exception:
+        parts = []
+
+    if parts:
+        return "".join(parts).strip()
+
+    raise RuntimeError("Could not extract text from model response.")
 
 
 def load_manifest(book_code: str) -> Dict[str, Any]:
@@ -164,10 +204,14 @@ def main() -> None:
         )
 
         if len(inp_text) >= MIN_INPUT_CHARS_FOR_RATIO and r < MIN_RATIO:
-            raise RuntimeError(f"COMPRESSION_FAIL: {cf} ratio={r:.3f} (min {MIN_RATIO})")
+            reason = f"COMPRESSION_FAIL: {cf} ratio={r:.3f} (min {MIN_RATIO})"
+            write_failed_output(odir, cf, out_text, reason)
+            raise RuntimeError(reason)
 
         if paras_out != paras_in:
-            raise RuntimeError(f"PARAGRAPH_MISMATCH: {cf} paras_in={paras_in} paras_out={paras_out}")
+            reason = f"PARAGRAPH_MISMATCH: {cf} paras_in={paras_in} paras_out={paras_out}"
+            write_failed_output(odir, cf, out_text, reason)
+            raise RuntimeError(reason)
 
         write_text(out_path, out_text.strip() + "\n")
         merged_parts.append(out_text.strip() + "\n")
