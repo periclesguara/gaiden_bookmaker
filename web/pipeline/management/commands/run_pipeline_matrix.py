@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout, redirect_stderr
 import json
 from pathlib import Path
+import os
 import subprocess
 import sys
 
@@ -191,6 +192,12 @@ def _run_module(log_file, module: str, args: list[str]) -> None:
         raise RuntimeError(f"{module} failed with exit code {result.returncode}")
 
 
+def _chunk_token_limits() -> tuple[str, str]:
+    target = os.getenv("GAIDEN_CHUNK_TARGET_TOKENS", "1500")
+    max_t = os.getenv("GAIDEN_CHUNK_MAX_TOKENS", "2000")
+    return target, max_t
+
+
 class Command(BaseCommand):
     help = "Run MATRIX pipeline queue (sequential, translate-only for MVP)."
 
@@ -261,11 +268,12 @@ class Command(BaseCommand):
                     item.out_path = str(manifest_path)
                     item.save(update_fields=["out_path"])
                     normalized_path = _resolve_normalized_path(book_code, item.lang)
+                    target_tokens, max_tokens = _chunk_token_limits()
                     command_line = (
                         "python -m gaiden.chunk_book "
                         f"--book {book_code} --lang {_lang_fs(item.lang)} "
                         f"--normalized {normalized_path or 'MISSING'} "
-                        f"--out {chunk_dir} --target-chars 5600 --max-chars 6000"
+                        f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
                 elif run.action == "TRANSLATE":
                     chunk_dir, out_dir, merge_path = _translate_paths(book_id, book_code, item.lang)
@@ -396,10 +404,11 @@ class Command(BaseCommand):
                         continue
 
                     chunk_dir = _chunks_dir(book_code, item.lang)
+                    target_tokens, max_tokens = _chunk_token_limits()
                     command_line = (
                         "python -m gaiden.chunk_book "
                         f"--book {book_code} --lang {_lang_fs(item.lang)} --normalized {norm_path} "
-                        f"--out {chunk_dir} --target-chars 5600 --max-chars 6000"
+                        f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
                     if skip_existing and _chunks_exist(chunk_dir):
                         with log_path.open("w", encoding="utf-8") as log_file:
@@ -430,10 +439,10 @@ class Command(BaseCommand):
                                 str(norm_path),
                                 "--out",
                                 str(chunk_dir),
-                                "--target-chars",
-                                "5600",
-                                "--max-chars",
-                                "6000",
+                                "--target-tokens",
+                                target_tokens,
+                                "--max-tokens",
+                                max_tokens,
                             ],
                         )
                         manifest = _read_json(_chunks_manifest_path(chunk_dir))
@@ -525,6 +534,7 @@ class Command(BaseCommand):
                         if not _chunks_exist(chunk_dir):
                             with log_path.open("a", encoding="utf-8") as log_file:
                                 log_file.write("AUTO: chunk before translate\n")
+                                target_tokens, max_tokens = _chunk_token_limits()
                                 _run_module(
                                     log_file,
                                     "gaiden.chunk_book",
@@ -537,10 +547,10 @@ class Command(BaseCommand):
                                         str(norm_path),
                                         "--out",
                                         str(chunk_dir),
-                                        "--target-chars",
-                                        "5600",
-                                        "--max-chars",
-                                        "6000",
+                                        "--target-tokens",
+                                        target_tokens,
+                                        "--max-tokens",
+                                        max_tokens,
                                     ],
                                 )
                                 manifest = _read_json(_chunks_manifest_path(chunk_dir))

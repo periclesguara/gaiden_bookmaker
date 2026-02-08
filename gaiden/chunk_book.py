@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -32,6 +33,10 @@ HEADING_WORDS = (
     "TEIL",
     "KAPITEL",
 )
+
+MIN_TOKENS = 300
+TARGET_TOKENS_DEFAULT = 1500
+MAX_TOKENS_DEFAULT = 2000
 
 
 def _roman_to_int(s: str) -> int | None:
@@ -213,6 +218,12 @@ def _split_sentences(text: str) -> list[str]:
     return [p for p in parts if p]
 
 
+def _token_count(text: str) -> int:
+    from gaiden import chunker
+
+    return chunker.count_tokens(text)
+
+
 def _split_by_chars(text: str, max_chars: int) -> list[str]:
     out: list[str] = []
     start = 0
@@ -222,22 +233,27 @@ def _split_by_chars(text: str, max_chars: int) -> list[str]:
     return [p for p in out if p]
 
 
-def _split_long_text(text: str, max_chars: int) -> list[str]:
+def _split_by_tokens(text: str, max_tokens: int) -> list[str]:
+    max_chars = max_tokens * 4
+    return _split_by_chars(text, max_chars)
+
+
+def _split_long_text(text: str, max_tokens: int) -> list[str]:
     sentences = _split_sentences(text)
     if not sentences:
-        return _split_by_chars(text, max_chars)
+        return _split_by_tokens(text, max_tokens)
 
     chunks: list[str] = []
     cur = ""
     for sentence in sentences:
-        if len(sentence) > max_chars:
+        if _token_count(sentence) > max_tokens:
             if cur:
                 chunks.append(cur.strip())
                 cur = ""
-            chunks.extend(_split_by_chars(sentence, max_chars))
+            chunks.extend(_split_by_tokens(sentence, max_tokens))
             continue
         candidate = f"{cur} {sentence}".strip() if cur else sentence
-        if len(candidate) <= max_chars:
+        if _token_count(candidate) <= max_tokens:
             cur = candidate
         else:
             chunks.append(cur.strip())
@@ -247,39 +263,71 @@ def _split_long_text(text: str, max_chars: int) -> list[str]:
     return chunks
 
 
-def _chunk_paragraphs(paras: list[str], target_chars: int, max_chars: int) -> list[str]:
+def _chunk_paragraphs(paras: list[str], target_tokens: int, max_tokens: int) -> list[str]:
     chunks: list[str] = []
     buf: list[str] = []
-    buf_len = 0
+    buf_tokens = 0
 
     for para in paras:
         para = para.strip()
         if not para:
             continue
 
-        if not buf and len(para) > max_chars:
-            chunks.extend(_split_long_text(para, max_chars))
+        para_tokens = _token_count(para)
+        if not buf and para_tokens > max_tokens:
+            chunks.extend(_split_long_text(para, max_tokens))
             continue
 
-        candidate_len = buf_len + (2 if buf else 0) + len(para)
-        if candidate_len <= target_chars:
+        candidate_text = "\n\n".join(buf + [para]) if buf else para
+        candidate_tokens = _token_count(candidate_text)
+        if candidate_tokens <= target_tokens:
             buf.append(para)
-            buf_len = candidate_len
+            buf_tokens = candidate_tokens
             continue
 
         if buf:
             chunks.append("\n\n".join(buf).strip())
         buf = []
-        buf_len = 0
+        buf_tokens = 0
 
-        if len(para) > max_chars:
-            chunks.extend(_split_long_text(para, max_chars))
+        if para_tokens > max_tokens:
+            chunks.extend(_split_long_text(para, max_tokens))
         else:
             buf = [para]
-            buf_len = len(para)
+            buf_tokens = para_tokens
 
     if buf:
         chunks.append("\n\n".join(buf).strip())
+
+    if len(chunks) >= 2:
+        last_tokens = _token_count(chunks[-1])
+        threshold = int(target_tokens * 0.4)
+        if last_tokens < threshold:
+            merged = chunks[-2].rstrip() + "\n\n" + chunks[-1].lstrip()
+            if _token_count(merged) <= max_tokens:
+                chunks[-2] = merged
+                chunks.pop()
+
+    if len(chunks) >= 2:
+        idx = 0
+        while idx < len(chunks):
+            tok = _token_count(chunks[idx])
+            if tok >= MIN_TOKENS or len(chunks) == 1:
+                idx += 1
+                continue
+            if idx > 0:
+                merged = chunks[idx - 1].rstrip() + "\n\n" + chunks[idx].lstrip()
+                if _token_count(merged) <= max_tokens:
+                    chunks[idx - 1] = merged
+                    chunks.pop(idx)
+                    continue
+            if idx + 1 < len(chunks):
+                merged = chunks[idx].rstrip() + "\n\n" + chunks[idx + 1].lstrip()
+                if _token_count(merged) <= max_tokens:
+                    chunks[idx] = merged
+                    chunks.pop(idx + 1)
+                    continue
+            idx += 1
 
     return chunks
 
@@ -305,8 +353,8 @@ def chunk_book(
     lang: str,
     normalized_path: Path,
     out_dir: Path | None = None,
-    target_chars: int = 5600,
-    max_chars: int = 6000,
+    target_tokens: int = TARGET_TOKENS_DEFAULT,
+    max_tokens: int = MAX_TOKENS_DEFAULT,
 ) -> dict[str, Any]:
     canonical_code = _normalize_book_code(book_code)
     lang_lower = _normalize_lang(lang)
@@ -333,16 +381,19 @@ def chunk_book(
         "chapter_count": 0,
         "chunk_count": 0,
         "total_chunks": 0,
-        "target_chars": target_chars,
-        "max_chars": max_chars,
+        "target_tokens": target_tokens,
+        "max_tokens": max_tokens,
+        "target_chars_estimate": target_tokens * 4,
+        "max_chars_estimate": max_tokens * 4,
         "per_chapter": [],
     }
 
     def write_chapter(chapter_id: int, title: str, lines: list[str]) -> None:
         paras = _split_paragraphs(lines)
-        chunks = _chunk_paragraphs(paras, target_chars, max_chars)
+        chunks = _chunk_paragraphs(paras, target_tokens, max_tokens)
         chunk_files: list[str] = []
         char_counts: list[int] = []
+        token_counts: list[int] = []
         for idx, chunk_text in enumerate(chunks, start=1):
             if not chunk_text.strip():
                 continue
@@ -351,6 +402,7 @@ def chunk_book(
             out_path.write_text(chunk_text + "\n", encoding="utf-8")
             chunk_files.append(filename)
             char_counts.append(len(chunk_text))
+            token_counts.append(_token_count(chunk_text))
             manifest["chunk_count"] += 1
         manifest["per_chapter"].append(
             {
@@ -358,6 +410,7 @@ def chunk_book(
                 "title": title,
                 "chunk_files": chunk_files,
                 "char_counts": char_counts,
+                "token_counts": token_counts,
             }
         )
 
@@ -378,8 +431,8 @@ def chunk_book(
         if not entry["chunk_files"]:
             check_ok = False
             check_reasons.append(f"capítulo sem chunks: {entry.get('chapter_id')}")
-        for file_name, char_count in zip(entry["chunk_files"], entry["char_counts"]):
-            if char_count > max_chars:
+        for file_name, tok in zip(entry["chunk_files"], entry["token_counts"]):
+            if tok > max_tokens:
                 oversize.append(file_name)
     for entry in manifest["per_chapter"]:
         for file_name in entry["chunk_files"]:
@@ -389,7 +442,7 @@ def chunk_book(
 
     if oversize:
         check_ok = False
-        check_reasons.append(f"chunks acima do max_chars: {', '.join(sorted(set(oversize))[:5])}")
+        check_reasons.append(f"chunks acima do max_tokens: {', '.join(sorted(set(oversize))[:5])}")
     if cross:
         check_ok = False
         check_reasons.append(f"heading detectado dentro do chunk: {', '.join(sorted(set(cross))[:5])}")
@@ -410,8 +463,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--lang", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
     parser.add_argument("--normalized", help="Path to normalized file")
     parser.add_argument("--out", required=False, help="Output directory (optional)")
-    parser.add_argument("--target-chars", type=int, default=5600)
-    parser.add_argument("--max-chars", type=int, default=6000)
+    parser.add_argument("--target-tokens", type=int, default=None)
+    parser.add_argument("--max-tokens", type=int, default=None)
+    parser.add_argument("--target-chars", type=int, default=None, help="Deprecated. Use --target-tokens.")
+    parser.add_argument("--max-chars", type=int, default=None, help="Deprecated. Use --max-tokens.")
     args = parser.parse_args(argv)
 
     book_code = args.book or args.book_code
@@ -421,13 +476,29 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir = Path(args.out) if args.out else None
     normalized_path = Path(args.normalized) if args.normalized else canonical_normalized_path(book_code, lang)
+    def _env_int(name: str, default: int) -> int:
+        raw = os.getenv(name)
+        if not raw:
+            return default
+        try:
+            return int(raw)
+        except ValueError:
+            return default
+
+    target_tokens = args.target_tokens if args.target_tokens is not None else _env_int("GAIDEN_CHUNK_TARGET_TOKENS", TARGET_TOKENS_DEFAULT)
+    max_tokens = args.max_tokens if args.max_tokens is not None else _env_int("GAIDEN_CHUNK_MAX_TOKENS", MAX_TOKENS_DEFAULT)
+    if args.target_tokens is None and args.target_chars is not None:
+        target_tokens = max(1, int(round(args.target_chars / 4)))
+    if args.max_tokens is None and args.max_chars is not None:
+        max_tokens = max(1, int(round(args.max_chars / 4)))
+
     manifest = chunk_book(
         book_code,
         lang,
         normalized_path,
         out_dir=out_dir,
-        target_chars=args.target_chars,
-        max_chars=args.max_chars,
+        target_tokens=target_tokens,
+        max_tokens=max_tokens,
     )
     status = "OK" if manifest.get("check_ok") else "FAIL"
     print(f"[{status}] chunk_check")

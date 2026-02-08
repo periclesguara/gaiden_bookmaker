@@ -196,7 +196,11 @@ def build_chapter_chunks(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest: dict[str, Any] = {"chapters": []}
+    manifest: dict[str, Any] = {
+        "chapters": [],
+        "target_tokens": target_tokens,
+        "max_tokens": max_tokens,
+    }
     for idx, chapter in enumerate(chapters, start=1):
         chapter_num = chapter.get("number", 0) or idx
         chapter_text = chapter["text"]
@@ -213,10 +217,12 @@ def build_chapter_chunks(
             filename = f"ch_{chapter_num:02d}_chunk_{idx:03d}.txt"
             out_path = output_dir / filename
             out_path.write_text(chunk_text, encoding="utf-8")
+            token_count = chunker.estimate_tokens(chunk_text, language)
             entries.append(
                 {
                     "filename": filename,
-                    "est_tokens": chunker.estimate_tokens(chunk_text, language),
+                    "token_count": token_count,
+                    "est_tokens": token_count,
                     "char_count": len(chunk_text),
                 }
             )

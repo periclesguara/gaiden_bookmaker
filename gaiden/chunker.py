@@ -26,15 +26,35 @@ class Chunk:
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
+_TIKTOKEN_ENCODER = None
+
+
+def _get_tiktoken_encoder():
+    global _TIKTOKEN_ENCODER
+    if _TIKTOKEN_ENCODER is not None:
+        return _TIKTOKEN_ENCODER
+    try:
+        import tiktoken  # type: ignore
+
+        try:
+            _TIKTOKEN_ENCODER = tiktoken.encoding_for_model("gpt-4o-mini")
+        except Exception:
+            _TIKTOKEN_ENCODER = tiktoken.get_encoding("cl100k_base")
+    except Exception:
+        _TIKTOKEN_ENCODER = None
+    return _TIKTOKEN_ENCODER
+
+
+def count_tokens(text: str) -> int:
+    enc = _get_tiktoken_encoder()
+    if enc:
+        return len(enc.encode(text))
+    return max(1, (len(text) + 3) // 4)
+
+
 def estimate_tokens(text: str, language: str = "en") -> int:
-    """
-    Heuristic. Good enough for chunk sizing.
-    - English: ~4 chars/token
-    - PT/ES: slightly denser => ~3.6 chars/token
-    """
-    chars = len(text)
-    div = 4.0 if language in ("en", "eng", "english") else 3.6
-    return max(1, int(chars / div))
+    del language
+    return count_tokens(text)
 
 def split_into_paragraphs(lines: List[str]) -> List[Tuple[int, int]]:
     """

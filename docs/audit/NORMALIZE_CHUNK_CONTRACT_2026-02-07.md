@@ -20,11 +20,10 @@
 
 ## Chunk Rules
 - Um chunk nunca atravessa capítulos (um chunk pertence a um capítulo).
-- Tamanho-alvo: ~1500 tokens.
-- Hard cap: 1500 tokens.
-- Heurística: 1 token ≈ 4 caracteres.
-- Target chars: 5200–5800 (default 5600).
-- Max chars: 6000.
+- Tamanho-alvo: 1500 tokens.
+- Hard cap: 2000 tokens.
+- Heurística fallback: 1 token ≈ 4 caracteres (quando tiktoken não estiver disponível).
+- Se o último chunk do capítulo tiver < 40% do target, deve ser mesclado ao anterior (se não violar max_tokens).
 
 ## Normalize Check (OK/FAIL)
 - FAIL se normalized vazio.
@@ -40,6 +39,12 @@
 - `status` (OK|FAIL)
 
 ## Chunk Check (OK/FAIL)
-- FAIL se qualquer chunk > max_chars.
+- FAIL se qualquer chunk > max_tokens.
 - FAIL se qualquer chunk contém heading de outro capítulo.
 - OK caso contrário.
+
+## Chunk Manifest (chunks_manifest.json)
+- `target_tokens`
+- `max_tokens`
+- `per_chapter[].token_counts`
+- `per_chapter[].char_counts` (métrica secundária)

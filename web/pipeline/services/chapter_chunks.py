@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import sys
 
 from django.conf import settings
@@ -71,7 +72,26 @@ def run_chapter_chunks(edition) -> dict[str, str]:
     manifest_path = output_dir / "chunks_manifest.json"
     normalized_out = output_dir / "normalized.txt"
 
-    result = build_chapter_chunks(raw, output_dir, manifest_path, language=language_code)
+    def _env_int(name: str, default: int) -> int:
+        raw_val = os.getenv(name)
+        if not raw_val:
+            return default
+        try:
+            return int(raw_val)
+        except ValueError:
+            return default
+
+    target_tokens = _env_int("GAIDEN_CHUNK_TARGET_TOKENS", 1500)
+    max_tokens = _env_int("GAIDEN_CHUNK_MAX_TOKENS", 2000)
+
+    result = build_chapter_chunks(
+        raw,
+        output_dir,
+        manifest_path,
+        language=language_code,
+        target_tokens=target_tokens,
+        max_tokens=max_tokens,
+    )
     normalized_out.write_text(result["normalized_text"], encoding="utf-8")
 
     return {
