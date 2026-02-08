@@ -263,15 +263,16 @@ class Command(BaseCommand):
                     item.save(update_fields=["out_path"])
                     command_line = f"python -m gaiden.normalize {book_code} {_lang_fs(item.lang)}"
                 elif run.action == "CHUNK":
-                    chunk_dir = _chunks_dir(book_code, item.lang)
+                    chunk_lang = "en"
+                    chunk_dir = _chunks_dir(book_code, chunk_lang)
                     manifest_path = _chunks_manifest_path(chunk_dir)
                     item.out_path = str(manifest_path)
                     item.save(update_fields=["out_path"])
-                    normalized_path = _resolve_normalized_path(book_code, item.lang)
+                    normalized_path = _resolve_normalized_path(book_code, chunk_lang)
                     target_tokens, max_tokens = _chunk_token_limits()
                     command_line = (
                         "python -m gaiden.chunk_book "
-                        f"--book {book_code} --lang {_lang_fs(item.lang)} "
+                        f"--book {book_code} --lang {chunk_lang} "
                         f"--normalized {normalized_path or 'MISSING'} "
                         f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
@@ -382,38 +383,43 @@ class Command(BaseCommand):
                     item.save(update_fields=["status", "finished_at", "overwrote"])
 
                 elif run.action == "CHUNK":
+                    chunk_lang = "en"
                     edition = Edition.objects.select_related("work", "language").filter(
                         work__code=book_code,
-                        language__code=_lang_db_code(item.lang),
+                        language__code="en",
                     ).first()
                     if not edition:
                         raise FileNotFoundError("Edition not found for chunk.")
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    norm_path = _resolve_normalized_path(book_code, item.lang)
+                    norm_path = _resolve_normalized_path(book_code, chunk_lang)
                     if not norm_path:
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("FAIL: precondition missing normalized\n")
-                            expected = _normalized_path(book_code, item.lang)
+                            expected = _normalized_path(book_code, chunk_lang)
                             log_file.write(f"EXPECTED_NORMALIZED_PATH: {expected}\n")
+                            log_file.write("CHUNK_SHARED_LANG: en\n")
+                            log_file.write("NOTE: Chunking is shared; forced to EN\n")
                         item.status = "FAILED"
                         item.skipped_reason = "PRECONDITION_MISSING_NORMALIZED"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "finished_at", "skipped_reason"])
                         continue
 
-                    chunk_dir = _chunks_dir(book_code, item.lang)
+                    chunk_dir = _chunks_dir(book_code, chunk_lang)
                     target_tokens, max_tokens = _chunk_token_limits()
                     command_line = (
                         "python -m gaiden.chunk_book "
-                        f"--book {book_code} --lang {_lang_fs(item.lang)} --normalized {norm_path} "
+                        f"--book {book_code} --lang {chunk_lang} --normalized {norm_path} "
                         f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
                     if skip_existing and _chunks_exist(chunk_dir):
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: chunks exist\n")
+                            log_file.write("CHUNK_SHARED_LANG: en\n")
+                            log_file.write("NOTE: Chunking is shared; forced to EN\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "CHUNKS_EXIST"
                         item.finished_at = timezone.now()
@@ -425,6 +431,10 @@ class Command(BaseCommand):
                         _remove_existing_chunks(chunk_dir)
 
                     with log_path.open("a", encoding="utf-8") as log_file:
+                        log_file.write("CHUNK_SHARED_LANG: en\n")
+                        log_file.write("NOTE: Chunking is shared; forced to EN\n")
+                        log_file.write(f"TARGET_TOKENS: {target_tokens}\n")
+                        log_file.write(f"MAX_TOKENS: {max_tokens}\n")
                         if had_existing:
                             log_file.write("OVERWRITTEN: existing output replaced\n")
                         _run_module(
@@ -434,7 +444,7 @@ class Command(BaseCommand):
                                 "--book",
                                 book_code,
                                 "--lang",
-                                _lang_fs(item.lang),
+                                chunk_lang,
                                 "--normalized",
                                 str(norm_path),
                                 "--out",
@@ -576,6 +586,8 @@ class Command(BaseCommand):
                         with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: output exists\n")
+                            log_file.write("CHUNKS_LANG_USED: en\n")
+                            log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
@@ -590,6 +602,8 @@ class Command(BaseCommand):
 
                     with log_path.open("a", encoding="utf-8") as log_file:
                         log_file.write(f"COMMAND: {command_line}\n")
+                        log_file.write("CHUNKS_LANG_USED: en\n")
+                        log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
                         if had_existing:
                             log_file.write("NOTE: overwrite existing output\n")
                         log_file.flush()

@@ -359,6 +359,9 @@ def chunk_book(
     canonical_code = _normalize_book_code(book_code)
     lang_lower = _normalize_lang(lang)
 
+    if lang_lower != "en":
+        raise ValueError("Chunking is EN-only; shared chunks live under /en.")
+
     if not normalized_path.exists():
         raise FileNotFoundError(f"Normalized não encontrado: {normalized_path}")
 

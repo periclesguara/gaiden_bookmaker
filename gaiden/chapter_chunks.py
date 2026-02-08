@@ -175,6 +175,15 @@ def _split_chapter_blocks(
     if buffer:
         blocks.append("".join(buffer).rstrip() + "\n")
 
+    if len(blocks) >= 2:
+        last_tokens = chunker.estimate_tokens(blocks[-1], language)
+        threshold = int(target_tokens * 0.4)
+        if last_tokens < threshold:
+            merged = blocks[-2].rstrip() + "\n" + blocks[-1].lstrip()
+            if chunker.estimate_tokens(merged, language) <= max_tokens:
+                blocks[-2] = merged
+                blocks.pop()
+
     return blocks
 
 
