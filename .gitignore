@@ -146,3 +146,7 @@ scripts/
 # --- local / derived artifacts ---
 /data/db/
 /data/normalized/
+
+# Local operator scripts (untracked)
+return_book.sh
+translate_book.sh
