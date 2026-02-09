@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(settings.BASE_DIR).parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from gaiden.chapter_chunks import build_chapter_chunks
+from gaiden.chunk_engine import resolve_and_run
 
 from . import edition_meta, paths, utils
 
@@ -58,7 +58,7 @@ def _resolve_normalized_path(edition) -> Path:
 def run_chapter_chunks(edition) -> dict[str, str]:
     language_code = edition_meta.language_code(edition)
     if language_code != "en":
-        raise ValueError("chapter_chunks so suporta ingles no momento.")
+        raise ValueError("chunk stage suporta apenas ingles no momento.")
 
     book_code = edition_meta.book_code(edition)
     book_id = _parse_book_id(book_code)
@@ -66,11 +66,9 @@ def run_chapter_chunks(edition) -> dict[str, str]:
         raise ValueError("book_code must be like book_0001.")
 
     normalized_path = _resolve_normalized_path(edition)
-    raw = normalized_path.read_text(encoding="utf-8")
 
     output_dir = paths.data_dir() / "chunks" / f"book_{book_id:04d}" / "en"
     manifest_path = output_dir / "chunks_manifest.json"
-    normalized_out = output_dir / "normalized.txt"
 
     def _env_int(name: str, default: int) -> int:
         raw_val = os.getenv(name)
@@ -84,18 +82,19 @@ def run_chapter_chunks(edition) -> dict[str, str]:
     target_tokens = _env_int("GAIDEN_CHUNK_TARGET_TOKENS", 1500)
     max_tokens = _env_int("GAIDEN_CHUNK_MAX_TOKENS", 2000)
 
-    result = build_chapter_chunks(
-        raw,
-        output_dir,
-        manifest_path,
-        language=language_code,
+    result = resolve_and_run(
+        book_code=book_code,
+        lang="en",
+        normalized_path=normalized_path,
+        out_dir=output_dir,
         target_tokens=target_tokens,
         max_tokens=max_tokens,
+        dry_run=False,
     )
-    normalized_out.write_text(result["normalized_text"], encoding="utf-8")
 
     return {
         "path": str(output_dir),
         "manifest": str(manifest_path),
-        "normalized": str(normalized_out),
+        "run_report": str(output_dir / "chunk_run_report.json"),
+        "check_ok": str(result.get("checks", {}).get("check_ok")),
     }
