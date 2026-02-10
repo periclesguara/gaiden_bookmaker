@@ -17,7 +17,7 @@ class Command(BaseCommand):
     help = "Executa checagens de diagnostico do pipeline."
 
     def add_arguments(self, parser):
-        parser.add_argument("--book", type=str, default=None)
+        parser.add_argument("--book", type=str, action="append", default=None)
         parser.add_argument("--check", action="append", default=None)
         parser.add_argument("--strict", action="store_true", default=False)
         parser.add_argument("--langs", type=str, default=None)
@@ -27,11 +27,11 @@ class Command(BaseCommand):
         from gaiden import diagnostics
 
         checks = options.get("check") or ["all"]
-        book = options.get("book")
+        books = options.get("book")
         langs = options.get("langs")
         langs_list = [item for item in langs.split(",") if item] if langs else None
         exit_code = diagnostics.run_checks(
-            book,
+            books,
             checks,
             strict=options.get("strict", False),
             langs=langs_list,

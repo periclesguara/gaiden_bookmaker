@@ -145,7 +145,7 @@ def _is_placeholder_path(path: str) -> bool:
     return "<BOOK_ID>" in path or "{BOOK_ID}" in path
 
 
-def _check_chunks(book: str) -> bool:
+def _check_chunks(book: str) -> str:
     book_id = _parse_book_id(book)
     book_code = f"book_{book_id:04d}"
     chunks_dir = CHUNKS_ROOT / book_code / "en"
@@ -283,19 +283,16 @@ def _check_chunks(book: str) -> bool:
 
     if fs_fail or manifest_fail or run_report_fail:
         status = "FAIL"
-        ok = False
     elif run_report_warn:
         status = "WARN"
-        ok = True
     else:
         status = "OK"
-        ok = True
 
     print(
         f"{book_code}: {status} — total={total_fs}, chapters={len(chapters_fs)}, "
         f"first={first}, last={last}, manifest={manifest_status}, run_report={run_report_status}"
     )
-    return ok
+    return status
 
 
 def _check_contracts() -> bool:
@@ -554,6 +551,27 @@ def _check_golden_snapshot(langs: Optional[List[str]]) -> bool:
         shutil.rmtree(temp_root, ignore_errors=True)
 
 
+def _discover_books_from_chunks() -> List[str]:
+    if not CHUNKS_ROOT.is_dir():
+        return []
+    books: list[str] = []
+    for entry in CHUNKS_ROOT.iterdir():
+        if entry.is_dir() and re.match(r"^book_\d{4}$", entry.name):
+            books.append(entry.name)
+    return sorted(books)
+
+
+def _normalize_books_arg(books: Optional[List[str]]) -> List[str]:
+    if not books:
+        return []
+    cleaned: list[str] = []
+    for item in books:
+        value = str(item).strip()
+        if value:
+            cleaned.append(value)
+    return cleaned
+
+
 def _expand_checks(checks: List[str]) -> List[str]:
     if not checks:
         return []
@@ -576,40 +594,71 @@ def _expand_checks(checks: List[str]) -> List[str]:
 
 
 def _run_checks(
-    book: Optional[str],
+    books: Optional[List[str]],
     checks: List[str],
     *,
     strict: bool,
     langs: Optional[List[str]],
 ) -> int:
     status = True
+    books_list = _normalize_books_arg(books)
     for check in checks:
         if check == "chunks":
-            if not book:
-                print("[FAIL] chunks: --book obrigatório")
-                status = False
+            if books_list:
+                chunk_books = books_list
             else:
-                status = _check_chunks(book) and status
+                chunk_books = _discover_books_from_chunks()
+
+            if not chunk_books:
+                print("[FAIL] chunks: nenhum book encontrado em data/chunks")
+                status = False
+                continue
+
+            ok_count = 0
+            warn_count = 0
+            fail_count = 0
+            for book_code in chunk_books:
+                result = _check_chunks(book_code)
+                if result == "FAIL":
+                    fail_count += 1
+                elif result == "WARN":
+                    warn_count += 1
+                else:
+                    ok_count += 1
+            if fail_count:
+                summary = "FAIL"
+                status = False
+            elif warn_count:
+                summary = "WARN"
+            else:
+                summary = "OK"
+            print(
+                f"[SUMMARY] chunks: {summary} — books={len(chunk_books)}, "
+                f"ok={ok_count}, warn={warn_count}, fail={fail_count}"
+            )
         elif check == "contracts":
             status = _check_contracts() and status
         elif check == "translate_mapping":
-            if not book:
+            if not books_list:
                 print("[FAIL] translate_mapping: --book obrigatório")
                 status = False
             else:
-                status = _check_translate_mapping(book) and status
+                for book_code in books_list:
+                    status = _check_translate_mapping(book_code) and status
         elif check == "merge_plan":
-            if not book:
+            if not books_list:
                 print("[FAIL] merge_plan: --book obrigatório")
                 status = False
             else:
-                status = _check_merge_plan(book, strict=strict, langs=langs) and status
+                for book_code in books_list:
+                    status = _check_merge_plan(book_code, strict=strict, langs=langs) and status
         elif check == "merge_presence":
-            if not book:
+            if not books_list:
                 print("[FAIL] merge_presence: --book obrigatório")
                 status = False
             else:
-                status = _check_merge_presence(book, strict=strict, langs=langs) and status
+                for book_code in books_list:
+                    status = _check_merge_presence(book_code, strict=strict, langs=langs) and status
         elif check == "split_stage_refs":
             status = _check_split_stage_refs() and status
         elif check == "golden_snapshot":
@@ -621,19 +670,19 @@ def _run_checks(
 
 
 def run_checks(
-    book: Optional[str],
+    books: Optional[List[str]],
     checks: List[str],
     *,
     strict: bool = False,
     langs: Optional[List[str]] = None,
 ) -> int:
     expanded = _expand_checks(checks)
-    return _run_checks(book, expanded, strict=strict, langs=langs)
+    return _run_checks(books, expanded, strict=strict, langs=langs)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(add_help=True)
-    parser.add_argument("--book", type=str, default=None)
+    parser.add_argument("--book", type=str, action="append", default=None)
     parser.add_argument("--check", type=str, action="append", default=[])
     parser.add_argument("--strict", action="store_true", default=False)
     parser.add_argument("--langs", type=str, default=None)
