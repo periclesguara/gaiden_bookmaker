@@ -18,6 +18,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--book", type=str, action="append", default=None)
+        parser.add_argument("--only-book", type=str, default=None)
+        parser.add_argument("--ignore-books", type=str, default=None)
         parser.add_argument("--check", action="append", default=None)
         parser.add_argument("--strict", action="store_true", default=False)
         parser.add_argument("--langs", type=str, default=None)
@@ -28,13 +30,20 @@ class Command(BaseCommand):
 
         checks = options.get("check") or ["all"]
         books = options.get("book")
+        only_book = options.get("only_book")
+        ignore_books = options.get("ignore_books")
         langs = options.get("langs")
         langs_list = [item for item in langs.split(",") if item] if langs else None
+        if only_book and books:
+            raise CommandError("Use --only-book or --book (not both).")
+        if only_book:
+            books = [only_book]
         exit_code = diagnostics.run_checks(
             books,
             checks,
             strict=options.get("strict", False),
             langs=langs_list,
+            ignore_books=diagnostics._parse_ignore_books(ignore_books),
         )
         if exit_code != 0:
             raise CommandError("Diagnostics failed.")

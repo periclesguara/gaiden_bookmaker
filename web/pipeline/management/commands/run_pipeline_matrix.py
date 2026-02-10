@@ -414,10 +414,44 @@ class Command(BaseCommand):
     help = "Run MATRIX pipeline queue (sequential, translate-only for MVP)."
 
     def add_arguments(self, parser):
-        parser.add_argument("run_id", type=int, help="PipelineRun id")
+        parser.add_argument("run_id", nargs="?", type=int, help="PipelineRun id")
+        parser.add_argument("--book", type=str, default=None, help="book code (book_0003)")
+        parser.add_argument("--lang", type=str, default=None, help="language (en, es, ptbr, ...)")
+        parser.add_argument(
+            "--stage",
+            type=str,
+            default=None,
+            choices=["precheck", "normalize", "chunk"],
+            help="run a single stage without DB",
+        )
 
     def handle(self, *args, **options):
         run_id = options["run_id"]
+        stage = options.get("stage")
+        book_code = options.get("book")
+        lang = options.get("lang")
+
+        if run_id is None and stage:
+            if not book_code or not lang:
+                raise CommandError("--book and --lang are required for --stage")
+            log_dir = Path(settings.BASE_DIR).parent / "docs" / "audit" / "runs" / "adhoc"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_path = log_dir / f"{book_code}_{lang}_{stage}.log"
+            ensure_chunks = stage in {"chunk"}
+            allow_run = stage in {"normalize", "chunk"}
+            _run_precheck(
+                book_code=book_code,
+                lang=lang,
+                log_path=log_path,
+                ensure_normalized=True,
+                ensure_chunks=ensure_chunks,
+                allow_run=allow_run,
+            )
+            self.stdout.write(self.style.SUCCESS(f"[OK] {stage} precheck complete"))
+            self.stdout.write(self.style.NOTICE(f"Log: {log_path}"))
+            return
+        if run_id is None:
+            raise CommandError("run_id é obrigatório quando --stage não é usado.")
         run = PipelineRun.objects.get(pk=run_id)
 
         updated = PipelineRun.objects.filter(pk=run_id, status="PENDING").update(
