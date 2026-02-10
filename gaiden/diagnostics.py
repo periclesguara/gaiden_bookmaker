@@ -20,6 +20,7 @@ TRANSLATED_ROOT = Path("data/translated")
 ALLOWED_LANG_DIRS = {"DE", "EN", "ES", "PT-BR", "IT", "FR"}
 ALL_CHECKS = [
     "chunks",
+    "normalized",
     "contracts",
     "translate_mapping",
     "merge_plan",
@@ -320,6 +321,68 @@ def _check_chunks(book: str) -> str:
     return status
 
 
+def _check_normalized(book: str) -> str:
+    book_id = _parse_book_id(book)
+    book_code = f"book_{book_id:04d}"
+    lang = "en"
+    base_dir = Path("data/normalized") / book_code / lang
+    normalized_path = base_dir / f"{book_code}_{lang}_v2.txt"
+    report_path = base_dir / "normalize_report.json"
+    preview_path = base_dir / "normalize_preview.txt"
+
+    fail: list[str] = []
+    warn: list[str] = []
+
+    if not normalized_path.exists():
+        fail.append("NORMALIZED_MISSING")
+        norm_status = "missing"
+    elif normalized_path.stat().st_size == 0:
+        fail.append("NORMALIZED_EMPTY")
+        norm_status = "empty"
+    else:
+        norm_status = "ok"
+
+    report_status = "missing"
+    if not report_path.exists():
+        fail.append("REPORT_MISSING")
+    else:
+        try:
+            report = _load_json(report_path)
+        except Exception:
+            fail.append("REPORT_INVALID_JSON")
+            report_status = "invalid"
+        else:
+            if not isinstance(report, dict):
+                fail.append("REPORT_INVALID_SHAPE")
+                report_status = "invalid"
+            else:
+                status = str(report.get("status", "")).strip().upper()
+                if status != "OK":
+                    fail.append("REPORT_STATUS_NOT_OK")
+                    report_status = f"status_{status or 'missing'}"
+                else:
+                    report_status = "ok"
+
+    if not preview_path.exists():
+        warn.append("PREVIEW_MISSING")
+        preview_status = "missing"
+    else:
+        preview_status = "ok"
+
+    if fail:
+        status = "FAIL"
+    elif warn:
+        status = "WARN"
+    else:
+        status = "OK"
+
+    print(
+        f"{book_code}: {status} — normalized={norm_status}, "
+        f"report={report_status}, preview={preview_status}"
+    )
+    return status
+
+
 def _check_contracts() -> bool:
     ok = True
     for path in _iter_contracts():
@@ -587,6 +650,17 @@ def discover_books_with_chunks(data_dir: Path) -> List[str]:
     return sorted(books)
 
 
+def discover_books_in_roots(roots: Iterable[Path]) -> List[str]:
+    books: set[str] = set()
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for entry in root.iterdir():
+            if entry.is_dir() and re.match(r"^book_\d{4}$", entry.name):
+                books.add(entry.name)
+    return sorted(books)
+
+
 def _normalize_books_arg(books: Optional[List[str]]) -> List[str]:
     if not books:
         return []
@@ -662,6 +736,45 @@ def _run_checks(
                 f"[SUMMARY] chunks: {summary} — books={len(chunk_books)}, "
                 f"ok={ok_count}, warn={warn_count}, fail={fail_count}"
             )
+        elif check == "normalized":
+            if books_list:
+                norm_books = books_list
+            else:
+                norm_books = discover_books_in_roots(
+                    [
+                        Path("data") / "raw",
+                        Path("data") / "normalized",
+                        Path("data") / "chunks",
+                    ]
+                )
+
+            if not norm_books:
+                print("[FAIL] normalized: NO_BOOKS_FOUND")
+                status = False
+                continue
+
+            ok_count = 0
+            warn_count = 0
+            fail_count = 0
+            for book_code in norm_books:
+                result = _check_normalized(book_code)
+                if result == "FAIL":
+                    fail_count += 1
+                elif result == "WARN":
+                    warn_count += 1
+                else:
+                    ok_count += 1
+            if fail_count:
+                summary = "FAIL"
+                status = False
+            elif warn_count:
+                summary = "WARN"
+            else:
+                summary = "OK"
+            print(
+                f"[SUMMARY] normalized: {summary} — books={len(norm_books)}, "
+                f"ok={ok_count}, warn={warn_count}, fail={fail_count}"
+            )
         elif check == "contracts":
             status = _check_contracts() and status
         elif check == "translate_mapping":
@@ -729,7 +842,7 @@ def main() -> int:
     checks = _expand_checks(checks)
     if not checks:
         print(
-            "[INFO] use --check all|chunks|contracts|translate_mapping|merge_plan|merge_presence|split_stage_refs|golden_snapshot"
+            "[INFO] use --check all|chunks|normalized|contracts|translate_mapping|merge_plan|merge_presence|split_stage_refs|golden_snapshot"
         )
         return 0
     return _run_checks(args.book, checks, strict=args.strict, langs=langs)

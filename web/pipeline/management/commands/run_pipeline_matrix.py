@@ -118,8 +118,21 @@ def _chunks_manifest_path(chunks_dir: Path) -> Path:
     return chunks_dir / "chunks_manifest.json"
 
 
+def _chunks_v2_status(chunks_dir: Path) -> tuple[bool, dict | None]:
+    manifest_path = _chunks_manifest_path(chunks_dir)
+    manifest = _read_json(manifest_path)
+    if not manifest_path.exists():
+        return False, manifest
+    if not isinstance(manifest, dict):
+        return False, manifest
+    if manifest.get("schema_version") != "chunks_manifest_v2":
+        return False, manifest
+    return True, manifest
+
+
 def _chunks_exist(chunks_dir: Path) -> bool:
-    return _chunks_manifest_path(chunks_dir).exists()
+    ok, _ = _chunks_v2_status(chunks_dir)
+    return ok
 
 
 def _remove_existing_chunks(chunks_dir: Path) -> None:
@@ -130,6 +143,9 @@ def _remove_existing_chunks(chunks_dir: Path) -> None:
     manifest = _chunks_manifest_path(chunks_dir)
     if manifest.exists():
         manifest.unlink()
+    run_report = chunks_dir / "chunk_run_report.json"
+    if run_report.exists():
+        run_report.unlink()
 
 
 def _resolve_contract_path(lang: str) -> Path:
@@ -174,6 +190,224 @@ def _chunk_token_limits() -> tuple[str, str]:
     target = os.getenv("GAIDEN_CHUNK_TARGET_TOKENS", "1500")
     max_t = os.getenv("GAIDEN_CHUNK_MAX_TOKENS", "2000")
     return target, max_t
+
+
+def _normalized_status(book_code: str, lang: str) -> tuple[Path, dict | None, bool]:
+    norm_path = _normalized_path(book_code, lang)
+    report = _read_json(_normalized_report_path(book_code, lang))
+    ok = (
+        norm_path.exists()
+        and norm_path.stat().st_size > 0
+        and isinstance(report, dict)
+        and report.get("status") == "OK"
+    )
+    return norm_path, report, ok
+
+
+def _run_precheck(
+    *,
+    book_code: str,
+    lang: str,
+    log_path: Path,
+    ensure_normalized: bool,
+    ensure_chunks: bool,
+    allow_run: bool,
+) -> dict:
+    data_dir = Path(settings.BASE_DIR).parent / "data"
+    chunk_lang = "en"
+
+    def _log(log_file, message: str) -> None:
+        log_file.write(message + "\n")
+
+    with log_path.open("w", encoding="utf-8") as log_file:
+        _log(log_file, "PRECHECK: start")
+        raw_reason = None
+        raw_path = None
+        raw_dir = canonical_raw_dir(book_code, lang, data_dir)
+        try:
+            resolution = resolve_raw_source(
+                book_code,
+                lang,
+                data_dir,
+                create_alias=True,
+                logger=lambda msg: _log(log_file, msg),
+            )
+            raw_path = resolution.raw_path
+            raw_dir = resolution.selected_dir
+        except ValueError as exc:
+            if "INVALID_STATE" in str(exc):
+                raw_reason = "INVALID_STATE"
+            else:
+                raise
+            _log(log_file, f"RAW_DIR_SELECTED: {raw_dir}")
+        except FileNotFoundError:
+            raw_reason = "RAW_MISSING"
+            _log(log_file, f"RAW_DIR_SELECTED: {raw_dir}")
+
+        norm_path, _norm_report, norm_ok = _normalized_status(book_code, lang)
+        _log(log_file, f"NORMALIZED_PRESENT: {norm_ok}")
+
+        if ensure_normalized and not norm_ok:
+            if raw_reason:
+                _log(log_file, "PRECHECK: normalize skipped (raw missing/invalid)")
+            elif allow_run:
+                _log(log_file, "AUTO: normalize (precheck)")
+                _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(lang)])
+                norm_path, _norm_report, norm_ok = _normalized_status(book_code, lang)
+                _log(log_file, f"NORMALIZED_PRESENT: {norm_ok}")
+            else:
+                _log(log_file, "PRECHECK: normalize required")
+
+        chunk_dir = _chunks_dir(book_code, chunk_lang)
+        chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
+        _log(log_file, f"CHUNKS_V2_PRESENT: {chunks_ok}")
+
+        if ensure_chunks and not chunks_ok:
+            if not norm_ok:
+                _log(log_file, "PRECHECK: chunk skipped (normalized missing/invalid)")
+            elif allow_run:
+                _log(log_file, "AUTO: chunk (precheck)")
+                target_tokens, max_tokens = _chunk_token_limits()
+                _run_module(
+                    log_file,
+                    "gaiden.chunk_book",
+                    [
+                        "--book",
+                        book_code,
+                        "--lang",
+                        chunk_lang,
+                        "--normalized",
+                        str(norm_path),
+                        "--out",
+                        str(chunk_dir),
+                        "--target-tokens",
+                        target_tokens,
+                        "--max-tokens",
+                        max_tokens,
+                    ],
+                )
+                chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
+                _log(log_file, f"CHUNKS_V2_PRESENT: {chunks_ok}")
+            else:
+                _log(log_file, "PRECHECK: chunk required")
+
+        _log(log_file, "PRECHECK: end")
+
+    return {
+        "raw_reason": raw_reason,
+        "raw_path": raw_path,
+        "raw_dir": raw_dir,
+        "normalized_path": norm_path,
+        "normalized_ok": norm_ok,
+        "chunk_dir": chunk_dir,
+        "chunks_ok": chunks_ok,
+    }
+
+
+def _run_normalize_dependency(
+    *,
+    book_code: str,
+    lang: str,
+    edition: Edition,
+    pipeline_state: EditionPipeline,
+    log_file,
+) -> Path:
+    norm_path, report, norm_ok = _normalized_status(book_code, lang)
+    if norm_ok:
+        return norm_path
+
+    raw_path, raw_dir, raw_reason, raw_alias = _resolve_raw_path(book_code, lang)
+    if raw_reason:
+        raise RuntimeError(f"RAW_{raw_reason}")
+
+    had_existing = norm_path.exists()
+    log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+    if raw_alias:
+        log_file.write(f"RAW_ALIAS_CREATED: {raw_alias}\n")
+    log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
+    log_file.write(f"OUTPUT: {norm_path}\n")
+    if had_existing:
+        log_file.write("OVERWRITTEN: existing output replaced\n")
+    _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(lang)])
+    report = _read_json(_normalized_report_path(book_code, lang))
+    if report:
+        log_file.write(f"NORMALIZE_CHECK: {report.get('status', 'FAIL')}\n")
+        if report.get("check_fail_reasons"):
+            log_file.write(
+                "NORMALIZE_CHECK_REASONS: " + "; ".join(report["check_fail_reasons"]) + "\n"
+            )
+    if report and report.get("status") == "FAIL":
+        raise RuntimeError("Normalize check failed during dependency.")
+    if not norm_path.exists():
+        raise FileNotFoundError(f"Normalized output not found: {norm_path}")
+
+    texts, _ = EditionText.objects.get_or_create(edition=edition)
+    texts.normalized_path = str(norm_path)
+    texts.normalized_text = ""
+    texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
+    pipeline_state.normalized_at = timezone.now()
+    pipeline_state.current_stage = PipelineStage.NORMALIZED
+    pipeline_state.save(update_fields=["normalized_at", "current_stage"])
+
+    return norm_path
+
+
+def _run_chunk_dependency(
+    *,
+    book_code: str,
+    norm_path: Path,
+    log_file,
+    skip_existing: bool,
+) -> tuple[Path, bool]:
+    chunk_lang = "en"
+    chunk_dir = _chunks_dir(book_code, chunk_lang)
+    chunks_ok, manifest = _chunks_v2_status(chunk_dir)
+    if chunks_ok and skip_existing:
+        log_file.write("SKIP: chunks exist\n")
+        log_file.write("CHUNK_SHARED_LANG: en\n")
+        log_file.write("NOTE: Chunking is shared; forced to EN\n")
+        return chunk_dir, False
+
+    had_existing = chunk_dir.exists()
+    if had_existing:
+        _remove_existing_chunks(chunk_dir)
+
+    target_tokens, max_tokens = _chunk_token_limits()
+    log_file.write("CHUNK_SHARED_LANG: en\n")
+    log_file.write("NOTE: Chunking is shared; forced to EN\n")
+    log_file.write(f"TARGET_TOKENS: {target_tokens}\n")
+    log_file.write(f"MAX_TOKENS: {max_tokens}\n")
+    if had_existing:
+        log_file.write("OVERWRITTEN: existing output replaced\n")
+    _run_module(
+        log_file,
+        "gaiden.chunk_book",
+        [
+            "--book",
+            book_code,
+            "--lang",
+            chunk_lang,
+            "--normalized",
+            str(norm_path),
+            "--out",
+            str(chunk_dir),
+            "--target-tokens",
+            target_tokens,
+            "--max-tokens",
+            max_tokens,
+        ],
+    )
+    manifest = _read_json(_chunks_manifest_path(chunk_dir))
+    if manifest:
+        log_file.write(f"CHUNK_CHECK: {'OK' if manifest.get('check_ok') else 'FAIL'}\n")
+        if manifest.get("check_fail_reasons"):
+            log_file.write("CHUNK_CHECK_REASONS: " + "; ".join(manifest["check_fail_reasons"]) + "\n")
+    if not _chunks_exist(chunk_dir):
+        raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
+    if manifest and manifest.get("check_ok") is False:
+        raise RuntimeError("Chunk check failed during dependency.")
+
+    return chunk_dir, True
 
 
 class Command(BaseCommand):
@@ -275,8 +509,28 @@ class Command(BaseCommand):
                 else:
                     raise ValueError(f"Unsupported action: {run.action}")
 
+                precheck = None
+                if run.action in {"NORMALIZE", "CHUNK", "TRANSLATE"}:
+                    precheck = _run_precheck(
+                        book_code=book_code,
+                        lang=item.lang if run.action == "NORMALIZE" else "en",
+                        log_path=log_path,
+                        ensure_normalized=True,
+                        ensure_chunks=(run.action in {"CHUNK", "TRANSLATE"}),
+                        allow_run=False,
+                    )
+                    if precheck["raw_reason"]:
+                        with log_path.open("a", encoding="utf-8") as log_file:
+                            log_file.write(f"COMMAND: {command_line}\n")
+                            log_file.write(f"SKIP: {precheck['raw_reason']}\n")
+                        item.status = "SKIPPED"
+                        item.skipped_reason = precheck["raw_reason"]
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        continue
+
                 if dry_run:
-                    with log_path.open("w", encoding="utf-8") as log_file:
+                    with log_path.open("a", encoding="utf-8") as log_file:
                         log_file.write(f"COMMAND: {command_line}\n")
                         log_file.write("DRY-RUN: no execution\n")
                     item.status = "SKIPPED"
@@ -295,21 +549,12 @@ class Command(BaseCommand):
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
 
-                    raw_path, raw_dir, raw_reason, raw_alias = _resolve_raw_path(book_code, item.lang)
-                    if raw_reason:
-                        with log_path.open("w", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
-                            log_file.write(f"SKIP: {raw_reason}\n")
-                        item.status = "SKIPPED"
-                        item.skipped_reason = raw_reason
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
+                    raw_path = precheck["raw_path"] if precheck else None
+                    raw_dir = precheck["raw_dir"] if precheck else None
 
-                    norm_path = _normalized_path(book_code, item.lang)
-                    if skip_existing and norm_path.exists():
-                        with log_path.open("w", encoding="utf-8") as log_file:
+                    norm_path, _report, norm_ok = _normalized_status(book_code, item.lang)
+                    if skip_existing and norm_ok:
+                        with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: normalized exists\n")
                         item.status = "SKIPPED"
@@ -319,11 +564,11 @@ class Command(BaseCommand):
                         continue
 
                     had_existing = norm_path.exists()
-                    with log_path.open("w", encoding="utf-8") as log_file:
-                        log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
-                        if raw_alias:
-                            log_file.write(f"RAW_ALIAS_CREATED: {raw_alias}\n")
-                        log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
+                    with log_path.open("a", encoding="utf-8") as log_file:
+                        if raw_dir:
+                            log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                        if raw_path:
+                            log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
                         log_file.write(f"OUTPUT: {norm_path}\n")
                         if had_existing:
                             log_file.write("OVERWRITTEN: existing output replaced\n")
@@ -372,9 +617,21 @@ class Command(BaseCommand):
                         raise FileNotFoundError("Edition not found for chunk.")
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    norm_path = _resolve_normalized_path(book_code, chunk_lang)
-                    if not norm_path:
-                        with log_path.open("w", encoding="utf-8") as log_file:
+                    norm_path, _report, norm_ok = _normalized_status(book_code, chunk_lang)
+                    if not norm_ok:
+                        with log_path.open("a", encoding="utf-8") as log_file:
+                            log_file.write("AUTO: normalize before chunk (precheck)\n")
+                            norm_path = _run_normalize_dependency(
+                                book_code=book_code,
+                                lang=chunk_lang,
+                                edition=edition,
+                                pipeline_state=pipeline_state,
+                                log_file=log_file,
+                            )
+                        norm_path, _report, norm_ok = _normalized_status(book_code, chunk_lang)
+
+                    if not norm_ok:
+                        with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("FAIL: precondition missing normalized\n")
                             expected = _normalized_path(book_code, chunk_lang)
@@ -394,74 +651,30 @@ class Command(BaseCommand):
                         f"--book {book_code} --lang {chunk_lang} --normalized {norm_path} "
                         f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
-                    if skip_existing and _chunks_exist(chunk_dir):
-                        with log_path.open("w", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: chunks exist\n")
-                            log_file.write("CHUNK_SHARED_LANG: en\n")
-                            log_file.write("NOTE: Chunking is shared; forced to EN\n")
+
+                    with log_path.open("a", encoding="utf-8") as log_file:
+                        chunk_dir, ran_chunk = _run_chunk_dependency(
+                            book_code=book_code,
+                            norm_path=norm_path,
+                            log_file=log_file,
+                            skip_existing=skip_existing,
+                        )
+
+                    if not ran_chunk and skip_existing:
                         item.status = "SKIPPED"
                         item.skipped_reason = "CHUNKS_EXIST"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
                         continue
 
-                    had_existing = _chunks_exist(chunk_dir)
-                    if had_existing and not skip_existing:
-                        _remove_existing_chunks(chunk_dir)
-
-                    with log_path.open("a", encoding="utf-8") as log_file:
-                        log_file.write("CHUNK_SHARED_LANG: en\n")
-                        log_file.write("NOTE: Chunking is shared; forced to EN\n")
-                        log_file.write(f"TARGET_TOKENS: {target_tokens}\n")
-                        log_file.write(f"MAX_TOKENS: {max_tokens}\n")
-                        if had_existing:
-                            log_file.write("OVERWRITTEN: existing output replaced\n")
-                        _run_module(
-                            log_file,
-                            "gaiden.chunk_book",
-                            [
-                                "--book",
-                                book_code,
-                                "--lang",
-                                chunk_lang,
-                                "--normalized",
-                                str(norm_path),
-                                "--out",
-                                str(chunk_dir),
-                                "--target-tokens",
-                                target_tokens,
-                                "--max-tokens",
-                                max_tokens,
-                            ],
-                        )
-                        manifest = _read_json(_chunks_manifest_path(chunk_dir))
-                        if manifest:
-                            log_file.write(
-                                f"CHUNK_CHECK: {'OK' if manifest.get('check_ok') else 'FAIL'}\n"
-                            )
-                            if manifest.get("check_fail_reasons"):
-                                log_file.write(
-                                    "CHUNK_CHECK_REASONS: "
-                                    + "; ".join(manifest["check_fail_reasons"])
-                                    + "\n"
-                                )
-
-                    if not _chunks_exist(chunk_dir):
-                        raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
-                    if manifest and manifest.get("check_ok") is False:
-                        item.status = "FAILED"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "finished_at"])
-                        continue
-
-                    pipeline_state.chunked_at = timezone.now()
-                    pipeline_state.current_stage = PipelineStage.CHUNKED
-                    pipeline_state.save(update_fields=["chunked_at", "current_stage"])
+                    if ran_chunk:
+                        pipeline_state.chunked_at = timezone.now()
+                        pipeline_state.current_stage = PipelineStage.CHUNKED
+                        pipeline_state.save(update_fields=["chunked_at", "current_stage"])
 
                     item.status = "DONE"
                     item.finished_at = timezone.now()
-                    item.overwrote = bool(had_existing)
+                    item.overwrote = bool(ran_chunk)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
 
                 elif run.action == "TRANSLATE":
@@ -476,95 +689,33 @@ class Command(BaseCommand):
 
                     if not dry_run:
                         source_lang = "en"
-                        norm_path = _normalized_path(book_code, source_lang)
-                        if not norm_path.exists():
-                            raw_path, raw_dir, raw_reason, raw_alias = _resolve_raw_path(
-                                book_code, source_lang
-                            )
-                            if raw_reason:
-                                with log_path.open("a", encoding="utf-8") as log_file:
-                                    log_file.write(f"SKIP: {raw_reason}\n")
-                                    log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
-                                    log_file.write(f"RAW_SOURCE_FOUND: {raw_path or 'MISSING'}\n")
-                                item.status = "SKIPPED"
-                                item.skipped_reason = raw_reason
-                                item.finished_at = timezone.now()
-                                item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                                continue
-
+                        norm_path, _report, norm_ok = _normalized_status(book_code, source_lang)
+                        if not norm_ok:
                             with log_path.open("a", encoding="utf-8") as log_file:
                                 log_file.write("AUTO: normalize before translate\n")
-                                log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
-                                if raw_alias:
-                                    log_file.write(f"RAW_ALIAS_CREATED: {raw_alias}\n")
-                                log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
-                                _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(source_lang)])
-                                report = _read_json(_normalized_report_path(book_code, source_lang))
-                                if report:
-                                    log_file.write(
-                                        f"NORMALIZE_CHECK: {report.get('status', 'FAIL')}\n"
-                                    )
-                                    if report.get("check_fail_reasons"):
-                                        log_file.write(
-                                            "NORMALIZE_CHECK_REASONS: "
-                                            + "; ".join(report["check_fail_reasons"])
-                                            + "\n"
-                                        )
-                            if report and report.get("status") == "FAIL":
-                                raise RuntimeError("Normalize check failed during auto-dependency.")
-
-                            if not norm_path.exists():
-                                raise FileNotFoundError(f"Normalized output not found: {norm_path}")
-
-                            texts, _ = EditionText.objects.get_or_create(edition=edition)
-                            texts.normalized_path = str(norm_path)
-                            texts.normalized_text = ""
-                            texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
-                            pipeline_state.normalized_at = timezone.now()
-                            pipeline_state.current_stage = PipelineStage.NORMALIZED
-                            pipeline_state.save(update_fields=["normalized_at", "current_stage"])
+                                norm_path = _run_normalize_dependency(
+                                    book_code=book_code,
+                                    lang=source_lang,
+                                    edition=edition,
+                                    pipeline_state=pipeline_state,
+                                    log_file=log_file,
+                                )
 
                         chunk_dir = _chunks_dir(book_code, source_lang)
-                        if not _chunks_exist(chunk_dir):
+                        chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
+                        if not chunks_ok:
                             with log_path.open("a", encoding="utf-8") as log_file:
                                 log_file.write("AUTO: chunk before translate\n")
-                                target_tokens, max_tokens = _chunk_token_limits()
-                                _run_module(
-                                    log_file,
-                                    "gaiden.chunk_book",
-                                    [
-                                        "--book",
-                                        book_code,
-                                        "--lang",
-                                        _lang_fs(source_lang),
-                                        "--normalized",
-                                        str(norm_path),
-                                        "--out",
-                                        str(chunk_dir),
-                                        "--target-tokens",
-                                        target_tokens,
-                                        "--max-tokens",
-                                        max_tokens,
-                                    ],
+                                chunk_dir, ran_chunk = _run_chunk_dependency(
+                                    book_code=book_code,
+                                    norm_path=norm_path,
+                                    log_file=log_file,
+                                    skip_existing=False,
                                 )
-                                manifest = _read_json(_chunks_manifest_path(chunk_dir))
-                                if manifest:
-                                    log_file.write(
-                                        f"CHUNK_CHECK: {'OK' if manifest.get('check_ok') else 'FAIL'}\n"
-                                    )
-                                    if manifest.get("check_fail_reasons"):
-                                        log_file.write(
-                                            "CHUNK_CHECK_REASONS: "
-                                            + "; ".join(manifest["check_fail_reasons"])
-                                            + "\n"
-                                        )
-                            if manifest and manifest.get("check_ok") is False:
-                                raise RuntimeError("Chunk check failed during auto-dependency.")
-                            if not _chunks_exist(chunk_dir):
-                                raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
-                            pipeline_state.chunked_at = timezone.now()
-                            pipeline_state.current_stage = PipelineStage.CHUNKED
-                            pipeline_state.save(update_fields=["chunked_at", "current_stage"])
+                            if ran_chunk:
+                                pipeline_state.chunked_at = timezone.now()
+                                pipeline_state.current_stage = PipelineStage.CHUNKED
+                                pipeline_state.save(update_fields=["chunked_at", "current_stage"])
 
                     if skip_existing and merge_path.exists():
                         with log_path.open("a", encoding="utf-8") as log_file:
