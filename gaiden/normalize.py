@@ -3,13 +3,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
-import shutil
 from pathlib import Path
 from typing import Tuple
 
 from gaiden.normalize_rules import compute_normalize_report, count_headings, normalize_to_headings_only
+from gaiden.raw_resolver import resolve_raw_source
 
 NORMALIZED_DIR = Path("data/normalized")
 
@@ -635,44 +634,14 @@ def _data_dir() -> Path:
 
 
 def resolve_raw_path(book_code: str, lang: str) -> Path:
-    lang_code = _normalize_lang(lang)
-    lang_upper = "PT-BR" if lang_code == "ptbr" else lang_code.upper()
-    base = _data_dir() / "raw" / book_code
-    lower_dir = base / lang_code
-    upper_dir = base / lang_upper
-
-    def _select_source(dir_path: Path) -> Path | None:
-        txt_path = dir_path / "source.txt"
-        md_path = dir_path / "source.md"
-        txt_exists = txt_path.exists()
-        md_exists = md_path.exists()
-        if txt_exists and md_exists:
-            raise ValueError(f"INVALID_STATE: multiple RAW sources ({txt_path}, {md_path})")
-        if txt_exists:
-            return txt_path
-        if md_exists:
-            return md_path
-        return None
-
-    lower_source = _select_source(lower_dir)
-    if lower_source:
-        return lower_source
-
-    upper_source = _select_source(upper_dir)
-    if upper_source:
-        lower_dir.mkdir(parents=True, exist_ok=True)
-        alias_path = lower_dir / upper_source.name
-        if not alias_path.exists():
-            try:
-                os.symlink(upper_source, alias_path)
-            except OSError:
-                try:
-                    shutil.copy2(upper_source, alias_path)
-                except OSError:
-                    pass
-        return alias_path if alias_path.exists() else upper_source
-
-    raise FileNotFoundError(f"RAW_MISSING: {lower_dir}/source.(txt|md)")
+    resolution = resolve_raw_source(
+        book_code,
+        lang,
+        _data_dir(),
+        create_alias=True,
+        logger=print,
+    )
+    return resolution.raw_path
 
 
 def canonical_normalized_path(book_code: str, lang: str) -> Path:

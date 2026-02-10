@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
 from gaiden.translate import run_translate_with_contract
 from gaiden.split_merge_translate_for_refine import process_language
 from editorial.models import EditionPipeline, EditionText, PipelineStage, Edition
@@ -88,47 +89,24 @@ def _resolve_normalized_path(book_code: str, lang: str) -> Path | None:
     return path if path.exists() else None
 
 
-def _raw_lang_upper(lang: str) -> str:
-    norm = utils.normalize_lang(lang)
-    return "PT-BR" if norm == "ptbr" else norm.upper()
-
-
-def _raw_dirs(book_code: str, lang: str) -> tuple[Path, Path]:
+def _resolve_raw_path(book_code: str, lang: str) -> tuple[Path | None, Path, str | None, Path | None]:
     data_dir = Path(settings.BASE_DIR).parent / "data"
-    lang_lower = _lang_fs(lang)
-    base = data_dir / "raw" / book_code
-    return base / lang_lower, base / _raw_lang_upper(lang)
-
-
-def _resolve_raw_path(book_code: str, lang: str) -> tuple[Path | None, Path, str | None]:
-    lower_dir, upper_dir = _raw_dirs(book_code, lang)
-
-    def _select_source(dir_path: Path) -> tuple[Path | None, str | None]:
-        txt_path = dir_path / "source.txt"
-        md_path = dir_path / "source.md"
-        txt_exists = txt_path.exists()
-        md_exists = md_path.exists()
-        if txt_exists and md_exists:
-            return None, "INVALID_STATE"
-        if txt_exists:
-            return txt_path, None
-        if md_exists:
-            return md_path, None
-        return None, "RAW_MISSING"
-
-    lower_source, lower_reason = _select_source(lower_dir)
-    if lower_source:
-        return lower_source, lower_dir, None
-    if lower_reason == "INVALID_STATE":
-        return None, lower_dir, "INVALID_STATE"
-
-    upper_source, upper_reason = _select_source(upper_dir)
-    if upper_source:
-        return upper_source, upper_dir, None
-    if upper_reason == "INVALID_STATE":
-        return None, upper_dir, "INVALID_STATE"
-
-    return None, lower_dir, "RAW_MISSING"
+    canonical_dir = canonical_raw_dir(book_code, lang, data_dir)
+    try:
+        resolution = resolve_raw_source(
+            book_code,
+            lang,
+            data_dir,
+            create_alias=True,
+            logger=None,
+        )
+        return resolution.raw_path, resolution.selected_dir, None, resolution.alias_created
+    except ValueError as exc:
+        if "INVALID_STATE" in str(exc):
+            return None, canonical_dir, "INVALID_STATE", None
+        raise
+    except FileNotFoundError:
+        return None, canonical_dir, "RAW_MISSING", None
 
 
 def _chunks_dir(book_code: str, lang: str) -> Path:
@@ -317,7 +295,7 @@ class Command(BaseCommand):
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
 
-                    raw_path, raw_dir, raw_reason = _resolve_raw_path(book_code, item.lang)
+                    raw_path, raw_dir, raw_reason, raw_alias = _resolve_raw_path(book_code, item.lang)
                     if raw_reason:
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
@@ -343,6 +321,8 @@ class Command(BaseCommand):
                     had_existing = norm_path.exists()
                     with log_path.open("w", encoding="utf-8") as log_file:
                         log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                        if raw_alias:
+                            log_file.write(f"RAW_ALIAS_CREATED: {raw_alias}\n")
                         log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
                         log_file.write(f"OUTPUT: {norm_path}\n")
                         if had_existing:
@@ -498,7 +478,9 @@ class Command(BaseCommand):
                         source_lang = "en"
                         norm_path = _normalized_path(book_code, source_lang)
                         if not norm_path.exists():
-                            raw_path, raw_dir, raw_reason = _resolve_raw_path(book_code, source_lang)
+                            raw_path, raw_dir, raw_reason, raw_alias = _resolve_raw_path(
+                                book_code, source_lang
+                            )
                             if raw_reason:
                                 with log_path.open("a", encoding="utf-8") as log_file:
                                     log_file.write(f"SKIP: {raw_reason}\n")
@@ -513,6 +495,8 @@ class Command(BaseCommand):
                             with log_path.open("a", encoding="utf-8") as log_file:
                                 log_file.write("AUTO: normalize before translate\n")
                                 log_file.write(f"RAW_DIR_SELECTED: {raw_dir}\n")
+                                if raw_alias:
+                                    log_file.write(f"RAW_ALIAS_CREATED: {raw_alias}\n")
                                 log_file.write(f"RAW_SOURCE_FOUND: {raw_path}\n")
                                 _run_module(log_file, "gaiden.normalize", [book_code, _lang_fs(source_lang)])
                                 report = _read_json(_normalized_report_path(book_code, source_lang))

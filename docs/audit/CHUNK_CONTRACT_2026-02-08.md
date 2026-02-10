@@ -41,7 +41,7 @@ If no headings are detected:
 - max_tokens = 2000 (hard cap)
 - Estimator:
   - tiktoken (cl100k_base) when available
-  - fallback: chars/4 (record as `chars4`)
+  - fallback: chars/4 (record as `chars4`, emits WARN `token_estimator_chars4`)
 - Chunk never crosses chapter boundaries.
 - Chunk never merges across chapters.
 - Small chunks are allowed; do not merge last chunk.

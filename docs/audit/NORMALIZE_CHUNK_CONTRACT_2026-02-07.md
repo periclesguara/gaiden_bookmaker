@@ -11,6 +11,7 @@
 ## Language Canonical Form
 - Sempre lower-case no filesystem: `en`, `es`, `fr`, `it`, `de`, `ptbr`.
 - Compatibilidade de leitura: RAW pode existir em `EN`/`PT-BR` etc., mas escrita sempre em lower-case.
+- Resolver de RAW faz fallback em variantes de caixa (ex: `EN`, `PT-BR`) e copia para o caminho canônico `data/raw/<book>/<lang>/source.(txt|md)` quando encontra (logando `RAW_DIR_SELECTED` e `RAW_ALIAS_CREATED`).
 - Chunking é EN-only e compartilhado entre línguas de destino.
 
 ## Gutenberg Removal
@@ -23,7 +24,7 @@
 - Um chunk nunca atravessa capítulos (um chunk pertence a um capítulo).
 - Tamanho-alvo: 1500 tokens.
 - Hard cap: 2000 tokens.
-- Heurística fallback: 1 token ≈ 4 caracteres (quando tiktoken não estiver disponível).
+- Heurística fallback: 1 token ≈ 4 caracteres (quando tiktoken não estiver disponível; gera WARN `token_estimator_chars4`).
 - Se o último chunk do capítulo tiver < 40% do target, deve ser mesclado ao anterior (se não violar max_tokens).
 
 ## Normalize Check (OK/FAIL)
