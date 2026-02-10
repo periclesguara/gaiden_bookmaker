@@ -1,0 +1,30 @@
+{
+  "schema": "gaiden_translate_queue_v1",
+  "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
+  "mode": "many_books_to_one_language",
+
+  "source_lang": "en",
+  "target_lang": "en_modern",
+
+  "queue": [
+    { "book": "book_0003" }
+  ],
+
+  "engine": {
+    "provider": "openai",
+    "model": "gpt-5.2"
+  },
+
+  "paths": {
+    "chunks_root": "data/chunks",
+    "translated_root": "data/translated",
+    "runs_root": "data/translated/_runs"
+  },
+
+  "run": {
+    "execution": "sequential",
+    "resume": true,
+    "dry_run": true,
+    "fail_fast": true
+  }
+}
