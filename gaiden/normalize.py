@@ -762,13 +762,28 @@ def normalize_book(book_code: str, lang: str, preview: bool = False) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Normalize RAW into canonical normalized output.")
-    parser.add_argument("book_code", help="book code (book_0003) or numeric id (0003)")
-    parser.add_argument("lang", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
+    parser.add_argument("book_code", nargs="?", help="book code (book_0003) or numeric id (0003)")
+    parser.add_argument("lang", nargs="?", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
+    parser.add_argument("--book", "--book-code", dest="book_opt", help="book code (book_0003) or numeric id (0003)")
+    parser.add_argument("--lang", "--language", dest="lang_opt", help="Language code (EN, PT-BR, ES, DE, FR, IT)")
     parser.add_argument("--preview", action="store_true", help="Generate preview/report alongside normalized output")
     args = parser.parse_args(argv)
 
+    if args.book_opt or args.lang_opt:
+        if args.book_code or args.lang:
+            raise SystemExit("Use either positional book/lang or --book/--lang (not both).")
+        if not (args.book_opt and args.lang_opt):
+            raise SystemExit("Both --book and --lang are required when using flags.")
+        book_code = args.book_opt
+        lang = args.lang_opt
+    else:
+        if not (args.book_code and args.lang):
+            raise SystemExit("book_code and lang are required.")
+        book_code = args.book_code
+        lang = args.lang
+
     try:
-        result = normalize_book(args.book_code, args.lang, preview=args.preview)
+        result = normalize_book(book_code, lang, preview=args.preview)
     except FileNotFoundError as exc:
         msg = str(exc)
         if "RAW_MISSING" in msg:
