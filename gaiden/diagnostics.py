@@ -18,6 +18,15 @@ CONTRACTS_ROOT = Path("gaiden/contracts")
 TRANSLATED_ROOT = Path("data/translated")
 
 ALLOWED_LANG_DIRS = {"DE", "EN", "ES", "PT-BR", "IT", "FR"}
+ALL_CHECKS = [
+    "chunks",
+    "contracts",
+    "translate_mapping",
+    "merge_plan",
+    "merge_presence",
+    "split_stage_refs",
+    "golden_snapshot",
+]
 
 
 @dataclass
@@ -138,25 +147,155 @@ def _is_placeholder_path(path: str) -> bool:
 
 def _check_chunks(book: str) -> bool:
     book_id = _parse_book_id(book)
-    chunks_dir = CHUNKS_ROOT / f"book_{book_id:04d}" / "en"
+    book_code = f"book_{book_id:04d}"
+    chunks_dir = CHUNKS_ROOT / book_code / "en"
+    manifest_path = chunks_dir / "chunks_manifest.json"
+    run_report_path = chunks_dir / "chunk_run_report.json"
+
+    fs_fail: list[str] = []
+    manifest_fail: list[str] = []
+    run_report_fail: list[str] = []
+    run_report_warn: list[str] = []
+
+    chunk_name_re = re.compile(r"^ch_(\d{2,3})_chunk_(\d{3})\.txt$")
+    files: list[Path] = []
+    fs_files: set[str] = set()
+    chapters_fs: set[int] = set()
+
     if not chunks_dir.is_dir():
-        print(f"[FAIL] chunks: diretório ausente: {chunks_dir}")
-        return False
+        fs_fail.append("CHUNKS_DIR_MISSING")
+    else:
+        files = sorted(chunks_dir.glob("ch_*_chunk_*.txt"))
+        if not files:
+            fs_fail.append("CHUNKS_EMPTY")
+        else:
+            invalid = [p.name for p in files if not chunk_name_re.match(p.name)]
+            if invalid:
+                fs_fail.append("CHUNK_FILENAME_INVALID")
+            for p in files:
+                m = chunk_name_re.match(p.name)
+                if m:
+                    chapters_fs.add(int(m.group(1)))
+            fs_files = {p.name for p in files}
 
-    files = sorted(chunks_dir.glob("ch_*_chunk_*.txt"))
-    if not files:
-        print(f"[FAIL] chunks: nenhum arquivo em {chunks_dir}")
-        return False
+    total_fs = len(files) if files else 0
+    first = files[0].name if files else "-"
+    last = files[-1].name if files else "-"
 
-    invalid = [p.name for p in files if not re.match(r"^ch_\d+_chunk_\d+\.txt$", p.name)]
-    if invalid:
-        print(f"[FAIL] chunks: nomes inválidos: {invalid[:5]}")
-        return False
+    manifest_files: set[str] = set()
+    total_manifest = 0
+    if not manifest_path.is_file():
+        manifest_fail.append("MANIFEST_MISSING")
+    else:
+        try:
+            manifest = _load_json(manifest_path)
+        except Exception:
+            manifest_fail.append("MANIFEST_INVALID_JSON")
+        else:
+            if not isinstance(manifest, dict):
+                manifest_fail.append("MANIFEST_INVALID_SHAPE")
+            else:
+                if str(manifest.get("schema_version", "")).strip() != "chunks_manifest_v2":
+                    manifest_fail.append("MANIFEST_SCHEMA_OUTDATED")
+                if str(manifest.get("book_code", "")).strip() != book_code:
+                    manifest_fail.append("MANIFEST_BOOK_CODE_MISMATCH")
+                if str(manifest.get("lang", "")).strip() != "en":
+                    manifest_fail.append("MANIFEST_LANG_MISMATCH")
+                if not str(manifest.get("normalized_sha256", "")).strip():
+                    manifest_fail.append("MANIFEST_NORMALIZED_SHA256_MISSING")
 
-    chapters = sorted({re.match(r"^ch_(\d+)_chunk_\d+\.txt$", p.name).group(1) for p in files})
-    print(f"[OK] chunks: total={len(files)}, chapters={len(chapters)}")
-    print(f"[INFO] chunks: first={files[0].name}, last={files[-1].name}")
-    return True
+                chapters = manifest.get("chapters")
+                if not isinstance(chapters, list) or not chapters:
+                    manifest_fail.append("MANIFEST_CHAPTERS_MISSING")
+                else:
+                    chapter_ids: list[int] = []
+                    for chapter in chapters:
+                        if not isinstance(chapter, dict):
+                            manifest_fail.append("MANIFEST_INVALID_CHAPTER_ITEM")
+                            continue
+                        try:
+                            chapter_id = int(chapter.get("chapter_id"))
+                        except Exception:
+                            chapter_id = None
+                        if chapter_id is None:
+                            manifest_fail.append("MANIFEST_CHAPTER_ID_INVALID")
+                        else:
+                            chapter_ids.append(chapter_id)
+
+                        chunks = chapter.get("chunks")
+                        if not isinstance(chunks, list):
+                            chunks = []
+                        for chunk in chunks:
+                            if not isinstance(chunk, dict):
+                                manifest_fail.append("MANIFEST_INVALID_CHUNK_ITEM")
+                                continue
+                            total_manifest += 1
+                            file_path = chunk.get("file_path")
+                            if not file_path:
+                                manifest_fail.append("MANIFEST_FILE_PATH_MISSING")
+                                continue
+                            manifest_files.add(str(file_path))
+
+                    if chapter_ids:
+                        expected = list(range(1, len(chapter_ids) + 1))
+                        if sorted(set(chapter_ids)) != expected:
+                            manifest_fail.append("MANIFEST_CHAPTER_ID_SEQUENCE")
+                    else:
+                        manifest_fail.append("MANIFEST_CHAPTERS_EMPTY")
+
+                if manifest_files or fs_files:
+                    if manifest_files != fs_files:
+                        manifest_fail.append("MANIFEST_FILES_MISMATCH")
+                if total_fs and total_manifest != total_fs:
+                    manifest_fail.append("MANIFEST_TOTAL_MISMATCH")
+
+    if not run_report_path.is_file():
+        run_report_warn.append("RUN_REPORT_MISSING")
+    else:
+        try:
+            report = _load_json(run_report_path)
+        except Exception:
+            run_report_fail.append("RUN_REPORT_INVALID_JSON")
+        else:
+            if not isinstance(report, dict):
+                run_report_fail.append("RUN_REPORT_INVALID_SHAPE")
+            else:
+                checks = report.get("checks")
+                if not isinstance(checks, dict):
+                    checks = {}
+                if checks.get("check_ok") is not True:
+                    run_report_fail.append("RUN_REPORT_CHECK_NOT_OK")
+                if "coverage_chars_ok" in checks and checks.get("coverage_chars_ok") is not True:
+                    run_report_fail.append("RUN_REPORT_COVERAGE_CHARS_NOT_OK")
+                if "single_chapter_mode" not in report:
+                    run_report_warn.append("RUN_REPORT_SINGLE_CHAPTER_MODE_MISSING")
+
+    def _fmt_reasons(reasons: list[str]) -> str:
+        return "+".join(sorted(set(reasons)))
+
+    manifest_status = "v2_ok" if not manifest_fail else f"fail({_fmt_reasons(manifest_fail)})"
+    if run_report_fail:
+        run_report_status = f"fail({_fmt_reasons(run_report_fail)})"
+    elif run_report_warn:
+        run_report_status = f"warn({_fmt_reasons(run_report_warn)})"
+    else:
+        run_report_status = "ok"
+
+    if fs_fail or manifest_fail or run_report_fail:
+        status = "FAIL"
+        ok = False
+    elif run_report_warn:
+        status = "WARN"
+        ok = True
+    else:
+        status = "OK"
+        ok = True
+
+    print(
+        f"{book_code}: {status} — total={total_fs}, chapters={len(chapters_fs)}, "
+        f"first={first}, last={last}, manifest={manifest_status}, run_report={run_report_status}"
+    )
+    return ok
 
 
 def _check_contracts() -> bool:
@@ -415,6 +554,27 @@ def _check_golden_snapshot(langs: Optional[List[str]]) -> bool:
         shutil.rmtree(temp_root, ignore_errors=True)
 
 
+def _expand_checks(checks: List[str]) -> List[str]:
+    if not checks:
+        return []
+    expanded: List[str] = []
+    for raw in checks:
+        name = raw.strip()
+        if not name:
+            continue
+        if name == "all":
+            expanded.extend(ALL_CHECKS)
+        else:
+            expanded.append(name)
+    seen: set[str] = set()
+    result: List[str] = []
+    for name in expanded:
+        if name not in seen:
+            seen.add(name)
+            result.append(name)
+    return result
+
+
 def _run_checks(
     book: Optional[str],
     checks: List[str],
@@ -460,6 +620,17 @@ def _run_checks(
     return 0 if status else 1
 
 
+def run_checks(
+    book: Optional[str],
+    checks: List[str],
+    *,
+    strict: bool = False,
+    langs: Optional[List[str]] = None,
+) -> int:
+    expanded = _expand_checks(checks)
+    return _run_checks(book, expanded, strict=strict, langs=langs)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("--book", type=str, default=None)
@@ -480,8 +651,11 @@ def main() -> int:
             "split_stage_refs",
             "golden_snapshot",
         ]
+    checks = _expand_checks(checks)
     if not checks:
-        print("[INFO] use --check chunks|contracts|translate_mapping|merge_plan|merge_presence|split_stage_refs|golden_snapshot")
+        print(
+            "[INFO] use --check all|chunks|contracts|translate_mapping|merge_plan|merge_presence|split_stage_refs|golden_snapshot"
+        )
         return 0
     return _run_checks(args.book, checks, strict=args.strict, langs=langs)
 
