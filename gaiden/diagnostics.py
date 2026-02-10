@@ -151,6 +151,7 @@ def _check_chunks(book: str) -> str:
     chunks_dir = CHUNKS_ROOT / book_code / "en"
     manifest_path = chunks_dir / "chunks_manifest.json"
     run_report_path = chunks_dir / "chunk_run_report.json"
+    chunks_dir_resolved = chunks_dir.resolve()
 
     fs_fail: list[str] = []
     manifest_fail: list[str] = []
@@ -158,32 +159,36 @@ def _check_chunks(book: str) -> str:
     run_report_warn: list[str] = []
 
     chunk_name_re = re.compile(r"^ch_(\d{2,3})_chunk_(\d{3})\.txt$")
-    files: list[Path] = []
+    chunk_files: list[Path] = []
     fs_files: set[str] = set()
     chapters_fs: set[int] = set()
 
     if not chunks_dir.is_dir():
         fs_fail.append("CHUNKS_DIR_MISSING")
     else:
-        files = sorted(chunks_dir.glob("ch_*_chunk_*.txt"))
-        if not files:
+        chunk_files = sorted(chunks_dir.glob("ch_*_chunk_*.txt"))
+        if not chunk_files:
             fs_fail.append("CHUNKS_EMPTY")
         else:
-            invalid = [p.name for p in files if not chunk_name_re.match(p.name)]
+            invalid = [p.name for p in chunk_files if not chunk_name_re.match(p.name)]
             if invalid:
                 fs_fail.append("CHUNK_FILENAME_INVALID")
-            for p in files:
+            for p in chunk_files:
                 m = chunk_name_re.match(p.name)
                 if m:
                     chapters_fs.add(int(m.group(1)))
-            fs_files = {p.name for p in files}
+            fs_files = {p.name for p in chunk_files}
 
-    total_fs = len(files) if files else 0
-    first = files[0].name if files else "-"
-    last = files[-1].name if files else "-"
+    total_fs = len(chunk_files) if chunk_files else 0
+    first = chunk_files[0].name if chunk_files else "-"
+    last = chunk_files[-1].name if chunk_files else "-"
+    chunk_files_sample = ", ".join([p.name for p in chunk_files[:3]]) if chunk_files else "-"
 
     manifest_files: set[str] = set()
     total_manifest = 0
+    manifest_schema_version = "MISSING"
+    manifest_book_code = "-"
+    manifest_lang = "-"
     if not manifest_path.is_file():
         manifest_fail.append("MANIFEST_MISSING")
     else:
@@ -191,15 +196,20 @@ def _check_chunks(book: str) -> str:
             manifest = _load_json(manifest_path)
         except Exception:
             manifest_fail.append("MANIFEST_INVALID_JSON")
+            manifest_schema_version = "INVALID_SHAPE"
         else:
             if not isinstance(manifest, dict):
                 manifest_fail.append("MANIFEST_INVALID_SHAPE")
+                manifest_schema_version = "INVALID_SHAPE"
             else:
-                if str(manifest.get("schema_version", "")).strip() != "chunks_manifest_v2":
+                manifest_schema_version = str(manifest.get("schema_version", "")).strip() or "-"
+                manifest_book_code = str(manifest.get("book_code", "")).strip() or "-"
+                manifest_lang = str(manifest.get("lang", "")).strip() or "-"
+                if manifest_schema_version != "chunks_manifest_v2":
                     manifest_fail.append("MANIFEST_SCHEMA_OUTDATED")
-                if str(manifest.get("book_code", "")).strip() != book_code:
+                if manifest_book_code != book_code:
                     manifest_fail.append("MANIFEST_BOOK_CODE_MISMATCH")
-                if str(manifest.get("lang", "")).strip() != "en":
+                if manifest_lang != "en":
                     manifest_fail.append("MANIFEST_LANG_MISMATCH")
                 if not str(manifest.get("normalized_sha256", "")).strip():
                     manifest_fail.append("MANIFEST_NORMALIZED_SHA256_MISSING")
@@ -291,6 +301,21 @@ def _check_chunks(book: str) -> str:
     print(
         f"{book_code}: {status} — total={total_fs}, chapters={len(chapters_fs)}, "
         f"first={first}, last={last}, manifest={manifest_status}, run_report={run_report_status}"
+    )
+    print(
+        "  evidence: "
+        f"chunks_dir={chunks_dir_resolved}, "
+        f"manifest_path={manifest_path}, "
+        f"run_report_path={run_report_path}, "
+        f"chunk_files_count={total_fs}, "
+        f"chunk_files_sample_first3={chunk_files_sample}"
+    )
+    print(
+        "  evidence: "
+        f"manifest_schema_version={manifest_schema_version}, "
+        f"manifest_book_code={manifest_book_code}, "
+        f"manifest_lang={manifest_lang}, "
+        f"run_report_present={run_report_path.is_file()}"
     )
     return status
 
@@ -551,11 +576,12 @@ def _check_golden_snapshot(langs: Optional[List[str]]) -> bool:
         shutil.rmtree(temp_root, ignore_errors=True)
 
 
-def _discover_books_from_chunks() -> List[str]:
-    if not CHUNKS_ROOT.is_dir():
+def discover_books_with_chunks(data_dir: Path) -> List[str]:
+    chunks_root = data_dir / "chunks"
+    if not chunks_root.is_dir():
         return []
     books: list[str] = []
-    for entry in CHUNKS_ROOT.iterdir():
+    for entry in chunks_root.iterdir():
         if entry.is_dir() and re.match(r"^book_\d{4}$", entry.name):
             books.append(entry.name)
     return sorted(books)
@@ -607,10 +633,10 @@ def _run_checks(
             if books_list:
                 chunk_books = books_list
             else:
-                chunk_books = _discover_books_from_chunks()
+                chunk_books = discover_books_with_chunks(Path("data"))
 
             if not chunk_books:
-                print("[FAIL] chunks: nenhum book encontrado em data/chunks")
+                print("[FAIL] chunks: NO_BOOKS_FOUND")
                 status = False
                 continue
 
