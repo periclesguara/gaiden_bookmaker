@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
@@ -54,3 +55,18 @@ def get_openai_config() -> dict:
         "default_model": default_model,
         "secrets_path": str(secrets_path),
     }
+
+
+def load_secrets() -> dict:
+    """
+    Load secrets from .gaiden_secrets into process environment.
+    Returns the parsed config dict.
+    """
+    cfg = get_openai_config()
+    if cfg.get("OPENAI_API_KEY"):
+        os.environ.setdefault("OPENAI_API_KEY", cfg["OPENAI_API_KEY"])
+    if cfg.get("OPENAI_BASE_URL"):
+        os.environ.setdefault("OPENAI_BASE_URL", cfg["OPENAI_BASE_URL"])
+    if cfg.get("default_model"):
+        os.environ.setdefault("GAIDEN_DEFAULT_MODEL", cfg["default_model"])
+    return cfg

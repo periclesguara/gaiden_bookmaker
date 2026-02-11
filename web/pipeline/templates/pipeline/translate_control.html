@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Translate Control</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --accent-dark: #a63f22;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+      --bad: #b30000;
+      --info: #2b5bb3;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .nav {
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 2px solid transparent;
+    }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      padding: 18px 24px 10px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--ink);
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+    .list {
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+    }
+    .list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      padding: 6px 4px;
+    }
+    .section {
+      padding: 0 24px 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .badge.info { color: var(--info); }
+    .log {
+      white-space: pre-wrap;
+      max-height: 180px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 15px;
+      background: #fff;
+      border: 1px dashed var(--border);
+      padding: 8px;
+      border-radius: 6px;
+    }
+    .table {
+      width: calc(100% - 48px);
+      margin: 0 24px 28px;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table th, .table td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      vertical-align: top;
+    }
+    .table th {
+      background: #f4ece2;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 13px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/translate/" class="current">Translate Control</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Translate Control</h1>
+    <p class="subtitle">UI segura para executar tradução via contratos runtime.</p>
+  </header>
+
+  <section class="section">
+    <div class="card">
+      <h2>Precheck</h2>
+      <div class="option">
+        {% if openai_key_set %}
+          <span class="badge ok">OPENAI_API_KEY OK</span>
+        {% else %}
+          {% if run_flags.dry_run %}
+            <span class="badge info">OPENAI_API_KEY AUSENTE (dry_run)</span>
+          {% else %}
+            <span class="badge bad">OPENAI_API_KEY AUSENTE</span>
+          {% endif %}
+        {% endif %}
+        <span class="muted">A chave é obrigatória quando <code>dry_run=false</code>.</span>
+      </div>
+      {% if run_flags.dry_run and not openai_key_set %}
+        <div class="option">
+          <span class="badge info">DRY RUN ativo — nenhuma chamada à OpenAI será feita.</span>
+        </div>
+      {% endif %}
+      <div class="muted">Contratos runtime serão gravados em <code>data/contracts_runtime/</code>.</div>
+    </div>
+  </section>
+
+  {% if warnings %}
+    <section class="section">
+      <div class="card">
+        <h2>Avisos</h2>
+        <ul>
+          {% for warning in warnings %}
+            <li>{{ warning }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if errors %}
+    <section class="section">
+      <div class="card">
+        <h2>Erros</h2>
+        <ul>
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="grid">
+    <div class="card">
+      <h2>Translate 1 Book -> Many Languages</h2>
+      <form method="post" id="form-multilang">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="multilang" />
+        <input type="hidden" name="confirm_run" value="0" />
+
+        <div class="option">
+          <label for="book_code">Book</label>
+          <select id="book_code" name="book_code">
+            <option value="">Selecione…</option>
+            {% for book in books %}
+              <option value="{{ book.code }}" data-chunks="{{ book.chunks }}" {% if book.code == selected_book %}selected{% endif %}>{{ book.code }} ({{ book.chunks }} chunks)</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="option"><strong>Target languages</strong></div>
+        <div class="list">
+          {% for lang in targets %}
+            <label>
+              <input type="checkbox" name="target_languages" value="{{ lang.code }}" {% if lang.code in selected_targets %}checked{% endif %} />
+              {{ lang.label }}
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="option"><strong>Run options</strong></div>
+        <input type="hidden" name="dry_run" value="0" />
+        <label class="option"><input type="checkbox" name="dry_run" value="1" {% if run_flags.dry_run %}checked{% endif %} /> dry_run</label>
+        <input type="hidden" name="resume" value="0" />
+        <label class="option"><input type="checkbox" name="resume" value="1" {% if run_flags.resume %}checked{% endif %} /> resume</label>
+        <input type="hidden" name="fail_fast" value="0" />
+        <label class="option"><input type="checkbox" name="fail_fast" value="1" {% if run_flags.fail_fast %}checked{% endif %} /> fail_fast</label>
+
+        <div class="option">
+          <span class="pill" id="multilang-estimate">Selecione book + línguas</span>
+        </div>
+
+        <button type="submit" class="btn">Translate 1 Book -> Many Languages</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Translate Many Books -> 1 Language</h2>
+      <form method="post" id="form-multibook">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="multibook" />
+        <input type="hidden" name="confirm_run" value="0" />
+
+        <div class="option"><strong>Queue (books)</strong></div>
+        <div class="list">
+          {% for book in books %}
+            <label>
+              <input type="checkbox" name="queue_books" value="{{ book.code }}" data-chunks="{{ book.chunks }}" {% if book.code in selected_queue %}checked{% endif %} />
+              {{ book.code }} ({{ book.chunks }} chunks)
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="option">
+          <label for="target_lang">Target language</label>
+          <select id="target_lang" name="target_lang">
+            {% for lang in targets %}
+              <option value="{{ lang.code }}" {% if lang.code == selected_target_lang %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="option"><strong>Run options</strong></div>
+        <input type="hidden" name="dry_run" value="0" />
+        <label class="option"><input type="checkbox" name="dry_run" value="1" {% if run_flags.dry_run %}checked{% endif %} /> dry_run</label>
+        <input type="hidden" name="resume" value="0" />
+        <label class="option"><input type="checkbox" name="resume" value="1" {% if run_flags.resume %}checked{% endif %} /> resume</label>
+        <input type="hidden" name="fail_fast" value="0" />
+        <label class="option"><input type="checkbox" name="fail_fast" value="1" {% if run_flags.fail_fast %}checked{% endif %} /> fail_fast</label>
+
+        <div class="option">
+          <span class="pill" id="multibook-estimate">Selecione books</span>
+        </div>
+
+        <button type="submit" class="btn">Translate Many Books -> 1 Language</button>
+      </form>
+    </div>
+  </section>
+
+  {% if contract_path %}
+    <section class="section">
+      <div class="card">
+        <h2>Contrato Runtime</h2>
+        <div class="muted">{{ contract_path }}</div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if run_output %}
+    <section class="section">
+      <div class="card">
+        <h2>Runner Log</h2>
+        <div class="log">{{ run_output }}</div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if results %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Lang</th>
+          <th>Outputs</th>
+          <th>Checks</th>
+          <th>Preview (first 20 lines)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in results.items %}
+          <tr>
+            <td>{{ item.book }}</td>
+            <td>{{ item.lang }}</td>
+            <td>
+              <div>out_dir: <code>{{ item.out_dir }}</code></div>
+              <div>merged: <code>{{ item.merged }}</code>{% if item.merged_exists %} <span class="badge ok">OK</span>{% else %} <span class="badge bad">MISSING</span>{% endif %}</div>
+              <div>report: <code>{{ item.report }}</code>{% if item.report_exists %} <span class="badge ok">OK</span>{% else %} <span class="badge bad">MISSING</span>{% endif %}</div>
+              <div>stamp: <code>{{ item.stamp }}</code>{% if item.stamp_exists %} <span class="badge ok">OK</span>{% else %} <span class="badge bad">MISSING</span>{% endif %}</div>
+            </td>
+            <td>
+              {% if item.scan %}
+                <div>Comments: {% if item.scan.commentary_ok %}<span class="badge ok">PASS</span>{% else %}<span class="badge bad">FAIL ({{ item.scan.commentary_hits }})</span>{% endif %}</div>
+                <div>Markdown: {% if item.scan.markdown_ok %}<span class="badge ok">PASS</span>{% else %}<span class="badge bad">FAIL ({{ item.scan.markdown_hits }})</span>{% endif %}</div>
+                {% if item.scan.heading_expected %}
+                  <div>Headings: {% if item.scan.heading_ok %}<span class="badge ok">PASS ({{ item.scan.heading_hits }})</span>{% else %}<span class="badge warn">WARN (0)</span>{% endif %}</div>
+                {% else %}
+                  <div>Headings: <span class="badge info">SKIP</span></div>
+                {% endif %}
+              {% else %}
+                <div class="muted">Sem merged para validar.</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.preview %}
+                <div class="log">{% for line in item.preview %}{{ line }}
+{% endfor %}</div>
+              {% else %}
+                <div class="muted">Sem preview.</div>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <script>
+    function updateMultilangEstimate() {
+      const form = document.getElementById("form-multilang");
+      const bookSelect = document.getElementById("book_code");
+      const option = bookSelect ? bookSelect.selectedOptions[0] : null;
+      const chunks = option ? parseInt(option.dataset.chunks || "0", 10) : 0;
+      const targets = form.querySelectorAll('input[name="target_languages"]:checked').length;
+      const jobs = chunks * targets;
+      const label = document.getElementById("multilang-estimate");
+      if (label) {
+        label.textContent = chunks && targets
+          ? `${chunks} chunks × ${targets} targets = ${jobs} jobs`
+          : "Selecione book + línguas";
+      }
+      form.dataset.jobs = String(jobs);
+      form.dataset.targets = String(targets);
+    }
+
+    function updateMultibookEstimate() {
+      const form = document.getElementById("form-multibook");
+      let chunks = 0;
+      form.querySelectorAll('input[name="queue_books"]:checked').forEach((cb) => {
+        chunks += parseInt(cb.dataset.chunks || "0", 10);
+      });
+      const label = document.getElementById("multibook-estimate");
+      if (label) {
+        label.textContent = chunks
+          ? `${chunks} chunks × 1 target = ${chunks} jobs`
+          : "Selecione books";
+      }
+      form.dataset.jobs = String(chunks);
+      form.dataset.targets = "1";
+    }
+
+    function wireFormConfirm(formId, updateFn) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      form.addEventListener("change", updateFn);
+      updateFn();
+      form.addEventListener("submit", (ev) => {
+        updateFn();
+        const jobs = form.dataset.jobs || "0";
+        const targets = form.dataset.targets || "0";
+        const ok = window.confirm(`Você vai rodar ${jobs} chunks em ${targets} alvos. Confirmar?`);
+        if (!ok) {
+          ev.preventDefault();
+          return;
+        }
+        const confirmField = form.querySelector('input[name="confirm_run"]');
+        if (confirmField) {
+          confirmField.value = "1";
+        }
+      });
+    }
+
+    wireFormConfirm("form-multilang", updateMultilangEstimate);
+    wireFormConfirm("form-multibook", updateMultibookEstimate);
+  </script>
+</body>
+</html>

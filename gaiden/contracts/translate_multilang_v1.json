@@ -3,7 +3,7 @@
   "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
   "mode": "one_book_to_many_languages",
 
-  "book": "book_0003",
+  "book": "<BOOK_CODE>",
   "source_lang": "en",
   "target_languages": ["en_modern", "de", "fr", "es", "ptbr", "it"],
 

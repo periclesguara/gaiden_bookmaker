@@ -6,6 +6,11 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    try:
+        from gaiden.secrets_loader import load_secrets
+        load_secrets()
+    except Exception:
+        pass
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gaiden_portal.settings')
     try:
         from django.core.management import execute_from_command_line

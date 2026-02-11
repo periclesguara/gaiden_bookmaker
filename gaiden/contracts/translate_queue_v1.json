@@ -7,7 +7,7 @@
   "target_lang": "en_modern",
 
   "queue": [
-    { "book": "book_0003" }
+    { "book": "<BOOK_CODE>" }
   ],
 
   "engine": {

@@ -72,7 +72,31 @@ PROJECT_LANGS = [
 PROJECT_LANG_CODES = {l["code"] for l in PROJECT_LANGS}
 PROJECT_SOURCE_FORMATS = ["TXT", "MD"]
 
+TRANSLATE_TARGETS = [
+    {"code": "en_modern", "label": "EN Modern (2026)"},
+    {"code": "en_2026", "label": "EN 2026"},
+    {"code": "de", "label": "DE"},
+    {"code": "fr", "label": "FR"},
+    {"code": "es", "label": "ES"},
+    {"code": "ptbr", "label": "PT-BR"},
+    {"code": "it", "label": "IT"},
+]
+TRANSLATE_TARGET_CODES = {t["code"] for t in TRANSLATE_TARGETS}
+TRANSLATE_LEGACY_BOOKS = {"book_0001", "book_0002"}
+
 MAX_RAW_UPLOAD_BYTES = 50 * 1024 * 1024
+
+def _parse_bool(value: object, *, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    raw = str(value).strip().lower()
+    if raw in {"1", "true", "on", "yes", "y"}:
+        return True
+    if raw in {"0", "false", "off", "no", "n", ""}:
+        return False
+    return default
 
 def pipeline_dashboard(request):
     pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
@@ -1508,6 +1532,383 @@ def _count_chunks(book_code: str) -> int | None:
     if not chunks_dir.is_dir():
         return None
     return len(list(chunks_dir.glob("ch_*_chunk_*.txt")))
+
+
+def _translate_runtime_dir() -> Path:
+    return _project_root() / "data" / "contracts_runtime"
+
+
+def _translate_runtime_contract_path(mode: str) -> Path:
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    name = "translate_multilang_run" if mode == "multilang" else "translate_queue_run"
+    return _translate_runtime_dir() / f"{name}_{ts}.json"
+
+
+def _translate_chunk_count(book_code: str, source_lang: str = "en") -> int:
+    data_dir = _project_root() / "data"
+    chunks_dir = data_dir / "chunks" / book_code / source_lang
+    if not chunks_dir.is_dir():
+        return 0
+    return len(list(chunks_dir.glob("ch_*_chunk_*.txt")))
+
+
+def _translate_available_books() -> list[dict]:
+    data_dir = _project_root() / "data"
+    chunks_root = data_dir / "chunks"
+    books: list[dict] = []
+    if chunks_root.is_dir():
+        for entry in sorted(chunks_root.iterdir()):
+            if not entry.is_dir():
+                continue
+            if not re.match(r"^book_\d{4}$", entry.name):
+                continue
+            if entry.name in TRANSLATE_LEGACY_BOOKS:
+                continue
+            count = _translate_chunk_count(entry.name, "en")
+            books.append({"code": entry.name, "chunks": count})
+    return books
+
+
+def _translate_preview_lines(path: Path, limit: int = 20) -> list[str]:
+    lines: list[str] = []
+    if not path.exists():
+        return lines
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            for _ in range(limit):
+                line = f.readline()
+                if not line:
+                    break
+                lines.append(line.rstrip("\n"))
+    except OSError:
+        return []
+    return lines
+
+
+def _translate_scan_patterns(path: Path) -> dict:
+    if not path.exists():
+        return {"commentary_ok": False, "markdown_ok": False, "commentary_hits": 0, "markdown_hits": 0}
+    text = ""
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return {"commentary_ok": False, "markdown_ok": False, "commentary_hits": 0, "markdown_hits": 0}
+
+    commentary_re = re.compile(r"(DRY_RUN|NOTE:|Translator|As an AI|I can't|I cannot|Coment|Observa)", re.IGNORECASE)
+    markdown_re = re.compile(r"(^#|```|\\*\\*|\\[.+\\]\\(.+\\))", re.MULTILINE)
+
+    commentary_hits = len(commentary_re.findall(text))
+    markdown_hits = len(markdown_re.findall(text))
+
+    return {
+        "commentary_ok": commentary_hits == 0,
+        "markdown_ok": markdown_hits == 0,
+        "commentary_hits": commentary_hits,
+        "markdown_hits": markdown_hits,
+    }
+
+
+def _heading_hits_in_text(text: str) -> int:
+    heading_re = re.compile(r"(CHAPTER|Chapter|SECTION|\\bI\\.|\\bII\\.|\\bIII\\.|\\bIV\\.|\\bV\\.)", re.MULTILINE)
+    return len(heading_re.findall(text))
+
+
+def _heading_hits_in_chunks(book_code: str, source_lang: str = "en") -> int:
+    data_dir = _project_root() / "data"
+    chunks_dir = data_dir / "chunks" / book_code / source_lang
+    if not chunks_dir.is_dir():
+        return 0
+    hits = 0
+    for path in chunks_dir.glob("ch_*_chunk_*.txt"):
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        hits += _heading_hits_in_text(text)
+    return hits
+
+
+def translate_control(request):
+    books = _translate_available_books()
+    book_map = {b["code"]: b for b in books}
+    openai_key_set = bool(os.environ.get("OPENAI_API_KEY"))
+
+    context = {
+        "books": books,
+        "targets": TRANSLATE_TARGETS,
+        "openai_key_set": openai_key_set,
+        "errors": [],
+        "warnings": [],
+        "results": None,
+        "mode": None,
+        "job_estimate": None,
+        "selected_book": None,
+        "selected_targets": ["en_modern"],
+        "selected_queue": [],
+        "selected_target_lang": "en_modern",
+        "run_output": None,
+        "contract_path": None,
+        "run_flags": {"dry_run": True, "resume": True, "fail_fast": True},
+    }
+
+    if request.method != "POST":
+        return render(request, "pipeline/translate_control.html", context)
+
+    mode = (request.POST.get("mode") or "").strip()
+    context["mode"] = mode
+
+    if mode not in ("multilang", "multibook"):
+        context["errors"].append("Modo inválido.")
+        return render(request, "pipeline/translate_control.html", context)
+
+    confirm_run = (request.POST.get("confirm_run") or "").strip() == "1"
+    if not confirm_run:
+        context["errors"].append("Confirmação obrigatória antes de executar.")
+        return render(request, "pipeline/translate_control.html", context)
+
+    dry_run = _parse_bool(request.POST.get("dry_run", True), default=True)
+    resume = _parse_bool(request.POST.get("resume", True), default=True)
+    fail_fast = _parse_bool(request.POST.get("fail_fast", True), default=True)
+    context["run_flags"] = {"dry_run": dry_run, "resume": resume, "fail_fast": fail_fast}
+
+    if dry_run:
+        context["warnings"].append("DRY RUN ativo: nenhuma chamada à OpenAI será feita.")
+    if not dry_run and not openai_key_set:
+        context["errors"].append("OPENAI_API_KEY AUSENTE — necessário para execução real")
+        return render(request, "pipeline/translate_control.html", context)
+
+    data_dir = _project_root() / "data"
+    chunks_root = data_dir / "chunks"
+    translated_root = data_dir / "translated"
+
+    if mode == "multilang":
+        book = (request.POST.get("book_code") or "").strip()
+        context["selected_book"] = book
+        targets = request.POST.getlist("target_languages")
+        targets = [t for t in targets if t in TRANSLATE_TARGET_CODES]
+        context["selected_targets"] = targets
+
+        if not book:
+            context["errors"].append("Selecione um book.")
+        if book in TRANSLATE_LEGACY_BOOKS:
+            context["errors"].append(
+                "Legacy books bloqueados via UI. Use CLI com --allow-legacy apenas para diagnóstico."
+            )
+        if book and book not in book_map:
+            context["errors"].append(f"Book inválido ou sem chunks: {book}.")
+        if not targets:
+            context["errors"].append("Selecione pelo menos um target language.")
+
+        chunk_count = _translate_chunk_count(book, "en") if book else 0
+        if book and chunk_count == 0:
+            context["errors"].append(f"Chunks ausentes para {book} (data/chunks/{book}/en).")
+
+        context["job_estimate"] = {
+            "chunks": chunk_count,
+            "targets": len(targets),
+            "jobs": chunk_count * len(targets),
+        }
+
+        if context["errors"]:
+            return render(request, "pipeline/translate_control.html", context)
+
+        contract = {
+            "schema": "gaiden_translate_multilang_v1",
+            "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
+            "mode": "one_book_to_many_languages",
+            "book": book,
+            "source_lang": "en",
+            "target_languages": targets,
+            "engine": {"provider": "openai", "model": "gpt-5.2"},
+            "paths": {
+                "chunks_root": "data/chunks",
+                "translated_root": "data/translated",
+                "runs_root": "data/translated/_runs",
+            },
+            "run": {
+                "execution": "sequential",
+                "resume": resume,
+                "dry_run": dry_run,
+                "fail_fast": fail_fast,
+            },
+        }
+
+        _translate_runtime_dir().mkdir(parents=True, exist_ok=True)
+        contract_path = _translate_runtime_contract_path("multilang")
+        contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
+        context["contract_path"] = str(contract_path)
+
+        cmd = [
+            str(_runner_python_path()),
+            str(_project_root() / "scripts" / "ops" / "translate_multilang_v1.py"),
+            "--contract",
+            str(contract_path),
+        ]
+        result = subprocess.run(
+            cmd,
+            cwd=str(_project_root()),
+            capture_output=True,
+            text=True,
+            env=os.environ.copy(),
+            check=False,
+        )
+        context["run_output"] = (result.stdout or "") + (result.stderr or "")
+        if result.returncode != 0:
+            context["errors"].append("Execução falhou. Veja o log abaixo.")
+            return render(request, "pipeline/translate_control.html", context)
+
+        items = []
+        source_heading_hits = _heading_hits_in_chunks(book, "en")
+        for lang in targets:
+            out_dir = translated_root / book / lang
+            merged = out_dir / f"{book}_{lang}_merged_v1.txt"
+            report = out_dir / "translate_run_report.json"
+            stamp = Path(str(merged) + ".STAMP.json")
+            scans = _translate_scan_patterns(merged) if merged.exists() else None
+            if scans is not None:
+                merged_text = merged.read_text(encoding="utf-8", errors="ignore")
+                merged_heading_hits = _heading_hits_in_text(merged_text)
+                heading_expected = source_heading_hits > 0
+                scans["heading_expected"] = heading_expected
+                scans["heading_hits"] = merged_heading_hits
+                scans["heading_ok"] = (not heading_expected) or merged_heading_hits > 0
+            items.append(
+                {
+                    "book": book,
+                    "lang": lang,
+                    "out_dir": out_dir,
+                    "merged": merged,
+                    "report": report,
+                    "stamp": stamp,
+                    "merged_exists": merged.exists(),
+                    "report_exists": report.exists(),
+                    "stamp_exists": stamp.exists(),
+                    "preview": _translate_preview_lines(merged, 20),
+                    "scan": scans,
+                }
+            )
+
+        context["results"] = {
+            "mode": mode,
+            "items": items,
+        }
+        return render(request, "pipeline/translate_control.html", context)
+
+    queue_books = request.POST.getlist("queue_books")
+    queue_books = [b for b in queue_books if b in book_map]
+    context["selected_queue"] = queue_books
+    target_lang = (request.POST.get("target_lang") or "").strip()
+    if target_lang not in TRANSLATE_TARGET_CODES:
+        target_lang = "en_modern"
+    context["selected_target_lang"] = target_lang
+
+    if not queue_books:
+        context["errors"].append("Selecione ao menos um book na fila.")
+    if any(b in TRANSLATE_LEGACY_BOOKS for b in queue_books):
+        context["errors"].append(
+            "Legacy books bloqueados via UI. Use CLI com --allow-legacy apenas para diagnóstico."
+        )
+
+    per_book = []
+    total_jobs = 0
+    for book in queue_books:
+        count = _translate_chunk_count(book, "en")
+        per_book.append({"book": book, "chunks": count})
+        total_jobs += count
+        if count == 0:
+            context["errors"].append(f"Chunks ausentes para {book} (data/chunks/{book}/en).")
+
+    context["job_estimate"] = {
+        "chunks": total_jobs,
+        "targets": 1,
+        "jobs": total_jobs,
+    }
+
+    if context["errors"]:
+        return render(request, "pipeline/translate_control.html", context)
+
+    contract = {
+        "schema": "gaiden_translate_queue_v1",
+        "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
+        "mode": "many_books_to_one_language",
+        "source_lang": "en",
+        "target_lang": target_lang,
+        "queue": [{"book": b} for b in queue_books],
+        "engine": {"provider": "openai", "model": "gpt-5.2"},
+        "paths": {
+            "chunks_root": "data/chunks",
+            "translated_root": "data/translated",
+            "runs_root": "data/translated/_runs",
+        },
+        "run": {
+            "execution": "sequential",
+            "resume": resume,
+            "dry_run": dry_run,
+            "fail_fast": fail_fast,
+        },
+    }
+
+    _translate_runtime_dir().mkdir(parents=True, exist_ok=True)
+    contract_path = _translate_runtime_contract_path("multibook")
+    contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
+    context["contract_path"] = str(contract_path)
+
+    cmd = [
+        str(_runner_python_path()),
+        str(_project_root() / "scripts" / "ops" / "translate_queue_v1.py"),
+        "--contract",
+        str(contract_path),
+    ]
+    result = subprocess.run(
+        cmd,
+        cwd=str(_project_root()),
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        check=False,
+    )
+    context["run_output"] = (result.stdout or "") + (result.stderr or "")
+    if result.returncode != 0:
+        context["errors"].append("Execução falhou. Veja o log abaixo.")
+        return render(request, "pipeline/translate_control.html", context)
+
+    items = []
+    for book in queue_books:
+        out_dir = translated_root / book / target_lang
+        merged = out_dir / f"{book}_{target_lang}_merged_v1.txt"
+        report = out_dir / "translate_run_report.json"
+        stamp = Path(str(merged) + ".STAMP.json")
+        scans = _translate_scan_patterns(merged) if merged.exists() else None
+        if scans is not None:
+            merged_text = merged.read_text(encoding="utf-8", errors="ignore")
+            merged_heading_hits = _heading_hits_in_text(merged_text)
+            source_heading_hits = _heading_hits_in_chunks(book, "en")
+            heading_expected = source_heading_hits > 0
+            scans["heading_expected"] = heading_expected
+            scans["heading_hits"] = merged_heading_hits
+            scans["heading_ok"] = (not heading_expected) or merged_heading_hits > 0
+        items.append(
+            {
+                "book": book,
+                "lang": target_lang,
+                "out_dir": out_dir,
+                "merged": merged,
+                "report": report,
+                "stamp": stamp,
+                "merged_exists": merged.exists(),
+                "report_exists": report.exists(),
+                "stamp_exists": stamp.exists(),
+                "preview": _translate_preview_lines(merged, 20),
+                "scan": scans,
+            }
+        )
+
+    context["results"] = {
+        "mode": mode,
+        "items": items,
+        "queue_summary": per_book,
+    }
+    return render(request, "pipeline/translate_control.html", context)
 
 
 def edition_steps(request, edition_id: int):

@@ -33,6 +33,7 @@ urlpatterns = [
     path("runner/", views.runner_matrix_view, name="pipeline_runner_matrix"),
     path("runner/run/", views.runner_matrix_run_view, name="pipeline_runner_run"),
     path("runner/<int:run_id>/", views.runner_matrix_detail_view, name="pipeline_runner_matrix_detail"),
+    path("translate/", views.translate_control, name="pipeline_translate_control"),
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/edit/", views.book_edition_edit, name="book_edition_new"),
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),

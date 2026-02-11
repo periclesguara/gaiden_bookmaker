@@ -37,6 +37,7 @@ Return ONLY the translated text.
 LANG_TARGET_LABELS = {
     # "en_modern" is still English output; treat as controlled modernization.
     "en_modern": "Modern English (2026)",
+    "en_2026": "Modern English (2026)",
     "de": "Modern German (2026)",
     "fr": "Modern French (2026)",
     "es": "Modern Spanish (Latin American neutral, 2026)",
@@ -71,40 +72,28 @@ def _make_lang_system_prompt(target_lang: str) -> str:
     return f"{UNIVERSAL_SYSTEM_PROMPT}\n\nTARGET LANGUAGE: {label}\n"
 
 def call_openai_gpt52_translate(text: str, system_prompt: str) -> str:
-    """
-    Minimal OpenAI GPT-5.2 call.
-    REQUIREMENTS:
-    - Must run with existing env already configured in your repo.
-    - This uses the official OpenAI SDK if installed, otherwise raises.
-    - No streaming. Deterministic params.
-    """
-    try:
-        from openai import OpenAI
-    except Exception as e:
-        raise RuntimeError(
-            "OpenAI SDK not available. Install/configure it in the venv, or adapt this call to gaiden/openai_client.py"
-        ) from e
+    from openai import OpenAI
 
     api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is not set in environment.")
+    base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com").strip().rstrip("/")
+    if not base_url.endswith("/v1"):
+        base_url = f"{base_url}/v1"
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key,
+        base_url=base_url,
+    )
 
-    # NOTE: GPT-5.2 usage varies depending on SDK version.
-    # We keep it intentionally simple: chat.completions with deterministic temperature.
-    # If your repo already wraps OpenAI calls, replace this function to call your wrapper.
-    resp = client.chat.completions.create(
+    response = client.chat.completions.create(
         model="gpt-5.2",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": text},
         ],
-        temperature=0.1,
+        temperature=0.2,
     )
 
-    out = resp.choices[0].message.content or ""
-    return out.strip("\n") + "\n"
+    return response.choices[0].message.content
 
 def translate_book_chunks(
     book: str,

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import json
+import os
 from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
+from gaiden.secrets_loader import load_secrets
 
 def load_contract(path: str) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -11,6 +13,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--contract", required=True)
     args = ap.parse_args()
+
+    load_secrets()
 
     c = load_contract(args.contract)
     assert c["schema"] == "gaiden_translate_queue_v1"
@@ -26,10 +30,19 @@ def main():
     runs_root = Path(paths["runs_root"])
     runs_root.mkdir(parents=True, exist_ok=True)
 
+    warnings = []
     run = c["run"]
     dry_run = bool(run.get("dry_run", True))
     resume = bool(run.get("resume", True))
     fail_fast = bool(run.get("fail_fast", True))
+
+    if dry_run:
+        warnings.append("DRY RUN ativo: nenhuma chamada à OpenAI será feita.")
+    for w in warnings:
+        print(f"[WARN] {w}")
+
+    if not dry_run and not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY AUSENTE — necessário para execução real")
 
     summary = {
         "schema": "gaiden_translate_queue_summary_v1",
