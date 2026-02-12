@@ -20,6 +20,7 @@ import shutil
 
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code, normalize_source_lang
+from gaiden.net_preflight import preflight_openai
 from gaiden.run_artifacts import write_contract_json, write_env_json
 from gaiden.secrets_loader import require_openai_ready
 from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
@@ -36,6 +37,8 @@ def main() -> int:
 
     dry_run = bool(args.dry_run)
     require_openai_ready(dry_run=dry_run)
+    if not dry_run:
+        preflight_openai(os.environ.get("OPENAI_BASE_URL"))
 
     book = args.book.strip()
     src = normalize_source_lang(args.src, default="en")

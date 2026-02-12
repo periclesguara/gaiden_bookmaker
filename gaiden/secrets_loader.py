@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 from gaiden.env_guard import assert_venv
-from gaiden.net_preflight import preflight_openai
 
 
 def _normalize_base_url(raw: str | None) -> str | None:
@@ -92,8 +91,6 @@ def bootstrap_openai_env(*, dry_run: bool = False) -> dict:
 
     if not dry_run and not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY AUSENTE — necessário para execução real")
-    if not dry_run:
-        preflight_openai(os.environ.get("OPENAI_BASE_URL"))
     return cfg
 
 

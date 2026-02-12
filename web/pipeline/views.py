@@ -32,6 +32,7 @@ from editorial import kdp_mode
 
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code
+from gaiden.net_preflight import preflight_openai
 from gaiden.secrets_loader import require_openai_ready
 
 from .models import (
@@ -1676,6 +1677,12 @@ def translate_control(request):
     if not dry_run and not openai_key_set:
         context["errors"].append("OPENAI_API_KEY AUSENTE — necessário para execução real")
         return render(request, "pipeline/translate_control.html", context)
+    if not dry_run:
+        try:
+            preflight_openai(os.environ.get("OPENAI_BASE_URL"))
+        except Exception as exc:
+            context["errors"].append(f"OpenAI network preflight failed: {exc}")
+            return render(request, "pipeline/translate_control.html", context)
 
     data_dir = _project_root() / "data"
     chunks_root = data_dir / "chunks"

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.net_preflight import preflight_openai
 from gaiden.run_artifacts import create_run_dir, write_contract_json, write_env_json
 from gaiden.secrets_loader import require_openai_ready
 from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
@@ -35,6 +36,7 @@ def run_translate_only(edition, target_language: str) -> PipelineResult:
     runs_root.mkdir(parents=True, exist_ok=True)
 
     require_openai_ready(dry_run=False, repo_root=project_root)
+    preflight_openai(os.environ.get("OPENAI_BASE_URL"))
 
     run_dir, run_id = create_run_dir(runs_root, f"translate_{book}_{lang}")
     write_contract_json(run_dir, contract)
