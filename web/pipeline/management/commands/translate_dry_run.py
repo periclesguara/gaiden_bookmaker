@@ -5,6 +5,9 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
+from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.lang import normalize_lang_code
+
 
 def _normalize_lang(lang: str) -> str:
     raw = (lang or "").strip().lower()
@@ -12,17 +15,6 @@ def _normalize_lang(lang: str) -> str:
     if raw in {"pt-br", "ptbr"}:
         return "ptbr"
     return raw
-
-
-def _contract_mapping() -> dict[str, Path]:
-    return {
-        "en": Path("gaiden/contracts/en_modern_2025.json"),
-        "es": Path("gaiden/contracts/en_es_2025.json"),
-        "ptbr": Path("gaiden/contracts/en_ptbr_2025.json"),
-        "de": Path("gaiden/contracts/en_de_krimi_2025.json"),
-        "fr": Path("gaiden/contracts/translate_fr_2026.json"),
-        "it": Path("gaiden/contracts/translate_it_2026.json"),
-    }
 
 
 def _load_json(path: Path) -> dict:
@@ -58,36 +50,23 @@ class Command(BaseCommand):
         if not run_report_path.exists():
             errors.append(f"chunk run report missing: {run_report_path}")
 
-        mapping = _contract_mapping()
-        contract_path = mapping.get(lang)
-        if not contract_path:
-            errors.append(f"no contract mapping for lang={lang}")
+        try:
+            contract_path = resolve_translate_contract_path(lang)
+            contract = _load_json(contract_path)
+        except Exception as exc:
+            errors.append(f"contract resolve/load failed for lang={lang}: {exc}")
             contract = None
-        else:
-            contract_path = project_root / contract_path
-            if not contract_path.exists():
-                errors.append(f"contract missing: {contract_path}")
-                contract = None
-            else:
-                contract = _load_json(contract_path)
 
         if contract:
-            output = contract.get("output") if isinstance(contract.get("output"), dict) else {}
-            if not output.get("language"):
-                errors.append("contract output.language missing")
-
-            chunk_dir_val = str(contract.get("chunk_dir", "")).strip()
-            if not chunk_dir_val:
-                errors.append("contract chunk_dir missing")
-            else:
-                resolved = chunk_dir_val
-                if "{BOOK_ID}" in resolved or "<BOOK_ID>" in resolved:
-                    resolved = resolved.replace("{BOOK_ID}", book_code).replace("<BOOK_ID>", book_code)
-                if not Path(resolved).is_absolute():
-                    resolved = str((project_root / resolved).resolve())
-                canonical = str(chunk_dir.resolve())
-                if resolved != canonical:
-                    errors.append(f"contract chunk_dir not canonical: {resolved}")
+            if contract.get("stage") != "translate":
+                errors.append("contract stage != translate")
+            if contract.get("model") != "gpt-5.2":
+                errors.append("contract model != gpt-5.2")
+            if contract.get("model_lock") is not True:
+                errors.append("contract model_lock != true")
+            tgt = normalize_lang_code(contract.get("language_target", ""), default="en_modern")
+            if tgt != normalize_lang_code(lang, default="en_modern"):
+                errors.append(f"contract language_target mismatch (contract={tgt} arg={lang})")
 
         if errors:
             for err in errors:

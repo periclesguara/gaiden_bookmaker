@@ -11,9 +11,11 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.lang import normalize_lang_code
 from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
 from gaiden.translate import run_translate_with_contract
-from gaiden.split_merge_translate_for_refine import process_language
+from gaiden.refine_split import process_language
 from editorial.models import EditionPipeline, EditionText, PipelineStage, Edition
 from pipeline.models import PipelineRun, PipelineRunItem
 from pipeline.services import utils
@@ -34,13 +36,11 @@ def _parse_book_id(book_code: str) -> int | None:
 
 
 def _lang_dir(lang: str) -> str:
-    if utils.normalize_lang(lang) == "ptbr":
-        return "PT-BR"
-    return utils.normalize_lang(lang).upper()
+    return normalize_lang_code(lang, default=utils.normalize_lang(lang))
 
 
 def _lang_fs(lang: str) -> str:
-    return utils.normalize_lang(lang)
+    return normalize_lang_code(lang, default=utils.normalize_lang(lang))
 
 
 def _lang_db_code(lang: str) -> str:
@@ -149,19 +149,8 @@ def _remove_existing_chunks(chunks_dir: Path) -> None:
 
 
 def _resolve_contract_path(lang: str) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/en_modern_2025.json",
-        "es": "gaiden/contracts/en_es_2025.json",
-        "ptbr": "gaiden/contracts/en_ptbr_2025.json",
-        "de": "gaiden/contracts/en_de_krimi_2025.json",
-        "fr": "gaiden/contracts/translate_fr_2026.json",
-        "it": "gaiden/contracts/translate_it_2026.json",
-    }
-    key = utils.normalize_lang(lang)
-    rel = mapping.get(key)
-    if not rel:
-        raise ValueError(f"No translate contract for language={lang}")
-    return Path(settings.BASE_DIR).parent / rel
+    target_lang = normalize_lang_code(lang, default=utils.normalize_lang(lang))
+    return resolve_translate_contract_path(target_lang)
 
 
 def _read_json(path: Path) -> dict | None:

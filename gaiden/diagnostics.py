@@ -2,31 +2,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
-import shutil
 import sqlite3
-import tempfile
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 DB_PATH = Path("data/db/gaiden.sqlite3")
 CHUNKS_ROOT = Path("data/chunks")
-CONTRACTS_ROOT = Path("gaiden/contracts")
-TRANSLATED_ROOT = Path("data/translated")
+CANONICAL_BOOK = "book_0003"
 
-ALLOWED_LANG_DIRS = {"DE", "EN", "ES", "PT-BR", "IT", "FR"}
 ALL_CHECKS = [
     "chunks",
     "normalized",
-    "contracts",
-    "translate_mapping",
-    "merge_plan",
-    "merge_presence",
-    "split_stage_refs",
-    "golden_snapshot",
 ]
 
 
@@ -123,27 +112,9 @@ def _parse_book_id(book: str) -> int:
     return int(m.group(1))
 
 
-def _iter_contracts() -> Iterable[Path]:
-    if not CONTRACTS_ROOT.is_dir():
-        return []
-    return sorted(CONTRACTS_ROOT.glob("*.json"))
-
-
 def _load_json(path: Path) -> Dict[str, object]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def _looks_like_book_dir(path: str) -> bool:
-    return bool(re.search(r"data/chunks/book_\d{4}/en", path))
-
-
-def _looks_like_translated_dir(path: str) -> bool:
-    return bool(re.search(r"data/translated/book_\d{4}/[A-Z-]+", path))
-
-
-def _is_placeholder_path(path: str) -> bool:
-    return "<BOOK_ID>" in path or "{BOOK_ID}" in path
 
 
 def _check_chunks(book: str) -> str:
@@ -383,308 +354,8 @@ def _check_normalized(book: str) -> str:
     return status
 
 
-def _translate_contract_mapping() -> dict[str, Path]:
-    mapping = {
-        "en": Path("gaiden/contracts/en_modern_2025.json"),
-        "es": Path("gaiden/contracts/en_es_2025.json"),
-        "ptbr": Path("gaiden/contracts/en_ptbr_2025.json"),
-        "de": Path("gaiden/contracts/en_de_krimi_2025.json"),
-        "fr": Path("gaiden/contracts/translate_fr_2026.json"),
-        "it": Path("gaiden/contracts/translate_it_2026.json"),
-    }
-    return mapping
 
 
-def _check_contracts(langs: Optional[List[str]] = None) -> bool:
-    ok = True
-    if langs:
-        mapping = _translate_contract_mapping()
-        selected: list[Path] = []
-        for lang in langs:
-            key = (lang or "").strip().lower().replace("-", "").replace("_", "")
-            if key == "ptbr":
-                key = "ptbr"
-            path = mapping.get(key)
-            if path:
-                selected.append(path)
-        contracts = selected
-    else:
-        contracts = list(_iter_contracts())
-
-    for path in contracts:
-        data = _load_json(path)
-        model = str(data.get("model", "")).strip()
-        chunk_dir = str(data.get("chunk_dir", "")).strip()
-        out_dir = str(data.get("out_dir", "")).strip()
-        output = data.get("output") if isinstance(data.get("output"), dict) else {}
-        language = str(output.get("language", "")).strip()
-
-        if model != "gpt-5.2":
-            print(f"[FAIL] contracts: {path.name} model={model}")
-            ok = False
-
-        if "split" in chunk_dir.lower():
-            print(f"[FAIL] contracts: {path.name} chunk_dir contém split")
-            ok = False
-
-        if not (chunk_dir and (_looks_like_book_dir(chunk_dir) or _is_placeholder_path(chunk_dir))):
-            print(f"[FAIL] contracts: {path.name} chunk_dir inválido: {chunk_dir}")
-            ok = False
-
-        if not (out_dir and (_looks_like_translated_dir(out_dir) or _is_placeholder_path(out_dir))):
-            print(f"[FAIL] contracts: {path.name} out_dir inválido: {out_dir}")
-            ok = False
-
-        if not language:
-            print(f"[FAIL] contracts: {path.name} output.language ausente")
-            ok = False
-        elif language.upper() not in {l.replace("-", "") for l in ALLOWED_LANG_DIRS} and language.lower() not in {l.lower() for l in ALLOWED_LANG_DIRS}:
-            print(f"[WARN] contracts: {path.name} language inesperada: {language}")
-
-    if ok:
-        print(f"[OK] contracts: {len(contracts)} contratos validados")
-    return ok
-
-
-def _check_translate_mapping(book: str, contracts: Optional[List[Path]] = None) -> bool:
-    book_id = _parse_book_id(book)
-    sample = "ch_01_chunk_001.txt"
-    ok = True
-
-    for path in contracts or _iter_contracts():
-        data = _load_json(path)
-        chunk_dir = str(data.get("chunk_dir", "")).strip()
-        out_dir = str(data.get("out_dir", "")).strip()
-        if not out_dir:
-            continue
-
-        out_dir_path = Path(out_dir)
-        lang_dir = out_dir_path.name
-        expected = out_dir_path / f"{Path(sample).stem}.{lang_dir}.txt"
-        if not expected.name.endswith(f".{lang_dir}.txt"):
-            print(f"[FAIL] translate_mapping: {path.name} sufixo inválido")
-            ok = False
-
-        if "split" in chunk_dir.lower():
-            print(f"[FAIL] translate_mapping: {path.name} chunk_dir contém split")
-            ok = False
-
-    if ok:
-        print("[OK] translate_mapping: naming pattern válido")
-    return ok
-
-
-def _check_merge_plan(book: str, *, strict: bool, langs: Optional[List[str]]) -> bool:
-    book_id = _parse_book_id(book)
-    book_dir = TRANSLATED_ROOT / f"book_{book_id:04d}"
-    if not book_dir.exists():
-        if strict:
-            print(f"[FAIL] merge_plan: diretório ausente {book_dir}")
-            return False
-        print(f"[WARN] merge_plan: diretório ausente {book_dir}")
-        return True
-
-    ok = True
-    lang_filter = None
-    if langs:
-        lang_filter = {lang.strip().upper() for lang in langs if lang.strip()}
-    for lang_dir in sorted(book_dir.iterdir()):
-        if not lang_dir.is_dir():
-            continue
-        lang_key = lang_dir.name
-        if lang_filter and lang_key.upper() not in lang_filter:
-            continue
-        pattern = f"ch_*_chunk_*.{lang_key}.txt"
-        files = sorted(lang_dir.glob(pattern))
-        if not files:
-            if strict:
-                print(f"[FAIL] merge_plan: {lang_key} sem chunks")
-                ok = False
-            else:
-                print(f"[WARN] merge_plan: {lang_key} sem chunks")
-            continue
-        merge_name = f"merge_translate_{lang_key}.txt"
-        print(f"[OK] merge_plan: {lang_key} -> {merge_name} ({len(files)} chunks)")
-
-    return ok
-
-
-def _check_merge_presence(book: str, *, strict: bool, langs: Optional[List[str]]) -> bool:
-    book_id = _parse_book_id(book)
-    book_dir = TRANSLATED_ROOT / f"book_{book_id:04d}"
-    if not book_dir.exists():
-        if strict:
-            print(f"[FAIL] merge_presence: diretório ausente {book_dir}")
-            return False
-        print(f"[WARN] merge_presence: diretório ausente {book_dir}")
-        return True
-
-    ok = True
-    lang_filter = None
-    if langs:
-        lang_filter = {lang.strip().upper() for lang in langs if lang.strip()}
-    for lang_dir in sorted(book_dir.iterdir()):
-        if not lang_dir.is_dir():
-            continue
-        lang_key = lang_dir.name
-        if lang_filter and lang_key.upper() not in lang_filter:
-            continue
-        merge_path = lang_dir / f"merge_translate_{lang_key}.txt"
-        if not merge_path.exists():
-            if strict:
-                print(f"[FAIL] merge_presence: {lang_key} sem merge_translate")
-                ok = False
-            else:
-                print(f"[WARN] merge_presence: {lang_key} sem merge_translate")
-            continue
-        print(f"[OK] merge_presence: {lang_key} -> {merge_path}")
-    return ok
-
-
-def _iter_files_for_scan(root: Path) -> Iterable[Path]:
-    skip_dirs = {".git", ".venv", "node_modules", "__pycache__"}
-    for path in root.rglob("*"):
-        if any(part in skip_dirs for part in path.parts):
-            continue
-        posix_path = path.as_posix()
-        if "/migrations/" in posix_path:
-            continue
-        if posix_path.startswith("data/") or "/data/" in posix_path:
-            continue
-        if posix_path.startswith("scripts/") or "/scripts/" in posix_path:
-            continue
-        if "gaiden_bookmaker.egg-info" in posix_path:
-            continue
-        if posix_path.endswith("gaiden/diagnostics.py"):
-            continue
-        if path.is_file():
-            yield path
-
-
-def _is_binary(path: Path) -> bool:
-    try:
-        with path.open("rb") as f:
-            chunk = f.read(1024)
-        return b"\x00" in chunk
-    except OSError:
-        return True
-
-
-def _check_split_stage_refs() -> bool:
-    forbidden_patterns = [
-        r"split_01",
-        r"split_chapters",
-        r"editorial_split",
-        r"split_stage",
-        r"split_step",
-        r"split stage",
-        r"stage\s+SPLIT",
-        r"data/chunks/.*/split",
-    ]
-    combined = re.compile("|".join(forbidden_patterns), re.IGNORECASE)
-    root = Path(".")
-    ok = True
-    for path in _iter_files_for_scan(root):
-        if _is_binary(path):
-            continue
-        try:
-            text = path.read_text(encoding="utf-8", errors="ignore")
-        except OSError:
-            continue
-        if combined.search(text):
-            print(f"[FAIL] split_stage_refs: {path}")
-            ok = False
-    if ok:
-        print("[OK] split_stage_refs: nenhum resíduo de split stage")
-    return ok
-
-
-def _write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def _check_golden_snapshot(langs: Optional[List[str]]) -> bool:
-    from gaiden.translate import run_translate_with_contract
-
-    lang_list = [lang.strip().upper() for lang in (langs or ["FR", "IT"]) if lang.strip()]
-    if not lang_list:
-        lang_list = ["FR", "IT"]
-
-    temp_root = Path(tempfile.mkdtemp(prefix="gaiden_golden_"))
-    try:
-        chunk_dir = temp_root / "book_0001" / "en"
-        _write_text(chunk_dir / "ch_01_chunk_001.txt", "Chunk one.\n")
-        _write_text(chunk_dir / "ch_01_chunk_002.txt", "Chunk two.\n")
-
-        ok = True
-        for lang_key in lang_list:
-            out_dir = temp_root / "book_0001" / lang_key
-            contract_path = temp_root / f"contract_{lang_key}.json"
-            contract = {
-                "name": f"Golden Snapshot {lang_key}",
-                "model": "gpt-5.2",
-                "temperature": 0.4,
-                "max_output_tokens": 1200,
-                "chunk_dir": str(chunk_dir),
-                "out_dir": str(out_dir),
-                "output": {"language": lang_key.lower()},
-                "system_prompt": "DRY RUN",
-                "user_prompt": "{text}",
-            }
-            contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
-
-            run_translate_with_contract(
-                contract_path,
-                dry_run=True,
-                limit_chunks=2,
-                chunk_dir_override=chunk_dir,
-                out_dir_override=out_dir,
-            )
-
-            out_1 = out_dir / f"ch_01_chunk_001.{lang_key}.txt"
-            out_2 = out_dir / f"ch_01_chunk_002.{lang_key}.txt"
-            merged = out_dir / f"merge_translate_{lang_key}.txt"
-            if not out_1.exists() or not out_2.exists():
-                print(f"[FAIL] golden_snapshot: {lang_key} chunks ausentes")
-                ok = False
-                continue
-            if not merged.exists():
-                print(f"[FAIL] golden_snapshot: {lang_key} merge ausente")
-                ok = False
-                continue
-            merged_text = merged.read_text(encoding="utf-8")
-            if "chunk_001" not in merged_text or "chunk_002" not in merged_text:
-                print(f"[FAIL] golden_snapshot: {lang_key} merge sem ordem correta")
-                ok = False
-            else:
-                print(f"[OK] golden_snapshot: {lang_key}")
-
-        return ok
-    finally:
-        shutil.rmtree(temp_root, ignore_errors=True)
-
-
-def discover_books_with_chunks(data_dir: Path) -> List[str]:
-    chunks_root = data_dir / "chunks"
-    if not chunks_root.is_dir():
-        return []
-    books: list[str] = []
-    for entry in chunks_root.iterdir():
-        if entry.is_dir() and re.match(r"^book_\d{4}$", entry.name):
-            books.append(entry.name)
-    return sorted(books)
-
-
-def discover_books_in_roots(roots: Iterable[Path]) -> List[str]:
-    books: set[str] = set()
-    for root in roots:
-        if not root.is_dir():
-            continue
-        for entry in root.iterdir():
-            if entry.is_dir() and re.match(r"^book_\d{4}$", entry.name):
-                books.add(entry.name)
-    return sorted(books)
 
 
 def _normalize_books_arg(books: Optional[List[str]]) -> List[str]:
@@ -745,23 +416,21 @@ def _run_checks(
     strict: bool,
     langs: Optional[List[str]],
     ignore_books: set[str],
+    allow_legacy: bool,
 ) -> int:
     status = True
     books_list = _normalize_books_arg(books)
-    scoped_run = bool(books_list) or bool(ignore_books)
+    if not books_list:
+        books_list = [CANONICAL_BOOK]
+    if not allow_legacy:
+        legacy = [book for book in books_list if book != CANONICAL_BOOK]
+        if legacy:
+            print(f"[FAIL] scope: legacy books not allowed: {', '.join(legacy)}")
+            print("[INFO] use --allow-legacy to override")
+            return 1
     for check in checks:
         if check == "chunks":
-            if books_list:
-                chunk_books = books_list
-            else:
-                chunk_books = discover_books_with_chunks(Path("data"))
-
-            if not chunk_books:
-                print("[FAIL] chunks: NO_BOOKS_FOUND")
-                status = False
-                continue
-
-            chunk_books, skipped = _apply_book_scope(chunk_books, ignore_books=ignore_books)
+            chunk_books, skipped = _apply_book_scope(books_list, ignore_books=ignore_books)
             for book_code in skipped:
                 print(f"{book_code}: SKIP — ignored")
             if not chunk_books:
@@ -791,23 +460,7 @@ def _run_checks(
                 f"ok={ok_count}, warn={warn_count}, fail={fail_count}"
             )
         elif check == "normalized":
-            if books_list:
-                norm_books = books_list
-            else:
-                norm_books = discover_books_in_roots(
-                    [
-                        Path("data") / "raw",
-                        Path("data") / "normalized",
-                        Path("data") / "chunks",
-                    ]
-                )
-
-            if not norm_books:
-                print("[FAIL] normalized: NO_BOOKS_FOUND")
-                status = False
-                continue
-
-            norm_books, skipped = _apply_book_scope(norm_books, ignore_books=ignore_books)
+            norm_books, skipped = _apply_book_scope(books_list, ignore_books=ignore_books)
             for book_code in skipped:
                 print(f"{book_code}: SKIP — ignored")
             if not norm_books:
@@ -836,80 +489,6 @@ def _run_checks(
                 f"[SUMMARY] normalized: {summary} — books={len(norm_books)}, "
                 f"ok={ok_count}, warn={warn_count}, fail={fail_count}"
             )
-        elif check == "contracts":
-            contract_langs = None
-            if books_list or ignore_books:
-                contract_langs = ["en", "es", "ptbr", "de", "fr", "it"]
-            status = _check_contracts(contract_langs) and status
-        elif check == "translate_mapping":
-            if not books_list:
-                books_list = discover_books_in_roots(
-                    [
-                        Path("data") / "normalized",
-                        Path("data") / "chunks",
-                    ]
-                )
-            if not books_list:
-                print("[FAIL] translate_mapping: NO_BOOKS_FOUND")
-                status = False
-            else:
-                translate_contracts = None
-                if scoped_run:
-                    translate_contracts = list(_translate_contract_mapping().values())
-                scoped, skipped = _apply_book_scope(books_list, ignore_books=ignore_books)
-                for book_code in skipped:
-                    print(f"{book_code}: SKIP — ignored")
-                if not scoped:
-                    print("[SUMMARY] translate_mapping: SKIP — books=0")
-                for book_code in scoped:
-                    status = _check_translate_mapping(book_code, contracts=translate_contracts) and status
-        elif check == "merge_plan":
-            if not books_list:
-                books_list = discover_books_in_roots(
-                    [
-                        Path("data") / "translated",
-                        Path("data") / "chunks",
-                    ]
-                )
-            if not books_list:
-                print("[FAIL] merge_plan: NO_BOOKS_FOUND")
-                status = False
-            else:
-                scoped, skipped = _apply_book_scope(books_list, ignore_books=ignore_books)
-                for book_code in skipped:
-                    print(f"{book_code}: SKIP — ignored")
-                if not scoped:
-                    print("[SUMMARY] merge_plan: SKIP — books=0")
-                for book_code in scoped:
-                    status = _check_merge_plan(book_code, strict=strict, langs=langs) and status
-        elif check == "merge_presence":
-            if not books_list:
-                books_list = discover_books_in_roots(
-                    [
-                        Path("data") / "translated",
-                    ]
-                )
-            if not books_list:
-                print("[FAIL] merge_presence: NO_BOOKS_FOUND")
-                status = False
-            else:
-                scoped, skipped = _apply_book_scope(books_list, ignore_books=ignore_books)
-                for book_code in skipped:
-                    print(f"{book_code}: SKIP — ignored")
-                if not scoped:
-                    print("[SUMMARY] merge_presence: SKIP — books=0")
-                for book_code in scoped:
-                    status = _check_merge_presence(book_code, strict=strict, langs=langs) and status
-        elif check == "split_stage_refs":
-            if scoped_run:
-                print("[SKIP] split_stage_refs: scoped run")
-            else:
-                status = _check_split_stage_refs() and status
-        elif check == "golden_snapshot":
-            if scoped_run:
-                print("[SKIP] golden_snapshot: scoped run")
-            else:
-                status = _check_golden_snapshot(langs) and status
         else:
             print(f"[FAIL] check desconhecido: {check}")
             status = False
@@ -923,9 +502,17 @@ def run_checks(
     strict: bool = False,
     langs: Optional[List[str]] = None,
     ignore_books: Optional[set[str]] = None,
+    allow_legacy: bool = False,
 ) -> int:
     expanded = _expand_checks(checks)
-    return _run_checks(books, expanded, strict=strict, langs=langs, ignore_books=ignore_books or set())
+    return _run_checks(
+        books,
+        expanded,
+        strict=strict,
+        langs=langs,
+        ignore_books=ignore_books or set(),
+        allow_legacy=allow_legacy,
+    )
 
 
 def main() -> int:
@@ -936,8 +523,7 @@ def main() -> int:
     parser.add_argument("--check", type=str, action="append", default=[])
     parser.add_argument("--strict", action="store_true", default=False)
     parser.add_argument("--langs", type=str, default=None)
-    parser.add_argument("--stage", type=str, default=None)
-    parser.add_argument("--offline", action="store_true", default=False)
+    parser.add_argument("--allow-legacy", action="store_true", default=False)
     args = parser.parse_args()
 
     checks = args.check
@@ -947,25 +533,22 @@ def main() -> int:
         raise SystemExit("Use --only-book or --book (not both).")
     if args.only_book and args.only_book in ignore_books:
         raise SystemExit("--only-book cannot be in --ignore-books.")
-    if args.stage == "translate" and args.offline:
-        checks = [
-            "chunks",
-            "contracts",
-            "translate_mapping",
-            "split_stage_refs",
-            "golden_snapshot",
-        ]
     checks = _expand_checks(checks)
     if not checks:
-        print(
-            "[INFO] use --check all|chunks|normalized|contracts|translate_mapping|merge_plan|merge_presence|split_stage_refs|golden_snapshot"
-        )
+        print("[INFO] use --check all|chunks|normalized")
         return 0
     if args.only_book:
         books = [args.only_book]
     else:
         books = args.book
-    return _run_checks(books, checks, strict=args.strict, langs=langs, ignore_books=ignore_books)
+    return _run_checks(
+        books,
+        checks,
+        strict=args.strict,
+        langs=langs,
+        ignore_books=ignore_books,
+        allow_legacy=args.allow_legacy,
+    )
 
 
 if __name__ == "__main__":

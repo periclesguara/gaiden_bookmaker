@@ -1,0 +1,320 @@
+{
+  "chapters": [
+    {
+      "number": 1,
+      "roman": "",
+      "title": "THE SCIENCE OF DEDUCTION",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_01_chunk_001.txt",
+          "est_tokens": 1603,
+          "char_count": 6412
+        },
+        {
+          "filename": "ch_01_chunk_002.txt",
+          "est_tokens": 1554,
+          "char_count": 6218
+        },
+        {
+          "filename": "ch_01_chunk_003.txt",
+          "est_tokens": 965,
+          "char_count": 3863
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "roman": "",
+      "title": "THE STATEMENT OF THE CASE",
+      "chunk_count": 2,
+      "chunks": [
+        {
+          "filename": "ch_02_chunk_001.txt",
+          "est_tokens": 1536,
+          "char_count": 6144
+        },
+        {
+          "filename": "ch_02_chunk_002.txt",
+          "est_tokens": 1033,
+          "char_count": 4132
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "roman": "",
+      "title": "IN QUEST OF A SOLUTION",
+      "chunk_count": 2,
+      "chunks": [
+        {
+          "filename": "ch_03_chunk_001.txt",
+          "est_tokens": 1534,
+          "char_count": 6137
+        },
+        {
+          "filename": "ch_03_chunk_002.txt",
+          "est_tokens": 886,
+          "char_count": 3545
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "roman": "",
+      "title": "THE STORY OF THE BALD-HEADED MAN",
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "filename": "ch_04_chunk_001.txt",
+          "est_tokens": 1543,
+          "char_count": 6175
+        },
+        {
+          "filename": "ch_04_chunk_002.txt",
+          "est_tokens": 1596,
+          "char_count": 6385
+        },
+        {
+          "filename": "ch_04_chunk_003.txt",
+          "est_tokens": 1709,
+          "char_count": 6838
+        },
+        {
+          "filename": "ch_04_chunk_004.txt",
+          "est_tokens": 320,
+          "char_count": 1280
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "roman": "",
+      "title": "THE TRAGEDY OF PONDICHERRY LODGE",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_05_chunk_001.txt",
+          "est_tokens": 1525,
+          "char_count": 6102
+        },
+        {
+          "filename": "ch_05_chunk_002.txt",
+          "est_tokens": 1535,
+          "char_count": 6140
+        },
+        {
+          "filename": "ch_05_chunk_003.txt",
+          "est_tokens": 452,
+          "char_count": 1809
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "roman": "",
+      "title": "SHERLOCK HOLMES GIVES A DEMONSTRATION",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_06_chunk_001.txt",
+          "est_tokens": 1519,
+          "char_count": 6079
+        },
+        {
+          "filename": "ch_06_chunk_002.txt",
+          "est_tokens": 1644,
+          "char_count": 6578
+        },
+        {
+          "filename": "ch_06_chunk_003.txt",
+          "est_tokens": 1055,
+          "char_count": 4222
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "roman": "",
+      "title": "THE EPISODE OF THE BARREL",
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "filename": "ch_07_chunk_001.txt",
+          "est_tokens": 1614,
+          "char_count": 6456
+        },
+        {
+          "filename": "ch_07_chunk_002.txt",
+          "est_tokens": 1516,
+          "char_count": 6064
+        },
+        {
+          "filename": "ch_07_chunk_003.txt",
+          "est_tokens": 1523,
+          "char_count": 6093
+        },
+        {
+          "filename": "ch_07_chunk_004.txt",
+          "est_tokens": 1091,
+          "char_count": 4367
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "roman": "",
+      "title": "THE BAKER STREET IRREGULARS",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_08_chunk_001.txt",
+          "est_tokens": 1572,
+          "char_count": 6289
+        },
+        {
+          "filename": "ch_08_chunk_002.txt",
+          "est_tokens": 1513,
+          "char_count": 6055
+        },
+        {
+          "filename": "ch_08_chunk_003.txt",
+          "est_tokens": 1499,
+          "char_count": 5999
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "roman": "",
+      "title": "A BREAK IN THE CHAIN",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_09_chunk_001.txt",
+          "est_tokens": 1662,
+          "char_count": 6648
+        },
+        {
+          "filename": "ch_09_chunk_002.txt",
+          "est_tokens": 1575,
+          "char_count": 6302
+        },
+        {
+          "filename": "ch_09_chunk_003.txt",
+          "est_tokens": 1540,
+          "char_count": 6162
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "roman": "",
+      "title": "THE END OF THE ISLANDER",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "filename": "ch_10_chunk_001.txt",
+          "est_tokens": 1741,
+          "char_count": 6967
+        },
+        {
+          "filename": "ch_10_chunk_002.txt",
+          "est_tokens": 1975,
+          "char_count": 7903
+        },
+        {
+          "filename": "ch_10_chunk_003.txt",
+          "est_tokens": 761,
+          "char_count": 3047
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "roman": "",
+      "title": "THE GREAT AGRA TREASURE",
+      "chunk_count": 2,
+      "chunks": [
+        {
+          "filename": "ch_11_chunk_001.txt",
+          "est_tokens": 1509,
+          "char_count": 6036
+        },
+        {
+          "filename": "ch_11_chunk_002.txt",
+          "est_tokens": 1331,
+          "char_count": 5325
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "roman": "",
+      "title": "THE STRANGE STORY OF JONATHAN SMALL",
+      "chunk_count": 12,
+      "chunks": [
+        {
+          "filename": "ch_12_chunk_001.txt",
+          "est_tokens": 1558,
+          "char_count": 6235
+        },
+        {
+          "filename": "ch_12_chunk_002.txt",
+          "est_tokens": 1726,
+          "char_count": 6904
+        },
+        {
+          "filename": "ch_12_chunk_003.txt",
+          "est_tokens": 1549,
+          "char_count": 6196
+        },
+        {
+          "filename": "ch_12_chunk_004.txt",
+          "est_tokens": 1667,
+          "char_count": 6668
+        },
+        {
+          "filename": "ch_12_chunk_005.txt",
+          "est_tokens": 1514,
+          "char_count": 6057
+        },
+        {
+          "filename": "ch_12_chunk_006.txt",
+          "est_tokens": 1590,
+          "char_count": 6363
+        },
+        {
+          "filename": "ch_12_chunk_007.txt",
+          "est_tokens": 1710,
+          "char_count": 6843
+        },
+        {
+          "filename": "ch_12_chunk_008.txt",
+          "est_tokens": 1617,
+          "char_count": 6468
+        },
+        {
+          "filename": "ch_12_chunk_009.txt",
+          "est_tokens": 1577,
+          "char_count": 6311
+        },
+        {
+          "filename": "ch_12_chunk_010.txt",
+          "est_tokens": 1634,
+          "char_count": 6536
+        },
+        {
+          "filename": "ch_12_chunk_011.txt",
+          "est_tokens": 1511,
+          "char_count": 6045
+        },
+        {
+          "filename": "ch_12_chunk_012.txt",
+          "est_tokens": 154,
+          "char_count": 616
+        }
+      ]
+    }
+  ]
+}

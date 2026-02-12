@@ -30,6 +30,10 @@ from editorial.models import (
 )
 from editorial import kdp_mode
 
+from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.lang import normalize_lang_code
+from gaiden.secrets_loader import require_openai_ready
+
 from .models import (
     BookEditionTemplate,
     PipelineJob,
@@ -53,12 +57,12 @@ from .services import (
 )
 
 RETURN_FLOW_CONTRACTS = {
-    "en": "gaiden/contracts/return_flow_en_2026.json",
-    "es": "gaiden/contracts/return_flow_es_2026.json",
-    "ptbr": "gaiden/contracts/return_flow_ptbr_2026.json",
-    "de": "gaiden/contracts/return_flow_de_2026.json",
-    "fr": "gaiden/contracts/return_flow_fr_2026.json",
-    "it": "gaiden/contracts/return_flow_it_2026.json",
+    "en": "gaiden/contracts_v2/refine/return_flow_en_2026.json",
+    "es": "gaiden/contracts_v2/refine/return_flow_es_2026.json",
+    "ptbr": "gaiden/contracts_v2/refine/return_flow_ptbr_2026.json",
+    "de": "gaiden/contracts_v2/refine/return_flow_de_2026.json",
+    "fr": "gaiden/contracts_v2/refine/return_flow_fr_2026.json",
+    "it": "gaiden/contracts_v2/refine/return_flow_it_2026.json",
 }
 
 PROJECT_LANGS = [
@@ -74,7 +78,7 @@ PROJECT_SOURCE_FORMATS = ["TXT", "MD"]
 
 TRANSLATE_TARGETS = [
     {"code": "en_modern", "label": "EN Modern (2026)"},
-    {"code": "en_2026", "label": "EN 2026"},
+    {"code": "en_2026", "label": "EN 2026 (alias → en_modern)"},
     {"code": "de", "label": "DE"},
     {"code": "fr", "label": "FR"},
     {"code": "es", "label": "ES"},
@@ -1308,18 +1312,7 @@ def _raw_upload_path(edition, uploaded_name: str) -> Path:
 
 
 def _select_contract_path(language: str) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/en_modern_2025.json",
-        "es": "gaiden/contracts/en_es_2025.json",
-        "ptbr": "gaiden/contracts/en_ptbr_2025.json",
-        "de": "gaiden/contracts/en_de_krimi_2025.json",
-        "fr": "gaiden/contracts/translate_fr_2026.json",
-        "it": "gaiden/contracts/translate_it_2026.json",
-    }
-    rel = mapping.get(utils.normalize_lang(language))
-    if not rel:
-        raise ValueError(f"No translate contract for language={language}")
-    return Path(settings.BASE_DIR).parent / rel
+    return resolve_translate_contract_path(utils.normalize_lang(language))
 
 
 def _contract_target_lang(payload: dict) -> str:
@@ -1489,7 +1482,7 @@ def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]
         out_path = _project_root() / out_path
     merge_path = out_path / merge_name
 
-    cmd = [sys.executable, "-m", "gaiden.return_splits", str(contract_path)]
+    cmd = [sys.executable, "-m", "gaiden.return_flow_runner", str(contract_path)]
     result = subprocess.run(
         cmd,
         cwd=str(_project_root()),
@@ -1500,7 +1493,7 @@ def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]
     )
     if result.returncode != 0:
         raise RuntimeError(
-            f"return_splits falhou.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+            f"return_flow_runner falhou.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
 
     if not merge_path.exists():
@@ -1631,6 +1624,8 @@ def _heading_hits_in_chunks(book_code: str, source_lang: str = "en") -> int:
 def translate_control(request):
     books = _translate_available_books()
     book_map = {b["code"]: b for b in books}
+    # Load secrets early so UI can show accurate status.
+    require_openai_ready(dry_run=True, repo_root=_project_root())
     openai_key_set = bool(os.environ.get("OPENAI_API_KEY"))
 
     context = {
@@ -1671,6 +1666,11 @@ def translate_control(request):
     fail_fast = _parse_bool(request.POST.get("fail_fast", True), default=True)
     context["run_flags"] = {"dry_run": dry_run, "resume": resume, "fail_fast": fail_fast}
 
+    # Ensure env is loaded before gating.
+    require_openai_ready(dry_run=dry_run, repo_root=_project_root())
+    openai_key_set = bool(os.environ.get("OPENAI_API_KEY"))
+    context["openai_key_set"] = openai_key_set
+
     if dry_run:
         context["warnings"].append("DRY RUN ativo: nenhuma chamada à OpenAI será feita.")
     if not dry_run and not openai_key_set:
@@ -1686,6 +1686,10 @@ def translate_control(request):
         context["selected_book"] = book
         targets = request.POST.getlist("target_languages")
         targets = [t for t in targets if t in TRANSLATE_TARGET_CODES]
+        targets = [normalize_lang_code(t, default="en_modern") for t in targets]
+        # Deduplicate while preserving order.
+        seen = set()
+        targets = [t for t in targets if not (t in seen or seen.add(t))]
         context["selected_targets"] = targets
 
         if not book:
@@ -1800,6 +1804,7 @@ def translate_control(request):
     target_lang = (request.POST.get("target_lang") or "").strip()
     if target_lang not in TRANSLATE_TARGET_CODES:
         target_lang = "en_modern"
+    target_lang = normalize_lang_code(target_lang, default="en_modern")
     context["selected_target_lang"] = target_lang
 
     if not queue_books:

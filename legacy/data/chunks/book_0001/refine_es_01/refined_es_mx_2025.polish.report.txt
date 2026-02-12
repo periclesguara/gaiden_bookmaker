@@ -1,0 +1,20 @@
+Source: data/chunks/book_0001/refine_es_01/refined_es_mx_2025.txt
+Output: data/chunks/book_0001/refine_es_01/refined_es_mx_2025.polished.txt
+
+Substitutions performed (counts):
+ - ellipses: 4
+ - hyphens_to_emdash: 0
+ - insert_space_after_emdash: 2064
+ - left_smart_quote: 92
+ - multi_spaces: 18
+ - right_smart_quote: 61
+ - space_after_emdash: 2420
+ - space_after_open_guillemet: 0
+ - space_after_sentence_punct: 44
+ - space_before_close_guillemet: 21
+ - space_before_emdash: 2000
+ - space_before_percent: 0
+ - space_before_punct: 0
+ - trailing_spaces: 1
+
+Notes: solo cambios mecanicos (puntuación/espacios/reticencias/travessões). No reescrituras.

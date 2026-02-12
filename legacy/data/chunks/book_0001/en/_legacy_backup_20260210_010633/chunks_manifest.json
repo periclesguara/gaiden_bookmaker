@@ -1,0 +1,585 @@
+{
+  "chapters": [
+    {
+      "number": 1,
+      "roman": "",
+      "title": "A SCANDAL IN BOHEMIA",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_01_chunk_001.txt",
+          "est_tokens": 1546,
+          "char_count": 6187
+        },
+        {
+          "filename": "ch_01_chunk_002.txt",
+          "est_tokens": 1524,
+          "char_count": 6098
+        },
+        {
+          "filename": "ch_01_chunk_003.txt",
+          "est_tokens": 1534,
+          "char_count": 6138
+        },
+        {
+          "filename": "ch_01_chunk_004.txt",
+          "est_tokens": 1592,
+          "char_count": 6371
+        },
+        {
+          "filename": "ch_01_chunk_005.txt",
+          "est_tokens": 1543,
+          "char_count": 6172
+        },
+        {
+          "filename": "ch_01_chunk_006.txt",
+          "est_tokens": 1523,
+          "char_count": 6094
+        },
+        {
+          "filename": "ch_01_chunk_007.txt",
+          "est_tokens": 1635,
+          "char_count": 6543
+        },
+        {
+          "filename": "ch_01_chunk_008.txt",
+          "est_tokens": 654,
+          "char_count": 2618
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "roman": "",
+      "title": "THE RED-HEADED LEAGUE",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_02_chunk_001.txt",
+          "est_tokens": 1516,
+          "char_count": 6065
+        },
+        {
+          "filename": "ch_02_chunk_002.txt",
+          "est_tokens": 1641,
+          "char_count": 6564
+        },
+        {
+          "filename": "ch_02_chunk_003.txt",
+          "est_tokens": 1568,
+          "char_count": 6274
+        },
+        {
+          "filename": "ch_02_chunk_004.txt",
+          "est_tokens": 1530,
+          "char_count": 6121
+        },
+        {
+          "filename": "ch_02_chunk_005.txt",
+          "est_tokens": 1575,
+          "char_count": 6300
+        },
+        {
+          "filename": "ch_02_chunk_006.txt",
+          "est_tokens": 1521,
+          "char_count": 6086
+        },
+        {
+          "filename": "ch_02_chunk_007.txt",
+          "est_tokens": 1526,
+          "char_count": 6105
+        },
+        {
+          "filename": "ch_02_chunk_008.txt",
+          "est_tokens": 1380,
+          "char_count": 5520
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "roman": "",
+      "title": "A CASE OF IDENTITY",
+      "chunk_count": 7,
+      "chunks": [
+        {
+          "filename": "ch_03_chunk_001.txt",
+          "est_tokens": 1528,
+          "char_count": 6112
+        },
+        {
+          "filename": "ch_03_chunk_002.txt",
+          "est_tokens": 1511,
+          "char_count": 6045
+        },
+        {
+          "filename": "ch_03_chunk_003.txt",
+          "est_tokens": 1520,
+          "char_count": 6082
+        },
+        {
+          "filename": "ch_03_chunk_004.txt",
+          "est_tokens": 1530,
+          "char_count": 6122
+        },
+        {
+          "filename": "ch_03_chunk_005.txt",
+          "est_tokens": 1542,
+          "char_count": 6171
+        },
+        {
+          "filename": "ch_03_chunk_006.txt",
+          "est_tokens": 1521,
+          "char_count": 6086
+        },
+        {
+          "filename": "ch_03_chunk_007.txt",
+          "est_tokens": 290,
+          "char_count": 1160
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "roman": "",
+      "title": "THE BOSCOMBE VALLEY MYSTERY",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_04_chunk_001.txt",
+          "est_tokens": 1759,
+          "char_count": 7039
+        },
+        {
+          "filename": "ch_04_chunk_002.txt",
+          "est_tokens": 1781,
+          "char_count": 7124
+        },
+        {
+          "filename": "ch_04_chunk_003.txt",
+          "est_tokens": 1515,
+          "char_count": 6063
+        },
+        {
+          "filename": "ch_04_chunk_004.txt",
+          "est_tokens": 1518,
+          "char_count": 6072
+        },
+        {
+          "filename": "ch_04_chunk_005.txt",
+          "est_tokens": 1645,
+          "char_count": 6582
+        },
+        {
+          "filename": "ch_04_chunk_006.txt",
+          "est_tokens": 1524,
+          "char_count": 6096
+        },
+        {
+          "filename": "ch_04_chunk_007.txt",
+          "est_tokens": 1512,
+          "char_count": 6048
+        },
+        {
+          "filename": "ch_04_chunk_008.txt",
+          "est_tokens": 1528,
+          "char_count": 6113
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "roman": "",
+      "title": "THE FIVE ORANGE PIPS",
+      "chunk_count": 7,
+      "chunks": [
+        {
+          "filename": "ch_05_chunk_001.txt",
+          "est_tokens": 1539,
+          "char_count": 6159
+        },
+        {
+          "filename": "ch_05_chunk_002.txt",
+          "est_tokens": 1540,
+          "char_count": 6162
+        },
+        {
+          "filename": "ch_05_chunk_003.txt",
+          "est_tokens": 1522,
+          "char_count": 6088
+        },
+        {
+          "filename": "ch_05_chunk_004.txt",
+          "est_tokens": 1750,
+          "char_count": 7003
+        },
+        {
+          "filename": "ch_05_chunk_005.txt",
+          "est_tokens": 1551,
+          "char_count": 6206
+        },
+        {
+          "filename": "ch_05_chunk_006.txt",
+          "est_tokens": 1526,
+          "char_count": 6104
+        },
+        {
+          "filename": "ch_05_chunk_007.txt",
+          "est_tokens": 386,
+          "char_count": 1545
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "roman": "",
+      "title": "THE MAN WITH THE TWISTED LIP",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_06_chunk_001.txt",
+          "est_tokens": 1508,
+          "char_count": 6034
+        },
+        {
+          "filename": "ch_06_chunk_002.txt",
+          "est_tokens": 1662,
+          "char_count": 6648
+        },
+        {
+          "filename": "ch_06_chunk_003.txt",
+          "est_tokens": 1553,
+          "char_count": 6214
+        },
+        {
+          "filename": "ch_06_chunk_004.txt",
+          "est_tokens": 1681,
+          "char_count": 6726
+        },
+        {
+          "filename": "ch_06_chunk_005.txt",
+          "est_tokens": 1534,
+          "char_count": 6137
+        },
+        {
+          "filename": "ch_06_chunk_006.txt",
+          "est_tokens": 1538,
+          "char_count": 6155
+        },
+        {
+          "filename": "ch_06_chunk_007.txt",
+          "est_tokens": 1553,
+          "char_count": 6213
+        },
+        {
+          "filename": "ch_06_chunk_008.txt",
+          "est_tokens": 1202,
+          "char_count": 4811
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE BLUE CARBUNCLE",
+      "chunk_count": 7,
+      "chunks": [
+        {
+          "filename": "ch_07_chunk_001.txt",
+          "est_tokens": 1511,
+          "char_count": 6044
+        },
+        {
+          "filename": "ch_07_chunk_002.txt",
+          "est_tokens": 1555,
+          "char_count": 6221
+        },
+        {
+          "filename": "ch_07_chunk_003.txt",
+          "est_tokens": 1510,
+          "char_count": 6040
+        },
+        {
+          "filename": "ch_07_chunk_004.txt",
+          "est_tokens": 1556,
+          "char_count": 6225
+        },
+        {
+          "filename": "ch_07_chunk_005.txt",
+          "est_tokens": 1531,
+          "char_count": 6125
+        },
+        {
+          "filename": "ch_07_chunk_006.txt",
+          "est_tokens": 1566,
+          "char_count": 6264
+        },
+        {
+          "filename": "ch_07_chunk_007.txt",
+          "est_tokens": 1245,
+          "char_count": 4980
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE SPECKLED BAND",
+      "chunk_count": 9,
+      "chunks": [
+        {
+          "filename": "ch_08_chunk_001.txt",
+          "est_tokens": 1514,
+          "char_count": 6059
+        },
+        {
+          "filename": "ch_08_chunk_002.txt",
+          "est_tokens": 1557,
+          "char_count": 6231
+        },
+        {
+          "filename": "ch_08_chunk_003.txt",
+          "est_tokens": 1778,
+          "char_count": 7112
+        },
+        {
+          "filename": "ch_08_chunk_004.txt",
+          "est_tokens": 1550,
+          "char_count": 6203
+        },
+        {
+          "filename": "ch_08_chunk_005.txt",
+          "est_tokens": 1592,
+          "char_count": 6369
+        },
+        {
+          "filename": "ch_08_chunk_006.txt",
+          "est_tokens": 1543,
+          "char_count": 6175
+        },
+        {
+          "filename": "ch_08_chunk_007.txt",
+          "est_tokens": 1532,
+          "char_count": 6130
+        },
+        {
+          "filename": "ch_08_chunk_008.txt",
+          "est_tokens": 1818,
+          "char_count": 7273
+        },
+        {
+          "filename": "ch_08_chunk_009.txt",
+          "est_tokens": 286,
+          "char_count": 1144
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE ENGINEER\u2019S THUMB",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_09_chunk_001.txt",
+          "est_tokens": 1529,
+          "char_count": 6118
+        },
+        {
+          "filename": "ch_09_chunk_002.txt",
+          "est_tokens": 1514,
+          "char_count": 6056
+        },
+        {
+          "filename": "ch_09_chunk_003.txt",
+          "est_tokens": 1519,
+          "char_count": 6078
+        },
+        {
+          "filename": "ch_09_chunk_004.txt",
+          "est_tokens": 1704,
+          "char_count": 6819
+        },
+        {
+          "filename": "ch_09_chunk_005.txt",
+          "est_tokens": 1643,
+          "char_count": 6572
+        },
+        {
+          "filename": "ch_09_chunk_006.txt",
+          "est_tokens": 1549,
+          "char_count": 6199
+        },
+        {
+          "filename": "ch_09_chunk_007.txt",
+          "est_tokens": 1543,
+          "char_count": 6174
+        },
+        {
+          "filename": "ch_09_chunk_008.txt",
+          "est_tokens": 102,
+          "char_count": 410
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE NOBLE BACHELOR",
+      "chunk_count": 7,
+      "chunks": [
+        {
+          "filename": "ch_10_chunk_001.txt",
+          "est_tokens": 1829,
+          "char_count": 7317
+        },
+        {
+          "filename": "ch_10_chunk_002.txt",
+          "est_tokens": 1553,
+          "char_count": 6213
+        },
+        {
+          "filename": "ch_10_chunk_003.txt",
+          "est_tokens": 1542,
+          "char_count": 6169
+        },
+        {
+          "filename": "ch_10_chunk_004.txt",
+          "est_tokens": 1530,
+          "char_count": 6121
+        },
+        {
+          "filename": "ch_10_chunk_005.txt",
+          "est_tokens": 1547,
+          "char_count": 6189
+        },
+        {
+          "filename": "ch_10_chunk_006.txt",
+          "est_tokens": 1659,
+          "char_count": 6636
+        },
+        {
+          "filename": "ch_10_chunk_007.txt",
+          "est_tokens": 1317,
+          "char_count": 5270
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE BERYL CORONET",
+      "chunk_count": 8,
+      "chunks": [
+        {
+          "filename": "ch_11_chunk_001.txt",
+          "est_tokens": 1589,
+          "char_count": 6358
+        },
+        {
+          "filename": "ch_11_chunk_002.txt",
+          "est_tokens": 1604,
+          "char_count": 6418
+        },
+        {
+          "filename": "ch_11_chunk_003.txt",
+          "est_tokens": 1617,
+          "char_count": 6471
+        },
+        {
+          "filename": "ch_11_chunk_004.txt",
+          "est_tokens": 1849,
+          "char_count": 7398
+        },
+        {
+          "filename": "ch_11_chunk_005.txt",
+          "est_tokens": 1527,
+          "char_count": 6110
+        },
+        {
+          "filename": "ch_11_chunk_006.txt",
+          "est_tokens": 1512,
+          "char_count": 6048
+        },
+        {
+          "filename": "ch_11_chunk_007.txt",
+          "est_tokens": 1643,
+          "char_count": 6573
+        },
+        {
+          "filename": "ch_11_chunk_008.txt",
+          "est_tokens": 1348,
+          "char_count": 5394
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "roman": "",
+      "title": "THE ADVENTURE OF THE COPPER BEECHES",
+      "chunk_count": 12,
+      "chunks": [
+        {
+          "filename": "ch_12_chunk_001.txt",
+          "est_tokens": 1591,
+          "char_count": 6366
+        },
+        {
+          "filename": "ch_12_chunk_002.txt",
+          "est_tokens": 1713,
+          "char_count": 6853
+        },
+        {
+          "filename": "ch_12_chunk_003.txt",
+          "est_tokens": 1649,
+          "char_count": 6597
+        },
+        {
+          "filename": "ch_12_chunk_004.txt",
+          "est_tokens": 1569,
+          "char_count": 6276
+        },
+        {
+          "filename": "ch_12_chunk_005.txt",
+          "est_tokens": 1600,
+          "char_count": 6403
+        },
+        {
+          "filename": "ch_12_chunk_006.txt",
+          "est_tokens": 1679,
+          "char_count": 6719
+        },
+        {
+          "filename": "ch_12_chunk_007.txt",
+          "est_tokens": 1540,
+          "char_count": 6163
+        },
+        {
+          "filename": "ch_12_chunk_008.txt",
+          "est_tokens": 1520,
+          "char_count": 6083
+        },
+        {
+          "filename": "ch_12_chunk_009.txt",
+          "est_tokens": 1551,
+          "char_count": 6205
+        },
+        {
+          "filename": "ch_12_chunk_010.txt",
+          "est_tokens": 1542,
+          "char_count": 6168
+        },
+        {
+          "filename": "ch_12_chunk_011.txt",
+          "est_tokens": 1514,
+          "char_count": 6058
+        },
+        {
+          "filename": "ch_12_chunk_012.txt",
+          "est_tokens": 353,
+          "char_count": 1412
+        }
+      ]
+    }
+  ]
+}

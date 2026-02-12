@@ -1,0 +1,13 @@
+{
+  "flow_name": "EL_OBREGON",
+  "model": "gpt-5-chat-latest",
+  "splits_dir": "data/translated/book_0002/ES/split_chapters_for_refine",
+  "out_dir": "data/translated/book_0002/ES/return",
+  "file_glob": "*.txt",
+  "out_suffix": ".RETURN.txt",
+  "merge_name": "merge_refine_es.txt",
+  "temperature": 0.2,
+  "max_output_tokens": 6500,
+  "system_prompt": "Eres un editor literario. Devuelve SOLO el texto refinado. Sin resumen, sin análisis, sin comentarios. Mantén significado y tono. Conserva los encabezados exactamente.",
+  "user_prompt": "Refina el texto a continuación. Devuelve SOLO el texto refinado.\n\n---\n{text}\n---"
+}

@@ -1,0 +1,19 @@
+{
+  "removed_markers_found": [
+    "START_GUTENBERG",
+    "END_GUTENBERG",
+    "LICENSE_START",
+    "LICENSE_TAIL"
+  ],
+  "removed_license_blocks": true,
+  "removed_frontmatter_legacy": false,
+  "normalized_char_count": 231454,
+  "raw_char_count": 251362,
+  "delta_ratio": 0.9208,
+  "input_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/raw/book_0002/en/source.txt",
+  "output_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0002/en/book_0002_en_v2.txt",
+  "chapters_detected": 12,
+  "boilerplate_removed": true,
+  "status": "OK",
+  "check_fail_reasons": []
+}

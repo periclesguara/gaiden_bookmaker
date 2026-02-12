@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from gaiden.lang import normalize_lang_code, normalize_source_lang
+from gaiden.openai_client import get_client, choose_model
 
 # IMPORTANT:
 # This engine is intentionally minimal and "add-only".
@@ -71,21 +75,39 @@ def _make_lang_system_prompt(target_lang: str) -> str:
     label = LANG_TARGET_LABELS.get(target_lang, target_lang)
     return f"{UNIVERSAL_SYSTEM_PROMPT}\n\nTARGET LANGUAGE: {label}\n"
 
-def call_openai_gpt52_translate(text: str, system_prompt: str) -> str:
-    from openai import OpenAI
 
-    api_key = os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com").strip().rstrip("/")
-    if not base_url.endswith("/v1"):
-        base_url = f"{base_url}/v1"
+def _load_contract(path: Path) -> Dict:
+    return json.loads(_read_text(path))
 
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url,
-    )
 
+def _render_user_prompt(template: str, text: str) -> str:
+    if "{{TEXT}}" in template:
+        return template.replace("{{TEXT}}", text)
+    if "{text}" in template:
+        return template.replace("{text}", text)
+    return template.replace("{TEXT}", text)
+
+
+def _assert_translate_contract(contract: Dict) -> str:
+    stage = str(contract.get("stage", "")).strip()
+    model = str(contract.get("model", "")).strip()
+    model_lock = contract.get("model_lock", None)
+    if stage != "translate":
+        raise RuntimeError(f"TRANSLATE MODEL VIOLATION: stage=translate requires model=gpt-5.2 (contract says stage={stage})")
+    if model_lock is not True:
+        raise RuntimeError(
+            "TRANSLATE MODEL VIOLATION: stage=translate requires model_lock=true"
+        )
+    if model != "gpt-5.2":
+        raise RuntimeError(
+            f"TRANSLATE MODEL VIOLATION: stage=translate requires model=gpt-5.2 (contract says {model})"
+        )
+    return model
+
+def call_openai_gpt52_translate(text: str, system_prompt: str, *, model: str) -> str:
+    client = get_client()
     response = client.chat.completions.create(
-        model="gpt-5.2",
+        model=model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": text},
@@ -104,10 +126,28 @@ def translate_book_chunks(
     file_glob: str = DEFAULT_FILE_GLOB,
     resume: bool = True,
     dry_run: bool = True,
+    contract_path: Path | str | None = None,
+    contract: Dict | None = None,
+    runs_root: Path | None = None,
+    run_id: str | None = None,
 ) -> Dict:
+    source_lang = normalize_source_lang(source_lang, default="en")
+    target_lang = normalize_lang_code(target_lang, default="en_modern")
     in_dir = chunks_root / book / source_lang
     out_dir = translated_root / book / target_lang
     _ensure_dir(out_dir)
+
+    if contract is None:
+        if not contract_path:
+            raise RuntimeError("Translate contract is required (contract_path not provided).")
+        contract = _load_contract(Path(contract_path))
+
+    resolved_model = _assert_translate_contract(contract)
+    model_effective = choose_model(stage="translate", contract_model=resolved_model, env_default=None)
+    system_prompt = str(contract.get("system_prompt", "")).strip()
+    user_template = str(contract.get("user_prompt", "")).strip()
+    if not system_prompt or not user_template:
+        raise RuntimeError("Translate contract must include system_prompt and user_prompt.")
 
     files = _sorted_chunk_files(in_dir, file_glob)
     if not files:
@@ -118,14 +158,15 @@ def translate_book_chunks(
         "book": book,
         "source_lang": source_lang,
         "target_lang": target_lang,
+        "model": model_effective,
+        "contract_path": str(contract_path) if contract_path else None,
+        "contract_name": contract.get("name"),
         "started_at": _utc_now(),
         "input_dir": str(in_dir),
         "output_dir": str(out_dir),
         "file_glob": file_glob,
         "items": [],
     }
-
-    system_prompt = _make_lang_system_prompt(target_lang)
 
     for fp in files:
         out_fp = out_dir / fp.name
@@ -140,14 +181,31 @@ def translate_book_chunks(
             out = f"[DRY_RUN] {fp.name}\n" + src
             status = "dry_run"
         else:
-            out = call_openai_gpt52_translate(src, system_prompt=system_prompt)
+            user_text = _render_user_prompt(user_template, src)
+            out = call_openai_gpt52_translate(user_text, system_prompt=system_prompt, model=model_effective)
             status = "translated"
 
         _write_text(out_fp, out)
+        if runs_root and run_id:
+            run_dir = runs_root / run_id
+            outputs_dir = run_dir / "outputs" / book / target_lang
+            _ensure_dir(outputs_dir)
+            try:
+                shutil.copy2(out_fp, outputs_dir / out_fp.name)
+            except Exception:
+                pass
         report["items"].append({"chunk_file": fp.name, "status": status, "output_path": str(out_fp)})
 
     report["finished_at"] = _utc_now()
     _dump_json(out_dir / "translate_run_report.json", report)
+    if runs_root and run_id:
+        run_dir = runs_root / run_id
+        _ensure_dir(run_dir)
+        report_path = run_dir / f"translate_run_report_{book}_{target_lang}.json"
+        _dump_json(report_path, report)
+        default_report = run_dir / "translate_run_report.json"
+        if not default_report.exists():
+            _dump_json(default_report, report)
     return report
 
 def merge_translated_chunks(
@@ -157,6 +215,7 @@ def merge_translated_chunks(
     out_path: Path,
     file_glob: str = DEFAULT_FILE_GLOB,
 ) -> Dict:
+    target_lang = normalize_lang_code(target_lang, default="en_modern")
     in_dir = translated_root / book / target_lang
     files = _sorted_chunk_files(in_dir, file_glob)
     if not files:

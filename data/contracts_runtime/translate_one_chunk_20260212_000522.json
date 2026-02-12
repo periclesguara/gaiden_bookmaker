@@ -1,0 +1,20 @@
+{
+  "schema": "gaiden_translate_one_chunk_v1",
+  "book": "book_0003",
+  "source_lang": "en",
+  "target_lang": "en_modern",
+  "chunk": "ch_001_chunk_001.txt",
+  "engine": {
+    "provider": "openai",
+    "model": "gpt-5-chat-latest"
+  },
+  "paths": {
+    "chunks_root": "data/chunks",
+    "translated_root": "data/translated",
+    "runs_root": "data/translated/_runs"
+  },
+  "run": {
+    "dry_run": false,
+    "resume": false
+  }
+}

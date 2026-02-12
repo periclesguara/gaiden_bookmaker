@@ -23,6 +23,7 @@ class Command(BaseCommand):
         parser.add_argument("--check", action="append", default=None)
         parser.add_argument("--strict", action="store_true", default=False)
         parser.add_argument("--langs", type=str, default=None)
+        parser.add_argument("--allow-legacy", action="store_true", default=False)
 
     def handle(self, *args, **options):
         _ensure_project_root_on_path()
@@ -44,6 +45,7 @@ class Command(BaseCommand):
             strict=options.get("strict", False),
             langs=langs_list,
             ignore_books=diagnostics._parse_ignore_books(ignore_books),
+            allow_legacy=options.get("allow_legacy", False),
         )
         if exit_code != 0:
             raise CommandError("Diagnostics failed.")

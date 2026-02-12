@@ -1,0 +1,1256 @@
+1. LA SCIENCE DE LA DÉDUCTION
+
+Sherlock Holmes prit son flacon dans un coin de la cheminée et sa seringue hypodermique dans son étui soigné de maroquin. De ses longs doigts blancs et nerveux, il ajusta la fine aiguille, puis remonta la manche de sa chemise gauche. Un instant, ses yeux se posèrent, pensifs, sur l’avant-bras et le poignet noueux, constellés et balafrés d’innombrables marques de piqûres. Enfin, il enfonça la pointe acérée, abaissa le minuscule piston et se laissa retomber dans le fauteuil aux coussins de velours avec un long soupir de satisfaction.
+
+Depuis des mois, trois fois par jour, j’avais été témoin de cette scène, mais l’habitude ne m’y avait pas résigné. Au contraire, de jour en jour, le spectacle m’exaspérait davantage, et chaque soir ma conscience s’alourdissait à l’idée que je n’avais pas eu le courage de protester. Maintes fois, je m’étais juré de vider mon cœur sur ce sujet ; mais il y avait, dans l’air froid et nonchalant de mon compagnon, quelque chose qui en faisait le dernier homme avec qui l’on eût envie de se permettre la moindre liberté. Ses grandes facultés, sa manière magistrale et l’expérience que j’avais de ses nombreuses qualités extraordinaires, tout cela me rendait hésitant, timoré, peu enclin à le contrarier.
+
+Pourtant, cet après-midi-là — était-ce le beaune que j’avais bu au déjeuner, ou l’agacement supplémentaire provoqué par l’extrême lenteur de ses gestes ? — je sentis soudain que je ne pouvais plus me contenir.
+
+« Alors, aujourd’hui ? demandai-je. Morphine ou cocaïne ? »
+
+Il leva languissamment les yeux de l’ancien volume en caractères gothiques qu’il avait ouvert.
+
+« De la cocaïne, dit-il. Une solution à sept pour cent. Voulez-vous essayer ? »
+
+« Non, certainement pas, répondis-je brusquement. Ma constitution ne s’est pas encore remise de la campagne d’Afghanistan. Je ne peux pas me permettre de lui imposer une contrainte de plus. »
+
+Il sourit de ma véhémence.
+
+« Vous avez peut-être raison, Watson, dit-il. J’imagine que, physiquement, son influence est mauvaise. Mais je la trouve si merveilleusement stimulante et clarifiante pour l’esprit que ses effets secondaires sont, à mes yeux, de peu d’importance. »
+
+« Mais réfléchissez ! repris-je avec insistance. Faites le compte ! Votre cerveau, comme vous le dites, peut être réveillé et surexcité ; mais c’est un processus morbide, pathologique, qui implique une accélération des transformations des tissus et peut finir par laisser une faiblesse permanente. Vous savez aussi quelle sombre réaction vous accable ensuite. Vraiment, le jeu n’en vaut guère la chandelle. Pourquoi, pour un plaisir passager, risquer de perdre ces grandes facultés dont vous avez été doté ? Souvenez-vous que je vous parle non seulement comme un camarade à un autre, mais comme un médecin à quelqu’un dont, dans une certaine mesure, il est responsable de la constitution. »
+
+Il ne parut pas offensé. Au contraire, il joignit le bout de ses doigts et posa ses coudes sur les accoudoirs, comme un homme qui goûte la conversation.
+
+« Mon esprit, dit-il, se révolte contre la stagnation. Donnez-moi des problèmes, donnez-moi du travail, donnez-moi le cryptogramme le plus abstrus ou l’analyse la plus complexe, et je suis dans mon élément. Alors, je puis me passer de stimulants artificiels. Mais j’abhorre la routine morne de l’existence. J’ai soif d’exaltation intellectuelle. C’est pourquoi j’ai choisi ma profession — ou plutôt je l’ai créée, car je suis le seul au monde. »
+
+« Le seul détective officieux ? » dis-je en haussant les sourcils.
+
+« Le seul détective-conseil officieux, répondit-il. Je suis la dernière et la plus haute cour d’appel en matière d’enquête. Quand Gregson, Lestrade ou Athelney Jones ont perdu pied — ce qui, soit dit en passant, est leur état habituel — on me soumet l’affaire. J’examine les données en expert et je rends l’avis d’un spécialiste. Je ne revendique aucun mérite dans ces cas-là. Mon nom ne paraît dans aucun journal. Le travail lui-même, le plaisir de trouver un champ d’exercice pour mes facultés particulières, voilà ma plus haute récompense. Mais vous avez vous-même eu quelque expérience de mes méthodes dans l’affaire Jefferson Hope. »
+
+« Oui, en effet, dis-je chaleureusement. Je n’ai jamais été frappé par rien de pareil. J’en ai même fait une petite brochure, sous le titre un peu fantasque : “Une étude en rouge”. »
+
+Il secoua tristement la tête.
+
+« Je l’ai parcourue, dit-il. Honnêtement, je ne peux pas vous en féliciter. La détection est — ou devrait être — une science exacte, et elle devrait être traitée avec la même froideur, sans émotion. Vous avez tenté d’y mettre une teinte de romantisme, ce qui produit à peu près le même effet que si vous introduisiez une histoire d’amour ou une fuite d’amants dans la cinquième proposition d’Euclide. »
+
+« Mais le romanesque y était, protestai-je. Je ne pouvais pas falsifier les faits. »
+
+« Il parle comme un élève à son maître », dis-je.
+
+« Oh, il surestime beaucoup trop l’aide que je peux lui apporter », répondit Sherlock Holmes avec légèreté. « Il a lui-même de réels dons. Il possède deux des trois qualités nécessaires au détective idéal : le sens de l’observation et celui de la déduction. Il ne lui manque que le savoir, et cela peut venir avec le temps. En ce moment, il traduit en français mes petits travaux. »
+
+« Vos travaux ? »
+
+« Oh, vous ne saviez pas ? s’écria-t-il en riant. Oui, je me suis rendu coupable de plusieurs monographies. Elles portent toutes sur des sujets techniques. Tenez, par exemple, en voici une : “Sur la distinction entre les cendres des divers tabacs.” J’y énumère cent quarante variétés de tabac à cigare, à cigarette et à pipe, avec des planches en couleurs illustrant les différences de cendre. C’est un point qui revient sans cesse dans les procès criminels et qui peut parfois avoir une importance capitale comme indice. Si vous pouvez affirmer, par exemple, qu’un meurtre a été commis par un homme qui fumait un lunkah des Indes, cela réduit évidemment le champ des recherches. Pour un œil exercé, il y a autant de différence entre la cendre noire d’un Trichinopoly et le duvet blanc du bird’s-eye qu’entre un chou et une pomme de terre. »
+
+« Vous avez un génie extraordinaire pour les minuties », remarquai-je.
+
+« J’en apprécie l’importance. Voici ma monographie sur l’identification des empreintes de pas, avec quelques observations sur l’usage du plâtre de Paris pour conserver les impressions. Et voici encore un petit ouvrage curieux sur l’influence d’un métier sur la forme de la main, avec des lithographies des mains d’ardoisiers, de marins, de coupeurs de liège, de compositeurs, de tisserands et de polisseurs de diamants. C’est d’un très grand intérêt pratique pour le détective scientifique — surtout dans les affaires de corps non réclamés ou lorsqu’il s’agit de découvrir les antécédents de criminels. Mais je vous ennuie avec mon dada. »
+
+« Pas du tout, répondis-je avec chaleur. Cela m’intéresse au plus haut point, d’autant plus que j’ai eu l’occasion d’en observer l’application pratique. Mais vous parliez tout à l’heure d’observation et de déduction. L’une n’implique-t-elle pas, dans une certaine mesure, l’autre ? »
+
+
+— Eh bien, pas vraiment, répondit-il en s’adossant avec une nonchalance voluptueuse dans son fauteuil, tout en envoyant de sa pipe d’épais anneaux bleus. Par exemple, l’observation me montre que vous êtes allé ce matin au bureau de poste de Wigmore Street ; mais la déduction m’apprend que, là-bas, vous avez expédié un télégramme.
+
+— Exact ! dis-je. Exact sur les deux points ! Mais j’avoue que je ne vois pas comment vous y êtes arrivé. C’était une impulsion soudaine de ma part, et je n’en ai parlé à personne.
+
+— C’est d’une simplicité enfantine, fit-il en ricanant devant ma surprise, si absurdement simple qu’une explication est superflue ; et pourtant, elle peut servir à définir les limites de l’observation et de la déduction. L’observation m’apprend que vous avez un peu de boue rougeâtre collée à votre cou-de-pied. Juste en face du bureau de poste de Wigmore Street, ils ont arraché le pavé et remué de la terre, qu’ils ont entassée de telle façon qu’il est difficile de ne pas marcher dedans en entrant. Cette terre a cette teinte rougeâtre particulière qu’on ne trouve, à ma connaissance, nulle part ailleurs dans le voisinage. Voilà pour l’observation. Le reste est déduction.
+
+— Comment, alors, avez-vous déduit le télégramme ?
+
+— Mais voyons, je savais bien que vous n’aviez pas écrit de lettre, puisque je vous faisais face toute la matinée. Je vois aussi, dans votre pupitre ouvert, une feuille de timbres et un gros paquet de cartes postales. Pourquoi seriez-vous allé au bureau de poste, sinon pour envoyer un télégramme ? Éliminez tous les autres facteurs, et celui qui reste ne peut être que la vérité.
+
+— Dans ce cas, c’est assurément vrai, répondis-je après un instant de réflexion. La chose est pourtant, comme vous le dites, des plus simples. Me jugeriez-vous impertinent si je soumettais vos théories à une épreuve plus sévère ?
+
+— Bien au contraire, répondit-il, cela m’empêchera de prendre une seconde dose de cocaïne. Je serais ravi d’examiner n’importe quel problème que vous voudrez bien me soumettre.
+
+— Je vous ai entendu dire qu’il est difficile pour un homme d’avoir un objet d’usage quotidien sans y laisser l’empreinte de son individualité, de telle sorte qu’un observateur exercé puisse la lire. Or, j’ai ici une montre qui est entrée récemment en ma possession. Auriez-vous l’obligeance de me donner une opinion sur le caractère ou les habitudes de son dernier propriétaire ?
+
+Je lui tendis la montre avec, au fond du cœur, un léger amusement : l’épreuve me paraissait impossible, et je voulais lui donner une leçon contre le ton un peu dogmatique qu’il lui arrivait d’adopter. Il pesa la montre.
+
+Je bondis de mon fauteuil et, boitant, je fis les cent pas dans la pièce avec une amertume profonde au cœur.
+
+— C’est indigne de vous, Holmes, dis-je. Je n’aurais jamais cru que vous en viendriez là. Vous vous êtes renseigné sur l’histoire de mon malheureux frère, et maintenant vous faites semblant de déduire tout cela par quelque procédé fantaisiste. Vous ne pouvez tout de même pas espérer que je croie avoir lu tout cela dans sa vieille montre ! C’est cruel et, pour parler franchement, cela a un petit air de charlatanisme.
+
+— Mon cher docteur, répondit-il avec bonté, je vous prie d’accepter mes excuses. En considérant la question comme un problème abstrait, j’ai oublié combien cela pouvait être personnel et douloureux pour vous. Je vous assure pourtant que j’ignorais jusqu’à l’existence de votre frère avant que vous ne me tendiez la montre.
+
+— Alors comment, au nom de tout ce qu’il y a de prodigieux, avez-vous obtenu ces faits ? Ils sont absolument exacts, dans les moindres détails.
+
+— Ah, c’est un heureux hasard. Je n’ai pu dire que ce qui était le plus probable. Je ne m’attendais pas du tout à tomber si juste.
+
+— Mais ce n’était pas un simple coup de chance ?
+
+— Non, non : je ne devine jamais. C’est une habitude déplorable, destructrice pour la faculté logique. Ce qui vous paraît étrange ne l’est que parce que vous ne suivez pas le fil de ma pensée, ou que vous ne remarquez pas les petits faits dont peuvent dépendre de grandes conclusions. Par exemple, j’ai commencé par affirmer que votre frère était négligent. Quand vous observez la partie inférieure de ce boîtier, vous remarquez qu’elle n’est pas seulement bosselée en deux endroits : elle est entaillée et rayée de toutes parts, à force d’avoir été portée dans la même poche que d’autres objets durs, comme des pièces ou des clés. Il n’y a rien d’extraordinaire à supposer qu’un homme qui traite avec une telle désinvolture une montre de cinquante guinées doit être un homme négligent. Et ce n’est pas non plus une conclusion bien tirée par les cheveux que d’estimer qu’un homme qui hérite d’un objet d’une telle valeur est, par ailleurs, assez bien pourvu.
+
+J’acquiesçai d’un signe de tête pour montrer que je suivais son raisonnement.
+
+— Il est très courant, en Angleterre, que les prêteurs sur gages, lorsqu’ils prennent une montre, griffent à la pointe d’une épingle le numéro du reçu à l’intérieur du boîtier. C’est plus pratique qu’une étiquette, puisqu’il n’y a aucun risque que le numéro se perde ou soit interverti. Or, il n’y a pas moins de quatre numéros de ce genre, visibles à ma loupe, à l’intérieur de ce boîtier. Déduction : votre frère était souvent à court d’argent. Déduction secondaire : il connaissait par moments des bouffées de prospérité, sans quoi il n’aurait pas pu racheter le gage. Enfin, je vous prie de regarder la platine intérieure, celle où se trouve le trou de la clé. Voyez les milliers d’éraflures tout autour de l’orifice : ce sont des marques laissées par la clé qui a glissé. Quelle clé d’homme sobre aurait pu creuser de telles rainures ? Mais vous ne verrez jamais la montre d’un ivrogne sans ces traces. Il la remonte le soir, et il laisse ainsi l’empreinte de sa main mal assurée. Où est le mystère, là-dedans ?
+
+— C’est clair comme le jour, répondis-je. Je regrette l’injustice que je vous ai faite. J’aurais dû avoir davantage foi en votre prodigieuse faculté. Puis-je vous demander si vous avez en ce moment quelque enquête professionnelle en cours ?
+
+— Aucune. D’où la cocaïne. Je ne peux pas vivre sans travail intellectuel. Pour quoi d’autre vivre ? Venez à la fenêtre. A-t-on jamais vu un monde aussi morne, aussi lugubre, aussi stérile ? Voyez ce brouillard jaune qui tourbillonne le long de la rue et dérive devant les maisons couleur de suie. Qu’y a-t-il de plus désespérément prosaïque et matériel ? À quoi bon avoir des dons, docteur, quand on n’a aucun terrain où les exercer ? Le crime est banal, l’existence est banale, et aucune qualité, hormis celles qui sont banales, n’a de fonction sur cette terre.
+
+J’ouvrais la bouche pour répondre à cette tirade lorsqu’un coup sec retentit et que notre logeuse entra, portant une carte sur un plateau de cuivre.
+
+— Une jeune dame pour vous, monsieur, dit-elle en s’adressant à mon compagnon.
+
+— Miss Mary Morstan, lut-il. Hum ! Ce nom ne me dit rien. Faites monter la jeune dame, Mrs Hudson. Ne partez pas, docteur. Je préférerais que vous restiez.
+
+2. L’EXPOSÉ DE L’AFFAIRE
+
+Miss Morstan entra dans la pièce d’un pas assuré, avec un calme apparent. C’était une jeune femme blonde, petite, fine, gantée avec soin et vêtue avec un goût parfait. Pourtant, une certaine sobriété, une simplicité dans sa tenue laissaient deviner des moyens modestes. Sa robe, d’un beige grisâtre sombre, était sans garniture ni passementerie, et elle portait un petit turban de la même teinte éteinte, à peine égayé par l’ombre d’une plume blanche sur le côté. Son visage n’avait ni la régularité des traits ni l’éclat du teint, mais son expression était douce et aimable, et ses grands yeux bleus avaient quelque chose de singulièrement spirituel et compatissant. Avec l’expérience des femmes que j’ai acquise à travers bien des nations et trois continents, je n’ai jamais vu de visage qui promît plus clairement une nature délicate et sensible. Je ne pus m’empêcher de remarquer que, lorsqu’elle prit le siège que Sherlock Holmes lui avançait, sa lèvre trembla, sa main eut un frémissement, et elle montra tous les signes d’une agitation intérieure intense.
+
+— Je suis venue vous voir, monsieur Holmes, dit-elle, parce que vous avez jadis aidé mon employeuse, Mrs Cecil Forrester, à démêler une petite complication domestique. Elle a été très impressionnée par votre bonté et votre habileté.
+
+— Mrs Cecil Forrester, répéta-t-il d’un ton pensif. Je crois en effet lui avoir rendu un léger service. L’affaire, toutefois, si je me souviens bien, était fort simple.
+
+— Elle ne l’a pas trouvée simple. Mais au moins, vous ne pourrez pas en dire autant de la mienne. J’imagine difficilement quelque chose de plus étrange, de plus totalement inexplicable, que la situation où je me trouve.
+
+Holmes se frotta les mains, et ses yeux brillèrent. Il se pencha en avant sur sa chaise, avec une expression de concentration extraordinaire sur ses traits nets et aquilins.
+
+— Exposez votre affaire, dit-il d’un ton vif et professionnel.
+
+Je sentis que ma présence devenait embarrassante.
+
+— Vous voudrez bien, j’en suis sûr, m’excuser, dis-je en me levant.
+
+À ma surprise, la jeune femme leva sa main gantée pour me retenir.
+
+— Si votre ami, dit-elle, voulait bien rester, il pourrait m’être d’un secours inestimable.
+
+Je me rassis.
+
+— En bref, poursuivit-elle, voici les faits. Mon père était officier dans un régiment des Indes ; il m’a renvoyée en Angleterre alors que j’étais encore enfant. Ma mère était morte, et je n’avais aucun parent en Angleterre. On me plaça néanmoins dans une pension confortable à Édimbourg, où je demeurai jusqu’à l’âge de dix-sept ans. En 1878, mon père, qui était capitaine en premier de son régiment, obtint un congé de douze mois et rentra au pays. Il me télégraphia de Londres qu’il était arrivé sain et sauf et me pria de le rejoindre immédiatement, en me donnant pour adresse le Langham Hotel. Son message, comme je m’en souviens, débordait de tendresse et d’affection. En arrivant à Londres, je me rendis en voiture au Langham, et l’on m’informa que le capitaine Morstan y logeait, mais qu’il était sorti la veille au soir et n’était pas encore rentré. J’attendis toute la journée sans aucune nouvelle. Le soir, sur le conseil du directeur de l’hôtel, je pris contact avec la police, et le lendemain matin nous fîmes insérer des annonces dans tous les journaux. Nos recherches n’aboutirent à rien, et depuis ce jour jusqu’à aujourd’hui, on n’a plus jamais eu le moindre mot de mon malheureux père. Il était revenu le cœur plein d’espoir, pour trouver un peu de paix, un peu de réconfort, et au lieu de cela…
+
+Elle porta la main à sa gorge, et un sanglot étouffé coupa sa phrase.
+
+— La date ? demanda Holmes en ouvrant son carnet.
+
+— Il a disparu le 3 décembre 1878… il y a près de dix ans.
+
+— Ses bagages ?
+
+— Restés à l’hôtel. Il n’y avait rien qui pût fournir une piste : quelques vêtements, quelques livres et un assez grand nombre de curiosités des îles Andaman. Il y avait été l’un des officiers chargés de la garde des forçats.
+
+— Avait-il des amis en ville ?
+
+— Un seul, à notre connaissance : le major Sholto, de son régiment, le 34e d’infanterie de Bombay. Le major avait pris sa retraite quelque temps auparavant et habitait Upper Norwood. Nous l’avons bien sûr contacté, mais il ignorait même que son camarade d’armes se trouvait en Angleterre.
+
+— Une affaire singulière, remarqua Holmes.
+
+— Je ne vous ai pas encore décrit la partie la plus singulière. Il y a environ six ans — pour être exacte, le 4 mai 1882 — une annonce parut dans le *Times* demandant l’adresse de Miss Mary Morstan et déclarant qu’elle avait intérêt à se manifester. Aucun nom ni aucune adresse n’étaient indiqués. À cette époque, je venais d’entrer chez Mrs Cecil Forrester comme gouvernante. Sur son
+
+
+— Mais viendra-t-il ? demanda-t-elle, avec dans la voix et le regard une supplique à peine voilée.
+
+— J’en serais fier et heureux, répondis-je avec ferveur, si je puis vous être utile en quoi que ce soit.
+
+— Vous êtes tous deux très bons, dit-elle. Je mène une vie retirée et je n’ai pas d’amis à qui m’adresser. Si je suis ici à six heures, cela conviendra, je suppose ?
+
+— Il ne faut pas être en retard, dit Holmes. Il y a toutefois un autre point. Cette écriture est-elle la même que celle des adresses sur les boîtes de perles ?
+
+— Je les ai ici, répondit-elle en tirant une demi-douzaine de morceaux de papier.
+
+— Vous êtes vraiment un modèle de cliente. Vous avez l’intuition juste. Voyons cela.
+
+Il étala les papiers sur la table et promena de rapides coups d’œil de l’un à l’autre.
+
+— Ce sont des écritures déguisées, sauf celle de la lettre, dit-il bientôt, mais l’auteur ne fait aucun doute. Voyez comme l’epsilon grec, irrépressible, finit par percer, et voyez la boucle du s final. Elles sont indubitablement de la même main. Je ne voudrais pas vous donner de faux espoirs, miss Morstan, mais cette écriture ressemble-t-elle en quoi que ce soit à celle de votre père ?
+
+— Rien ne saurait être plus différent.
+
+— Je m’y attendais. Nous vous attendrons donc à six heures. Permettez-moi de garder ces papiers. Je puis examiner l’affaire d’ici là. Il n’est que trois heures et demie. Au revoir, donc.
+
+— Au revoir, dit notre visiteuse ; puis, nous adressant à l’un et à l’autre un regard clair et bienveillant, elle remit sa boîte de perles contre sa poitrine et s’éloigna à la hâte. Debout à la fenêtre, je la suivis des yeux tandis qu’elle descendait d’un pas vif la rue, jusqu’à ce que le turban gris et la plume blanche ne fussent plus qu’un point dans la foule sombre.
+
+— Quelle femme séduisante ! m’écriai-je en me tournant vers mon compagnon.
+
+Il avait rallumé sa pipe et se renversait sur son siège, les paupières mi-closes.
+
+— Vraiment ? dit-il d’un ton nonchalant. Je n’ai pas remarqué.
+
+— Vous êtes décidément un automate, une machine à calculer ! m’écriai-je. Il y a chez vous quelque chose de positivement inhumain, par moments.
+
+Il sourit doucement.
+
+— Il est de la première importance, dit-il, de ne pas laisser son jugement se fausser par des qualités personnelles. Un client n’est pour moi qu’une unité, un facteur dans un problème. Les qualités émotionnelles sont ennemies du raisonnement clair. Je vous assure que la femme la plus charmante que j’aie jamais connue a été pendue pour avoir empoisonné trois petits enfants afin de toucher leur assurance, et que l’homme le plus repoussant de ma connaissance est un philanthrope qui a dépensé près d’un quart de million pour les pauvres de Londres.
+
+— Dans ce cas, pourtant…
+
+— Je ne fais jamais d’exception. Une exception détruit la règle. Vous est-il arrivé d’étudier le caractère à travers l’écriture ? Que pensez-vous de ce gribouillage de ce gaillard ?
+
+— C’est lisible et régulier, répondis-je. Un homme aux habitudes d’affaires et d’un certain caractère.
+
+Holmes secoua la tête.
+
+— Regardez ses hampes, dit-il. Elles s’élèvent à peine au-dessus du commun. Ce d pourrait être un a, et ce l un e. Les hommes de caractère distinguent toujours leurs lettres longues, si illisible que soit leur écriture. Il y a de l’hésitation dans ses k et de l’amour-propre dans ses majuscules. Je sors à présent. J’ai quelques vérifications à faire. Je vous recommande ce livre : l’un des plus remarquables jamais écrits. C’est *Le Martyre de l’homme*, de Winwood Reade. Je serai de retour dans une heure.
+
+Je restai assis à la fenêtre, le volume à la main, mais mes pensées étaient bien loin des hardies spéculations de l’auteur. Mon esprit revenait sans cesse à notre récente visiteuse : ses sourires, les graves et riches inflexions de sa voix, l’étrange mystère qui planait sur sa vie. Si elle avait dix-sept ans au moment de la disparition de son père, elle devait en avoir vingt-sept aujourd’hui — un âge délicieux, où la jeunesse a perdu sa gêne et s’est un peu assagie au contact de l’expérience. Ainsi je demeurai à rêver, jusqu’à ce que des pensées si dangereuses me vinssent à l’esprit que je m’enfuis vers mon bureau et me plongeai avec fureur dans le dernier traité de pathologie. Qui étais-je — un chirurgien de l’armée, avec une jambe faible et un compte en banque plus faible encore — pour oser songer à de telles choses ? Elle était une unité, un facteur, rien de plus. Si mon avenir était sombre, mieux valait assurément l’affronter en homme que tenter de l’éclaircir avec de simples feux follets de l’imagination.
+
+### 3. EN QUÊTE D’UNE SOLUTION
+
+Il était plus de cinq heures et demie lorsque Holmes rentra. Il avait l’œil vif, l’allure alerte, et se trouvait dans une excellente disposition — un état d’esprit qui, chez lui, alternait avec des accès de la plus noire mélancolie.
+
+« Il n’y a pas grand mystère dans cette affaire, dit-il en prenant la tasse de thé que je lui avais servie. Les faits ne semblent admettre qu’une seule explication.
+
+— Quoi ! vous l’avez déjà résolue ?
+
+— Oh, ce serait beaucoup dire. J’ai découvert un fait suggestif, voilà tout. Mais il est _très_ suggestif. Il reste à y ajouter les détails. Je viens de trouver, en consultant les anciens numéros du _Times_, que le major Sholto, d’Upper Norwood, ancien du 34e régiment d’infanterie de Bombay, est mort le 28 avril 1882.
+
+— Je suis peut-être bien obtus, Holmes, mais je ne vois pas ce que cela suggère.
+
+— Non ? Vous m’étonnez. Voyez plutôt les choses ainsi : le capitaine Morstan disparaît. La seule personne à Londres qu’il ait pu aller voir, c’est le major Sholto. Le major Sholto nie avoir su qu’il était à Londres. Quatre ans plus tard, Sholto meurt. _Dans la semaine qui suit sa mort_, la fille du capitaine Morstan reçoit un présent de valeur, renouvelé chaque année, et qui aboutit maintenant à une lettre la qualifiant de femme lésée. À quel tort cela peut-il faire allusion, sinon à la perte de son père ? Et pourquoi ces cadeaux commenceraient-ils immédiatement après la mort de Sholto, si ce n’est parce que l’héritier de Sholto sait quelque chose du mystère et désire offrir une compensation ? Avez-vous une théorie alternative qui s’accorde avec les faits ?
+
+— Mais quelle étrange compensation ! Et donnée d’une manière si singulière ! Pourquoi, aussi, écrire une lettre maintenant plutôt qu’il y a six ans ? Et puis, la lettre parle de lui rendre justice. Quelle justice peut-elle obtenir ? Il serait excessif de supposer que son père soit encore en vie. Vous ne connaissez aucune autre injustice dont elle ait à se plaindre.
+
+— Il y a des difficultés, certes, répondit Sherlock Holmes d’un ton songeur. Mais notre expédition de ce soir les résoudra toutes. Ah, voici un fiacre, et mademoiselle Morstan est à l’intérieur. Êtes-vous prêt ? Alors descendons, car l’heure est déjà un peu avancée. »
+
+Je pris mon chapeau et mon bâton le plus solide, mais je remarquai que Holmes sortait son revolver du tiroir et le glissait dans sa poche. Il était clair qu’il pensait que notre besogne nocturne pouvait être sérieuse.
+
+Mademoiselle Morstan était enveloppée d’un manteau sombre ; son visage délicat était calme, mais pâle. Il aurait fallu qu’elle fût plus qu’une femme pour ne pas éprouver quelque inquiétude devant l’étrange entreprise où nous nous engagions ; pourtant, sa maîtrise d’elle-même était parfaite, et elle répondit sans hésiter aux quelques questions supplémentaires que Sherlock Holmes lui posa.
+
+« Le major Sholto était un ami très intime de papa, dit-elle. Ses lettres étaient pleines d’allusions au major. Lui et papa commandaient les troupes aux îles Andaman, ils se voyaient donc très souvent. À propos, on a trouvé dans le bureau de papa un papier curieux que personne n’a su comprendre. Je ne suppose pas que cela ait la moindre importance, mais je me suis dit que vous voudriez peut-être le voir, alors je l’ai apporté. Il est ici. »
+
+Holmes déplia le papier avec précaution et l’aplatit sur ses genoux. Puis, très méthodiquement, il l’examina dans tous les sens avec sa loupe double.
+
+« C’est du papier de fabrication indienne, remarqua-t-il. Il a été, à un moment donné, épinglé sur une planche. Le dessin semble être le plan d’une partie d’un vaste bâtiment, avec de nombreuses salles, couloirs et passages. En un point, on voit une petite croix à l’encre rouge, et au-dessus : “3,37 depuis la gauche”, au crayon, mais l’écriture est pâlie. Dans l’angle gauche, il y a un hiéroglyphe curieux, comme quatre croix alignées dont les branches se touchent. À côté est écrit, en caractères très grossiers et maladroits : “Le signe des quatre — Jonathan Small, Mahomet Singh, Abdullah Khan, Dost Akbar.” Non, j’avoue que je ne vois pas en quoi cela se rapporte à l’affaire. Pourtant, c’est manifestement un document important. Il a été conservé avec soin dans un portefeuille, car une face est aussi propre que l’autre.
+
+— C’est dans son portefeuille qu’on l’a trouvé.
+
+— Conservez-le soigneusement, alors, mademoiselle Morstan, car il pourrait nous être utile. Je commence à soupçonner que cette affaire pourrait se révéler bien plus profonde et plus subtile que je ne l’avais d’abord supposé. Je dois revoir mes idées. »
+
+3. EN QUÊTE D’UNE SOLUTION
+
+Il se renversa dans le fiacre, et je vis, à son front plissé et à son regard absent, qu’il réfléchissait intensément. Mademoiselle Morstan et moi parlions à voix basse de notre expédition lorsque :
+
+— Êtes-vous les personnes qui accompagnent miss Morstan ? demanda-t-il.
+
+— Je suis miss Morstan, et ces deux messieurs sont mes amis, répondit-elle.
+
+Il posa sur nous une paire d’yeux d’une pénétration et d’une acuité remarquables.
+
+— Vous m’excuserez, mademoiselle, dit-il d’un ton buté, mais on m’a chargé de vous demander votre parole qu’aucun de vos compagnons n’est un agent de police.
+
+— Je vous en donne ma parole, répondit-elle.
+
+Il lança un sifflement aigu ; à ce signal, un gamin des rues amena un fiacre à quatre roues et en ouvrit la portière. L’homme qui nous avait abordés grimpa sur le siège, tandis que nous prenions place à l’intérieur. À peine étions-nous installés que le cocher cingla son cheval, et nous voilà partis à une allure furieuse à travers les rues noyées de brouillard.
+
+La situation avait de quoi surprendre. Nous roulions vers un lieu inconnu, pour une affaire inconnue. Et pourtant, notre invitation était soit une mystification complète — hypothèse inconcevable —, soit nous avions de bonnes raisons de croire que des enjeux importants pouvaient dépendre de ce trajet. L’attitude de miss Morstan demeurait aussi résolue et maîtresse d’elle-même que toujours. Je m’efforçai de la distraire et de l’égayer en évoquant mes aventures d’Afghanistan ; mais, à dire vrai, j’étais moi-même si surexcité par notre situation, et si curieux de notre destination, que mes récits s’embrouillaient quelque peu. Aujourd’hui encore, elle soutient que je lui ai servi une anecdote poignante où un mousquet regardait dans ma tente au beau milieu de la nuit, et où je lui tirais dessus avec un tigreau à deux canons. D’abord, je crus avoir une idée de la direction que nous prenions ; mais bientôt, entre notre vitesse, le brouillard et ma connaissance limitée de Londres, je perdis tout repère et ne sus plus rien, sinon que nous semblions aller très loin. Sherlock Holmes, lui, ne se trompait jamais ; il marmonnait les noms à mesure que le fiacre cahotait à travers les squares, puis s’engageait et se dégageait de ruelles tortueuses.
+
+— Rochester Row, dit-il. Maintenant Vincent Square. Nous débouchons sur Vauxhall Bridge Road. Nous nous dirigeons vers la rive du Surrey, apparemment. Oui, je m’en doutais. Nous sommes sur le pont, à présent. On peut entrevoir le fleuve.
+
+De fait, nous eûmes un aperçu fugitif d’un tronçon de la Tamise, les réverbères faisant luire leur clarté sur l’eau large et silencieuse ; mais notre fiacre filait toujours et se trouva bientôt pris dans un dédale de rues de l’autre côté.
+
+— Wordsworth Road, dit mon compagnon. Priory Road. Lark Hall Lane. Stockwell Place. Robert Street. Cold Harbor Lane. Notre quête ne semble pas nous mener dans des quartiers très à la mode.
+
+Nous étions, en effet, parvenus dans un voisinage douteux et peu engageant. De longues rangées de maisons en brique, ternes, n’étaient égayées que par l’éclat grossier et la brillante vulgarité des débits de boisson aux angles des rues. Puis vinrent des alignements de villas à deux étages, chacune précédée d’un minuscule jardinet ; puis, de nouveau, d’interminables files de bâtiments neufs en brique, raides et criards — les tentacules monstrueux que la ville géante lançait vers la campagne. Enfin, le fiacre s’arrêta devant la troisième maison d’une terrasse récente. Aucune des autres n’était habitée, et celle où nous stoppâmes était aussi sombre que ses voisines, à l’exception d’une faible lueur à la fenêtre de la cuisine. À notre coup frappé, pourtant, la porte s’ouvrit aussitôt, tirée par un domestique hindou coiffé d’un turban jaune, vêtu de larges habits blancs et ceint d’une écharpe jaune. Il y avait quelque chose d’étrangement incongru dans cette silhouette orientale encadrée par l’entrée banale d’une médiocre maison de banlieue.
+
+— Le sahib vous attend, dit-il ; et, tandis qu’il parlait, une voix aiguë et flûtée s’éleva d’une pièce intérieure.
+
+— Faites-les entrer, khitmutgar ! cria-t-elle. Faites-les entrer tout de suite !
+
+4. L’HISTOIRE DE L’HOMME CHAUVE
+
+### 4 — L’HISTOIRE DE L’HOMME CHAUVE
+
+Nous suivîmes l’Indien le long d’un couloir sordide et banal, mal éclairé et plus mal meublé encore, jusqu’à ce qu’il s’arrêtât devant une porte à droite, qu’il ouvrit d’un coup. Une flambée de lumière jaune jaillit vers nous et, au cœur de cet éblouissement, se tenait un petit homme à la tête très haute, cerclée tout autour d’une brosse de cheveux roux, d’où surgissait un crâne chauve et luisant, pareil à un pic de montagne émergeant d’une forêt de sapins. Il se tordait les mains l’une contre l’autre, et ses traits étaient agités d’un tic perpétuel, tantôt souriant, tantôt se renfrognant, sans jamais, une seconde, trouver le repos. La nature lui avait donné une lèvre pendante et une rangée trop visible de dents jaunes et irrégulières, qu’il s’efforçait maladroitement de dissimuler en passant sans cesse la main sur le bas de son visage. Malgré cette calvitie ostentatoire, il donnait une impression de jeunesse. En réalité, il venait d’avoir trente ans.
+
+— À votre service, miss Morstan, répétait-il d’une voix fine et perchée. À votre service, messieurs. Je vous en prie, entrez dans mon petit sanctuaire. C’est exigu, miss, mais meublé selon mon goût. Une oasis d’art dans le désert hurlant du sud de Londres.
+
+Nous fûmes tous stupéfaits de l’aspect de la pièce où il nous invitait. Dans cette maison misérable, elle paraissait aussi déplacée qu’un diamant de la plus belle eau serti dans du laiton. Les rideaux et tapisseries les plus riches et les plus lustrés drapaient les murs, relevés çà et là pour laisser voir un tableau somptueusement encadré ou un vase oriental. Le tapis, ambré et noir, était si doux et si épais que le pied s’y enfonçait agréablement, comme dans un lit de mousse. Deux grandes peaux de tigre jetées en travers accentuaient encore l’impression de luxe oriental, tout comme un énorme narguilé posé sur un tapis dans un coin. Une lampe en forme de colombe d’argent pendait au centre de la pièce, suspendue à un fil d’or presque invisible. En brûlant, elle répandait dans l’air un parfum subtil et aromatique.
+
+— Monsieur Thaddeus Sholto, dit le petit homme, toujours secoué de tics et de sourires. C’est mon nom. Vous êtes miss Morstan, bien entendu. Et ces messieurs…
+
+— Voici monsieur Sherlock Holmes, et voici le docteur Watson.
+
+— Un docteur, hein ? s’écria-t-il, tout excité. Avez-vous votre stéthoscope ? Puis-je vous demander… auriez-vous l’obligeance ? J’ai de graves doutes au sujet de ma valve mitrale, si vous vouliez bien. Pour l’aortique, je puis m’y fier, mais j’aimerais beaucoup votre avis sur la mitrale.
+
+J’écoutai son cœur, comme il me le demandait, mais je ne pus rien y trouver d’anormal — sinon qu’il était en proie à une véritable extase de peur, car il tremblait de la tête aux pieds.
+
+— Cela me paraît normal, dis-je. Vous n’avez aucune raison de vous inquiéter.
+
+— Vous excuserez mon anxiété, miss Morstan, reprit-il avec légèreté. Je suis un grand souffrant, et j’ai longtemps nourri des soupçons sur cette valve. Je suis ravi d’apprendre qu’ils étaient sans fondement. Si votre père, miss Morstan, s’était abstenu d’imposer un effort à son cœur, il serait peut-être encore en vie.
+
+J’aurais pu frapper cet homme au visage, tant cette allusion désinvolte et dure à une question si délicate me mit hors de moi. Miss Morstan s’assit, et son visage devint blanc jusqu’aux lèvres.
+
+— Au fond de moi, je savais qu’il était mort, dit-elle.
+
+— Je puis vous donner tous les renseignements, dit-il, et, mieux encore, je puis vous rendre justice ; et je le ferai, quoi qu’en dise mon frère Bartholomew. Je suis si heureux d’avoir vos amis ici, non seulement pour vous escorter, mais aussi comme témoins de ce que je m’apprête à faire et à dire. À nous trois, nous pourrons tenir tête à mon frère Bartholomew. Mais pas d’étrangers — ni police, ni fonctionnaires. Nous pouvons régler tout cela entre nous, de façon satisfaisante, sans aucune intervention. Rien n’irriterait davantage mon frère Bartholomew qu’une quelconque publicité.
+
+Il s’assit sur une banquette basse et nous cligna des yeux d’un air interrogateur, de ses yeux bleus faibles et délavés.
+
+— Pour ma part, dit Holmes, quoi que vous choisissiez de dire ne sortira pas d’ici.
+
+Je hochai la tête pour marquer mon accord.
+
+— Très bien ! Très bien ! dit-il. Puis-je vous offrir un verre de chianti, miss Morstan ? Ou de tokay ? Je ne garde pas d’autres vins. Dois-je ouvrir une bouteille ? Non ? Eh bien, j’espère alors que la fumée de tabac ne vous incommode pas — la douce ode…
+
+« Si nous devons aller à Norwood, il vaudrait peut-être mieux partir tout de suite », hasardai-je.
+
+Il se mit à rire si fort que ses oreilles en devinrent toutes rouges. « Ce serait difficilement possible, s’écria-t-il. Je ne sais pas ce qu’il dirait si je vous amenais ainsi à l’improviste. Non, il faut d’abord vous mettre au fait en vous montrant comment nous sommes tous liés les uns aux autres. D’abord, je dois vous dire qu’il y a dans cette histoire plusieurs points que j’ignore moi-même. Je ne puis que vous exposer les faits tels que je les connais.
+
+« Mon père était, comme vous l’avez sans doute deviné, le major John Sholto, autrefois de l’armée des Indes. Il prit sa retraite il y a environ onze ans et vint s’installer à Pondicherry Lodge, à Upper Norwood. Il avait fait fortune en Inde et rapporté avec lui une somme considérable, une vaste collection de curiosités précieuses, ainsi qu’un personnel de domestiques indigènes. Avec ces avantages, il s’acheta une maison et vécut dans un grand luxe. Mon frère jumeau Bartholomew et moi étions ses seuls enfants.
+
+« Je me souviens très bien de l’émoi causé par la disparition du capitaine Morstan. Nous en lûmes les détails dans les journaux et, sachant qu’il avait été l’ami de notre père, nous en parlâmes librement devant lui. Il se joignait à nos suppositions sur ce qui avait pu arriver. Pas un instant nous ne soupçonnâmes qu’il portait en lui tout le secret — que, de tous les hommes, il était le seul à connaître le sort d’Arthur Morstan.
+
+« Nous savions pourtant qu’un mystère — un danger réel — planait sur notre père. Il redoutait beaucoup de sortir seul et employait toujours deux boxeurs professionnels comme portiers à Pondicherry Lodge. Williams, qui vous a conduit ce soir, était l’un d’eux. Il avait été champion d’Angleterre des poids légers. Mon père ne nous disait jamais ce qu’il craignait, mais il avait une aversion très marquée pour les hommes à jambe de bois. Une fois, il a même tiré au revolver sur un homme à jambe de bois, qui se révéla n’être qu’un paisible commerçant venu démarcher des commandes. Il nous fallut payer une forte somme pour étouffer l’affaire. Mon frère et moi pensions que ce n’était qu’une lubie de mon père, mais les événements nous ont depuis conduits à changer d’avis.
+
+« Au début de 1882, mon père reçut d’Inde une lettre qui le bouleversa. Il faillit s’évanouir à la table du petit déjeuner en l’ouvrant et, dès ce jour-là, il déclina jusqu’à sa mort. Ce que contenait la lettre, nous ne l’avons jamais découvert, mais je vis, à la façon dont il la tenait, qu’elle était courte et écrite d’une main maladroite. Il souffrait depuis des années d’une rate hypertrophiée, mais son état s’aggrava alors très rapidement et, vers la fin d’avril, on nous apprit qu’il n’y avait plus aucun espoir et qu’il désirait nous faire une dernière communication.
+
+« Lorsque nous entrâmes dans sa chambre, il était calé par des oreillers et respirait péniblement. Il nous supplia de verrouiller la porte et de nous placer de part et d’autre du lit. Puis, nous saisissant les mains, il nous fit une déclaration extraordinaire, d’une voix brisée autant par l’émotion que par la douleur. Je vais essayer de vous la rapporter avec ses propres mots.
+
+
+« Je n’ai qu’une chose, dit-il, qui pèse sur mon esprit en cet instant suprême. C’est ma conduite envers l’orpheline du pauvre Morstan. La maudite cupidité, qui a été mon péché dominant toute ma vie, lui a refusé le trésor dont la moitié au moins aurait dû lui revenir. Et pourtant, je n’en ai pas fait usage moi-même — tant l’avarice est aveugle et stupide. Le simple sentiment de posséder m’a été si cher que je n’ai pas supporté de le partager avec un autre. Voyez ce diadème trempé de perles, près du flacon de quinine. Même celui-là, je n’ai pas eu le courage de m’en défaire, bien que je l’eusse sorti avec l’intention de le lui envoyer. Vous, mes fils, vous lui donnerez une part équitable du trésor d’Agra. Mais ne lui envoyez rien — pas même le diadème — tant que je ne serai pas parti. Après tout, des hommes ont fait pire et s’en sont remis.
+
+« Je vais vous dire comment Morstan est mort, poursuivit-il. Il souffrait depuis des années du cœur, mais il le cachait à tout le monde. Moi seul le savais. En Inde, lui et moi, par une chaîne de circonstances singulières, sommes entrés en possession d’un trésor considérable. Je l’ai rapporté en Angleterre et, le soir de l’arrivée de Morstan, il est venu directement ici réclamer sa part. Il est venu à pied depuis la gare et a été introduit par mon fidèle vieux Lal Chowdar, qui est mort aujourd’hui. Morstan et moi n’étions pas d’accord sur le partage du trésor, et nous en sommes venus...
+
+« À cet instant, une transformation horrible passa sur son visage ; ses yeux s’écarquillèrent d’une façon affolée, sa mâchoire s’affaissa, et il hurla, d’une voix que je n’oublierai jamais : “Empêchez-le d’entrer ! Au nom du Christ, empêchez-le d’entrer !” Nous nous retournâmes tous deux vers la fenêtre derrière nous, sur laquelle son regard était fixé. Un visage nous observait depuis l’obscurité. On distinguait le nez qui blanchissait, écrasé contre la vitre. C’était une face barbue, hirsute, avec des yeux sauvages et cruels, et une expression de malveillance concentrée. Mon frère et moi nous précipitâmes vers la fenêtre, mais l’homme avait disparu. Quand nous revînmes vers mon père, sa tête était retombée et son pouls avait cessé de battre.
+
+« Cette nuit-là, nous fouillâmes le jardin, mais ne trouvâmes aucune trace de l’intrus, sinon, juste sous la fenêtre, une seule empreinte de pas visible dans le parterre. Sans cet indice unique, nous aurions pu croire que notre imagination avait fait surgir ce visage farouche et féroce. Nous eûmes bientôt, pourtant, une autre preuve, plus frappante encore, que des forces secrètes agissaient tout autour de nous. Le matin, on trouva la fenêtre de la chambre de mon père ouverte ; ses placards et ses coffres avaient été fouillés, et, sur sa poitrine, on avait fixé un morceau de papier déchiré, où l’on avait griffonné ces mots : “Le signe des quatre”. Ce que signifiait cette phrase, ou qui pouvait être notre visiteur clandestin, nous ne l’avons jamais su. À en juger par ce que nous avons pu constater, aucun bien de mon père n’avait réellement été volé, bien que tout eût été retourné. Mon frère et moi avons naturellement rapproché cet incident singulier de la peur qui avait hanté mon père toute sa vie ; mais, pour nous, cela demeure un mystère complet. »
+
+Le petit homme s’interrompit pour rallumer son narguilé et fuma pensivement quelques instants. Nous étions tous restés là, captivés, à écouter son récit extraordinaire. Au bref récit de la mort de son père, Mlle Morstan était devenue livide, et, un moment, je craignis qu’elle ne s’évanouît. Elle se ressaisit toutefois après avoir bu un verre d’eau que je lui versai discrètement d’une carafe vénitienne posée sur la table d’appoint. Sherlock Holmes s’était renversé dans son fauteuil, l’air absent, les paupières abaissées sur ses yeux étincelants. En le regardant, je ne pus m’empêcher de penser qu’il s’était plaint, ce jour même, avec amertume, de la banalité de l’existence. Ici, du moins, se trouvait un problème qui mettrait sa sagacité à l’épreuve jusqu’à ses limites. M. Thaddeus Sholto promena sur nous un regard où perçait une fierté évidente devant l’effet produit par son histoire, puis il reprit, entre deux bouffées de sa pipe démesurée.
+
+« Mon frère et moi, dit-il, étions, comme vous pouvez l’imaginer, fort excités à l’idée du trésor dont mon père avait parlé. Des semaines, des mois durant, nous avons creusé et fouillé dans chaque recoin du jardin, sans découvrir où il se trouvait. C’était à rendre fou de penser que la cachette était sur le bout de ses lèvres au moment même où il est mort. Nous pouvions mesurer l’éclat des richesses perdues au collier qu’il avait sorti. À propos de ce collier, mon frère Bartholomew et moi avons eu une petite discussion. Les perles étaient manifestement de grande valeur, et il répugnait à s’en défaire, car, entre nous soit dit, mon frère avait lui-même une légère tendance au défaut de mon père. Il pensait aussi que, si nous nous séparions du collier, cela pourrait faire jaser et, à la fin, nous attirer des ennuis. J’eus toutes les peines du monde à le persuader de me laisser retrouver l’adresse de Mlle Morstan et de lui envoyer, à intervalles réguliers, une perle détachée, afin qu’au moins elle ne se sente jamais dans le besoin. »
+
+« C’était une attention délicate, dit notre compagne avec chaleur. C’était vraiment très bon de votre part. »
+
+Le petit homme fit un geste de la main, comme pour écarter le compliment.
+
+« Nous étions vos dépositaires, dit-il. C’est ainsi que je voyais les choses, même si mon frère Bartholomew ne parvenait pas tout à fait à les considérer sous cet angle. Nous avions nous-mêmes assez d’argent. Je n’en désirais pas davantage. Et puis, cela aurait été d’un goût si déplorable de traiter une jeune dame d’une manière aussi infâme. “Le mauvais goût mène au crime.” Les Français ont une façon très heureuse de dire ces choses. Notre divergence d’opinion sur ce point alla si loin que je jugeai préférable de prendre un logement pour moi : je quittai donc Pondicherry Lodge, emmenant avec moi le vieux khitmutgar et Williams. Hier, toutefois, j’appris qu’un événement d’une importance extrême s’était produit. Le trésor avait été découvert. J’ai aussitôt prévenu Mlle... »
+
+À l’évocation de cette somme gigantesque, nous nous dévisageâmes tous, les yeux écarquillés. Miss Morstan, si nous parvenions à faire valoir ses droits, passerait du rang de gouvernante sans le sou à celui de plus riche héritière d’Angleterre. À un ami loyal, il convenait de se réjouir d’une telle nouvelle ; pourtant, j’ai honte de l’avouer, l’égoïsme me saisit jusqu’au fond de l’âme, et mon cœur s’alourdit en moi comme du plomb. Je balbutiai quelques mots de félicitations, hésitants et maladroits, puis je m’assis, abattu, la tête penchée, sourd au bavardage de notre nouvelle connaissance.
+
+Il était manifestement un hypocondriaque invétéré, et j’avais confusément conscience, comme dans un rêve, qu’il déversait d’interminables chapelets de symptômes, tout en réclamant des renseignements sur la composition et l’action d’innombrables remèdes de charlatans, dont il portait certains sur lui, dans un étui de cuir au fond de sa poche. J’espère qu’il ne se souviendra d’aucune des réponses que je lui donnai ce soir-là. Holmes affirme qu’il m’a entendu le mettre en garde contre le grand danger qu’il y aurait à prendre plus de deux gouttes d’huile de ricin, tandis que je recommandais la strychnine à fortes doses comme sédatif. Quoi qu’il en soit, je fus assurément soulagé lorsque notre fiacre s’arrêta d’un coup sec et que le cocher sauta à terre pour ouvrir la portière.
+
+— Voici, Miss Morstan, Pondicherry Lodge, dit M. Thaddeus Sholto en l’aidant à descendre.
+
+5. LA TRAGÉDIE DE PONDICHERRY LODGE
+
+Il était près de onze heures lorsque nous atteignîmes la dernière étape de nos aventures nocturnes. Nous avions laissé derrière nous la brume humide de la grande ville, et la nuit se montrait plutôt clémente. Un vent tiède soufflait de l’ouest, et de lourds nuages glissaient lentement dans le ciel, où une demi-lune apparaissait par instants à travers les déchirures. On y voyait assez clair pour distinguer les choses à quelque distance, mais Thaddeus Sholto décrocha l’une des lanternes latérales de la voiture afin d’éclairer davantage notre chemin.
+
+Pondicherry Lodge se dressait au milieu de son parc, ceint d’un très haut mur de pierre surmonté de tessons de verre. Une seule porte étroite, bardée de fer, en constituait l’unique accès. Notre guide y frappa d’un coup particulier, un tac-tac sec de facteur.
+
+— Qui va là ? lança d’une voix bourrue quelqu’un de l’intérieur.
+
+— C’est moi, McMurdo. Vous devriez reconnaître mon coup, à présent.
+
+On entendit un grognement, puis le cliquetis et le grincement de clés. La porte s’ouvrit lourdement, et un homme petit, à la poitrine large, apparut dans l’embrasure, le visage saillant éclairé par la lueur jaune de la lanterne, ses yeux méfiants brillant d’un éclat vif.
+
+— C’est vous, monsieur Thaddeus ? Mais qui sont les autres ? Le maître ne m’a donné aucun ordre à leur sujet.
+
+— Non, McMurdo ? Vous m’étonnez ! J’ai dit à mon frère, hier soir, que j’amènerais des amis.
+
+— Il n’est pas sorti de sa chambre aujourd’hui, monsieur Thaddeus, et je n’ai reçu aucun ordre. Vous savez bien que je dois m’en tenir au règlement. Je peux vous laisser entrer, mais vos amis doivent rester où ils sont.
+
+C’était un obstacle inattendu. Thaddeus Sholto regarda autour de lui, désemparé et perplexe.
+
+— C’est vraiment odieux de votre part, McMurdo ! dit-il. Si je me porte garant pour eux, cela devrait vous suffire. Il y a aussi cette jeune dame. Elle ne peut pas attendre sur la route à une heure pareille.
+
+— Je suis bien désolé, monsieur Thaddeus, répondit le portier, inflexible. Des gens peuvent être vos amis sans être ceux du maître. Il me paie bien pour faire mon devoir, et mon devoir, je le ferai. Je ne connais pas vos amis.
+
+— Oh, si, vous les connaissez, McMurdo, s’écria Sherlock Holmes avec bonhomie. Je ne crois pas que vous m’ayez oublié. Vous souvenez-vous de l’amateur qui a fait trois reprises avec vous chez Alison, le soir de votre gala, il y a quatre ans ?
+
+— Monsieur Sherlock Holmes ! rugit le boxeur. Par Dieu, comment ai-je pu vous confondre ? Si, au lieu de rester là si tranquille, vous aviez simplement avancé et m’aviez placé votre coup croisé sous la mâchoire, je vous aurais reconnu sans l’ombre d’un doute. Ah, vous en avez gâché, des dons, vous ! Vous auriez pu viser haut, si vous aviez rejoint le milieu.
+
+— Vous voyez, Watson, si tout le reste me manque, il me restera encore une des professions scientifiques ouvertes, dit Holmes en riant. Notre ami ne nous laissera pas dehors dans le froid, j’en suis sûr.
+
+— Entrez, monsieur, entrez — vous et vos amis, répondit-il. Je suis bien désolé, monsieur Thaddeus, mais les ordres sont très stricts. Il fallait que je sois certain de vos amis avant de les laisser passer.
+
+À l’intérieur, une allée de gravier serpentait à travers un terrain désolé jusqu’à une masse de maison énorme, carrée et prosaïque, entièrement plongée dans l’ombre, sauf là où un rayon de lune frappait un angle et miroitait à une fenêtre de mansarde. La taille même du bâtiment, sa noirceur et son silence de mort glaçaient le cœur. Thaddeus Sholto lui-même paraissait mal à l’aise, et la lanterne tremblait et cliquetait dans sa main.
+
+— Je n’y comprends rien, dit-il. Il doit y avoir une erreur. J’ai dit très clairement à Bartholomew que nous viendrions, et pourtant il n’y a aucune lumière à sa fenêtre. Je ne sais qu’en penser.
+
+— Garde-t-il toujours les lieux de cette manière ? demanda Holmes.
+
+— Oui ; il a suivi l’habitude de mon père. C’était le fils préféré, vous savez, et je me demande parfois si mon père ne lui a pas confié davantage qu’à moi. La fenêtre de Bartholomew est là-haut, là où tombe le clair de lune. Elle est bien éclairée, mais il n’y a pas de lumière à l’intérieur, je crois.
+
+— Aucune, dit Holmes. Mais je vois l’éclat d’une lampe à cette petite fenêtre près de la porte.
+
+— Ah, c’est la chambre de la gouvernante. C’est là que se tient la vieille Mrs Bernstone. Elle pourra tout nous dire. Mais peut-être voudriez-vous bien attendre ici une minute ou deux : si nous entrons tous ensemble et qu’elle n’ait pas été prévenue de notre venue, elle pourrait s’effrayer. Mais chut ! qu’est-ce que…
+
+— Et pour la même raison, dit Holmes. Voilà les traces des chasseurs de trésor. Souvenez-vous qu’ils l’ont cherché pendant six ans. Rien d’étonnant à ce que le terrain ressemble à une carrière de gravier.
+
+À cet instant, la porte de la maison vola en éclats et Thaddeus Sholto surgit en courant, les mains tendues devant lui, la terreur dans les yeux.
+
+— Il y a quelque chose qui ne va pas avec Bartholomew ! cria-t-il. J’ai peur ! Mes nerfs ne tiendront pas !
+
+De fait, il sanglotait presque de frayeur, et son visage pâle et tremblant, qui dépassait de l’énorme col d’astrakan, avait l’expression désemparée et suppliante d’un enfant épouvanté.
+
+— Entrez dans la maison, dit Holmes de sa voix brève et ferme.
+
+— Oui, oui, je vous en prie ! implora Thaddeus Sholto. Je ne me sens vraiment pas capable de donner des indications.
+
+Nous le suivîmes tous dans la chambre de la gouvernante, située à gauche du couloir. La vieille femme allait et venait, l’air affolé, les doigts s’agitant sans cesse, mais la vue de miss Morstan sembla l’apaiser.
+
+
+« Que Dieu bénisse votre doux visage si calme ! s’écria-t-elle dans un sanglot hystérique. Cela me fait du bien de vous voir. Oh, comme j’ai été cruellement éprouvée aujourd’hui ! »
+
+Notre compagne lui tapota la main maigre, usée par le travail, et murmura quelques paroles de réconfort, simples et féminines, qui firent revenir un peu de couleur sur ces joues exsangues.
+
+« Le maître s’est enfermé et ne me répond pas, expliqua-t-elle. Toute la journée, j’ai attendu de ses nouvelles, car il aime souvent rester seul ; mais il y a une heure, j’ai craint qu’il ne se passe quelque chose. Alors je suis montée et j’ai regardé par le trou de la serrure. Il faut monter, monsieur Thaddeus — il faut monter et voir par vous-même. J’ai vu monsieur Bartholomew Sholto dans la joie et dans la peine pendant dix longues années, mais jamais je ne l’ai vu avec un visage pareil. »
+
+Sherlock Holmes prit la lampe et ouvrit la marche, car les dents de Thaddeus Sholto claquaient dans sa tête. Il était si secoué que je dus glisser ma main sous son bras en montant l’escalier, tant ses genoux tremblaient. Deux fois, pendant l’ascension, Holmes sortit brusquement sa loupe de sa poche et examina avec soin des marques qui, à mes yeux, n’étaient que des traces informes de poussière sur le paillasson de fibre de coco servant de tapis d’escalier. Il avançait lentement, marche après marche, tenant la lampe et lançant des regards perçants à droite et à gauche. Miss Morstan était restée en bas avec la gouvernante terrifiée.
+
+Le troisième escalier débouchait sur un couloir rectiligne assez long, avec, sur la droite, une grande tapisserie indienne, et, sur la gauche, trois portes. Holmes s’y engagea avec la même lenteur méthodique, tandis que nous restions collés à ses talons, nos longues ombres noires s’étirant derrière nous dans le corridor. La troisième porte était celle que nous cherchions. Holmes frappa sans obtenir de réponse, puis essaya de tourner la poignée et de forcer l’ouverture. Mais la porte était verrouillée de l’intérieur, par un large et solide verrou, comme nous pûmes le constater en plaçant la lampe contre le bois. La clé avait bien été tournée, toutefois le trou de la serrure n’était pas entièrement obturé. Sherlock Holmes s’y pencha et se redressa aussitôt en aspirant vivement son souffle.
+
+« Il y a quelque chose de diabolique là-dedans, Watson, dit-il, plus ému que je ne l’avais jamais vu. Qu’en pensez-vous ? »
+
+Je me penchai à mon tour vers le trou et reculai, saisi d’horreur. Le clair de lune entrait dans la pièce, l’éclairant d’une lueur vague et vacillante. Face à moi, comme suspendu dans l’air — car tout ce qui était en dessous se perdait dans l’ombre — pendait un visage : le visage même de notre compagnon Thaddeus. On y retrouvait le même crâne haut et luisant, la même couronne circulaire de cheveux roux hérissés, la même pâleur exsangue. Mais les traits étaient figés dans un sourire atroce, un rictus fixe et contre nature, qui, dans cette chambre silencieuse et baignée de lune, heurtait les nerfs plus qu’un froncement de sourcils ou qu’une grimace. La ressemblance avec notre petit ami était si frappante que je me retournai vers lui pour m’assurer qu’il se trouvait bien à nos côtés. Alors je me rappelai qu’il nous avait dit que son frère et lui étaient jumeaux.
+
+« C’est affreux ! dis-je à Holmes. Que faire ? »
+
+« Il faut enfoncer la porte », répondit-il ; et, se jetant contre elle, il mit tout son poids sur la serrure. Elle craqua et gémit, mais ne céda pas. Ensemble, nous nous y précipitâmes une seconde fois, et cette fois elle s’ouvrit.
+
+« On dirait une épine, » dis-je.
+
+« C’en est une. Vous pouvez l’enlever. Mais prenez garde : elle est empoisonnée. »
+
+Je la saisis entre le pouce et l’index. Elle se détacha de la peau avec une telle facilité qu’il n’en resta presque aucune trace. Un minuscule point de sang marquait l’endroit de la piqûre.
+
+« Pour moi, tout cela demeure un mystère insoluble, » dis-je. « Plus j’avance, plus cela s’obscurcit au lieu de s’éclaircir. »
+
+« Au contraire, répondit-il, cela s’éclaire à chaque instant. Il ne me manque que quelques chaînons pour obtenir une affaire parfaitement cohérente. »
+
+Nous avions presque oublié la présence de notre compagnon depuis notre entrée dans la pièce. Il se tenait toujours sur le seuil, image même de la terreur, se tordant les mains et gémissant pour lui-même. Soudain, pourtant, il éclata d’un cri aigu, plaintif.
+
+« Le trésor a disparu ! dit-il. On l’a dépouillé du trésor ! Voilà le trou par lequel nous l’avons descendu. Je l’ai aidé à le faire ! J’ai été le dernier à le voir ! Je l’ai laissé ici hier soir, et je l’ai entendu tourner la clé quand je descendais l’escalier. »
+
+« À quelle heure était-ce ? »
+
+« À dix heures. Et maintenant il est mort, on va appeler la police, et l’on me soupçonnera d’y avoir trempé. Oh, oui, j’en suis sûr, on me soupçonnera. Mais vous ne le pensez pas, messieurs ? Vous ne pensez tout de même pas que c’est moi ? Est-ce vraisemblable que je vous aurais amenés ici si c’était moi ? Oh, mon Dieu ! oh, mon Dieu ! Je sais que je vais devenir fou ! » Il secoua les bras et frappa du pied dans une sorte de frénésie convulsive.
+
+« Vous n’avez aucune raison d’avoir peur, monsieur Sholto, » dit Holmes avec bonté, posant la main sur son épaule. « Suivez mon conseil : descendez à la gare pour signaler l’affaire à la police. Proposez-leur votre aide de toutes les façons possibles. Nous attendrons ici jusqu’à votre retour. »
+
+Le petit homme obéit d’un air à demi hébété, et nous l’entendîmes trébucher dans l’obscurité en descendant l’escalier.
+
+6. SHERLOCK HOLMES FAIT UNE DÉMONSTRATION
+
+« À présent, Watson, dit Holmes en se frottant les mains, nous avons une demi-heure devant nous. Profitons-en. Mon affaire est, comme je vous l’ai dit, presque bouclée ; mais gardons-nous de pécher par excès de confiance. Si simple qu’elle paraisse maintenant, il se peut qu’elle recouvre quelque chose de plus profond. »
+
+« Simple ! » m’écriai-je.
+
+« Assurément, répondit-il, avec un petit air de professeur de clinique donnant sa leçon. Asseyez-vous donc dans ce coin, pour que vos empreintes ne viennent pas compliquer les choses. Au travail ! D’abord, comment ces gens sont-ils entrés, et comment sont-ils sortis ? La porte n’a pas été ouverte depuis hier soir. Et la fenêtre ? »
+
+Il porta la lampe jusqu’à celle-ci, marmonnant à voix haute ses observations, mais se parlant à lui-même bien plus qu’à moi.
+
+« Fenêtre verrouillée de l’intérieur. Châssis solide. Pas de gonds sur le côté. Ouvrons-la. Pas de conduite d’eau à proximité. Toit tout à fait hors d’atteinte. Et pourtant, un homme est monté par la fenêtre. Il a un peu plu cette nuit. Voici l’empreinte d’un pied dans la boue, sur l’appui. Et voici une marque circulaire de boue, et encore là sur le plancher, et encore là près de la table. Regardez, Watson ! Voilà une démonstration vraiment fort jolie. »
+
+Je considérai ces disques de boue, ronds et nettement dessinés.
+
+« Ce n’est pas une empreinte de pied, dis-je.
+
+— C’est quelque chose de bien plus précieux pour nous. C’est l’empreinte d’un moignon de bois. Vous voyez : ici, sur l’appui, la trace de la botte — une lourde botte au large talon ferré — et, à côté, la marque de l’orteil de bois.
+
+— C’est l’homme à la jambe de bois.
+
+— Exactement. Mais il y avait quelqu’un d’autre, un allié très capable et très efficace. Pourriez-vous escalader ce mur, docteur ? »
+
+Je regardai par la fenêtre ouverte. La lune éclairait encore vivement cet angle de la maison. Nous étions à bien soixante pieds du sol et, où que je porte les yeux, je ne distinguais aucun point d’appui, pas même une fente dans la brique.
+
+« C’est absolument impossible, répondis-je.
+
+— Sans aide, oui. Mais supposez qu’un ami, ici en haut, vous abaisse cette bonne corde solide que je vois dans le coin, en en fixant une extrémité à ce grand crochet dans le mur. Alors, je pense que, si vous étiez un homme agile, vous pourriez grimper, jambe de bois comprise. Vous repartiriez, bien entendu, de la même manière, et votre allié remonterait la corde, la détacherait du crochet, refermerait la fenêtre, la verrouillerait de l’intérieur, puis s’éclipserait par le chemin qu’il avait pris pour venir. Comme détail secondaire, on peut noter, ajouta-t-il en tâtant la corde, que notre ami à la jambe de bois, s’il grimpe correctement, n’est pas un marin de profession. Ses mains étaient loin d’être calleuses. Ma loupe révèle plus d’une trace de sang, surtout vers l’extrémité de la corde ; j’en conclus qu’il a glissé à une telle vitesse qu’il s’est arraché la peau de la main. »
+
+« Tout cela est fort bien, dis-je, mais l’affaire en devient plus incompréhensible que jamais. Et cet allié mystérieux ? Comment est-il entré dans la chambre ?
+
+— Oui, l’allié ! répéta Holmes, songeur. Cet allié présente des traits intéressants. Il tire l’affaire hors du banal. Il me semble que cet allié ouvre un terrain nouveau dans les annales du crime de ce pays — quoique des cas parallèles me viennent à l’esprit, venus de l’Inde et, si ma mémoire est bonne, de Sénégambie.
+
+— Comment est-il venu, alors ? insistai-je. La porte est verrouillée, la fenêtre est inaccessible. Par la cheminée ?
+
+— L’âtre est bien trop étroit, répondit-il. J’avais déjà envisagé cette possibilité.
+
+— Alors comment ? persistai-je.
+
+— Vous n’appliquez pas mon précepte, dit-il en secouant la tête. Combien de fois vous ai-je dit que, lorsque vous avez éliminé l’impossible, tout ce qui reste, si improbable que ce soit, doit être la vérité ? Nous savons qu’il n’est pas entré par la porte, la fenêtre ni la cheminée. Nous savons aussi qu’il n’a pas pu se cacher dans la pièce, car aucun recoin ne s’y prête. D’où vient-il, alors ?
+
+— Il est venu par le trou dans le toit ! m’écriai-je.
+
+— Bien sûr. Il ne pouvait venir que par là. Si vous voulez bien tenir la lampe, nous allons maintenant étendre nos recherches à la pièce du dessus — la pièce secrète où l’on a trouvé le trésor. »
+
+Il monta les marches et, saisissant une solive de chaque main, se hissa dans le grenier. Puis, allongé sur le ventre, il tendit le bras pour prendre la lampe et la maintint pendant que je le rejoignais.
+
+« Cela vous paraîtra assez clair d’ici peu, dit-il d’un ton détaché. Je ne crois pas qu’il y ait ici autre chose d’important, mais je vais vérifier. »
+
+Il sortit vivement sa loupe et un mètre ruban, puis se mit à parcourir la pièce à genoux, mesurant, comparant, examinant, le long nez fin à quelques pouces des planches, les petits yeux brillants et enfoncés, pareils à ceux d’un oiseau. Ses mouvements étaient si rapides, si silencieux, si furtifs — comme ceux d’un limier dressé qui démêle une piste — que je ne pus m’empêcher de songer quel criminel redoutable il eût fait, s’il avait tourné son énergie et sa sagacité contre la loi, au lieu de les mettre à son service. Tout en fouillant, il marmonnait pour lui-même, et finit par laisser échapper un grand cri de joie.
+
+« Nous avons décidément de la chance, dit-il. Nous ne devrions plus avoir beaucoup de mal, maintenant. Le Numéro Un a eu la malchance de marcher dans la créosote. Vous voyez ici, au bord de cette flaque nauséabonde, le contour de l’extrémité de son petit pied. La bonbonne s’est fêlée, vous comprenez, et le liquide s’est répandu. »
+
+« Et alors ? » demandai-je.
+
+« Alors, nous le tenons, voilà tout, répondit-il. Je connais un chien qui suivrait cette odeur jusqu’au bout du monde. Si une meute peut pister un hareng traîné à travers tout un comté, jusqu’où un chien spécialement dressé peut-il suivre une senteur aussi âcre que celle-ci ? On dirait un problème de règle de trois. La réponse devrait nous donner le… Mais, holà ! voici les représentants accrédités de la loi. »
+
+De lourds pas et le vacarme de voix sonores montaient d’en bas, et la porte du vestibule claqua avec fracas.
+
+« Avant qu’ils n’entrent, dit Holmes, posez simplement la main ici, sur le bras de ce pauvre homme, et là, sur sa jambe. Que sentez-vous ? »
+
+« Les muscles sont durs comme du bois », répondis-je.
+
+« Exactement. Ils sont dans un état de contraction extrême, bien au-delà de la rigidité cadavérique ordinaire. Ajoutez à cela cette distorsion du visage, ce sourire hippocratique — ou *risus sardonicus*, comme disaient les anciens — quelle conclusion cela vous suggère-t-il ? »
+
+« Une mort due à un puissant alcaloïde végétal, répondis-je, une substance du type strychnine, qui provoquerait le tétanos. »
+
+« C’est l’idée qui m’est venue à l’instant même où j’ai vu les muscles du visage tirés ainsi. En entrant dans la pièce, j’ai aussitôt cherché par quel moyen le poison avait pénétré dans l’organisme. Comme vous l’avez vu, j’ai découvert une épine qui avait été enfoncée — ou projetée — sans grande force dans le cuir chevelu. Vous remarquerez que l’endroit touché est précisément celui qui se serait trouvé tourné vers le trou du plafond si l’homme avait été assis bien droit sur sa chaise. Maintenant, examinez l’épine. »
+
+
+Je la pris avec précaution et la tins à la lumière de la lanterne. Elle était longue, aiguë et noire, avec, près de la pointe, un aspect luisant, comme si une substance gommeuse y avait séché. L’extrémité émoussée avait été taillée et arrondie au couteau.
+
+« Est-ce une épine anglaise ? » demanda-t-il.
+
+« Non, certainement pas. »
+
+« Avec toutes ces données, vous devriez pouvoir tirer une conclusion raisonnable. Mais voici les troupes régulières ; les forces auxiliaires peuvent battre en retraite. »
+
+Comme il parlait, des pas se rapprochèrent et résonnèrent bruyamment dans le couloir. Un homme très corpulent, massif, en costume gris, entra lourdement dans la pièce. Il avait le visage rouge, l’air lourd et pléthorique, et une paire de très petits yeux pétillants qui regardaient avec acuité entre des poches gonflées et bouffies. Un inspecteur en uniforme le suivait de près, ainsi que Thaddeus Sholto, encore frémissant.
+
+« Voilà une affaire ! s’écria-t-il d’une voix étouffée et rauque. Une belle affaire ! Mais qui sont tous ces gens ? Ma foi, cette maison est pleine comme un terrier de lapins ! »
+
+« Je pense que vous devez vous souvenir de moi, monsieur Athelney Jones », dit Holmes tranquillement.
+
+« Mais bien sûr que je me souviens ! haleta-t-il. Monsieur Sherlock Holmes, le théoricien. Me souvenir de vous ! Je n’oublierai jamais comment vous nous avez fait la leçon sur les causes, les déductions et les effets dans l’affaire des bijoux de Bishopgate. C’est vrai, vous nous avez mis sur la bonne piste ; mais vous admettrez aujourd’hui que c’était plus par chance que par bon guidage. »
+
+« C’était un raisonnement des plus simples. »
+
+« Allons, allons ! Ne soyez pas honteux de le reconnaître. Mais qu’est-ce que tout cela ? Mauvaise affaire ! Mauvaise affaire ! Ici, des faits brutaux — pas de place pour les théories. Quelle chance que je me sois... »
+
+« Il peut bien trouver quelque chose, fit Holmes en haussant les épaules. Il a parfois de fugitives lueurs de raison. *Il n’y a pas de sots si incommodes que ceux qui ont de l’esprit !* »
+
+« Vous voyez ! » dit Athelney Jones, qui reparut en remontant les marches. « Les faits valent mieux que de simples théories, en fin de compte. Mon point de vue sur l’affaire se trouve confirmé. Il y a une trappe qui communique avec le toit, et elle est entrouverte. »
+
+« C’est moi qui l’ai ouverte. »
+
+« Ah, vraiment ! Vous l’aviez donc remarquée ? » Il eut l’air un peu dépité de cette découverte. « Enfin, qui que ce soit qui l’ait remarquée, cela montre comment notre monsieur s’est échappé. Inspecteur !
+
+— Oui, monsieur », répondit une voix dans le couloir.
+
+« Priez M. Sholto de venir par ici. — M. Sholto, il est de mon devoir de vous informer que tout ce que vous pourrez dire sera retenu contre vous. Je vous arrête au nom de la Reine, comme étant impliqué dans la mort de votre frère. »
+
+« Eh bien, voilà ! Je ne vous l’avais pas dit ? » s’écria le pauvre petit homme, écartant les mains et nous regardant tour à tour.
+
+« Ne vous tourmentez pas, M. Sholto, dit Holmes. Je crois pouvoir m’engager à vous blanchir de cette accusation.
+
+— Ne promettez pas trop, monsieur le Théoricien — ne promettez pas trop ! » répliqua sèchement le détective. « Vous pourriez trouver la chose plus difficile que vous ne le pensez.
+
+— Non seulement je le blanchirai, M. Jones, mais je vous ferai cadeau, sans rien demander, du nom et du signalement de l’un des deux individus qui se trouvaient dans cette pièce la nuit dernière. Il s’appelle, j’ai toutes raisons de le croire, Jonathan Small. C’est un homme peu instruit, petit, vif, amputé de la jambe droite, et portant une jambe de bois dont l’intérieur est usé. Sa botte gauche a une semelle grossière, à bout carré, avec un cercle de fer autour du talon. C’est un homme d’âge mûr, très hâlé, et qui a été forçat. Ces quelques indications pourront vous être utiles, jointes au fait qu’il lui manque une bonne partie de la peau dans la paume de la main. L’autre homme...
+
+— Ah ! l’autre homme ? » demanda Athelney Jones d’un ton narquois, non sans être impressionné pourtant — je le voyais aisément — par la précision de l’autre.
+
+« Est un personnage assez singulier, dit Sherlock Holmes en pivotant sur ses talons. J’espère, d’ici peu, pouvoir vous présenter tous les deux. — Un mot avec vous, Watson. »
+
+Il me conduisit sur le palier, en haut de l’escalier. « Cet incident imprévu, dit-il, nous a fait quelque peu perdre de vue le but premier de notre venue.
+
+— J’y pensais justement, répondis-je. Il n’est pas convenable que miss Morstan demeure dans cette maison frappée par le malheur.
+
+— Non. Vous devez la reconduire chez elle. Elle habite chez Mrs Cecil Forrester, à Lower Camberwell : ce n’est donc pas très loin. Je vous attendrai ici si vous voulez revenir ensuite en voiture. À moins que vous ne soyez trop fatigué ?
+
+— Pas du tout. Je crois que je ne pourrais pas me reposer avant d’en savoir davantage sur cette affaire extravagante. J’ai vu quelque chose du côté rude de la vie, mais je vous donne ma parole que cette succession rapide de surprises étranges, ce soir, m’a complètement ébranlé. J’aimerais pourtant aller jusqu’au bout avec vous, maintenant que je suis allé si loin.
+
+— Votre présence me sera d’un grand secours, répondit-il. Nous mènerons l’enquête de notre côté, et nous laisserons ce Jones se réjouir de quelque chimère qu’il lui plaira d’échafauder. Quand vous aurez déposé miss Morstan, je veux que vous alliez au numéro 3 de Pinchin Lane, tout près de la berge, à Lambeth. La troisième maison sur la droite est celle d’un naturaliste empaillant des oiseaux : il s’appelle Sherman. Vous verrez à la fenêtre une belette tenant un jeune lapin. Réveillez le vieux Sherman et dites-lui, de ma part, que je veux Toby immédiatement. Vous ramènerez Toby avec vous dans le fiacre.
+
+— Un chien, je suppose.
+
+— Oui : un drôle de bâtard, doté d’un flair tout à fait prodigieux. J’aimerais mieux l’aide de Toby que celle de toute la police de Londres.
+
+— Je vous l’amènerai, alors, dis-je. Il est une heure maintenant. Je devrais être de retour avant trois, si je peux trouver un cheval frais.
+
+— Et moi, dit Holmes, je verrai ce que je peux apprendre de Mrs Bernstone et du domestique indien qui, d’après M. Thaddeus, dort dans le grenier voisin. Ensuite, j’étudierai les méthodes du grand Jones et j’écouterai ses sarcasmes pas toujours délicats. “*Wir sind gewohnt, dass die Menschen verhöhnen, was sie nicht verstehen.*” Goethe a toujours le mot juste. »
+
+### 7 — L’ÉPISODE DU TONNEAU
+
+La police avait amené un fiacre, et c’est dans ce véhicule que je reconduisis miss Morstan jusqu’à son domicile. Avec cette manière angélique propre aux femmes, elle avait supporté l’épreuve d’un visage calme tant qu’elle avait plus faible qu’elle à soutenir, et je l’avais trouvée vive et sereine auprès de la gouvernante épouvantée. Dans le fiacre, pourtant, elle chancela d’abord, puis éclata en sanglots convulsifs, tant les aventures de la nuit l’avaient cruellement éprouvée. Elle m’a dit depuis qu’elle m’avait trouvé froid et distant durant ce trajet. Elle se doutait si peu de la lutte qui se livrait en moi, et de l’effort de maîtrise qui me retenait. Toute ma sympathie, tout mon amour allaient vers elle, comme ma main l’avait fait dans le jardin. Je sentais que des années de conventions mondaines ne m’auraient pas appris à connaître sa nature douce et courageuse autant que cette seule journée d’expériences étranges. Et pourtant, deux pensées scellèrent sur mes lèvres les mots d’affection. Elle était faible et démunie, l’esprit et les nerfs ébranlés. C’eût été profiter de son désarroi que de lui imposer mon amour à un pareil moment. Pis encore, elle était riche. Si les recherches de Holmes aboutissaient, elle deviendrait héritière. Était-il juste, était-il honorable, qu’un chirurgien à demi-solde tirât avantage d’une intimité née du hasard ? Ne risquait-elle pas de me prendre pour un vulgaire chasseur de fortune ? Je ne pouvais supporter l’idée qu’une telle pensée pût traverser son esprit. Ce trésor d’Agra s’interposait entre nous comme une barrière infranchissable.
+
+Il était près de deux heures lorsque nous arrivâmes chez Mrs Cecil Forrester. Les domestiques s’étaient retirés depuis longtemps, mais Mrs Forrester, si vivement intéressée par l’étrange message reçu par miss Morstan, était restée levée dans l’espoir de son retour. Elle ouvrit elle-même la porte : une femme d’âge mûr, élégante ; et ce fut pour moi une joie de voir avec quelle tendresse son bras se glissa autour de la taille de l’autre, et combien était maternelle la voix dont elle l’accueillit. Ce n’était manifestement pas une simple dépendante rémunérée, mais une amie respectée. On me présenta, et Mrs Forrester me pria avec instance d’entrer pour lui raconter nos aventures. J’expliquai toutefois l’importance de ma mission, et promis fidèlement de revenir lui rendre compte des progrès que nous pourrions faire dans cette affaire. Tandis que nous repartions, je jetai un regard en arrière, et il me semble encore voir ce petit groupe sur le seuil : les deux silhouettes gracieuses, serrées l’une contre l’autre, la porte entrouverte, la lumière du vestibule filtrant à travers le vitrail, le baromètre et les tringles d’escalier brillantes. Il était apaisant de saisir, ne fût-ce qu’un instant, cet aperçu d’un paisible foyer anglais au milieu de la besogne sauvage et sombre qui nous avait absorbés.
+
+Et plus je repensais à ce qui s’était passé, plus tout me paraissait sauvage et sombre. Je revis toute l’extraordinaire suite d’événements tandis que je cahotais à travers les rues silencieuses, éclairées au gaz. Il y avait le problème initial : celui-là, du moins, était désormais assez clair. La mort du capitaine Morstan, l’envoi des perles, l’annonce, la lettre — nous avions éclairci tous ces points. Ils ne nous avaient conduits, cependant, qu’à un mystère plus profond et infiniment plus tragique. Le trésor indien, le curieux plan trouvé parmi les bagages de Morstan, l’étrange scène au moment de la mort du major Sholto, la redécouverte du trésor aussitôt suivie du meurtre de celui qui l’avait découvert, les accompagnements si singuliers du crime — les empreintes de pas, les armes remarquables, les mots inscrits sur la carte, correspondant à ceux du croquis du capitaine Morstan — voilà bien un labyrinthe où un homme moins singulièrement doué que mon compagnon de logement aurait pu désespérer de jamais trouver le fil.
+
+Pinchin Lane était une rangée de maisons de brique décrépites, à deux étages, dans un quartier bas de Lambeth. Je dus frapper un bon moment à la porte du numéro 3 avant d’obtenir une réponse. Enfin, pourtant, une lueur de bougie apparut derrière le store, et un visage se montra à la fenêtre du haut.
+
+— Déguerpis, ivrogne de vagabond, dit le visage. Si tu fais encore du tapage, j’ouvre les chenils et je lâche quarante-trois chiens sur toi.
+
+— Si vous en lâchez un, c’est précisément pour cela que je suis venu, répondis-je.
+
+— Va-t’en ! hurla la voix. Que le bon Dieu m’assiste, j’ai une savate dans le sac, et je te la laisse tomber sur le crâne si tu ne files pas.
+
+— Mais je veux un chien ! criai-je.
+
+— Je ne discute pas ! vociféra M. Sherman. Maintenant, écarte-toi, parce que quand je dirai « trois », la sav...
+
+Holmes se tenait sur le seuil, les mains dans les poches, en train de fumer sa pipe.
+
+— Ah, vous l’avez avec vous ! dit-il. Bon chien, alors ! Athelney Jones est parti. Nous avons déployé une énergie prodigieuse depuis votre départ. Il a arrêté non seulement notre ami Thaddeus, mais aussi le portier, la gouvernante et le domestique indien. Nous avons la maison pour nous, à part un sergent à l’étage. Laissez le chien ici et montez.
+
+Nous attachâmes Toby à la table du vestibule et remontâmes l’escalier. La pièce était telle qu’il l’avait laissée, sauf qu’un drap avait été jeté sur la silhouette au centre. Un sergent de police à l’air harassé était affalé dans un coin.
+
+— Prêtez-moi votre lanterne à lentille, sergent, dit mon compagnon. Maintenant, attachez ce morceau de carton autour de mon cou, de façon qu’il pende devant moi. Merci. Et à présent, je dois enlever mes bottes et mes chaussettes. — Emportez-les en bas avec vous, Watson. Je vais faire un peu d’escalade. Et trempez mon mouchoir dans la créosote. Voilà, c’est bien. Maintenant, montez un instant au grenier avec moi.
+
+Nous nous hissâmes par l’ouverture. Holmes dirigea de nouveau sa lumière sur les traces de pas dans la poussière.
+
+— Je tiens particulièrement à ce que vous remarquiez ces empreintes, dit-il. Observez-vous quelque chose de notable ?
+
+— Elles appartiennent, dis-je, à un enfant ou à une petite femme.
+
+— En dehors de leur taille. Rien d’autre ?
+
+— Elles ressemblent à n’importe quelles empreintes.
+
+— Pas du tout. Regardez ! Voici l’empreinte d’un pied droit dans la poussière. Maintenant, j’en fais une à côté avec mon pied nu. Quelle est la différence principale ?
+
+— Vos orteils sont tous serrés les uns contre les autres. Dans l’autre empreinte, chaque orteil est nettement séparé.
+
+— Exactement. C’est là l’essentiel. Gardez-le en mémoire. À présent, voulez-vous bien aller à cette lucarne et sentir le bord du bois ? Je reste ici, puisque j’ai ce mouchoir à la main.
+
+Je fis ce qu’il me demandait et je fus aussitôt saisi par une forte odeur de goudron.
+
+— C’est là qu’il a posé le pied pour sortir. Si vous pouvez le suivre, je pense que Toby n’aura aucune difficulté. Maintenant, descendez en courant, détachez le chien et cherchez Blondin.
+
+Quand je sortis dans le parc, Sherlock Holmes était sur le toit, et je le voyais, tel un énorme ver luisant, ramper très lentement le long du faîte. Je le perdis derrière un amas de cheminées, mais il reparut bientôt, puis disparut encore de l’autre côté. Lorsque je contournai pour le rejoindre, je le trouvai assis au bord d’un angle de la gouttière.
+
+— C’est vous, Watson ? cria-t-il.
+
+— Oui.
+
+— C’est ici. Qu’est-ce que cette chose noire, là-dessous ?
+
+— Un tonneau d’eau.
+
+— Il est couvert ?
+
+— Oui.
+
+— Aucune trace d’échelle ?
+
+— Non.
+
+— Nom d’un chien ! C’est un endroit à se rompre le cou. Je devrais pouvoir descendre là où il a pu monter. Le tuyau de descente a l’air assez solide. Allons-y, tant pis.
+
+Il y eut un frottement de pieds, et la lanterne commença à descendre régulièrement le long du mur. Puis, d’un léger bond, il atterrit sur le tonneau, et de là sur la terre.
+
+— Il a été facile de le suivre, dit-il en remettant ses chaussettes et ses bottes. Des tuiles étaient descellées tout du long, et, dans sa hâte, il a laissé tomber ceci. Cela confirme mon diagnostic, comme vous dites, vous autres médecins.
+
+L’objet qu’il me montra était une petite poche, ou bourse, tressée d’herbes colorées, avec quelques perles voyantes enfilées tout autour. Par la forme et la taille, elle rappelait un étui à cigarettes. À l’intérieur se trouvaient une demi-douzaine d’épines de bois sombre, pointues à une extrémité et arrondies à l’autre, semblables à celle qui avait frappé Bartholomew Sholto.
+
+— Ce sont des engins infernaux, dit-il. Faites attention à ne pas vous piquer. Je suis ravi de les avoir : il y a de fortes chances que ce soit tout ce qu’il possède. Il y a donc moins à craindre que vous ou moi en retrouvions une sous la peau d’ici peu. Pour ma part, je préférerais affronter une balle de Martini. Vous êtes d’attaque pour une marche de six milles, Watson ?
+
+— Certainement, répondis-je.
+
+— Votre jambe tiendra le coup ?
+
+— Oh oui.
+
+— Te voilà, mon chien ! Brave Toby ! Sens, Toby, sens donc !
+
+Il lui fourra le mouchoir imbibé de créosote sous le nez, tandis que la bête, les pattes duveteuses écartées, inclinait la tête d’un air des plus comiques, comme un connaisseur humant le bouquet d’un grand cru. Holmes lança ensuite le mouchoir au loin, attacha une solide...
+
+— N’allez pas croire, dit Holmes, que je doive ma réussite, dans cette affaire, au simple hasard qui a voulu que l’un de ces gaillards ait mis le pied dans le produit chimique. J’ai désormais des connaissances qui me permettraient de les remonter par bien d’autres voies. Celle-ci, toutefois, est la plus directe, et puisque la fortune l’a placée entre nos mains, je serais coupable de la négliger. Elle a cependant empêché l’affaire de devenir le joli petit problème intellectuel qu’elle promettait un moment d’être. Il y avait là de quoi gagner quelque crédit, sans cet indice trop évident.
+
+7. L’ÉPISODE DU BARIL
+
+— Du crédit, et plus qu’il n’en faut, répondis-je. Je vous assure, Holmes, que je m’émerveille des moyens par lesquels vous obtenez vos résultats dans cette affaire, plus encore que je ne l’avais fait pour le meurtre de Jefferson Hope. Tout cela me paraît plus profond, plus inexplicable. Comment, par exemple, avez-vous pu décrire avec une telle assurance l’homme à la jambe de bois ?
+
+— Bah, mon cher garçon ! c’était d’une simplicité enfantine. Je ne tiens pas à faire du théâtre. Tout est clair, net, au grand jour. Deux officiers chargés d’un détachement de forçats apprennent un secret important au sujet d’un trésor enfoui. Un Anglais nommé Jonathan Small leur dessine une carte. Vous vous rappelez que nous avons vu ce nom sur le plan en possession du capitaine Morstan. Il l’avait signé au nom de lui-même et de ses associés — le « signe des quatre », comme il l’appelait avec une pointe de dramatisation. Grâce à cette carte, les officiers — ou l’un d’eux — s’emparent du trésor et le rapportent en Angleterre, en laissant, supposons-le, inexécutée quelque condition à laquelle ils l’avaient reçu. Or, pourquoi Jonathan Small n’a-t-il pas pris le trésor lui-même ? La réponse saute aux yeux. La carte est datée d’une époque où Morstan se trouvait en étroite relation avec des condamnés. Jonathan Small n’a pas pris le trésor parce que lui et ses associés étaient eux-mêmes des forçats et ne pouvaient s’évader.
+
+— Ce n’est que spéculation, dis-je.
+
+— C’est plus que cela. C’est la seule hypothèse qui embrasse les faits. Voyons si elle s’accorde avec la suite. Le major Sholto demeure tranquille pendant quelques années, heureux dans la possession de son trésor. Puis il reçoit une lettre des Indes qui lui cause une frayeur terrible. Qu’était-ce donc ?
+
+— Une lettre lui annonçant que les hommes qu’il avait lésés avaient été libérés.
+
+— Ou qu’ils s’étaient évadés. C’est bien plus probable, car il aurait su la durée de leur peine. Cela ne l’aurait pas surpris. Que fait-il alors ? Il se protège contre un homme à la jambe de bois — un Blanc, notez bien, puisqu’il prend un commerçant blanc pour lui et va jusqu’à tirer sur lui au pistolet. Or, un seul nom de Blanc figure sur la carte. Les autres sont des Hindous ou des Mahométans. Il n’y a pas d’autre Blanc. Nous pouvons donc affirmer avec confiance que l’homme à la jambe de bois n’est autre que Jonathan Small. Ce raisonnement vous paraît-il défectueux ?
+
+— Non : il est clair et concis.
+
+— Bien. Mettons-nous maintenant à la place de Jonathan Small. Regardons les choses de son point de vue. Il vient en Angleterre avec une double idée : recouvrer ce qu’il considère comme son dû et se venger de l’homme qui l’a lésé. Il découvre où habite Sholto, et il est fort possible qu’il établisse des communications avec quelqu’un à l’intérieur de la maison. Il y a ce majordome, Lal Rao, que nous n’avons pas vu. Mme Bernstone en fait un portrait peu flatteur. Small ne parvient pas, cependant, à savoir où le trésor est caché, car nul ne l’a jamais su, hormis le major et un serviteur fidèle qui est mort. Soudain, Small apprend que le major est à l’agonie. Pris d’une frénésie à l’idée que le secret du trésor puisse mourir avec lui, il brave les sentinelles, se fraie un chemin jusqu’à la fenêtre du mourant, et n’est empêché d’entrer que par la présence des deux fils. Fou de haine contre le mort, pourtant, il pénètre dans la chambre cette nuit-là, fouille les papiers privés dans l’espoir d’y découvrir quelque note relative au trésor, et finit par laisser un souvenir de sa visite sous la forme de la brève inscription sur la carte. Il avait sans doute prévu d’avance que, s’il tuait le major, il laisserait sur le corps une marque de ce genre, signe qu’il ne s’agissait pas d’un meurtre ordinaire, mais, du point de vue des quatre associés, de quelque chose qui tenait de l’acte de justice. Des fantaisies et des bizarreries de cette sorte sont assez fréquentes dans les annales du crime, et fournissent d’ordinaire de précieux indices sur le criminel. Suivez-vous tout cela ?
+
+— Très clairement.
+
+— Maintenant, que pouvait faire Jonathan Small ? Rien d’autre que continuer à surveiller en secret les recherches entreprises pour retrouver le trésor. Peut-être quitte-t-il l’Angleterre et n’y revient-il qu’à intervalles. Puis vient la découverte…
+
+— « L’associé ? »
+
+— « Ah, ma foi, là-dessus il n’y a pas grand mystère. Mais vous saurez tout assez tôt. Comme l’air du matin est doux ! Voyez ce petit nuage qui flotte, telle une plume rose arrachée à quelque flamant gigantesque. Et maintenant, le bord rouge du soleil se hisse au-dessus de la banquette de nuages de Londres. Il éclaire bien du monde, mais sur aucun, j’ose le parier, qui soit engagé dans une course plus étrange que la vôtre et la mienne. Que nous nous sentons petits, avec nos mesquines ambitions et nos efforts, face aux grandes forces élémentaires de la nature ! Êtes-vous ferré sur votre Jean Paul ? »
+
+— « Assez. Je suis remonté jusqu’à lui en passant par Carlyle. »
+
+— « C’était comme suivre le ruisseau jusqu’au lac qui l’a engendré. Il a une remarque curieuse, mais profonde. Selon lui, la preuve principale de la vraie grandeur de l’homme réside dans la conscience qu’il a de sa propre petitesse. Cela suppose, voyez-vous, une faculté de comparaison et d’appréciation qui, en soi, atteste la noblesse. Il y a de quoi nourrir la pensée chez Richter. Vous n’avez pas de pistolet, n’est-ce pas ? »
+
+— « J’ai ma canne. »
+
+— « Il se peut fort bien que nous ayons besoin de quelque chose de ce genre si nous atteignons leur repaire. Jonathan, je vous le laisse ; mais si l’autre fait des siennes, je l’abats net. »
+
+Tout en parlant, il sortit son revolver ; après avoir chargé deux des chambres, il le remit dans la poche droite de sa veste.
+
+Pendant ce temps, nous avions suivi Toby le long de routes à demi champêtres, bordées de villas, qui menaient à la métropole. À présent, toutefois, nous commencions à entrer dans un enchaînement de rues où des ouvriers et des dockers étaient déjà debout, tandis que des femmes en négligé descendaient les volets et balayaient les marches des portes. Aux angles carrés, les débits de boisson commençaient tout juste leur journée, et des hommes à la mine rude en sortaient, se frottant la barbe du revers de la manche après leur « petit verre » du matin. Des chiens errants flânaient jusqu’à nous et nous dévisageaient avec étonnement à notre passage ; mais notre inimitable Toby ne regardait ni à droite ni à gauche : il trottinait droit devant lui, le nez au sol, avec, de temps à autre, un petit gémissement impatient qui trahissait une piste brûlante.
+
+Nous avions traversé Streatham, Brixton, Camberwell, et nous nous trouvions maintenant dans Kennington Lane, après avoir obliqué par les rues latérales à l’est de l’Oval. Les hommes que nous poursuivions semblaient avoir emprunté un itinéraire singulièrement en zigzag, sans doute dans l’idée d’échapper aux regards. Ils ne s’étaient jamais tenus à la grande artère lorsqu’une rue parallèle pouvait leur convenir. Au bas de Kennington Lane, ils avaient tiré sur la gauche par Bond Street et Miles Street. Là où cette dernière débouche sur Knight’s Place, Toby cessa d’avancer et se mit à courir d’avant en arrière, une oreille dressée, l’autre pendante — l’image même de l’indécision canine. Puis il se mit à tourner en rond, levant de temps à autre les yeux vers nous, comme pour solliciter notre indulgence dans son embarras.
+
+— « Qu’est-ce qu’il a, ce satané chien ? » grogna Holmes. « Ils n’auraient tout de même pas pris un fiacre, ni filé en ballon. »
+
+— « Peut-être sont-ils restés ici un moment », suggérai-je.
+
+— « Ah ! c’est bon. Il repart », dit mon compagnon d’un ton soulagé.
+
+Il repartait, en effet : après avoir reniflé encore, il se décida soudain et s’élança avec une énergie et une résolution qu’il n’avait pas encore montrées. La piste semblait bien plus chaude qu’auparavant, car il n’avait même plus besoin de coller le nez au sol ; il tirait sur la laisse et cherchait à se mettre au galop. Au reflet qui passa dans les yeux de Holmes, je compris qu’il se croyait proche du terme de notre course.
+
+Nous descendîmes alors Nine Elms jusqu’à la vaste cour à bois de Broderick et Nelson, juste après la taverne du White Eagle. Là, le chien, frénétique d’excitation, tourna par la petite porte latérale et entra dans l’enceinte, où les scieurs étaient déjà à l’ouvrage. Il fonça à travers la sciure et les copeaux, dévala une allée, contourna un passage, se glissa entre deux tas de bois et, enfin, avec un jappement triomphal, bondit sur un grand tonneau qui se trouvait encore sur le chariot à bras où on l’avait apporté. La langue pendante, les yeux mi-clos, Toby se campa sur le fût, nous regardant tour à tour comme s’il attendait un signe d’approbation. Les douves du tonneau et les roues du chariot étaient maculées d’un liquide sombre, et l’air tout entier était lourd d’une odeur de créosote.
+
+Sherlock Holmes et moi nous regardâmes.
+
+8. LES IRRÉGULIERS DE BAKER STREET
+
+« Et maintenant ? demandai-je. Toby vient de perdre sa réputation d’infaillibilité.
+
+— Il a agi selon ses lumières, répondit Holmes en le faisant descendre du tonneau et en le ramenant hors du parc à bois. Quand on songe à la quantité de créosote qu’on transporte dans Londres en une seule journée, il n’y a rien d’étonnant à ce que notre piste ait été coupée. On en use beaucoup aujourd’hui, surtout pour le traitement du bois. Le pauvre Toby n’y est pour rien.
+
+— Il faut retrouver l’odeur principale, j’imagine.
+
+— Oui. Et, heureusement, nous n’avons pas loin à aller. Ce qui a manifestement déconcerté le chien au coin de Knight’s Place, c’est qu’il y avait deux pistes différentes partant en sens contraires. Nous avons pris la mauvaise. Il ne reste qu’à suivre l’autre. »
+
+Cela ne présenta aucune difficulté. En ramenant Toby à l’endroit où il avait commis sa faute, il tourna en tous sens dans un large cercle, puis finit par s’élancer dans une direction nouvelle.
+
+« Il faut veiller à ce qu’il ne nous conduise pas, cette fois, à l’endroit d’où venait le tonneau de créosote, observai-je.
+
+— J’y ai pensé. Mais vous remarquez qu’il reste sur le trottoir, tandis que le tonneau est passé sur la chaussée. Non, nous sommes sur la bonne piste, à présent. »
+
+Elle descendait vers la rive, en passant par Belmont Place et Prince’s Street. Au bout de Broad Street, elle allait tout droit jusqu’au bord de l’eau, où se trouvait un petit quai de bois. Toby nous mena jusqu’à l’extrémité même, et là, il se mit à geindre, le regard fixé sur le courant sombre qui filait au-delà.
+
+« Nous n’avons pas de chance, dit Holmes. Ils ont pris un bateau ici. »
+
+Plusieurs petites plates et canots étaient amarrés dans l’eau ou tirés sur le bord du quai. Nous fîmes faire le tour à Toby, de l’un à l’autre ; mais, bien qu’il reniflât avec application, il ne donna aucun signe.
+
+Tout près de l’embarcadère grossier se dressait une petite maison de brique, avec une pancarte de bois suspendue à la seconde fenêtre. On y lisait en grandes lettres : « Mordecai Smith », et, au-dessous : « Bateaux à louer à l’heure ou à la journée ». Une seconde inscription, au-dessus de la porte, nous apprit qu’on tenait aussi une vedette à vapeur — affirmation confirmée par un gros tas de coke sur la jetée. Sherlock Holmes promena lentement son regard autour de lui, et son visage prit une expression inquiétante.
+
+« Cela sent mauvais, dit-il. Ces gaillards sont plus fins que je ne l’attendais. Ils semblent avoir effacé leurs traces. Il y a, je le crains, une mise en scène concertée. »
+
+Il s’approchait de la porte quand elle s’ouvrit, et un petit garçon de six ans, aux cheveux bouclés, sortit en courant, poursuivi par une femme assez forte, au visage rouge, une grosse éponge à la main.
+
+« Reviens te laver, Jack ! cria-t-elle. Reviens ici, petit vaurien, parce que si ton père rentre et te trouve dans cet état, on va en entendre parler ! »
+
+« Quel adorable petit bonhomme ! dit Holmes, avec calcul. Quel garnement aux joues roses ! Alors, Jack, qu’est-ce qui te ferait plaisir ?
+
+— J’aimerais un shilling, répondit-il après un instant de réflexion.
+
+— Rien qui te ferait encore plus plaisir ?
+
+— J’aimerais mieux deux shillings, répliqua le prodige, après y avoir songé.
+
+— Les voilà, alors ! Attrape !… Un fameux enfant, madame Smith !
+
+— Que le bon Dieu vous bénisse, monsieur, c’est vrai, et dégourdi. Il m’en fait presque trop à moi toute seule, surtout quand mon homme s’en va des jours entiers.
+
+— Il est absent ? dit Holmes d’une voix déçue. Je le regrette, car je voulais parler à M. Smith.
+
+— Il est parti depuis hier matin, monsieur, et, à vrai dire, je commence à m’inquiéter pour lui. Mais si c’était pour un bateau, monsieur, je pourrais peut-être vous servir tout aussi bien.
+
+— Je voulais louer sa vedette à vapeur.
+
+— Eh bien, que le ciel vous garde, monsieur, c’est justement avec la vedette à vapeur qu’il est parti. C’est ça qui m’étonne : je sais bien qu’il n’y a pas plus de charbon à bord que de quoi aller jusqu’à Woolwich et revenir. S’il était parti avec la barge, je n’aurais rien pensé ; bien des fois un travail l’a mené jusqu’à Gravesend, et s’il y avait beaucoup d’activité là-bas, il pouvait y passer la nuit. Mais à quoi sert une vedette à vapeur sans charbon ?
+
+— Il a peut-être acheté du charbon à un quai en aval.
+
+— Peut-être, monsieur, mais ce n’était pas son genre. Bien des fois je l’ai entendu pester contre les prix qu’ils demandent pour quelques sacs. Et puis, je n’aime pas cet homme à jambe de bois, avec sa sale figure et son parler d’étranger. Qu’est-ce qu’il venait toujours traîner par ici ?
+
+— Un homme à jambe de bois ? dit Holmes avec une surprise aimable.
+
+— Oui. »
+
+« Notre ligne de conduite paraît désormais assez claire, dis-je.
+— Et que feriez-vous, alors ?
+— Je louerais une vedette et je descendrais le fleuve sur la trace de l’*Aurora*.
+— Mon cher ami, ce serait une tâche colossale. Elle a pu accoster à n’importe quel quai, sur l’une ou l’autre rive, entre ici et Greenwich. En aval du pont, c’est un véritable labyrinthe de débarcadères sur des kilomètres. Il vous faudrait des jours et des jours pour en venir à bout, si vous vous y mettez seul.
+— Alors, employons la police.
+— Non. Je ferai probablement appel à Athelney Jones au tout dernier moment. Ce n’est pas un mauvais bougre, et je n’aimerais pas faire quoi que ce soit qui puisse lui nuire professionnellement. Mais j’ai envie de mener l’affaire moi-même, maintenant que nous sommes allés si loin.
+— Pourrions-nous passer une annonce, alors, en demandant des renseignements aux responsables des quais ?
+— De mal en pis ! Nos hommes sauraient que la chasse est lancée à leurs trousses, et ils fileraient hors du pays. Tel quel, ils sont déjà assez susceptibles de partir, mais tant qu’ils se croient parfaitement en sûreté, ils ne se presseront pas. L’énergie de Jones nous sera utile sur ce point : sa version de l’affaire ne manquera pas de s’imposer dans la presse quotidienne, et les fuyards se diront que tout le monde suit une fausse piste.
+— Que devons-nous faire, alors ? demandai-je, tandis que nous débarquions près du pénitencier de Millbank.
+— Prendre ce hansom, rentrer, prendre un petit déjeuner et dormir une heure. Il est tout à fait possible que nous soyons de nouveau sur pied cette nuit. Arrêtez-vous à un bureau télégraphique, cocher ! Nous gardons Toby : il peut encore nous être utile. »
+
+Nous nous arrêtâmes au bureau de poste de Great Peter Street, et Holmes expédia son télégramme. « À votre avis, à qui est-ce adressé ? demanda-t-il, lorsque nous reprîmes notre route.
+— Je n’en ai pas la moindre idée.
+— Vous vous souvenez de la division de Baker Street de la police des détectives, que j’ai employée dans l’affaire Jefferson Hope ?
+— Oui, dis-je en riant.
+— C’est précisément le genre de cas où ils pourraient être inestimables. S’ils échouent, j’ai d’autres ressources ; mais je vais commencer par eux. Ce télégramme était pour mon sale petit lieutenant, Wiggins, et je m’attends à ce que lui et sa bande soient avec nous avant que nous ayons fini notre petit déjeuner. »
+
+Il était maintenant entre huit et neuf heures, et je sentais une forte réaction après les émotions successives de la nuit. J’étais mou et las, l’esprit embrumé et le corps brisé. Je n’avais pas l’enthousiasme professionnel qui portait mon compagnon, et je ne pouvais pas considérer l’affaire comme un simple problème intellectuel abstrait. Quant à la mort de Bartholomew Sholto, j’avais entendu peu de bien de lui et ne pouvais éprouver d’antipathie profonde pour ses meurtriers. Le trésor, en revanche, était une tout autre affaire. Celui-ci, ou une partie de celui-ci, appartenait de droit à Miss Morstan. Tant qu’il restait une chance de le retrouver, j’étais prêt à consacrer ma vie à cet unique objectif. Certes, si je le découvrais, cela la placerait probablement à jamais hors de ma portée. Mais ce serait un amour mesquin et égoïste que d’être influencé par une pensée pareille. Si Holmes pouvait travailler à retrouver les criminels, j’avais dix fois plus de raisons de m’acharner à retrouver le trésor.
+
+
+Un bain à Baker Street et un changement complet de vêtements me ragaillardirent merveilleusement. Lorsque je descendis dans notre pièce, je trouvai le petit déjeuner servi et Holmes en train de verser le café.
+
+— Le voilà, dit-il en riant, en désignant un journal ouvert. L’énergique Jones et l’omniprésent reporter se sont entendus entre eux. Mais vous en avez assez de cette affaire. Mieux vaut attaquer d’abord votre jambon et vos œufs.
+
+Je pris le journal et lus la brève notice intitulée : « Étrange affaire à Upper Norwood ».
+
+« Vers minuit, la nuit dernière, disait le *Standard*, M. Bartholomew Sholto, de Pondicherry Lodge, Upper Norwood, a été trouvé mort dans sa chambre, dans des circonstances qui laissent supposer un acte criminel. D’après les renseignements que nous avons pu recueillir, aucune trace de violence n’a été constatée sur la personne de M. Sholto ; mais une précieuse collection de gemmes indiennes, héritée par le défunt de son père, a été dérobée. La découverte a été faite en premier lieu par M. Sherlock Holmes et le Dr Watson, qui s’étaient rendus à la maison en compagnie de M. Thaddeus Sholto, frère du défunt. Par un singulier coup de chance, M. Athelney Jones, membre bien connu de la police des détectives, se trouvait au poste de police de Norwood et était sur les lieux dans la demi-heure qui a suivi la première alerte. Ses facultés exercées et son expérience se sont aussitôt tournées vers la découverte des criminels, avec le résultat satisf... »
+
+— Non, ce n’est pas aussi grave que cela. C’est la force officieuse… les Irréguliers de Baker Street.
+
+À peine avait-il parlé qu’un rapide martèlement de pieds nus résonna dans l’escalier, suivi d’un vacarme de voix aiguës ; et une douzaine de petits Arabes des rues, sales et en haillons, firent irruption dans la pièce. Malgré cette entrée tumultueuse, il y avait chez eux un semblant de discipline : ils se rangèrent aussitôt en ligne et nous firent face, l’air expectant. L’un d’eux, plus grand et plus âgé que les autres, s’avança avec une nonchalance supérieure qui était fort drôle chez un si misérable petit épouvantail.
+
+— J’ai eu votre message, m’sieur, dit-il, et je les ai ramenés fissa. Trois shillings et six pence pour les billets.
+
+— Voilà, répondit Holmes en tirant quelques pièces d’argent. À l’avenir, ils te feront leur rapport, Wiggins, et toi tu me le feras à moi. Je ne peux pas laisser la maison être envahie de cette façon. Enfin, autant que vous entendiez tous les instructions. Je veux savoir où se trouve une vedette à vapeur appelée l’_Aurora_, appartenant à Mordecai Smith ; coque noire avec deux bandes rouges, cheminée noire avec un anneau blanc. Elle est quelque part en aval. Je veux qu’un garçon se poste à l’embarcadère de Mordecai Smith, en face de Millbank, pour dire si le bateau revient. Répartissez-vous la besogne et fouillez soigneusement les deux rives. Prévenez-moi dès que vous avez du nouveau. C’est bien clair ?
+
+— Oui, patron, dit Wiggins.
+
+— Le tarif habituel, et une guinée pour le garçon qui trouvera le bateau. Voici une journée d’avance. Et maintenant, filez !
+
+Il leur donna un shilling à chacun, et ils bourdonnèrent dans l’escalier ; un instant plus tard, je les vis se répandre dans la rue comme une coulée.
+
+— Si la vedette n’a pas coulé, ils la trouveront, dit Holmes en se levant de table et en allumant sa pipe. Ils peuvent aller partout, tout voir, tout entendre. Je m’attends à apprendre avant ce soir qu’ils l’ont repérée. En attendant, nous ne pouvons rien faire d’autre qu’attendre des résultats. Nous ne pourrons reprendre la piste brisée qu’une fois l’_Aurora_ ou M. Mordecai Smith retrouvé.
+
+— Toby pourrait manger ces restes, sans doute. Tu vas te coucher, Holmes ?
+
+— Non ; je ne suis pas fatigué. J’ai une constitution singulière. Je ne me souviens pas d’avoir jamais été fatigué par le travail, alors que l’oisiveté m’épuise complètement. Je vais fumer et réfléchir à cette étrange affaire dans laquelle notre charmante cliente nous a entraînés. S’il est une tâche facile, la nôtre devrait l’être. Les hommes à jambe de bois ne courent pas les rues, mais l’autre homme doit, je pense, être absolument unique.
+
+— Encore cet autre homme !
+
+— Je n’ai aucune envie d’en faire un mystère… du moins pour toi. Mais tu as bien dû te faire une idée. Allons, considère les données. Empreintes minuscules, orteils jamais emprisonnés dans des bottes, pieds nus, massue de bois à tête de pierre, grande agilité, petites fléchettes empoisonnées. Qu’est-ce que tu conclus de tout cela ?
+
+— Un sauvage ! m’écriai-je. Peut-être un de ces Indiens qui accompagnaient Jonathan Small.
+
+— Peu probable, dit-il. Quand j’ai vu pour la première fois des traces d’armes étranges, j’ai été tenté de le croire ; mais le caractère remarquable des empreintes m’a fait revoir mon jugement. Certains habitants de la péninsule indienne sont de petite taille, mais aucun n’aurait pu laisser de telles marques. L’Hindou proprement dit a le pied long et mince. Le musulman qui porte des sandales a le gros orteil bien séparé des autres, parce que la lanière passe d’ordinaire entre les deux. Et ces petites fléchettes, elles aussi, ne peuvent être lancées que d’une seule manière : elles viennent d’une sarbacane. Alors, où allons-nous trouver notre sauvage ?
+
+— Sud-américain ? hasardai-je.
+
+Il leva la main et tira de l’étagère un gros volume.
+
+— Voici le premier tome d’un dictionnaire géographique en cours de publication. On peut le considérer comme l’autorité la plus récente. Qu’avons-nous là ? « Îles Andaman, situées à 340 milles au nord de Sumatra, dans le golfe du Bengale. » Hum… hum… Qu’est-ce que tout cela ? Climat humide, récifs coralliens, requins, Port Blair, casernes de forçats, île Rutland, fromagers… Ah, nous y voilà. « Les aborigènes des îles Andaman peuvent peut-être revendiquer l’honneur d’être la plus petite race de la terre, bien que certains anthropologues leur préfèrent les Bushmen d’Afrique, les Indiens Diggers d’Amérique et les Fuégiens de la Terre de Feu. La taille moyenne est un peu au-dessous de quatre pieds, bien qu’on puisse trouver de nombreux adultes pleinement développés qui sont bien plus petits encore. C’est un peuple féro... »
+
+### 9 — UNE RUPTURE DANS LA CHAÎNE
+
+Ce fut tard dans l’après-midi que je m’éveillai enfin, ragaillardi et reposé.
+
+Sherlock Holmes était toujours assis exactement comme je l’avais laissé, sauf qu’il avait posé son violon et se plongeait dans un livre. Il leva les yeux vers moi lorsque je remuai, et je remarquai que son visage était sombre et soucieux.
+
+« Vous avez dormi d’un sommeil profond, dit-il. J’avais peur que notre conversation ne vous réveillât.
+
+— Je n’ai rien entendu, répondis-je. Avez-vous eu des nouvelles ?
+
+— Malheureusement, non. J’avoue que je suis surpris et déçu. J’attendais quelque chose de précis à cette heure-ci. Wiggins vient de passer faire son rapport. Il dit qu’on ne trouve aucune trace de la vedette. C’est un contretemps exaspérant, car chaque heure compte.
+
+— Puis-je faire quelque chose ? Je suis parfaitement frais à présent et tout disposé à repartir pour une nouvelle sortie nocturne.
+
+— Non, nous ne pouvons rien faire. Nous ne pouvons qu’attendre. Si nous sortons nous-mêmes, le message pourrait arriver en notre absence, et cela causerait un retard. Vous êtes libre de faire ce que vous voulez, mais moi, je dois rester en sentinelle.
+
+— Alors je vais filer à Camberwell rendre visite à Mrs. Cecil Forrester. Elle me l’a demandé hier.
+
+— À Mrs. Cecil Forrester ? demanda Holmes, avec une lueur amusée dans les yeux.
+
+— Enfin… à Miss Morstan aussi, bien sûr. Elles étaient impatientes de savoir ce qui s’était passé.
+
+— Je ne leur en dirais pas trop, dit Holmes. On ne peut jamais se fier entièrement aux femmes — pas même aux meilleures. »
+
+Je ne m’arrêtai pas pour discuter ce sentiment atroce.
+
+« Je serai de retour dans une heure ou deux, fis-je.
+
+— Très bien ! Bonne chance ! Mais dites donc, si vous traversez la rivière, vous pourriez en profiter pour rendre Toby, car je ne crois pas que nous ayons encore besoin de lui. »
+
+Je pris donc notre bâtard et le déposai, avec un demi-souverain, chez le vieux naturaliste de Pinchin Lane. À Camberwell, je trouvai Miss Morstan un peu lasse de ses aventures nocturnes, mais très avide de nouvelles. Mrs. Forrester, elle aussi, brûlait de curiosité. Je leur racontai tout ce que nous avions fait, en supprimant toutefois les aspects les plus terribles de la tragédie. Ainsi, bien que je parlasse de la mort de Mr. Sholto, je ne dis rien de la manière exacte dont elle avait été accomplie. Malgré toutes mes omissions, il y en avait assez pour les bouleverser et les stupéfier.
+
+« C’est un roman ! s’écria Mrs. Forrester. Une dame lésée, un trésor d’un demi-million, un cannibale noir et un malfaiteur à jambe de bois. Ils remplacent le dragon traditionnel ou le comte pervers.
+
+— Et deux chevaliers errants à la rescousse, ajouta Miss Morstan, en me lançant un regard lumineux.
+
+— Voyons, Mary, votre fortune dépend de l’issue de cette recherche. Je ne vous trouve pas du tout assez émue. Imaginez seulement ce que ce doit être d’être si riche, d’avoir le monde à vos pieds ! »
+
+Un petit frisson de joie me traversa le cœur en constatant qu’elle ne manifestait aucune exaltation à cette perspective. Au contraire, elle eut un léger mouvement de tête, fier, comme si tout cela l’intéressait fort peu.
+
+« C’est pour Mr. Thaddeus Sholto que je suis inquiète, dit-elle. Le reste n’a aucune importance ; mais je crois qu’il s’est montré, du début à la fin, d’une bonté et d’une droiture exemplaires. C’est notre devoir de le laver de cette accusation affreuse et sans fondement. »
+
+Il faisait soir quand je quittai Camberwell, et il faisait tout à fait nuit lorsque je rentrai. Le livre et la pipe de mon compagnon étaient posés près de son fauteuil, mais lui avait disparu. Je regardai autour de moi dans l’espoir de trouver un mot, mais il n’y en avait pas.
+
+« Je suppose que Mr. Sherlock Holmes est sorti », dis-je à Mrs. Hudson, comme elle montait baisser les stores.
+
+« Non, monsieur. Il est monté dans sa chambre, monsieur. Vous savez, monsieur, dit-elle en baissant la voix jusqu’au chuchotement le plus solennel, j’ai peur pour sa santé.
+
+— Pourquoi donc, Mrs. Hudson ?
+
+— Eh bien, il est si étrange, monsieur. Après votre départ, il a marché, et marché, de long en large, de long en large, jusqu’à ce que je sois lasse du bruit de ses pas. Puis je l’ai entendu se parler à lui-même, marmonner, et chaque fois que la sonnette retentissait, il arrivait sur le palier : “Qu’y a-t-il, Mrs. Hudson ?” Et maintenant il a claqué la porte de sa chambre, mais je l’entends marcher là-haut comme avant. J’espère qu’il ne va pas tomber malade, monsieur. Je me suis permis de lui dire un mot d’une potion rafraîchissante, mais il s’est retourné sur moi, monsieur, avec un regard… je ne sais pas comment j’ai réussi à sortir de la pièce. »
+
+À l’aube, je me réveillai en sursaut, surpris de le voir debout près de mon lit, vêtu d’un grossier accoutrement de marin : un caban, et autour du cou une rude écharpe rouge.
+
+— Je descends le fleuve, Watson, dit-il. J’y ai beaucoup réfléchi, et je ne vois qu’une seule issue. Cela vaut la peine d’essayer, en tout cas.
+
+— Je peux venir avec vous, alors ? demandai-je.
+
+— Non ; vous me serez bien plus utile en restant ici comme mon représentant. J’ai du mal à partir, car il est tout à fait possible qu’un message arrive dans la journée, même si Wiggins était découragé hier soir. Je veux que vous ouvriez tous les billets et télégrammes, et que vous agissiez selon votre propre jugement si des nouvelles parviennent. Puis-je compter sur vous ?
+
+— Parfaitement.
+
+— Je crains que vous ne puissiez pas me télégraphier, car je ne sais pas encore où je me trouverai. Si j’ai de la chance, toutefois, je ne serai pas absent très longtemps. J’aurai quelque nouvelle, d’une manière ou d’une autre, avant mon retour. »
+
+Je n’avais encore rien entendu de lui à l’heure du petit déjeuner. En ouvrant le *Standard*, cependant, je trouvai une nouvelle allusion à l’affaire.
+
+« À propos de la tragédie d’Upper Norwood, remarquait-on, nous avons des raisons de croire que l’affaire promet d’être encore plus complexe et mystérieuse qu’on ne l’avait d’abord supposé. De nouveaux éléments ont montré qu’il est tout à fait impossible que M. Thaddeus Sholto ait pu être impliqué de quelque façon que ce soit. Lui et la gouvernante, Mme Bernstone, ont été relâchés hier soir. On croit toutefois que la police tient une piste concernant les véritables coupables, et que M. Athelney Jones, de Scotland Yard, la suit avec toute l’énergie et la sagacité qui lui sont bien connues. D’autres arrestations peuvent être attendues d’un moment à l’autre. »
+
+« C’est déjà ça, pensai-je. L’ami Sholto est hors de danger, en tout cas. Je me demande quelle peut être cette nouvelle piste ; quoique cela ressemble à la formule toute faite qu’on ressort chaque fois que la police a commis une bévue. »
+
+Je jetai le journal sur la table, mais à cet instant mon regard accrocha une annonce dans la rubrique des détresses. Elle disait :
+
+« Perdu. — Attendu que Mordecai Smith, batelier, et son fils Jim, ont quitté Smith’s Wharf mardi dernier, vers trois heures du matin, à bord du canot à vapeur *Aurora*, noir avec deux bandes rouges, cheminée noire avec un anneau blanc, la somme de cinq livres sera versée à quiconque pourra fournir à Mme Smith, à Smith’s Wharf, ou au 221*b* Baker Street, des renseignements sur l’endroit où se trouvent ledit Mordecai Smith et le canot *Aurora*. »
+
+9. UNE RUPTURE DANS LA CHAÎNE
+
+C’était manifestement l’œuvre de Holmes. L’adresse de Baker Street suffisait à le prouver. L’idée me parut ingénieuse, car les fugitifs pouvaient la lire sans y voir autre chose que l’inquiétude naturelle d’une épouse pour son mari disparu.
+
+La journée fut longue. Chaque fois qu’on frappait à la porte ou qu’un pas vif résonnait dans la rue, j’imaginais que c’était soit Holmes qui revenait, soit une réponse à son annonce. J’essayai de lire, mais mes pensées s’échappaient vers notre étrange poursuite et vers le duo mal assorti et scélérat que nous traquions. Se pouvait-il, me demandais-je, qu’il y eût quelque faille profonde dans le raisonnement de mon compagnon ? Était-il victime d’une illusion ? N’était-il pas possible que son esprit agile et spéculatif eût bâti cette théorie extravagante sur des prémisses défectueuses ? Je ne l’avais jamais connu dans l’erreur ; et pourtant, le raisonneur le plus aigu peut, à l’occasion, se tromper. Il risquait, pensais-je, de s’égarer par excès de raffinement logique — par préférence pour une explication subtile et bizarre, alors qu’une autre, plus simple et plus banale, se trouvait à portée de main. Pourtant, d’un autre côté, j’avais moi-même vu les preuves et entendu les raisons de ses déductions. Lorsque je repassais la longue chaîne de circonstances singulières — beaucoup, en elles-mêmes, insignifiantes, mais toutes orientées dans le même sens — je ne pouvais me dissimuler que, même si l’explication de Holmes était fausse, la théorie véritable devait être tout aussi outrée et saisissante.
+
+À trois heures de l’après-midi, la sonnette retentit avec fracas ; une voix autoritaire se fit entendre dans le vestibule, et, à ma surprise, on m’annonça ni plus ni moins que M. Athelney Jones. Il était bien différent du brusque et impérieux professeur de bon sens qui, à Upper Norwood, s’était emparé de l’affaire avec tant d’assurance. Il avait l’air abattu, et son attitude était humble, presque contrite.
+
+— Bonjour, monsieur ; bonjour, dit-il. M. Sherlock Holmes est sorti, à ce que je comprends.
+
+— Oui, et je ne peux pas être certain de l’heure de son retour. Mais vous voudrez peut-être l’attendre.
+
+« Voilà qui sonne bien. Il a manifestement retrouvé la piste », dis-je.
+
+« Ah ! alors lui aussi s’est trompé, s’écria Jones avec une satisfaction évidente. Même les meilleurs se laissent parfois dérouter. Bien sûr, cela peut se révéler une fausse alerte ; mais mon devoir, en tant qu’agent de la loi, est de ne laisser passer aucune chance. Mais on frappe à la porte. C’est peut-être lui. »
+
+On entendit un pas lourd monter l’escalier, accompagné d’un fort sifflement et d’un râle, comme d’un homme cruellement à bout de souffle. Une ou deux fois, il s’arrêta, comme si la montée était trop rude pour lui ; mais enfin il parvint jusqu’à notre porte et entra. Son aspect correspondait aux bruits que nous avions entendus. C’était un vieillard vêtu en marin, avec une vieille vareuse boutonnée jusqu’au menton. Le dos voûté, les genoux tremblants, il respirait avec une pénible asthme. Appuyé sur un gros gourdin de chêne, il soulevait les épaules à chaque effort pour faire entrer l’air dans ses poumons. Un foulard de couleur lui entourait le bas du visage, et je ne distinguais guère, de sa face, qu’une paire d’yeux sombres et perçants sous d’épais sourcils blancs, ainsi que de longues favoris grises. Dans l’ensemble, il me donna l’impression d’un respectable capitaine au long cours, tombé dans l’âge et la pauvreté.
+
+« Qu’y a-t-il, mon brave ? » demandai-je.
+
+Il promena autour de lui ce regard lent et méthodique propre à la vieillesse.
+
+« Est-ce que M. Sherlock Holmes est ici ? » dit-il.
+
+« Non ; mais je le remplace. Vous pouvez me confier le message que vous avez pour lui. »
+
+« C’est à lui en personne que je devais le dire », répondit-il.
+
+« Je vous répète que je le remplace. Était-ce au sujet du bateau de Mordecai Smith ? »
+
+« Oui. Je sais bien où il est. Et je sais où sont les hommes qu’il cherche. Et je sais où est le trésor. Je sais tout. »
+
+« Alors dites-le-moi, et je l’en informerai. »
+
+« C’est à lui que je devais le dire », répéta-t-il, avec l’entêtement boudeur d’un très vieil homme.
+
+« Eh bien, il faut l’attendre. »
+
+« Non, non ; je ne vais pas perdre une journée entière pour faire plaisir à qui que ce soit. Si M. Holmes n’est pas là, alors M. Holmes n’a qu’à tout découvrir tout seul. Je n’aime pas vos têtes, ni l’un ni l’autre, et je ne dirai pas un mot. »
+
+Il traîna les pieds vers la porte, mais Athelney Jones se plaça devant lui.
+
+« Attendez un peu, mon ami, dit-il. Vous avez des renseignements importants, et vous ne partirez pas comme ça. Nous vous garderons, que cela vous plaise ou non, jusqu’au retour de notre ami. »
+
+Le vieillard fit un petit élan vers la porte ; mais, comme Athelney Jones y appuyait son large dos, il comprit l’inutilité de toute résistance.
+
+« Joli traitement ! » cria-t-il en frappant du bâton. « Je viens voir un gentleman, et vous deux, que je n’ai jamais vus de ma vie, vous m’attrapez et vous me traitez de cette façon ! »
+
+« Vous ne vous en porterez pas plus mal, dis-je. Nous vous dédommagerons du temps perdu. Asseyez-vous ici, sur le canapé, et vous n’aurez pas longtemps à attendre. »
+
+Il traversa la pièce d’un air renfrogné et s’assit, le visage enfoui dans ses mains. Jones et moi reprîmes nos cigares et notre conversation. Soudain, pourtant, la voix de Holmes s’imposa à nous.
+
+« Je crois que vous pourriez aussi m’offrir un cigare », dit-il.
+
+Nous sursautâmes tous deux sur nos chaises. Holmes était là, assis tout près de nous, avec un calme amusement.
+
+« Holmes ! m’écriai-je. Vous ici ! Mais où est le vieil homme ? »
+
+« Le voici, le vieil homme », répondit-il en tendant une touffe de cheveux blancs. « Le voilà — perruque, favoris, sourcils et le reste. Je pensais mon déguisement assez bon, mais je ne m’attendais pas à ce qu’il résiste à une telle épreuve. »
+
+« Ah, espèce de filou ! » s’écria Jones, ravi. « Vous auriez fait un acteur, et un fameux. Vous aviez la toux de l’hospice comme il faut, et ces jambes flageolantes à vous valent bien dix livres par semaine. Pourtant, je crois que j’avais reconnu l’éclat de votre œil. Vous ne nous avez pas semés si facilement, voyez-vous. »
+
+« Je travaille dans cet accoutrement depuis ce matin », dit-il en allumant son cigare. « Vous comprenez, un bon nombre de gens du milieu commencent à me connaître — surtout depuis que notre ami ici s’est mis à publier certaines de mes affaires ; alors je ne peux partir en chasse qu’avec un déguisement simple comme celui-ci. Vous avez reçu mon télégramme ? »
+
+« Oui ; c’est ce qui m’a amen... »
+
+10. LA FIN DE L’INSULAIRE
+
+Notre repas fut des plus joyeux. Holmes savait parler admirablement quand il le voulait, et ce soir-là, il le voulut. Il semblait dans un état d’exaltation nerveuse. Je ne l’avais jamais connu si brillant. Il passait rapidement d’un sujet à l’autre — des mystères médiévaux à la poterie du Moyen Âge, des violons de Stradivarius au bouddhisme de Ceylan, puis aux navires de guerre de l’avenir — traitant chacun comme s’il en avait fait une étude approfondie. Son humour étincelant marquait la réaction après la sombre dépression des jours précédents. Athelney Jones se révéla, dans ses heures de détente, d’une sociabilité inattendue, et attaqua son dîner avec l’air d’un véritable _bon vivant_. Quant à moi, l’idée que nous touchions au terme de notre tâche m’emplissait d’entrain, et je me laissai gagner par la gaieté de Holmes. Aucun de nous ne fit, pendant le dîner, la moindre allusion à la cause qui nous avait réunis.
+
+Quand la nappe fut ôtée, Holmes consulta sa montre et remplit trois verres de porto.
+
+— Un toast, dit-il, à la réussite de notre petite expédition. Et maintenant, il est grand temps de partir. Avez-vous un pistolet, Watson ?
+
+— J’ai mon vieux revolver de service dans mon bureau.
+
+— Alors prenez-le. Mieux vaut être prêt. Je vois que le fiacre est à la porte. Je l’ai commandé pour six heures et demie.
+
+Il était un peu plus de sept heures lorsque nous atteignîmes l’embarcadère de Westminster et trouvâmes notre vedette qui nous attendait. Holmes l’examina d’un œil critique.
+
+— Y a-t-il quelque chose qui la signale comme bateau de police ?
+
+— Oui : cette lampe verte sur le côté.
+
+— Alors, enlevez-la.
+
+On fit cette petite modification ; nous montâmes à bord, et l’on largua les amarres. Jones, Holmes et moi prîmes place à l’arrière. Un homme tenait la barre, un autre s’occupait des machines, et, à l’avant, se tenaient deux robustes inspecteurs de police.
+
+— Où allons-nous ? demanda Jones.
+
+— À la Tour. Dites-leur de s’arrêter en face du chantier Jacobson.
+
+Notre embarcation était manifestement très rapide. Nous filions le long des interminables rangées de péniches chargées, comme si elles avaient été immobiles. Holmes sourit avec satisfaction lorsque nous rattrapâmes un bateau à vapeur fluvial et le laissâmes derrière nous.
+
+— Nous devrions pouvoir rattraper n’importe quoi sur la rivière, dit-il.
+
+— Eh bien, pas tout à fait. Mais il n’y a pas beaucoup de vedettes capables de nous distancer.
+
+— Il nous faudra rattraper l’_Aurora_, et elle a la réputation d’être une vraie rapide. Je vais vous expliquer la situation, Watson. Vous vous souvenez combien j’étais contrarié d’avoir été arrêté par une chose si minime ?
+
+— Oui.
+
+— Eh bien, j’ai complètement reposé mon esprit en me plongeant dans une analyse chimique. Un de nos plus grands hommes d’État a dit qu’un changement de travail est le meilleur repos. C’est vrai. Quand j’eus réussi à dissoudre l’hydrocarbure sur lequel je travaillais, je revins à notre affaire des Sholto et repris tout le problème depuis le début. Mes garçons avaient remonté et redescendu la rivière sans résultat. La vedette n’était à aucun débarcadère ni à aucun quai, et elle n’était pas revenue. Pourtant, il était peu probable qu’on l’eût coulée pour effacer les traces — bien que cela demeurât une hypothèse possible si tout le reste échouait. Je savais que ce Small avait une certaine ruse grossière, mais je ne le croyais pas capable d’une finesse délicate. Cela, d’ordinaire, est le produit d’une éducation plus élevée. Je réfléchis ensuite au fait que, puisqu’il se trouvait certainement à Londres depuis un certain temps — nous avions la preuve qu’il surveillait continuellement Pondicherry Lodge — il ne pouvait guère partir à l’instant même : il lui fallait un peu de temps, ne fût-ce qu’un jour, pour régler ses affaires. C’était, du moins, ce que la probabilité indiquait.
+
+— Cela me paraît un peu faible, dis-je. Il est plus probable qu’il avait réglé ses affaires avant même de se lancer dans son expédition.
+
+— Non, je ne le crois guère. Ce repaire lui serait trop précieux comme refuge en cas de besoin pour qu’il y renonce avant d’être certain de pouvoir s’en passer. Mais une seconde considération me vint à l’esprit. Jonathan Small devait sentir que l’apparence singulière de son compagnon, si soigneusement qu’il l’eût enveloppé d’un manteau, susciterait des commérages et pourrait être rapprochée de ce drame de Norwood. Il était assez fin pour le comprendre. Ils étaient partis de leur quartier général à la faveur de l’obscurité, et il voudrait être de retour avant le plein jour. Or, d’après Mme Smith, il était passé trois heures quand ils avaient pris le bateau. Dans une heure environ, il ferait tout à fait clair et les gens commenceraient à circuler. Donc, me dis-je, ils ne sont pas allés bien loin. Ils ont bien payé Smith pour qu...
+
+— Vous avez tout arrangé très proprement, qu’il s’agisse des bons hommes ou non, dit Jones ; mais si l’affaire avait été entre mes mains, j’aurais posté une escouade de policiers dans Jacobson’s Yard et je les aurais arrêtés quand ils seraient descendus.
+
+— Ce qui ne serait jamais arrivé. Ce Small est un gaillard assez retors. Il enverrait un éclaireur en avant, et si quelque chose éveillait ses soupçons, il resterait bien au chaud une semaine de plus.
+
+— Mais vous auriez pu vous en tenir à Mordecaï Smith et être ainsi conduit jusqu’à leur cachette, dis-je.
+
+— Dans ce cas, j’aurais perdu ma journée. Je parie cent contre un que Smith ne sait pas où ils habitent. Tant qu’il a de l’alcool et une bonne paye, pourquoi irait-il poser des questions ? Ils lui envoient des messages pour lui dire quoi faire. Non, j’ai envisagé toutes les voies possibles, et celle-ci est la meilleure.
+
+Pendant que nous parlions, nous avions filé sous la longue enfilade de ponts qui enjambent la Tamise. En passant la Cité, les derniers rayons du soleil doraient la croix au sommet de Saint-Paul. La nuit tombait lorsque nous atteignîmes la Tour.
+
+— Voilà Jacobson’s Yard, dit Holmes en désignant, sur la rive du Surrey, une forêt de mâts et de cordages. Faites des allers-retours doucement ici, à couvert derrière cette rangée de chalands.
+
+Il sortit de sa poche une paire de jumelles de nuit et observa un moment la berge.
+
+— Je vois ma sentinelle à son poste, remarqua-t-il, mais aucun signe de mouchoir.
+
+— Supposons que nous descendions un peu le courant et que nous les attendions, proposa Jones avec ardeur.
+
+Nous étions tous fébriles à présent, jusqu’aux policiers et aux chauffeurs, qui n’avaient qu’une idée très vague de ce qui se tramait.
+
+
+— Nous n’avons pas le droit de tenir quoi que ce soit pour acquis, répondit Holmes. Il y a certes dix chances contre une qu’ils descendent le fleuve, mais nous n’en pouvons être sûrs. D’ici, nous voyons l’entrée du chantier, et eux nous distinguent à peine. La nuit sera claire, et il y aura beaucoup de lumière. Nous devons rester où nous sommes. Voyez comme les gens grouillent là-bas, sous le gaz.
+
+— Ils sortent du travail au chantier.
+
+— Des gaillards à l’air bien sale, mais j’imagine que chacun cache en lui une petite étincelle immortelle. À les regarder, on ne le croirait pas. Rien, là-dedans, n’a de probabilité a priori. Étrange énigme que l’homme !
+
+— Quelqu’un l’a appelé une âme dissimulée dans un animal, hasardai-je.
+
+— Winwood Reade est bon sur la question, dit Holmes. Il remarque que, si l’homme pris individuellement est une énigme insoluble, l’homme en masse devient une certitude mathématique. Vous ne pouvez, par exemple, jamais prédire ce que fera un homme en particulier, mais vous pouvez dire avec précision ce que fera un nombre moyen d’hommes. Les individus varient, les pourcentages restent constants. Voilà ce que dit le statisticien. Mais… est-ce que je vois un mouchoir ? Assurément, il y a là-bas un petit battement blanc.
+
+— Oui, c’est votre garçon ! m’écriai-je. Je le vois très nettement.
+
+— Et voilà l’*Aurora* ! s’exclama Holmes. Et elle file comme le diable ! Toute vapeur, mécanicien ! À la poursuite de ce canot au feu jaune ! Par le ciel, je ne me le pardonnerai jamais si elle nous distance !
+
+Elle s’était glissée sans être vue par l’entrée du chantier et avait passé derrière deux ou trois petites embarcations, si bien qu’elle avait eu le temps de prendre son élan avant que nous l’apercevions. À présent, elle dévalait le courant, serrée près de la rive, à une vitesse prodigieuse. Jones la considéra gravement et secoua la tête.
+
+— Elle est très rapide, dit-il. Je doute que nous la rattrapions.
+
+— Nous *devons* la rattraper ! gronda Holmes entre ses dents. Allez, chauffeurs ! Faites-lui donner tout ce qu’elle a ! Si nous brûlons le bateau, tant pis : il nous les faut !
+
+Nous étions lancés à sa poursuite. Les fourneaux rugissaient, et les puissantes machines sifflaient et cliquetaient comme un grand cœur de métal. Notre proue aiguë et raide fendait l’eau du fleuve et envoyait deux vagues roulantes à droite et à gauche. À chaque battement des pistons, nous bondissions et frémissions comme une créature vivante. Une grande lanterne jaune, à l’avant, projetait devant nous un long cône de lumière vacillante. Tout droit, une tache sombre sur l’eau indiquait où se trouvait l’*Aurora*, et le tourbillon d’écume blanche derrière elle trahissait l’allure à laquelle elle allait. Nous dépassions en trombe des péniches, des vapeurs, des navires marchands, nous faufilant, passant derrière celui-ci, contournant celui-là. Des voix nous hélaient dans l’obscurité, mais…
+
+— Tirez s’il lève la main, dit Holmes d’une voix calme.
+
+Nous n’étions plus qu’à une longueur d’embarcation, presque à portée de toucher notre proie. Je les revois encore, tels qu’ils se tenaient là : l’homme blanc, les jambes écartées, hurlant des jurons, et le nain impie, au visage hideux, dont les fortes dents jaunes claquaient vers nous à la lueur de notre lanterne.
+
+Heureusement, nous le voyions avec une netteté parfaite. À peine avions-nous posé les yeux sur lui qu’il tira de dessous son manteau un court morceau de bois rond, semblable à une règle d’écolier, et le porta vivement à ses lèvres. Nos pistolets partirent de concert. Il pivota sur lui-même, leva les bras et, dans une sorte de toux étouffée, bascula de côté dans le courant. J’aperçus une seconde ses yeux venimeux et menaçants au milieu du tourbillon blanc des eaux.
+
+Au même instant, l’homme à la jambe de bois se jeta sur la barre et la poussa à fond, de sorte que son bateau fila droit vers la rive sud, tandis que nous dépassions sa poupe, ne l’évitant que de quelques pieds. Nous fûmes sur ses traces aussitôt, mais il touchait déjà presque la berge.
+
+C’était un endroit sauvage et désolé, où la lune miroitait sur une vaste étendue de marais, parsemée de mares d’eau croupie et de nappes de végétation en décomposition. Notre vedette, avec un sourd choc, s’échoua sur la vase, l’étrave dressée en l’air et la poupe au ras de l’eau. Le fugitif sauta à terre, mais son moignon s’enfonça aussitôt jusqu’au bout dans le sol détrempé. Il eut beau se débattre et se tordre : il lui était impossible de faire un pas, ni en avant ni en arrière. Il poussa un hurlement de rage impuissante et frappa frénétiquement la boue de son autre pied, mais ses efforts ne firent qu’enfoncer plus profondément sa cheville de bois dans la berge gluante.
+
+Quand nous amenâmes notre vedette à sa hauteur, il était si solidement ancré que ce ne fut qu’en lui passant l’extrémité d’une corde par-dessus les épaules que nous pûmes le hisser et le traîner, tel quelque poisson malfaisant, par-dessus notre bord.
+
+Les deux Smith, père et fils, restèrent assis, maussades, dans leur embarcation, mais montèrent à bord sans résistance quand on le leur ordonna. Quant à l’*Aurora* elle-même, nous la dégagions et l’amarrâmes à notre poupe. Un lourd coffre de fer, d’un travail indien, se trouvait sur le pont. Il n’y avait pas à en douter : c’était celui-là même qui avait contenu le trésor de sinistre mémoire des Sholto. Il n’y avait pas de clé, mais il était d’un poids considérable ; nous le transportâmes donc avec précaution dans notre petite cabine.
+
+Tandis que nous remontions lentement le courant, nous balayâmes de notre projecteur tous les alentours, mais aucun signe de l’Insulaire. Quelque part, dans la vase noire au fond de la Tamise, reposent les ossements de cet étrange visiteur venu sur nos rivages.
+
+— Regardez donc, dit Holmes en désignant le panneau de bois. Nous n’avons pas été assez rapides avec nos pistolets.
+
+Et, en effet, juste derrière l’endroit où nous nous tenions, était fichée l’une de ces fléchettes meurtrières que nous connaissions si bien. Elle avait dû siffler entre nous à l’instant même où nous tirions. Holmes lui sourit et haussa les épaules avec son aisance habituelle ; mais, je l’avoue, j’en eus la nausée en songeant à l’horrible mort qui, cette nuit-là, était passée si près de nous.
+
+11. LE GRAND TRÉSOR D’AGRA
+
+Notre prisonnier était assis dans la cabine, face à la boîte de fer qu’il avait tant manœuvrée et tant attendue pour obtenir. C’était un gaillard hâlé, au regard hardi, dont les traits couleur d’acajou étaient sillonnés d’un réseau de rides et de lignes, signes d’une vie rude passée au grand air. Son menton barbu présentait une saillie singulière, celle d’un homme qu’on ne détourne pas aisément de son dessein. Il devait avoir une cinquantaine d’années, car sa chevelure noire et bouclée était abondamment piquée de gris. Au repos, son visage n’avait rien de déplaisant, quoique ses sourcils épais et son menton agressif lui donnassent — je l’avais vu tout récemment — une expression terrible dès qu’on le poussait à la colère. Il était là, les mains menottées posées sur les genoux, la tête inclinée sur la poitrine, fixant de ses yeux vifs et pétillants la boîte qui avait été la cause de ses méfaits. Il me sembla lire plus de chagrin que de colère dans cette physionomie tendue et contenue. Une fois, il leva les yeux vers moi, avec dans le regard une lueur d’humour.
+
+— Eh bien, Jonathan Small, dit Holmes en allumant un cigare, je regrette que les choses en soient arrivées là.
+
+— Moi aussi, monsieur, répondit-il franchement. Je ne crois pas que j’y échappe. Je vous jure sur la Bible que je n’ai jamais levé la main sur M. Sholto. C’est ce petit chien d’enfer de Tonga qui lui a planté une de ses maudites fléchettes. Je n’y suis pour rien, monsieur. J’en ai été peiné comme si ç’avait été un parent à moi. Je lui ai cinglé le dos, au petit démon, avec le bout libre de la corde, mais c’était fait, et je ne pouvais pas le défaire.
+
+— Prenez un cigare, dit Holmes, et vous feriez bien de tirer une gorgée de ma flasque, vous êtes trempé. Comment pouviez-vous espérer qu’un homme aussi petit et aussi faible que ce Noir-là maîtriserait M. Sholto et le retiendrait pendant que vous grimpiez à la corde ?
+
+— On dirait que vous en savez autant que si vous aviez été là, monsieur. La vérité, c’est que j’espérais trouver la pièce vide. Je connaissais assez bien les habitudes de la maison, et c’était l’heure où M. Sholto descendait d’ordinaire souper. Je ne ferai pas de mystère de l’affaire. La meilleure défense que je puisse présenter, c’est la simple vérité. Voyez-vous, si ç’avait été le vieux major, je l’aurais payé de ma tête de bon cœur. Je n’aurais pas plus hésité à le poignarder qu’à fumer ce cigare. Mais c’est rudement dur que je sois envoyé au bagne pour ce jeune Sholto, avec qui je n’avais absolument aucun différend.
+
+— Vous êtes sous la garde de M. Athelney Jones, de Scotland Yard. Il va vous conduire jusqu’à mes appartements, et je vous demanderai un récit exact de toute l’affaire. Il faut tout dire, sans rien cacher, car si vous le faites, j’espère pouvoir vous être utile. Je crois pouvoir prouver que le poison agit si vite que l’homme était mort avant même que vous n’atteigniez la chambre.
+
+— C’est vrai, monsieur. Je n’ai jamais eu une telle secousse de ma vie que lorsque je l’ai vu me ricaner au visage, la tête de travers sur l’épaule, tandis que je passais par la fenêtre. Ça m’a remué jusqu’au fond, monsieur. J’aurais à moitié tué Tonga pour ça s’il ne s’était pas esquivé. C’est comme ça qu’il en est venu à laisser sa massue, et quelques-unes de ses fléchettes aussi, à ce qu’il m’a dit — ce qui, j’imagine, vous a aidés à remonter notre piste ; encore que, comment vous l’avez suivie, ça, je ne saurais le dire. Je ne vous en veux pas pour autant. Mais ça fait tout de même drôle, ajouta-t-il avec un sourire amer, que moi, qui ai un droit solide sur près d’un demi-million, j’aie passé la première moitié de ma vie à construire une digue aux Andaman, et que je sois bon à passer l’autre à creuser des drains à Dartmoor. Ce fut un mauvais jour pour moi, celui où j’ai posé les yeux pour la première fois sur le marchand Achmet et où je me suis mêlé du trésor d’Agra, qui n’a jamais apporté autre chose qu’une malédiction à l’homme qui le possédait. À lui, il a apporté le meurtre ; au major Sholto, la peur et la culpabilité ; à moi, il a signifié l’esclavage à vie.
+
+À cet instant, Athelney Jones enfonça son large visage et ses épaules massives dans la minuscule cabine.
+
+— Une vraie réunion de famille, remarqua-t-il. Je crois que je vais tirer une gorgée de cette flasque, Holmes. Eh bien, je pense que nous pouvons tous nous féliciter. Dommage que nous n’ayons pas pris l’autre vivant, mais nous n’avions pas le choix.
+
+On me déposa à Vauxhall, avec ma lourde caisse de fer et, pour compagnon, un inspecteur cordial et bon vivant. Un quart d’heure de voiture nous conduisit chez Mrs Cecil Forrester. La domestique parut surprise de recevoir un visiteur si tard. Mrs Cecil Forrester était sortie pour la soirée, expliqua-t-elle, et ne rentrerait vraisemblablement que très tard. Miss Morstan, en revanche, se trouvait au salon : j’y allai donc, la caisse à la main, laissant l’aimable inspecteur dans le fiacre.
+
+
+Elle était assise près de la fenêtre ouverte, vêtue d’une étoffe blanche et vaporeuse, relevée d’une touche d’écarlate au cou et à la taille. La lumière douce d’une lampe coiffée d’un abat-jour tombait sur elle tandis qu’elle s’abandonnait au dossier du fauteuil d’osier, glissant sur son visage doux et grave, et donnant aux riches torsades de sa chevelure opulente un éclat sourd, métallique. Un bras et une main, tout blancs, pendaient sur le côté du fauteuil, et toute son attitude, toute sa silhouette, exprimaient une mélancolie profonde. Au bruit de mes pas, pourtant, elle se leva d’un bond, et une vive rougeur de surprise et de plaisir colora ses joues pâles.
+
+« J’ai entendu une voiture s’arrêter, dit-elle. J’ai cru que Mrs Forrester rentrait très tôt, mais je n’aurais jamais imaginé que ce pouvait être vous. Quelles nouvelles m’apportez-vous ?
+
+— Je vous apporte mieux que des nouvelles, répondis-je en posant la caisse sur la table et en prenant un ton jovial et bruyant, bien que le cœur me fût lourd. Je vous apporte quelque chose qui vaut toutes les nouvelles du monde. Je vous apporte une fortune. »
+
+Elle jeta un regard sur la boîte de fer.
+
+« C’est donc là le trésor ? demanda-t-elle avec un calme détaché.
+
+— Oui, c’est le grand trésor d’Agra. La moitié est à vous, l’autre à Thaddeus Sholto. Vous aurez chacun deux cent mille livres. Pensez donc ! Une rente de dix mille livres. Il y aura peu de jeunes femmes plus riches en Angleterre. N’est-ce pas magnifique ? »
+
+Je crois que je jouais un peu trop mon enthousiasme, et qu’elle perçut une fausse note dans mes félicitations, car je vis ses sourcils se relever légèrement et elle me regarda avec curiosité.
+
+« Si je l’ai, dit-elle, je vous le dois.
+
+— Non, non, répondis-je, pas à moi, mais à mon ami Sherlock Holmes. Avec toute la bonne volonté du monde, je n’aurais jamais pu suivre une piste qui a mis à l’épreuve jusqu’à son génie d’analyse. Et encore, nous avons failli le perdre au tout dernier moment.
+
+— Asseyez-vous, je vous prie, et racontez-moi tout, Dr Watson », dit-elle.
+
+Je lui racontai brièvement ce qui s’était passé depuis notre dernière entrevue : la nouvelle méthode de recherche de Holmes, la découverte de l’_Aurora_, l’apparition d’Athelney Jones, notre expédition du soir et la poursuite éperdue sur la Tamise. Elle écoutait mon récit, les lèvres entrouvertes et les yeux brillants. Quand je parlai du dard qui nous avait frôlés de si près, elle devint si pâle que je craignis qu’elle ne s’évanouît.
+
+« Ce n’est rien, dit-elle, tandis que je me hâtais de lui verser un peu d’eau. Je vais mieux. Cela m’a bouleversée d’apprendre que j’avais exposé mes amis à un danger si terrible.
+
+— Tout cela est fini, répondis-je. Ce n’était rien. Je ne vous dirai plus de détails sombres. Parlons de quelque chose de plus gai. Voilà le trésor. Qu’y a-t-il de plus réjouissant que cela ? J’ai obtenu la permission de l’apporter, pensant que cela vous intéresserait d’être la première à le voir.
+
+— Cela m’intéresserait au plus haut point », dit-elle.
+
+Pourtant, sa voix ne trahissait aucune impatience. Elle avait sans doute compris qu’il pourrait paraître ingrat de se montrer indifférente à un prix qui avait coûté tant d’efforts.
+
+« Quelle jolie boîte ! » dit-elle en se penchant dessus. « C’est du travail indien, je suppose ?
+
+— Oui, de la métallurgie de Bénarès.
+
+— Et comme c’est lourd ! » s’écria-t-elle en essayant de la soulever. « La boîte seule doit valoir quelque chose. Où est la clé ?
+
+— Small l’a jetée dans la Tamise, répondis-je. Il faut que j’emprunte le tisonnier de Mrs Forrester. »
+
+Sur le devant se trouvait une large et épaisse agrafe, ouvragée à l’image d’un Bouddha assis. Je glissai l’extrémité du tisonnier dessous et la fis jouer comme un levier. L’agrafe sauta avec un claquement sec. De doigts tremblants, je rejetai le couvercle. Nous restâmes tous deux à regarder, stupéfaits. La boîte était vide !
+
+Pas étonnant qu’elle fût lourde. La ferrure avait près de deux centimètres d’épaisseur tout autour. C’était massif, bien fait,
+
+12. L’ÉTRANGE HISTOIRE DE JONATHAN SMALL
+
+L’inspecteur qui m’attendait dans le fiacre était un homme d’une patience exemplaire, car il s’écoula un temps interminable avant que je le rejoigne. Son visage s’assombrit lorsque je lui montrai la boîte vide.
+
+— Voilà la récompense qui s’envole ! dit-il d’un ton lugubre. Là où il n’y a pas d’argent, il n’y a pas de paiement. Le travail de cette nuit aurait valu dix livres à Sam Brown et à moi, si le trésor avait été là.
+
+— M. Thaddeus Sholto est un homme riche, répondis-je. Trésor ou non, il veillera à ce que vous soyez récompensés.
+
+L’inspecteur secoua pourtant la tête, accablé.
+
+— C’est une sale affaire, répéta-t-il ; et c’est ce que pensera M. Athelney Jones.
+
+Sa prédiction se révéla exacte, car le détective eut l’air assez décomposé lorsque j’arrivai à Baker Street et lui montrai la boîte vide. Ils venaient tout juste d’arriver, Holmes, le prisonnier et lui, car ils avaient modifié leurs plans au point de se présenter à un poste en chemin. Mon compagnon était affalé dans son fauteuil, avec son habituelle expression indolente, tandis que Small, placide, lui faisait face, sa jambe de bois posée en travers de la bonne. Quand j’exhibai la boîte vide, il se renversa sur sa chaise et éclata de rire.
+
+— C’est votre œuvre, Small, dit Athelney Jones avec colère.
+
+— Oui, je l’ai mis à l’abri là où vous ne poserez jamais la main dessus ! s’écria-t-il avec jubilation. C’est mon trésor ; et si je ne peux pas avoir le butin, je ferai en sorte que personne d’autre ne l’ait. Je vous le dis : aucun homme vivant n’y a droit, à moins que ce ne soient les trois hommes qui sont dans les baraquements des forçats aux Andaman, et moi. Je sais maintenant que je ne pourrai pas en profiter, et je sais qu’eux non plus. J’ai agi de bout en bout autant pour eux que pour moi. Entre nous, ça a toujours été le Signe des Quatre. Eh bien, je sais qu’ils m’auraient fait faire exactement ce que j’ai fait : jeter le trésor dans la Tamise plutôt que de le laisser aux proches, à la famille, de Sholto ou de Morstan. Ce n’était pas pour les rendre riches que nous avons fait ce que nous avons fait pour Achmet. Vous trouverez le trésor là où est la clé, et là où est le petit Tonga. Quand j’ai vu que votre vedette allait nous rattraper, j’ai mis le butin en sûreté. Pas de roupies pour vous, pour ce voyage.
+
+— Vous nous trompez, Small, dit Athelney Jones d’un ton sévère. Si vous aviez voulu jeter le trésor dans la Tamise, il vous aurait été plus simple de jeter la boîte avec.
+
+— Plus simple à jeter pour moi, et plus simple à repêcher pour vous, répondit-il en lançant un regard oblique, plein de malice. L’homme assez malin pour me traquer est assez malin pour repêcher une boîte en fer au fond d’une rivière. Maintenant qu’elles sont éparpillées sur cinq miles environ, ce sera peut-être un travail plus dur. Ça m’a fendu le cœur de le faire, pourtant. J’étais à moitié fou quand vous nous avez rejoints. Enfin, ça ne sert à rien de se lamenter. J’ai eu des hauts dans ma vie, et j’ai eu des bas, mais j’ai appris à ne pas pleurer sur le lait renversé.
+
+— C’est une affaire très grave, Small, reprit le détective. Si vous aviez aidé la justice au lieu de la contrecarrer ainsi, vous auriez eu de meilleures chances à votre procès.
+
+— La justice ! gronda l’ancien forçat. Une belle justice ! À qui est ce butin, si ce n’est à nous ? Où est la justice, si je dois le céder à ceux qui ne l’ont jamais gagné ? Regardez comment je l’ai gagné ! Vingt longues années dans ce marécage empesté de fièvre, à travailler toute la journée sous les mangroves, à passer toutes les nuits enchaîné dans des huttes de forçats immondes, dévoré par les moustiques, brisé par la malaria, brutalisé par chaque maudit policier à face noire qui prenait plaisir à s’acharner sur un Blanc. Voilà comment j’ai gagné le trésor d’Agra ; et vous me parlez de justice parce que je ne peux pas supporter l’idée d’avoir payé ce prix pour que quelqu’un d’autre en jouisse ! J’aimerais mieux être pendu vingt fois, ou recevoir dans la peau un des dards de Tonga, que de vivre dans une cellule de forçat en sachant qu’un autre homme est à son aise dans un palais avec l’argent qui devrait être à moi.
+
+Small avait laissé tomber son masque de stoïcisme, et tout cela jaillit en un torrent de paroles, tandis que ses yeux flamboyaient et que les menottes s’entrechoquaient au rythme passionné de ses gestes. En voyant la fureur et la passion de cet homme, je compris la terreur qui avait saisi le major Sholto lorsqu’il avait appris que le forçat...
+
+« J’étais, comme vous pouvez l’imaginer, assez malchanceux à cette époque, car j’étais un infirme bon à rien, alors que je n’avais pas encore vingt ans. Pourtant, mon malheur se révéla bientôt une bénédiction déguisée. Un certain Abel White, venu là-bas comme planteur d’indigo, cherchait un contremaître pour surveiller ses coolies et les tenir à la tâche. Il se trouvait être un ami de notre colonel, qui s’était intéressé à moi depuis l’accident. Bref, le colonel me recommanda chaudement pour le poste et, comme le travail se faisait surtout à cheval, ma jambe n’était pas un si grand obstacle : il me restait assez de genou pour bien serrer la selle. Je devais parcourir la plantation, garder un œil sur les hommes pendant qu’ils travaillaient et signaler les tire-au-flanc. La paye était correcte, j’avais un logement confortable et, dans l’ensemble, j’étais content de passer le reste de ma vie dans les plantations d’indigo. M. Abel White était un homme bon, et il lui arrivait souvent de passer dans ma petite cahute pour fumer une pipe avec moi, car là-bas, entre Blancs, on se réchauffe le cœur les uns aux autres comme on ne le fait jamais ici, au pays.
+
+« Eh bien, je n’ai jamais longtemps été du côté de la chance. Soudain, sans le moindre avertissement, la grande mutinerie s’abattit sur nous. Un mois, l’Inde semblait, en apparence, aussi calme et paisible que le Surrey ou le Kent ; le mois suivant, deux cent mille diables noirs étaient lâchés, et le pays tout entier n’était plus qu’un enfer. Bien sûr, vous savez tout cela, messieurs — sans doute bien plus que moi, puisque la lecture n’est pas mon affaire. Moi, je ne sais que ce que j’ai vu de mes propres yeux. Notre plantation se trouvait dans un endroit appelé Muttra, près de la frontière des Provinces du Nord-Ouest. Nuit après nuit, le ciel entier s’embrasait des bungalows en feu, et jour après jour de petits groupes d’Européens traversaient notre domaine avec leurs femmes et leurs enfants, en route vers Agra, où se trouvaient les troupes les plus proches. M. Abel White était un homme entêté. Il s’était mis en tête que l’affaire avait été grossie et qu’elle se calmerait aussi brusquement qu’elle avait éclaté. Il restait là, sur sa véranda, à boire des whiskey-pegs et à fumer des cheroots, tandis que le pays flambait autour de lui. Bien entendu, nous restions à ses côtés, Dawson et moi ; Dawson, avec sa femme, s’occupait des écritures et de la gestion. Puis, un beau jour, le choc arriva. J’avais été envoyé sur une plantation éloignée et je rentrais lentement à cheval, le soir, quand mon regard tomba sur quelque chose, tout recroquevillé, au fond d’un nullah escarpé. Je descendis pour voir ce que c’était, et le froid me traversa le cœur quand je reconnus la femme de Dawson, tailladée en lambeaux, à moitié dévorée par les chacals et les chiens du pays. Un peu plus haut sur la route, Dawson lui-même gisait face contre terre, tout à fait mort, un revolver vide à la main, et quatre cipayes étendus devant lui, enchevêtrés les uns sur les autres. Je retins mon cheval, me demandant de quel côté tourner, mais à cet instant je vis une épaisse fumée s’enrouler au-dessus du bungalow d’Abel White, et les flammes commencer à crever le toit. Je compris alors que je ne pouvais être d’aucune utilité à mon employeur, et que je ne ferais que jeter ma propre vie si je m’en mêlais. De l’endroit où j’étais, je voyais des centaines de ces démons noirs, leurs habits rouges encore sur le dos, danser et hurler autour de la maison en feu. Certains me montrèrent du doigt, et deux balles sifflèrent près de ma tête ; je filai donc à travers les rizières et, tard dans la nuit, je me retrouvai sain et sauf à l’intérieur des murs d’Agra.
+
+« Comme il s’avéra pourtant, il n’y avait pas grande sécurité là non plus. Tout le pays s’était soulevé comme un essaim d’abeilles. Partout où les Anglais pouvaient se rassembler en petites bandes, ils ne tenaient que le terrain que leurs fusils couvraient. Ailleurs, ils n’étaient que des fugitifs sans défense. C’était le combat des millions contre les centaines ; et le plus cruel, c’est que ces hommes contre lesquels nous nous battions — fantassins, cavaliers et artilleurs — étaient nos propres troupes d’élite, celles que nous avions instruites et entraînées, maniant nos propres armes et sonnant nos propres appels de clairon. À Agra, il y avait le 3e régiment de fusiliers du Bengale, des Sikhs, deux escadrons de cavalerie et une batterie d’artillerie. On avait formé un corps de volontaires composé de commis et de marchands, et je m’y enrôlai, jambe de bois comprise. Nous sortîmes à la rencontre des rebelles à Shahgunge au début de juillet, et nous les... »
+
+Il s’interrompit et tendit ses mains entravées pour recevoir le whisky coupé d’eau que Holmes lui avait préparé. Pour ma part, j’avoue que j’éprouvais désormais pour cet homme une horreur profonde, non seulement à cause de cette affaire menée de sang-froid à laquelle il avait pris part, mais plus encore à cause de la désinvolture presque légère avec laquelle il la racontait. Quel que fût le châtiment qui l’attendait, je sentais qu’il ne devait espérer de ma part aucune sympathie. Sherlock Holmes et Jones étaient assis, les mains sur les genoux, vivement intéressés par le récit, mais avec la même répugnance peinte sur le visage. Il l’avait peut-être remarqué, car une pointe de défi perçait dans sa voix et dans son attitude lorsqu’il reprit.
+
+— C’était très mal, sans doute, dit-il. J’aimerais savoir combien de types à ma place auraient refusé leur part de ce butin, en sachant qu’on leur trancherait la gorge pour prix de leur scrupule. Et puis, une fois qu’il était dans le fort, c’était sa vie ou la mienne. S’il avait réussi à sortir, toute l’affaire aurait éclaté au grand jour, et j’aurais passé en conseil de guerre, puis fusillé, selon toute vraisemblance ; on n’était pas très indulgent à une époque pareille.
+
+
+— Continuez, dit Holmes sèchement.
+
+— Eh bien, nous l’avons transporté à l’intérieur, Abdullah, Akbar et moi. Il pesait son poids, le gaillard, malgré sa petite taille. Mahomet Singh resta à garder la porte. Nous l’avons emmené à un endroit que les Sikhs avaient déjà préparé. C’était à quelque distance, là où un couloir tortueux menait à une vaste salle vide, dont les murs de briques tombaient en ruine de toutes parts. Le sol de terre s’était affaissé en un point, formant une fosse naturelle ; nous y avons donc laissé Achmet le marchand, après l’avoir recouvert de briques descellées. Cela fait, nous sommes tous retournés au trésor.
+
+— Il se trouvait là où il l’avait laissé tomber lors de la première attaque. Le coffret était celui-là même qui est maintenant ouvert sur votre table. Une clef pendait, au bout d’un cordon de soie, à la poignée sculptée sur le dessus. Nous l’avons ouvert, et la lumière de la lanterne fit étinceler une collection de gemmes comme j’en avais lu et rêvé quand j’étais gamin à Pershore. On en avait les yeux aveuglés. Après nous en être rassasié le regard, nous les avons toutes sorties et dressé la liste. Il y avait cent quarante-trois diamants de la plus belle eau, dont un qu’on appelle, je crois, « le Grand Mogol », et qui passe pour être la deuxième plus grosse pierre existante. Ensuite, quatre-vingt-dix-sept émeraudes superbes et cent soixante-dix rubis, dont certains, toutefois, étaient petits. Il y avait quarante escarboucles, deux cent dix saphirs, soixante et une agates, et une grande quantité de béryls, d’onyx, d’yeux-de-chat, de turquoises et d’autres pierres dont j’ignorais jusqu’au nom à l’époque, même si je m’y connais mieux depuis. En plus de cela, il y avait près de trois cents perles magnifiques, dont douze montées sur un diadème d’or. À propos, ces dernières avaient été retirées du coffre et n’y étaient plus quand je l’ai récupéré.
+
+— Après avoir compté nos trésors, nous les avons remis dans le coffret et l’avons porté jusqu’à la porte pour les montrer à Mahomet Singh. Puis nous avons solennellement renouvelé notre serment de nous soutenir les uns les autres et de rester fidèles à notre secret. Nous avons décidé de cacher notre butin en lieu sûr jusqu’à ce que le pays fût de nouveau en paix, puis de le partager à parts égales entre nous. Cela ne servait à rien de le diviser tout de suite : si l’on trouvait sur nous des gemmes d’une telle valeur, cela éveillerait les soupçons, et dans le fort il n’y avait ni intimité ni endroit où les garder. Nous avons donc porté le coffret dans la même salle où nous avions enterré le corps et, là, sous certaines briques du mur le mieux conservé, nous avons creusé une cavité et y avons déposé notre trésor. Nous avons soigneusement repéré l’endroit, et le lendemain j’ai dessiné quatre plans, un pour chacun de nous, et j’ai mis au bas la marque de nous quatre ; car nous avions juré que chacun agirait toujours pour tous, afin que nul ne puisse en profiter seul. C’est un serment que je peux, la main sur le cœur, affirmer n’avoir jamais trahi.
+
+— Inutile de vous raconter, messieurs, ce qu’il advint de la mutinerie des Indes. Quand Wilson prit Delhi et que sir Colin délivra Lucknow, l’essentiel était joué. Des troupes fraîches affluèrent, et Nana Sahib se fit discret au-delà de la frontière. Une colonne volante sous les ordres du colonel Greathed vint jusqu’à Agra et en chassa les Pandies. La paix semblait s’installer dans le pays, et nous quatre commencions à esp...
+
+« La situation où nous nous trouvions alors avait quelque chose de singulièrement bizarre. Nous étions là, tous les quatre, entravés par la jambe, avec bien peu d’espoir de jamais nous en tirer, tandis que chacun de nous détenait un secret qui aurait pu nous installer dans un palais, si seulement nous avions pu en tirer parti. Il y avait de quoi se ronger le cœur : devoir subir les coups de pied et les brimades du moindre petit chef, manger du riz et boire de l’eau, alors qu’au-dehors une fortune splendide vous attendait, prête à être ramassée. Cela aurait pu me rendre fou ; mais j’ai toujours eu la tête dure, alors je me suis contenté de tenir bon et d’attendre mon heure.
+
+« Enfin, il me sembla qu’elle arrivait. On me transféra d’Agra à Madras, puis de là à l’île Blair, aux Andaman. Il y a très peu de forçats blancs dans cette colonie, et comme je m’étais bien conduit dès le début, je ne tardai pas à devenir une sorte de privilégié. On me donna une hutte à Hope Town, un petit endroit sur les pentes du mont Harriet, et on me laissa à peu près tranquille. C’est un lieu lugubre, ravagé par la fièvre, et au-delà de nos maigres clairières tout grouillait d’indigènes sauvages et cannibales, prêts à nous envoyer une fléchette empoisonnée s’ils en avaient l’occasion. Il y avait à creuser, à faire des tranchées, à planter des ignames, et une douzaine d’autres corvées : de quoi nous occuper toute la journée ; même si, le soir, nous avions un peu de temps à nous. Entre autres choses, j’appris à préparer et distribuer les médicaments pour le chirurgien, et j’attrapai au passage quelques bribes de son savoir. Tout ce temps-là, je guettais la moindre chance de m’évader ; mais on est à des centaines de milles de toute autre terre, et il y a peu ou pas de vent sur ces mers : s’enfuir était donc une entreprise terriblement difficile.
+
+« Le chirurgien, le docteur Somerton, était un jeune gaillard vif et porté sur les plaisirs, et les autres jeunes officiers se réunissaient le soir dans sa chambre pour jouer aux cartes. L’infirmerie, où je préparais mes drogues, jouxtait son salon, et une petite fenêtre donnait de l’une à l’autre. Souvent, quand je me sentais seul, j’éteignais la lampe de l’infirmerie et, debout dans l’ombre, j’écoutais leurs conversations et regardais leur partie. J’aime moi-même tenir un jeu, et c’était presque comme si j’avais une main à moi, rien qu’à les observer. Il y avait le major Sholto, le capitaine Morstan et le lieutenant Bromley Brown, qui commandaient les troupes indigènes ; il y avait le chirurgien lui-même, et deux ou trois employés de l’administration pénitentiaire, de vieux roublards qui jouaient serré, avec une prudence sournoise. Ils formaient une petite bande bien confortable.
+
+« Eh bien, une chose me frappa très vite : les militaires perdaient toujours, et les civils gagnaient. Attention, je ne dis pas qu’il y eût tricherie ; mais c’était ainsi. Ces types de la prison ne faisaient guère autre chose que jouer aux cartes depuis leur arrivée aux Andaman, et ils connaissaient le jeu les uns des autres sur le bout des doigts, tandis que les autres jouaient seulement pour passer le temps et jetaient leurs cartes n’importe comment. Nuit après nuit, les soldats se levaient plus pauvres, et plus ils s’appauvrissaient, plus ils s’acharnaient à jouer. Le major Sholto était le plus touché. Au début, il payait en billets et en or ; mais bientôt ce furent des reconnaissances de dette, et pour de grosses sommes. Parfois il gagnait pendant quelques donnes, juste assez pour lui redonner du courage, puis la chance se retournait contre lui, pire que jamais. Toute la journée, il errait noir comme l’orage, et il se mit à boire bien plus que de raison.
+
+« Une nuit, il perdit encore plus lourdement qu’à l’ordinaire. J’étais assis dans ma hutte quand lui et le capitaine Morstan passèrent en titubant, en route vers leurs quartiers. Ces deux-là étaient des amis de cœur, inséparables. Le major délirait à propos de ses pertes.
+
+« “C’est fini, Morstan, disait-il en passant devant ma hutte. Je vais devoir donner ma démission. Je suis un homme ruiné.”
+
+« “Allons donc, mon vieux !” répondit l’autre en lui tapant sur l’épaule. “J’ai pris une sacrée claque moi aussi, mais—” Je n’entendis pas la suite, mais il y avait là de quoi me faire réfléchir.
+
+« Deux jours plus tard, le major Sholto se promenait sur la plage ; j’en profitai pour lui parler.
+
+« “J’aimerais avoir votre avis, major”, dis-je.
+
+« “Eh bien, Small, qu’y a-t-il ?” demanda-t-il en retirant son cheroot de ses lèvres.
+
+« “Je voulais vous demander, monsieur, dis-je, à qui il convient de remettre un trésor caché. Je sais où repose une valeur d’un demi-million, et...
+
+« Quant à cela, messieurs, répondis-je en tâchant, moi aussi, de garder mon sang-froid, tout en me sentant aussi surexcité que lui, il n’y a qu’un seul marché possible pour un homme dans ma situation. Je veux que vous m’aidiez à recouvrer la liberté, et que vous aidiez mes trois compagnons à recouvrer la leur. Ensuite, nous vous prendrons comme associés, et nous vous donnerons un cinquième de la part, à vous deux, à vous partager.
+
+— Hum ! fit-il. Un cinquième ! Ce n’est pas très tentant.
+
+— Cela ferait cinquante mille chacun, dis-je.
+
+— Mais comment gagner votre liberté ? Vous savez parfaitement que vous demandez l’impossible.
+
+— Rien de tel, répondis-je. J’ai tout prévu jusque dans le moindre détail. Le seul obstacle à notre fuite, c’est que nous ne pouvons nous procurer ni embarcation capable de tenir la traversée, ni provisions suffisantes pour un si long voyage. Il y a quantité de petits yachts et de canots pontés à Calcutta ou à Madras qui feraient parfaitement l’affaire. Apportez-en un. Nous nous engageons à monter à bord de nuit, et si vous nous déposez n’importe où sur la côte indienne, vous aurez rempli votre part du marché.
+
+— S’il n’y en avait qu’un, dit-il.
+
+— Aucun ou tous, répliquai-je. Nous l’avons juré. Nous quatre, nous devons toujours agir ensemble.
+
+— Vous voyez, Morstan, dit-il, Small est un homme de parole. Il ne lâche pas son ami. Je crois que nous pouvons très bien nous fier à lui.
+
+— C’est une sale affaire, répondit l’autre. Pourtant, comme vous dites, l’argent arrangerait joliment nos commissions.
+
+— Eh bien, Small, dit le major, il faut, je suppose, essayer de vous rejoindre. Il nous faut d’abord, bien entendu, vérifier la vérité de votre histoire. Dites-moi où la boîte est cachée, et je demanderai une permission et retournerai en Inde par le bateau de relève mensuel pour m’informer de l’affaire.
+
+— Pas si vite, dis-je, me refroidissant à mesure qu’il s’échauffait. Il me faut l’accord de mes trois camarades. Je vous le dis : avec nous, c’est quatre ou rien.
+
+— Balivernes ! coupa-t-il. Qu’est-ce que trois nègres viennent faire dans notre accord ?
+
+— Noirs ou bleus, dis-je, ils sont avec moi, et nous partons tous ensemble. »
+
+L’affaire se termina par une seconde entrevue, à laquelle Mahomet Singh, Abdullah Khan et Dost Akbar assistèrent tous. Nous reprîmes la discussion, et, finalement, nous tombâmes d’accord. Nous devions fournir aux deux officiers des plans de la partie du fort d’Agra, en y indiquant l’endroit du mur où le trésor était caché. Le major Sholto devait aller en Inde pour vérifier notre récit. S’il trouvait la boîte, il devait la laisser sur place, faire envoyer un petit yacht, approvisionné pour la traversée, qui se tiendrait au large de l’île Rutland, et vers lequel nous devions nous frayer un chemin, puis, enfin, rentrer à son poste. Le capitaine Morstan devait alors demander une permission, nous rejoindre à Agra, et c’est là que nous procéderions au partage définitif du trésor, lui prenant la part du major en plus de la sienne. Tout cela, nous le scellâmes par les serments les plus solennels que l’esprit puisse concevoir ou que des lèvres puissent prononcer. Je restai assis toute la nuit, papier et encre devant moi, et, au matin, j’avais les deux plans prêts, signés du signe des Quatre — c’est-à-dire d’Abdullah, d’Akbar, de Mahomet et de moi.
+
+« Eh bien, messieurs, je vous lasse avec mon long récit, et je sais que mon ami M. Jones brûle d’impatience de me voir dûment remisé au trou. Je vais faire aussi court que possible. Le scélérat Sholto partit pour l’Inde, mais il ne revint jamais. Le capitaine Morstan me montra son nom sur une liste de passagers d’un des paquebots-poste, peu de temps après. Son oncle était mort en lui laissant une fortune ; il avait quitté l’armée ; et pourtant il pouvait s’abaisser à traiter cinq hommes comme il nous avait traités. Morstan se rendit à Agra peu après et constata, comme nous nous y attendions, que le trésor avait bel et bien disparu. Le misérable l’avait volé en entier, sans remplir une seule des conditions auxquelles nous lui avions vendu le secret. À partir de ce jour, je ne vécus plus que pour la vengeance. J’y pensais le jour, je la couvais la nuit. Elle devint pour moi une passion dévorante, exclusive. Je me moquais de la loi — je me moquais de la potence. M’évader, traquer Sholto, poser ma main sur sa gorge : voilà ce qui occupait toute ma pensée. Même le trésor d’Agra en vint à compter moins, à mes yeux, que la mort de Sholto.
+
+Eh bien, dans cette vie, je me suis fixé bien des buts, et jamais un seul que je n’aie fini par atteindre. Mais il fallut des années d’usure avant que mon heure ne sonne.
+
+« Eh bien, si je vous racontais toutes les aventures que mon petit camarade et moi avons traversées, vous ne m’en sauriez pas gré : je vous retiendrais ici jusqu’à ce que le soleil soit levé. Nous avons erré de-ci de-là à travers le monde, et il se présentait toujours quelque chose pour nous tenir éloignés de Londres. Pourtant, je n’ai jamais perdu mon but de vue. La nuit, je rêvais de Sholto. Cent fois, je l’ai tué dans mon sommeil. Enfin, il y a trois ou quatre ans, nous nous sommes retrouvés en Angleterre. Je n’eus guère de peine à découvrir où vivait Sholto, et je me mis à l’œuvre pour savoir s’il avait réalisé le trésor, ou s’il le possédait encore. Je me liai avec quelqu’un qui pouvait m’aider — je ne cite aucun nom, je ne veux mettre personne dans l’embarras — et j’appris bientôt qu’il avait toujours les bijoux. Alors j’essayai de l’atteindre de bien des façons ; mais il était assez retors, et il avait en permanence deux boxeurs, en plus de ses fils et de son khitmutgar, pour monter la garde autour de lui.
+
+« Un jour, pourtant, on me fit savoir qu’il se mourait. Je courus aussitôt au jardin, hors de moi à l’idée qu’il allait m’échapper ainsi entre les doigts, et, regardant par la fenêtre, je le vis étendu dans son lit, ses fils de chaque côté. Je serais entré et j’aurais tenté ma chance contre eux trois ; mais, au moment même où je le regardais, sa mâchoire s’affaissa, et je sus qu’il était parti. Cette nuit-là, malgré tout, j’entrai dans sa chambre et fouillai ses papiers pour voir s’il y avait la moindre indication de l’endroit où il avait caché nos bijoux. Pas une ligne, pourtant : je m’en allai donc, amer et féroce comme peut l’être un homme. Avant de partir, je me dis que si jamais je revoyais mes amis sikhs, ce serait une satisfaction de savoir que j’avais laissé une marque de notre haine ; alors je griffonnai le signe de nous quatre, tel qu’il figurait sur le plan, et je l’épinglai sur sa poitrine. C’eût été trop qu’il descendît dans la tombe sans un signe des hommes qu’il avait volés et dupés.
+
+« À cette époque, nous gagnions notre vie en exhibant le pauvre Tonga dans les foires et autres endroits du même genre, comme “le cannibale noir”. Il mangeait de la viande crue et dansait sa danse de guerre ; ainsi, après une journée de travail, nous avions toujours un chapeau plein de pennies. Je continuais à recevoir toutes les nouvelles de Pondicherry Lodge, et pendant des années il n’y eut rien à entendre, sinon qu’ils cherchaient le trésor. Enfin, pourtant, arriva ce que nous attendions depuis si longtemps. Le trésor avait été retrouvé. Il était tout en haut de la maison, dans le laboratoire de chimie de M. Bartholomew Sholto. Je vins aussitôt jeter un coup d’œil aux lieux, mais je ne voyais pas comment, avec ma jambe de bois, je pourrais y accéder. J’appris cependant l’existence d’une trappe dans le toit, et aussi l’heure du souper de M. Sholto. Il me sembla que je pouvais mener l’affaire aisément par l’entremise de Tonga. Je l’emmenai avec moi, une longue corde enroulée autour de la taille. Il grimpait comme un chat, et il se faufila vite par le toit ; mais, par malchance, Bartholomew Sholto se trouvait encore dans la pièce — à ses dépens. Tonga crut avoir fait quelque chose de très malin en le tuant, car lorsque je montai le long de la corde, je le trouvai paradant, fier comme un paon. Il fut fort surpris quand je lui tombai dessus avec le bout de la corde et que je le maudis, petit diablotin assoiffé de sang. Je pris la caisse du trésor et la fis descendre, puis je me laissai glisser à mon tour, après avoir d’abord laissé le signe des Quatre sur la table, pour montrer que les bijoux étaient enfin revenus à ceux qui y avaient le plus de droit. Tonga remonta ensuite la corde, referma la fenêtre et s’enfuit par le chemin qu’il avait pris.
+
+« Je ne crois pas avoir autre chose à vous dire. J’avais entendu un batelier parler de la vitesse du canot de Smith, l’_Aurora_ ; je me dis qu’il ferait un bon bâtiment pour notre fuite. Je traitai avec le vieux Smith, et je devais lui donner une grosse somme s’il nous menait sains et saufs jusqu’à notre navire. Il savait, sans doute, qu’il y avait quelque chose de louche, mais il n’était pas dans nos secrets. Tout cela est la vérité, et si je vous la dis, messieurs, ce n’est pas pour vous divertir — car vous ne m’avez pas rendu un bien grand service — mais parce que je crois que la meilleure défense que je puisse présenter est de ne rien retenir, et de laisser le monde entier savoir à quel point le major Sholto m’a moi-même mal servi, et combien je suis innocent de la mort de son fils. »
+
+« Un récit tout à fait remarquable, dit Sherlock Holmes. Une conclusion digne d’une affaire extrêmement...
+
+« J’espère, dis-je en riant, que mon jugement sortira indemne de l’épreuve. Mais vous avez l’air épuisé. »
+
+— Oui, le contrecoup se fait déjà sentir. Je vais être mou comme une loque pendant une semaine.
+
+« Étrange, repris-je, comme ce que, chez un autre, j’appellerais de la paresse alterne chez vous avec des accès d’énergie et de vigueur splendides. »
+
+— Oui, répondit-il, il y a en moi de quoi faire un parfait fainéant, et aussi un gaillard plutôt alerte. Je pense souvent à ces vers du vieux Goethe :
+
+Schade dass die Natur nur _einen_ Mensch aus Dir schuf,
+Denn zum würdigen Mann war und zum Schelmen der Stoff.
+
+« Au fait, à propos de cette affaire de Norwood, vous voyez qu’ils avaient, comme je l’avais supposé, un complice dans la maison, qui ne pouvait être que Lal Rao, le maître d’hôtel : ainsi Jones a bel et bien l’honneur entier d’avoir pris un poisson dans sa grande pêche. »
+
+« Le partage me paraît assez injuste, remarquai-je. Vous avez fait tout le travail dans cette affaire. Moi, j’y gagne une épouse ; Jones, la gloire ; je vous prie, que vous reste-t-il, à vous ? »
+
+— À moi, dit Sherlock Holmes, il me reste encore le flacon de cocaïne. Et il tendit vers lui sa longue main blanche.

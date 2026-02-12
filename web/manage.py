@@ -2,6 +2,15 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from gaiden.env_guard import assert_venv
+
+assert_venv(ROOT)
 
 
 def main():

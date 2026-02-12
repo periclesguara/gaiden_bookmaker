@@ -1,0 +1,28 @@
+This eBook is available for anyone, anywhere in the United States—and in most other parts of the world—to use free of charge and with almost no restrictions. You may copy it, give it away, or reuse it under the terms of the Project Gutenberg License included with this eBook, or online at www.gutenberg.org. If you are not in the United States, you must check the laws of your own country before using this eBook.
+
+**1.E.2.** If an individual Project Gutenberg™ electronic work is based on texts not protected by U.S. copyright law (that is, it does not carry a notice saying it is posted with the permission of the copyright holder), it may be copied and distributed to anyone in the United States without paying any fees or charges. If you redistribute or provide access to a work that has the phrase “Project Gutenberg” connected with it or appearing on it, you must either comply with the requirements of paragraphs 1.E.1 through 1.E.7, or obtain permission to use the work and the Project Gutenberg™ trademark as set out in paragraphs 1.E.8 or 1.E.9.
+
+**1.E.3.** If an individual Project Gutenberg™ electronic work is posted with the permission of the copyright holder, your use and distribution must comply with paragraphs 1.E.1 through 1.E.7 as well as any additional terms imposed by the copyright holder. Any additional terms will be linked to the Project Gutenberg™ License for all works posted with the permission of the copyright holder, and can be found at the beginning of this work.
+
+**1.E.4.** Do not unlink, detach, or remove the full Project Gutenberg™ License terms from this work, or from any files containing part of this work or any other work associated with Project Gutenberg™.
+
+**1.E.5.** Do not copy, display, perform, distribute, or redistribute this electronic work—or any part of it—without prominently displaying the sentence set out in paragraph 1.E.1, with active links or immediate access to the full terms of the Project Gutenberg™ License.
+
+**1.E.6.** You may convert this work to, and distribute it in, any binary, compressed, marked-up, nonproprietary, or proprietary form, including any word-processing or hypertext form. However, if you provide access to or distribute copies of a Project Gutenberg™ work in a format other than “Plain Vanilla ASCII,” or other format used in the official version posted on the official Project Gutenberg™ website (www.gutenberg.org), you must—at no additional cost, fee, or expense to the user—provide a copy, a way to export a copy, or a way to obtain a copy upon request, of the work in its original “Plain Vanilla ASCII” or other form. Any alternate format must include the full Project Gutenberg™ License as specified in paragraph 1.E.1.
+
+**1.E.7.** Do not charge a fee for access to, viewing, displaying, performing, copying, or distributing any Project Gutenberg™ works unless you comply with paragraph 1.E.8 or 1.E.9.
+
+**1.E.8.** You may charge a reasonable fee for copies of, or for providing access to or distributing, Project Gutenberg™ electronic works, provided that:
+
+- You pay a royalty of 20% of the gross profits you earn from using Project Gutenberg™ works, calculated using the same method you already use to calculate your applicable taxes. This fee is owed to the owner of the Project Gutenberg™ trademark, but he has agreed to donate royalties under this paragraph to the Project Gutenberg Literary Archive Foundation. Royalty payments must be made within 60 days after each date on which you prepare (or are legally required to prepare) your periodic tax returns. Royalty payments should be clearly labeled as such and sent to the Project Gutenberg Literary Archive Foundation at the address given in Section 4, “Information about donations to the Project Gutenberg Literary Archive Foundation.”
+- You provide a full refund of any money paid by a user who notifies you in writing (or by e-mail) within 30 days of receiving the work that he or she does not agree to the terms of the full Project Gutenberg™ License. You must require that user to return or destroy all copies of the works in a physical medium, and to stop all use of—and all access to—other copies of Project Gutenberg™ works.
+- You provide, in accordance with paragraph 1.F.3, a full refund of any money paid for a work or a replacement copy if a defect in the electronic work is discovered and reported to you within 90 days of receiving the work.
+- You comply with all other terms of this agreement for the free distribution of Project Gutenberg™ works.
+
+**1.E.9.** If you want to charge a fee or distribute a Project Gutenberg™ electronic work—or a group of works—on terms different from those set out in this agreement, you must obtain written permission from the Project Gutenberg Literary Archive Foundation, the manager of the Project Gutenberg™ trademark. Contact the Foundation as described in Section 3 below.
+
+**1.F.**
+
+**1.F.1.** Project Gutenberg volunteers and employees put substantial effort into identifying works not protected by U.S. copyright law, researching copyright, transcribing, and proofreading in order to build the Project Gutenberg™ collection. Despite these efforts, Project Gutenberg™ electronic works—and the media on which they may be stored—may contain “Defects,” including, but not limited to, incomplete, inaccurate, or corrupted data; transcription errors; copyright or other intellectual-property infringement; a defective or damaged disk or other medium; a computer virus; or computer code that damages your equipment or cannot be read by it.
+
+**1.F.2. LIMITED WARRANTY, DISCLAIMER OF DAMAGES** — Except for the “Right of Replacement or

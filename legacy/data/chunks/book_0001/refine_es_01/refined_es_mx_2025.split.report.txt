@@ -1,0 +1,5 @@
+input=/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0001/refine_es_01/merge_translate_es_mx_2025.txt
+parts=15
+final_out=/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0001/refine_es_01/refined_es_mx_2025.txt
+input_chars=369999
+output_chars=45201

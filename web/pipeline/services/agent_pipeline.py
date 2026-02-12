@@ -2,21 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import os
 from pathlib import Path
 
-from gaiden.translate import run_translate_with_contract
+from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.run_artifacts import create_run_dir, write_contract_json, write_env_json
+from gaiden.secrets_loader import require_openai_ready
+from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
 
 from . import edition_meta, paths, utils
-
-
-TRANSLATE_CONTRACTS = {
-    "en": "gaiden/contracts/en_modern_2025.json",
-    "es": "gaiden/contracts/en_es_2025.json",
-    "ptbr": "gaiden/contracts/en_ptbr_2025.json",
-    "de": "gaiden/contracts/en_de_krimi_2025.json",
-    "fr": "gaiden/contracts/translate_fr_2026.json",
-    "it": "gaiden/contracts/translate_it_2026.json",
-}
 
 
 @dataclass
@@ -30,16 +24,53 @@ def _project_root() -> Path:
 
 def run_translate_only(edition, target_language: str) -> PipelineResult:
     lang = utils.normalize_lang(target_language)
-    if lang not in TRANSLATE_CONTRACTS:
-        raise ValueError(f"No translate contract for language={lang}")
+    contract_path = resolve_translate_contract_path(lang)
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
 
-    contract_path = _project_root() / TRANSLATE_CONTRACTS[lang]
-    run_translate_with_contract(contract_path)
+    book = edition_meta.book_code(edition)
+    project_root = _project_root()
+    chunks_root = project_root / "data" / "chunks"
+    translated_root = project_root / "data" / "translated"
+    runs_root = translated_root / "_runs"
+    runs_root.mkdir(parents=True, exist_ok=True)
 
-    payload = json.loads(contract_path.read_text(encoding="utf-8"))
-    out_dir = Path(payload.get("out_dir", "")).expanduser()
-    if not out_dir.is_absolute():
-        out_dir = _project_root() / out_dir
-    lang_dir = out_dir.name
-    merged = out_dir / f"merge_translate_{lang_dir}.txt"
-    return PipelineResult(translated_path=merged)
+    require_openai_ready(dry_run=False, repo_root=project_root)
+
+    run_dir, run_id = create_run_dir(runs_root, f"translate_{book}_{lang}")
+    write_contract_json(run_dir, contract)
+    write_env_json(
+        run_dir,
+        dry_run=False,
+        model=contract.get("model"),
+        base_url=os.environ.get("OPENAI_BASE_URL"),
+        repo_root=project_root,
+        extra={"mode": "single", "book": book, "target_lang": lang},
+    )
+    contracts_root = project_root / "data" / "contracts_runtime"
+    contracts_root.mkdir(parents=True, exist_ok=True)
+    contracts_root.joinpath(f"translate_single_{run_id}.json").write_text(
+        json.dumps(contract, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    translate_book_chunks(
+        book=book,
+        source_lang="en",
+        target_lang=lang,
+        chunks_root=chunks_root,
+        translated_root=translated_root,
+        resume=True,
+        dry_run=False,
+        contract_path=contract_path,
+        runs_root=runs_root,
+        run_id=run_id,
+    )
+    out_path = translated_root / book / lang / f"{book}_{lang}_merged_v1.txt"
+    merge_translated_chunks(
+        book=book,
+        target_lang=lang,
+        translated_root=translated_root,
+        out_path=out_path,
+    )
+    run_dir.joinpath("merged_v1.txt").write_text(out_path.read_text(encoding=\"utf-8\"), encoding=\"utf-8\")
+    return PipelineResult(translated_path=out_path)

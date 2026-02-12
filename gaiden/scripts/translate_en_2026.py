@@ -12,11 +12,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]  # adjust if your scripts folder
 DATA_DIR = REPO_ROOT / "data"
 CHUNKS_DIR = DATA_DIR / "chunks"
 TRANSLATED_DIR = DATA_DIR / "translated"
-CONTRACTS_DIR = REPO_ROOT / "gaiden" / "contracts"
 
 # Ensure repo root is on sys.path when running as a script
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.lang import normalize_lang_code
 
 # ---- utils ----
 def read_text(p: Path) -> str:
@@ -118,33 +120,29 @@ def chunk_input_path(book_code: str, chunk_file: str) -> Path:
     return CHUNKS_DIR / book_code / "en" / chunk_file
 
 
-def out_dir(book_code: str) -> Path:
-    # canonical output dir for this 2026 modernization
-    return TRANSLATED_DIR / book_code / "en_2026"
+def out_dir(book_code: str, target_lang: str) -> Path:
+    return TRANSLATED_DIR / book_code / target_lang
 
 
 def out_chunk_name(chunk_file: str) -> str:
-    # ch_500_chunk_001.txt -> ch_500_chunk_001.EN_2026.txt
-    base = chunk_file.replace(".txt", "")
-    return f"{base}.EN_2026.txt"
+    return chunk_file
 
 
-def merge_output_path(book_code: str) -> Path:
-    return out_dir(book_code) / "merge_translate_EN_2026.txt"
+def merge_output_path(book_code: str, target_lang: str) -> Path:
+    return out_dir(book_code, target_lang) / f"merge_translate_{target_lang}.txt"
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--book", required=True, help="book code, e.g. book_0003")
-    ap.add_argument(
-        "--contract", default="en_modern_2026.json", help="contract file in gaiden/contracts/"
-    )
+    ap.add_argument("--tgt", default="en_modern", help="target language code (canonical)")
     ap.add_argument("--limit", type=int, default=0, help="process only first N chunks (0 = all)")
     ap.add_argument("--overwrite", action="store_true", help="overwrite existing outputs")
     args = ap.parse_args()
 
     book_code = args.book.strip()
-    contract_path = CONTRACTS_DIR / args.contract
+    target_lang = normalize_lang_code(args.tgt, default="en_modern")
+    contract_path = resolve_translate_contract_path(target_lang)
     if not contract_path.exists():
         raise FileNotFoundError(f"Contract not found: {contract_path}")
 
@@ -165,7 +163,7 @@ def main() -> None:
     if args.limit and args.limit > 0:
         chunk_files = chunk_files[: args.limit]
 
-    odir = out_dir(book_code)
+    odir = out_dir(book_code, target_lang)
     odir.mkdir(parents=True, exist_ok=True)
 
     merged_parts: List[str] = []
@@ -218,7 +216,7 @@ def main() -> None:
         processed += 1
 
     # Merge output
-    merge_path = merge_output_path(book_code)
+    merge_path = merge_output_path(book_code, target_lang)
     write_text(merge_path, "\n\n".join([p.strip() for p in merged_parts if p.strip()]) + "\n")
     print(f"OK: wrote merge -> {merge_path}")
     print(f"OK: processed chunks -> {processed}")

@@ -34,12 +34,16 @@ Definition:
 - ALWAYS English source
 
 Allowed target languages:
-1) English → Modern English (2026)
+1) English → Modern English (2026) [code: en_modern]
 2) German
 3) French
 4) Spanish
 5) Portuguese (PT-BR neutral)
 6) Italian
+
+Lang code policy (runtime):
+- Canonical: en_modern (target), en (source)
+- Legacy alias: en_2026 → en_modern
 
 Execution rule:
 - Languages are processed IN QUEUE

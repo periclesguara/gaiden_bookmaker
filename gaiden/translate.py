@@ -7,7 +7,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 
-from gaiden.openai_client import get_client
+from gaiden.lang import normalize_lang_code
+from gaiden.openai_client import get_client, choose_model
 
 
 def _load_contract(path: str | Path) -> Dict[str, Any]:
@@ -37,8 +38,8 @@ def _get_target_language(contract: Dict[str, Any]) -> str:
                 ok = False
                 break
         if ok and isinstance(val, str) and val.strip():
-            return val.strip()
-    return "en"
+            return normalize_lang_code(val.strip(), default="en_modern")
+    return normalize_lang_code("en_modern", default="en_modern")
 
 
 def _build_messages(chunk_text: str, contract: Dict[str, Any]) -> List[Dict[str, str]]:
@@ -48,7 +49,10 @@ def _build_messages(chunk_text: str, contract: Dict[str, Any]) -> List[Dict[str,
         or ""
     )
     user_template = contract.get("user_prompt") or contract.get("user") or "{text}"
-    user_text = user_template.replace("{text}", chunk_text)
+    if "{{TEXT}}" in user_template:
+        user_text = user_template.replace("{{TEXT}}", chunk_text)
+    else:
+        user_text = user_template.replace("{text}", chunk_text).replace("{TEXT}", chunk_text)
 
     messages: List[Dict[str, str]] = []
     if system_prompt.strip():
@@ -89,7 +93,7 @@ def _detect_chunk_dir(contract: Dict[str, Any]) -> Path:
 def _default_out_dir(chunk_dir_path: Path, target_lang: str) -> Path:
     parts = chunk_dir_path.parts
     if len(parts) >= 2 and parts[-1] == "en" and parts[-2].startswith("book_"):
-        lang_dir = target_lang.strip().upper()
+        lang_dir = normalize_lang_code(target_lang, default="en_modern")
         return Path("data/translated") / parts[-2] / lang_dir
     return chunk_dir_path.parent / f"{chunk_dir_path.name}_{target_lang}"
 
@@ -172,7 +176,13 @@ def run_translate_with_contract(
     contract = _load_contract(contract_path)
 
     out_dir = contract.get("out_dir")
-    chunk_dir_path = _detect_chunk_dir(contract)
+    if chunk_dir_override:
+        chunk_dir_str = str(chunk_dir_override)
+        if "data/chunks/book_" not in chunk_dir_str or not chunk_dir_str.endswith("/en"):
+            raise SystemExit("chunk-dir-override inválido. Esperado .../data/chunks/book_XXXX/en")
+        chunk_dir_path = Path(chunk_dir_override).expanduser()
+    else:
+        chunk_dir_path = _detect_chunk_dir(contract)
     uses_book_placeholder = (
         isinstance(out_dir, str)
         and "{BOOK_ID}" in out_dir
@@ -184,16 +194,10 @@ def run_translate_with_contract(
             "Contrato usa {BOOK_ID}. Use --chunk-dir-override e --out-dir-override "
             "(ou rode via ./scripts/translate_book.sh book_XXXX)."
         )
-    if chunk_dir_override:
-        chunk_dir_str = str(chunk_dir_override)
-        if "data/chunks/book_" not in chunk_dir_str or not chunk_dir_str.endswith("/en"):
-            raise SystemExit("chunk-dir-override inválido. Esperado .../data/chunks/book_XXXX/en")
     if out_dir_override:
         out_dir_str = str(out_dir_override)
         if "data/translated/book_" not in out_dir_str:
             raise SystemExit("out-dir-override inválido. Esperado .../data/translated/book_XXXX/<LANG>")
-    if chunk_dir_override:
-        chunk_dir_path = Path(chunk_dir_override).expanduser()
     if not chunk_dir_path.is_dir():
         raise FileNotFoundError(f'chunk_dir não existe: {chunk_dir_path}')
     if "split" in str(chunk_dir_path):
@@ -211,8 +215,9 @@ def run_translate_with_contract(
     out_dir_path.mkdir(parents=True, exist_ok=True)
 
     model = contract.get("model", "")
-    if model != "gpt-5.2":
-        raise RuntimeError(f'Modelo inválido para tradução: {model}. Use "gpt-5.2".')
+    if contract.get("stage") == "translate" and contract.get("model_lock") is not True:
+        raise RuntimeError("TRANSLATE MODEL VIOLATION: stage=translate requires model_lock=true")
+    model_effective = choose_model(stage=contract.get("stage"), contract_model=model, env_default=None)
     temperature = float(contract.get("temperature", 0.4))
     max_output_tokens = int(contract.get("max_output_tokens", 1200))
 
@@ -255,7 +260,7 @@ def run_translate_with_contract(
             messages = _build_messages(text, contract)
 
             resp = client.responses.create(
-                model=model,
+        model=model_effective,
                 input=messages,
                 temperature=temperature,
                 max_output_tokens=max_output_tokens,

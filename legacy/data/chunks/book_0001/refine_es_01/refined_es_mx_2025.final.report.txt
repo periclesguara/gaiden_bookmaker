@@ -1,0 +1,14 @@
+FINAL REPORT: refined_es_mx_2025.polished.txt
+timestamp: 2026-01-26T22:51:00
+path: /home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0001/refine_es_01/refined_es_mx_2025.polished.txt
+wc_lines: 774
+wc_bytes: 382376
+
+headings:
+found_count: 12
+found_sequence: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+order_1_12_ok: True
+
+disclaimer_scan:
+patterns: ['A partir de este punto', '\\[El texto continúa\\]', 'El texto continúa', '\\[Texto continúa\\]', '\\[Texto continua\\]']
+hits: 0
