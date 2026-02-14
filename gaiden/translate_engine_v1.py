@@ -381,10 +381,10 @@ def merge_translated_chunks(
     return stamp
 
 
-def _report_failure_reason(report: Dict) -> str | None:
+def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
     status = str(report.get("status", "")).strip()
-    if status == "error_preflight":
-        return "error_preflight"
+    if status in {"error_preflight", "error", "failed"}:
+        return f"report_status={status}"
 
     items = report.get("items") or []
     min_ratio = float(report.get("validation_ratio_min", 0.95))
@@ -393,6 +393,14 @@ def _report_failure_reason(report: Dict) -> str | None:
         item_status = str(item.get("status", "")).strip()
         if item_status and item_status not in {"translated", "skipped_exists", "dry_run"}:
             return f"chunk_status={item_status}"
+
+        response_status = str(item.get("response_status") or "").strip().lower()
+        if response_status == "incomplete":
+            return "response_status=incomplete"
+
+        incomplete_reason = str(item.get("incomplete_reason") or "").strip().lower()
+        if incomplete_reason in {"content_filter", "contentfilter"}:
+            return f"incomplete_reason={incomplete_reason}"
 
         finish_reason = str(item.get("finish_reason") or "").strip().lower()
         if finish_reason in {"content_filter", "incomplete", "length"}:
@@ -410,7 +418,51 @@ def _report_failure_reason(report: Dict) -> str | None:
                 return f"ratio_guard={ratio:.3f}"
             if ratio < min_ratio or ratio > max_ratio:
                 return f"ratio_out_of_bounds={ratio:.3f}"
+
+        in_lines = item.get("in_lines")
+        out_lines = item.get("out_lines")
+        if isinstance(in_lines, int) and isinstance(out_lines, int) and in_lines > 0:
+            if out_lines < int(0.85 * in_lines):
+                return f"line_ratio_guard={out_lines}/{in_lines}"
+
+        meta_path = item.get("meta_path")
+        if meta_path:
+            meta = _load_json_safe(Path(meta_path))
+            if meta:
+                response_status = str(meta.get("response_status") or "").strip().lower()
+                if response_status == "incomplete":
+                    return "response_status=incomplete"
+                incomplete_reason = str(meta.get("incomplete_reason") or "").strip().lower()
+                if incomplete_reason in {"content_filter", "contentfilter"}:
+                    return f"incomplete_reason={incomplete_reason}"
+                if meta.get("structure_ok") is False:
+                    return "structure_ok_false"
+                in_lines = meta.get("in_lines")
+                out_lines = meta.get("out_lines")
+                if isinstance(in_lines, int) and isinstance(out_lines, int) and in_lines > 0:
+                    if out_lines < int(0.85 * in_lines):
+                        return f"line_ratio_guard={out_lines}/{in_lines}"
+                ratio = meta.get("ratio")
+                if isinstance(ratio, (int, float)) and ratio < 0.85:
+                    return f"ratio_guard={ratio:.3f}"
     return None
+
+
+def _merge_refine_clean(out_dir: Path, suffix: str) -> tuple[Path, int, int]:
+    pattern = f"ch_*_chunk_*.{suffix}.txt"
+    files = sorted(out_dir.glob(pattern))
+    if not files:
+        files = sorted(out_dir.glob("ch_*_chunk_*.txt"))
+    if not files:
+        raise RuntimeError(f"No translated chunks found for merge_refine_clean in {out_dir}")
+
+    parts: List[str] = []
+    for fp in files:
+        parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
+    merged = "\n".join(parts).rstrip("\n") + "\n"
+    out_path = out_dir / "merge_refine_clean.txt"
+    out_path.write_text(merged, encoding="utf-8", errors="strict")
+    return out_path, len(merged.encode("utf-8")), len(files)
 
 
 def _load_json_safe(path: Path) -> Dict | None:
@@ -459,6 +511,16 @@ def run_translate_safe(
         "merged_len": None,
         "merged_count": None,
     }
+    safe_report_path = out_dir / "translate_safe_run_report.json"
+    safe_report: Dict[str, Any] = {
+        "schema": "gaiden_translate_safe_run_v1",
+        "book_id": book,
+        "suffix": target_lang,
+        "official": {"status": None, "report_path": None, "error": None},
+        "fallback": {"used": False, "status": None, "report_path": None, "error": None},
+        "final": {"merged_txt": None, "merged_len": None, "chunks": None},
+    }
+    failure_reason = None
 
     try:
         report = translate_book_chunks(
@@ -474,8 +536,9 @@ def run_translate_safe(
             runs_root=runs_root,
             run_id=run_id,
         )
-        failure = None if dry_run else _report_failure_reason(report)
+        failure = None if dry_run else _report_failure_reason(report, out_dir)
         if failure:
+            failure_reason = failure
             raise RuntimeError(f"OFFICIAL_VALIDATE_FAIL: {failure}")
         if out_path:
             merge_translated_chunks(
@@ -486,18 +549,41 @@ def run_translate_safe(
             )
         if official_report_path.exists():
             result["official_report"] = str(official_report_path)
-        print("[TRANSLATE] official OK")
+            safe_report["official"]["report_path"] = str(official_report_path)
+        safe_report["official"]["status"] = "ok"
+        print("[TRANSLATE_SAFE] official=OK")
+        if not dry_run:
+            merged_path, merged_len, merged_count = _merge_refine_clean(out_dir, target_lang)
+            result["merged_txt"] = str(merged_path)
+            result["merged_len"] = merged_len
+            result["merged_count"] = merged_count
+            safe_report["final"]["merged_txt"] = str(merged_path)
+            safe_report["final"]["merged_len"] = merged_len
+            safe_report["final"]["chunks"] = merged_count
+            print(f"[TRANSLATE_SAFE] DONE merged={merged_path} bytes={merged_len}")
+        _dump_json(safe_report_path, safe_report)
         result["status"] = "ok_official"
         return result
     except Exception as exc:
-        result["official_error"] = repr(exc)
+        err_str = repr(exc)
+        result["official_error"] = err_str
         if official_report_path.exists():
             result["official_report"] = str(official_report_path)
+            safe_report["official"]["report_path"] = str(official_report_path)
+        if failure_reason is None:
+            failure_reason = err_str
+        if "TRUNCATION_OR_SUMMARY" in err_str:
+            failure_reason = "TRUNCATION_OR_SUMMARY"
+        elif "APIConnectionError" in err_str or "gaierror" in err_str or "DNS_FAIL" in err_str:
+            failure_reason = "NETWORK_DNS"
+        safe_report["official"]["status"] = "failed"
+        safe_report["official"]["error"] = failure_reason
 
     if dry_run:
+        _dump_json(safe_report_path, safe_report)
         return result
 
-    print("[TRANSLATE] official FAILED -> fallback ALAMAGUEDERAZ")
+    print(f"[TRANSLATE_SAFE] official=FAILED reason={failure_reason} -> fallback=ALAMAGUEDERAZ")
 
     repo_root = Path(__file__).resolve().parents[1]
     cmd = [
@@ -534,13 +620,20 @@ def run_translate_safe(
     fallback_report = _load_json_safe(fallback_report_path)
     if fallback_report_path.exists():
         result["fallback_report"] = str(fallback_report_path)
+        safe_report["fallback"]["report_path"] = str(fallback_report_path)
 
     if proc.returncode == 0 and fallback_report and fallback_report.get("status") == "ok":
         result["status"] = "ok_fallback"
         result["merged_txt"] = fallback_report.get("merged_txt")
         result["merged_len"] = fallback_report.get("merged_len")
         result["merged_count"] = fallback_report.get("merged_count")
-        print(f"[TRANSLATE] fallback OK merged={result['merged_txt']}")
+        safe_report["fallback"]["used"] = True
+        safe_report["fallback"]["status"] = "ok"
+        safe_report["final"]["merged_txt"] = result["merged_txt"]
+        safe_report["final"]["merged_len"] = result["merged_len"]
+        safe_report["final"]["chunks"] = result["merged_count"]
+        _dump_json(safe_report_path, safe_report)
+        print(f"[TRANSLATE_SAFE] DONE merged={result['merged_txt']} bytes={result['merged_len']}")
         return result
 
     result["fallback_error"] = {
@@ -548,4 +641,8 @@ def run_translate_safe(
         "stdout": (proc.stdout or "").strip(),
         "stderr": (proc.stderr or "").strip(),
     }
+    safe_report["fallback"]["used"] = True
+    safe_report["fallback"]["status"] = "failed"
+    safe_report["fallback"]["error"] = json.dumps(result["fallback_error"], ensure_ascii=False)
+    _dump_json(safe_report_path, safe_report)
     return result
