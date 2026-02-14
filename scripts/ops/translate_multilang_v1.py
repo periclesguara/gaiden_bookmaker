@@ -149,6 +149,17 @@ def main():
             )
 
             merged_path = result.get("merged_txt") or str(out_path)
+            if dry_run and result["status"] == "dry_run":
+                print(f"[DRY] {book} -> {lang} (dry_run)")
+                summary["items"].append(
+                    {
+                        "lang": lang,
+                        "status": "dry_run",
+                        "official_report": result.get("official_report"),
+                        "fallback_report": result.get("fallback_report"),
+                    }
+                )
+                continue
             if result["status"] == "ok_official":
                 print(f"[OK] {book} -> {lang} (dry_run={dry_run}) merged={out_path}")
                 merged_copy = run_dir / f"merged_v1_{lang}.txt"

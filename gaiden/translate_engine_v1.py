@@ -477,6 +477,13 @@ def _load_json_safe(path: Path) -> Dict | None:
         return None
 
 
+def _write_safe_report(out_dir: Path, payload: Dict) -> Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "translate_safe_run_report.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return path
+
+
 def run_translate_safe(
     *,
     book: str | None = None,
@@ -539,6 +546,9 @@ def run_translate_safe(
     in_dir = Path(chunk_dir) if chunk_dir else (chunks_root / book / source_lang)
     out_dir = Path(out_dir) if out_dir else (translated_root / book / target_lang)
     official_report_path = out_dir / "translate_run_report.json"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    from gaiden.openai_client import openai_healthcheck
 
     result: Dict[str, Any] = {
         "status": "error",
@@ -549,16 +559,35 @@ def run_translate_safe(
         "merged_len": None,
         "merged_count": None,
     }
-    safe_report_path = out_dir / "translate_safe_run_report.json"
     safe_report: Dict[str, Any] = {
-        "schema": "gaiden_translate_safe_run_v1",
+        "schema": "gaiden_translate_safe_v2",
         "book_id": book,
         "suffix": target_lang,
+        "status": None,
+        "error": None,
         "official": {"status": None, "report_path": None, "error": None},
         "fallback": {"used": False, "status": None, "report_path": None, "error": None},
         "final": {"merged_txt": None, "merged_len": None, "chunks": None},
+        "ts": datetime.utcnow().isoformat() + "Z",
     }
     failure_reason = None
+
+    if dry_run:
+        safe_report["status"] = "dry_run"
+        safe_report["official"] = {"status": "skipped", "reason": "dry_run"}
+        safe_report["fallback"] = {"used": False, "status": "skipped", "reason": "dry_run"}
+        _write_safe_report(out_dir, safe_report)
+        result["status"] = "dry_run"
+        return result
+
+    ok, msg = openai_healthcheck()
+    if not ok:
+        safe_report["status"] = "error_preflight"
+        safe_report["error"] = msg
+        safe_report["official"] = {"status": "skipped", "reason": "preflight_failed"}
+        safe_report["fallback"] = {"used": False, "status": "skipped", "reason": "preflight_failed"}
+        _write_safe_report(out_dir, safe_report)
+        raise RuntimeError(f"PRE-FLIGHT FAILED: {msg}")
 
     try:
         report = translate_book_chunks(
@@ -590,6 +619,7 @@ def run_translate_safe(
             result["official_report"] = str(official_report_path)
             safe_report["official"]["report_path"] = str(official_report_path)
         safe_report["official"]["status"] = "ok_official"
+        safe_report["status"] = "ok_official"
         print("[TRANSLATE_SAFE] official=OK")
         if not dry_run:
             merged_path, merged_len, merged_count = _merge_refine_clean(out_dir, target_lang)
@@ -600,7 +630,7 @@ def run_translate_safe(
             safe_report["final"]["merged_len"] = merged_len
             safe_report["final"]["chunks"] = merged_count
             print(f"[TRANSLATE_SAFE] DONE merged={merged_path} bytes={merged_len}")
-        _dump_json(safe_report_path, safe_report)
+        _write_safe_report(out_dir, safe_report)
         result["status"] = "ok_official"
         return result
     except Exception as exc:
@@ -617,9 +647,10 @@ def run_translate_safe(
             failure_reason = "NETWORK_DNS"
         safe_report["official"]["status"] = "error_official"
         safe_report["official"]["error"] = failure_reason
+        safe_report["status"] = "error_official"
 
     if dry_run:
-        _dump_json(safe_report_path, safe_report)
+        _write_safe_report(out_dir, safe_report)
         return result
 
     print(f"[TRANSLATE_SAFE] official=FAILED reason={failure_reason} -> fallback=ALAMAGUEDERAZ")
@@ -668,10 +699,11 @@ def run_translate_safe(
         result["merged_count"] = fallback_report.get("merged_count")
         safe_report["fallback"]["used"] = True
         safe_report["fallback"]["status"] = "ok_fallback"
+        safe_report["status"] = "ok_fallback"
         safe_report["final"]["merged_txt"] = result["merged_txt"]
         safe_report["final"]["merged_len"] = result["merged_len"]
         safe_report["final"]["chunks"] = result["merged_count"]
-        _dump_json(safe_report_path, safe_report)
+        _write_safe_report(out_dir, safe_report)
         print(f"[TRANSLATE_SAFE] DONE merged={result['merged_txt']} bytes={result['merged_len']}")
         return result
 
@@ -683,5 +715,6 @@ def run_translate_safe(
     safe_report["fallback"]["used"] = True
     safe_report["fallback"]["status"] = "error_fallback"
     safe_report["fallback"]["error"] = json.dumps(result["fallback_error"], ensure_ascii=False)
-    _dump_json(safe_report_path, safe_report)
+    safe_report["status"] = "error_fallback"
+    _write_safe_report(out_dir, safe_report)
     return result

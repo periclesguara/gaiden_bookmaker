@@ -3,9 +3,11 @@ import os
 import sys
 import json
 import argparse
+from datetime import datetime
 from pathlib import Path
 
 from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.openai_client import openai_healthcheck
 
 
 def ensure_dir(path: str) -> None:
@@ -23,6 +25,42 @@ def validate_chunks(chunk_dir: str):
         sys.exit(2)
 
     return chunks
+
+
+def _write_safe_report(out_dir: str, payload: dict) -> str:
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, "translate_safe_run_report.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+    return path
+
+
+def preflight_or_abort(book_id: str, out_dir: str, dry_run: bool) -> None:
+    if dry_run:
+        payload = {
+            "schema": "gaiden_translate_safe_v2",
+            "book_id": book_id,
+            "status": "dry_run",
+            "error": None,
+            "skipped_reason": "dry_run",
+            "ts": datetime.utcnow().isoformat() + "Z",
+        }
+        _write_safe_report(out_dir, payload)
+        print("[TRANSLATE_SAFE] DRY_RUN (no API calls)")
+        return
+
+    ok, msg = openai_healthcheck()
+    if not ok:
+        payload = {
+            "schema": "gaiden_translate_safe_v2",
+            "book_id": book_id,
+            "status": "error_preflight",
+            "error": msg,
+            "ts": datetime.utcnow().isoformat() + "Z",
+        }
+        _write_safe_report(out_dir, payload)
+        print("[TRANSLATE_SAFE] PRE-FLIGHT FAILED:", msg)
+        sys.exit(2)
 
 
 def main():
@@ -45,6 +83,9 @@ def main():
     contract = args.contract or f"gaiden/contracts_v2/translate/lang/{suffix}_2026.json"
 
     ensure_dir(out_dir)
+    preflight_or_abort(book_id, out_dir, args.dry_run)
+    if args.dry_run:
+        sys.exit(0)
     validate_chunks(chunk_dir)
 
     print(f"[TRANSLATE_SAFE] START book={book_id} suffix={suffix}")

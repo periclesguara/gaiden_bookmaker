@@ -152,6 +152,17 @@ def main():
                 out_path=out_path,
             )
             merged_path = result.get("merged_txt") or str(out_path)
+            if dry_run and result["status"] == "dry_run":
+                summary["items"].append(
+                    {
+                        "book": book,
+                        "status": "dry_run",
+                        "official_report": result.get("official_report"),
+                        "fallback_report": result.get("fallback_report"),
+                    }
+                )
+                print(f"[DRY] {book} -> {target_lang} (dry_run)")
+                continue
             if result["status"] == "ok_official":
                 summary["items"].append(
                     {
