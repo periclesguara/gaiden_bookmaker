@@ -6,6 +6,8 @@ from typing import Optional
 
 from openai import OpenAI
 
+from gaiden.secrets_loader import load_secrets
+
 # -------------------------------------------------------------------
 # OpenAI client
 # -------------------------------------------------------------------
@@ -16,9 +18,15 @@ _client: Optional[OpenAI] = None
 def get_client() -> OpenAI:
     global _client
     if _client is None:
+        # Secrets primeiro. Client depois.
+        load_secrets()
+
         # respeita OPENAI_API_KEY e OPENAI_BASE_URL se você já usa isso
-        api_key = os.getenv("OPENAI_API_KEY")
-        base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("OPENAI_API_BASE") or "https://api.openai.com/v1"
+        api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
+        if len(api_key) <= 20:
+            raise RuntimeError("OPENAI_API_KEY_MISSING: secrets not loaded or not present")
+
+        base_url = (os.getenv("OPENAI_BASE_URL") or "").strip() or "https://api.openai.com/v1"
         _client = OpenAI(api_key=api_key, base_url=base_url)
         # log mínimo (você já tem algo parecido)
         if os.getenv("GAIDEN_DEBUG_OUTPUT") == "1":
@@ -27,6 +35,29 @@ def get_client() -> OpenAI:
                 f"default_model={os.getenv('GAIDEN_DEFAULT_MODEL','')}"
             )
     return _client
+
+
+def _summarize_error(exc: Exception) -> str:
+    msg = str(exc).strip()
+    if not msg:
+        msg = repr(exc)
+    summary = f"{exc.__class__.__name__}: {msg}" if msg else exc.__class__.__name__
+    if len(summary) > 240:
+        summary = summary[:237] + "..."
+    return summary
+
+
+def openai_healthcheck() -> tuple[bool, str | None]:
+    """
+    Minimal healthcheck for OpenAI access.
+    Returns (True, None) on success; (False, "summary") on error.
+    """
+    try:
+        client = get_client()
+        client.responses.create(model="gpt-5-chat-latest", input="ping")
+        return True, None
+    except Exception as exc:
+        return False, _summarize_error(exc)
 
 
 # -------------------------------------------------------------------
