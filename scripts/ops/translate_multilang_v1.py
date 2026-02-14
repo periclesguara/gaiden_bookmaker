@@ -20,7 +20,7 @@ import shutil
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code, normalize_source_lang
 from gaiden.run_artifacts import write_contract_json, write_env_json
-from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
+from gaiden.translate_engine_v1 import run_translate_safe
 from gaiden.secrets_loader import require_openai_ready
 
 def load_contract(path: str) -> dict:
@@ -85,7 +85,10 @@ def main():
     for w in warnings:
         print(f"[WARN] {w}")
 
-    require_openai_ready(dry_run=dry_run)
+    try:
+        require_openai_ready(dry_run=dry_run)
+    except Exception as exc:
+        print(f"[WARN] preflight failed (will attempt fallback if needed): {exc}")
 
     # Persist contract into runtime directory for traceability.
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -130,7 +133,8 @@ def main():
                 json.dumps(contract, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
-            translate_book_chunks(
+            out_path = translated_root / book / lang / f"{book}_{lang}_merged_v1.txt"
+            result = run_translate_safe(
                 book=book,
                 source_lang=source_lang,
                 target_lang=lang,
@@ -141,23 +145,51 @@ def main():
                 contract_path=contract_path,
                 runs_root=runs_root,
                 run_id=run_id,
-            )
-            out_path = translated_root / book / lang / f"{book}_{lang}_merged_v1.txt"
-            merge_translated_chunks(
-                book=book,
-                target_lang=lang,
-                translated_root=translated_root,
                 out_path=out_path,
             )
-            print(f"[OK] {book} -> {lang} (dry_run={dry_run}) merged={out_path}")
-            merged_copy = run_dir / f"merged_v1_{lang}.txt"
-            shutil.copy2(out_path, merged_copy)
-            if idx == 0:
-                shutil.copy2(out_path, run_dir / "merged_v1.txt")
-            summary["items"].append({"lang": lang, "status": "ok", "merged": str(out_path)})
+
+            merged_path = result.get("merged_txt") or str(out_path)
+            if result["status"] == "ok_official":
+                print(f"[OK] {book} -> {lang} (dry_run={dry_run}) merged={out_path}")
+                merged_copy = run_dir / f"merged_v1_{lang}.txt"
+                shutil.copy2(out_path, merged_copy)
+                if idx == 0:
+                    shutil.copy2(out_path, run_dir / "merged_v1.txt")
+            elif result["status"] == "ok_fallback":
+                print(f"[OK] {book} -> {lang} (fallback) merged={merged_path}")
+                if merged_path:
+                    merged_copy = run_dir / f"merged_fallback_{lang}.txt"
+                    shutil.copy2(merged_path, merged_copy)
+                    if idx == 0:
+                        shutil.copy2(merged_path, run_dir / "merged_fallback.txt")
+            else:
+                err = result.get("official_error") or "translate_failed"
+                print(f"[FAIL] {book} -> {lang}: {err}")
+                summary["items"].append(
+                    {
+                        "lang": lang,
+                        "status": "error",
+                        "error": err,
+                        "official_report": result.get("official_report"),
+                        "fallback_report": result.get("fallback_report"),
+                    }
+                )
+                if fail_fast:
+                    raise RuntimeError(err)
+                continue
+
+            summary["items"].append(
+                {
+                    "lang": lang,
+                    "status": result["status"],
+                    "merged": merged_path,
+                    "official_report": result.get("official_report"),
+                    "fallback_report": result.get("fallback_report"),
+                }
+            )
         except Exception as e:
             print(f"[FAIL] {book} -> {lang}: {e}")
-            summary["items"].append({"lang": lang, "status": "fail", "error": str(e)})
+            summary["items"].append({"lang": lang, "status": "error", "error": str(e)})
             if fail_fast:
                 raise
 
