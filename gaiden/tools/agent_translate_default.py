@@ -102,23 +102,20 @@ def _chunk_paths(chunk_dir: Path) -> List[Path]:
     return sorted(chunk_dir.glob(CHUNK_GLOB))
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--book-id", required=True, help="e.g. book_0003")
-    ap.add_argument("--chunk-dir", required=True, help="e.g. data/chunks/book_0003/en")
-    ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
-    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ"))
-    ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
-    ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")
-    ap.add_argument("--temperature", type=float, default=0.4)
-    ap.add_argument("--max-output-tokens", type=int, default=8000)
-    args = ap.parse_args()
-
-    book_id = args.book_id
-    chunk_dir = Path(args.chunk_dir)
-    out_dir = Path(args.out_dir)
-    agent = args.agent
-    suffix = args.suffix
+def run_agent_translate(
+    *,
+    book_id: str,
+    chunk_dir: str | Path,
+    out_dir: str | Path,
+    suffix: str,
+    temperature: float = 0.4,
+    max_output_tokens: int = 8000,
+    limit: int = 0,
+    agent: str | None = None,
+) -> None:
+    chunk_dir = Path(chunk_dir)
+    out_dir = Path(out_dir)
+    agent = agent or os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ")
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -141,14 +138,14 @@ def main() -> int:
             "error": err or "OPENAI_PREFLIGHT_FAILED",
         }
         _write_json(out_dir / "agent_translate_run_report.json", run_report)
-        return 2
+        raise RuntimeError(err or "OPENAI_PREFLIGHT_FAILED")
 
     chunks = _chunk_paths(chunk_dir)
     if not chunks:
-        raise SystemExit(f"NO_CHUNKS: nothing matched {chunk_dir}/{CHUNK_GLOB}")
+        raise RuntimeError(f"NO_CHUNKS: nothing matched {chunk_dir}/{CHUNK_GLOB}")
 
-    if args.limit and args.limit > 0:
-        chunks = chunks[: args.limit]
+    if limit and limit > 0:
+        chunks = chunks[:limit]
 
     run_report: Dict[str, Any] = {
         "schema": "gaiden_agent_translate_run_v1",
@@ -184,8 +181,8 @@ def main() -> int:
             out_text, meta = _call_agent(
                 agent,
                 in_text,
-                temperature=args.temperature,
-                max_output_tokens=args.max_output_tokens,
+                temperature=temperature,
+                max_output_tokens=max_output_tokens,
             )
             out_len = _safe_len(out_text)
             ratio = (out_len / in_len) if in_len else None
@@ -208,7 +205,7 @@ def main() -> int:
             run_report["status"] = "error"
             run_report["ts_end"] = _now_iso()
             _write_json(out_dir / "agent_translate_run_report.json", run_report)
-            return 2
+            raise
 
         run_report["items"].append(item)
 
@@ -220,6 +217,33 @@ def main() -> int:
     run_report["merged_count"] = merged_count
     _write_json(out_dir / "agent_translate_run_report.json", run_report)
     print(f"[MERGE] wrote {merged_path} bytes={merged_len} chunks={merged_count}")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--book-id", required=True, help="e.g. book_0003")
+    ap.add_argument("--chunk-dir", required=True, help="e.g. data/chunks/book_0003/en")
+    ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
+    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ"))
+    ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
+    ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")
+    ap.add_argument("--temperature", type=float, default=0.4)
+    ap.add_argument("--max-output-tokens", type=int, default=8000)
+    args = ap.parse_args()
+
+    try:
+        run_agent_translate(
+            book_id=args.book_id,
+            chunk_dir=args.chunk_dir,
+            out_dir=args.out_dir,
+            suffix=args.suffix,
+            temperature=args.temperature,
+            max_output_tokens=args.max_output_tokens,
+            limit=args.limit,
+            agent=args.agent,
+        )
+    except Exception:
+        return 2
     return 0
 
 

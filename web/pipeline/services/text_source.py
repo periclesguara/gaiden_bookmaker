@@ -70,6 +70,23 @@ def _discover_merge_candidates(build_dir: Path, language: str) -> list[TextSourc
                     label=f"{path.name} ({language})",
                 )
             )
+    # Add translated merge_refine_clean.txt as candidate (canonical translate output).
+    book_code = build_dir.parent.name
+    translated_dir = paths.data_dir() / "translated" / book_code / language
+    translated_candidates = [
+        translated_dir / "merge_refine_clean.txt",
+        translated_dir / f"merge_translate_{language}.txt",
+        translated_dir / "merge_translate.txt",
+        translated_dir / f"{book_code}_{language}_merged_v1.txt",
+    ]
+    for path in translated_candidates:
+        if path.exists():
+            candidates.append(
+                TextSourceCandidate(
+                    value=_pack_value(language, str(path)),
+                    label=f"{path.name} (translated/{language})",
+                )
+            )
     return candidates
 
 
@@ -110,6 +127,23 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
     def resolve_auto() -> list[SelectedTextSource]:
         for name in paths.merge_priority_names(edition):
             p = build_dir / name
+            if p.exists():
+                return [
+                    SelectedTextSource(
+                        language=language_code,
+                        path=p,
+                        name=p.name,
+                        label=f"{p.name} ({language_code})",
+                    )
+                ]
+        translated_dir = paths.data_dir() / "translated" / edition_meta.book_code(edition) / language_code
+        translated_candidates = [
+            translated_dir / "merge_refine_clean.txt",
+            translated_dir / f"merge_translate_{language_code}.txt",
+            translated_dir / "merge_translate.txt",
+            translated_dir / f"{edition_meta.book_code(edition)}_{language_code}_merged_v1.txt",
+        ]
+        for p in translated_candidates:
             if p.exists():
                 return [
                     SelectedTextSource(

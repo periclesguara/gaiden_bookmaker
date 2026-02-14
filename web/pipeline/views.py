@@ -148,8 +148,9 @@ def pipeline_project_dashboard(request):
             epub_exists = False
             if book_id is not None:
                 lang_dir = _runner_lang_dir(lang_code)
-                translated_path = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / f"merge_translate_{lang_dir}.txt"
-                split_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / "split_chapters_for_refine"
+                out_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir
+                translated_path = _detect_merged_path(out_dir)
+                split_dir = out_dir / "split_chapters_for_refine"
                 build_dir = data_dir / "builds" / book_code / lang_code
                 refine_path = build_dir / "merge_refine.txt"
                 polish_path = build_dir / "merge_polish.txt"
@@ -1067,11 +1068,11 @@ def runner_matrix_run_view(request):
         messages.error(request, "Selecione ao menos 1 book.")
         return redirect("pipeline_runner_matrix")
 
-    if action == "TRANSLATE" and not languages:
+    if action in {"TRANSLATE", "TRANSLATE_DEFAULT"} and not languages:
         messages.error(request, "Selecione ao menos 1 idioma.")
         return redirect("pipeline_runner_matrix")
 
-    if action not in {"NORMALIZE", "CHUNK", "TRANSLATE", "SPLIT_FOR_REFINE"}:
+    if action not in {"NORMALIZE", "CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT", "SPLIT_FOR_REFINE"}:
         messages.error(request, "Ação inválida no MVP.")
         return redirect("pipeline_runner_matrix")
 
@@ -1079,7 +1080,7 @@ def runner_matrix_run_view(request):
         messages.error(request, "Modo inválido.")
         return redirect("pipeline_runner_matrix")
 
-    if action == "TRANSLATE":
+    if action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
         if mode == "MULTILANGUAGE" and len(book_codes) != 1:
             messages.error(request, "Multilanguage mode exige 1 book.")
             return redirect("pipeline_runner_matrix")
@@ -1418,7 +1419,7 @@ def _runner_lang_dir(lang: str) -> str:
 def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_dir = _runner_lang_dir(lang)
-    return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / f"merge_translate_{lang_dir}.txt"
+    return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / "merge_refine_clean.txt"
 
 
 def _runner_normalized_path(book_code: str, lang: str) -> Path:
@@ -1504,16 +1505,32 @@ def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]
 
 def _detect_merged_path(out_dir: Path) -> Path | None:
     lang_key = out_dir.name
-    merged = out_dir / f"merge_translate_{lang_key}.txt"
-    if merged.exists():
-        return merged
-    alt = out_dir / "merged.txt"
-    if alt.exists():
-        return alt
-    candidates = sorted(out_dir.glob("merged_*.txt"))
-    if candidates:
-        return candidates[0]
+    book_code = out_dir.parent.name
+    candidates = [
+        out_dir / "merge_refine_clean.txt",
+        out_dir / f"merge_translate_{lang_key}.txt",
+        out_dir / f"{book_code}_{lang_key}_merged_v1.txt",
+        out_dir / "merged.txt",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+    extras = sorted(out_dir.glob("merged_*.txt"))
+    if extras:
+        return extras[0]
     return None
+
+
+def _detect_translate_report_path(out_dir: Path) -> Path:
+    candidates = [
+        out_dir / "translate_safe_run_report.json",
+        out_dir / "agent_translate_run_report.json",
+        out_dir / "translate_run_report.json",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+    return candidates[0]
 
 
 def _count_chunks(book_code: str) -> int | None:
@@ -1765,8 +1782,8 @@ def translate_control(request):
         source_heading_hits = _heading_hits_in_chunks(book, "en")
         for lang in targets:
             out_dir = translated_root / book / lang
-            merged = out_dir / f"{book}_{lang}_merged_v1.txt"
-            report = out_dir / "translate_run_report.json"
+            merged = _detect_merged_path(out_dir) or (out_dir / "merge_refine_clean.txt")
+            report = _detect_translate_report_path(out_dir)
             stamp = Path(str(merged) + ".STAMP.json")
             scans = _translate_scan_patterns(merged) if merged.exists() else None
             if scans is not None:
@@ -1880,8 +1897,8 @@ def translate_control(request):
     items = []
     for book in queue_books:
         out_dir = translated_root / book / target_lang
-        merged = out_dir / f"{book}_{target_lang}_merged_v1.txt"
-        report = out_dir / "translate_run_report.json"
+        merged = _detect_merged_path(out_dir) or (out_dir / "merge_refine_clean.txt")
+        report = _detect_translate_report_path(out_dir)
         stamp = Path(str(merged) + ".STAMP.json")
         scans = _translate_scan_patterns(merged) if merged.exists() else None
         if scans is not None:
@@ -2183,20 +2200,9 @@ def edition_steps(request, edition_id: int):
         polish_ok = False
         epub_ok = False
         if book_id is not None:
-            translated_path = (
-                data_dir
-                / "translated"
-                / f"book_{book_id:04d}"
-                / lang_dir
-                / f"merge_translate_{lang_dir}.txt"
-            )
-            split_dir = (
-                data_dir
-                / "translated"
-                / f"book_{book_id:04d}"
-                / lang_dir
-                / "split_chapters_for_refine"
-            )
+            out_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir
+            translated_path = _detect_merged_path(out_dir)
+            split_dir = out_dir / "split_chapters_for_refine"
             build_dir = data_dir / "builds" / book_code / code
             translated_ok = translated_path.exists()
             split_ok = split_dir.exists()

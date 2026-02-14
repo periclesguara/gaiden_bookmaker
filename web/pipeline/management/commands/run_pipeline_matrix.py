@@ -14,7 +14,8 @@ from django.utils import timezone
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code
 from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
-from gaiden.translate import run_translate_with_contract
+from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.tools.agent_translate_default import run_agent_translate
 from gaiden.refine_split import process_language
 from editorial.models import EditionPipeline, EditionText, PipelineStage, Edition
 from pipeline.models import PipelineRun, PipelineRunItem
@@ -52,7 +53,7 @@ def _translate_paths(book_id: int, book_code: str, lang: str) -> tuple[Path, Pat
     data_dir = Path(settings.BASE_DIR).parent / "data"
     chunk_dir = data_dir / "chunks" / book_code / "en"
     out_dir = data_dir / "translated" / f"book_{book_id:04d}" / _lang_dir(lang)
-    merge_path = out_dir / f"merge_translate_{_lang_dir(lang)}.txt"
+    merge_path = out_dir / "merge_refine_clean.txt"
     return chunk_dir, out_dir, merge_path
 
 
@@ -60,7 +61,7 @@ def _split_paths(book_id: int, lang: str) -> tuple[Path, Path, Path]:
     data_dir = Path(settings.BASE_DIR).parent / "data"
     lang_dir = _lang_dir(lang)
     base_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir
-    merge_path = base_dir / f"merge_translate_{lang_dir}.txt"
+    merge_path = base_dir / "merge_refine_clean.txt"
     split_dir = base_dir / "split_chapters_for_refine"
     return base_dir, merge_path, split_dir
 
@@ -517,9 +518,18 @@ class Command(BaseCommand):
                     item.save(update_fields=["out_path"])
 
                     command_line = (
-                        "run_translate_with_contract("
-                        f"contract={_resolve_contract_path(item.lang)}, "
-                        f"chunk_dir={chunk_dir}, out_dir={out_dir})"
+                        "run_translate_safe("
+                        f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
+                        f"suffix={_lang_dir(item.lang)}, contract={_resolve_contract_path(item.lang)})"
+                    )
+                elif run.action == "TRANSLATE_DEFAULT":
+                    chunk_dir, out_dir, merge_path = _translate_paths(book_id, book_code, item.lang)
+                    item.out_path = str(merge_path)
+                    item.save(update_fields=["out_path"])
+                    command_line = (
+                        "run_agent_translate("
+                        f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
+                        f"suffix={_lang_dir(item.lang)}, agent=ALAMAGUEDERAZ)"
                     )
                 elif run.action == "SPLIT_FOR_REFINE":
                     base_dir, merge_path, split_dir = _split_paths(book_id, item.lang)
@@ -533,13 +543,13 @@ class Command(BaseCommand):
                     raise ValueError(f"Unsupported action: {run.action}")
 
                 precheck = None
-                if run.action in {"NORMALIZE", "CHUNK", "TRANSLATE"}:
+                if run.action in {"NORMALIZE", "CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT"}:
                     precheck = _run_precheck(
                         book_code=book_code,
                         lang=item.lang if run.action == "NORMALIZE" else "en",
                         log_path=log_path,
                         ensure_normalized=True,
-                        ensure_chunks=(run.action in {"CHUNK", "TRANSLATE"}),
+                        ensure_chunks=(run.action in {"CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT"}),
                         allow_run=False,
                     )
                     if precheck["raw_reason"]:
@@ -766,10 +776,96 @@ class Command(BaseCommand):
                             log_file.write("NOTE: overwrite existing output\n")
                         log_file.flush()
                         with redirect_stdout(log_file), redirect_stderr(log_file):
-                            run_translate_with_contract(
-                                contract_path,
-                                chunk_dir_override=chunk_dir,
-                                out_dir_override=out_dir,
+                            result = run_translate_safe(
+                                book_id=book_code,
+                                chunk_dir=str(chunk_dir),
+                                out_dir=str(out_dir),
+                                suffix=_lang_dir(item.lang),
+                                contract_path=contract_path,
+                                dry_run=dry_run,
+                            )
+                            status = result.get("status")
+                            if status not in {"ok_official", "ok_fallback"}:
+                                raise RuntimeError(f"TRANSLATE_SAFE_FAILED: {status}")
+
+                    if not merge_path.exists():
+                        raise FileNotFoundError(f"Merge not found: {merge_path}")
+
+                    item.status = "DONE"
+                    item.finished_at = timezone.now()
+                    item.overwrote = bool(had_existing)
+                    item.save(update_fields=["status", "finished_at", "overwrote"])
+
+                elif run.action == "TRANSLATE_DEFAULT":
+                    edition = Edition.objects.select_related("work", "language").filter(
+                        work__code=book_code,
+                        language__code="en",
+                    ).first()
+                    if not edition:
+                        raise FileNotFoundError("Edition not found for translate.")
+
+                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+
+                    if not dry_run:
+                        source_lang = "en"
+                        norm_path, _report, norm_ok = _normalized_status(book_code, source_lang)
+                        if not norm_ok:
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                log_file.write("AUTO: normalize before translate_default\n")
+                                norm_path = _run_normalize_dependency(
+                                    book_code=book_code,
+                                    lang=source_lang,
+                                    edition=edition,
+                                    pipeline_state=pipeline_state,
+                                    log_file=log_file,
+                                )
+
+                        chunk_dir = _chunks_dir(book_code, source_lang)
+                        chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
+                        if not chunks_ok:
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                log_file.write("AUTO: chunk before translate_default\n")
+                                chunk_dir, ran_chunk = _run_chunk_dependency(
+                                    book_code=book_code,
+                                    norm_path=norm_path,
+                                    log_file=log_file,
+                                    skip_existing=False,
+                                )
+                            if ran_chunk:
+                                pipeline_state.chunked_at = timezone.now()
+                                pipeline_state.current_stage = PipelineStage.CHUNKED
+                                pipeline_state.save(update_fields=["chunked_at", "current_stage"])
+
+                    if skip_existing and merge_path.exists():
+                        with log_path.open("a", encoding="utf-8") as log_file:
+                            log_file.write(f"COMMAND: {command_line}\n")
+                            log_file.write("SKIP: output exists\n")
+                            log_file.write("CHUNKS_LANG_USED: en\n")
+                            log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
+                        item.status = "SKIPPED"
+                        item.skipped_reason = "INVALID_STATE"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        continue
+
+                    if not chunk_dir.exists():
+                        raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
+
+                    had_existing = merge_path.exists()
+
+                    with log_path.open("a", encoding="utf-8") as log_file:
+                        log_file.write(f"COMMAND: {command_line}\n")
+                        log_file.write("CHUNKS_LANG_USED: en\n")
+                        log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
+                        if had_existing:
+                            log_file.write("NOTE: overwrite existing output\n")
+                        log_file.flush()
+                        with redirect_stdout(log_file), redirect_stderr(log_file):
+                            run_agent_translate(
+                                book_id=book_code,
+                                chunk_dir=str(chunk_dir),
+                                out_dir=str(out_dir),
+                                suffix=_lang_dir(item.lang),
                             )
 
                     if not merge_path.exists():

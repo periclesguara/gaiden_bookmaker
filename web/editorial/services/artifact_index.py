@@ -129,6 +129,15 @@ def _scan_translated(work_code: str, lang: str) -> None:
     tdir = ROOT / "data" / "translated" / work_code / lang
     if not tdir.exists():
         return
+    translate_candidates = [
+        tdir / "merge_refine_clean.txt",
+        tdir / f"merge_translate_{lang}.txt",
+        tdir / "merge_translate.txt",
+        tdir / f"{work_code}_{lang}_merged_v1.txt",
+    ]
+    for path in translate_candidates:
+        if path.exists():
+            _upsert(work_code, lang, "translate", path, is_candidate=path.name.startswith("merge_"))
     path = tdir / "miolo.md"
     if path.exists():
         _upsert(work_code, lang, "miolo", path, is_candidate=True)

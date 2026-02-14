@@ -8,7 +8,7 @@ from pathlib import Path
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.run_artifacts import create_run_dir, write_contract_json, write_env_json
 from gaiden.secrets_loader import require_openai_ready
-from gaiden.translate_engine_v1 import translate_book_chunks, merge_translated_chunks
+from gaiden.translate_engine_v1 import run_translate_safe
 
 from . import edition_meta, paths, utils
 
@@ -53,24 +53,16 @@ def run_translate_only(edition, target_language: str) -> PipelineResult:
         encoding="utf-8",
     )
 
-    translate_book_chunks(
-        book=book,
-        source_lang="en",
-        target_lang=lang,
-        chunks_root=chunks_root,
-        translated_root=translated_root,
-        resume=True,
-        dry_run=False,
+    result = run_translate_safe(
+        book_id=book,
+        chunk_dir=str(chunks_root / book / "en"),
+        out_dir=str(translated_root / book / lang),
+        suffix=lang,
         contract_path=contract_path,
-        runs_root=runs_root,
-        run_id=run_id,
+        dry_run=False,
     )
-    out_path = translated_root / book / lang / f"{book}_{lang}_merged_v1.txt"
-    merge_translated_chunks(
-        book=book,
-        target_lang=lang,
-        translated_root=translated_root,
-        out_path=out_path,
-    )
-    run_dir.joinpath("merged_v1.txt").write_text(out_path.read_text(encoding=\"utf-8\"), encoding=\"utf-8\")
-    return PipelineResult(translated_path=out_path)
+    merged_path = result.get("merged_txt")
+    if not merged_path:
+        merged_path = str(translated_root / book / lang / "merge_refine_clean.txt")
+    run_dir.joinpath("merged_v1.txt").write_text(Path(merged_path).read_text(encoding="utf-8"), encoding="utf-8")
+    return PipelineResult(translated_path=Path(merged_path))
