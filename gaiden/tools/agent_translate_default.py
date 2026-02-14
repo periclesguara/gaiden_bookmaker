@@ -51,15 +51,15 @@ def _safe_len(s: str) -> int:
     return len(s or "")
 
 
-def _merge_outputs(out_files: List[Path], out_dir: Path) -> tuple[Path, int]:
-    files = sorted(out_files, key=lambda p: p.name)
+def _merge_outputs(out_dir: Path, suffix: str) -> tuple[Path, int, int]:
+    files = sorted(out_dir.glob(f"ch_*_chunk_*.{suffix}.txt"))
     parts: List[str] = []
     for fp in files:
         parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
     merged = "\n".join(parts).rstrip("\n") + "\n"
     out_path = out_dir / "merge_refine_clean.txt"
     out_path.write_text(merged, encoding="utf-8", errors="strict")
-    return out_path, len(merged.encode("utf-8"))
+    return out_path, len(merged.encode("utf-8")), len(files)
 
 
 def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_output_tokens: int = 8000) -> Tuple[str, Dict[str, Any]]:
@@ -163,8 +163,6 @@ def main() -> int:
         "status": "running",
     }
 
-    out_files: List[Path] = []
-
     for p in chunks:
         in_text = _read_text(p)
         in_len = _safe_len(in_text)
@@ -203,8 +201,6 @@ def main() -> int:
             )
             _write_text(out_txt, out_text)
             _write_json(out_meta, item)
-            out_files.append(out_txt)
-
         except Exception as e:
             item.update({"status": "error", "error": repr(e)})
             _write_json(out_meta, item)
@@ -218,11 +214,12 @@ def main() -> int:
 
     run_report["status"] = "ok"
     run_report["ts_end"] = _now_iso()
-    merged_path, merged_len = _merge_outputs(out_files, out_dir)
+    merged_path, merged_len, merged_count = _merge_outputs(out_dir, suffix)
     run_report["merged_txt"] = str(merged_path)
     run_report["merged_len"] = merged_len
+    run_report["merged_count"] = merged_count
     _write_json(out_dir / "agent_translate_run_report.json", run_report)
-    print(f"[MERGE] {merged_path}")
+    print(f"[MERGE] wrote {merged_path} bytes={merged_len} chunks={merged_count}")
     return 0
 
 
