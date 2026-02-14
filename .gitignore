@@ -132,6 +132,7 @@ data/builds/
 data/covers/
 data/contracts_runtime/*.json
 /merge_refine_clean*.txt
+**/merge_refine_clean*.txt
 
 # Local DB
 db.sqlite3
