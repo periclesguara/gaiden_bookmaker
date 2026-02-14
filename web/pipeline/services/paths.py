@@ -88,6 +88,21 @@ def sync_legacy_merges(edition) -> None:
 
 
 def final_merge_txt_path(edition) -> Path | None:
+    book_code = edition_meta.book_code(edition)
+    lang = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", ""
+    )
+    translated_dir = data_dir() / "translated" / book_code / lang
+    translated_candidates = [
+        translated_dir / "merge_refine_clean.txt",
+        translated_dir / f"merge_translate_{lang}.txt",
+        translated_dir / "merge_translate.txt",
+        translated_dir / f"{book_code}_{lang}_merged_v1.txt",
+    ]
+    for path in translated_candidates:
+        if path.exists():
+            return path
+
     sync_legacy_merges(edition)
     for path in merge_paths(edition):
         if path.exists():

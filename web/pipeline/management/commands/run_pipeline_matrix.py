@@ -880,7 +880,7 @@ class Command(BaseCommand):
                     if not merge_path.exists():
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: missing merge_translate\n")
+                            log_file.write("SKIP: missing merge_refine_clean\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()

@@ -125,8 +125,14 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
         )
 
     def resolve_auto() -> list[SelectedTextSource]:
-        for name in paths.merge_priority_names(edition):
-            p = build_dir / name
+        translated_dir = paths.data_dir() / "translated" / edition_meta.book_code(edition) / language_code
+        translated_candidates = [
+            translated_dir / "merge_refine_clean.txt",
+            translated_dir / f"merge_translate_{language_code}.txt",
+            translated_dir / "merge_translate.txt",
+            translated_dir / f"{edition_meta.book_code(edition)}_{language_code}_merged_v1.txt",
+        ]
+        for p in translated_candidates:
             if p.exists():
                 return [
                     SelectedTextSource(
@@ -136,14 +142,8 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
                         label=f"{p.name} ({language_code})",
                     )
                 ]
-        translated_dir = paths.data_dir() / "translated" / edition_meta.book_code(edition) / language_code
-        translated_candidates = [
-            translated_dir / "merge_refine_clean.txt",
-            translated_dir / f"merge_translate_{language_code}.txt",
-            translated_dir / "merge_translate.txt",
-            translated_dir / f"{edition_meta.book_code(edition)}_{language_code}_merged_v1.txt",
-        ]
-        for p in translated_candidates:
+        for name in paths.merge_priority_names(edition):
+            p = build_dir / name
             if p.exists():
                 return [
                     SelectedTextSource(

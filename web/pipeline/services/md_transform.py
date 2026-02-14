@@ -53,6 +53,23 @@ def _selected_txt_sources_for_language(edition, language: str):
     else:
         book_code = getattr(edition, "book_code", "")
     build_dir = paths.edition_build_dir_for_language(book_code, language)
+    translated_dir = paths.data_dir() / "translated" / book_code / language
+    translated_candidates = [
+        translated_dir / "merge_refine_clean.txt",
+        translated_dir / f"merge_translate_{language}.txt",
+        translated_dir / "merge_translate.txt",
+        translated_dir / f"{book_code}_{language}_merged_v1.txt",
+    ]
+    for path in translated_candidates:
+        if path.exists():
+            return [
+                text_source.SelectedTextSource(
+                    language=language,
+                    path=path,
+                    name=path.name,
+                    label=f"{path.name} ({language})",
+                )
+            ]
     order = [
         p.replace(".txt", "")
         for p in paths.merge_priority_names_for_language(language, build_dir)
