@@ -51,6 +51,17 @@ def _safe_len(s: str) -> int:
     return len(s or "")
 
 
+def _merge_outputs(out_files: List[Path], out_dir: Path) -> tuple[Path, int]:
+    files = sorted(out_files, key=lambda p: p.name)
+    parts: List[str] = []
+    for fp in files:
+        parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
+    merged = "\n".join(parts).rstrip("\n") + "\n"
+    out_path = out_dir / "merge_refine_clean.txt"
+    out_path.write_text(merged, encoding="utf-8", errors="strict")
+    return out_path, len(merged.encode("utf-8"))
+
+
 def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_output_tokens: int = 8000) -> Tuple[str, Dict[str, Any]]:
     """
     Calls your repo's agent helper if available.
@@ -152,6 +163,8 @@ def main() -> int:
         "status": "running",
     }
 
+    out_files: List[Path] = []
+
     for p in chunks:
         in_text = _read_text(p)
         in_len = _safe_len(in_text)
@@ -190,6 +203,7 @@ def main() -> int:
             )
             _write_text(out_txt, out_text)
             _write_json(out_meta, item)
+            out_files.append(out_txt)
 
         except Exception as e:
             item.update({"status": "error", "error": repr(e)})
@@ -204,7 +218,11 @@ def main() -> int:
 
     run_report["status"] = "ok"
     run_report["ts_end"] = _now_iso()
+    merged_path, merged_len = _merge_outputs(out_files, out_dir)
+    run_report["merged_txt"] = str(merged_path)
+    run_report["merged_len"] = merged_len
     _write_json(out_dir / "agent_translate_run_report.json", run_report)
+    print(f"[MERGE] {merged_path}")
     return 0
 
 
