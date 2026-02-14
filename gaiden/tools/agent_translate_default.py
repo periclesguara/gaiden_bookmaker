@@ -158,11 +158,14 @@ def main() -> int:
                 max_output_tokens=args.max_output_tokens,
             )
             out_len = _safe_len(out_text)
+            ratio = (out_len / in_len) if in_len else None
+            if ratio is not None and ratio < 0.85:
+                raise RuntimeError(f"TRUNCATION_OR_SUMMARY: ratio={ratio:.3f}")
             item.update(
                 {
                     "status": "ok",
                     "out_len": out_len,
-                    "ratio": (out_len / in_len) if in_len else None,
+                    "ratio": ratio,
                     "agent_meta": meta,
                 }
             )
