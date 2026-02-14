@@ -172,6 +172,7 @@ def translate_book_chunks(
     contract: Dict | None = None,
     runs_root: Path | None = None,
     run_id: str | None = None,
+    limit: int = 0,
 ) -> Dict:
     source_lang = normalize_source_lang(source_lang, default="en")
     target_lang = normalize_lang_code(target_lang, default="en_modern")
@@ -196,6 +197,8 @@ def translate_book_chunks(
     files = _sorted_chunk_files(in_dir, file_glob)
     if not files:
         raise RuntimeError(f"No chunk files found: {in_dir}/{file_glob}")
+    if limit and limit > 0:
+        files = files[:limit]
 
     report = {
         "schema": "gaiden_translate_run_report_v1",
@@ -476,11 +479,15 @@ def _load_json_safe(path: Path) -> Dict | None:
 
 def run_translate_safe(
     *,
-    book: str,
-    source_lang: str,
-    target_lang: str,
-    chunks_root: Path,
-    translated_root: Path,
+    book: str | None = None,
+    book_id: str | None = None,
+    source_lang: str | None = None,
+    target_lang: str | None = None,
+    suffix: str | None = None,
+    chunks_root: Path | None = None,
+    translated_root: Path | None = None,
+    chunk_dir: str | Path | None = None,
+    out_dir: str | Path | None = None,
     resume: bool = True,
     dry_run: bool = True,
     contract_path: Path | str | None = None,
@@ -488,6 +495,7 @@ def run_translate_safe(
     runs_root: Path | None = None,
     run_id: str | None = None,
     out_path: Path | None = None,
+    limit: int = 0,
     fallback_temperature: float = 0.0,
     fallback_max_output_tokens: int = 8000,
 ) -> Dict:
@@ -495,11 +503,41 @@ def run_translate_safe(
     Translate with official GPT-5.2 flow; on failure, fall back to ALAMAGUEDERAZ agent.
     Returns a dict with status: ok_official | ok_fallback | error.
     """
+    if book is None:
+        book = book_id
+    if chunk_dir is not None:
+        chunk_dir_path = Path(chunk_dir)
+        if chunk_dir_path.is_dir():
+            if book is None:
+                book = chunk_dir_path.parent.name
+            if source_lang is None:
+                source_lang = chunk_dir_path.name
+            if chunks_root is None:
+                chunks_root = chunk_dir_path.parents[1]
+    if out_dir is not None:
+        out_dir_path = Path(out_dir)
+        if book is None:
+            book = out_dir_path.parent.name
+        if target_lang is None and suffix is None:
+            target_lang = out_dir_path.name
+        if translated_root is None:
+            translated_root = out_dir_path.parents[1]
+    if book is None:
+        raise RuntimeError("book_id is required")
+    if source_lang is None:
+        source_lang = "en"
+    if target_lang is None:
+        target_lang = suffix or "en_modern"
+    if chunks_root is None:
+        chunks_root = Path("data/chunks")
+    if translated_root is None:
+        translated_root = Path("data/translated")
+
     book = str(book)
     source_lang = normalize_source_lang(source_lang, default="en")
     target_lang = normalize_lang_code(target_lang, default="en_modern")
-    in_dir = chunks_root / book / source_lang
-    out_dir = translated_root / book / target_lang
+    in_dir = Path(chunk_dir) if chunk_dir else (chunks_root / book / source_lang)
+    out_dir = Path(out_dir) if out_dir else (translated_root / book / target_lang)
     official_report_path = out_dir / "translate_run_report.json"
 
     result: Dict[str, Any] = {
@@ -535,6 +573,7 @@ def run_translate_safe(
             contract=contract,
             runs_root=runs_root,
             run_id=run_id,
+            limit=limit,
         )
         failure = None if dry_run else _report_failure_reason(report, out_dir)
         if failure:
@@ -550,7 +589,7 @@ def run_translate_safe(
         if official_report_path.exists():
             result["official_report"] = str(official_report_path)
             safe_report["official"]["report_path"] = str(official_report_path)
-        safe_report["official"]["status"] = "ok"
+        safe_report["official"]["status"] = "ok_official"
         print("[TRANSLATE_SAFE] official=OK")
         if not dry_run:
             merged_path, merged_len, merged_count = _merge_refine_clean(out_dir, target_lang)
@@ -576,7 +615,7 @@ def run_translate_safe(
             failure_reason = "TRUNCATION_OR_SUMMARY"
         elif "APIConnectionError" in err_str or "gaierror" in err_str or "DNS_FAIL" in err_str:
             failure_reason = "NETWORK_DNS"
-        safe_report["official"]["status"] = "failed"
+        safe_report["official"]["status"] = "error_official"
         safe_report["official"]["error"] = failure_reason
 
     if dry_run:
@@ -628,7 +667,7 @@ def run_translate_safe(
         result["merged_len"] = fallback_report.get("merged_len")
         result["merged_count"] = fallback_report.get("merged_count")
         safe_report["fallback"]["used"] = True
-        safe_report["fallback"]["status"] = "ok"
+        safe_report["fallback"]["status"] = "ok_fallback"
         safe_report["final"]["merged_txt"] = result["merged_txt"]
         safe_report["final"]["merged_len"] = result["merged_len"]
         safe_report["final"]["chunks"] = result["merged_count"]
@@ -642,7 +681,7 @@ def run_translate_safe(
         "stderr": (proc.stderr or "").strip(),
     }
     safe_report["fallback"]["used"] = True
-    safe_report["fallback"]["status"] = "failed"
+    safe_report["fallback"]["status"] = "error_fallback"
     safe_report["fallback"]["error"] = json.dumps(result["fallback_error"], ensure_ascii=False)
     _dump_json(safe_report_path, safe_report)
     return result
