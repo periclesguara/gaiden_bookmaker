@@ -81,12 +81,10 @@ def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_out
     except Exception as e:
         meta["call_impl"] = "missing_or_failed_gaiden_helper"
         meta["call_error"] = repr(e)
-
-    # Fallback: if you *don't* have call_agent_text wired, fail loudly (better than silently doing the wrong thing)
-    raise RuntimeError(
-        "SHIM_MISSING: Could not import/use gaiden.openai_client.call_agent_text. "
-        "Wire the agent call in gaiden.openai_client.py (preferred), then rerun."
-    )
+        raise RuntimeError(
+            "SHIM_MISSING: Could not import/use gaiden.openai_client.call_agent_text. "
+            f"Root error: {e!r}"
+        ) from e
 
 
 def _chunk_paths(chunk_dir: Path) -> List[Path]:
@@ -112,6 +110,27 @@ def main() -> int:
     suffix = args.suffix
 
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    from gaiden.openai_client import openai_healthcheck
+
+    ok, err = openai_healthcheck()
+    if not ok:
+        run_report: Dict[str, Any] = {
+            "schema": "gaiden_agent_translate_run_v1",
+            "ts_start": _now_iso(),
+            "ts_end": _now_iso(),
+            "book_id": book_id,
+            "agent": agent,
+            "chunk_dir": str(chunk_dir),
+            "out_dir": str(out_dir),
+            "suffix": suffix,
+            "count": 0,
+            "items": [],
+            "status": "error_preflight",
+            "error": err or "OPENAI_PREFLIGHT_FAILED",
+        }
+        _write_json(out_dir / "agent_translate_run_report.json", run_report)
+        return 2
 
     chunks = _chunk_paths(chunk_dir)
     if not chunks:
