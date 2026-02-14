@@ -137,3 +137,37 @@ def call_agent_text(
 
     out = (resp.output_text or "").strip("\n")
     return out
+
+
+# -------------------------------------------------------------------
+# Backwards-compat shim
+# translate.py (legacy) ainda importa choose_model.
+# Mantemos o hard lock do translate em gpt-5.2 (ou override por env).
+# -------------------------------------------------------------------
+
+
+def choose_model(
+    purpose: str | None = None,
+    *,
+    stage: str | None = None,
+    contract_model: str | None = None,
+    env_default: str | None = None,
+) -> str:
+    """
+    Backwards compatibility for legacy callers.
+
+    Rules:
+    - Translate is hard-locked to gpt-5.2 unless GAIDEN_TRANSLATE_MODEL is set.
+    - Others can use OPENAI_DEFAULT_MODEL / GAIDEN_DEFAULT_MODEL / fallback.
+    """
+    effective = (stage or purpose or "").strip().lower()
+    if effective in ("translate", "translation"):
+        return os.getenv("GAIDEN_TRANSLATE_MODEL", contract_model or "gpt-5.2")
+
+    return (
+        env_default
+        or os.getenv("OPENAI_DEFAULT_MODEL")
+        or os.getenv("GAIDEN_DEFAULT_MODEL")
+        or contract_model
+        or "gpt-5-chat-latest"
+    )
