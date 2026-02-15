@@ -153,3 +153,6 @@ scripts/
 # Local operator scripts (untracked)
 return_book.sh
 translate_book.sh
+
+# legacy runtime outputs (never track)
+legacy/data/
