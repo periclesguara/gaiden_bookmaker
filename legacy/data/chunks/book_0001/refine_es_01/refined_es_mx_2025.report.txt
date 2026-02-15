@@ -1,6 +1,0 @@
-input_file=/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0001/refine_es_01/merge_translate_es_mx_2025.txt
-output_file=/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0001/refine_es_01/refined_es_mx_2025.txt
-input_chars=369999
-output_chars=10090
-model=gpt-5.2-chat-latest
-response_id=resp_037fed29457de163006977d03aea7081948ab8282bd13330ff
