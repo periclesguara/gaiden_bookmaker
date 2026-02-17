@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -173,6 +174,13 @@ def build_epub_for_edition(
         f"--metadata=lang:{lang}",
         f"--metadata=language:{lang}",
     ]
+    resource_path = os.pathsep.join(
+        [
+            str(builds_base),
+            str(builds_base / "images"),
+        ]
+    )
+    cmd.append(f"--resource-path={resource_path}")
     css_path = Path(__file__).resolve().parent / "epub.css"
     if css_path.exists():
         cmd += ["--css", str(css_path)]

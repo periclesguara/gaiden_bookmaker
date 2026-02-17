@@ -21,7 +21,9 @@ from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code, normalize_source_lang
 from gaiden.run_artifacts import write_contract_json, write_env_json
 from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.tools.agent_translate_default import run_agent_translate
 from gaiden.secrets_loader import require_openai_ready
+from gaiden.translate_artifacts import normalize_mode
 
 def load_contract(path: str) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -36,6 +38,7 @@ def main():
     ap.add_argument("--dry-run", default=None)
     ap.add_argument("--resume", default=None)
     ap.add_argument("--fail-fast", default=None)
+    ap.add_argument("--translate-mode", default=None)
     args = ap.parse_args()
 
     def _parse_bool(val, default: bool) -> bool:
@@ -65,6 +68,7 @@ def main():
         dry_run = bool(run.get("dry_run", True))
         resume = bool(run.get("resume", True))
         fail_fast = bool(run.get("fail_fast", True))
+        translate_mode = normalize_mode(c.get("translate_mode") or run.get("translate_mode"), default="automatic")
     else:
         if not args.book or not args.targets:
             raise SystemExit("--book and --targets are required when --contract is not provided.")
@@ -77,6 +81,7 @@ def main():
         dry_run = _parse_bool(args.dry_run, True)
         resume = _parse_bool(args.resume, True)
         fail_fast = _parse_bool(args.fail_fast, True)
+        translate_mode = normalize_mode(args.translate_mode, default="automatic")
 
     warnings = []
 
@@ -117,6 +122,7 @@ def main():
         "targets": targets,
         "run_id": run_id,
         "items": [],
+        "translate_mode": translate_mode,
     }
 
     for idx, lang in enumerate(targets):
@@ -133,46 +139,83 @@ def main():
                 json.dumps(contract, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
-            out_path = translated_root / book / lang / f"{book}_{lang}_merged_v1.txt"
-            result = run_translate_safe(
-                book=book,
-                source_lang=source_lang,
-                target_lang=lang,
-                chunks_root=chunks_root,
-                translated_root=translated_root,
-                resume=resume,
-                dry_run=dry_run,
-                contract_path=contract_path,
-                runs_root=runs_root,
-                run_id=run_id,
-                out_path=out_path,
-            )
+            if translate_mode == "default":
+                if dry_run:
+                    result = {
+                        "status": "dry_run",
+                        "selected_mode": "default",
+                        "final_mode": "default",
+                        "fallback_used": False,
+                        "merged_txt": None,
+                        "artifact_filename": None,
+                        "exit_code": 0,
+                    }
+                else:
+                    run = run_agent_translate(
+                        book_id=book,
+                        chunk_dir=chunks_root / book / source_lang,
+                        out_dir=translated_root / book / lang,
+                        suffix=lang,
+                        mode="default",
+                    )
+                    result = {
+                        "status": "ok_default" if run.get("status") == "ok" else "error_default",
+                        "selected_mode": "default",
+                        "final_mode": "default",
+                        "fallback_used": False,
+                        "official_report": None,
+                        "fallback_report": str((translated_root / book / lang / "agent_translate_run_report.json")),
+                        "merged_txt": run.get("merged_txt"),
+                        "artifact_filename": run.get("artifact_filename"),
+                        "exit_code": int(run.get("exit_code") or (0 if run.get("status") == "ok" else 3)),
+                    }
+            else:
+                result = run_translate_safe(
+                    book=book,
+                    source_lang=source_lang,
+                    target_lang=lang,
+                    chunks_root=chunks_root,
+                    translated_root=translated_root,
+                    resume=resume,
+                    dry_run=dry_run,
+                    contract_path=contract_path,
+                    runs_root=runs_root,
+                    run_id=run_id,
+                )
 
-            merged_path = result.get("merged_txt") or str(out_path)
+            merged_path = result.get("merged_txt")
             if dry_run and result["status"] == "dry_run":
                 print(f"[DRY] {book} -> {lang} (dry_run)")
                 summary["items"].append(
                     {
                         "lang": lang,
                         "status": "dry_run",
+                        "selected_mode": translate_mode,
                         "official_report": result.get("official_report"),
                         "fallback_report": result.get("fallback_report"),
                     }
                 )
                 continue
             if result["status"] == "ok_official":
-                print(f"[OK] {book} -> {lang} (dry_run={dry_run}) merged={out_path}")
+                print(f"[OK] {book} -> {lang} (dry_run={dry_run}) merged={merged_path}")
                 merged_copy = run_dir / f"merged_v1_{lang}.txt"
-                shutil.copy2(out_path, merged_copy)
+                shutil.copy2(Path(str(merged_path)), merged_copy)
                 if idx == 0:
-                    shutil.copy2(out_path, run_dir / "merged_v1.txt")
+                    shutil.copy2(Path(str(merged_path)), run_dir / "merged_v1.txt")
+            elif result["status"] == "ok_default":
+                print(f"[OK] {book} -> {lang} (default) merged={merged_path}")
+                if merged_path:
+                    merged_copy = run_dir / f"merged_default_{lang}.txt"
+                    shutil.copy2(Path(str(merged_path)), merged_copy)
+                    if idx == 0:
+                        shutil.copy2(Path(str(merged_path)), run_dir / "merged_default.txt")
             elif result["status"] == "ok_fallback":
                 print(f"[OK] {book} -> {lang} (fallback) merged={merged_path}")
                 if merged_path:
                     merged_copy = run_dir / f"merged_fallback_{lang}.txt"
-                    shutil.copy2(merged_path, merged_copy)
+                    shutil.copy2(Path(str(merged_path)), merged_copy)
                     if idx == 0:
-                        shutil.copy2(merged_path, run_dir / "merged_fallback.txt")
+                        shutil.copy2(Path(str(merged_path)), run_dir / "merged_fallback.txt")
             else:
                 err = result.get("official_error") or "translate_failed"
                 print(f"[FAIL] {book} -> {lang}: {err}")
@@ -194,6 +237,11 @@ def main():
                     "lang": lang,
                     "status": result["status"],
                     "merged": merged_path,
+                    "selected_mode": result.get("selected_mode", translate_mode),
+                    "final_mode": result.get("final_mode", translate_mode),
+                    "fallback_used": bool(result.get("fallback_used", False)),
+                    "artifact_filename": result.get("artifact_filename"),
+                    "exit_code": result.get("exit_code"),
                     "official_report": result.get("official_report"),
                     "fallback_report": result.get("fallback_report"),
                 }

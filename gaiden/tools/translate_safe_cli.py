@@ -19,7 +19,7 @@ def validate_chunks(chunk_dir: str):
         print(f"[TRANSLATE_SAFE] ERROR chunk_dir not found: {chunk_dir}")
         sys.exit(2)
 
-    chunks = sorted(Path(chunk_dir).glob("ch_*.txt"))
+    chunks = sorted(Path(chunk_dir).glob("ch_*_chunk_*.txt"))
     if not chunks:
         print(f"[TRANSLATE_SAFE] ERROR no chunks found in {chunk_dir}")
         sys.exit(2)
@@ -40,9 +40,13 @@ def preflight_or_abort(book_id: str, out_dir: str, dry_run: bool) -> None:
         payload = {
             "schema": "gaiden_translate_safe_v2",
             "book_id": book_id,
+            "selected_mode": "automatic",
+            "final_mode": "automatic",
+            "effective_route": "automatic",
             "status": "dry_run",
             "error": None,
             "skipped_reason": "dry_run",
+            "exit_code": 0,
             "ts": datetime.utcnow().isoformat() + "Z",
         }
         _write_safe_report(out_dir, payload)
@@ -54,8 +58,12 @@ def preflight_or_abort(book_id: str, out_dir: str, dry_run: bool) -> None:
         payload = {
             "schema": "gaiden_translate_safe_v2",
             "book_id": book_id,
+            "selected_mode": "automatic",
+            "final_mode": "automatic",
+            "effective_route": "automatic",
             "status": "error_preflight",
             "error": msg,
+            "exit_code": 2,
             "ts": datetime.utcnow().isoformat() + "Z",
         }
         _write_safe_report(out_dir, payload)
@@ -109,14 +117,18 @@ def main():
         print("[TRANSLATE_SAFE] FAILED")
         sys.exit(2)
 
-    merged_path = os.path.join(out_dir, "merge_refine_clean.txt")
+    status = str(result.get("status") or "")
+    if status not in {"ok_official", "ok_fallback"}:
+        code = int(result.get("exit_code") or 3)
+        print(f"[TRANSLATE_SAFE] ERROR status={status} exit_code={code}")
+        sys.exit(code)
 
-    if not os.path.exists(merged_path):
-        print("[TRANSLATE_SAFE] ERROR merge not generated")
-        sys.exit(2)
+    merged_path = str(result.get("merged_txt") or "").strip()
+    if not merged_path or not os.path.exists(merged_path):
+        print("[TRANSLATE_SAFE] ERROR canonical artifact not generated")
+        sys.exit(3)
 
     size = os.path.getsize(merged_path)
-
     print(f"[TRANSLATE_SAFE] DONE merged={merged_path} bytes={size}")
     sys.exit(0)
 

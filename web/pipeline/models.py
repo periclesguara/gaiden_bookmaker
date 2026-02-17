@@ -70,6 +70,7 @@ class PipelineRun(models.Model):
         ("SPLIT_FOR_REFINE", "Split for Refine"),
         ("RETURN_REFINE", "Return Refine"),
         ("BUILD", "Build"),
+        ("EXPORT_EPUB", "Export EPUB"),
     ]
 
     STATUS_CHOICES = [
@@ -125,6 +126,42 @@ class PipelineRunItem(models.Model):
     def __str__(self) -> str:
         code = self.book_code or f"book_{self.book_id:04d}" if self.book_id else "book"
         return f"{code} [{self.lang}] - {self.status}"
+
+
+class PipelineRunState(models.Model):
+    edition = models.OneToOneField(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="pipeline_run_state",
+    )
+    asset_language = models.CharField(max_length=10, blank=True, default="")
+    selected_mode = models.CharField(max_length=20, blank=True, default="")
+    effective_mode = models.CharField(max_length=20, blank=True, default="")
+    split_mode = models.CharField(max_length=10, blank=True, default="do")
+    refine_mode = models.CharField(max_length=10, blank=True, default="do")
+    cover_jpg_path = models.CharField(max_length=500, blank=True, default="")
+    images_converted_count = models.IntegerField(default=0)
+    inserted_images_count = models.IntegerField(default=0)
+    last_image_conversion_ts = models.DateTimeField(null=True, blank=True)
+    md_path = models.CharField(max_length=500, blank=True, default="")
+    md_source_sha256 = models.CharField(max_length=64, blank=True, default="")
+    md_generated_at = models.DateTimeField(null=True, blank=True)
+    md_status = models.CharField(max_length=30, blank=True, default="")
+    warnings = models.JSONField(default=list, blank=True)
+    build_outputs = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, blank=True, default="")
+    last_step = models.CharField(max_length=60, blank=True, default="")
+    last_build_ts = models.DateTimeField(null=True, blank=True)
+    active_artifact_filename = models.CharField(max_length=255, blank=True, default="")
+    last_log = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self) -> str:
+        return f"RunState({self.edition}) [{self.status or 'unknown'}]"
 
 
 LANGUAGE_DEFAULT_TEMPLATES = {

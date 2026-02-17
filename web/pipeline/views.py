@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 import zipfile
@@ -10,6 +11,7 @@ import subprocess
 
 from django.conf import settings
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.contrib import messages
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -33,12 +35,19 @@ from editorial import kdp_mode
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code
 from gaiden.secrets_loader import require_openai_ready
+from gaiden.translate_mode_policy import apply_skip_policy
+from gaiden.translate_artifacts import (
+    active_pointer_filename,
+    normalize_mode,
+    resolve_active_or_latest,
+)
 
 from .models import (
     BookEditionTemplate,
     PipelineJob,
     PipelineRun,
     PipelineRunItem,
+    PipelineRunState,
     TextSnapshot,
     get_book_md_path,
 )
@@ -52,6 +61,8 @@ from .services import (
     md_transform,
     miolo_transform,
     paths,
+    image_pipeline,
+    run_state_policy,
     stage_policy,
     utils,
 )
@@ -77,8 +88,7 @@ PROJECT_LANG_CODES = {l["code"] for l in PROJECT_LANGS}
 PROJECT_SOURCE_FORMATS = ["TXT", "MD"]
 
 TRANSLATE_TARGETS = [
-    {"code": "en_modern", "label": "EN Modern (2026)"},
-    {"code": "en_2026", "label": "EN 2026 (alias → en_modern)"},
+    {"code": "en", "label": "EN"},
     {"code": "de", "label": "DE"},
     {"code": "fr", "label": "FR"},
     {"code": "es", "label": "ES"},
@@ -89,6 +99,7 @@ TRANSLATE_TARGET_CODES = {t["code"] for t in TRANSLATE_TARGETS}
 TRANSLATE_LEGACY_BOOKS = {"book_0001", "book_0002"}
 
 MAX_RAW_UPLOAD_BYTES = 50 * 1024 * 1024
+logger = logging.getLogger(__name__)
 
 def _parse_bool(value: object, *, default: bool = False) -> bool:
     if value is None:
@@ -1017,6 +1028,9 @@ def runner_matrix_view(request):
     session_mode = request.session.get("pipeline_mode") or "MULTILANGUAGE"
     session_books = request.session.get("pipeline_books") or []
     session_langs = request.session.get("pipeline_languages") or []
+    session_translate_mode = normalize_mode(
+        request.session.get("translate_mode"), default="automatic"
+    )
 
     if selected_book_code:
         selected_books = [selected_book_code]
@@ -1030,6 +1044,26 @@ def runner_matrix_view(request):
     else:
         selected_languages = ["en"]
 
+    anchor_run_state = _runner_anchor_run_state(
+        selected_books=selected_books,
+        selected_languages=selected_languages,
+    )
+    if anchor_run_state:
+        session_policy = _resolve_policy_for_state(
+            run_state=anchor_run_state,
+            fallback_selected_mode=session_translate_mode,
+        )
+    else:
+        session_policy = apply_skip_policy(
+            selected_mode=session_translate_mode,
+            split_mode=request.session.get("split_mode"),
+            refine_mode=request.session.get("refine_mode"),
+        )
+
+    request.session["translate_mode"] = session_policy["selected_mode"]
+    request.session["split_mode"] = session_policy["split_mode"]
+    request.session["refine_mode"] = session_policy["refine_mode"]
+
     context = {
         "works": works,
         "languages": languages,
@@ -1038,6 +1072,10 @@ def runner_matrix_view(request):
         "selected_languages": selected_languages,
         "pipeline_mode": session_mode,
         "default_langs": default_langs,
+        "translate_mode": session_policy["selected_mode"],
+        "split_mode": session_policy["split_mode"],
+        "refine_mode": session_policy["refine_mode"],
+        "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
     }
@@ -1068,11 +1106,19 @@ def runner_matrix_run_view(request):
         messages.error(request, "Selecione ao menos 1 book.")
         return redirect("pipeline_runner_matrix")
 
-    if action in {"TRANSLATE", "TRANSLATE_DEFAULT"} and not languages:
+    if action in {"TRANSLATE", "TRANSLATE_DEFAULT", "SPLIT_FOR_REFINE", "BUILD", "EXPORT_EPUB"} and not languages:
         messages.error(request, "Selecione ao menos 1 idioma.")
         return redirect("pipeline_runner_matrix")
 
-    if action not in {"NORMALIZE", "CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT", "SPLIT_FOR_REFINE"}:
+    if action not in {
+        "NORMALIZE",
+        "CHUNK",
+        "TRANSLATE",
+        "TRANSLATE_DEFAULT",
+        "SPLIT_FOR_REFINE",
+        "BUILD",
+        "EXPORT_EPUB",
+    }:
         messages.error(request, "Ação inválida no MVP.")
         return redirect("pipeline_runner_matrix")
 
@@ -1091,10 +1137,67 @@ def runner_matrix_run_view(request):
     skip_existing = request.POST.get("skip_existing") == "on"
     stop_on_error = request.POST.get("stop_on_error") == "on"
     dry_run = request.POST.get("dry_run") == "on"
+    posted_translate_mode = (
+        request.POST.get("translate_mode")
+        if "translate_mode" in request.POST
+        else None
+    )
+    posted_split_mode = request.POST.get("split_mode") if "split_mode" in request.POST else None
+    posted_refine_mode = request.POST.get("refine_mode") if "refine_mode" in request.POST else None
+
+    session_translate_mode = normalize_mode(
+        request.session.get("translate_mode"),
+        default="automatic",
+    )
+    selected_mode_input = (
+        "default"
+        if action == "TRANSLATE_DEFAULT"
+        else posted_translate_mode
+    )
+
+    anchor_run_state = _runner_anchor_run_state(
+        selected_books=book_codes,
+        selected_languages=languages,
+    )
+    if anchor_run_state:
+        skip_policy = _resolve_policy_for_state(
+            run_state=anchor_run_state,
+            selected_mode=selected_mode_input,
+            split_mode=posted_split_mode,
+            refine_mode=posted_refine_mode,
+            fallback_selected_mode=session_translate_mode,
+        )
+    else:
+        selected_mode = (
+            normalize_mode(selected_mode_input, default="automatic")
+            if selected_mode_input is not None
+            else session_translate_mode
+        )
+        skip_policy = apply_skip_policy(
+            selected_mode=selected_mode,
+            split_mode=posted_split_mode,
+            refine_mode=posted_refine_mode,
+        )
+
+    split_mode = skip_policy["split_mode"]
+    refine_mode = skip_policy["refine_mode"]
+
+    if skip_policy["skip_corrected"]:
+        messages.warning(request, "Skip is only allowed for DEFAULT mode.")
+
+    request.session["translate_mode"] = skip_policy["selected_mode"]
+    request.session["split_mode"] = split_mode
+    request.session["refine_mode"] = refine_mode
 
     run_languages = languages
     if action in {"NORMALIZE", "CHUNK"}:
         run_languages = ["en"]
+
+    _persist_policy_for_matrix_selection(
+        book_codes=book_codes,
+        run_languages=run_languages,
+        policy=skip_policy,
+    )
 
     run = PipelineRun.objects.create(
         mode="MATRIX",
@@ -1105,6 +1208,17 @@ def runner_matrix_run_view(request):
             "stop_on_error": stop_on_error,
             "dry_run": dry_run,
             "mode": mode,
+            "translate_mode": skip_policy["selected_mode"],
+            "selected_mode": skip_policy["selected_mode"],
+            "effective_mode": skip_policy["effective_mode"],
+            "split_mode": split_mode,
+            "refine_mode": refine_mode,
+            "skip_requested": skip_policy["skip_requested"],
+            "skip_applied": skip_policy["skip_applied"],
+            "skip_block_reason": skip_policy["skip_block_reason"],
+            "skip_corrected": skip_policy["skip_corrected"],
+            "skip_original_split_mode": skip_policy.get("skip_original_split_mode"),
+            "skip_original_refine_mode": skip_policy.get("skip_original_refine_mode"),
         },
         status="PENDING",
     )
@@ -1122,6 +1236,10 @@ def runner_matrix_run_view(request):
                     out_path = str((_project_root() / "data" / "chunks" / book_code / lang_code / "chunks_manifest.json"))
                 elif action == "SPLIT_FOR_REFINE":
                     out_path = str(_runner_split_dir_path(book_id, lang))
+                elif action == "BUILD":
+                    out_path = str(_runner_book_build_path(book_code, lang))
+                elif action == "EXPORT_EPUB":
+                    out_path = str(_runner_epub_path(book_code, lang))
                 else:
                     out_path = str(_runner_merge_translate_path(book_id, lang))
             items.append(
@@ -1156,14 +1274,47 @@ def runner_matrix_detail_view(request, run_id: int):
     session_mode = request.session.get("pipeline_mode") or "MULTILANGUAGE"
     session_books = request.session.get("pipeline_books") or []
     session_langs = request.session.get("pipeline_languages") or []
+    session_translate_mode = normalize_mode(
+        request.session.get("translate_mode"), default="automatic"
+    )
+    selected_books = session_books
+    selected_languages = session_langs or ["en"]
+    if run and run.items.exists():
+        first_item = run.items.order_by("id").first()
+        if first_item:
+            selected_books = [first_item.book_code] if first_item.book_code else selected_books
+            selected_languages = [utils.normalize_lang(first_item.lang)] if first_item.lang else selected_languages
+
+    anchor_run_state = _runner_anchor_run_state(
+        selected_books=selected_books,
+        selected_languages=selected_languages,
+    )
+    if anchor_run_state:
+        session_policy = _resolve_policy_for_state(
+            run_state=anchor_run_state,
+            fallback_selected_mode=session_translate_mode,
+        )
+    else:
+        session_policy = apply_skip_policy(
+            selected_mode=session_translate_mode,
+            split_mode=request.session.get("split_mode"),
+            refine_mode=request.session.get("refine_mode"),
+        )
+    request.session["translate_mode"] = session_policy["selected_mode"]
+    request.session["split_mode"] = session_policy["split_mode"]
+    request.session["refine_mode"] = session_policy["refine_mode"]
 
     context = {
         "works": works,
         "languages": languages,
         "selected_book_code": "",
-        "selected_books": session_books,
-        "selected_languages": session_langs,
+        "selected_books": selected_books,
+        "selected_languages": selected_languages,
         "pipeline_mode": session_mode,
+        "translate_mode": session_policy["selected_mode"],
+        "split_mode": session_policy["split_mode"],
+        "refine_mode": session_policy["refine_mode"],
+        "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
     }
@@ -1396,6 +1547,290 @@ def _project_root() -> Path:
     return Path(settings.BASE_DIR).parent
 
 
+def _get_or_create_run_state(edition: EditorialEdition) -> PipelineRunState:
+    defaults = {
+        "asset_language": utils.normalize_lang(getattr(edition.language, "code", "en")),
+        "selected_mode": "automatic",
+        "effective_mode": "automatic",
+        "split_mode": "do",
+        "refine_mode": "do",
+    }
+    state, _ = PipelineRunState.objects.get_or_create(edition=edition, defaults=defaults)
+    if not state.asset_language:
+        state.asset_language = defaults["asset_language"]
+    if not state.selected_mode:
+        state.selected_mode = defaults["selected_mode"]
+    if not state.effective_mode:
+        state.effective_mode = defaults["effective_mode"]
+    if not state.split_mode:
+        state.split_mode = defaults["split_mode"]
+    if not state.refine_mode:
+        state.refine_mode = defaults["refine_mode"]
+    state.save(
+        update_fields=[
+            "asset_language",
+            "selected_mode",
+            "effective_mode",
+            "split_mode",
+            "refine_mode",
+            "updated_at",
+        ]
+    )
+    return state
+
+
+def _edition_for_book_lang(book_code: str, language: str) -> EditorialEdition | None:
+    db_lang = _project_lang_db_code(language)
+    return EditorialEdition.objects.filter(
+        work__code=book_code,
+        language__code=db_lang,
+    ).first()
+
+
+def _resolve_policy_for_state(
+    *,
+    run_state: PipelineRunState,
+    selected_mode: str | None = None,
+    split_mode: str | None = None,
+    refine_mode: str | None = None,
+    fallback_selected_mode: str = "automatic",
+) -> dict:
+    policy = run_state_policy.resolve_policy_from_state(
+        run_state,
+        selected_mode=selected_mode,
+        split_mode=split_mode,
+        refine_mode=refine_mode,
+        fallback_selected_mode=fallback_selected_mode,
+    )
+    run_state_policy.apply_policy_to_state(run_state, policy)
+    return policy
+
+
+def _persist_policy_for_matrix_selection(
+    *,
+    book_codes: list[str],
+    run_languages: list[str],
+    policy: dict,
+) -> None:
+    for book_code in book_codes:
+        for language in run_languages:
+            edition = _edition_for_book_lang(book_code, language)
+            if not edition:
+                continue
+            run_state = _get_or_create_run_state(edition)
+            run_state_policy.apply_policy_to_state(run_state, policy)
+            run_state.save(
+                update_fields=[
+                    "selected_mode",
+                    "effective_mode",
+                    "split_mode",
+                    "refine_mode",
+                    "updated_at",
+                ]
+            )
+
+
+def _runner_anchor_run_state(
+    *,
+    selected_books: list[str],
+    selected_languages: list[str],
+) -> PipelineRunState | None:
+    if not selected_books:
+        return None
+    anchor_book = selected_books[0]
+    anchor_lang = selected_languages[0] if selected_languages else "en"
+    edition = _edition_for_book_lang(anchor_book, anchor_lang)
+    if not edition:
+        return None
+    return _get_or_create_run_state(edition)
+
+
+def _cover_language_for_edition(edition: EditorialEdition) -> str:
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    lang_code = utils.normalize_lang(edition.language.code)
+    if (
+        pipeline_state
+        and pipeline_state.frontmatter_locked
+        and pipeline_state.frontmatter_language
+    ):
+        lang_code = utils.normalize_lang(pipeline_state.frontmatter_language)
+    return lang_code
+
+
+def _asset_language_from_request(
+    request,
+    default_language: str,
+    run_state: PipelineRunState | None = None,
+) -> str:
+    raw = (request.POST.get("asset_language") or "").strip()
+    if raw:
+        return utils.normalize_lang(raw)
+    if run_state and run_state.asset_language:
+        return utils.normalize_lang(run_state.asset_language)
+    return utils.normalize_lang(default_language)
+
+
+def _save_uploaded_cover_original(
+    *,
+    cover_file,
+    book_code: str,
+    language: str,
+) -> Path:
+    ext = Path(cover_file.name).suffix.lower() or ".jpg"
+    if ext not in image_pipeline.ALLOWED_IMAGE_EXTS:
+        raise ValueError("Formato de capa invalido. Use png/webp/gif/jpg.")
+    cover_dir = image_pipeline.covers_dir(book_code, language)
+    cover_dir.mkdir(parents=True, exist_ok=True)
+    for existing in cover_dir.glob("cover_original.*"):
+        existing.unlink(missing_ok=True)
+    target = cover_dir / f"cover_original{ext}"
+    with target.open("wb+") as dest:
+        for chunk in cover_file.chunks():
+            dest.write(chunk)
+    return target
+
+
+def _save_uploaded_images_to_raw(
+    *,
+    uploads: list,
+    book_code: str,
+    language: str,
+) -> tuple[int, list[str]]:
+    raw_dir, _ = image_pipeline.ensure_image_dirs(book_code, language)
+    saved = 0
+    labels: list[str] = []
+    for upload in uploads:
+        original_name = Path(upload.name).name
+        stem = image_pipeline.numeric_stem_or_raise(original_name)
+        ext = Path(original_name).suffix.lower()
+        for existing in raw_dir.glob(f"{stem}.*"):
+            existing.unlink(missing_ok=True)
+        target = raw_dir / f"{stem}{ext}"
+        with target.open("wb+") as dest:
+            for chunk in upload.chunks():
+                dest.write(chunk)
+        labels.append(f"{stem}{ext}")
+        saved += 1
+    return saved, labels
+
+
+def _resolve_build_output_path(book_code: str, language: str) -> Path:
+    return (
+        _project_root()
+        / "data"
+        / "builds"
+        / book_code
+        / language
+        / f"{book_code}_{language}_book.md"
+    )
+
+
+def _run_save_pipeline(
+    *,
+    edition: EditorialEdition,
+    asset_language: str,
+    run_state: PipelineRunState,
+    skip_policy: dict,
+) -> dict:
+    asset_language = utils.normalize_lang(asset_language)
+    target_edition = _edition_for_language(edition, asset_language)
+    book_code = edition.work.code
+
+    cover_lang = _cover_language_for_edition(edition)
+    cover_result = image_pipeline.convert_cover_to_jpg(book_code, cover_lang)
+    if cover_result.get("cover_jpg_path"):
+        edition.cover_filepath = cover_result["cover_jpg_path"]
+        edition.save(update_fields=["cover_filepath", "updated_at"])
+        run_state.cover_jpg_path = cover_result["cover_jpg_path"]
+
+    convert_result = image_pipeline.convert_raw_images_to_processed(book_code, asset_language)
+    run_state.images_converted_count = int(convert_result.get("converted_count", 0))
+    run_state.last_image_conversion_ts = timezone.now()
+
+    md_result = miolo_transform.ensure_md_uptodate(
+        target_edition,
+        cached_source_sha256=run_state.md_source_sha256 or None,
+    )
+    md_path = Path(str(md_result.get("path") or paths.miolo_md_path(target_edition)))
+    md_action = str(md_result.get("md_action") or "generated")
+    md_warnings = [str(x) for x in (md_result.get("warnings") or []) if str(x).strip()]
+    source_txt = str(md_result.get("source_txt") or "")
+    source_sha256 = str(md_result.get("source_sha256") or "")
+
+    if md_action == "generated":
+        run_state.md_generated_at = timezone.now()
+        run_state.md_source_sha256 = source_sha256
+        run_state.md_status = "generated"
+        run_state.md_path = str(md_path)
+    elif md_action == "skipped_up_to_date":
+        run_state.md_source_sha256 = source_sha256
+        run_state.md_status = "skipped_up_to_date"
+        run_state.md_path = str(md_path)
+    else:
+        run_state.md_status = "error"
+
+    insert_result = image_pipeline.apply_processed_images_to_miolo(
+        book_code=book_code,
+        language=asset_language,
+        md_path=md_path,
+    )
+    sync_result = image_pipeline.sync_processed_images_into_build(book_code, asset_language)
+
+    call_command(
+        "build_book_text",
+        book_code=book_code,
+        language=target_edition.language.code,
+    )
+    build_output = _resolve_build_output_path(book_code, target_edition.language.code)
+
+    run_state.asset_language = asset_language
+    run_state_policy.apply_policy_to_state(run_state, skip_policy)
+    run_state.inserted_images_count = int(insert_result.get("inserted_images_count", 0))
+    warnings_all = list(md_warnings) + [str(x) for x in insert_result.get("warnings", [])]
+    run_state.warnings = warnings_all
+    run_state.build_outputs = {
+        "book_md": str(build_output),
+        "build_images_dir": sync_result.get("build_images_dir", ""),
+        "build_image_count": sync_result.get("image_count", 0),
+        "build_images": sync_result.get("images", []),
+        "md_action": md_action,
+        "active_merge_source": source_txt,
+        "active_merge_sha256": source_sha256,
+        "insertion_warnings": insert_result.get("warnings", []),
+    }
+    run_state.active_artifact_filename = build_output.name
+    run_state.status = "ok"
+    run_state.last_step = "build"
+    run_state.last_build_ts = timezone.now()
+    report_v2 = {
+        "book": book_code,
+        "lang": asset_language,
+        "ts": timezone.now().isoformat(),
+        "selected_mode": run_state.selected_mode,
+        "effective_mode": run_state.effective_mode,
+        "split_mode": run_state.split_mode,
+        "refine_mode": run_state.refine_mode,
+        "md_action": md_action,
+        "warnings_summary": warnings_all,
+    }
+    report_line = "REPORT_V2 " + json.dumps(report_v2, ensure_ascii=False, separators=(",", ":"))
+    logger.info(report_line)
+    run_state.last_log = report_line
+    run_state.save()
+
+    return {
+        "cover_result": cover_result,
+        "conversion": convert_result,
+        "md": md_result,
+        "insert": insert_result,
+        "sync": sync_result,
+        "md_path": str(md_path),
+        "md_action": md_action,
+        "warnings": warnings_all,
+        "build_output": str(build_output),
+    }
+
+
 def _resolve_return_flow_contract(language: str) -> Path:
     lang = utils.normalize_lang(language)
     contract = RETURN_FLOW_CONTRACTS.get(lang)
@@ -1410,16 +1845,20 @@ def _extract_book_code(value: str) -> str | None:
 
 
 def _runner_lang_dir(lang: str) -> str:
-    norm = utils.normalize_lang(lang)
-    if norm == "ptbr":
-        return "PT-BR"
-    return norm.upper()
+    return utils.normalize_lang(lang)
 
 
 def _runner_merge_translate_path(book_id: int, lang: str) -> Path:
     data_dir = _project_root() / "data"
+    book_code = f"book_{book_id:04d}"
     lang_dir = _runner_lang_dir(lang)
-    return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / "merge_refine_clean.txt"
+    return (
+        data_dir
+        / "translated"
+        / book_code
+        / lang_dir
+        / active_pointer_filename(book_code, lang)
+    )
 
 
 def _runner_normalized_path(book_code: str, lang: str) -> Path:
@@ -1433,6 +1872,18 @@ def _runner_split_dir_path(book_id: int, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_dir = _runner_lang_dir(lang)
     return data_dir / "translated" / f"book_{book_id:04d}" / lang_dir / "split_chapters_for_refine"
+
+
+def _runner_book_build_path(book_code: str, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    db_lang = _project_lang_db_code(lang)
+    return data_dir / "builds" / book_code / db_lang / f"{book_code}_{db_lang}_book.md"
+
+
+def _runner_epub_path(book_code: str, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    db_lang = _project_lang_db_code(lang)
+    return data_dir / "builds" / book_code / db_lang / "BOOK.epub"
 
 
 def _runner_python_path() -> Path:
@@ -1506,19 +1957,7 @@ def _run_return_flow(contract_path: Path, *, book_code: str) -> tuple[Path, str]
 def _detect_merged_path(out_dir: Path) -> Path | None:
     lang_key = out_dir.name
     book_code = out_dir.parent.name
-    candidates = [
-        out_dir / "merge_refine_clean.txt",
-        out_dir / f"merge_translate_{lang_key}.txt",
-        out_dir / f"{book_code}_{lang_key}_merged_v1.txt",
-        out_dir / "merged.txt",
-    ]
-    for path in candidates:
-        if path.exists():
-            return path
-    extras = sorted(out_dir.glob("merged_*.txt"))
-    if extras:
-        return extras[0]
-    return None
+    return resolve_active_or_latest(out_dir, book_code, lang_key)
 
 
 def _detect_translate_report_path(out_dir: Path) -> Path:
@@ -1655,12 +2094,17 @@ def translate_control(request):
         "mode": None,
         "job_estimate": None,
         "selected_book": None,
-        "selected_targets": ["en_modern"],
+        "selected_targets": ["en"],
         "selected_queue": [],
-        "selected_target_lang": "en_modern",
+        "selected_target_lang": "en",
         "run_output": None,
         "contract_path": None,
-        "run_flags": {"dry_run": True, "resume": True, "fail_fast": True},
+        "run_flags": {
+            "dry_run": True,
+            "resume": True,
+            "fail_fast": True,
+            "translate_mode": "automatic",
+        },
     }
 
     if request.method != "POST":
@@ -1681,7 +2125,13 @@ def translate_control(request):
     dry_run = _parse_bool(request.POST.get("dry_run", True), default=True)
     resume = _parse_bool(request.POST.get("resume", True), default=True)
     fail_fast = _parse_bool(request.POST.get("fail_fast", True), default=True)
-    context["run_flags"] = {"dry_run": dry_run, "resume": resume, "fail_fast": fail_fast}
+    translate_mode = normalize_mode(request.POST.get("translate_mode"), default="automatic")
+    context["run_flags"] = {
+        "dry_run": dry_run,
+        "resume": resume,
+        "fail_fast": fail_fast,
+        "translate_mode": translate_mode,
+    }
 
     # Ensure env is loaded before gating.
     require_openai_ready(dry_run=dry_run, repo_root=_project_root())
@@ -1703,7 +2153,7 @@ def translate_control(request):
         context["selected_book"] = book
         targets = request.POST.getlist("target_languages")
         targets = [t for t in targets if t in TRANSLATE_TARGET_CODES]
-        targets = [normalize_lang_code(t, default="en_modern") for t in targets]
+        targets = [normalize_lang_code(t, default="en") for t in targets]
         # Deduplicate while preserving order.
         seen = set()
         targets = [t for t in targets if not (t in seen or seen.add(t))]
@@ -1737,6 +2187,7 @@ def translate_control(request):
             "schema": "gaiden_translate_multilang_v1",
             "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
             "mode": "one_book_to_many_languages",
+            "translate_mode": translate_mode,
             "book": book,
             "source_lang": "en",
             "target_languages": targets,
@@ -1751,6 +2202,7 @@ def translate_control(request):
                 "resume": resume,
                 "dry_run": dry_run,
                 "fail_fast": fail_fast,
+                "translate_mode": translate_mode,
             },
         }
 
@@ -1782,7 +2234,7 @@ def translate_control(request):
         source_heading_hits = _heading_hits_in_chunks(book, "en")
         for lang in targets:
             out_dir = translated_root / book / lang
-            merged = _detect_merged_path(out_dir) or (out_dir / "merge_refine_clean.txt")
+            merged = _detect_merged_path(out_dir) or (out_dir / "__missing_canonical__.txt")
             report = _detect_translate_report_path(out_dir)
             stamp = Path(str(merged) + ".STAMP.json")
             scans = _translate_scan_patterns(merged) if merged.exists() else None
@@ -1820,8 +2272,8 @@ def translate_control(request):
     context["selected_queue"] = queue_books
     target_lang = (request.POST.get("target_lang") or "").strip()
     if target_lang not in TRANSLATE_TARGET_CODES:
-        target_lang = "en_modern"
-    target_lang = normalize_lang_code(target_lang, default="en_modern")
+        target_lang = "en"
+    target_lang = normalize_lang_code(target_lang, default="en")
     context["selected_target_lang"] = target_lang
 
     if not queue_books:
@@ -1853,6 +2305,7 @@ def translate_control(request):
         "schema": "gaiden_translate_queue_v1",
         "translation_spec": "docs/TRANSLATE_SPEC_v1.md",
         "mode": "many_books_to_one_language",
+        "translate_mode": translate_mode,
         "source_lang": "en",
         "target_lang": target_lang,
         "queue": [{"book": b} for b in queue_books],
@@ -1867,6 +2320,7 @@ def translate_control(request):
             "resume": resume,
             "dry_run": dry_run,
             "fail_fast": fail_fast,
+            "translate_mode": translate_mode,
         },
     }
 
@@ -1897,7 +2351,7 @@ def translate_control(request):
     items = []
     for book in queue_books:
         out_dir = translated_root / book / target_lang
-        merged = _detect_merged_path(out_dir) or (out_dir / "merge_refine_clean.txt")
+        merged = _detect_merged_path(out_dir) or (out_dir / "__missing_canonical__.txt")
         report = _detect_translate_report_path(out_dir)
         stamp = Path(str(merged) + ".STAMP.json")
         scans = _translate_scan_patterns(merged) if merged.exists() else None
@@ -1936,246 +2390,252 @@ def translate_control(request):
 def edition_steps(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
-
-    def _asset_lang_from_request() -> str:
-        raw = (request.POST.get("asset_language") or "").strip()
-        return utils.normalize_lang(raw or language)
+    run_state = _get_or_create_run_state(edition)
 
     if request.method == "POST":
         action = request.POST.get("action")
+        cover_action = (request.POST.get("cover_action") or "").strip().lower()
+        if cover_action == "upload":
+            action = "upload_cover"
+        elif cover_action == "convert":
+            action = "convert_cover_jpg"
         if action == "upload_cover":
             cover_file = request.FILES.get("cover_file")
             if not cover_file:
                 messages.error(request, "Selecione uma imagem de capa.")
                 return redirect("edition_steps", edition_id=edition.id)
             try:
-                from PIL import Image
-            except ImportError:
-                messages.error(request, "Pillow nao instalado. Nao foi possivel converter a capa.")
+                cover_lang = _cover_language_for_edition(edition)
+                target = _save_uploaded_cover_original(
+                    cover_file=cover_file,
+                    book_code=book_code,
+                    language=cover_lang,
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
                 return redirect("edition_steps", edition_id=edition.id)
-
-            pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
-            book_code = edition.work.code
-            lang_code = edition.language.code
-            if (
-                pipeline_state
-                and pipeline_state.frontmatter_locked
-                and pipeline_state.frontmatter_language
-            ):
-                lang_code = pipeline_state.frontmatter_language
-            cover_dir = (
-                Path(settings.BASE_DIR).parent
-                / "data"
-                / "covers"
-                / book_code
-                / lang_code
-            )
-            cover_dir.mkdir(parents=True, exist_ok=True)
-            cover_path = cover_dir / "cover.jpg"
-
-            with Image.open(cover_file) as img:
-                rgb = img.convert("RGB")
-                rgb.save(cover_path, format="JPEG", quality=95, optimize=True)
-
-            try:
-                rel_path = cover_path.relative_to(Path(settings.BASE_DIR).parent)
-                edition.cover_filepath = str(rel_path)
-            except ValueError:
-                edition.cover_filepath = str(cover_path)
-            edition.save(update_fields=["cover_filepath"])
-            messages.success(request, f"Capa salva: {edition.cover_filepath}")
+            rel = target.relative_to(_project_root()).as_posix()
+            run_state.last_step = "upload_cover"
+            run_state.status = "pending"
+            run_state.save(update_fields=["last_step", "status", "updated_at"])
+            messages.success(request, f"Cover original salvo: {rel}")
             return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "convert_cover_jpg":
+            cover_lang = _cover_language_for_edition(edition)
+            cover_file = request.FILES.get("cover_file")
+            if cover_file:
+                try:
+                    _save_uploaded_cover_original(
+                        cover_file=cover_file,
+                        book_code=book_code,
+                        language=cover_lang,
+                    )
+                except ValueError as exc:
+                    messages.error(request, str(exc))
+                    return redirect("edition_steps", edition_id=edition.id)
+            result = image_pipeline.convert_cover_to_jpg(book_code, cover_lang)
+            cover_jpg_path = (result.get("cover_jpg_path") or "").strip()
+            if not cover_jpg_path:
+                messages.error(request, "Nenhuma capa encontrada para converter (cover_original.* / cover.*).")
+                return redirect("edition_steps", edition_id=edition.id)
+            edition.cover_filepath = cover_jpg_path
+            edition.save(update_fields=["cover_filepath", "updated_at"])
+            run_state.cover_jpg_path = cover_jpg_path
+            run_state.last_step = "convert_cover"
+            run_state.status = "ok"
+            run_state.save(update_fields=["cover_jpg_path", "last_step", "status", "updated_at"])
+            if result.get("converted"):
+                messages.success(request, f"Capa convertida para JPG: {cover_jpg_path}")
+            else:
+                messages.success(request, f"Capa JPG já atualizada: {cover_jpg_path}")
+            return redirect("edition_steps", edition_id=edition.id)
+
         if action == "upload_images_zip":
             images_zip = request.FILES.get("images_zip")
             if not images_zip:
                 messages.error(request, "Selecione um ZIP de imagens.")
                 return redirect("edition_steps", edition_id=edition.id)
-
-            lang_code = _asset_lang_from_request()
-            images_base = (
-                Path(settings.BASE_DIR).parent
-                / "data"
-                / "images"
-                / book_code
-                / lang_code
-            )
-
-            allowed_exts = {".png", ".webp", ".tif", ".tiff", ".bmp", ".jpg", ".jpeg"}
-            chapter_re = re.compile(r"^\d{2}$")
-            extracted: list[tuple[zipfile.ZipInfo, Path]] = []
-            invalid: list[str] = []
+            lang_code = _asset_language_from_request(request, language, run_state)
+            raw_dir, _ = image_pipeline.ensure_image_dirs(book_code, lang_code)
+            extracted: list[tuple[zipfile.ZipInfo, str, str]] = []
+            invalid_name: list[str] = []
+            invalid_format: list[str] = []
             seen: set[str] = set()
-
             try:
                 with zipfile.ZipFile(images_zip) as zf:
                     for info in zf.infolist():
                         if info.is_dir():
                             continue
                         name = info.filename
-                        if "__MACOSX" in name or name.endswith(".DS_Store") or name.startswith("."):
+                        if "__MACOSX" in name or name.endswith(".DS_Store"):
                             continue
-                        if name.startswith("/") or ".." in Path(name).parts:
-                            invalid.append(name)
-                            continue
-                        parts = [p for p in Path(name).parts if p not in ("", ".")]
-                        filename = parts[-1]
-                        folder = ""
-                        idx = next((i for i, p in enumerate(parts) if chapter_re.match(p)), None)
-                        if idx is not None and idx == len(parts) - 2:
-                            folder = parts[idx]
-                        elif len(parts) == 1:
-                            stem = Path(filename).stem
-                            match = re.match(r"^(\d{2})", stem)
-                            if match:
-                                folder = match.group(1)
-                        if not folder or not chapter_re.match(folder):
-                            invalid.append(name)
+                        filename = Path(name).name
+                        if not filename or filename.startswith("."):
                             continue
                         ext = Path(filename).suffix.lower()
-                        if ext not in allowed_exts:
-                            invalid.append(name)
+                        if ext not in image_pipeline.ALLOWED_IMAGE_EXTS:
+                            invalid_format.append(filename)
                             continue
-                        dest_rel = Path(folder) / filename
-                        if dest_rel.as_posix() in seen:
-                            invalid.append(name)
+                        if not image_pipeline.validate_numeric_image_filename(filename):
+                            invalid_name.append(filename)
                             continue
-                        seen.add(dest_rel.as_posix())
-                        extracted.append((info, dest_rel))
+                        stem = Path(filename).stem
+                        if stem in seen:
+                            invalid_name.append(filename)
+                            continue
+                        seen.add(stem)
+                        extracted.append((info, stem, ext))
             except zipfile.BadZipFile:
                 messages.error(request, "ZIP invalido.")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            if invalid:
-                preview = ", ".join(invalid[:5])
+            if invalid_name:
                 messages.error(
                     request,
-                    f"ZIP contem arquivos invalidos (ex: {preview}). Use pastas 00..NN ou nomes 00..NN.*.",
+                    "Image name must be numeric: 00, 01, 02...",
                 )
+                return redirect("edition_steps", edition_id=edition.id)
+            if invalid_format:
+                preview = ", ".join(invalid_format[:3])
+                messages.error(request, f"Formato de imagem invalido no ZIP: {preview}")
                 return redirect("edition_steps", edition_id=edition.id)
 
             if not extracted:
                 messages.error(request, "ZIP nao contem imagens validas.")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            if images_base.exists():
-                shutil.rmtree(images_base)
-            images_base.mkdir(parents=True, exist_ok=True)
-
             images_zip.seek(0)
             with zipfile.ZipFile(images_zip) as zf:
-                for info, dest_rel in extracted:
-                    dest_path = images_base / dest_rel
-                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                for info, stem, ext in extracted:
+                    for existing in raw_dir.glob(f"{stem}.*"):
+                        existing.unlink(missing_ok=True)
+                    dest_path = raw_dir / f"{stem}{ext}"
                     with zf.open(info) as src, dest_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
 
-            inserts_path = (
-                paths.edition_build_dir_for_language(book_code, lang_code) / "inserts.json"
-            )
-            inserts_data = {}
-            if inserts_path.exists():
-                try:
-                    inserts_data = json.loads(inserts_path.read_text(encoding="utf-8"))
-                except json.JSONDecodeError:
-                    inserts_data = {}
-            inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
-            inserts_path.parent.mkdir(parents=True, exist_ok=True)
-            inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
-
-            try:
-                from .services.inserts import normalize_image_dir
-
-                normalize_image_dir(images_base)
-            except Exception as exc:
-                messages.error(request, f"Falha ao normalizar imagens: {exc}")
-                return redirect("edition_steps", edition_id=edition.id)
-
-            messages.success(
-                request,
-                f"Imagens extraidas em {inserts_data['image_dir']} e inserts.json atualizado.",
-            )
+            run_state.asset_language = lang_code
+            run_state.last_step = "upload_images"
+            run_state.status = "pending"
+            run_state.save(update_fields=["asset_language", "last_step", "status", "updated_at"])
+            messages.success(request, f"{len(extracted)} imagem(ns) salvas em {raw_dir}.")
             return redirect("edition_steps", edition_id=edition.id)
+
         if action == "upload_images_individual":
             files = request.FILES.getlist("images_files")
-            folder_input = (request.POST.get("images_folder") or "").strip()
             if not files:
                 messages.error(request, "Selecione uma ou mais imagens.")
                 return redirect("edition_steps", edition_id=edition.id)
-            if folder_input and not re.match(r"^\d{2}$", folder_input):
-                messages.error(request, "Pasta invalida. Use 00..NN ou deixe vazio.")
-                return redirect("edition_steps", edition_id=edition.id)
-
-            lang_code = _asset_lang_from_request()
-            images_base = (
-                Path(settings.BASE_DIR).parent
-                / "data"
-                / "images"
-                / book_code
-                / lang_code
-            )
-            allowed_exts = {".png", ".webp", ".tif", ".tiff", ".bmp", ".jpg", ".jpeg"}
-            saved = 0
-            saved_folders: set[str] = set()
-            for upload in files:
-                name = Path(upload.name).name
-                ext = Path(name).suffix.lower()
-                if ext not in allowed_exts:
-                    messages.error(request, f"Formato invalido: {name}")
-                    return redirect("edition_steps", edition_id=edition.id)
-                folder = folder_input
-                if not folder:
-                    stem = Path(name).stem
-                    match = re.match(r"^(\d{2})", stem)
-                    if match:
-                        folder = match.group(1)
-                if not folder or not re.match(r"^\d{2}$", folder):
-                    messages.error(
-                        request,
-                        f"Nome invalido: {name}. Use prefixo 00..NN no arquivo ou selecione a pasta.",
-                    )
-                    return redirect("edition_steps", edition_id=edition.id)
-                target_dir = images_base / folder
-                target_dir.mkdir(parents=True, exist_ok=True)
-                dest_path = target_dir / name
-                if dest_path.exists():
-                    messages.error(request, f"Arquivo ja existe: {dest_path.name}")
-                    return redirect("edition_steps", edition_id=edition.id)
-                with dest_path.open("wb+") as dest:
-                    for chunk in upload.chunks():
-                        dest.write(chunk)
-                saved += 1
-                saved_folders.add(folder)
-
-            inserts_path = (
-                paths.edition_build_dir_for_language(book_code, lang_code) / "inserts.json"
-            )
-            inserts_data = {}
-            if inserts_path.exists():
-                try:
-                    inserts_data = json.loads(inserts_path.read_text(encoding="utf-8"))
-                except json.JSONDecodeError:
-                    inserts_data = {}
-            inserts_data["image_dir"] = f"data/images/{book_code}/{lang_code}"
-            inserts_path.parent.mkdir(parents=True, exist_ok=True)
-            inserts_path.write_text(json.dumps(inserts_data, indent=2), encoding="utf-8")
-
+            lang_code = _asset_language_from_request(request, language, run_state)
             try:
-                from .services.inserts import normalize_image_dir
+                saved, _ = _save_uploaded_images_to_raw(
+                    uploads=files,
+                    book_code=book_code,
+                    language=lang_code,
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+                return redirect("edition_steps", edition_id=edition.id)
+            run_state.asset_language = lang_code
+            run_state.last_step = "upload_images"
+            run_state.status = "pending"
+            run_state.save(update_fields=["asset_language", "last_step", "status", "updated_at"])
+            messages.success(request, f"{saved} imagem(ns) salvas no raw.")
+            return redirect("edition_steps", edition_id=edition.id)
 
-                normalize_image_dir(images_base)
+        if action == "convert_images_jpg":
+            lang_code = _asset_language_from_request(request, language, run_state)
+            try:
+                result = image_pipeline.convert_raw_images_to_processed(book_code, lang_code)
             except Exception as exc:
-                messages.error(request, f"Falha ao normalizar imagens: {exc}")
+                messages.error(request, f"Falha na conversao de imagens: {exc}")
                 return redirect("edition_steps", edition_id=edition.id)
 
-            if len(saved_folders) == 1:
-                folder_suffix = f"/{next(iter(saved_folders))}"
-            else:
-                folder_suffix = ""
+            run_state.asset_language = lang_code
+            run_state.images_converted_count = int(result.get("converted_count", 0))
+            run_state.last_image_conversion_ts = timezone.now()
+            run_state.last_step = "convert_images"
+            run_state.status = "ok"
+            run_state.save(
+                update_fields=[
+                    "asset_language",
+                    "images_converted_count",
+                    "last_image_conversion_ts",
+                    "last_step",
+                    "status",
+                    "updated_at",
+                ]
+            )
             messages.success(
                 request,
-                f"{saved} imagem(ns) salvas em {inserts_data['image_dir']}{folder_suffix}.",
+                "Conversao concluida. "
+                f"total={result.get('raw_count', 0)} "
+                f"convertidas={result.get('converted_count', 0)} "
+                f"ignoradas={result.get('skipped_count', 0)}",
             )
             return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "save_pipeline":
+            lang_code = _asset_language_from_request(request, language, run_state)
+            selected_mode_input = (
+                request.POST.get("translate_mode")
+                if "translate_mode" in request.POST
+                else None
+            )
+            split_mode_input = (
+                request.POST.get("split_mode")
+                if "split_mode" in request.POST
+                else None
+            )
+            refine_mode_input = (
+                request.POST.get("refine_mode")
+                if "refine_mode" in request.POST
+                else None
+            )
+            save_policy = _resolve_policy_for_state(
+                run_state=run_state,
+                selected_mode=selected_mode_input,
+                split_mode=split_mode_input,
+                refine_mode=refine_mode_input,
+                fallback_selected_mode=run_state.selected_mode or "automatic",
+            )
+            run_state.save(
+                update_fields=[
+                    "selected_mode",
+                    "effective_mode",
+                    "split_mode",
+                    "refine_mode",
+                    "updated_at",
+                ]
+            )
+            try:
+                result = _run_save_pipeline(
+                    edition=edition,
+                    asset_language=lang_code,
+                    run_state=run_state,
+                    skip_policy=save_policy,
+                )
+            except Exception as exc:
+                messages.error(request, f"Falha no SAVE: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            if save_policy.get("skip_corrected"):
+                messages.warning(request, "Skip is only allowed for DEFAULT mode.")
+            if result.get("md_action") == "skipped_up_to_date":
+                messages.warning(request, "Arquivo já convertido (MD up-to-date).")
+            warn_count = len(result["insert"].get("warnings", []))
+            if warn_count:
+                messages.warning(request, f"SAVE concluido com {warn_count} warning(s) de insercao.")
+            messages.success(
+                request,
+                "SAVE concluido. "
+                f"imagens_convertidas={result['conversion'].get('converted_count', 0)} "
+                f"md_action={result.get('md_action')} "
+                f"inseridas={result['insert'].get('inserted_images_count', 0)} "
+                f"build={result['build_output']}",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
         messages.error(request, "Acao nao permitida nesta tela.")
         return redirect("edition_steps", edition_id=edition.id)
 
@@ -2204,7 +2664,7 @@ def edition_steps(request, edition_id: int):
             translated_path = _detect_merged_path(out_dir)
             split_dir = out_dir / "split_chapters_for_refine"
             build_dir = data_dir / "builds" / book_code / code
-            translated_ok = translated_path.exists()
+            translated_ok = bool(translated_path and translated_path.exists())
             split_ok = split_dir.exists()
             refine_ok = (build_dir / "merge_refine.txt").exists()
             polish_ok = (build_dir / "merge_polish.txt").exists()
@@ -2222,10 +2682,20 @@ def edition_steps(request, edition_id: int):
             }
         )
 
-    asset_lang_default = utils.normalize_lang(language)
-    images_dir = f"data/images/{book_code}/{asset_lang_default}"
-    inserts_json_path = str(
-        paths.edition_build_dir_for_language(book_code, asset_lang_default) / "inserts.json"
+    asset_lang_default = run_state.asset_language or utils.normalize_lang(language)
+    asset_lang_default = utils.normalize_lang(asset_lang_default)
+    raw_dir = image_pipeline.images_raw_dir(book_code, asset_lang_default)
+    processed_dir = image_pipeline.images_processed_dir(book_code, asset_lang_default)
+    build_images_dir = image_pipeline.build_images_dir(book_code, asset_lang_default)
+    cover_lang = _cover_language_for_edition(edition)
+    cover_source = image_pipeline.find_cover_source(book_code, cover_lang)
+    cover_source_rel = ""
+    if cover_source:
+        cover_source_rel = cover_source.relative_to(_project_root()).as_posix()
+    processed_numbers = image_pipeline.list_processed_numbers(book_code, asset_lang_default)
+    run_policy = run_state_policy.resolve_policy_from_state(
+        run_state,
+        fallback_selected_mode="automatic",
     )
 
     context = {
@@ -2235,8 +2705,28 @@ def edition_steps(request, edition_id: int):
         "languages": languages,
         "status_rows": status_rows,
         "cover_filepath": edition.cover_filepath,
-        "illustrated_images_dir": images_dir,
-        "illustrated_inserts_path": inserts_json_path,
+        "cover_original_path": cover_source_rel,
+        "asset_language_selected": asset_lang_default,
+        "images_raw_dir": raw_dir.relative_to(_project_root()).as_posix(),
+        "images_processed_dir": processed_dir.relative_to(_project_root()).as_posix(),
+        "build_images_dir": build_images_dir.relative_to(_project_root()).as_posix(),
+        "processed_images_count": len(processed_numbers),
+        "processed_images_preview": [f"{num:02d}.jpg" for num in processed_numbers[:10]],
+        "run_state_status": run_state.status,
+        "selected_mode": run_policy["selected_mode"],
+        "effective_mode": run_policy["effective_mode"],
+        "split_mode": run_policy["split_mode"],
+        "refine_mode": run_policy["refine_mode"],
+        "skip_locked_automatic": run_policy["effective_mode"] == "automatic",
+        "images_converted_count": run_state.images_converted_count,
+        "inserted_images_count": run_state.inserted_images_count,
+        "last_image_conversion_ts": run_state.last_image_conversion_ts,
+        "last_build_ts": run_state.last_build_ts,
+        "active_artifact_filename": run_state.active_artifact_filename,
+        "cover_jpg_path_state": run_state.cover_jpg_path,
+        "md_status": run_state.md_status,
+        "md_generated_at": run_state.md_generated_at,
+        "run_build_outputs": run_state.build_outputs or {},
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -2252,11 +2742,45 @@ def build_book_md(request, book_code, language):
         language__code=language,
     )
 
-    call_command(
-        "build_book_text",
-        book_code=edition.work.code,
-        language=edition.language.code,
+    run_state = _get_or_create_run_state(edition)
+    asset_language = _asset_language_from_request(request, language, run_state)
+    save_policy = _resolve_policy_for_state(
+        run_state=run_state,
+        fallback_selected_mode=run_state.selected_mode or "automatic",
     )
+    run_state.save(
+        update_fields=[
+            "selected_mode",
+            "effective_mode",
+            "split_mode",
+            "refine_mode",
+            "updated_at",
+        ]
+    )
+    try:
+        result = _run_save_pipeline(
+            edition=edition,
+            asset_language=asset_language,
+            run_state=run_state,
+            skip_policy=save_policy,
+        )
+        if result.get("md_action") == "skipped_up_to_date":
+            messages.warning(request, "Arquivo já convertido (MD up-to-date).")
+        warn_count = len(result["insert"].get("warnings", []))
+        if warn_count:
+            messages.warning(request, f"SAVE concluido com {warn_count} warning(s) de insercao.")
+        messages.success(
+            request,
+            "SAVE concluido. "
+            f"imagens_convertidas={result['conversion'].get('converted_count', 0)} "
+            f"md_action={result.get('md_action')} "
+            f"inseridas={result['insert'].get('inserted_images_count', 0)} "
+            f"build={result['build_output']}",
+        )
+    except CommandError as exc:
+        messages.error(request, f"Falha no save/build: {exc}")
+    except Exception as exc:
+        messages.error(request, f"Falha inesperada no save/build: {exc}")
 
     return redirect("edition_steps", edition_id=edition.id)
 

@@ -9,6 +9,7 @@ CONTRACT_ROOT = Path(__file__).resolve().parent
 TRANSLATE_LANG_DIR = CONTRACT_ROOT / "translate" / "lang"
 
 TRANSLATE_CONTRACTS: Dict[str, str] = {
+    "en": "en_modern_2026.json",
     "en_modern": "en_modern_2026.json",
     "ptbr": "ptbr_2026.json",
     "es": "es_2026.json",

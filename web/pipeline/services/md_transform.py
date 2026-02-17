@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
+from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
+
 from . import paths
 
 PAGE_MARKER_RE = re.compile(r"@@P\d{4}@@\s*")
@@ -54,50 +56,29 @@ def _selected_txt_sources_for_language(edition, language: str):
         book_code = getattr(edition, "book_code", "")
     build_dir = paths.edition_build_dir_for_language(book_code, language)
     translated_dir = paths.data_dir() / "translated" / book_code / language
-    translated_candidates = [
-        translated_dir / "merge_refine_clean.txt",
-        translated_dir / f"merge_translate_{language}.txt",
-        translated_dir / "merge_translate.txt",
-        translated_dir / f"{book_code}_{language}_merged_v1.txt",
-    ]
-    for path in translated_candidates:
-        if path.exists():
-            return [
-                text_source.SelectedTextSource(
-                    language=language,
-                    path=path,
-                    name=path.name,
-                    label=f"{path.name} ({language})",
-                )
-            ]
-    order = [
-        p.replace(".txt", "")
-        for p in paths.merge_priority_names_for_language(language, build_dir)
-    ]
-    candidates: list[Path] = []
-    for base in order:
-        candidates.append(build_dir / f"{base}_{language}.txt")
-        candidates.append(build_dir / f"{base}.txt")
-    for path in candidates:
-        if path.exists():
-            return [
-                text_source.SelectedTextSource(
-                    language=language,
-                    path=path,
-                    name=path.name,
-                    label=f"{path.name} ({language})",
-                )
-            ]
-    for path in sorted(build_dir.glob("*.txt")):
+    active = resolve_active_or_latest(translated_dir, book_code, language)
+    if active and active.exists():
         return [
             text_source.SelectedTextSource(
                 language=language,
-                path=path,
-                name=path.name,
-                label=f"{path.name} ({language})",
+                path=active,
+                name=active.name,
+                label=f"{active.name} ({language})",
             )
         ]
-    raise FileNotFoundError(f"No merge_* file found for language {language}.")
+    for path in list_canonical_artifacts(translated_dir, book_code, language):
+        if path.exists():
+            return [
+                text_source.SelectedTextSource(
+                    language=language,
+                    path=path,
+                    name=path.name,
+                    label=f"{path.name} ({language})",
+                )
+            ]
+    raise FileNotFoundError(
+        f"No canonical translated artifact found for language {language} in {translated_dir}."
+    )
 
 
 def _clean_raw_text(txt: str) -> str:

@@ -171,6 +171,13 @@
       padding: 6px;
       border-radius: 6px;
     }
+    .helper {
+      color: var(--warn);
+      font-size: 14px;
+    }
+    .skip-controls.locked {
+      opacity: 0.75;
+    }
   </style>
 </head>
 <body>
@@ -274,13 +281,44 @@
           <span>RETURN_REFINE (em breve)</span>
         </label>
         <label class="option">
-          <input type="radio" name="action" value="BUILD" disabled />
-          <span>BUILD (em breve)</span>
+          <input type="radio" name="action" value="BUILD" />
+          <span>BUILD</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="action" value="EXPORT_EPUB" />
+          <span>EXPORT_EPUB</span>
         </label>
       </div>
 
       <div class="card">
         <h2>Options</h2>
+        <div class="option"><strong>Translate Route</strong></div>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="automatic" {% if translate_mode != "default" %}checked{% endif %} />
+          <span>Automatic (GPT-5.2 contract, default)</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="default" {% if translate_mode == "default" %}checked{% endif %} />
+          <span>Default (ALAMAGUEDERAZ)</span>
+        </label>
+
+        <div class="option"><strong>Split / Refine</strong></div>
+        <p id="skip-mode-helper" class="helper" {% if not skip_locked_automatic %}hidden{% endif %}>
+          Skip is only allowed for DEFAULT mode.
+        </p>
+        <div id="split-refine-controls" class="skip-controls {% if skip_locked_automatic %}locked{% endif %}">
+          <label class="option" for="split_mode">split_mode</label>
+          <select id="split_mode" name="split_mode">
+            <option value="do" {% if split_mode != "skip" %}selected{% endif %}>do</option>
+            <option value="skip" {% if split_mode == "skip" %}selected{% endif %}>skip</option>
+          </select>
+          <label class="option" for="refine_mode">refine_mode</label>
+          <select id="refine_mode" name="refine_mode">
+            <option value="do" {% if refine_mode != "skip" %}selected{% endif %}>do</option>
+            <option value="skip" {% if refine_mode == "skip" %}selected{% endif %}>skip</option>
+          </select>
+        </div>
+
         <label class="option">
           <input type="checkbox" checked disabled />
           <span>Queue mode (1-by-1)</span>
@@ -435,9 +473,41 @@
       langBoxes.forEach((b) => { b.disabled = false; });
     }
 
+    function getTranslateMode() {
+      const selected = document.querySelector('input[name="translate_mode"]:checked');
+      return selected ? selected.value : 'automatic';
+    }
+
+    function enforceTranslateModePolicy() {
+      const translateMode = getTranslateMode();
+      const splitSelect = document.getElementById('split_mode');
+      const refineSelect = document.getElementById('refine_mode');
+      const helper = document.getElementById('skip-mode-helper');
+      const controls = document.getElementById('split-refine-controls');
+      const automatic = translateMode !== 'default';
+
+      if (!splitSelect || !refineSelect || !helper || !controls) {
+        return;
+      }
+      if (automatic) {
+        splitSelect.value = 'do';
+        refineSelect.value = 'do';
+        splitSelect.disabled = true;
+        refineSelect.disabled = true;
+        helper.hidden = false;
+        controls.classList.add('locked');
+        return;
+      }
+      splitSelect.disabled = false;
+      refineSelect.disabled = false;
+      helper.hidden = true;
+      controls.classList.remove('locked');
+    }
+
     function enforceAll() {
       enforceMode();
       enforceAction();
+      enforceTranslateModePolicy();
     }
 
     function persistMode() {
@@ -473,6 +543,9 @@
       el.addEventListener('change', enforceAll);
     });
     document.querySelectorAll('input[name="action"]').forEach((el) => {
+      el.addEventListener('change', enforceAll);
+    });
+    document.querySelectorAll('input[name="translate_mode"]').forEach((el) => {
       el.addEventListener('change', enforceAll);
     });
     restoreModeFromStorage();

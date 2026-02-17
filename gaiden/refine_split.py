@@ -4,6 +4,8 @@ import argparse
 import re
 from pathlib import Path
 
+from gaiden.translate_artifacts import normalize_book_code, resolve_active_or_latest
+
 # Accept numeric headings like "1. TITLE" (current standard),
 # while still allowing legacy "## TITLE" if present.
 CHAPTER_RE = re.compile(r"^(?:\d+\.\s+.+|##\s+.+)$", re.MULTILINE)
@@ -55,10 +57,11 @@ def split_parts(body: str, parts: int):
 
 
 def process_language(book: str, lang: str, parts: int) -> int:
-    root = Path("data/translated") / book / lang
-    merge = root / f"merge_translate_{lang}.txt"
+    book_code = normalize_book_code(book)
+    root = Path("data/translated") / book_code / lang
+    merge = resolve_active_or_latest(root, book_code, lang)
 
-    if not merge.exists():
+    if not merge or not merge.exists():
         return 0
 
     text = read(merge)
@@ -97,7 +100,7 @@ def main() -> None:
         total += process_language(book, lang, args.parts)
 
     if total == 0:
-        raise RuntimeError("No merge_translate_<LANG>.txt files found")
+        raise RuntimeError("No canonical translate merge artifacts found")
 
     print(f"[OK] split_for_refine completed: {total} files")
 

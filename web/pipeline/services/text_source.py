@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
+
 from . import edition_meta, paths, stage_policy, utils
 
 
@@ -48,45 +50,66 @@ def _unpack_value(raw_value: str, fallback_language: str) -> tuple[str, str]:
     return fallback_language, raw_value
 
 
+def _translated_language_aliases(language_code: str) -> list[str]:
+    aliases = [language_code]
+    if utils.normalize_lang(language_code) == "en" and "en_modern" not in aliases:
+        aliases.append("en_modern")
+    return aliases
+
+
+def _translated_txt_candidates(book_code: str, language_code: str) -> list[tuple[str, Path, str]]:
+    data_root = paths.data_dir()
+    found: list[tuple[str, Path, str]] = []
+    seen: set[str] = set()
+
+    for alias in _translated_language_aliases(language_code):
+        translated_dir = data_root / "translated" / book_code / alias
+
+        active = resolve_active_or_latest(translated_dir, book_code, alias)
+        if active and active.exists():
+            key = str(active)
+            if key not in seen:
+                seen.add(key)
+                found.append((alias, active, f"{active.name} (translated/{alias}, active)"))
+
+        for path in list_canonical_artifacts(translated_dir, book_code, alias):
+            if not path.exists():
+                continue
+            key = str(path)
+            if key in seen:
+                continue
+            seen.add(key)
+            found.append((alias, path, f"{path.name} (translated/{alias})"))
+
+        legacy_candidates = [
+            translated_dir / f"{book_code}_merge_refine_clean.txt",
+            translated_dir / "merge_refine_clean.txt",
+            translated_dir / f"merge_translate_{alias}.txt",
+            translated_dir / "merge_translate.txt",
+            translated_dir / f"{book_code}_{alias}_merged_v1.txt",
+        ]
+        for path in legacy_candidates:
+            if not path.exists():
+                continue
+            key = str(path)
+            if key in seen:
+                continue
+            seen.add(key)
+            found.append((alias, path, f"{path.name} (translated/{alias}, legacy)"))
+
+    return found
+
+
 def _discover_merge_candidates(build_dir: Path, language: str) -> list[TextSourceCandidate]:
     candidates: list[TextSourceCandidate] = []
-    names: set[str] = set()
-    for name in paths.merge_priority_names_for_language(language, build_dir):
-        if (build_dir / name).exists():
-            names.add(name)
-            candidates.append(
-                TextSourceCandidate(
-                    value=_pack_value(language, name),
-                    label=f"{name} ({language})",
-                )
-            )
-
-    for path in sorted(build_dir.glob("*.txt")):
-        if path.name not in names:
-            names.add(path.name)
-            candidates.append(
-                TextSourceCandidate(
-                    value=_pack_value(language, path.name),
-                    label=f"{path.name} ({language})",
-                )
-            )
-    # Add translated merge_refine_clean.txt as candidate (canonical translate output).
     book_code = build_dir.parent.name
-    translated_dir = paths.data_dir() / "translated" / book_code / language
-    translated_candidates = [
-        translated_dir / "merge_refine_clean.txt",
-        translated_dir / f"merge_translate_{language}.txt",
-        translated_dir / "merge_translate.txt",
-        translated_dir / f"{book_code}_{language}_merged_v1.txt",
-    ]
-    for path in translated_candidates:
-        if path.exists():
-            candidates.append(
-                TextSourceCandidate(
-                    value=_pack_value(language, str(path)),
-                    label=f"{path.name} (translated/{language})",
-                )
+    for alias, path, label in _translated_txt_candidates(book_code, language):
+        candidates.append(
+            TextSourceCandidate(
+                value=_pack_value(alias, str(path)),
+                label=label,
             )
+        )
     return candidates
 
 
@@ -125,34 +148,18 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
         )
 
     def resolve_auto() -> list[SelectedTextSource]:
-        translated_dir = paths.data_dir() / "translated" / edition_meta.book_code(edition) / language_code
-        translated_candidates = [
-            translated_dir / "merge_refine_clean.txt",
-            translated_dir / f"merge_translate_{language_code}.txt",
-            translated_dir / "merge_translate.txt",
-            translated_dir / f"{edition_meta.book_code(edition)}_{language_code}_merged_v1.txt",
-        ]
-        for p in translated_candidates:
-            if p.exists():
-                return [
-                    SelectedTextSource(
-                        language=language_code,
-                        path=p,
-                        name=p.name,
-                        label=f"{p.name} ({language_code})",
-                    )
-                ]
-        for name in paths.merge_priority_names(edition):
-            p = build_dir / name
-            if p.exists():
-                return [
-                    SelectedTextSource(
-                        language=language_code,
-                        path=p,
-                        name=p.name,
-                        label=f"{p.name} ({language_code})",
-                    )
-                ]
+        book_code = edition_meta.book_code(edition)
+        candidates = _translated_txt_candidates(book_code, language_code)
+        if candidates:
+            alias, path, _label = candidates[0]
+            return [
+                SelectedTextSource(
+                    language=alias,
+                    path=path,
+                    name=path.name,
+                    label=f"{path.name} ({alias})",
+                )
+            ]
         return []
 
     if mode == "auto":
@@ -219,6 +226,10 @@ def resolve_selected_text_sources(edition) -> list[SelectedTextSource]:
 
 
 def resolve_txt_source(edition) -> SelectedTextSource:
+    selected_sources = _resolve_selected_sources(edition)
+    if selected_sources:
+        return selected_sources[0]
+
     build_dir = paths.edition_build_dir(edition)
     lang_code = edition_meta.language_code(edition)
     normalized_lang = utils.normalize_lang(lang_code)

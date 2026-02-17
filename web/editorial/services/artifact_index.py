@@ -5,6 +5,8 @@ from pathlib import Path
 
 from django.db import transaction
 
+from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
+
 from editorial.models import PipelineArtifact
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -129,15 +131,12 @@ def _scan_translated(work_code: str, lang: str) -> None:
     tdir = ROOT / "data" / "translated" / work_code / lang
     if not tdir.exists():
         return
-    translate_candidates = [
-        tdir / "merge_refine_clean.txt",
-        tdir / f"merge_translate_{lang}.txt",
-        tdir / "merge_translate.txt",
-        tdir / f"{work_code}_{lang}_merged_v1.txt",
-    ]
-    for path in translate_candidates:
+    active = resolve_active_or_latest(tdir, work_code, lang)
+    if active and active.exists():
+        _upsert(work_code, lang, "translate", active, is_candidate=True)
+    for path in list_canonical_artifacts(tdir, work_code, lang):
         if path.exists():
-            _upsert(work_code, lang, "translate", path, is_candidate=path.name.startswith("merge_"))
+            _upsert(work_code, lang, "translate", path, is_candidate=(active is not None and path == active))
     path = tdir / "miolo.md"
     if path.exists():
         _upsert(work_code, lang, "miolo", path, is_candidate=True)

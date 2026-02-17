@@ -9,6 +9,7 @@ from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.run_artifacts import create_run_dir, write_contract_json, write_env_json
 from gaiden.secrets_loader import require_openai_ready
 from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.translate_artifacts import resolve_active_or_latest
 
 from . import edition_meta, paths, utils
 
@@ -63,6 +64,9 @@ def run_translate_only(edition, target_language: str) -> PipelineResult:
     )
     merged_path = result.get("merged_txt")
     if not merged_path:
-        merged_path = str(translated_root / book / lang / "merge_refine_clean.txt")
+        active = resolve_active_or_latest(translated_root / book / lang, book, lang)
+        if not active:
+            raise FileNotFoundError("Canonical translate artifact not found after translate run.")
+        merged_path = str(active)
     run_dir.joinpath("merged_v1.txt").write_text(Path(merged_path).read_text(encoding="utf-8"), encoding="utf-8")
     return PipelineResult(translated_path=Path(merged_path))

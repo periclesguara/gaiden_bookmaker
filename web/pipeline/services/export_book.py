@@ -10,6 +10,7 @@ from pathlib import Path
 from django.conf import settings
 
 from editorial import kdp_mode
+from editorial.frontmatter import build_frontmatter_files
 from . import edition_meta, paths
 
 
@@ -85,6 +86,10 @@ def run_export_epub(edition, language_override: str | None = None) -> dict:
             work__code=edition_meta.book_code(edition),
             language__code=language_override,
         )
+
+    # Always refresh merged source so EPUB reflects latest MIOL/frontmatter/images.
+    build_frontmatter_files(target, paths.data_dir() / "frontmatter")
+    kdp_mode.build_merged_kdp_source(target)
 
     out_path = kdp_mode.build_epub_for_edition(target, epub_filename="BOOK.epub")
     cover_path = _resolve_cover_path(target)

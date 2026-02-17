@@ -16,7 +16,7 @@ def validate_chunks(chunk_dir):
         print(f"[TRANSLATE_DEFAULT] ERROR chunk_dir not found: {chunk_dir}")
         sys.exit(2)
 
-    chunks = sorted(Path(chunk_dir).glob("ch_*.txt"))
+    chunks = sorted(Path(chunk_dir).glob("ch_*_chunk_*.txt"))
     if not chunks:
         print(f"[TRANSLATE_DEFAULT] ERROR no chunks found in {chunk_dir}")
         sys.exit(2)
@@ -49,11 +49,12 @@ def main():
     print("[TRANSLATE_DEFAULT] agent=ALAMAGUEDERAZ")
 
     try:
-        run_agent_translate(
+        result = run_agent_translate(
             book_id=book_id,
             chunk_dir=chunk_dir,
             out_dir=out_dir,
             suffix=suffix,
+            mode="default",
             temperature=args.temperature,
             max_output_tokens=args.max_output_tokens,
             limit=args.limit,
@@ -62,11 +63,12 @@ def main():
         print(f"[TRANSLATE_DEFAULT] ERROR {repr(e)}")
         sys.exit(2)
 
-    merged_path = os.path.join(out_dir, "merge_refine_clean.txt")
+    merged_path = str(result.get("merged_txt") or "").strip()
 
-    if not os.path.exists(merged_path):
-        print("[TRANSLATE_DEFAULT] ERROR merge not generated")
-        sys.exit(2)
+    if not merged_path or not os.path.exists(merged_path):
+        code = int(result.get("exit_code") or 3)
+        print(f"[TRANSLATE_DEFAULT] ERROR canonical artifact not generated (exit_code={code})")
+        sys.exit(code)
 
     size = os.path.getsize(merged_path)
 

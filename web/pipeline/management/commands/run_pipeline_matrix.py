@@ -8,17 +8,25 @@ import subprocess
 import sys
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management import call_command
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code
 from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
 from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.translate_mode_policy import apply_skip_policy
 from gaiden.tools.agent_translate_default import run_agent_translate
+from gaiden.translate_artifacts import (
+    active_pointer_filename,
+    normalize_book_code,
+    resolve_active_or_latest,
+)
 from gaiden.refine_split import process_language
 from editorial.models import EditionPipeline, EditionText, PipelineStage, Edition
 from pipeline.models import PipelineRun, PipelineRunItem
+from pipeline.services.export_book import run_export_epub
 from pipeline.services import utils
 
 
@@ -53,17 +61,28 @@ def _translate_paths(book_id: int, book_code: str, lang: str) -> tuple[Path, Pat
     data_dir = Path(settings.BASE_DIR).parent / "data"
     chunk_dir = data_dir / "chunks" / book_code / "en"
     out_dir = data_dir / "translated" / f"book_{book_id:04d}" / _lang_dir(lang)
-    merge_path = out_dir / "merge_refine_clean.txt"
-    return chunk_dir, out_dir, merge_path
+    pointer_path = out_dir / active_pointer_filename(book_code, lang)
+    return chunk_dir, out_dir, pointer_path
 
 
-def _split_paths(book_id: int, lang: str) -> tuple[Path, Path, Path]:
+def _split_paths(book_id: int, lang: str) -> tuple[Path, Path]:
     data_dir = Path(settings.BASE_DIR).parent / "data"
     lang_dir = _lang_dir(lang)
     base_dir = data_dir / "translated" / f"book_{book_id:04d}" / lang_dir
-    merge_path = base_dir / "merge_refine_clean.txt"
     split_dir = base_dir / "split_chapters_for_refine"
-    return base_dir, merge_path, split_dir
+    return base_dir, split_dir
+
+
+def _build_output_path(book_code: str, lang: str) -> Path:
+    data_dir = Path(settings.BASE_DIR).parent / "data"
+    lang_code = _lang_db_code(lang)
+    return data_dir / "builds" / book_code / lang_code / f"{book_code}_{lang_code}_book.md"
+
+
+def _epub_output_path(book_code: str, lang: str) -> Path:
+    data_dir = Path(settings.BASE_DIR).parent / "data"
+    lang_code = _lang_db_code(lang)
+    return data_dir / "builds" / book_code / lang_code / "BOOK.epub"
 
 
 def _normalized_path(book_code: str, lang: str) -> Path:
@@ -192,6 +211,168 @@ def _normalized_status(book_code: str, lang: str) -> tuple[Path, dict | None, bo
         and report.get("status") == "OK"
     )
     return norm_path, report, ok
+
+
+def _is_truthy(value: object) -> bool:
+    raw = str(value or "").strip().lower()
+    return raw in {"1", "true", "yes", "on", "y"}
+
+
+def _active_merge_target(pointer_path: Path | None, fallback_name: str | None = None) -> str | None:
+    if pointer_path and pointer_path.exists():
+        try:
+            target = pointer_path.read_text(encoding="utf-8").strip()
+        except OSError:
+            target = ""
+        if target:
+            return target
+    return fallback_name
+
+
+def _compact_status(raw_status: str | None) -> str:
+    status = str(raw_status or "").strip().lower()
+    if status in {"ok", "ok_official", "ok_fallback", "ok_default"}:
+        return "ok"
+    if status in {"skipped", "skip"}:
+        return "skipped"
+    if status in {"error_preflight"}:
+        return "error_preflight"
+    if status:
+        return status
+    return "unknown"
+
+
+def _compact_errors_summary(result: dict | None, *, fallback_error: str | None = None) -> list[str] | str:
+    if isinstance(result, dict):
+        errors = result.get("errors")
+        if isinstance(errors, list):
+            cleaned = [str(e).strip() for e in errors if str(e).strip()]
+            if cleaned:
+                return cleaned[:5]
+        if isinstance(errors, str) and errors.strip():
+            return errors.strip()
+        status = str(result.get("status") or "").strip()
+        if status and status not in {"ok", "ok_official", "ok_fallback", "ok_default"}:
+            return status
+    if fallback_error:
+        return fallback_error
+    return []
+
+
+def _fallback_reason(result: dict | None) -> str:
+    if not isinstance(result, dict):
+        return "none"
+    fallback_used = bool(result.get("fallback_used", False))
+    if not fallback_used:
+        return "none"
+    explicit = str(result.get("fallback_reason") or "").strip().lower()
+    if explicit in {"policy", "content_filter"}:
+        return explicit
+    errors = result.get("errors")
+    joined = ""
+    if isinstance(errors, list):
+        joined = " ".join(str(e) for e in errors).lower()
+    elif isinstance(errors, str):
+        joined = errors.lower()
+    if "content_filter" in joined or "content filtered" in joined:
+        return "content_filter"
+    if "policy" in joined:
+        return "policy"
+    return "policy"
+
+
+def _append_runs_summary(core: dict) -> None:
+    if not _is_truthy(os.getenv("GAIDEN_REPORT_V2_NDJSON", "0")):
+        return
+    logs_dir = Path(settings.BASE_DIR).parent / "data" / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    summary_path = logs_dir / "runs_summary.ndjson"
+    with summary_path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(core, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def _emit_report_v2(
+    *,
+    log_path: Path,
+    run_id: int,
+    book: str,
+    lang: str,
+    selected_mode: str,
+    effective_mode: str,
+    fallback_used: bool,
+    fallback_reason: str,
+    split_mode: str,
+    refine_mode: str,
+    preflight_ok: bool,
+    status: str,
+    exit_code: int,
+    artifact_filename: str | None,
+    active_merge_target: str | None,
+    artifact_sha256: str | None,
+    errors_summary: list[str] | str,
+    debug_enabled: bool,
+    skip_policy: dict,
+    duration_ms_total: int | None = None,
+    duration_ms_translate: int | None = None,
+    chunks_total: int | None = None,
+    artifact_path_full: str | None = None,
+    active_pointer_path: str | None = None,
+) -> None:
+    core = {
+        "run_id": str(run_id),
+        "book": book,
+        "lang": lang,
+        "ts": timezone.now().isoformat(),
+        "selected_mode": selected_mode,
+        "effective_mode": effective_mode,
+        "fallback_used": bool(fallback_used),
+        "fallback_reason": fallback_reason,
+        "split_mode": split_mode,
+        "refine_mode": refine_mode,
+        "preflight_ok": bool(preflight_ok),
+        "status": _compact_status(status),
+        "exit_code": int(exit_code),
+        "artifact_filename": artifact_filename,
+        "active_merge_target": active_merge_target,
+        "artifact_sha256": artifact_sha256,
+        "errors_summary": errors_summary,
+    }
+
+    with log_path.open("a", encoding="utf-8") as log_file:
+        log_file.write(
+            "REPORT_V2 "
+            + json.dumps(core, ensure_ascii=False, separators=(",", ":"))
+            + "\n"
+        )
+        if debug_enabled:
+            debug_payload: dict[str, object] = {
+                "skip_requested": bool(skip_policy.get("skip_requested")),
+                "skip_applied": bool(skip_policy.get("skip_applied")),
+                "skip_block_reason": skip_policy.get("skip_block_reason"),
+                "skip_corrected": bool(skip_policy.get("skip_corrected")),
+                "skip_original_split_mode": skip_policy.get("skip_original_split_mode"),
+                "skip_original_refine_mode": skip_policy.get("skip_original_refine_mode"),
+            }
+            if duration_ms_total is not None:
+                debug_payload["duration_ms_total"] = duration_ms_total
+            if duration_ms_translate is not None:
+                debug_payload["duration_ms_translate"] = duration_ms_translate
+            if chunks_total is not None:
+                debug_payload["chunks_total"] = chunks_total
+            if artifact_path_full is not None:
+                debug_payload["artifact_path_full"] = artifact_path_full
+            if active_pointer_path is not None:
+                debug_payload["active_pointer_path"] = active_pointer_path
+            log_file.write(
+                "REPORT_V2_DEBUG "
+                + json.dumps(debug_payload, ensure_ascii=False, separators=(",", ":"))
+                + "\n"
+            )
+    try:
+        _append_runs_summary(core)
+    except Exception:
+        # Logging side-channel must never break pipeline execution.
+        pass
 
 
 def _run_precheck(
@@ -401,12 +582,17 @@ def _run_chunk_dependency(
 
 
 class Command(BaseCommand):
-    help = "Run MATRIX pipeline queue (sequential, translate-only for MVP)."
+    help = "Run MATRIX pipeline queue (normalize/chunk/translate/split/build/export)."
 
     def add_arguments(self, parser):
         parser.add_argument("run_id", nargs="?", type=int, help="PipelineRun id")
         parser.add_argument("--book", type=str, default=None, help="book code (book_0003)")
         parser.add_argument("--lang", type=str, default=None, help="language (en, es, ptbr, ...)")
+        parser.add_argument(
+            "--debug",
+            action="store_true",
+            help="Emit REPORT_V2_DEBUG blocks for per-item logs.",
+        )
         parser.add_argument(
             "--stage",
             type=str,
@@ -420,6 +606,7 @@ class Command(BaseCommand):
         stage = options.get("stage")
         book_code = options.get("book")
         lang = options.get("lang")
+        debug_enabled = bool(options.get("debug")) or _is_truthy(os.getenv("GAIDEN_DEBUG", "0"))
 
         if run_id is None and stage:
             if not book_code or not lang:
@@ -458,6 +645,41 @@ class Command(BaseCommand):
         skip_existing = bool(opts.get("skip_existing", True))
         stop_on_error = bool(opts.get("stop_on_error", False))
         dry_run = bool(opts.get("dry_run", False))
+        selected_mode = (
+            "default"
+            if run.action == "TRANSLATE_DEFAULT"
+            else opts.get("selected_mode", opts.get("translate_mode"))
+        )
+        policy = apply_skip_policy(
+            selected_mode=selected_mode,
+            split_mode=opts.get("split_mode"),
+            refine_mode=opts.get("refine_mode"),
+        )
+        translate_mode = policy["selected_mode"]
+        split_mode = policy["split_mode"]
+        refine_mode = policy["refine_mode"]
+
+        options_changed = False
+        merged_opts = dict(opts)
+        for key, value in {
+            "translate_mode": translate_mode,
+            "selected_mode": policy["selected_mode"],
+            "effective_mode": policy["effective_mode"],
+            "split_mode": split_mode,
+            "refine_mode": refine_mode,
+            "skip_requested": policy["skip_requested"],
+            "skip_applied": policy["skip_applied"],
+            "skip_block_reason": policy["skip_block_reason"],
+            "skip_corrected": policy["skip_corrected"],
+            "skip_original_split_mode": policy.get("skip_original_split_mode"),
+            "skip_original_refine_mode": policy.get("skip_original_refine_mode"),
+        }.items():
+            if merged_opts.get(key) != value:
+                merged_opts[key] = value
+                options_changed = True
+        if options_changed:
+            run.options = merged_opts
+            run.save(update_fields=["options"])
 
         any_fail = False
 
@@ -490,9 +712,15 @@ class Command(BaseCommand):
                     break
                 continue
 
+            pointer_path: Path | None = None
+            result: dict | None = None
+            translate_stage_started = None
+            translate_stage_finished = None
+
             try:
                 command_line = "n/a"
                 book_code = item.book_code or f"book_{book_id:04d}"
+                translate_mode_for_item = translate_mode
                 if run.action == "NORMALIZE":
                     norm_path = _normalized_path(book_code, item.lang)
                     item.out_path = str(norm_path)
@@ -513,31 +741,55 @@ class Command(BaseCommand):
                         f"--out {chunk_dir} --target-tokens {target_tokens} --max-tokens {max_tokens}"
                     )
                 elif run.action == "TRANSLATE":
-                    chunk_dir, out_dir, merge_path = _translate_paths(book_id, book_code, item.lang)
-                    item.out_path = str(merge_path)
+                    chunk_dir, out_dir, pointer_path = _translate_paths(book_id, book_code, item.lang)
+                    item.out_path = str(pointer_path)
                     item.save(update_fields=["out_path"])
-
-                    command_line = (
-                        "run_translate_safe("
-                        f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
-                        f"suffix={_lang_dir(item.lang)}, contract={_resolve_contract_path(item.lang)})"
-                    )
+                    if translate_mode_for_item == "default":
+                        command_line = (
+                            "run_agent_translate("
+                            f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
+                            f"suffix={_lang_dir(item.lang)}, mode=default, agent=ALAMAGUEDERAZ)"
+                        )
+                    else:
+                        command_line = (
+                            "run_translate_safe("
+                            f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
+                            f"suffix={_lang_dir(item.lang)}, contract={_resolve_contract_path(item.lang)}, "
+                            "selected_mode=automatic)"
+                        )
                 elif run.action == "TRANSLATE_DEFAULT":
-                    chunk_dir, out_dir, merge_path = _translate_paths(book_id, book_code, item.lang)
-                    item.out_path = str(merge_path)
+                    chunk_dir, out_dir, pointer_path = _translate_paths(book_id, book_code, item.lang)
+                    item.out_path = str(pointer_path)
                     item.save(update_fields=["out_path"])
+                    translate_mode_for_item = "default"
                     command_line = (
                         "run_agent_translate("
                         f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
-                        f"suffix={_lang_dir(item.lang)}, agent=ALAMAGUEDERAZ)"
+                        f"suffix={_lang_dir(item.lang)}, mode=default, agent=ALAMAGUEDERAZ)"
                     )
                 elif run.action == "SPLIT_FOR_REFINE":
-                    base_dir, merge_path, split_dir = _split_paths(book_id, item.lang)
+                    base_dir, split_dir = _split_paths(book_id, item.lang)
                     item.out_path = str(split_dir)
                     item.save(update_fields=["out_path"])
                     command_line = (
                         "process_language("
                         f"book='book_{book_id:04d}', lang='{_lang_dir(item.lang)}', parts=2)"
+                    )
+                elif run.action == "BUILD":
+                    build_path = _build_output_path(book_code, item.lang)
+                    item.out_path = str(build_path)
+                    item.save(update_fields=["out_path"])
+                    command_line = (
+                        "manage.py build_book_text "
+                        f"--book-code={book_code} --language={_lang_db_code(item.lang)}"
+                    )
+                elif run.action == "EXPORT_EPUB":
+                    epub_path = _epub_output_path(book_code, item.lang)
+                    item.out_path = str(epub_path)
+                    item.save(update_fields=["out_path"])
+                    command_line = (
+                        "pipeline.services.export_book.run_export_epub("
+                        f"edition={book_code}[{_lang_db_code(item.lang)}])"
                     )
                 else:
                     raise ValueError(f"Unsupported action: {run.action}")
@@ -560,6 +812,35 @@ class Command(BaseCommand):
                         item.skipped_reason = precheck["raw_reason"]
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        if run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
+                            duration_total = None
+                            if item.started_at and item.finished_at:
+                                duration_total = int(
+                                    (item.finished_at - item.started_at).total_seconds() * 1000
+                                )
+                            _emit_report_v2(
+                                log_path=log_path,
+                                run_id=run.id,
+                                book=book_code,
+                                lang=_lang_dir(item.lang),
+                                selected_mode=translate_mode_for_item,
+                                effective_mode=translate_mode_for_item,
+                                fallback_used=False,
+                                fallback_reason="none",
+                                split_mode=split_mode,
+                                refine_mode=refine_mode,
+                                preflight_ok=False,
+                                status="skipped",
+                                exit_code=2,
+                                artifact_filename=None,
+                                active_merge_target=_active_merge_target(pointer_path, None),
+                                artifact_sha256=None,
+                                errors_summary=[precheck["raw_reason"]],
+                                debug_enabled=debug_enabled,
+                                skip_policy=policy,
+                                duration_ms_total=duration_total,
+                                active_pointer_path=str(pointer_path) if pointer_path else None,
+                            )
                         continue
 
                 if dry_run:
@@ -570,6 +851,35 @@ class Command(BaseCommand):
                     item.skipped_reason = "INVALID_STATE"
                     item.finished_at = timezone.now()
                     item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                    if run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
+                        duration_total = None
+                        if item.started_at and item.finished_at:
+                            duration_total = int(
+                                (item.finished_at - item.started_at).total_seconds() * 1000
+                            )
+                        _emit_report_v2(
+                            log_path=log_path,
+                            run_id=run.id,
+                            book=book_code,
+                            lang=_lang_dir(item.lang),
+                            selected_mode=translate_mode_for_item,
+                            effective_mode=translate_mode_for_item,
+                            fallback_used=False,
+                            fallback_reason="none",
+                            split_mode=split_mode,
+                            refine_mode=refine_mode,
+                            preflight_ok=True,
+                            status="dry_run",
+                            exit_code=0,
+                            artifact_filename=None,
+                            active_merge_target=_active_merge_target(pointer_path, None),
+                            artifact_sha256=None,
+                            errors_summary=[],
+                            debug_enabled=debug_enabled,
+                            skip_policy=policy,
+                            duration_ms_total=duration_total,
+                            active_pointer_path=str(pointer_path) if pointer_path else None,
+                        )
                     continue
 
                 if run.action == "NORMALIZE":
@@ -710,7 +1020,9 @@ class Command(BaseCommand):
                     item.overwrote = bool(ran_chunk)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
 
-                elif run.action == "TRANSLATE":
+                elif run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
+                    if run.action == "TRANSLATE_DEFAULT":
+                        translate_mode_for_item = "default"
                     edition = Edition.objects.select_related("work", "language").filter(
                         work__code=book_code,
                         language__code="en",
@@ -750,137 +1062,261 @@ class Command(BaseCommand):
                                 pipeline_state.current_stage = PipelineStage.CHUNKED
                                 pipeline_state.save(update_fields=["chunked_at", "current_stage"])
 
-                    if skip_existing and merge_path.exists():
+                    existing_merge = resolve_active_or_latest(out_dir, book_code, _lang_dir(item.lang))
+                    if skip_existing and existing_merge and existing_merge.exists():
                         with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: output exists\n")
+                            log_file.write(f"ACTIVE_MERGE: {existing_merge}\n")
                             log_file.write("CHUNKS_LANG_USED: en\n")
                             log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        duration_total = None
+                        if item.started_at and item.finished_at:
+                            duration_total = int(
+                                (item.finished_at - item.started_at).total_seconds() * 1000
+                            )
+                        _emit_report_v2(
+                            log_path=log_path,
+                            run_id=run.id,
+                            book=book_code,
+                            lang=_lang_dir(item.lang),
+                            selected_mode=translate_mode_for_item,
+                            effective_mode=translate_mode_for_item,
+                            fallback_used=False,
+                            fallback_reason="none",
+                            split_mode=split_mode,
+                            refine_mode=refine_mode,
+                            preflight_ok=True,
+                            status="skipped",
+                            exit_code=0,
+                            artifact_filename=existing_merge.name,
+                            active_merge_target=_active_merge_target(pointer_path, existing_merge.name),
+                            artifact_sha256=None,
+                            errors_summary=[],
+                            debug_enabled=debug_enabled,
+                            skip_policy=policy,
+                            duration_ms_total=duration_total,
+                            artifact_path_full=str(existing_merge),
+                            active_pointer_path=str(pointer_path) if pointer_path else None,
+                        )
                         continue
 
                     if not chunk_dir.exists():
                         raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
 
-                    contract_path = _resolve_contract_path(item.lang)
-                    had_existing = merge_path.exists()
+                    had_existing = bool(existing_merge and existing_merge.exists())
 
                     with log_path.open("a", encoding="utf-8") as log_file:
                         log_file.write(f"COMMAND: {command_line}\n")
+                        log_file.write(f"TRANSLATE_MODE_SELECTED: {translate_mode_for_item}\n")
+                        log_file.write(
+                            f"EFFECTIVE_MODE: {policy['effective_mode']}\n"
+                        )
+                        log_file.write(f"SPLIT_MODE: {split_mode}\n")
+                        log_file.write(f"REFINE_MODE: {refine_mode}\n")
+                        log_file.write(f"SKIP_REQUESTED: {policy['skip_requested']}\n")
+                        log_file.write(f"SKIP_APPLIED: {policy['skip_applied']}\n")
+                        if policy["skip_block_reason"]:
+                            log_file.write(
+                                f"SKIP_BLOCK_REASON: {policy['skip_block_reason']}\n"
+                            )
+                        if policy["skip_corrected"]:
+                            log_file.write("SKIP_CORRECTED: true\n")
+                            log_file.write(
+                                f"SKIP_ORIGINAL_SPLIT_MODE: {policy.get('skip_original_split_mode')}\n"
+                            )
+                            log_file.write(
+                                f"SKIP_ORIGINAL_REFINE_MODE: {policy.get('skip_original_refine_mode')}\n"
+                            )
+                        else:
+                            log_file.write("SKIP_CORRECTED: false\n")
                         log_file.write("CHUNKS_LANG_USED: en\n")
                         log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
                         if had_existing:
                             log_file.write("NOTE: overwrite existing output\n")
                         log_file.flush()
+                        translate_stage_started = timezone.now()
                         with redirect_stdout(log_file), redirect_stderr(log_file):
-                            result = run_translate_safe(
-                                book_id=book_code,
-                                chunk_dir=str(chunk_dir),
-                                out_dir=str(out_dir),
-                                suffix=_lang_dir(item.lang),
-                                contract_path=contract_path,
-                                dry_run=dry_run,
-                            )
-                            status = result.get("status")
-                            if status not in {"ok_official", "ok_fallback"}:
-                                raise RuntimeError(f"TRANSLATE_SAFE_FAILED: {status}")
-
-                    if not merge_path.exists():
-                        raise FileNotFoundError(f"Merge not found: {merge_path}")
-
-                    item.status = "DONE"
-                    item.finished_at = timezone.now()
-                    item.overwrote = bool(had_existing)
-                    item.save(update_fields=["status", "finished_at", "overwrote"])
-
-                elif run.action == "TRANSLATE_DEFAULT":
-                    edition = Edition.objects.select_related("work", "language").filter(
-                        work__code=book_code,
-                        language__code="en",
-                    ).first()
-                    if not edition:
-                        raise FileNotFoundError("Edition not found for translate.")
-
-                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-
-                    if not dry_run:
-                        source_lang = "en"
-                        norm_path, _report, norm_ok = _normalized_status(book_code, source_lang)
-                        if not norm_ok:
-                            with log_path.open("a", encoding="utf-8") as log_file:
-                                log_file.write("AUTO: normalize before translate_default\n")
-                                norm_path = _run_normalize_dependency(
-                                    book_code=book_code,
-                                    lang=source_lang,
-                                    edition=edition,
-                                    pipeline_state=pipeline_state,
-                                    log_file=log_file,
+                            if translate_mode_for_item == "default":
+                                default_run = run_agent_translate(
+                                    book_id=book_code,
+                                    chunk_dir=str(chunk_dir),
+                                    out_dir=str(out_dir),
+                                    suffix=_lang_dir(item.lang),
+                                    mode="default",
                                 )
-
-                        chunk_dir = _chunks_dir(book_code, source_lang)
-                        chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
-                        if not chunks_ok:
-                            with log_path.open("a", encoding="utf-8") as log_file:
-                                log_file.write("AUTO: chunk before translate_default\n")
-                                chunk_dir, ran_chunk = _run_chunk_dependency(
-                                    book_code=book_code,
-                                    norm_path=norm_path,
-                                    log_file=log_file,
-                                    skip_existing=False,
+                                if default_run.get("status") != "ok":
+                                    raise RuntimeError(
+                                        f"TRANSLATE_DEFAULT_FAILED: {default_run.get('status')}"
+                                    )
+                                status = "ok_default"
+                                result = {
+                                    "status": status,
+                                    "merged_txt": default_run.get("merged_txt"),
+                                    "selected_mode": "default",
+                                    "final_mode": "default",
+                                    "effective_route": "default",
+                                    "fallback_used": False,
+                                    "fallback_reason": "none",
+                                    "preflight_ok": bool(default_run.get("preflight_ok", True)),
+                                    "exit_code": int(default_run.get("exit_code") or 0),
+                                    "artifact_filename": default_run.get("artifact_filename"),
+                                    "artifact_sha256": default_run.get("artifact_sha256"),
+                                    "errors": default_run.get("errors", []),
+                                    "merged_count": default_run.get("merged_count"),
+                                }
+                            else:
+                                contract_path = _resolve_contract_path(item.lang)
+                                result = run_translate_safe(
+                                    book_id=book_code,
+                                    chunk_dir=str(chunk_dir),
+                                    out_dir=str(out_dir),
+                                    suffix=_lang_dir(item.lang),
+                                    contract_path=contract_path,
+                                    dry_run=dry_run,
+                                    selected_mode="automatic",
                                 )
-                            if ran_chunk:
-                                pipeline_state.chunked_at = timezone.now()
-                                pipeline_state.current_stage = PipelineStage.CHUNKED
-                                pipeline_state.save(update_fields=["chunked_at", "current_stage"])
+                                status = result.get("status")
+                                if status not in {"ok_official", "ok_fallback"}:
+                                    raise RuntimeError(f"TRANSLATE_SAFE_FAILED: {status}")
+                        translate_stage_finished = timezone.now()
 
-                    if skip_existing and merge_path.exists():
+                    merged_path = None
+                    merged_txt = result.get("merged_txt")
+                    if merged_txt:
+                        merged_path = Path(str(merged_txt))
+                    if not merged_path or not merged_path.exists():
+                        merged_path = resolve_active_or_latest(out_dir, book_code, _lang_dir(item.lang))
+                    if not merged_path or not merged_path.exists():
+                        raise FileNotFoundError("Canonical merge artifact not found after translate.")
+                    item.out_path = str(merged_path)
+                    item.save(update_fields=["out_path"])
+
+                    with log_path.open("a", encoding="utf-8") as log_file:
+                        log_file.write(f"ARTIFACT: {merged_path}\n")
+                        log_file.write(f"TRANSLATE_STATUS: {result.get('status')}\n")
+                        log_file.write(
+                            f"SELECTED_MODE: {result.get('selected_mode', translate_mode_for_item)}\n"
+                        )
+                        log_file.write(f"FINAL_MODE: {result.get('final_mode', translate_mode_for_item)}\n")
+                        log_file.write(
+                            f"EFFECTIVE_ROUTE: {result.get('effective_route', result.get('final_mode', translate_mode_for_item))}\n"
+                        )
+                        log_file.write(
+                            f"FALLBACK_USED: {bool(result.get('fallback_used', False))}\n"
+                        )
+
+                    _base_dir, split_dir = _split_paths(book_id, item.lang)
+                    if split_mode == "do":
+                        if skip_existing and split_dir.exists():
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                log_file.write("SKIP_SPLIT: output exists\n")
+                        else:
+                            split_had_existing = split_dir.exists()
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                if split_had_existing:
+                                    log_file.write("NOTE: split output overwritten\n")
+                                with redirect_stdout(log_file), redirect_stderr(log_file):
+                                    created = process_language(book_code, _lang_dir(item.lang), 2)
+                            if created <= 0 or not split_dir.exists():
+                                raise RuntimeError("SPLIT_FOR_REFINE_FAILED: no split files generated")
+                    else:
                         with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: output exists\n")
-                            log_file.write("CHUNKS_LANG_USED: en\n")
-                            log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
-                        item.status = "SKIPPED"
-                        item.skipped_reason = "INVALID_STATE"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
+                            log_file.write("SKIP_SPLIT: split_mode=skip\n")
 
-                    if not chunk_dir.exists():
-                        raise FileNotFoundError(f"Chunks not found: {chunk_dir}")
-
-                    had_existing = merge_path.exists()
-
-                    with log_path.open("a", encoding="utf-8") as log_file:
-                        log_file.write(f"COMMAND: {command_line}\n")
-                        log_file.write("CHUNKS_LANG_USED: en\n")
-                        log_file.write(f"CHUNKS_MANIFEST_PATH: {_chunks_manifest_path(chunk_dir)}\n")
-                        if had_existing:
-                            log_file.write("NOTE: overwrite existing output\n")
-                        log_file.flush()
-                        with redirect_stdout(log_file), redirect_stderr(log_file):
-                            run_agent_translate(
-                                book_id=book_code,
-                                chunk_dir=str(chunk_dir),
-                                out_dir=str(out_dir),
-                                suffix=_lang_dir(item.lang),
+                    if refine_mode == "do":
+                        with log_path.open("a", encoding="utf-8") as log_file:
+                            log_file.write("refine_scheduled=true\n")
+                            log_file.write("refine_executed=false\n")
+                            log_file.write(
+                                "REFINE_MODE=do (deferred): execute RETURN_REFINE stage in dedicated run.\n"
                             )
+                    else:
+                        with log_path.open("a", encoding="utf-8") as log_file:
+                            log_file.write("refine_scheduled=false\n")
+                            log_file.write("refine_executed=false\n")
+                            log_file.write("SKIP_REFINE: refine_mode=skip\n")
 
-                    if not merge_path.exists():
-                        raise FileNotFoundError(f"Merge not found: {merge_path}")
+                    effective_mode = str(
+                        result.get(
+                            "effective_route",
+                            result.get("final_mode", translate_mode_for_item),
+                        )
+                    )
+                    selected_mode_result = str(
+                        result.get("selected_mode", translate_mode_for_item)
+                    )
+                    fallback_used = bool(result.get("fallback_used", False))
+                    artifact_filename = str(
+                        result.get("artifact_filename") or merged_path.name
+                    )
+                    artifact_sha256 = result.get("artifact_sha256")
+                    exit_code = int(result.get("exit_code") or 0)
+                    preflight_ok = bool(result.get("preflight_ok", True))
+                    status = str(result.get("status") or "ok")
+                    errors_summary = _compact_errors_summary(result)
+                    fallback_reason = _fallback_reason(result)
 
                     item.status = "DONE"
                     item.finished_at = timezone.now()
                     item.overwrote = bool(had_existing)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
+                    duration_total = None
+                    if item.started_at and item.finished_at:
+                        duration_total = int(
+                            (item.finished_at - item.started_at).total_seconds() * 1000
+                        )
+                    duration_translate = None
+                    if translate_stage_started and translate_stage_finished:
+                        duration_translate = int(
+                            (translate_stage_finished - translate_stage_started).total_seconds()
+                            * 1000
+                        )
+                    _emit_report_v2(
+                        log_path=log_path,
+                        run_id=run.id,
+                        book=book_code,
+                        lang=_lang_dir(item.lang),
+                        selected_mode=selected_mode_result,
+                        effective_mode=effective_mode,
+                        fallback_used=fallback_used,
+                        fallback_reason=fallback_reason,
+                        split_mode=split_mode,
+                        refine_mode=refine_mode,
+                        preflight_ok=preflight_ok,
+                        status=status,
+                        exit_code=exit_code,
+                        artifact_filename=artifact_filename,
+                        active_merge_target=_active_merge_target(pointer_path, artifact_filename),
+                        artifact_sha256=str(artifact_sha256) if artifact_sha256 else None,
+                        errors_summary=errors_summary,
+                        debug_enabled=debug_enabled,
+                        skip_policy=policy,
+                        duration_ms_total=duration_total,
+                        duration_ms_translate=duration_translate,
+                        chunks_total=(
+                            int(result["merged_count"])
+                            if isinstance(result.get("merged_count"), int)
+                            else None
+                        ),
+                        artifact_path_full=str(merged_path),
+                        active_pointer_path=str(pointer_path) if pointer_path else None,
+                    )
 
                 elif run.action == "SPLIT_FOR_REFINE":
-                    if not merge_path.exists():
+                    canonical_merge = resolve_active_or_latest(
+                        base_dir,
+                        normalize_book_code(book_code),
+                        _lang_dir(item.lang),
+                    )
+                    if not canonical_merge or not canonical_merge.exists():
                         with log_path.open("w", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: missing merge_refine_clean\n")
+                            log_file.write("SKIP: missing canonical merge artifact\n")
                         item.status = "SKIPPED"
                         item.skipped_reason = "INVALID_STATE"
                         item.finished_at = timezone.now()
@@ -914,6 +1350,85 @@ class Command(BaseCommand):
                     item.overwrote = bool(had_existing)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
 
+                elif run.action == "BUILD":
+                    edition = Edition.objects.select_related("work", "language").filter(
+                        work__code=book_code,
+                        language__code=_lang_db_code(item.lang),
+                    ).first()
+                    if not edition:
+                        raise FileNotFoundError("Edition not found for build.")
+
+                    out_path = _build_output_path(book_code, item.lang)
+                    had_existing = out_path.exists()
+                    if skip_existing and had_existing:
+                        with log_path.open("w", encoding="utf-8") as log_file:
+                            log_file.write(f"COMMAND: {command_line}\n")
+                            log_file.write("SKIP: output exists\n")
+                            log_file.write(f"OUTPUT: {out_path}\n")
+                        item.status = "SKIPPED"
+                        item.skipped_reason = "OUTPUT_EXISTS"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        continue
+
+                    with log_path.open("w", encoding="utf-8") as log_file:
+                        log_file.write(f"COMMAND: {command_line}\n")
+                        log_file.write(f"OUTPUT: {out_path}\n")
+                        if had_existing:
+                            log_file.write("NOTE: overwrite existing output\n")
+                        with redirect_stdout(log_file), redirect_stderr(log_file):
+                            call_command(
+                                "build_book_text",
+                                book_code=book_code,
+                                language=edition.language.code,
+                            )
+
+                    if not out_path.exists():
+                        raise FileNotFoundError(f"Build output not found: {out_path}")
+                    item.out_path = str(out_path)
+                    item.status = "DONE"
+                    item.finished_at = timezone.now()
+                    item.overwrote = bool(had_existing)
+                    item.save(update_fields=["out_path", "status", "finished_at", "overwrote"])
+
+                elif run.action == "EXPORT_EPUB":
+                    edition = Edition.objects.select_related("work", "language").filter(
+                        work__code=book_code,
+                        language__code=_lang_db_code(item.lang),
+                    ).first()
+                    if not edition:
+                        raise FileNotFoundError("Edition not found for export.")
+
+                    out_path = _epub_output_path(book_code, item.lang)
+                    had_existing = out_path.exists()
+                    if skip_existing and had_existing:
+                        with log_path.open("w", encoding="utf-8") as log_file:
+                            log_file.write(f"COMMAND: {command_line}\n")
+                            log_file.write("SKIP: output exists\n")
+                            log_file.write(f"OUTPUT: {out_path}\n")
+                        item.status = "SKIPPED"
+                        item.skipped_reason = "OUTPUT_EXISTS"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
+                        continue
+
+                    with log_path.open("w", encoding="utf-8") as log_file:
+                        log_file.write(f"COMMAND: {command_line}\n")
+                        if had_existing:
+                            log_file.write("NOTE: overwrite existing output\n")
+                        with redirect_stdout(log_file), redirect_stderr(log_file):
+                            export_result = run_export_epub(edition)
+                        log_file.write(f"OUTPUT: {export_result.get('path', '')}\n")
+
+                    exported_path = Path(str(export_result.get("path") or out_path))
+                    if not exported_path.exists():
+                        raise FileNotFoundError(f"EPUB not found: {exported_path}")
+                    item.out_path = str(exported_path)
+                    item.status = "DONE"
+                    item.finished_at = timezone.now()
+                    item.overwrote = bool(had_existing)
+                    item.save(update_fields=["out_path", "status", "finished_at", "overwrote"])
+
             except Exception as exc:
                 any_fail = True
                 item.status = "FAILED"
@@ -925,6 +1440,72 @@ class Command(BaseCommand):
                 except Exception:
                     pass
                 item.save(update_fields=["status", "finished_at"])
+                if run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
+                    duration_total = None
+                    if item.started_at and item.finished_at:
+                        duration_total = int(
+                            (item.finished_at - item.started_at).total_seconds() * 1000
+                        )
+                    duration_translate = None
+                    if translate_stage_started and translate_stage_finished:
+                        duration_translate = int(
+                            (translate_stage_finished - translate_stage_started).total_seconds()
+                            * 1000
+                        )
+                    selected_mode_result = str(
+                        (result or {}).get("selected_mode", translate_mode_for_item)
+                    )
+                    effective_mode = str(
+                        (result or {}).get(
+                            "effective_route",
+                            (result or {}).get("final_mode", translate_mode_for_item),
+                        )
+                    )
+                    artifact_filename = (result or {}).get("artifact_filename")
+                    artifact_sha256 = (result or {}).get("artifact_sha256")
+                    preflight_ok = bool((result or {}).get("preflight_ok", False))
+                    exit_code = int((result or {}).get("exit_code") or 3)
+                    errors_summary = _compact_errors_summary(
+                        result,
+                        fallback_error=f"{type(exc).__name__}:{exc}",
+                    )
+                    _emit_report_v2(
+                        log_path=log_path,
+                        run_id=run.id,
+                        book=book_code,
+                        lang=_lang_dir(item.lang),
+                        selected_mode=selected_mode_result,
+                        effective_mode=effective_mode,
+                        fallback_used=bool((result or {}).get("fallback_used", False)),
+                        fallback_reason=_fallback_reason(result),
+                        split_mode=split_mode,
+                        refine_mode=refine_mode,
+                        preflight_ok=preflight_ok,
+                        status=(result or {}).get("status", "failed"),
+                        exit_code=exit_code,
+                        artifact_filename=str(artifact_filename) if artifact_filename else None,
+                        active_merge_target=_active_merge_target(
+                            pointer_path,
+                            str(artifact_filename) if artifact_filename else None,
+                        ),
+                        artifact_sha256=(
+                            str(artifact_sha256) if artifact_sha256 else None
+                        ),
+                        errors_summary=errors_summary,
+                        debug_enabled=debug_enabled,
+                        skip_policy=policy,
+                        duration_ms_total=duration_total,
+                        duration_ms_translate=duration_translate,
+                        chunks_total=(
+                            int((result or {}).get("merged_count"))
+                            if isinstance((result or {}).get("merged_count"), int)
+                            else None
+                        ),
+                        artifact_path_full=str((result or {}).get("merged_txt"))
+                        if (result or {}).get("merged_txt")
+                        else None,
+                        active_pointer_path=str(pointer_path) if pointer_path else None,
+                    )
                 if stop_on_error:
                     break
 

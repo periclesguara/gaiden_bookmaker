@@ -22,9 +22,21 @@ import json
 import os
 import sys
 import time
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
+
+from gaiden.translate_artifacts import (
+    assert_valid_canonical_artifact,
+    canonical_meta_path,
+    canonical_artifact_path,
+    lang_token,
+    normalize_book_code,
+    normalize_mode,
+    sha256_file,
+    source_input_hash,
+    write_canonical_meta,
+    write_active_pointer,
+)
 
 CHUNK_GLOB = "ch_*_chunk_*.txt"
 
@@ -51,14 +63,37 @@ def _safe_len(s: str) -> int:
     return len(s or "")
 
 
-def _merge_outputs(out_dir: Path, suffix: str) -> tuple[Path, int, int]:
+def _merge_outputs(
+    out_dir: Path,
+    suffix: str,
+    *,
+    book_id: str,
+    mode: str,
+) -> tuple[Path, int, int]:
     files = sorted(out_dir.glob(f"ch_*_chunk_*.{suffix}.txt"))
+    if not files:
+        raise RuntimeError(f"NO_TRANSLATED_CHUNKS: nothing matched {out_dir}/ch_*_chunk_*.{suffix}.txt")
     parts: List[str] = []
     for fp in files:
         parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
     merged = "\n".join(parts).rstrip("\n") + "\n"
-    out_path = out_dir / "merge_refine_clean.txt"
+    out_path = canonical_artifact_path(out_dir, book_id, suffix, mode)
     out_path.write_text(merged, encoding="utf-8", errors="strict")
+    assert_valid_canonical_artifact(out_path)
+
+    artifact_sha = sha256_file(out_path)
+    input_hash = source_input_hash(files)
+    write_canonical_meta(
+        out_path,
+        route=mode,
+        artifact_sha256=artifact_sha,
+        input_source_hash=input_hash,
+    )
+
+    # Compat output kept as non-canonical artifact; downstream consumers must ignore it.
+    legacy_path = out_dir / "merge_refine_clean.txt"
+    legacy_path.write_text(merged, encoding="utf-8", errors="strict")
+    write_active_pointer(out_dir, book_id, suffix, out_path.name)
     return out_path, len(merged.encode("utf-8")), len(files)
 
 
@@ -108,13 +143,16 @@ def run_agent_translate(
     chunk_dir: str | Path,
     out_dir: str | Path,
     suffix: str,
+    mode: str = "default",
     temperature: float = 0.4,
     max_output_tokens: int = 8000,
     limit: int = 0,
     agent: str | None = None,
-) -> None:
+) -> Dict[str, Any]:
     chunk_dir = Path(chunk_dir)
     out_dir = Path(out_dir)
+    book_id = normalize_book_code(book_id)
+    mode = normalize_mode(mode, default="default")
     agent = agent or os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ")
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -124,10 +162,22 @@ def run_agent_translate(
     ok, err = openai_healthcheck()
     if not ok:
         run_report: Dict[str, Any] = {
-            "schema": "gaiden_agent_translate_run_v1",
+            "schema": "gaiden_translate_default_v2",
             "ts_start": _now_iso(),
             "ts_end": _now_iso(),
             "book_id": book_id,
+            "lang": lang_token(suffix),
+        "selected_mode": mode,
+        "final_mode": mode,
+        "effective_route": mode,
+        "preflight_ok": False,
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [err or "OPENAI_PREFLIGHT_FAILED"],
+        "exit_code": 2,
             "agent": agent,
             "chunk_dir": str(chunk_dir),
             "out_dir": str(out_dir),
@@ -148,9 +198,21 @@ def run_agent_translate(
         chunks = chunks[:limit]
 
     run_report: Dict[str, Any] = {
-        "schema": "gaiden_agent_translate_run_v1",
+        "schema": "gaiden_translate_default_v2",
         "ts_start": _now_iso(),
         "book_id": book_id,
+        "lang": lang_token(suffix),
+        "selected_mode": mode,
+        "final_mode": mode,
+        "effective_route": mode,
+        "preflight_ok": True,
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [],
+        "exit_code": None,
         "agent": agent,
         "chunk_dir": str(chunk_dir),
         "out_dir": str(out_dir),
@@ -203,6 +265,8 @@ def run_agent_translate(
             _write_json(out_meta, item)
             run_report["items"].append(item)
             run_report["status"] = "error"
+            run_report["errors"].append(repr(e))
+            run_report["exit_code"] = 3
             run_report["ts_end"] = _now_iso()
             _write_json(out_dir / "agent_translate_run_report.json", run_report)
             raise
@@ -211,12 +275,30 @@ def run_agent_translate(
 
     run_report["status"] = "ok"
     run_report["ts_end"] = _now_iso()
-    merged_path, merged_len, merged_count = _merge_outputs(out_dir, suffix)
+    try:
+        merged_path, merged_len, merged_count = _merge_outputs(
+            out_dir,
+            suffix,
+            book_id=book_id,
+            mode=mode,
+        )
+    except Exception as exc:
+        run_report["status"] = "error"
+        run_report["errors"].append(repr(exc))
+        run_report["exit_code"] = 3
+        run_report["ts_end"] = _now_iso()
+        _write_json(out_dir / "agent_translate_run_report.json", run_report)
+        raise
     run_report["merged_txt"] = str(merged_path)
     run_report["merged_len"] = merged_len
     run_report["merged_count"] = merged_count
+    run_report["artifact_filename"] = merged_path.name
+    run_report["artifact_sha256"] = sha256_file(merged_path)
+    run_report["artifact_meta_path"] = str(canonical_meta_path(merged_path))
+    run_report["exit_code"] = 0
     _write_json(out_dir / "agent_translate_run_report.json", run_report)
     print(f"[MERGE] wrote {merged_path} bytes={merged_len} chunks={merged_count}")
+    return run_report
 
 
 def main() -> int:
@@ -226,6 +308,7 @@ def main() -> int:
     ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
     ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ"))
     ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
+    ap.add_argument("--mode", default="default", choices=["default"], help="translate mode")
     ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")
     ap.add_argument("--temperature", type=float, default=0.4)
     ap.add_argument("--max-output-tokens", type=int, default=8000)
@@ -237,6 +320,7 @@ def main() -> int:
             chunk_dir=args.chunk_dir,
             out_dir=args.out_dir,
             suffix=args.suffix,
+            mode=args.mode,
             temperature=args.temperature,
             max_output_tokens=args.max_output_tokens,
             limit=args.limit,

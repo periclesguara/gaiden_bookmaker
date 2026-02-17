@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,18 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from gaiden.lang import normalize_lang_code, normalize_source_lang
 from gaiden.openai_client import get_client, choose_model
+from gaiden.translate_artifacts import (
+    assert_valid_canonical_artifact,
+    canonical_meta_path,
+    canonical_artifact_path,
+    lang_token,
+    normalize_book_code,
+    normalize_mode,
+    sha256_file,
+    source_input_hash,
+    write_canonical_meta,
+    write_active_pointer,
+)
 
 # IMPORTANT:
 # This engine is intentionally minimal and "add-only".
@@ -393,6 +406,12 @@ def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
     min_ratio = float(report.get("validation_ratio_min", 0.95))
     max_ratio = float(report.get("validation_ratio_max", 1.05))
     for item in items:
+        output_path = item.get("output_path")
+        if output_path:
+            output_text = _read_text_safe(Path(output_path))
+            if output_text and _has_structured_policy_violation(output_text):
+                return "policy_block_structured"
+
         item_status = str(item.get("status", "")).strip()
         if item_status and item_status not in {"translated", "skipped_exists", "dry_run"}:
             return f"chunk_status={item_status}"
@@ -451,7 +470,86 @@ def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
     return None
 
 
-def _merge_refine_clean(out_dir: Path, suffix: str) -> tuple[Path, int, int]:
+def _is_policy_block_reason(reason: str | None) -> bool:
+    raw = (reason or "").strip().lower()
+    if not raw:
+        return False
+    markers = (
+        "content_filter",
+        "contentfilter",
+        "content filtered",
+        "policy_violation",
+        "policy_block_structured",
+    )
+    return any(marker in raw for marker in markers)
+
+
+def _fallback_reason_label(reason: str | None) -> str:
+    raw = (reason or "").strip().lower()
+    if not raw:
+        return "policy"
+    if "content_filter" in raw or "content filtered" in raw:
+        return "content_filter"
+    if "policy" in raw:
+        return "policy"
+    return "policy"
+
+
+def _read_text_safe(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    try:
+        return path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+
+def _iter_json_blocks(text: str) -> List[str]:
+    stripped = text.strip()
+    candidates: List[str] = []
+    if stripped.startswith("{") and stripped.endswith("}"):
+        candidates.append(stripped)
+    for block in re.findall(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.IGNORECASE | re.DOTALL):
+        candidates.append(block.strip())
+    return candidates
+
+
+def _has_structured_policy_violation(text: str) -> bool:
+    lowered = text.lower()
+    if "[content_filter]" in lowered and "[/content_filter]" in lowered:
+        return True
+
+    for block in _iter_json_blocks(text):
+        try:
+            payload = json.loads(block)
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+
+        normalized = {str(k).lower(): v for k, v in payload.items()}
+        if normalized.get("policy_violation") is True:
+            return True
+        if normalized.get("content_filter") is True:
+            return True
+
+        for key in ("error_type", "type", "reason", "status", "code"):
+            value = normalized.get(key)
+            if isinstance(value, str):
+                raw = value.strip().lower()
+                if "content_filter" in raw or "policy_violation" in raw:
+                    return True
+    return False
+
+
+def _merge_refine_clean(
+    out_dir: Path,
+    suffix: str,
+    *,
+    book: str,
+    target_lang: str,
+    mode: str,
+) -> tuple[Path, int, int]:
     pattern = f"ch_*_chunk_*.{suffix}.txt"
     files = sorted(out_dir.glob(pattern))
     if not files:
@@ -463,8 +561,24 @@ def _merge_refine_clean(out_dir: Path, suffix: str) -> tuple[Path, int, int]:
     for fp in files:
         parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
     merged = "\n".join(parts).rstrip("\n") + "\n"
-    out_path = out_dir / "merge_refine_clean.txt"
+    out_path = canonical_artifact_path(out_dir, book, target_lang, mode)
     out_path.write_text(merged, encoding="utf-8", errors="strict")
+    assert_valid_canonical_artifact(out_path)
+
+    artifact_sha = sha256_file(out_path)
+    input_hash = source_input_hash(files)
+    write_canonical_meta(
+        out_path,
+        route=mode,
+        artifact_sha256=artifact_sha,
+        input_source_hash=input_hash,
+        timestamp=_utc_now(),
+    )
+
+    # Compat output kept as non-canonical artifact; downstream consumers must ignore it.
+    legacy_path = out_dir / "merge_refine_clean.txt"
+    legacy_path.write_text(merged, encoding="utf-8", errors="strict")
+    write_active_pointer(out_dir, book, target_lang, out_path.name)
     return out_path, len(merged.encode("utf-8")), len(files)
 
 
@@ -505,10 +619,12 @@ def run_translate_safe(
     limit: int = 0,
     fallback_temperature: float = 0.0,
     fallback_max_output_tokens: int = 8000,
+    selected_mode: str = "automatic",
 ) -> Dict:
     """
-    Translate with official GPT-5.2 flow; on failure, fall back to ALAMAGUEDERAZ agent.
-    Returns a dict with status: ok_official | ok_fallback | error.
+    Automatic mode: official GPT-5.2 contract flow.
+    If official path fails due to policy/content-filter reasons, fallback to ALAMAGUEDERAZ.
+    Returns status: ok_official | ok_fallback | error_official | error_fallback | dry_run.
     """
     if book is None:
         book = book_id
@@ -540,7 +656,11 @@ def run_translate_safe(
     if translated_root is None:
         translated_root = Path("data/translated")
 
-    book = str(book)
+    selected_mode = normalize_mode(selected_mode, default="automatic")
+    if selected_mode != "automatic":
+        raise RuntimeError("run_translate_safe only supports selected_mode=automatic")
+
+    book = normalize_book_code(str(book))
     source_lang = normalize_source_lang(source_lang, default="en")
     target_lang = normalize_lang_code(target_lang, default="en_modern")
     in_dir = Path(chunk_dir) if chunk_dir else (chunks_root / book / source_lang)
@@ -558,10 +678,33 @@ def run_translate_safe(
         "merged_txt": None,
         "merged_len": None,
         "merged_count": None,
+        "preflight_ok": False,
+        "selected_mode": "automatic",
+        "final_mode": "automatic",
+        "effective_route": "automatic",
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [],
+        "exit_code": 3,
     }
     safe_report: Dict[str, Any] = {
         "schema": "gaiden_translate_safe_v2",
         "book_id": book,
+        "lang": lang_token(target_lang),
+        "selected_mode": "automatic",
+        "final_mode": "automatic",
+        "effective_route": "automatic",
+        "preflight_ok": False,
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [],
+        "exit_code": None,
         "suffix": target_lang,
         "status": None,
         "error": None,
@@ -574,20 +717,28 @@ def run_translate_safe(
 
     if dry_run:
         safe_report["status"] = "dry_run"
+        safe_report["exit_code"] = 0
         safe_report["official"] = {"status": "skipped", "reason": "dry_run"}
         safe_report["fallback"] = {"used": False, "status": "skipped", "reason": "dry_run"}
         _write_safe_report(out_dir, safe_report)
         result["status"] = "dry_run"
+        result["exit_code"] = 0
         return result
 
     ok, msg = openai_healthcheck()
     if not ok:
         safe_report["status"] = "error_preflight"
         safe_report["error"] = msg
+        safe_report["errors"].append(msg)
+        safe_report["exit_code"] = 2
         safe_report["official"] = {"status": "skipped", "reason": "preflight_failed"}
         safe_report["fallback"] = {"used": False, "status": "skipped", "reason": "preflight_failed"}
         _write_safe_report(out_dir, safe_report)
+        result["errors"].append(msg)
+        result["exit_code"] = 2
         raise RuntimeError(f"PRE-FLIGHT FAILED: {msg}")
+    result["preflight_ok"] = True
+    safe_report["preflight_ok"] = True
 
     try:
         report = translate_book_chunks(
@@ -608,13 +759,6 @@ def run_translate_safe(
         if failure:
             failure_reason = failure
             raise RuntimeError(f"OFFICIAL_VALIDATE_FAIL: {failure}")
-        if out_path:
-            merge_translated_chunks(
-                book=book,
-                target_lang=target_lang,
-                translated_root=translated_root,
-                out_path=out_path,
-            )
         if official_report_path.exists():
             result["official_report"] = str(official_report_path)
             safe_report["official"]["report_path"] = str(official_report_path)
@@ -622,13 +766,30 @@ def run_translate_safe(
         safe_report["status"] = "ok_official"
         print("[TRANSLATE_SAFE] official=OK")
         if not dry_run:
-            merged_path, merged_len, merged_count = _merge_refine_clean(out_dir, target_lang)
+            merged_path, merged_len, merged_count = _merge_refine_clean(
+                out_dir,
+                target_lang,
+                book=book,
+                target_lang=target_lang,
+                mode="automatic",
+            )
             result["merged_txt"] = str(merged_path)
             result["merged_len"] = merged_len
             result["merged_count"] = merged_count
+            result["artifact_filename"] = merged_path.name
+            result["artifact_sha256"] = sha256_file(merged_path)
+            result["artifact_meta_path"] = str(canonical_meta_path(merged_path))
+            result["exit_code"] = 0
             safe_report["final"]["merged_txt"] = str(merged_path)
             safe_report["final"]["merged_len"] = merged_len
             safe_report["final"]["chunks"] = merged_count
+            safe_report["artifact_filename"] = merged_path.name
+            safe_report["artifact_sha256"] = result["artifact_sha256"]
+            safe_report["artifact_meta_path"] = result["artifact_meta_path"]
+            safe_report["exit_code"] = 0
+            if out_path:
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(merged_path, out_path)
             print(f"[TRANSLATE_SAFE] DONE merged={merged_path} bytes={merged_len}")
         _write_safe_report(out_dir, safe_report)
         result["status"] = "ok_official"
@@ -641,19 +802,41 @@ def run_translate_safe(
             safe_report["official"]["report_path"] = str(official_report_path)
         if failure_reason is None:
             failure_reason = err_str
-        if "TRUNCATION_OR_SUMMARY" in err_str:
-            failure_reason = "TRUNCATION_OR_SUMMARY"
-        elif "APIConnectionError" in err_str or "gaierror" in err_str or "DNS_FAIL" in err_str:
+        if "APIConnectionError" in err_str or "gaierror" in err_str or "DNS_FAIL" in err_str:
             failure_reason = "NETWORK_DNS"
+        result["errors"].append(str(failure_reason))
         safe_report["official"]["status"] = "error_official"
         safe_report["official"]["error"] = failure_reason
+        safe_report["errors"].append(str(failure_reason))
         safe_report["status"] = "error_official"
 
     if dry_run:
         _write_safe_report(out_dir, safe_report)
         return result
 
+    fallback_allowed = _is_policy_block_reason(failure_reason)
+    if not fallback_allowed:
+        safe_report["fallback"] = {
+            "used": False,
+            "status": "skipped",
+            "reason": "official_failure_not_policy_block",
+        }
+        safe_report["fallback_used"] = False
+        safe_report["fallback_reason"] = "none"
+        safe_report["final_mode"] = "automatic"
+        safe_report["effective_route"] = "automatic"
+        safe_report["exit_code"] = 3
+        result["status"] = "error_official"
+        result["fallback_used"] = False
+        result["fallback_reason"] = "none"
+        result["final_mode"] = "automatic"
+        result["effective_route"] = "automatic"
+        result["exit_code"] = 3
+        _write_safe_report(out_dir, safe_report)
+        return result
+
     print(f"[TRANSLATE_SAFE] official=FAILED reason={failure_reason} -> fallback=ALAMAGUEDERAZ")
+    print("[TRANSLATE_SAFE] route=fallback_default")
 
     repo_root = Path(__file__).resolve().parents[1]
     cmd = [
@@ -669,6 +852,8 @@ def run_translate_safe(
         "ALAMAGUEDERAZ",
         "--suffix",
         target_lang,
+        "--mode",
+        "default",
         "--temperature",
         str(fallback_temperature),
         "--max-output-tokens",
@@ -693,28 +878,82 @@ def run_translate_safe(
         safe_report["fallback"]["report_path"] = str(fallback_report_path)
 
     if proc.returncode == 0 and fallback_report and fallback_report.get("status") == "ok":
-        result["status"] = "ok_fallback"
-        result["merged_txt"] = fallback_report.get("merged_txt")
-        result["merged_len"] = fallback_report.get("merged_len")
-        result["merged_count"] = fallback_report.get("merged_count")
-        safe_report["fallback"]["used"] = True
-        safe_report["fallback"]["status"] = "ok_fallback"
-        safe_report["status"] = "ok_fallback"
-        safe_report["final"]["merged_txt"] = result["merged_txt"]
-        safe_report["final"]["merged_len"] = result["merged_len"]
-        safe_report["final"]["chunks"] = result["merged_count"]
-        _write_safe_report(out_dir, safe_report)
-        print(f"[TRANSLATE_SAFE] DONE merged={result['merged_txt']} bytes={result['merged_len']}")
-        return result
+        merged_txt = str(fallback_report.get("merged_txt") or "").strip()
+        merged_path = Path(merged_txt) if merged_txt else None
+        validation_error = None
+        if not merged_path:
+            validation_error = "missing merged_txt in fallback report"
+        else:
+            try:
+                assert_valid_canonical_artifact(merged_path)
+            except Exception as exc:
+                validation_error = str(exc)
 
-    result["fallback_error"] = {
-        "returncode": proc.returncode,
-        "stdout": (proc.stdout or "").strip(),
-        "stderr": (proc.stderr or "").strip(),
-    }
+        if validation_error is None and merged_path is not None:
+            result["status"] = "ok_fallback"
+            result["merged_txt"] = str(merged_path)
+            result["merged_len"] = fallback_report.get("merged_len")
+            result["merged_count"] = fallback_report.get("merged_count")
+            merged_name = merged_path.name
+            result["artifact_filename"] = merged_name
+            result["artifact_sha256"] = sha256_file(merged_path)
+            result["artifact_meta_path"] = str(canonical_meta_path(merged_path))
+            result["fallback_used"] = True
+            result["fallback_reason"] = _fallback_reason_label(failure_reason)
+            result["final_mode"] = "default"
+            result["effective_route"] = "default"
+            result["exit_code"] = 0
+            safe_report["fallback"]["used"] = True
+            safe_report["fallback"]["status"] = "ok_fallback"
+            safe_report["status"] = "ok_fallback"
+            safe_report["fallback_used"] = True
+            safe_report["fallback_reason"] = result["fallback_reason"]
+            safe_report["final_mode"] = "default"
+            safe_report["effective_route"] = "default"
+            safe_report["final"]["merged_txt"] = result["merged_txt"]
+            safe_report["final"]["merged_len"] = result["merged_len"]
+            safe_report["final"]["chunks"] = result["merged_count"]
+            safe_report["artifact_filename"] = merged_name
+            safe_report["artifact_sha256"] = result["artifact_sha256"]
+            safe_report["artifact_meta_path"] = result["artifact_meta_path"]
+            safe_report["exit_code"] = 0
+            if out_path and result.get("merged_txt"):
+                if merged_path.exists():
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(merged_path, out_path)
+            _write_safe_report(out_dir, safe_report)
+            print(f"[TRANSLATE_SAFE] DONE merged={result['merged_txt']} bytes={result['merged_len']}")
+            return result
+
+        result["fallback_error"] = {
+            "returncode": proc.returncode,
+            "stdout": (proc.stdout or "").strip(),
+            "stderr": (proc.stderr or "").strip(),
+            "validation_error": validation_error,
+        }
+
+    if not result.get("fallback_error"):
+        result["fallback_error"] = {
+            "returncode": proc.returncode,
+            "stdout": (proc.stdout or "").strip(),
+            "stderr": (proc.stderr or "").strip(),
+        }
+    result["errors"].append("FALLBACK_DEFAULT_FAILED")
+    result["status"] = "error_fallback"
+    result["fallback_used"] = True
+    result["fallback_reason"] = _fallback_reason_label(failure_reason)
+    result["final_mode"] = "default"
+    result["effective_route"] = "default"
+    result["exit_code"] = 4
     safe_report["fallback"]["used"] = True
     safe_report["fallback"]["status"] = "error_fallback"
     safe_report["fallback"]["error"] = json.dumps(result["fallback_error"], ensure_ascii=False)
+    safe_report["fallback_used"] = True
+    safe_report["fallback_reason"] = result["fallback_reason"]
+    safe_report["final_mode"] = "default"
+    safe_report["effective_route"] = "default"
+    safe_report["errors"].append("FALLBACK_DEFAULT_FAILED")
     safe_report["status"] = "error_fallback"
+    safe_report["exit_code"] = 4
     _write_safe_report(out_dir, safe_report)
     return result

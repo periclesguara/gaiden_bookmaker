@@ -7,6 +7,14 @@
   page-break-before: always;
 }
 
+/* Pandoc emits image blocks as <p><img .../></p>; center those images. */
+p > img {
+  display: block;
+  margin: 1.2em auto;
+  max-width: 100%;
+  height: auto;
+}
+
 figure.chapter-illustration,
 figure.post-cover-illustration {
   text-align: center;
@@ -19,4 +27,16 @@ figure.post-cover-illustration img {
   margin: 0 auto;
   max-width: 100%;
   height: auto;
+}
+
+/* Frontmatter readability bump (title/copyright/about blocks). */
+section#frontispiece,
+section#copyright,
+section#about-this-edition,
+section#about_contributor,
+section#about-contributor,
+section#introduction,
+section#epilogue {
+  font-size: 1.12em;
+  line-height: 1.6;
 }

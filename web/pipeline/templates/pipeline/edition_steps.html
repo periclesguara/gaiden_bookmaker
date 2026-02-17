@@ -140,6 +140,16 @@
       display: grid;
       gap: 10px;
     }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+      font-size: 16px;
+    }
+    .skip-controls.locked {
+      opacity: 0.75;
+    }
   </style>
 </head>
 <body>
@@ -184,51 +194,82 @@
           Idioma:
           <select name="asset_language">
             {% for lang in languages %}
-              <option value="{{ lang.code }}" {% if lang.code == language %}selected{% endif %}>{{ lang.label }}</option>
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
             {% endfor %}
           </select>
         </label>
-        <button class="btn secondary" type="submit">Upload ZIP</button>
+        <button class="btn secondary" type="submit">Upload Book Images (ZIP)</button>
       </form>
 
       <form method="post" class="inline-form" enctype="multipart/form-data" style="margin-top: 12px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_individual" />
         <label>
-          Imagens (múltiplas):
+          Imagens (multiplas):
           <input type="file" name="images_files" multiple required />
-        </label>
-        <label>
-          Pasta (00..NN) opcional:
-          <input type="text" name="images_folder" placeholder="ex: 05" />
         </label>
         <label>
           Idioma:
           <select name="asset_language">
             {% for lang in languages %}
-              <option value="{{ lang.code }}" {% if lang.code == language %}selected{% endif %}>{{ lang.label }}</option>
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
             {% endfor %}
           </select>
         </label>
-        <button class="btn secondary" type="submit">Upload Individual</button>
+        <button class="btn secondary" type="submit">Upload Book Images</button>
       </form>
 
-      <div class="status">Images dir: <strong>{{ illustrated_images_dir }}</strong></div>
-      <div class="status">Inserts path: <strong>{{ illustrated_inserts_path }}</strong></div>
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="convert_images_jpg" />
+        <label>
+          Idioma:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn" type="submit">Convert All Book Images to JPG</button>
+      </form>
+
+      <div class="status">Raw dir: <strong>{{ images_raw_dir }}</strong></div>
+      <div class="status">Processed dir: <strong>{{ images_processed_dir }}</strong></div>
+      <div class="status">Build images dir: <strong>{{ build_images_dir }}</strong></div>
+      <div class="status">Processed JPG count: <strong>{{ processed_images_count }}</strong></div>
+      {% if processed_images_preview %}
+      <div class="status">Processed preview: <strong>{{ processed_images_preview|join:", " }}</strong></div>
+      {% endif %}
     </article>
 
     <article class="card">
       <h2>Assets — Cover</h2>
-      <form method="post" class="inline-form" enctype="multipart/form-data">
+      <form method="post" action="{% url 'edition_steps' edition_id=edition.id %}" class="inline-form" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="hidden" name="action" value="upload_cover" />
         <label>
-          Capa (JPG/PNG):
-          <input type="file" name="cover_file" required />
+          Capa (JPG/PNG/JFIF):
+          <input type="file" name="cover_file" />
         </label>
-        <button class="btn secondary" type="submit">Upload Cover</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn secondary" type="submit" name="cover_action" value="upload">Upload Cover</button>
+          <button class="btn" type="submit" name="cover_action" value="convert">Convert Cover to JPG</button>
+        </div>
+        <div class="status">Dica: em "Convert", se houver arquivo escolhido ele sera salvo e convertido no mesmo clique.</div>
       </form>
-      <div class="status">Cover path: <strong>{{ cover_filepath|default:'(none)' }}</strong></div>
+      <div class="status">Cover source: <strong>{{ cover_original_path|default:'(none)' }}</strong></div>
+      <div class="status">Cover JPG (edition): <strong>{{ cover_filepath|default:'(none)' }}</strong></div>
+      <div class="status">Cover JPG (state): <strong>{{ cover_jpg_path_state|default:'(none)' }}</strong></div>
+    </article>
+
+    <article class="card">
+      <h2>State — Memory</h2>
+      <div class="status">{% if cover_jpg_path_state or cover_filepath %}&#10003;{% else %}-{% endif %} Cover converted</div>
+      <div class="status">{% if images_converted_count %}&#10003;{% else %}-{% endif %} Images converted: <strong>{{ images_converted_count }}</strong></div>
+      <div class="status">{% if inserted_images_count %}&#10003;{% else %}-{% endif %} Images inserted: <strong>{{ inserted_images_count }}</strong></div>
+      <div class="status">Last image conversion: <strong>{{ last_image_conversion_ts|default:'(none)' }}</strong></div>
+      <div class="status">Last build timestamp: <strong>{{ last_build_ts|default:'(none)' }}</strong></div>
+      <div class="status">Active artifact: <strong>{{ active_artifact_filename|default:'(none)' }}</strong></div>
+      <div class="status">Run status: <strong>{{ run_state_status|default:'(none)' }}</strong></div>
     </article>
   </section>
 
@@ -261,5 +302,91 @@
       </table>
     </article>
   </section>
+
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Acoes — SAVE</h2>
+      <p class="status">
+        SAVE executa: cover->JPG, imagens->JPG, TXT->MD, insercao deterministica por numero e build.
+      </p>
+      <form method="post" class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_pipeline" />
+        <div class="status"><strong>Translate Route</strong></div>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="automatic" {% if selected_mode != "default" %}checked{% endif %} />
+          <span>Automatic</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="default" {% if selected_mode == "default" %}checked{% endif %} />
+          <span>Default</span>
+        </label>
+        <p id="save-skip-mode-helper" class="status" {% if not skip_locked_automatic %}hidden{% endif %}>
+          Skip is only allowed for DEFAULT mode.
+        </p>
+        <div id="save-split-refine-controls" class="skip-controls {% if skip_locked_automatic %}locked{% endif %}">
+          <label class="option" for="save_split_mode">split_mode</label>
+          <select id="save_split_mode" name="split_mode">
+            <option value="do" {% if split_mode != "skip" %}selected{% endif %}>do</option>
+            <option value="skip" {% if split_mode == "skip" %}selected{% endif %}>skip</option>
+          </select>
+          <label class="option" for="save_refine_mode">refine_mode</label>
+          <select id="save_refine_mode" name="refine_mode">
+            <option value="do" {% if refine_mode != "skip" %}selected{% endif %}>do</option>
+            <option value="skip" {% if refine_mode == "skip" %}selected{% endif %}>skip</option>
+          </select>
+        </div>
+        <label>
+          Idioma:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn" type="submit">Save</button>
+      </form>
+      <div class="status">Mode: <strong>{{ selected_mode }}</strong> (effective: {{ effective_mode }})</div>
+      <div class="status">split_mode: <strong>{{ split_mode }}</strong> · refine_mode: <strong>{{ refine_mode }}</strong></div>
+      <div class="status">MD status: <strong>{{ md_status|default:'(none)' }}</strong></div>
+      <div class="status">MD generated at: <strong>{{ md_generated_at|default:'(none)' }}</strong></div>
+    </article>
+  </section>
+  <script>
+    (function () {
+      function getSaveTranslateMode() {
+        const selected = document.querySelector('input[name="translate_mode"]:checked');
+        return selected ? selected.value : 'automatic';
+      }
+      function enforceSaveTranslatePolicy() {
+        const translateMode = getSaveTranslateMode();
+        const splitSelect = document.getElementById('save_split_mode');
+        const refineSelect = document.getElementById('save_refine_mode');
+        const helper = document.getElementById('save-skip-mode-helper');
+        const controls = document.getElementById('save-split-refine-controls');
+        const automatic = translateMode !== 'default';
+        if (!splitSelect || !refineSelect || !helper || !controls) {
+          return;
+        }
+        if (automatic) {
+          splitSelect.value = 'do';
+          refineSelect.value = 'do';
+          splitSelect.disabled = true;
+          refineSelect.disabled = true;
+          helper.hidden = false;
+          controls.classList.add('locked');
+          return;
+        }
+        splitSelect.disabled = false;
+        refineSelect.disabled = false;
+        helper.hidden = true;
+        controls.classList.remove('locked');
+      }
+      document.querySelectorAll('input[name="translate_mode"]').forEach((el) => {
+        el.addEventListener('change', enforceSaveTranslatePolicy);
+      });
+      enforceSaveTranslatePolicy();
+    })();
+  </script>
 </body>
 </html>

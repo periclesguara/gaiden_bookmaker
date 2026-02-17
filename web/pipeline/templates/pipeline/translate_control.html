@@ -270,6 +270,15 @@
         </div>
 
         <div class="option"><strong>Run options</strong></div>
+        <div class="option"><strong>Translate mode</strong></div>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="automatic" {% if run_flags.translate_mode != "default" %}checked{% endif %} />
+          Automatic (default)
+        </label>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="default" {% if run_flags.translate_mode == "default" %}checked{% endif %} />
+          Default
+        </label>
         <input type="hidden" name="dry_run" value="0" />
         <label class="option"><input type="checkbox" name="dry_run" value="1" {% if run_flags.dry_run %}checked{% endif %} /> dry_run</label>
         <input type="hidden" name="resume" value="0" />
@@ -312,6 +321,15 @@
         </div>
 
         <div class="option"><strong>Run options</strong></div>
+        <div class="option"><strong>Translate mode</strong></div>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="automatic" {% if run_flags.translate_mode != "default" %}checked{% endif %} />
+          Automatic (default)
+        </label>
+        <label class="option">
+          <input type="radio" name="translate_mode" value="default" {% if run_flags.translate_mode == "default" %}checked{% endif %} />
+          Default
+        </label>
         <input type="hidden" name="dry_run" value="0" />
         <label class="option"><input type="checkbox" name="dry_run" value="1" {% if run_flags.dry_run %}checked{% endif %} /> dry_run</label>
         <input type="hidden" name="resume" value="0" />

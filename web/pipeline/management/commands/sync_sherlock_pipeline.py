@@ -2,6 +2,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 
+from gaiden.translate_artifacts import resolve_active_or_latest
 from pipeline.models import PipelineJob
 
 
@@ -37,12 +38,8 @@ class Command(BaseCommand):
         )
 
         translate_files = {
-            "en": data_dir / "translated" / book_code / "EN" / "merge_translate_EN.txt",
-            "es": data_dir / "translated" / book_code / "ES" / "merge_translate_ES.txt",
-            "ptbr": data_dir / "translated" / book_code / "PT-BR" / "merge_translate_PT-BR.txt",
-            "de": data_dir / "translated" / book_code / "DE" / "merge_translate_DE.txt",
-            "fr": data_dir / "translated" / book_code / "FR" / "merge_translate_FR.txt",
-            "it": data_dir / "translated" / book_code / "IT" / "merge_translate_IT.txt",
+            lang: resolve_active_or_latest(data_dir / "translated" / book_code / lang, book_code, lang)
+            for lang in ("en", "es", "ptbr", "de", "fr", "it")
         }
         for language, path in translate_files.items():
             self._upsert_job(
@@ -50,8 +47,8 @@ class Command(BaseCommand):
                 book_title=book_title,
                 language=language,
                 stage="translate",
-                filepath=path,
-                exists=path.exists(),
+                filepath=path or (data_dir / "translated" / book_code / language),
+                exists=bool(path and path.exists()),
             )
 
         self.stdout.write(self.style.SUCCESS("Sync do Sherlock (book_0001) concluido."))
