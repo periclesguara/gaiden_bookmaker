@@ -1,10 +1,5 @@
-{% autoescape off %}
-{{ edition.title }}
-{{ edition.subtitle }}
+{% if text %}
+## Frontispiece
 
-Author: {{ edition.author }}
-Adapted by {{ edition.adapter }}
-
-{{ edition.seal_name }}
-{{ edition.city }}, {{ country_label }} · {{ edition.publication_year }}
-{% endautoescape %}
+{{ text }}
+{% endif %}

@@ -1,20 +1,15 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
-from editorial.models import Edition as EditorialEdition
+from editorial.models import Edition as EditorialEdition, EditionBlock
 from gaiden_portal.forms import EditionForm
-from gaiden_portal.utils import (
-    country_for_language,
-    get_frontispiece_template_for_edition,
-    get_section_template_for_language,
-)
+from gaiden_portal.utils import country_for_language
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
-from pipeline.services import utils
-from editorial.frontmatter import build_frontmatter_files
+from pipeline.services import paths as ppaths, utils
+from editorial.frontmatter import build_frontmatter_files, render_frontmatter_module
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
 
@@ -72,6 +67,173 @@ def _frontmatter_overrides(book_code: str, language: str) -> dict:
     return BOOK_LANGUAGE_DEFAULTS.get(book_code, {}).get(language, {})
 
 
+FRONTMATTER_BLOCK_TYPES = (
+    "frontispiece",
+    "copyright",
+    "about_edition",
+    "introduction",
+    "epilogue",
+)
+
+
+def _block_titles_for_language(language_code: str) -> dict[str, str]:
+    titles = {
+        "en": {
+            "frontispiece": "Frontispiece",
+            "copyright": "Copyright",
+            "about_edition": "About this edition",
+            "introduction": "Introduction",
+            "epilogue": "Epilogue",
+        },
+        "es": {
+            "frontispiece": "Frontispicio",
+            "copyright": "Copyright",
+            "about_edition": "Sobre esta edición",
+            "introduction": "Introducción",
+            "epilogue": "Epílogo",
+        },
+        "ptbr": {
+            "frontispiece": "Frontispício",
+            "copyright": "Direitos autorais",
+            "about_edition": "Sobre esta edição",
+            "introduction": "Introdução",
+            "epilogue": "Epílogo",
+        },
+        "de": {
+            "frontispiece": "Frontispiz",
+            "copyright": "Copyright",
+            "about_edition": "Über diese Ausgabe",
+            "introduction": "Einleitung",
+            "epilogue": "Epilog",
+        },
+        "fr": {
+            "frontispiece": "Frontispice",
+            "copyright": "Droits d’auteur",
+            "about_edition": "À propos de cette édition",
+            "introduction": "Introduction",
+            "epilogue": "Épilogue",
+        },
+        "it": {
+            "frontispiece": "Frontespizio",
+            "copyright": "Diritti d’autore",
+            "about_edition": "Su questa edizione",
+            "introduction": "Introduzione",
+            "epilogue": "Epilogo",
+        },
+    }
+    return titles.get(language_code, titles["en"])
+
+
+def _form_labels_for_language(language_code: str) -> dict[str, str]:
+    labels = {
+        "en": {
+            "language_select": "Language",
+            "book_code": "Book code",
+            "language": "Language",
+            "seal_name": "Seal",
+            "title": "Book title",
+            "subtitle": "Subtitle",
+            "author_name": "Author",
+            "publication_year": "Publication year",
+            "imprint_name": "Imprint",
+            "city_name": "City",
+            "country_name": "Country",
+            "editor_name": "Editor",
+            "translator_name": "Translator",
+            "adapter_name": "Adapter",
+        },
+        "ptbr": {
+            "language_select": "Idioma",
+            "book_code": "Código do livro",
+            "language": "Idioma",
+            "seal_name": "Selo",
+            "title": "Título do livro",
+            "subtitle": "Subtítulo",
+            "author_name": "Autor",
+            "publication_year": "Ano de publicação",
+            "imprint_name": "Imprint",
+            "city_name": "Cidade",
+            "country_name": "País",
+            "editor_name": "Editor",
+            "translator_name": "Tradutor",
+            "adapter_name": "Adaptador",
+        },
+        "es": {
+            "language_select": "Idioma",
+            "book_code": "Código del libro",
+            "language": "Idioma",
+            "seal_name": "Sello",
+            "title": "Título del libro",
+            "subtitle": "Subtítulo",
+            "author_name": "Autor",
+            "publication_year": "Año de publicación",
+            "imprint_name": "Impronta",
+            "city_name": "Ciudad",
+            "country_name": "País",
+            "editor_name": "Editor",
+            "translator_name": "Traductor",
+            "adapter_name": "Adaptador",
+        },
+        "de": {
+            "language_select": "Sprache",
+            "book_code": "Buchcode",
+            "language": "Sprache",
+            "seal_name": "Siegel",
+            "title": "Buchtitel",
+            "subtitle": "Untertitel",
+            "author_name": "Autor",
+            "publication_year": "Erscheinungsjahr",
+            "imprint_name": "Imprint",
+            "city_name": "Stadt",
+            "country_name": "Land",
+            "editor_name": "Herausgeber",
+            "translator_name": "Übersetzer",
+            "adapter_name": "Bearbeiter",
+        },
+        "fr": {
+            "language_select": "Langue",
+            "book_code": "Code du livre",
+            "language": "Langue",
+            "seal_name": "Sceau",
+            "title": "Titre du livre",
+            "subtitle": "Sous-titre",
+            "author_name": "Auteur",
+            "publication_year": "Année de publication",
+            "imprint_name": "Imprint",
+            "city_name": "Ville",
+            "country_name": "Pays",
+            "editor_name": "Éditeur",
+            "translator_name": "Traducteur",
+            "adapter_name": "Adaptateur",
+        },
+        "it": {
+            "language_select": "Lingua",
+            "book_code": "Codice libro",
+            "language": "Lingua",
+            "seal_name": "Sigillo",
+            "title": "Titolo del libro",
+            "subtitle": "Sottotitolo",
+            "author_name": "Autore",
+            "publication_year": "Anno di pubblicazione",
+            "imprint_name": "Imprint",
+            "city_name": "Città",
+            "country_name": "Paese",
+            "editor_name": "Editore",
+            "translator_name": "Traduttore",
+            "adapter_name": "Adattatore",
+        },
+    }
+    return labels.get(language_code, labels["en"])
+
+
+def get_or_create_block(edition: EditorialEdition, block_type: str) -> EditionBlock:
+    block, _ = EditionBlock.objects.get_or_create(
+        edition=edition,
+        block_type=block_type,
+    )
+    return block
+
+
 def _auto_value_match(value: str, candidates: list[str]) -> bool:
     return bool(value) and value in candidates
 
@@ -82,6 +244,8 @@ def _default_country(language: str) -> str:
         "ptbr": "Brasil",
         "es": "Brasil",
         "de": "Brasilien",
+        "fr": "Brésil",
+        "it": "Brasile",
     }.get(language, "Brasil")
 
 
@@ -132,7 +296,17 @@ def _write_frontmatter_files(edition: EditorialEdition) -> None:
 
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
-    return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_edition.md"))
+    return any(
+        (out_dir / name).exists()
+        for name in (
+            "frontispiece.md",
+            "copyright.md",
+            "about_edition.md",
+            "introduction.md",
+            "epilogue.md",
+            "about_contributor.md",
+        )
+    )
 
 
 def frontmatter_template_edit(request, book_code: str, language: str):
@@ -193,7 +367,8 @@ def frontmatter_template_edit(request, book_code: str, language: str):
     )
     updated_fields = []
     if created:
-        template.apply_language_defaults_if_empty()
+        if language != "es":
+            template.apply_language_defaults_if_empty()
         template.save()
     else:
         language_overrides = BOOK_LANGUAGE_DEFAULTS.get(book_code, {})
@@ -243,21 +418,31 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         elif not template.country_name:
             template.country_name = country_name
             updated_fields.append("country_name")
-        default_updates = template.apply_language_defaults_if_empty()
+        default_updates = []
+        if language != "es":
+            default_updates = template.apply_language_defaults_if_empty()
         if default_updates:
             updated_fields.extend(default_updates)
 
         if updated_fields:
             template.save(update_fields=updated_fields)
     files_exist = _frontmatter_files_exist(book_code, language)
+    has_existing_text = bool(
+        edition
+        and (
+            edition.about_edition_text
+            or getattr(edition, "introduction_text", "")
+            or getattr(edition, "epilogue_text", "")
+        )
+    )
     warning = ""
 
     if request.method == "POST":
         form = FrontmatterTemplateForm(request.POST, instance=template)
         if form.is_valid():
             confirm_overwrite = request.POST.get("confirm_overwrite") == "1"
-            if files_exist and not confirm_overwrite:
-                warning = "Substituir arquivos atuais do frontmatter?"
+            if (files_exist or has_existing_text) and not confirm_overwrite:
+                warning = "Conteudo ja existe. Confirmar sobrescrita para continuar."
             else:
                 form.save()
                 if edition:
@@ -272,15 +457,115 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "edition": edition,
         "is_generic": is_generic,
         "form": form,
-        "frontmatter_preview": template.frontispiece_rendered,
-        "copyright_preview": template.copyright_rendered,
         "language_options": BookEditionTemplate.LANG_CHOICES,
         "book_code": book_code,
         "language": language,
+        "form_labels": _form_labels_for_language(language),
         "frontmatter_files_exist": files_exist,
+        "has_existing_text": has_existing_text,
         "overwrite_warning": warning,
     }
+    if edition:
+        block_titles = _block_titles_for_language(language)
+        block_items = []
+        for block_type in FRONTMATTER_BLOCK_TYPES:
+            block_items.append(
+                {
+                    "type": block_type,
+                    "title": block_titles.get(block_type, block_type),
+                    "block": get_or_create_block(edition, block_type),
+                }
+            )
+        context.update(
+            {
+                "block_items": block_items,
+            }
+        )
     return render(request, "editorial/frontmatter_form.html", context)
+
+
+@require_POST
+def save_block(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.text_md = request.POST.get("text_md", "")
+    block.save(update_fields=["text_md", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@require_POST
+def clear_block(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.text_md = ""
+    block.is_locked = False
+    block.save(update_fields=["text_md", "is_locked", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@require_POST
+def toggle_block_lock(request, edition_id: int, block_type: str):
+    if block_type not in FRONTMATTER_BLOCK_TYPES:
+        messages.error(request, f"Bloco invalido: {block_type}")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    block = get_or_create_block(edition, block_type)
+    block.is_locked = not block.is_locked
+    block.save(update_fields=["is_locked", "updated_at"])
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+def organizer_home(request):
+    editions = EditorialEdition.objects.select_related("work").order_by(
+        "work__title",
+        "work__code",
+    )
+    works = []
+    seen = set()
+    for edition in editions:
+        work = edition.work
+        if not work or work.code in seen:
+            continue
+        seen.add(work.code)
+        works.append({"code": work.code, "title": work.title})
+
+    languages = [
+        ("en", "EN (Modern English)"),
+        ("es", "ES (Español)"),
+        ("ptbr", "PT-BR"),
+        ("de", "DE (Krimi)"),
+    ]
+    context = {
+        "works": works,
+        "languages": languages,
+    }
+    return render(request, "editorial/organizer_home.html", context)
+
+
+def organizer_open(request):
+    work_code = request.GET.get("work_code") or ""
+    language_code = request.GET.get("language_code") or ""
+    if not work_code or not language_code:
+        messages.error(request, "Selecione uma obra e um idioma para abrir.")
+        return redirect("organizer_home")
+
+    edition = (
+        EditorialEdition.objects.select_related("work", "language")
+        .filter(work__code=work_code, language_code=language_code)
+        .order_by("-id")
+        .first()
+    )
+    if not edition:
+        messages.error(request, f"Nenhuma edicao encontrada para {work_code} [{language_code}].")
+        return redirect("organizer_home")
+
+    return redirect("edition_edit", edition_id=edition.id)
 
 
 def editorial_frontmatter_actions(request, edition_id: int):
@@ -304,16 +589,17 @@ def editorial_frontmatter_actions(request, edition_id: int):
         messages.error(request, f"Edicao nao encontrada: {edition.work.code} [{target_lang}]")
         return redirect("edition_steps", edition_id=edition.id)
 
+    md_version = request.POST.get("md_version") or None
     if action == "rebuild_frontmatter":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
         messages.success(
             request,
             f"Frontmatter regenerado para {target_edition.work.code} [{target_edition.language.code}]",
         )
     elif action == "build_frontmatter_and_merged":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
-        merged_path = kdp_mode.build_merged_kdp_source(target_edition)
-        messages.success(request, f"Frontmatter + BOOK.BUILD.MD regenerados: {merged_path}")
+        kdp_mode.build_frontmatter_files(target_edition, ppaths.data_dir() / "frontmatter")
+        merged_path = kdp_mode.build_merged_kdp_source(target_edition, version_override=md_version)
+        messages.success(request, f"Frontmatter + build.md regenerados: {merged_path}")
     else:
         messages.warning(request, f"Acao desconhecida: {action}")
 
@@ -360,6 +646,9 @@ def toggle_stage_lock(request, edition_id: int):
 
 def edition_edit(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    if edition.language_id and edition.language_code != edition.language.code:
+        edition.language_code = edition.language.code
+        edition.save(update_fields=["language_code", "updated_at"])
     apply_defaults = request.GET.get("apply_defaults") == "1" or request.POST.get("apply_defaults") == "1"
 
     if request.method == "POST":
@@ -401,47 +690,8 @@ def edition_edit(request, edition_id: int):
             form = EditionForm(instance=edition)
 
     country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_template = get_frontispiece_template_for_edition(edition)
-    copyright_template = get_section_template_for_language("copyright", edition.language_code)
-    about_template = get_section_template_for_language("about_edition", edition.language_code)
-
-    about_context = {
-        "edition": edition,
-        "country_label": country_label,
-        "about_edition_text": edition.about_edition_text,
-    }
     context = {
         "edition": edition,
         "form": form,
-        "frontispiece_preview": render_to_string(
-            frontispiece_template,
-            {"edition": edition, "country_label": country_label},
-        ),
-        "copyright_preview": render_to_string(
-            copyright_template,
-            {"edition": edition, "country_label": country_label},
-        ),
-        "about_edition_preview": render_to_string(
-            about_template,
-            about_context,
-        ),
     }
     return render(request, "gaiden/edition_form.html", context)
-
-
-def frontispiece_preview(request, edition_id: int):
-    edition = get_object_or_404(EditorialEdition, pk=edition_id)
-    template_name = get_frontispiece_template_for_edition(edition)
-    country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_md = render_to_string(
-        template_name,
-        {"edition": edition, "country_label": country_label},
-    )
-    return render(
-        request,
-        "gaiden/frontispiece_preview.html",
-        {
-            "edition": edition,
-            "frontispiece_md": frontispiece_md,
-        },
-    )

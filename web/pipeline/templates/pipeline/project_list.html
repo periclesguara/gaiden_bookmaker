@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Projects</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --bad: #b30000;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .nav {
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 2px solid transparent;
+    }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    table {
+      width: calc(100% - 48px);
+      margin: 0 24px 28px;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      vertical-align: top;
+    }
+    th {
+      background: #f4ece2;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok { color: var(--ok); }
+    .badge.bad { color: var(--bad); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/" class="current">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Projects — Source of Truth</h1>
+    <p class="subtitle">Registro oficial de livros/projetos.</p>
+    <div class="actions">
+      <a class="btn" href="/pipeline/projects/new/">New Project</a>
+      <a class="btn secondary" href="/pipeline/runner/">Runner Matrix</a>
+      <a class="btn secondary" href="/pipeline/dashboard/">Dashboard</a>
+    </div>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        <th>book_code</th>
+        <th>title</th>
+        <th>imprint</th>
+        <th>base_language</th>
+        <th>enabled_languages</th>
+        <th>RAW present?</th>
+        <th>last_update</th>
+        <th>actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.book_code }}</td>
+        <td>{{ row.title }}</td>
+        <td>{{ row.imprint }}</td>
+        <td>{{ row.base_language }}</td>
+        <td>{{ row.enabled_languages|join:", " }}</td>
+        <td>
+          {% if row.raw_present %}
+            <span class="badge ok">OK</span>
+          {% else %}
+            <span class="badge bad">MISSING</span>
+          {% endif %}
+        </td>
+        <td>{{ row.last_update }}</td>
+        <td>
+          <a class="btn secondary" href="/pipeline/projects/{{ row.book_code }}/">Open Hub</a>
+          <a class="btn secondary" href="/pipeline/projects/{{ row.book_code }}/edit/">Edit Metadata</a>
+          <a class="btn secondary" href="/pipeline/projects/{{ row.book_code }}/upload/{{ row.base_language }}/">Upload RAW</a>
+          <a class="btn secondary" href="/pipeline/runner/?book_code={{ row.book_code }}">Runner</a>
+          {% if row.base_edition_id %}
+            <a class="btn secondary" href="/pipeline/editions/{{ row.base_edition_id }}/steps/">Assets</a>
+          {% endif %}
+          <a class="btn secondary" href="/editorial/frontmatter/{{ row.book_code }}/{{ row.base_language }}/">Frontmatter</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">No projects.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

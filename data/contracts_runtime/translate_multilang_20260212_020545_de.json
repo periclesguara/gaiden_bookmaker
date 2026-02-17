@@ -1,0 +1,18 @@
+{
+  "schema": "gaiden_translate_contract_v2",
+  "stage": "translate",
+  "contract_version": "2026.02",
+  "name": "en_de_2026",
+  "language_source": "en",
+  "language_target": "de",
+  "model": "gpt-5.2",
+  "model_lock": true,
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+  "instruction_core": "Du bist ein professioneller literarischer Übersetzer im Jahr 2025, spezialisiert auf Krimi-Literatur. Du übersetzt Sherlock-Holmes-Geschichten aus dem Englischen ins moderne, lesbare Deutsch, mit klarem Stil und spannender Atmosphäre.",
+  "rules": [
+    "Keine Zusammenfassungen, keine Kommentare, nur der übersetzte Text."
+  ],
+  "system_prompt": "Du bist ein professioneller literarischer Übersetzer im Jahr 2025, spezialisiert auf Krimi-Literatur. Du übersetzt Sherlock-Holmes-Geschichten aus dem Englischen ins moderne, lesbare Deutsch, mit klarem Stil und spannender Atmosphäre. Keine Zusammenfassungen, keine Kommentare, nur der übersetzte Text.",
+  "user_prompt": "Übersetze den folgenden Sherlock-Holmes-Abschnitt ins moderne, flüssige Deutsch. Erhalte alle Informationen, Hinweise und die Stimmung des Originals.\n\n{text}"
+}

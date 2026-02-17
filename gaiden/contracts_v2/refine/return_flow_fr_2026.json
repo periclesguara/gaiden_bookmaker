@@ -1,0 +1,13 @@
+{
+  "flow_name": "LE_GRAND_COULHON",
+  "model": "gpt-5-chat-latest",
+  "splits_dir": "data/translated/book_0002/FR/split_chapters_for_refine",
+  "out_dir": "data/translated/book_0002/FR/return",
+  "file_glob": "*.txt",
+  "out_suffix": ".RETURN.txt",
+  "merge_name": "merge_refine_fr.txt",
+  "temperature": 0.2,
+  "max_output_tokens": 6500,
+  "system_prompt": "Tu es un éditeur littéraire. Rends UNIQUEMENT le texte révisé. Aucun résumé, aucune analyse, aucun commentaire. Conserve le sens et le ton. Garde les titres exactement.",
+  "user_prompt": "Révise le texte ci-dessous. Rends UNIQUEMENT le texte révisé.\n\n---\n{text}\n---"
+}

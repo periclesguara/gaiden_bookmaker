@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Example pre-commit hook for local use.
+# Install manually:
+#   cp scripts/hooks/pre-commit.example .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$ROOT_DIR"
+
+bash scripts/gaiden_no_legacy_guard.sh

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pipeline Dashboard</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+      --bad: #b30000;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .nav {
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 2px solid transparent;
+    }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    table {
+      width: calc(100% - 48px);
+      margin: 0 24px 28px;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      vertical-align: top;
+    }
+    th {
+      background: #f4ece2;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .raw-path { font-size: 12px; color: var(--muted); margin-top: 4px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/" class="current">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Pipeline Dashboard</h1>
+    <p class="subtitle">Estado do projeto por book e idioma (filesystem + último item do runner).</p>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th>Lang</th>
+        <th>RAW</th>
+        <th>Normalize</th>
+        <th>Chunk</th>
+        <th>Links</th>
+        <th>Translated</th>
+        <th>Split</th>
+        <th>Refine</th>
+        <th>Polish</th>
+        <th>EPUB</th>
+        <th>Last Run</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for book in books %}
+        {% for lang in book.langs %}
+          <tr>
+            {% if forloop.first %}
+              <td rowspan="{{ book.langs|length }}">{{ book.code }} — {{ book.title }}</td>
+            {% endif %}
+            <td>{{ lang.label }}</td>
+            <td>
+              {% if lang.raw_invalid %}
+                <span class="badge bad">INVALID</span>
+              {% elif lang.raw_ok %}
+                <span class="badge ok">OK</span>
+              {% else %}
+                <span class="badge bad">MISSING</span>
+              {% endif %}
+              {% if lang.raw_path %}
+                <div class="raw-path">{{ lang.raw_path }}</div>
+              {% endif %}
+            </td>
+            <td><span class="badge {{ lang.normalize_badge }}">{{ lang.normalize_status }}</span></td>
+            <td><span class="badge {{ lang.chunk_badge }}">{{ lang.chunk_status }}</span></td>
+            <td>
+              <a href="/pipeline/normalize/preview/{{ book.code }}/{{ lang.code }}/">Preview</a>
+              <a href="/pipeline/chunks/manifest/{{ book.code }}/{{ lang.code }}/">Manifest</a>
+            </td>
+            <td>{% if lang.translated_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>{% if lang.split_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>{% if lang.refine_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
+            <td>{% if lang.polish_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge warn">MISSING</span>{% endif %}</td>
+            <td>{% if lang.epub_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">MISSING</span>{% endif %}</td>
+            <td>
+              {% if lang.latest_action %}
+                {{ lang.latest_action }} / {{ lang.latest_status }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

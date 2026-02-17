@@ -7,6 +7,7 @@ from editorial.kdp_mode import (
     builds_dir,
     frontmatter_dir,
 )
+from pipeline.services import paths as ppaths
 from editorial.models import Edition
 
 
@@ -14,7 +15,7 @@ class Command(BaseCommand):
     help = (
         "Build KDP-mode para uma Edition (book_code + language):\n"
         " - Gera frontmatter/*.md\n"
-        " - Gera kdp_merged.md + BOOK.BUILD.MD\n"
+        " - Gera book.<lang>.vNN.kdp_merged.md + book.<lang>.vNN.build.md\n"
         " - Exporta ebook.epub via Pandoc\n"
         "\n"
         "Exemplo:\n"
@@ -35,13 +36,19 @@ class Command(BaseCommand):
         parser.add_argument(
             "--no-epub",
             action="store_true",
-            help="Rodar build apenas ate o BOOK.BUILD.MD (nao gerar EPUB).",
+            help="Rodar build apenas ate o build.md (nao gerar EPUB).",
+        )
+        parser.add_argument(
+            "--md-version",
+            dest="md_version",
+            help="Versao do MD (ex: v01). Usa GAIDEN_MD_VERSION se omitido.",
         )
 
     def handle(self, *args, **options):
         book_code = options["book_code"]
         language = options["language"]
         no_epub = options["no_epub"]
+        version = options.get("md_version")
 
         try:
             edition = Edition.objects.get(work__code=book_code, language__code=language)
@@ -53,19 +60,19 @@ class Command(BaseCommand):
         ))
 
         build_frontmatter_files(edition, frontmatter_dir(edition).parent)
-        merged_path = build_merged_kdp_source(edition)
-        book_build_path = builds_dir(edition) / "BOOK.BUILD.MD"
+        merged_path = build_merged_kdp_source(edition, version_override=version)
+        book_build_path = ppaths.build_md_path(edition, version=version)
 
         self.stdout.write(self.style.SUCCESS(f"  frontmatter   -> {frontmatter_dir(edition)}"))
         self.stdout.write(self.style.SUCCESS(f"  kdp_merged.md -> {merged_path}"))
-        self.stdout.write(self.style.SUCCESS(f"  BOOK.BUILD.MD -> {book_build_path}"))
+        self.stdout.write(self.style.SUCCESS(f"  build.md      -> {book_build_path}"))
 
         if no_epub:
             self.stdout.write(self.style.HTTP_INFO("EPUB nao gerado (--no-epub ativo)."))
             return
 
         try:
-            epub_path = build_epub_for_edition(edition, epub_filename="BOOK.epub")
+            epub_path = build_epub_for_edition(edition, epub_filename="BOOK.epub", version_override=version)
         except RuntimeError as exc:
             raise CommandError(str(exc))
 

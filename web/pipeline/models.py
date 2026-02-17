@@ -9,7 +9,7 @@ class PipelineJob(models.Model):
     STAGES = [
         ("raw", "Raw"),
         ("normalize", "Normalize"),
-        ("split", "Split"),
+        ("chunk", "Chunk"),
         ("translate", "Translate"),
         ("refine", "Refine"),
         ("polish", "Polish"),
@@ -56,6 +56,112 @@ class TextSnapshot(models.Model):
 
     def __str__(self) -> str:
         return f"Snapshot({self.edition} [{self.language}] - {self.stage})"
+
+
+class PipelineRun(models.Model):
+    MODE_CHOICES = [
+        ("MATRIX", "Matrix"),
+    ]
+
+    ACTION_CHOICES = [
+        ("NORMALIZE", "Normalize"),
+        ("CHUNK", "Chunk"),
+        ("TRANSLATE", "Translate"),
+        ("SPLIT_FOR_REFINE", "Split for Refine"),
+        ("RETURN_REFINE", "Return Refine"),
+        ("BUILD", "Build"),
+        ("EXPORT_EPUB", "Export EPUB"),
+    ]
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pendente"),
+        ("RUNNING", "Rodando"),
+        ("DONE", "Concluido"),
+        ("FAILED", "Falhou"),
+    ]
+
+    mode = models.CharField(max_length=20, choices=MODE_CHOICES, default="MATRIX")
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES, default="TRANSLATE")
+    options = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Run {self.id} ({self.action}) - {self.status}"
+
+
+class PipelineRunItem(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pendente"),
+        ("RUNNING", "Rodando"),
+        ("DONE", "Ok"),
+        ("FAILED", "Falhou"),
+        ("SKIPPED", "Pulado"),
+    ]
+
+    run = models.ForeignKey(
+        PipelineRun,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    book_id = models.IntegerField(null=True, blank=True)
+    book_code = models.CharField(max_length=50, blank=True)
+    lang = models.CharField(max_length=10)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    out_path = models.TextField(blank=True)
+    log_path = models.TextField(blank=True)
+    skipped_reason = models.TextField(blank=True)
+    overwrote = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self) -> str:
+        code = self.book_code or f"book_{self.book_id:04d}" if self.book_id else "book"
+        return f"{code} [{self.lang}] - {self.status}"
+
+
+class PipelineRunState(models.Model):
+    edition = models.OneToOneField(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="pipeline_run_state",
+    )
+    asset_language = models.CharField(max_length=10, blank=True, default="")
+    selected_mode = models.CharField(max_length=20, blank=True, default="")
+    effective_mode = models.CharField(max_length=20, blank=True, default="")
+    split_mode = models.CharField(max_length=10, blank=True, default="do")
+    refine_mode = models.CharField(max_length=10, blank=True, default="do")
+    cover_jpg_path = models.CharField(max_length=500, blank=True, default="")
+    images_converted_count = models.IntegerField(default=0)
+    inserted_images_count = models.IntegerField(default=0)
+    last_image_conversion_ts = models.DateTimeField(null=True, blank=True)
+    md_path = models.CharField(max_length=500, blank=True, default="")
+    md_source_sha256 = models.CharField(max_length=64, blank=True, default="")
+    md_generated_at = models.DateTimeField(null=True, blank=True)
+    md_status = models.CharField(max_length=30, blank=True, default="")
+    warnings = models.JSONField(default=list, blank=True)
+    build_outputs = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, blank=True, default="")
+    last_step = models.CharField(max_length=60, blank=True, default="")
+    last_build_ts = models.DateTimeField(null=True, blank=True)
+    active_artifact_filename = models.CharField(max_length=255, blank=True, default="")
+    last_log = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self) -> str:
+        return f"RunState({self.edition}) [{self.status or 'unknown'}]"
 
 
 LANGUAGE_DEFAULT_TEMPLATES = {
@@ -195,6 +301,74 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "{city}, {country} — {year}"
         ),
     },
+    "fr": {
+        "frontispiece_text": (
+            "{title}\n"
+            "par {author}\n"
+            "\n"
+            "Édition moderne en {language}\n"
+            "adapté par {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city}, {country} · {year}"
+        ),
+        "copyright_text": (
+            "Titre\n"
+            "{title}\n"
+            "Sous-titre\n"
+            "{subtitle}\n"
+            "Auteur\n"
+            "{author}\n"
+            "Adaptation\n"
+            "{adapter}\n"
+            "Année de publication\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Domaine public aux États-Unis et dans d'autres territoires.\n"
+            "\n"
+            "Cette version moderne de *{title}* a été produite sous l’empreinte MantaQuest.\n"
+            "MantaQuest est une marque déposée de RinoBooks.\n"
+            "\n"
+            "Éditeur : {publisher}\n"
+            "Tous droits réservés à RinoBooks.\n"
+            "{city}, {country} — {year}"
+        ),
+    },
+    "it": {
+        "frontispiece_text": (
+            "{title}\n"
+            "di {author}\n"
+            "\n"
+            "Edizione moderna in {language}\n"
+            "adattato da {adapter}\n"
+            "\n"
+            "{imprint}\n"
+            "{city}, {country} · {year}"
+        ),
+        "copyright_text": (
+            "Titolo\n"
+            "{title}\n"
+            "Sottotitolo\n"
+            "{subtitle}\n"
+            "Autore\n"
+            "{author}\n"
+            "Adattamento\n"
+            "{adapter}\n"
+            "Anno di pubblicazione\n"
+            "{year}\n"
+            "\n"
+            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Di pubblico dominio negli Stati Uniti e in altri territori.\n"
+            "\n"
+            "Questa versione moderna di *{title}* è stata prodotta sotto il marchio MantaQuest.\n"
+            "MantaQuest è un marchio registrato di RinoBooks.\n"
+            "\n"
+            "Editore: {publisher}\n"
+            "Tutti i diritti riservati a RinoBooks.\n"
+            "{city}, {country} — {year}"
+        ),
+    },
 }
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -216,12 +390,16 @@ class BookEditionTemplate(models.Model):
     LANG_PTBR = "ptbr"
     LANG_ES = "es"
     LANG_DE = "de"
+    LANG_FR = "fr"
+    LANG_IT = "it"
 
     LANG_CHOICES = [
         (LANG_EN, "en"),
         (LANG_ES, "es"),
         (LANG_PTBR, "pt-br"),
         (LANG_DE, "Deutsch"),
+        (LANG_FR, "fr"),
+        (LANG_IT, "it"),
     ]
 
     ROLE_TRANSLATOR = "translator"
@@ -254,8 +432,11 @@ class BookEditionTemplate(models.Model):
     subtitle = models.CharField(max_length=255, blank=True)
     author_name = models.CharField(max_length=255)
     publication_year = models.IntegerField()
+    edition_year = models.IntegerField(blank=True, null=True)
     imprint_name = models.CharField(max_length=255, blank=True)
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
     collection_name = models.CharField(max_length=255, blank=True)
+    edition_copyright_holder = models.CharField(max_length=120, blank=True, default="")
     collaborator_name = models.CharField(max_length=255, blank=True)
     collaborator_pseudonym = models.CharField(max_length=255, blank=True)
     collaborator_roles = models.CharField(
@@ -331,6 +512,8 @@ class BookEditionTemplate(models.Model):
             "ptbr": "Português",
             "es": "Español",
             "de": "Deutsch",
+            "fr": "Français",
+            "it": "Italiano",
         }
         language_label = language_map.get(self.language, (self.language or "").upper())
         return {
@@ -377,6 +560,8 @@ class BookEditionTemplate(models.Model):
         return self._render_text(self.about_contributor_text)
 
     def apply_language_defaults_if_empty(self):
+        if self.language == "es":
+            return []
         defaults = LANGUAGE_DEFAULT_TEMPLATES.get(self.language)
         if not defaults:
             return []

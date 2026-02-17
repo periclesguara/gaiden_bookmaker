@@ -2,522 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Book Edition - Gaiden</title>
+  <title>Nova edição - Gaiden</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
-    h1 { margin-bottom: 16px; }
-    form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
-    input[type="text"], input[type="number"], select, textarea {
-      width: 100%;
-      padding: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    textarea { min-height: 80px; font-family: monospace; }
-    .preview { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
-    .preview-title { font-weight: 600; margin: 6px 0 4px; }
-    .roles { display: flex; flex-wrap: wrap; gap: 12px; }
-    .roles label { font-weight: 400; display: flex; align-items: center; gap: 4px; }
-    .actions { margin-top: 20px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    body { font-family: system-ui, sans-serif; margin: 24px; font-size: 17px; }
+    label { display: block; margin-top: 12px; font-size: 15px; font-weight: 600; }
+    input, select { width: 100%; padding: 10px 12px; font-size: 16px; min-height: 40px; }
+    .row { display: flex; gap: 14px; }
+    .row > div { flex: 1; }
+    .actions { margin-top: 18px; }
+    button { padding: 10px 16px; font-size: 15px; font-weight: 600; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
+    .banner { padding: 14px 16px; border: 1px solid #f0c36d; background: #fff7df; border-radius: 8px; margin-bottom: 18px; font-size: 16px; }
   </style>
 </head>
 <body>
-  <h1>Book Edition</h1>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/" class="current">Editions</a>
+  </nav>
+
+  <h1>Editar edição (Advanced)</h1>
+  <div class="banner">
+    Cadastro oficial de livros é em Projects. Esta tela (Edições) é avançada, para ajustes finos por idioma.
+    <div style="margin-top: 10px;">
+      <a href="/pipeline/projects/" class="btn">Ir para Projects</a>
+      <a href="/pipeline/projects/new/" class="btn">Criar novo Project</a>
+    </div>
+  </div>
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <label>Book code</label>
+    <input type="text" name="book_code" value="{{ work.code }}" readonly required />
 
-    <div>
-      <label for="{{ form.book_code.id_for_label }}">Book code</label>
-      {{ form.book_code }}
-    </div>
+    <label>Idioma</label>
+    <input type="text" name="language" value="{{ edition.language.code }}" readonly required />
 
-    <div>
-      <label for="{{ form.language.id_for_label }}">Language</label>
-      {{ form.language }}
-    </div>
-
-    <hr />
-
-    <div>
-      <label for="{{ form.source_file.id_for_label }}">Raw file (original text)</label>
-      {{ form.source_file }}
-    </div>
-
-    <div>
-      <label for="{{ form.cover_file.id_for_label }}">Cover file</label>
-      {{ form.cover_file }}
-      {% if form.instance.cover_filepath %}
-      <small>Current: {{ form.instance.cover_filepath }}</small>
-      {% endif %}
-    </div>
-
-    <div>
-      <label for="{{ form.images_zip.id_for_label }}">Images ZIP (optional)</label>
-      {{ form.images_zip }}
-      {% if form.instance.images_dir %}
-      <small>Current: {{ form.instance.images_dir }}</small>
-      {% endif %}
-    </div>
-
-    <div>
-      <label for="{{ form.title.id_for_label }}">Title</label>
-      {{ form.title }}
-    </div>
-
-    <div>
-      <label for="{{ form.subtitle.id_for_label }}">Subtitle</label>
-      {{ form.subtitle }}
-    </div>
-
-    <div>
-      <label for="{{ form.author_name.id_for_label }}">Author</label>
-      {{ form.author_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.publication_year.id_for_label }}">Publication year</label>
-      {{ form.publication_year }}
-    </div>
-
-    <div>
-      <label for="{{ form.imprint_name.id_for_label }}">Imprint name</label>
-      {{ form.imprint_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.collection_name.id_for_label }}">Collection name</label>
-      {{ form.collection_name }}
-    </div>
-
-    <hr />
-
-    <div>
-      <label for="{{ form.collaborator_name.id_for_label }}">Contributor name (you)</label>
-      {{ form.collaborator_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.collaborator_pseudonym.id_for_label }}">Pseudonimo</label>
-      {{ form.collaborator_pseudonym }}
-    </div>
-
-    <div>
-      <span>Roles</span>
-      <div class="roles">
-        {{ form.collaborator_roles }}
+    <div class="row">
+      <div>
+        <label>Título</label>
+        <input type="text" name="title" value="{{ edition.title|default_if_none:'' }}" />
+      </div>
+      <div>
+        <label>Autor</label>
+        <input type="text" name="author" value="{{ edition.author|default_if_none:'' }}" />
+      </div>
+      <div>
+        <label>Ano</label>
+        <input type="text" name="year" value="{{ edition.edition_year|default_if_none:'' }}" />
       </div>
     </div>
 
-    <hr />
-
-    <div>
-      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispiece (template)</label>
-      {{ form.frontispiece_text }}
-      <div class="preview-title">Preview</div>
-      <div class="preview" id="frontispiece_preview"></div>
-    </div>
-
-    <div>
-      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
-      {{ form.copyright_text }}
-      <div class="preview-title">Preview</div>
-      <div class="preview" id="copyright_preview"></div>
-    </div>
-
-    <div>
-      <label for="{{ form.about_edition_text.id_for_label }}" data-label-key="about_edition_text">About this edition</label>
-      {{ form.about_edition_text }}
-    </div>
-
-    <div>
-      <label for="{{ form.about_contributor_text.id_for_label }}" data-label-key="about_contributor_text">About the contributor</label>
-      {{ form.about_contributor_text }}
-    </div>
+    <label>Selo</label>
+    <select name="seal">
+      {% for s in seals %}
+      <option value="{{ s.slug }}" {% if edition.seal.slug == s.slug %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
 
     <div class="actions">
-      <button type="submit">Save</button>
-      <a href="{% url 'book_edition_list' %}">Back</a>
+      <button type="submit">Salvar edição</button>
     </div>
   </form>
-  {% if form.instance.pk %}
-  <form method="post" action="{% url 'build_book_md' book_code=form.instance.book_code language=form.instance.language %}">
-    {% csrf_token %}
-    <div class="actions">
-      <button type="submit">Build Markdown (.md) + Preview</button>
-    </div>
-  </form>
-  {% endif %}
-  <script>
-    const languageDefaults = {
-      en: {
-        frontispiece_text:
-          "{title}\n" +
-          "by {author}\n" +
-          "\n" +
-          "Modern {language} Edition\n" +
-          "adapted by {adapter}\n" +
-          "\n" +
-          "{imprint}\n" +
-          "{city} · {year}",
-        copyright_text:
-          "Title\n" +
-          "{title}\n" +
-          "Subtitle\n" +
-          "{subtitle}\n" +
-          "Author\n" +
-          "{author}\n" +
-          "Adapter\n" +
-          "{adapter}\n" +
-          "Publication year\n" +
-          "{year}\n" +
-          "\n" +
-          "Copyright © {year} Arthur Conan Doyle.\n" +
-          "Public Domain in the United States and other territories.\n" +
-          "\n" +
-          "This modern version of *{title}* was produced under the MantaQuest imprint.\n" +
-          "MantaQuest is a registered trademark of RinoBooks.\n" +
-          "\n" +
-          "Publisher: {publisher}\n" +
-          "All rights reserved to RinoBooks.\n" +
-          "Rio de Janeiro, Brazil — {year}",
-      },
-      ptbr: {
-        frontispiece_text:
-          "{title}\n" +
-          "by {author}\n" +
-          "\n" +
-          "Modern {language} Edition\n" +
-          "adapted by {adapter}\n" +
-          "\n" +
-          "{imprint}\n" +
-          "{city} · {year}",
-        copyright_text:
-          "Title\n" +
-          "{title}\n" +
-          "Subtitle\n" +
-          "{subtitle}\n" +
-          "Author\n" +
-          "{author}\n" +
-          "Adapter\n" +
-          "{adapter}\n" +
-          "Publication year\n" +
-          "{year}\n" +
-          "\n" +
-          "Copyright © {year} Arthur Conan Doyle.\n" +
-          "Public Domain in the United States and other territories.\n" +
-          "\n" +
-          "This modern version of *{title}* was produced under the MantaQuest imprint.\n" +
-          "MantaQuest is a registered trademark of RinoBooks.\n" +
-          "\n" +
-          "Publisher: {publisher}\n" +
-          "All rights reserved to RinoBooks.\n" +
-          "Rio de Janeiro, Brazil — {year}",
-      },
-      es: {
-        frontispiece_text:
-          "{title}\n" +
-          "by {author}\n" +
-          "\n" +
-          "Modern {language} Edition\n" +
-          "adapted by {adapter}\n" +
-          "\n" +
-          "{imprint}\n" +
-          "{city} · {year}",
-        copyright_text:
-          "Title\n" +
-          "{title}\n" +
-          "Subtitle\n" +
-          "{subtitle}\n" +
-          "Author\n" +
-          "{author}\n" +
-          "Adapter\n" +
-          "{adapter}\n" +
-          "Publication year\n" +
-          "{year}\n" +
-          "\n" +
-          "Copyright © {year} Arthur Conan Doyle.\n" +
-          "Public Domain in the United States and other territories.\n" +
-          "\n" +
-          "This modern version of *{title}* was produced under the MantaQuest imprint.\n" +
-          "MantaQuest is a registered trademark of RinoBooks.\n" +
-          "\n" +
-          "Publisher: {publisher}\n" +
-          "All rights reserved to RinoBooks.\n" +
-          "Rio de Janeiro, Brazil — {year}",
-      },
-      de: {
-        frontispiece_text:
-          "{title}\n" +
-          "by {author}\n" +
-          "\n" +
-          "Modern {language} Edition\n" +
-          "adapted by {adapter}\n" +
-          "\n" +
-          "{imprint}\n" +
-          "{city} · {year}",
-        copyright_text:
-          "Title\n" +
-          "{title}\n" +
-          "Subtitle\n" +
-          "{subtitle}\n" +
-          "Author\n" +
-          "{author}\n" +
-          "Adapter\n" +
-          "{adapter}\n" +
-          "Publication year\n" +
-          "{year}\n" +
-          "\n" +
-          "Copyright © {year} Arthur Conan Doyle.\n" +
-          "Public Domain in the United States and other territories.\n" +
-          "\n" +
-          "This modern version of *{title}* was produced under the MantaQuest imprint.\n" +
-          "MantaQuest is a registered trademark of RinoBooks.\n" +
-          "\n" +
-          "Publisher: {publisher}\n" +
-          "All rights reserved to RinoBooks.\n" +
-          "Rio de Janeiro, Brazil — {year}",
-      },
-    };
-
-    const fieldIds = {
-      language: "{{ form.language.id_for_label }}",
-      frontispiece_text: "{{ form.frontispiece_text.id_for_label }}",
-      copyright_text: "{{ form.copyright_text.id_for_label }}",
-      about_edition_text: "{{ form.about_edition_text.id_for_label }}",
-      about_contributor_text: "{{ form.about_contributor_text.id_for_label }}",
-      title: "{{ form.title.id_for_label }}",
-      subtitle: "{{ form.subtitle.id_for_label }}",
-      author_name: "{{ form.author_name.id_for_label }}",
-      publication_year: "{{ form.publication_year.id_for_label }}",
-      collaborator_name: "{{ form.collaborator_name.id_for_label }}",
-      collaborator_pseudonym: "{{ form.collaborator_pseudonym.id_for_label }}",
-      imprint_name: "{{ form.imprint_name.id_for_label }}",
-    };
-
-    const previewIds = {
-      frontispiece_text: "frontispiece_preview",
-      copyright_text: "copyright_preview",
-    };
-
-    const labelTranslations = {
-      en: {
-        about_edition_text: "About this edition",
-        about_contributor_text: "About the contributor",
-      },
-      ptbr: {
-        about_edition_text: "Sobre esta edicao",
-        about_contributor_text: "Sobre o colaborador",
-      },
-      es: {
-        about_edition_text: "Sobre esta edicion",
-        about_contributor_text: "Sobre el colaborador",
-      },
-      de: {
-        about_edition_text: "Ueber diese Ausgabe",
-        about_contributor_text: "Ueber den Beitragenden",
-      },
-    };
-
-    const placeholderTranslations = {
-      en: {
-        about_edition_text: "Write a short note about this edition.",
-        about_contributor_text: "Write a short note about the contributor.",
-      },
-      ptbr: {
-        about_edition_text: "Escreva uma nota curta sobre esta edicao.",
-        about_contributor_text: "Escreva uma nota curta sobre o colaborador.",
-      },
-      es: {
-        about_edition_text: "Escribe una nota breve sobre esta edicion.",
-        about_contributor_text: "Escribe una nota breve sobre el colaborador.",
-      },
-      de: {
-        about_edition_text: "Schreiben Sie eine kurze Notiz zu dieser Ausgabe.",
-        about_contributor_text: "Schreiben Sie eine kurze Notiz ueber den Beitragenden.",
-      },
-    };
-
-    const lastAppliedDefaults = {};
-
-    const fieldMatchesDefault = (fieldName, value) => {
-      const defaults = languageDefaults;
-      return Object.keys(defaults).some((lang) => defaults[lang][fieldName] === value);
-    };
-
-    const getFieldValue = (fieldName) => {
-      const field = document.getElementById(fieldIds[fieldName]);
-      return field ? field.value : "";
-    };
-
-    const getRoleLabel = () => {
-      const roleInputs = document.querySelectorAll("input[name='collaborator_roles']:checked");
-      if (!roleInputs.length) {
-        return "Contributor";
-      }
-      const label = roleInputs[0].closest("label");
-      return label ? label.textContent.trim() : "Contributor";
-    };
-
-    const renderTemplate = (template, context) => {
-      return template.replace(/\{(\w+)\}/g, (_, key) => {
-        return context[key] !== undefined ? context[key] : "";
-      });
-    };
-
-    const normalizeLanguage = (value) => {
-      if (!value) {
-        return "";
-      }
-      const map = {
-        en: "English",
-        ptbr: "Portuguese",
-        es: "Spanish",
-        de: "German",
-      };
-      return map[value] || value.toUpperCase();
-    };
-
-    const updatePreviews = () => {
-      const collaboratorName = getFieldValue("collaborator_name");
-      const pseudonym = getFieldValue("collaborator_pseudonym");
-      const context = {
-        title: getFieldValue("title"),
-        subtitle: getFieldValue("subtitle"),
-        author: getFieldValue("author_name"),
-        year: getFieldValue("publication_year"),
-        collaborator: collaboratorName,
-        pseudonym: pseudonym || collaboratorName,
-        imprint: getFieldValue("imprint_name"),
-        role_label: getRoleLabel(),
-        publisher: collaboratorName,
-        adapter: pseudonym || collaboratorName,
-        language: normalizeLanguage(getFieldValue("language")),
-        city: "Rio de Janeiro",
-      };
-
-      Object.keys(previewIds).forEach((fieldName) => {
-        const field = document.getElementById(fieldIds[fieldName]);
-        const preview = document.getElementById(previewIds[fieldName]);
-        if (!field || !preview) {
-          return;
-        }
-        preview.textContent = renderTemplate(field.value || "", context);
-      });
-    };
-
-    const applyDefaults = (lang) => {
-      const defaults = languageDefaults[lang];
-      if (!defaults) {
-        return;
-      }
-      Object.keys(defaults).forEach((fieldName) => {
-        const field = document.getElementById(fieldIds[fieldName]);
-        if (field) {
-          const lastApplied = lastAppliedDefaults[fieldName];
-          if (!field.value || field.value === lastApplied || fieldMatchesDefault(fieldName, field.value)) {
-            field.value = defaults[fieldName];
-            lastAppliedDefaults[fieldName] = defaults[fieldName];
-          }
-        }
-      });
-    };
-
-    const applyDefaultsIfEmpty = (lang) => {
-      const defaults = languageDefaults[lang];
-      if (!defaults) {
-        return;
-      }
-      Object.keys(defaults).forEach((fieldName) => {
-        const field = document.getElementById(fieldIds[fieldName]);
-        if (field && !field.value) {
-          field.value = defaults[fieldName];
-          lastAppliedDefaults[fieldName] = defaults[fieldName];
-        }
-      });
-    };
-
-    const applyLabelsAndPlaceholders = (lang) => {
-      const labels = labelTranslations[lang];
-      const placeholders = placeholderTranslations[lang];
-      if (labels) {
-        Object.keys(labels).forEach((fieldName) => {
-          const label = document.querySelector(`label[data-label-key="${fieldName}"]`);
-          if (label) {
-            label.textContent = labels[fieldName];
-          }
-        });
-      }
-      if (placeholders) {
-        Object.keys(placeholders).forEach((fieldName) => {
-          const field = document.getElementById(fieldIds[fieldName]);
-          if (field) {
-            field.setAttribute("placeholder", placeholders[fieldName]);
-          }
-        });
-      }
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const languageField = document.getElementById(fieldIds.language);
-      if (!languageField) {
-        return;
-      }
-      Object.keys(fieldIds).forEach((fieldName) => {
-        if (fieldName === "language") {
-          return;
-        }
-        const field = document.getElementById(fieldIds[fieldName]);
-        if (field && fieldMatchesDefault(fieldName, field.value)) {
-          lastAppliedDefaults[fieldName] = field.value;
-        }
-      });
-      applyLabelsAndPlaceholders(languageField.value);
-      applyDefaultsIfEmpty(languageField.value);
-      updatePreviews();
-      const form = languageField.closest("form");
-      if (form) {
-        form.addEventListener("submit", () => {
-          applyDefaultsIfEmpty(languageField.value);
-          updatePreviews();
-        });
-      }
-      languageField.addEventListener("change", (event) => {
-        applyDefaults(event.target.value);
-        applyLabelsAndPlaceholders(event.target.value);
-        updatePreviews();
-      });
-      ["frontispiece_text", "copyright_text"].forEach((fieldName) => {
-        const field = document.getElementById(fieldIds[fieldName]);
-        if (!field) {
-          return;
-        }
-        field.addEventListener("blur", () => {
-          applyDefaultsIfEmpty(languageField.value);
-          updatePreviews();
-        });
-        field.addEventListener("input", updatePreviews);
-      });
-      [
-        "title",
-        "author_name",
-        "publication_year",
-        "collaborator_name",
-        "collaborator_pseudonym",
-        "imprint_name",
-      ].forEach((fieldName) => {
-        const field = document.getElementById(fieldIds[fieldName]);
-        if (field) {
-          field.addEventListener("input", updatePreviews);
-        }
-      });
-      const roleInputs = document.querySelectorAll("input[name='collaborator_roles']");
-      roleInputs.forEach((input) => {
-        input.addEventListener("change", updatePreviews);
-      });
-    });
-  </script>
 </body>
 </html>

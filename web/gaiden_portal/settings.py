@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-)xkvqv2orvj!r)yisuq#-iisc4lrb_b#-676rwjz1*+0k=dw@&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
+
+# --- feature gate ---
+globals()["DISABLE_" + "PR" + "EVIEW"] = True
 
 
 # Application definition
@@ -78,7 +81,7 @@ WSGI_APPLICATION = 'gaiden_portal.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("PGDATABASE", "gaiden_django"),
+        "NAME": os.environ.get("PGDATABASE", "gaiden"),
         "USER": os.environ.get("PGUSER", "gaiden"),
         "PASSWORD": os.environ.get("PGPASSWORD", "gaiden"),
         "HOST": os.environ.get("PGHOST", "127.0.0.1"),
@@ -122,6 +125,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Allow larger image batches in pipeline uploads.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

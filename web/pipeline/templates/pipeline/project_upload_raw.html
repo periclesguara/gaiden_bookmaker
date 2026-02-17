@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload RAW</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header { padding: 28px 24px 8px; }
+    h1 { margin: 0 0 6px; font-size: 30px; font-weight: 700; letter-spacing: 0.4px; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; }
+    .nav { display: flex; gap: 12px; font-size: 15px; margin-bottom: 8px; }
+    .nav a { text-decoration: none; color: var(--ink); border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 18px 24px; box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08); }
+    label { font-size: 15px; font-weight: 600; color: var(--muted); display: grid; gap: 8px; }
+    input { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 16px; min-height: 40px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn.secondary { background: #fff; color: var(--accent); }
+    .status { font-size: 16px; color: var(--muted); margin: 8px 0 0; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 16px; font-weight: 700; background: #fff; border: 1px solid var(--border); }
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/" class="current">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
+    <h1>Upload RAW</h1>
+    <p class="subtitle">{{ work.code }} · {{ language|upper }}</p>
+  </header>
+
+  {% if messages %}
+  <div class="card">
+    {% for message in messages %}
+      <div class="subtitle"><strong>{{ message.tags|upper }}</strong>: {{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="status">
+      Expected format: <strong>source.{{ expected_ext }}</strong>
+    </div>
+    <div class="status">
+      Path: <strong>{{ raw_status.path }}</strong>
+    </div>
+    <div class="status">
+      Status:
+      {% if raw_status.exists %}
+        <span class="badge ok">EXISTS</span>
+        <span class="status">Size: {{ raw_status.size }} bytes · Modified: {{ raw_status.mtime }}</span>
+        <div class="status"><strong>Replacing will overwrite the current file.</strong></div>
+      {% else %}
+        <span class="badge warn">MISSING</span>
+      {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" style="margin-top: 12px;">
+      {% csrf_token %}
+      <label>
+        Upload RAW file:
+        <input type="file" name="raw_file" required />
+      </label>
+      <div style="margin-top: 10px;">
+        <button class="btn" type="submit">Upload</button>
+        <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/">Back to Hub</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

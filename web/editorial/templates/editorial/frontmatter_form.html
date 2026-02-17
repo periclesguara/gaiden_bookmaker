@@ -4,21 +4,32 @@
   <meta charset="UTF-8" />
   <title>Editorial - Frontmatter</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 980px; }
-    h1 { margin-bottom: 16px; }
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 980px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    h3 { font-size: 18px; font-weight: 600; }
     form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
     input[type="text"], select, textarea {
       width: 100%;
-      padding: 6px;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 16px;
+      min-height: 40px;
       box-sizing: border-box;
     }
-    textarea { min-height: 80px; font-family: monospace; }
-    .preview { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
-    .preview-title { font-weight: 600; margin: 6px 0 4px; }
-    .actions { margin-top: 20px; display: flex; gap: 12px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    textarea { min-height: 120px; font-family: monospace; }
+    .notice { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; white-space: pre-wrap; font-family: monospace; font-size: 16px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+    button { padding: 10px 16px; font-size: 15px; font-weight: 600; }
+    .cards { margin-top: 24px; display: grid; gap: 16px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 14px; background: #fafafa; }
+    .card h3 { margin: 0 0 10px; }
+    .card textarea { min-height: 140px; }
+    .card-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .card-actions form { margin: 0; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -36,21 +47,28 @@
       border: 1px solid #ddd;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
     }
-    .modal h3 { margin: 0 0 8px; font-size: 16px; }
+    .modal h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
     .modal p { margin: 0 0 12px; }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/">Editions</a>
+    <a href="/editorial/frontmatter/{{ book_code }}/{{ language }}/" class="current">Frontmatter</a>
+  </nav>
   <h1>Editorial · Frontmatter</h1>
   {% if is_generic %}
-  <div class="preview">
+  <div class="notice">
     Modo generico: nenhum Edition cadastrado para este livro/idioma.
   </div>
   {% endif %}
 
   <div class="actions">
-    <label for="language_select">Idioma</label>
+    <label for="language_select">{{ form_labels.language_select }}</label>
     <select id="language_select" aria-label="Selecionar idioma" data-book-code="{{ book_code }}">
       {% for code, label in language_options %}
         <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ label }}</option>
@@ -63,110 +81,116 @@
     <input type="hidden" name="confirm_overwrite" id="confirm_overwrite" value="0" />
 
     <div>
-      <label for="{{ form.book_code.id_for_label }}">Book code</label>
+      <label for="{{ form.book_code.id_for_label }}">{{ form_labels.book_code }}</label>
       {{ form.book_code }}
     </div>
 
     <div>
-      <label for="{{ form.language.id_for_label }}">Idioma</label>
+      <label for="{{ form.language.id_for_label }}">{{ form_labels.language }}</label>
       {{ form.language }}
     </div>
 
     <div>
-      <label for="{{ form.seal_name.id_for_label }}">Selo</label>
+      <label for="{{ form.seal_name.id_for_label }}">{{ form_labels.seal_name }}</label>
       {{ form.seal_name }}
     </div>
 
     <div>
-      <label for="{{ form.title.id_for_label }}">Titulo do livro</label>
+      <label for="{{ form.title.id_for_label }}">{{ form_labels.title }}</label>
       {{ form.title }}
     </div>
 
     <div>
-      <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+      <label for="{{ form.subtitle.id_for_label }}">{{ form_labels.subtitle }}</label>
       {{ form.subtitle }}
     </div>
 
     <div>
-      <label for="{{ form.author_name.id_for_label }}">Autor</label>
+      <label for="{{ form.author_name.id_for_label }}">{{ form_labels.author_name }}</label>
       {{ form.author_name }}
     </div>
 
     <div>
-      <label for="{{ form.publication_year.id_for_label }}">Ano de publicacao</label>
+      <label for="{{ form.publication_year.id_for_label }}">{{ form_labels.publication_year }}</label>
       {{ form.publication_year }}
     </div>
 
     <div>
-      <label for="{{ form.imprint_name.id_for_label }}">Imprint</label>
+      <label for="{{ form.imprint_name.id_for_label }}">{{ form_labels.imprint_name }}</label>
       {{ form.imprint_name }}
     </div>
 
     <div>
-      <label for="{{ form.city_name.id_for_label }}">Cidade</label>
+      <label for="{{ form.city_name.id_for_label }}">{{ form_labels.city_name }}</label>
       {{ form.city_name }}
     </div>
 
     <div>
-      <label for="{{ form.country_name.id_for_label }}">Pais</label>
+      <label for="{{ form.country_name.id_for_label }}">{{ form_labels.country_name }}</label>
       {{ form.country_name }}
     </div>
 
     <div>
-      <label for="{{ form.editor_name.id_for_label }}">Editor</label>
+      <label for="{{ form.editor_name.id_for_label }}">{{ form_labels.editor_name }}</label>
       {{ form.editor_name }}
     </div>
 
     <div>
-      <label for="{{ form.translator_name.id_for_label }}">Tradutor</label>
+      <label for="{{ form.translator_name.id_for_label }}">{{ form_labels.translator_name }}</label>
       {{ form.translator_name }}
     </div>
 
     <div>
-      <label for="{{ form.adapter_name.id_for_label }}">Adaptador</label>
+      <label for="{{ form.adapter_name.id_for_label }}">{{ form_labels.adapter_name }}</label>
       {{ form.adapter_name }}
-    </div>
-
-    <div>
-      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispicio (template)</label>
-      {{ form.frontispiece_text }}
-      <div class="preview-title">Preview</div>
-      <div class="preview">{{ frontmatter_preview }}</div>
-    </div>
-
-    <div>
-      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
-      {{ form.copyright_text }}
-      <div class="preview-title">Preview</div>
-      <div class="preview">{{ copyright_preview }}</div>
-    </div>
-
-    <div>
-      <label for="{{ form.about_edition_text.id_for_label }}">About edition</label>
-      {{ form.about_edition_text }}
-    </div>
-
-    <div>
-      <label for="{{ form.about_contributor_text.id_for_label }}">About contributor</label>
-      {{ form.about_contributor_text }}
     </div>
 
     <div class="actions">
       <button type="submit">Salvar</button>
+      <button type="button" id="cancel_form">Cancelar</button>
       <a href="{% url 'book_edition_list' %}">Voltar</a>
     </div>
   </form>
+
+  {% if edition %}
+  <div class="cards">
+    {% for item in block_items %}
+      <div class="card">
+        <h3>## {{ item.title }}</h3>
+        <form method="post" action="{% url 'save_block' edition.id item.type %}">
+          {% csrf_token %}
+          <textarea name="text_md" rows="10" style="width:100%;">{{ item.block.text_md }}</textarea>
+          <div class="card-actions">
+            <button type="submit">Salvar</button>
+          </div>
+        </form>
+        <div class="card-actions">
+          <form method="post" action="{% url 'clear_block' edition.id item.type %}">
+            {% csrf_token %}
+            <button type="submit">Apagar</button>
+          </form>
+          <form method="post" action="{% url 'toggle_block_lock' edition.id item.type %}">
+            {% csrf_token %}
+            <button type="submit">{% if item.block.is_locked %}Unlock{% else %}Lock{% endif %}</button>
+          </form>
+        </div>
+        <small>Deixe vazio para remover essa seção do export.</small>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {% if overwrite_warning %}
-  <div class="preview">{{ overwrite_warning }}</div>
+  <div class="notice">{{ overwrite_warning }}</div>
   {% endif %}
 
   <div class="modal-backdrop" id="overwrite_modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overwrite_title">
-      <h3 id="overwrite_title">Substituir frontmatter?</h3>
-      <p>Ja existem arquivos salvos. Deseja sobrescrever?</p>
+      <h3 id="overwrite_title">Conteudo ja existente</h3>
+      <p>Esta acao ira sobrescrever o texto atual do frontmatter desta edicao. Esta operacao nao pode ser desfeita.</p>
       <div class="modal-actions">
         <button type="button" id="cancel_overwrite">Cancelar</button>
-        <button type="button" id="confirm_overwrite_btn">Sobrescrever</button>
+        <button type="button" id="confirm_overwrite_btn">Sobrescrever e salvar</button>
       </div>
     </div>
   </div>
@@ -176,7 +200,7 @@
       langSelect.addEventListener("change", (event) => {
         const code = event.target.value;
         const bookCode = event.target.dataset.bookCode;
-        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/?apply_defaults=1`;
+        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/`;
       });
     }
     const form = document.getElementById("frontmatter_form");
@@ -184,10 +208,12 @@
     const modal = document.getElementById("overwrite_modal");
     const cancelBtn = document.getElementById("cancel_overwrite");
     const confirmBtn = document.getElementById("confirm_overwrite_btn");
+    const cancelFormBtn = document.getElementById("cancel_form");
     if (form && confirmInput && modal && cancelBtn && confirmBtn) {
       form.addEventListener("submit", (event) => {
         const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};
-        if (hasFiles && confirmInput.value !== "1") {
+        const hasExistingText = {{ has_existing_text|yesno:"true,false" }};
+        if ((hasFiles || hasExistingText) && confirmInput.value !== "1") {
           event.preventDefault();
           modal.style.display = "flex";
         }
@@ -199,6 +225,11 @@
         confirmInput.value = "1";
         modal.style.display = "none";
         form.submit();
+      });
+    }
+    if (cancelFormBtn) {
+      cancelFormBtn.addEventListener("click", () => {
+        window.location.href = "{% url 'book_edition_list' %}";
       });
     }
   </script>

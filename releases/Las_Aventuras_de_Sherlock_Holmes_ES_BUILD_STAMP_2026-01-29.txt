@@ -1,0 +1,8 @@
+BOOK: Las Aventuras de Sherlock Holmes (Edición en Español Moderno)
+LANG: es
+SOURCE_TXT: /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0001/es/merge_refine.txt
+SHA256_TXT: (gere com sha256sum)
+OUT_BUILD_MD: /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0001/es/BOOK.BUILD.MD
+OUT_EPUB: /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0001/es/BOOK.epub
+STORIES: 12
+OK: headings+pagebreaks+toc+cover+metadata

@@ -10,6 +10,7 @@ from pathlib import Path
 from django.conf import settings
 
 from editorial import kdp_mode
+from editorial.frontmatter import build_frontmatter_files
 from . import edition_meta, paths
 
 
@@ -86,6 +87,10 @@ def run_export_epub(edition, language_override: str | None = None) -> dict:
             language__code=language_override,
         )
 
+    # Always refresh merged source so EPUB reflects latest MIOL/frontmatter/images.
+    build_frontmatter_files(target, paths.data_dir() / "frontmatter")
+    kdp_mode.build_merged_kdp_source(target)
+
     out_path = kdp_mode.build_epub_for_edition(target, epub_filename="BOOK.epub")
     cover_path = _resolve_cover_path(target)
     if cover_path:
@@ -94,11 +99,19 @@ def run_export_epub(edition, language_override: str | None = None) -> dict:
     return {"path": str(out_path), "cmd": "kdp_mode.build_epub_for_edition"}
 
 
-def run_export_pdf(edition, language_override: str | None = None) -> dict:
+def run_export_pdf(edition, language_override: str | None = None, version_override: str | None = None) -> dict:
     build_dir = _resolve_build_dir(edition, language_override)
-    in_path = build_dir / "BOOK.BUILD.MD"
+    in_path = paths.build_md_path(
+        edition,
+        language=language_override or edition_meta.language_code(edition),
+        version=version_override,
+    )
     if not in_path.exists():
-        raise FileNotFoundError(f"Build file not found: {in_path}")
+        legacy = build_dir / "BOOK.BUILD.MD"
+        if legacy.exists():
+            in_path = legacy
+        else:
+            raise FileNotFoundError(f"Build file not found: {in_path}")
 
     out_path = build_dir / "BOOK.PRINT.PDF"
     out_path.parent.mkdir(parents=True, exist_ok=True)

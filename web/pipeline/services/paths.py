@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+import re
 
 from django.conf import settings
+
+from gaiden.translate_artifacts import resolve_active_or_latest
 
 from . import edition_meta
 
@@ -23,7 +27,7 @@ def edition_build_dir_for_language(book_code: str, language: str) -> Path:
     return data_dir() / "builds" / book_code / language
 
 
-MERGE_PRIORITY = ["merge_polish.txt", "merge_refine.txt", "merge_translate.txt"]
+MERGE_PRIORITY = ["merge_refine.txt", "merge_polish.txt", "merge_translate.txt"]
 FORCE_MERGE_TRANSLATE_MARKER = "FORCE_MERGE_TRANSLATE"
 LEGACY_MERGE_NAMES = [
     "MERGE_POLISH.TXT",
@@ -31,12 +35,24 @@ LEGACY_MERGE_NAMES = [
     "MERGE_TRANSLATE.TXT",
 ]
 
+def merge_priority_names_for_language(language: str, build_dir: Path | None = None) -> list[str]:
+    if language == "es":
+        return list(MERGE_PRIORITY)
+    if language == "de":
+        if build_dir and (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
+            return ["merge_translate.txt", "merge_refine.txt"]
+        return ["merge_refine.txt", "merge_translate.txt"]
+    if build_dir and (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
+        return ["merge_translate.txt", "merge_refine.txt", "merge_polish.txt"]
+    return list(MERGE_PRIORITY)
+
 
 def merge_priority_names(edition) -> list[str]:
     build_dir = edition_build_dir(edition)
-    if (build_dir / FORCE_MERGE_TRANSLATE_MARKER).exists():
-        return ["merge_translate.txt", "merge_refine.txt", "merge_polish.txt"]
-    return list(MERGE_PRIORITY)
+    edition_lang = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", ""
+    )
+    return merge_priority_names_for_language(edition_lang, build_dir)
 
 
 def merge_paths(edition) -> list[Path]:
@@ -74,10 +90,14 @@ def sync_legacy_merges(edition) -> None:
 
 
 def final_merge_txt_path(edition) -> Path | None:
-    sync_legacy_merges(edition)
-    for path in merge_paths(edition):
-        if path.exists():
-            return path
+    book_code = edition_meta.book_code(edition)
+    lang = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", ""
+    )
+    translated_dir = data_dir() / "translated" / book_code / lang
+    canonical = resolve_active_or_latest(translated_dir, book_code, lang)
+    if canonical and canonical.exists():
+        return canonical
     return None
 
 
@@ -97,16 +117,88 @@ def core_last_txt_path(edition) -> Path:
     return data_dir() / "editions" / str(edition.id) / "core" / "core_last.txt"
 
 
-def pre_qa_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.PRE_QA.md"
+MD_VERSION_DEFAULT = "v01"
+MD_VERSION_RE = re.compile(r"^v?(\d+)$", re.IGNORECASE)
 
 
-def qa_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.QA.md"
+def _normalize_version(value: str | None) -> str:
+    if not value:
+        return MD_VERSION_DEFAULT
+    raw = value.strip().lower()
+    m = MD_VERSION_RE.match(raw)
+    if not m:
+        digits = re.search(r"\d+", raw)
+        if not digits:
+            return MD_VERSION_DEFAULT
+        num = int(digits.group(0))
+    else:
+        num = int(m.group(1))
+    if num < 0:
+        num = 0
+    return f"v{num:02d}"
 
 
-def pre_edition_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.PRE_EDITION.md"
+def _discover_latest_version(build_dir: Path, language: str) -> str | None:
+    if not build_dir.exists():
+        return None
+    pattern = re.compile(
+        rf"^book\.{re.escape(language)}\.v(\d+)(?:\.|$)",
+        re.IGNORECASE,
+    )
+    best = None
+    for path in build_dir.glob(f"book.{language}.v*.md"):
+        m = pattern.match(path.name)
+        if not m:
+            continue
+        num = int(m.group(1))
+        if best is None or num > best:
+            best = num
+    if best is None:
+        return None
+    return f"v{best:02d}"
+
+
+def md_version(
+    edition=None,
+    language: str | None = None,
+    override: str | None = None,
+    build_dir: Path | None = None,
+) -> str:
+    if override:
+        return _normalize_version(override)
+    env_value = os.environ.get("GAIDEN_MD_VERSION", "").strip()
+    if env_value:
+        return _normalize_version(env_value)
+    if build_dir and language:
+        discovered = _discover_latest_version(build_dir, language)
+        if discovered:
+            return _normalize_version(discovered)
+    return MD_VERSION_DEFAULT
+
+
+def book_md_basename(language: str, version: str) -> str:
+    return f"book.{language}.{version}"
+
+
+def pre_qa_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.pre_qa.md"
+
+
+def qa_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.qa.md"
+
+
+def pre_edition_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.pre_edition.md"
 
 
 MIOL_TERM_VERSION = "v1"
@@ -130,12 +222,37 @@ def qa_log_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.QA_LOG.json"
 
 
-def final_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.MD_FINAL"
+def final_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.md"
 
 
-def build_md_path(edition) -> Path:
-    return edition_build_dir(edition) / "BOOK.BUILD.MD"
+def build_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.build.md"
+
+
+def kdp_merged_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    build_dir = edition_build_dir_for_language(edition_meta.book_code(edition), lang)
+    ver = md_version(edition, lang, override=version, build_dir=build_dir)
+    return build_dir / f"{book_md_basename(lang, ver)}.kdp_merged.md"
+
+
+def canonical_ready_md_path(edition, language: str | None = None, version: str | None = None) -> Path:
+    lang = language or edition_meta.language_code(edition)
+    ver = md_version(edition, lang, override=version)
+    return (
+        data_dir()
+        / "canonical"
+        / edition_meta.book_code(edition)
+        / lang
+        / f"{book_md_basename(lang, ver)}.ready.md"
+    )
 
 
 def epub_path(edition) -> Path:

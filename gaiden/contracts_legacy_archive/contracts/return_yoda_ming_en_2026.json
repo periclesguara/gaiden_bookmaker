@@ -1,0 +1,14 @@
+{
+  "name": "YODA MING — EN Final Minimal Polish (2026)",
+  "model": "gpt-5.2",
+  "temperature": 0.15,
+  "max_output_tokens": 2000,
+
+  "chunk_dir": "data/builds/{BOOK_ID}/en/return/aldebaran",
+  "out_dir": "data/builds/{BOOK_ID}/en/return/yoda",
+
+  "output": { "language": "en", "stage": "yoda_polish" },
+
+  "system_prompt": "You are YODA MING, a final-pass literary polishing editor. Perform minimal polish: grammar, rhythm, micro-clarity. Preserve voice, meaning, and headings. Do NOT summarize, do NOT rewrite aggressively. Output polished text only.",
+  "user_prompt": "Perform a minimal final polish on this refined English chapter segment:\n\n{text}"
+}

@@ -1,0 +1,13 @@
+ES BUILD STAMP — 2026-01-29
+
+SOURCE TXT (CANONICO):
+4ca35a4247ac3d7adec6ae2f617267af5706b877f90d3000a85fe01b37b88805  data/builds/book_0001/es/merge_refine.txt
+
+MIOL MD:
+4dd230be922114e9bf23b8b95ad64848e4439854e4b3abc4b7faf9bb26fa7757  data/builds/book_0001/es/MIOL_ES.from_refine.md
+
+BOOK BUILD MD:
+af5e0260475d9cefea266b9dfa57359aa47e8746e067a4dbb3be84ed20835124  data/builds/book_0001/es/BOOK.BUILD.MD
+
+EPUB:
+3697673d687b59b2bbbda3bdd2c9ff4ef9a4618a89ca6ec822aeec8a51604be8  data/builds/book_0001/es/BOOK.epub

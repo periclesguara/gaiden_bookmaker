@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from django.conf import settings
 
 from editorial.models import EditionText
 
-PROJECT_ROOT = Path(settings.BASE_DIR).parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
-
-from gaiden.chunker import make_chunks_from_text, write_chunks
-from gaiden.structure import detect_units
-
-from . import edition_meta
+from . import edition_meta, chapter_chunks, paths
 
 
 def _parse_book_id(book_code: str) -> int:
@@ -37,28 +29,9 @@ def _get_normalized_text(edition) -> str:
     raise ValueError("Normalize required: no normalized_text found.")
 
 
-def _ensure_normalized_file(edition, normalized_text: str) -> Path:
-    book_code = edition_meta.book_code(edition)
-    language = edition_meta.language_code(edition)
-    out_dir = PROJECT_ROOT / "data" / "normalized"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{book_code}_{language}_v2.txt"
-    if not out_path.exists():
-        out_path.write_text(normalized_text, encoding="utf-8")
-    return out_path
-
-
-def run_split_struct(edition) -> int:
-    normalized = _get_normalized_text(edition)
-    _ensure_normalized_file(edition, normalized)
-    units = detect_units(normalized.splitlines())
-    return len(units)
-
-
-def run_split_01(edition, min_tokens: int = 1500, target_tokens: int = 1800, max_tokens: int = 2200) -> int:
-    normalized = _get_normalized_text(edition)
-    _ensure_normalized_file(edition, normalized)
+def run_chunks(edition) -> int:
+    """Legacy wrapper to generate EN chapter chunks."""
+    result = chapter_chunks.run_chapter_chunks(edition)
     book_id = _parse_book_id(edition_meta.book_code(edition))
-    chunks = make_chunks_from_text(normalized, edition_meta.language_code(edition), min_tokens, target_tokens, max_tokens)
-    chunks = write_chunks(book_id, "split_01", chunks)
-    return len(chunks)
+    out_dir = paths.data_dir() / "chunks" / f"book_{book_id:04d}" / "en"
+    return len(list(out_dir.glob("*.txt")))

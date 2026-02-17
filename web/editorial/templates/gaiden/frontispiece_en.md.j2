@@ -1,22 +1,5 @@
-{{ edition.title }}
-{{ edition.subtitle }}
+{% if text %}
+## Frontispiece
 
-{% if edition.about_edition_text %}
-About this edition
-{{ edition.about_edition_text }}
+{{ text }}
 {% endif %}
-
-Author: {{ edition.author }}
-Adapted by {{ edition.adapter }}
-
-Publication year: {{ edition.publication_year }}
-
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
-Public domain in the United States and in other territories.
-
-This modern edition of *{{ edition.title }}* was produced under the {{ edition.seal_name }} imprint.
-{{ edition.seal_name }} is a registered trademark of {{ edition.imprint_name }}.
-
-Publisher:
-All rights reserved by {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}

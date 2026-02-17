@@ -1,11 +1,5 @@
-{% autoescape off %}
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
-Public domain in the United States and in other territories.
+{% if text %}
+## Copyright
 
-This modern edition of *{{ edition.title }}* was produced under the {{ edition.seal_name }} imprint.
-{{ edition.seal_name }} is a registered trademark of {{ edition.imprint_name }}.
-
-Publisher:
-All rights reserved by {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
-{% endautoescape %}
+{{ text }}
+{% endif %}

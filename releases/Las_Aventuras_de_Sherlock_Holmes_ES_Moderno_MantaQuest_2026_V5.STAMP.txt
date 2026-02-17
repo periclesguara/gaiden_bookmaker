@@ -1,0 +1,11 @@
+BUILD STAMP
+===========
+TITLE: Las Aventuras de Sherlock Holmes (Edición en Español Moderno)
+LANG: es
+IMPRINT: MantaQuest / RinoBooks
+SOURCE: data/builds/book_0001/es/merge_refine.txt (canônico promovido)
+PIPELINE: scripts/rebuild_es_from_refine.py (TXT -> MD -> EPUB)
+TOC: gerado via headings "## 1..12" + pandoc --toc
+COVER: embed via --epub-cover-image
+NOTE: Capítulo 12 veio do TXT como "LA AVENTURA DE LAS CORONAS DE COBRE"
+      (dívida editorial: revisar canônico se quiser "LAS HAYAS COBRIZAS")

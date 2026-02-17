@@ -1,0 +1,13 @@
+{
+  "flow_name": "CACIQUE",
+  "model": "gpt-5-chat-latest",
+  "splits_dir": "data/translated/book_0002/PT-BR/split_chapters_for_refine",
+  "out_dir": "data/translated/book_0002/PT-BR/return",
+  "file_glob": "*.txt",
+  "out_suffix": ".RETURN.txt",
+  "merge_name": "merge_refine_ptbr.txt",
+  "temperature": 0.2,
+  "max_output_tokens": 6500,
+  "system_prompt": "Você é um editor literário. Retorne APENAS o texto revisado/refinado. Nada de resumo, nada de análise, nada de comentários. Preserve sentido e tom. Mantenha títulos/cabeçalhos exatamente.",
+  "user_prompt": "Refine o texto abaixo. Retorne APENAS o texto refinado.\n\n---\n{text}\n---"
+}

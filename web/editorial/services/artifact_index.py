@@ -5,6 +5,8 @@ from pathlib import Path
 
 from django.db import transaction
 
+from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
+
 from editorial.models import PipelineArtifact
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -74,6 +76,8 @@ def _scan_builds(work_code: str, lang: str) -> None:
             ],
         ),
     ]
+    if lang == "de":
+        patterns = [item for item in patterns if item[0] != "polish"]
     for stage, names in patterns:
         for name in names:
             path = bdir / name
@@ -83,6 +87,15 @@ def _scan_builds(work_code: str, lang: str) -> None:
     miolo = bdir / "MIOL_TERM.v1.md"
     if miolo.exists():
         _upsert(work_code, lang, "miolo", miolo, is_candidate=True)
+
+    md_candidates = sorted(bdir.glob(f"book.{lang}.v*.md"))
+    for path in md_candidates:
+        if any(tag in path.name for tag in [".pre_qa.", ".pre_edition.", ".qa.", ".build.", ".kdp_merged."]):
+            continue
+        _upsert(work_code, lang, "build", path, is_candidate=True)
+    build_candidates = sorted(bdir.glob(f"book.{lang}.v*.build.md"))
+    for path in build_candidates:
+        _upsert(work_code, lang, "build", path, is_candidate=True)
 
     finals = [
         ("BOOK.MD_FINAL", "build"),
@@ -101,7 +114,14 @@ def _scan_frontmatter(work_code: str, lang: str) -> None:
     fdir = ROOT / "data" / "frontmatter" / work_code / lang
     if not fdir.exists():
         return
-    for name in ["frontispiece.md", "copyright.md", "about_edition.md", "about_contributor.md"]:
+    for name in [
+        "frontispiece.md",
+        "copyright.md",
+        "about_edition.md",
+        "introduction.md",
+        "epilogue.md",
+        "about_contributor.md",
+    ]:
         path = fdir / name
         if path.exists():
             _upsert(work_code, lang, "frontmatter", path, is_candidate=True)
@@ -111,9 +131,26 @@ def _scan_translated(work_code: str, lang: str) -> None:
     tdir = ROOT / "data" / "translated" / work_code / lang
     if not tdir.exists():
         return
+    active = resolve_active_or_latest(tdir, work_code, lang)
+    if active and active.exists():
+        _upsert(work_code, lang, "translate", active, is_candidate=True)
+    for path in list_canonical_artifacts(tdir, work_code, lang):
+        if path.exists():
+            _upsert(work_code, lang, "translate", path, is_candidate=(active is not None and path == active))
     path = tdir / "miolo.md"
     if path.exists():
         _upsert(work_code, lang, "miolo", path, is_candidate=True)
+
+
+def _scan_chunks(work_code: str, lang: str) -> None:
+    if lang != "en":
+        return
+    cdir = ROOT / "data" / "chunks" / work_code / "en"
+    if not cdir.exists():
+        return
+    manifest = cdir / "manifest.json"
+    if manifest.exists():
+        _upsert(work_code, lang, "chunk", manifest, is_candidate=True)
 
 
 def _scan_cover(work_code: str, lang: str) -> None:
@@ -134,4 +171,5 @@ def reindex_artifacts_for_work(work_code: str, langs: tuple[str, ...] = ("en", "
         _scan_builds(work_code, lang)
         _scan_frontmatter(work_code, lang)
         _scan_translated(work_code, lang)
+        _scan_chunks(work_code, lang)
         _scan_cover(work_code, lang)

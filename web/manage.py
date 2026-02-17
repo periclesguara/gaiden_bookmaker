@@ -2,10 +2,24 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from gaiden.env_guard import assert_venv
+
+assert_venv(ROOT)
 
 
 def main():
     """Run administrative tasks."""
+    try:
+        from gaiden.secrets_loader import load_secrets
+        load_secrets()
+    except Exception:
+        pass
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gaiden_portal.settings')
     try:
         from django.core.management import execute_from_command_line

@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
+from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
+
 from . import paths
 
 PAGE_MARKER_RE = re.compile(r"@@P\d{4}@@\s*")
@@ -16,6 +18,7 @@ CHAPTER_PATTERNS = [
     r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*",
     r"^CHAPTER\s+[IVXLCDM]+(\.|:)?\s*.*",
     r"^CAPITULO\s+[IVXLCDM]+(\.|:)?\s*.*",
+    r"^\d+\.\s+.+",
     r"^[IVXLCDM]+\.\s+.*",
     r"^[IVXLCDM]+$",
 ]
@@ -37,7 +40,9 @@ def _selected_txt_sources(edition):
 
     sources = text_source.resolve_selected_text_sources(edition)
     if not sources:
-        raise FileNotFoundError("No merge_* file found. Run translate/refine/polish first.")
+        raise FileNotFoundError(
+            "No merge_* file found. Run Translate (NEW) or legacy refine/polish first."
+        )
     return sources
 
 
@@ -50,16 +55,18 @@ def _selected_txt_sources_for_language(edition, language: str):
     else:
         book_code = getattr(edition, "book_code", "")
     build_dir = paths.edition_build_dir_for_language(book_code, language)
-    marker = build_dir / paths.FORCE_MERGE_TRANSLATE_MARKER
-    if marker.exists():
-        order = ["merge_translate", "merge_refine", "merge_polish"]
-    else:
-        order = [p.replace(".txt", "") for p in paths.MERGE_PRIORITY]
-    candidates: list[Path] = []
-    for base in order:
-        candidates.append(build_dir / f"{base}_{language}.txt")
-        candidates.append(build_dir / f"{base}.txt")
-    for path in candidates:
+    translated_dir = paths.data_dir() / "translated" / book_code / language
+    active = resolve_active_or_latest(translated_dir, book_code, language)
+    if active and active.exists():
+        return [
+            text_source.SelectedTextSource(
+                language=language,
+                path=active,
+                name=active.name,
+                label=f"{active.name} ({language})",
+            )
+        ]
+    for path in list_canonical_artifacts(translated_dir, book_code, language):
         if path.exists():
             return [
                 text_source.SelectedTextSource(
@@ -69,16 +76,9 @@ def _selected_txt_sources_for_language(edition, language: str):
                     label=f"{path.name} ({language})",
                 )
             ]
-    for path in sorted(build_dir.glob("*.txt")):
-        return [
-            text_source.SelectedTextSource(
-                language=language,
-                path=path,
-                name=path.name,
-                label=f"{path.name} ({language})",
-            )
-        ]
-    raise FileNotFoundError(f"No merge_* file found for language {language}.")
+    raise FileNotFoundError(
+        f"No canonical translated artifact found for language {language} in {translated_dir}."
+    )
 
 
 def _clean_raw_text(txt: str) -> str:
@@ -210,7 +210,7 @@ def pre_edition_txt_to_md(
         cfg = PreEditionConfig()
 
     txt_path = Path(txt_path)
-    md_path = Path(md_path)
+    md_path = _clean_md_double_suffix(Path(md_path))
 
     raw = txt_path.read_text(encoding="utf-8")
     cleaned = _normalize_txt_for_md(raw)
@@ -235,7 +235,18 @@ def pre_edition_txt_to_md(
     return md_path
 
 
-def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, str]:
+def _clean_md_double_suffix(path: Path) -> Path:
+    cleaned = str(path)
+    while cleaned.endswith(".md.md"):
+        cleaned = cleaned[:-3]
+    return Path(cleaned)
+
+
+def run_txt_to_md(
+    edition,
+    language_override: str | None = None,
+    version_override: str | None = None,
+) -> Dict[str, str]:
     if language_override:
         sources = _selected_txt_sources_for_language(edition, language_override)
         build_dir = paths.edition_build_dir_for_language(
@@ -259,12 +270,17 @@ def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, st
             subtitle=subtitle,
             language=source.language,
         )
-        if len(sources) == 1:
-            out_pre_edition = build_dir / "BOOK.PRE_EDITION.md"
-            out_pre_qa = build_dir / "BOOK.PRE_QA.md"
-        else:
-            out_pre_edition = build_dir / f"BOOK.PRE_EDITION.{source.language}.md"
-            out_pre_qa = build_dir / f"BOOK.PRE_QA.{source.language}.md"
+        version = paths.md_version(
+            edition,
+            language=source.language,
+            override=version_override,
+            build_dir=build_dir,
+        )
+        base = paths.book_md_basename(source.language, version)
+        out_pre_edition = build_dir / f"{base}.pre_edition.md"
+        out_pre_qa = build_dir / f"{base}.pre_qa.md"
+        out_pre_edition = _clean_md_double_suffix(out_pre_edition)
+        out_pre_qa = _clean_md_double_suffix(out_pre_qa)
         pre_edition_txt_to_md(source.path, out_pre_edition, cfg)
         md_text = out_pre_edition.read_text(encoding="utf-8")
         out_pre_qa.parent.mkdir(parents=True, exist_ok=True)
@@ -355,7 +371,6 @@ def insert_image_placeholders(md_path: Path) -> None:
     i = 0
     while i < len(lines):
         line = lines[i]
-        out_lines.append(line)
         is_chapter = False
         if line.startswith("## "):
             is_chapter = True
@@ -365,13 +380,26 @@ def insert_image_placeholders(md_path: Path) -> None:
         if is_chapter:
             chapter_idx += 1
             idx_str = f"{chapter_idx:02d}"
+            k = i - 1
+            while k >= 0 and not lines[k].strip():
+                k -= 1
+            if k >= 0 and IMAGE_PLACEHOLDER_RE.search(lines[k]):
+                out_lines.append(line)
+                i += 1
+                continue
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
             if j < len(lines) and IMAGE_PLACEHOLDER_RE.search(lines[j]):
+                out_lines.append(line)
                 i += 1
                 continue
             out_lines.append(f"{{{{IMAGE:CH{idx_str}:01}}}}")
+            out_lines.append("")
+            out_lines.append(line)
+            i += 1
+            continue
+        out_lines.append(line)
         i += 1
 
     new_text = "\n".join(out_lines)

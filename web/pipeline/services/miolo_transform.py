@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 import shutil
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from . import edition_meta, utils
+from . import edition_meta, paths, utils
 
 PATTERN_EN = r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$"
 PATTERN_ES = r"^(CAP[IÍ]TULO)\s+\d+\s*[-–:]?\s*(.*)$"
@@ -38,6 +39,23 @@ def promote_chapter_h2_to_h1(md_text: str) -> tuple[str, int]:
 CHAPTER_PATTERNS_BY_LANG = {
     "en": [
         ChapterPattern("CHAPTER_NUM", re.compile(r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "es": [
+        ChapterPattern("CAPITULO_NUM", re.compile(r"^CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "ptbr": [
+        ChapterPattern("CAPITULO_NUM", re.compile(r"^CAP[IÍ]TULO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "fr": [
+        ChapterPattern("CHAPITRE_NUM", re.compile(r"^CHAPITRE\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
+    ],
+    "it": [
+        ChapterPattern("CAPITOLO_NUM", re.compile(r"^CAPITOLO\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
     ],
     "de": [
         ChapterPattern("ROMAN_DOT", re.compile(r"^[IVXLCDM]+\.\s+.+$", re.I)),
@@ -95,7 +113,7 @@ def _pattern_for_language(language: str) -> str:
     return PATTERN_EN
 
 
-def split_chapters(raw_text: str, header_pattern: str) -> List[Tuple[str, str]]:
+def chunk_chapters(raw_text: str, header_pattern: str) -> List[Tuple[str, str]]:
     """Divide o TXT em capítulos baseado no pattern."""
     pattern = re.compile(header_pattern, flags=re.IGNORECASE)
     lines = raw_text.splitlines()
@@ -175,7 +193,7 @@ def txt_to_md(
 
     raw = source.read_text(encoding="utf-8")
 
-    chapters = split_chapters(raw, chapter_pattern)
+    chapters = chunk_chapters(raw, chapter_pattern)
     if not chapters:
         md = raw.strip() + "\n"
     else:
@@ -184,13 +202,15 @@ def txt_to_md(
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(md, encoding="utf-8")
+    tmp_path = output.with_suffix(output.suffix + ".tmp")
+    tmp_path.write_text(md, encoding="utf-8")
+    tmp_path.replace(output)
     return output
 
 
 def publish_miolo_for_kdp(edition, miolo_md_path: Path) -> Path:
     target = (
-        Path("data")
+        paths.data_dir()
         / "translated"
         / edition_meta.book_code(edition)
         / edition_meta.language_code(edition)
@@ -217,6 +237,53 @@ def run_txt_to_miolo(edition) -> Dict[str, str]:
         "path": str(out_path),
         "published_miolo": str(published_path),
         "source_txt": str(source.path),
+    }
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def ensure_md_uptodate(
+    edition,
+    *,
+    cached_source_sha256: str | None = None,
+) -> Dict[str, str | list[str]]:
+    from . import paths, text_source
+
+    source = text_source.resolve_txt_source(edition)
+    source_path = Path(source.path)
+    source_sha256 = _sha256_file(source_path)
+    out_path = paths.miolo_md_path(edition)
+    warnings: list[str] = []
+
+    if out_path.exists() and cached_source_sha256 and cached_source_sha256 == source_sha256:
+        warnings.append("md:already_converted")
+        return {
+            "md_action": "skipped_up_to_date",
+            "path": str(out_path),
+            "source_txt": str(source_path),
+            "source_sha256": source_sha256,
+            "warnings": warnings,
+        }
+
+    lang = edition.language.code
+    pattern = _pattern_for_language(lang)
+    txt_to_md(source_path, out_path, pattern, lang)
+    published_path = publish_miolo_for_kdp(edition, out_path)
+
+    return {
+        "md_action": "generated",
+        "md_text": out_path.read_text(encoding="utf-8"),
+        "path": str(out_path),
+        "published_miolo": str(published_path),
+        "source_txt": str(source_path),
+        "source_sha256": source_sha256,
+        "warnings": warnings,
     }
 
 

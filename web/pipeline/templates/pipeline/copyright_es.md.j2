@@ -1,11 +1,5 @@
-{% autoescape off %}
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
-Dominio público en los Estados Unidos y en otros territorios.
+{% if text %}
+## Copyright
 
-Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
-{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
-
-Editorial:
-Todos los derechos reservados a {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
-{% endautoescape %}
+{{ text }}
+{% endif %}

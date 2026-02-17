@@ -1,0 +1,16 @@
+Goal tomorrow: fix OpenAI truncation/1-paragraph output in translate_en_2026 smoke test.
+
+Evidence:
+- translate_en_2026 smoke test: COMPRESSION_FAIL ratio=0.039, paras_out=1
+- likely cause: call_agent_text not applying max_output_tokens/model from contract OR default cap too low.
+
+Audit plan:
+1) Inspect docs/audit/runs/5/5.log and docs/audit/runs/6/6.log:
+   - identify the OpenAI call path that succeeded (params, model, token caps)
+2) Compare with translate_en_2026.py call_agent_text invocation:
+   - confirm which kwargs are actually passed/used
+3) Patch gaiden.openai_client.call_agent_text to:
+   - accept and forward model="gpt-5.2"
+   - accept and forward max_output_tokens=2400 (or correct SDK param name)
+   - log EFFECTIVE_MODEL and EFFECTIVE_MAX_TOKENS (no secrets)
+4) Re-run smoke test limit=1 only.

@@ -1,0 +1,20 @@
+GAIDEN RELEASE STAMP
+- datetime: 2026-01-29T21:32:29-03:00
+- book_code: book_0001
+- language: es
+- imprint: MantaQuest (RinoBooks)
+- adapter: Hans Hermann Ironside
+- build_mode: NO_DB (disk frontmatter)
+- canonical_source: data/chunks/book_0001/refine_es_01/refined_es_mx_2025.polished.txt
+- canonical_sha256: 4ca35a4247ac3d7adec6ae2f617267af5706b877f90d3000a85fe01b37b88805
+- build_merge_refine: data/builds/book_0001/es/merge_refine.txt
+- merge_refine_sha256: 4ca35a4247ac3d7adec6ae2f617267af5706b877f90d3000a85fe01b37b88805
+- cover_file: data/builds/book_0001/es/Cover_Sherlock_Holmes_ES.jpg
+- frontmatter_dir: data/frontmatter/book_0001/es
+- epub_file: releases/Las_Aventuras_de_Sherlock_Holmes_ES_Moderno_MantaQuest_2026_V4.epub
+- epub_bytes: 762623
+- epub_sha256: 7945c226c0ac293b7278db2c29cfa37ffec047d294fc06cb9b724475a1ad8068
+
+NOTE:
+- DB/export disabled in sandbox; frontmatter written directly to disk.
+- Miolo source is merge_refine (promoted from refined_es_mx_2025.polished.txt).

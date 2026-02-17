@@ -25,16 +25,24 @@ def _language_label(lang: str) -> str:
     }.get(lang, lang.upper())
 
 
-def run_build(edition, language_override: str | None = None) -> dict:
+def run_build(edition, language_override: str | None = None, version_override: str | None = None) -> dict:
     book_code = edition_meta.book_code(edition)
     build_dir = (
         paths.edition_build_dir_for_language(book_code, language_override)
         if language_override
         else paths.edition_build_dir(edition)
     )
-    final_md = build_dir / "BOOK.MD_FINAL"
+    final_md = paths.final_md_path(
+        edition,
+        language=language_override or edition_meta.language_code(edition),
+        version=version_override,
+    )
     if not final_md.exists():
-        raise FileNotFoundError(f"MD final not found: {final_md}")
+        legacy_final = build_dir / "BOOK.MD_FINAL"
+        if legacy_final.exists():
+            final_md = legacy_final
+        else:
+            raise FileNotFoundError(f"MD final not found: {final_md}")
 
     md_text = final_md.read_text(encoding="utf-8")
 
@@ -44,11 +52,15 @@ def run_build(edition, language_override: str | None = None) -> dict:
     else:
         build_text = md_text.strip() + "\n"
 
-    out_path = build_dir / "BOOK.BUILD.MD"
+    out_path = paths.build_md_path(
+        edition,
+        language=language_override or edition_meta.language_code(edition),
+        version=version_override,
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(build_text, encoding="utf-8")
 
     return {
         "path": str(out_path),
-        "preview": build_text[:2000],
+        "snippet": build_text[:2000],
     }

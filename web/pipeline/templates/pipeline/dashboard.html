@@ -17,6 +17,7 @@
     body {
       margin: 0;
       font-family: "Georgia", "Times New Roman", serif;
+      font-size: 17px;
       background: radial-gradient(circle at 10% 0%, #fff2e1 0%, #f5f2ed 35%, #efe8de 100%);
       color: var(--ink);
     }
@@ -25,13 +26,27 @@
     }
     h1 {
       margin: 0 0 6px;
-      font-size: 28px;
+      font-size: 30px;
+      font-weight: 700;
       letter-spacing: 0.4px;
     }
     p {
       margin: 0;
       color: var(--muted);
     }
+    .nav {
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 2px solid transparent;
+    }
+    .nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .nav a:hover { border-bottom-color: var(--accent); }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -47,11 +62,12 @@
     }
     .card h2 {
       margin: 0 0 8px;
-      font-size: 18px;
+      font-size: 22px;
+      font-weight: 600;
     }
     .meta {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 16px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       margin-bottom: 12px;
@@ -66,13 +82,13 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px;
+      padding: 12px 10px;
       text-align: center;
-      font-size: 12px;
+      font-size: 16px;
     }
     .stat strong {
       display: block;
-      font-size: 18px;
+      font-size: 20px;
       margin-bottom: 4px;
     }
     .stat.ok strong {
@@ -83,17 +99,24 @@
     }
     .actions a {
       display: inline-block;
-      padding: 6px 10px;
+      padding: 10px 16px;
       border-radius: 6px;
       background: var(--accent);
       color: #fff;
       text-decoration: none;
-      font-size: 12px;
+      font-size: 15px;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <header>
+    <nav class="nav">
+      <a href="/pipeline/projects/">Projects</a>
+      <a href="/pipeline/runner/">Runner</a>
+      <a href="/pipeline/dashboard/" class="current">Dashboard</a>
+      <a href="/pipeline/editions/">Editions</a>
+    </nav>
     <h1>Gaiden Pipeline - Visao Geral</h1>
     <p>Resumo por edicao com status das etapas.</p>
     <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>

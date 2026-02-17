@@ -1,22 +1,5 @@
-{{ edition.title }}
-{{ edition.subtitle }}
+{% if text %}
+## Frontispicio
 
-{% if edition.about_edition_text %}
-Sobre esta edicion
-{{ edition.about_edition_text }}
+{{ text }}
 {% endif %}
-
-Autor: {{ edition.author }}
-Adaptado por {{ edition.adapter }}
-
-Año de publicación: {{ edition.publication_year }}
-
-Copyright © {{ edition.publication_year }} {{ edition.author }}.
-Dominio público en los Estados Unidos y en otros territorios.
-
-Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ edition.seal_name }}.
-{{ edition.seal_name }} es una marca registrada de {{ edition.imprint_name }}.
-
-Editorial:
-Todos los derechos reservados a {{ edition.imprint_name }}.
-{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}

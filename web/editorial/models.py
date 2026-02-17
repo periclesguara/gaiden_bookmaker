@@ -52,6 +52,7 @@ class Contributor(models.Model):
 class Work(models.Model):
     code = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, blank=True)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,
@@ -65,6 +66,13 @@ class Work(models.Model):
     publisher = models.CharField(max_length=255, blank=True)
     year = models.IntegerField(null=True, blank=True)
     is_public_domain = models.BooleanField(default=True)
+    enabled_languages = models.JSONField(default=list, blank=True)
+    source_format = models.CharField(
+        max_length=10,
+        choices=[("TXT", "TXT"), ("MD", "MD")],
+        default="TXT",
+    )
+    notes = models.TextField(blank=True)
 
     class Meta:
         db_table = "work"
@@ -79,6 +87,8 @@ class Edition(models.Model):
         ("pt-br", "Português (Brasil)"),
         ("es", "Español"),
         ("de", "Deutsch"),
+        ("fr", "Français"),
+        ("it", "Italiano"),
     ]
 
     IMPRINT_CHOICES = [
@@ -127,6 +137,8 @@ class Edition(models.Model):
     translator = models.CharField(max_length=255, blank=True)
     editor = models.CharField(max_length=255, blank=True)
     about_edition_text = models.TextField(blank=True)
+    introduction_text = models.TextField(blank=True, null=True, default="")
+    epilogue_text = models.TextField(blank=True, null=True, default="")
     publication_year = models.IntegerField(default=2026)
     city = models.CharField(max_length=100, default="Rio de Janeiro")
     country = models.CharField(
@@ -180,6 +192,9 @@ class Edition(models.Model):
             "{city}, {country} — {year}\n"
         )
     )
+    copyright_text = models.TextField(blank=True, default="")
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
+    edition_copyright_holder = models.CharField(max_length=120, blank=True, default="")
     about_edition_template = models.TextField(blank=True)
     about_contributor_template = models.TextField(blank=True)
     cover_filepath = models.CharField(
@@ -193,6 +208,7 @@ class Edition(models.Model):
         choices=LANGUAGE_CHOICES,
         default="en",
     )
+    language_variant = models.CharField(max_length=20, blank=True, default="")
     lock_translate = models.BooleanField(default=False)
     lock_refine = models.BooleanField(default=False)
     lock_polish = models.BooleanField(default=False)
@@ -218,10 +234,37 @@ class Edition(models.Model):
         return f"{self.work.title} [{self.language.code} · {self.seal.slug}]"
 
 
+class EditionBlock(models.Model):
+    BLOCK_TYPES = [
+        ("frontispiece", "Frontispício"),
+        ("copyright", "Copyright"),
+        ("about_edition", "About this Edition"),
+        ("introduction", "Introdução"),
+        ("epilogue", "Epílogo"),
+    ]
+
+    edition = models.ForeignKey(
+        Edition,
+        on_delete=models.CASCADE,
+        related_name="blocks",
+    )
+    block_type = models.CharField(max_length=32, choices=BLOCK_TYPES)
+    text_md = models.TextField(blank=True)
+    is_locked = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("edition", "block_type")
+
+    def __str__(self) -> str:
+        return f"{self.edition} :: {self.block_type}"
+
+
 class PipelineStage(models.TextChoices):
     RAW = "RAW", "Original (raw)"
     NORMALIZED = "NORMALIZED", "Normalizado"
-    SPLIT = "SPLIT", "Split"
     CHUNKED = "CHUNKED", "Chunked"
     TRANSLATED = "TRANSLATED", "Traduzido"
     REFINED = "REFINED", "Refine"
@@ -290,8 +333,9 @@ class PipelineArtifact(models.Model):
     STAGE_CHOICES = [
         ("raw", "RAW"),
         ("normalize", "NORMALIZE"),
-        ("split", "SPLIT/CHUNK"),
+        ("chunk", "CHUNK"),
         ("translate", "TRANSLATE"),
+        ("merge_translate", "MERGE_TRANSLATE"),
         ("refine", "REFINE"),
         ("polish", "POLISH"),
         ("miolo", "MIOLO"),
@@ -305,6 +349,8 @@ class PipelineArtifact(models.Model):
     work_code = models.CharField(max_length=200, db_index=True)
     language_code = models.CharField(max_length=20, db_index=True)
     stage = models.CharField(max_length=50, choices=STAGE_CHOICES, db_index=True)
+    status = models.CharField(max_length=16, default="OK")
+    sha256 = models.CharField(max_length=64, blank=True, default="")
     relpath = models.TextField()
     filename = models.CharField(max_length=255, db_index=True)
     size_bytes = models.BigIntegerField(default=0)

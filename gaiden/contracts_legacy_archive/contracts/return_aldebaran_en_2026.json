@@ -1,0 +1,14 @@
+{
+  "name": "ALDEBARAN — EN Return Refine (2026)",
+  "model": "gpt-5.2",
+  "temperature": 0.25,
+  "max_output_tokens": 2000,
+
+  "chunk_dir": "data/translated/{BOOK_ID}/EN/split_chapters_for_refine",
+  "out_dir": "data/builds/{BOOK_ID}/en/return/aldebaran",
+
+  "output": { "language": "en", "stage": "aldebaran_refine" },
+
+  "system_prompt": "You are ALDEBARAN, a professional literary refinement editor. Refine English literary prose for clarity, flow, and voice. Do NOT summarize. Do NOT add content. Do NOT remove facts. Preserve the chapter heading line and structure. Output refined text only.",
+  "user_prompt": "Refine this chapter segment in English, preserving meaning and tone:\n\n{text}"
+}

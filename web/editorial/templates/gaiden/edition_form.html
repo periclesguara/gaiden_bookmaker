@@ -4,21 +4,34 @@
   <meta charset="UTF-8" />
   <title>Edition - Frontmatter</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 900px; }
-    h1 { margin-bottom: 16px; }
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 900px; font-size: 17px; }
+    h1 { margin-bottom: 16px; font-size: 30px; font-weight: 700; }
+    h3 { font-size: 18px; font-weight: 600; }
     form div { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
     input[type="text"], input[type="number"], select, textarea {
       width: 100%;
-      padding: 6px;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 16px;
+      min-height: 40px;
       box-sizing: border-box;
     }
-    .actions { margin-top: 20px; display: flex; gap: 12px; }
-    button { padding: 6px 12px; font-size: 14px; }
+    textarea { min-height: 120px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+    button { padding: 10px 16px; font-size: 15px; font-weight: 600; }
+    .nav { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; }
+    .nav a { text-decoration: none; border-bottom: 2px solid transparent; }
+    .nav a.current { font-weight: 700; border-bottom-color: #444; }
+    .nav a:hover { border-bottom-color: #444; }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="/pipeline/projects/">Projects</a>
+    <a href="/pipeline/runner/">Runner</a>
+    <a href="/pipeline/dashboard/">Dashboard</a>
+    <a href="/pipeline/editions/" class="current">Editions</a>
+  </nav>
   <h1>Edition · Frontmatter</h1>
 
   <form method="post">
@@ -68,25 +81,27 @@
       {{ form.seal_name }}
     </div>
     <div>
+      <label for="{{ form.cover_filepath.id_for_label }}">Caminho da capa</label>
+      {{ form.cover_filepath }}
+    </div>
+    <div>
       <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
       {{ form.about_edition_text }}
+    </div>
+    <div>
+      <label for="{{ form.introduction_text.id_for_label }}">Introduction</label>
+      {{ form.introduction_text }}
+    </div>
+    <div>
+      <label for="{{ form.epilogue_text.id_for_label }}">Epilogue</label>
+      {{ form.epilogue_text }}
     </div>
 
     <div class="actions">
       <button type="submit">Salvar</button>
       <a href="?apply_defaults=1">Aplicar defaults por idioma</a>
-      <a href="{% url 'frontispiece_preview' edition.id %}">Preview frontispicio</a>
     </div>
   </form>
-
-  <h2>Preview Frontispicio</h2>
-  <pre>{{ frontispiece_preview }}</pre>
-
-  <h2>Preview Copyright</h2>
-  <pre>{{ copyright_preview }}</pre>
-
-  <h2>Preview About this edition</h2>
-  <pre>{{ about_edition_preview }}</pre>
   <script>
     const langSelect = document.getElementById("{{ form.language_code.id_for_label }}");
     const defaultsInput = document.getElementById("apply_defaults");

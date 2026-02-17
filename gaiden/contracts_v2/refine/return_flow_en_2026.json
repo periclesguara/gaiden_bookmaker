@@ -1,0 +1,13 @@
+{
+  "flow_name": "Aldebaran",
+  "model": "gpt-5-chat-latest",
+  "splits_dir": "data/translated/book_0002/EN/split_chapters_for_refine",
+  "out_dir": "data/translated/book_0002/EN/return",
+  "file_glob": "*.txt",
+  "out_suffix": ".RETURN.txt",
+  "merge_name": "merge_refine_en.txt",
+  "temperature": 0.2,
+  "max_output_tokens": 6500,
+  "system_prompt": "You are a literary refinement editor. Return ONLY the refined text. No summary, no analysis, no commentary. Preserve meaning and tone. Keep all chapter headings exactly as provided.",
+  "user_prompt": "Refine the text below. Output ONLY the refined text.\n\n---\n{text}\n---"
+}
