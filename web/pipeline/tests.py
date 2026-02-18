@@ -22,6 +22,7 @@ from gaiden.translate_engine_v1 import run_translate_safe
 from pipeline.services import image_pipeline
 from pipeline.services import miolo_transform
 from pipeline.services import run_state_policy
+from pipeline.services import text_source
 
 
 class TranslateModePolicyTests(SimpleTestCase):
@@ -308,10 +309,15 @@ class TranslatePipelineOperationalTests(SimpleTestCase):
 
 class ImagePipelineDeterministicTests(SimpleTestCase):
     def test_numeric_filename_validation(self):
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("1.png"))
         self.assertTrue(image_pipeline.validate_numeric_image_filename("00.png"))
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("001.png"))
         self.assertTrue(image_pipeline.validate_numeric_image_filename("01.webp"))
         self.assertTrue(image_pipeline.validate_numeric_image_filename("02.jfif"))
-        self.assertFalse(image_pipeline.validate_numeric_image_filename("image1.png"))
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("image_1.png"))
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("image1.png"))
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("cover-022.jpg"))
+        self.assertTrue(image_pipeline.validate_numeric_image_filename("chapter_01_img_02.png"))
         self.assertFalse(image_pipeline.validate_numeric_image_filename("01.txt"))
 
     def test_deterministic_insertion_is_idempotent(self):
@@ -363,6 +369,35 @@ class ImagePipelineDeterministicTests(SimpleTestCase):
                 self.assertEqual(first["converted_count"], 2)
                 self.assertEqual(second["converted_count"], 0)
                 self.assertEqual(second["skipped_count"], 2)
+
+    def test_convert_raw_preserves_processed_when_raw_empty(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest("Pillow nao instalado")
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            raw_dir = root / "data" / "images" / "book_0001" / "en" / "raw"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            Image.new("RGB", (10, 10), (100, 120, 140)).save(raw_dir / "01.png")
+
+            with patch("pipeline.services.image_pipeline.project_root", return_value=root):
+                first = image_pipeline.convert_raw_images_to_processed("book_0001", "en")
+                self.assertEqual(first["converted_count"], 1)
+
+                for f in raw_dir.glob("*"):
+                    f.unlink()
+
+                second = image_pipeline.convert_raw_images_to_processed("book_0001", "en")
+                processed_dir = root / "data" / "images" / "book_0001" / "en" / "processed"
+                names = sorted(p.name for p in processed_dir.glob("*.jpg"))
+
+                self.assertEqual(names, ["01.jpg"])
+                self.assertEqual(second["raw_count"], 0)
+                self.assertEqual(second["converted_count"], 0)
+                self.assertTrue(second.get("preserved_existing"))
+                self.assertEqual(second.get("reason"), "raw_empty")
 
     def test_convert_cover_uses_legacy_cover_when_original_missing(self):
         try:
@@ -489,3 +524,162 @@ class MioloIdempotencyTests(SimpleTestCase):
             self.assertEqual(first["md_action"], "generated")
             self.assertEqual(second["md_action"], "generated")
             self.assertNotEqual(first["source_sha256"], second["source_sha256"])
+
+
+class TxtToMdBehaviorTests(SimpleTestCase):
+    def test_txt_to_md_marks_headings_only(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            src = root / "source.txt"
+            out = root / "out.md"
+            src.write_text(
+                "CHAPTER 1 - Dawn\n\nBody line A.\n\nCHAPTER 2 - Night\nBody line B.\n",
+                encoding="utf-8",
+            )
+
+            miolo_transform.txt_to_md(
+                source=src,
+                output=out,
+                chapter_pattern=r"^CHAPTER\\s+\\d+.*$",
+                lang="en",
+            )
+
+            md = out.read_text(encoding="utf-8")
+            self.assertIn("# CHAPTER 1 - Dawn", md)
+            self.assertIn("Body line A.", md)
+            self.assertIn("# CHAPTER 2 - Night", md)
+            self.assertIn("Body line B.", md)
+            self.assertNotIn("\\newpage", md)
+
+
+class TextSourceFallbackTests(SimpleTestCase):
+    def test_resolve_txt_source_accepts_loose_build_filename(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            data_root = root / "data"
+            build_dir = data_root / "builds" / "book_0004" / "en"
+            build_dir.mkdir(parents=True, exist_ok=True)
+            loose = build_dir / "Conan_The_hour_of_the_Dragon.txt"
+            loose.write_text("CHAPTER 1\nText\n", encoding="utf-8")
+            edition = SimpleNamespace(
+                language=SimpleNamespace(code="en"),
+                work=SimpleNamespace(code="book_0004"),
+            )
+
+            with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
+                "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ):
+                selected = text_source.resolve_txt_source(edition)
+
+            self.assertEqual(selected.path, loose)
+            self.assertIn("build fallback", selected.label)
+
+    def test_resolve_txt_source_materializes_from_chunks_when_missing_txt(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            data_root = root / "data"
+            build_dir = data_root / "builds" / "book_0004" / "en"
+            chunks_dir = data_root / "chunks" / "book_0004" / "en"
+            build_dir.mkdir(parents=True, exist_ok=True)
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "ch_001_chunk_001.txt").write_text("CHAPTER 1\nPart A\n", encoding="utf-8")
+            (chunks_dir / "ch_001_chunk_002.txt").write_text("Part B\n", encoding="utf-8")
+            manifest = {
+                "schema_version": "chunks_manifest_v2",
+                "chapters": [
+                    {
+                        "chunks": [
+                            {"file_path": "ch_001_chunk_001.txt"},
+                            {"file_path": "ch_001_chunk_002.txt"},
+                        ]
+                    }
+                ],
+            }
+            (chunks_dir / "chunks_manifest.json").write_text(
+                json.dumps(manifest),
+                encoding="utf-8",
+            )
+
+            edition = SimpleNamespace(
+                language=SimpleNamespace(code="en"),
+                work=SimpleNamespace(code="book_0004"),
+            )
+
+            with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
+                "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ):
+                selected = text_source.resolve_txt_source(edition)
+
+            self.assertEqual(selected.path.name, "source_from_chunks_en.txt")
+            self.assertTrue(selected.path.exists())
+            assembled = selected.path.read_text(encoding="utf-8")
+            self.assertIn("CHAPTER 1", assembled)
+            self.assertIn("Part B", assembled)
+            self.assertIn("chunks fallback", selected.label)
+
+    def test_resolve_txt_source_injects_synthetic_chapters_from_image_count(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            data_root = root / "data"
+            build_dir = data_root / "builds" / "book_0004" / "en"
+            chunks_dir = data_root / "chunks" / "book_0004" / "en"
+            raw_images_dir = data_root / "images" / "book_0004" / "en" / "raw"
+            build_dir.mkdir(parents=True, exist_ok=True)
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            raw_images_dir.mkdir(parents=True, exist_ok=True)
+
+            for idx in range(1, 5):
+                (chunks_dir / f"ch_001_chunk_{idx:03d}.txt").write_text(
+                    f"Text block {idx}\n",
+                    encoding="utf-8",
+                )
+            # 2 images => synthesize 2 chapter anchors.
+            (raw_images_dir / "01.png").write_bytes(b"a")
+            (raw_images_dir / "02.png").write_bytes(b"b")
+
+            edition = SimpleNamespace(
+                language=SimpleNamespace(code="en"),
+                work=SimpleNamespace(code="book_0004"),
+            )
+
+            with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
+                "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ):
+                selected = text_source.resolve_txt_source(edition)
+
+            self.assertEqual(selected.path.name, "source_from_chunks_en.txt")
+            assembled = selected.path.read_text(encoding="utf-8")
+            self.assertIn("CHAPTER 01", assembled)
+            self.assertIn("CHAPTER 02", assembled)
+            self.assertIn("Text block 4", assembled)
+
+    def test_synthetic_chapter_detection_ignores_pronoun_i_lines(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            data_root = root / "data"
+            build_dir = data_root / "builds" / "book_0004" / "en"
+            chunks_dir = data_root / "chunks" / "book_0004" / "en"
+            raw_images_dir = data_root / "images" / "book_0004" / "en" / "raw"
+            build_dir.mkdir(parents=True, exist_ok=True)
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            raw_images_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "ch_001_chunk_001.txt").write_text("I am Conan.\n", encoding="utf-8")
+            (chunks_dir / "ch_001_chunk_002.txt").write_text("I know this road.\n", encoding="utf-8")
+            (raw_images_dir / "01.png").write_bytes(b"a")
+            (raw_images_dir / "02.png").write_bytes(b"b")
+
+            edition = SimpleNamespace(
+                language=SimpleNamespace(code="en"),
+                work=SimpleNamespace(code="book_0004"),
+            )
+
+            with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
+                "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ):
+                selected = text_source.resolve_txt_source(edition)
+
+            assembled = selected.path.read_text(encoding="utf-8")
+            self.assertIn("CHAPTER 01", assembled)
+            self.assertIn("CHAPTER 02", assembled)

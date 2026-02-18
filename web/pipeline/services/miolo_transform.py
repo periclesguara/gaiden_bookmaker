@@ -192,13 +192,9 @@ def txt_to_md(
         raise FileNotFoundError(source)
 
     raw = source.read_text(encoding="utf-8")
-
-    chapters = chunk_chapters(raw, chapter_pattern)
-    if not chapters:
-        md = raw.strip() + "\n"
-    else:
-        md = build_miolo(chapters, chapter_pattern)
-    md = ensure_markdown_headings(md, lang)
+    # Contract: TXT -> MD should only mark heading lines, preserving content order.
+    _ = chapter_pattern  # kept for API compatibility
+    md = ensure_markdown_headings(raw, lang)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
