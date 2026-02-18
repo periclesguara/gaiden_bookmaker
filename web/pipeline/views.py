@@ -1703,8 +1703,13 @@ def _save_uploaded_images_to_raw(
         original_name = Path(upload.name).name
         stem = image_pipeline.numeric_stem_or_raise(original_name)
         ext = Path(original_name).suffix.lower()
-        for existing in raw_dir.glob(f"{stem}.*"):
-            existing.unlink(missing_ok=True)
+        idx = int(stem)
+        for existing in raw_dir.iterdir():
+            if not existing.is_file():
+                continue
+            existing_idx = image_pipeline.numeric_index_from_filename(existing.name)
+            if existing_idx == idx:
+                existing.unlink(missing_ok=True)
         target = raw_dir / f"{stem}{ext}"
         with target.open("wb+") as dest:
             for chunk in upload.chunks():
@@ -2480,7 +2485,7 @@ def edition_steps(request, edition_id: int):
                         if not image_pipeline.validate_numeric_image_filename(filename):
                             invalid_name.append(filename)
                             continue
-                        stem = Path(filename).stem
+                        stem = image_pipeline.numeric_stem_or_raise(filename)
                         if stem in seen:
                             invalid_name.append(filename)
                             continue
@@ -2491,9 +2496,11 @@ def edition_steps(request, edition_id: int):
                 return redirect("edition_steps", edition_id=edition.id)
 
             if invalid_name:
+                preview = ", ".join(sorted(set(invalid_name))[:5])
                 messages.error(
                     request,
-                    "Image name must be numeric: 00, 01, 02...",
+                    "Image name must be numeric: 00, 01, 02... "
+                    f"Arquivos invalidos: {preview}",
                 )
                 return redirect("edition_steps", edition_id=edition.id)
             if invalid_format:
@@ -2508,8 +2515,13 @@ def edition_steps(request, edition_id: int):
             images_zip.seek(0)
             with zipfile.ZipFile(images_zip) as zf:
                 for info, stem, ext in extracted:
-                    for existing in raw_dir.glob(f"{stem}.*"):
-                        existing.unlink(missing_ok=True)
+                    idx = int(stem)
+                    for existing in raw_dir.iterdir():
+                        if not existing.is_file():
+                            continue
+                        existing_idx = image_pipeline.numeric_index_from_filename(existing.name)
+                        if existing_idx == idx:
+                            existing.unlink(missing_ok=True)
                     dest_path = raw_dir / f"{stem}{ext}"
                     with zf.open(info) as src, dest_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
@@ -2549,6 +2561,18 @@ def edition_steps(request, edition_id: int):
                 result = image_pipeline.convert_raw_images_to_processed(book_code, lang_code)
             except Exception as exc:
                 messages.error(request, f"Falha na conversao de imagens: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            if int(result.get("raw_count", 0)) == 0:
+                run_state.asset_language = lang_code
+                run_state.last_step = "convert_images"
+                run_state.status = "pending"
+                run_state.save(update_fields=["asset_language", "last_step", "status", "updated_at"])
+                messages.warning(
+                    request,
+                    "Nenhuma imagem encontrada no RAW para converter. "
+                    "Nada foi apagado no processed.",
+                )
                 return redirect("edition_steps", edition_id=edition.id)
 
             run_state.asset_language = lang_code
@@ -2693,6 +2717,9 @@ def edition_steps(request, edition_id: int):
     if cover_source:
         cover_source_rel = cover_source.relative_to(_project_root()).as_posix()
     processed_numbers = image_pipeline.list_processed_numbers(book_code, asset_lang_default)
+    raw_count = 0
+    if raw_dir.exists():
+        raw_count = sum(1 for p in raw_dir.iterdir() if p.is_file())
     run_policy = run_state_policy.resolve_policy_from_state(
         run_state,
         fallback_selected_mode="automatic",
@@ -2708,6 +2735,7 @@ def edition_steps(request, edition_id: int):
         "cover_original_path": cover_source_rel,
         "asset_language_selected": asset_lang_default,
         "images_raw_dir": raw_dir.relative_to(_project_root()).as_posix(),
+        "raw_images_count": raw_count,
         "images_processed_dir": processed_dir.relative_to(_project_root()).as_posix(),
         "build_images_dir": build_images_dir.relative_to(_project_root()).as_posix(),
         "processed_images_count": len(processed_numbers),

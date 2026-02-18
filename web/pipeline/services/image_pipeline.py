@@ -23,7 +23,8 @@ ALLOWED_IMAGE_EXTS = {
     ".tif",
     ".tiff",
 }
-NUMERIC_STEM_RE = re.compile(r"^\d{2}$")
+NUMERIC_STEM_RE = re.compile(r"^\d{1,3}$")
+NUMERIC_TOKEN_RE = re.compile(r"(?<!\d)(\d{1,3})(?!\d)")
 PROCESSED_NAME_RE = re.compile(r"^(\d{2})\.jpg$")
 INSERT_START_RE = re.compile(r"^<!--\s*GAIDEN_IMAGE_INSERT_START\s+(\d{2})\s*-->$")
 INSERT_END_RE = re.compile(r"^<!--\s*GAIDEN_IMAGE_INSERT_END\s+(\d{2})\s*-->$")
@@ -68,17 +69,33 @@ def ensure_image_dirs(book_code: str, language: str) -> tuple[Path, Path]:
 
 
 def validate_numeric_image_filename(filename: str) -> bool:
+    return numeric_index_from_filename(filename) is not None
+
+
+def numeric_index_from_filename(filename: str) -> int | None:
     path = Path(filename)
     ext = path.suffix.lower()
     if ext not in ALLOWED_IMAGE_EXTS:
-        return False
-    return bool(NUMERIC_STEM_RE.match(path.stem))
+        return None
+    stem = path.stem.strip()
+    idx: int | None = None
+    if NUMERIC_STEM_RE.match(stem):
+        idx = int(stem)
+    else:
+        tokens = NUMERIC_TOKEN_RE.findall(stem)
+        if not tokens:
+            return None
+        idx = int(tokens[0])
+    if idx < 0 or idx > 99:
+        return None
+    return idx
 
 
 def numeric_stem_or_raise(filename: str) -> str:
-    if not validate_numeric_image_filename(filename):
-        raise ValueError("Image name must be numeric: 00, 01, 02...")
-    return Path(filename).stem
+    idx = numeric_index_from_filename(filename)
+    if idx is None:
+        raise ValueError(f"Image name must include a number between 00 and 99: {filename}")
+    return f"{idx:02d}"
 
 
 def _sha256_bytes(data: bytes) -> str:
@@ -131,9 +148,9 @@ def _scan_numeric_raw_images(raw_dir: Path) -> dict[int, Path]:
     for path in sorted(raw_dir.iterdir(), key=lambda p: p.name):
         if not path.is_file():
             continue
-        if not validate_numeric_image_filename(path.name):
+        idx = numeric_index_from_filename(path.name)
+        if idx is None:
             raise ValueError(f"Invalid raw image filename: {path.name}")
-        idx = int(path.stem)
         if idx in mapping:
             raise ValueError(f"Duplicate raw image number detected: {idx:02d}")
         mapping[idx] = path
@@ -216,6 +233,29 @@ def convert_cover_to_jpg(book_code: str, language: str) -> dict:
 def convert_raw_images_to_processed(book_code: str, language: str) -> dict:
     raw_dir, processed_dir = ensure_image_dirs(book_code, language)
     raw_map = _scan_numeric_raw_images(raw_dir)
+
+    if not raw_map:
+        processed_files = sorted(
+            p.name for p in processed_dir.glob("*.jpg") if PROCESSED_NAME_RE.match(p.name)
+        )
+        logger.info(
+            "Image conversion skipped for %s/%s: raw is empty, preserving processed=%s",
+            book_code,
+            language,
+            len(processed_files),
+        )
+        return {
+            "book_code": book_code,
+            "language": language,
+            "raw_dir": raw_dir.as_posix(),
+            "processed_dir": processed_dir.as_posix(),
+            "raw_count": 0,
+            "converted_count": 0,
+            "skipped_count": 0,
+            "processed_files": processed_files,
+            "preserved_existing": True,
+            "reason": "raw_empty",
+        }
 
     converted_count = 0
     skipped_count = 0
