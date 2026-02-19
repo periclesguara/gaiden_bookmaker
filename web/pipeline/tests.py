@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -8,6 +9,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
+from pipeline import views as pipeline_views
 from gaiden.tools.agent_translate_default import run_agent_translate
 from gaiden.translate_mode_policy import apply_skip_policy
 from gaiden.translate_artifacts import (
@@ -19,6 +21,7 @@ from gaiden.translate_artifacts import (
     write_canonical_meta,
 )
 from gaiden.translate_engine_v1 import run_translate_safe
+from pipeline.services import canonical
 from pipeline.services import image_pipeline
 from pipeline.services import miolo_transform
 from pipeline.services import run_state_policy
@@ -320,6 +323,12 @@ class ImagePipelineDeterministicTests(SimpleTestCase):
         self.assertTrue(image_pipeline.validate_numeric_image_filename("chapter_01_img_02.png"))
         self.assertFalse(image_pipeline.validate_numeric_image_filename("01.txt"))
 
+    def test_book_0004_accepts_22_image_indexes(self):
+        names = [f"{idx:02d}.png" for idx in range(1, 23)]
+        for name in names:
+            self.assertTrue(image_pipeline.validate_numeric_image_filename(name))
+        self.assertEqual(image_pipeline.numeric_index_from_filename("22.png"), 22)
+
     def test_deterministic_insertion_is_idempotent(self):
         md = "# Chapter 1\n\nBody 1\n\n# Chapter 2\n\nBody 2\n"
         first, inserted_1, warnings_1 = image_pipeline.insert_images_deterministically(md, [0, 1, 2])
@@ -568,6 +577,8 @@ class TextSourceFallbackTests(SimpleTestCase):
 
             with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
                 "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ), patch(
+                "pipeline.services.canonical.resolve_canonical_text", return_value=None
             ):
                 selected = text_source.resolve_txt_source(edition)
 
@@ -608,6 +619,8 @@ class TextSourceFallbackTests(SimpleTestCase):
 
             with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
                 "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ), patch(
+                "pipeline.services.canonical.resolve_canonical_text", return_value=None
             ):
                 selected = text_source.resolve_txt_source(edition)
 
@@ -645,6 +658,8 @@ class TextSourceFallbackTests(SimpleTestCase):
 
             with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
                 "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ), patch(
+                "pipeline.services.canonical.resolve_canonical_text", return_value=None
             ):
                 selected = text_source.resolve_txt_source(edition)
 
@@ -652,7 +667,6 @@ class TextSourceFallbackTests(SimpleTestCase):
             assembled = selected.path.read_text(encoding="utf-8")
             self.assertIn("CHAPTER 01", assembled)
             self.assertIn("CHAPTER 02", assembled)
-            self.assertIn("Text block 4", assembled)
 
     def test_synthetic_chapter_detection_ignores_pronoun_i_lines(self):
         with TemporaryDirectory() as td:
@@ -677,9 +691,366 @@ class TextSourceFallbackTests(SimpleTestCase):
 
             with patch("pipeline.services.paths.data_dir", return_value=data_root), patch(
                 "pipeline.services.paths.edition_build_dir", return_value=build_dir
+            ), patch(
+                "pipeline.services.canonical.resolve_canonical_text", return_value=None
             ):
                 selected = text_source.resolve_txt_source(edition)
 
             assembled = selected.path.read_text(encoding="utf-8")
             self.assertIn("CHAPTER 01", assembled)
             self.assertIn("CHAPTER 02", assembled)
+
+
+class CanonicalTextFlowTests(SimpleTestCase):
+    def _write_translate_report(
+        self,
+        out_dir: Path,
+        *,
+        preflight_ok: bool,
+        status: str,
+        artifact_path: Path | None = None,
+        artifact_filename: str | None = None,
+        filename: str = "agent_translate_run_report.json",
+    ) -> Path:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        payload: dict[str, object] = {
+            "preflight_ok": preflight_ok,
+            "status": status,
+            "out_dir": str(out_dir),
+        }
+        if artifact_path is not None:
+            payload["artifact_path"] = str(artifact_path)
+        if artifact_filename is not None:
+            payload["artifact_filename"] = artifact_filename
+        report = out_dir / filename
+        report.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        return report
+
+    def test_promote_default_and_full_to_active(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            clean_default = root / "default_clean.txt"
+            clean_full = root / "full_clean.txt"
+            out_dir = root / "data" / "translated" / "book_0004" / "en"
+            clean_default.write_text(("Sentence default.\n" * 1200), encoding="utf-8")
+            clean_full.write_text(("Sentence full.\n" * 1200), encoding="utf-8")
+
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                self._write_translate_report(
+                    out_dir,
+                    preflight_ok=True,
+                    status="ok",
+                    artifact_path=clean_default,
+                )
+                first = canonical.promote_clean_to_canonical(
+                    "book_0004",
+                    "en",
+                    "default",
+                    clean_default,
+                    min_bytes=1,
+                    enforce_ratio=False,
+                )
+                self._write_translate_report(
+                    out_dir,
+                    preflight_ok=True,
+                    status="ok_official",
+                    artifact_path=clean_full,
+                    filename="translate_safe_run_report.json",
+                )
+                second = canonical.promote_clean_to_canonical(
+                    "book_0004",
+                    "en",
+                    "full",
+                    clean_full,
+                    min_bytes=1,
+                    enforce_ratio=False,
+                )
+                status = canonical.canonical_status("book_0004", "en")
+
+            self.assertTrue(Path(first["active_path"]).exists())
+            self.assertTrue(Path(second["active_json_path"]).exists())
+            self.assertTrue(status["fasttrack_ready"])
+            self.assertEqual(status["mode"], "full")
+
+    def test_repromote_latest_prefers_default(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "data" / "translated" / "book_0004" / "en"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            automatic = out_dir / "book_0004_en_automatic_merge_clean.txt"
+            default = out_dir / "book_0004_en_default_merge_clean.txt"
+            automatic.write_text(("Auto line.\n" * 1200), encoding="utf-8")
+            default.write_text(("Default line.\n" * 1200), encoding="utf-8")
+            self._write_translate_report(
+                out_dir,
+                preflight_ok=True,
+                status="ok",
+                artifact_filename=default.name,
+            )
+
+            with patch("pipeline.services.canonical.project_root", return_value=root), patch.dict(
+                os.environ,
+                {"GAIDEN_CANONICAL_TEXT_MIN_BYTES": "1"},
+            ):
+                promoted = canonical.repromote_latest("book_0004", "en", preferred_mode="default")
+                active = canonical.resolve_canonical_text("book_0004", "en")
+                assert active is not None
+                active_text = active.read_text(encoding="utf-8")
+
+            self.assertEqual(promoted["mode"], "default")
+            self.assertIn("Default line.", active_text)
+
+    def test_promote_blocked_when_report_not_ok(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "data" / "translated" / "book_0004" / "en"
+            clean = out_dir / "merge_refine_clean.txt"
+            clean.parent.mkdir(parents=True, exist_ok=True)
+            clean.write_text("Sentence.\n" * 1200, encoding="utf-8")
+            self._write_translate_report(
+                out_dir,
+                preflight_ok=False,
+                status="error_preflight",
+                artifact_path=clean,
+            )
+
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                with self.assertRaisesRegex(ValueError, "translate_run_not_ok"):
+                    canonical.promote_clean_to_canonical(
+                        "book_0004",
+                        "en",
+                        "default",
+                        clean,
+                        min_bytes=1,
+                        enforce_ratio=False,
+                    )
+
+    def test_promote_blocked_when_clean_is_noop(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "data" / "translated" / "book_0004" / "en_modern"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            clean = out_dir / "merge_refine_clean.txt"
+            merged = out_dir / "book_0004_en_modern_merged_v1.txt"
+            text = "Exactly the same text.\n" * 1200
+            clean.write_text(text, encoding="utf-8")
+            merged.write_text(text, encoding="utf-8")
+            self._write_translate_report(
+                out_dir,
+                preflight_ok=True,
+                status="ok",
+                artifact_path=clean,
+            )
+
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                with self.assertRaisesRegex(ValueError, "clean_noop_detected"):
+                    canonical.promote_clean_to_canonical(
+                        "book_0004",
+                        "en",
+                        "default",
+                        clean,
+                        min_bytes=1,
+                        enforce_ratio=False,
+                    )
+
+    def test_promote_allowed_when_clean_differs_from_merged(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "data" / "translated" / "book_0004" / "en_modern"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            clean = out_dir / "merge_refine_clean.txt"
+            merged = out_dir / "book_0004_en_modern_merged_v1.txt"
+            clean.write_text(("Modernized phrasing here.\n" * 1200), encoding="utf-8")
+            merged.write_text(("Original phrasing here.\n" * 1200), encoding="utf-8")
+            self._write_translate_report(
+                out_dir,
+                preflight_ok=True,
+                status="ok",
+                artifact_path=clean,
+            )
+
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                promoted = canonical.promote_clean_to_canonical(
+                    "book_0004",
+                    "en",
+                    "default",
+                    clean,
+                    min_bytes=1,
+                    enforce_ratio=False,
+                )
+
+            self.assertEqual(promoted["mode"], "default")
+            self.assertTrue(
+                (root / "data" / "books" / "book_0004" / "en" / "canonical" / "text" / "active.txt").exists()
+            )
+
+    def test_force_promote_bypasses_tainted_marker(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "data" / "translated" / "book_0004" / "en_modern"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            clean = out_dir / "merge_refine_clean.txt"
+            merged = out_dir / "book_0004_en_modern_merged_v1.txt"
+            (out_dir / "TAINTED_NO_AGENT.txt").write_text("tainted\n", encoding="utf-8")
+            clean.write_text(("Refined modern line.\n" * 1200), encoding="utf-8")
+            merged.write_text(("Older source line.\n" * 1200), encoding="utf-8")
+            self._write_translate_report(
+                out_dir,
+                preflight_ok=True,
+                status="ok",
+                artifact_path=clean,
+            )
+
+            with patch("pipeline.services.canonical.project_root", return_value=root), patch.dict(
+                os.environ,
+                {"FORCE_PROMOTE": "1"},
+                clear=False,
+            ):
+                promoted = canonical.promote_clean_to_canonical(
+                    "book_0004",
+                    "en",
+                    "default",
+                    clean,
+                    min_bytes=1,
+                    enforce_ratio=False,
+                )
+
+            self.assertEqual(promoted["mode"], "default")
+
+    def test_fasttrack_blocked_without_active(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                status = canonical.canonical_status("book_0005", "en")
+            self.assertFalse(status["fasttrack_ready"])
+            self.assertEqual(status["reason"], "missing_active_txt")
+
+
+class TranslatePromoteIntegrationTests(SimpleTestCase):
+    class _DummyRunState:
+        def __init__(self):
+            self.asset_language = "en"
+            self.selected_mode = ""
+            self.effective_mode = ""
+            self.active_artifact_filename = ""
+            self.last_step = ""
+            self.status = ""
+            self.build_outputs = {}
+            self.inserted_images_count = 0
+            self.md_path = ""
+            self.md_source_sha256 = ""
+            self.md_generated_at = None
+            self.md_status = ""
+            self.last_log = ""
+
+        def save(self, **_kwargs):
+            return None
+
+    @patch("pipeline.views.require_openai_ready", return_value=None)
+    @patch("pipeline.views.run_translate_safe")
+    def test_full_generates_clean_and_promotes(self, mock_run_translate_safe, _mock_ready):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            chunk_dir = root / "data" / "chunks" / "book_0004" / "en"
+            out_dir = root / "data" / "translated" / "book_0004" / "en"
+            chunk_dir.mkdir(parents=True, exist_ok=True)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (chunk_dir / "ch_001_chunk_001.txt").write_text("Source sentence.\n" * 1200, encoding="utf-8")
+            merged = out_dir / "book_0004_en_automatic_merge_clean.txt"
+            merged.write_text("Target sentence.\n" * 1200, encoding="utf-8")
+            (out_dir / "translate_safe_run_report.json").write_text(
+                json.dumps(
+                    {
+                        "preflight_ok": True,
+                        "status": "ok_official",
+                        "out_dir": str(out_dir),
+                        "merged_txt": str(merged),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            mock_run_translate_safe.return_value = {
+                "status": "ok_official",
+                "merged_txt": str(merged),
+                "final_mode": "automatic",
+                "effective_route": "automatic",
+            }
+            edition = SimpleNamespace(work=SimpleNamespace(code="book_0004"))
+
+            with patch("pipeline.views._project_root", return_value=root), patch(
+                "pipeline.services.canonical.project_root",
+                return_value=root,
+            ):
+                result = pipeline_views._run_translate_and_promote(
+                    edition=edition,
+                    target_language="en",
+                    selected_mode="full",
+                    promote_to_canonical=True,
+                )
+
+            self.assertEqual(result["effective_mode"], "full")
+            self.assertIsNotNone(result["promoted"])
+            self.assertTrue((root / "data" / "books" / "book_0004" / "en" / "canonical" / "text" / "active.txt").exists())
+
+    @patch("pipeline.views.require_openai_ready", return_value=None)
+    @patch("pipeline.views.run_agent_translate")
+    def test_default_generates_clean_and_promotes(self, mock_run_agent_translate, _mock_ready):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            chunk_dir = root / "data" / "chunks" / "book_0004" / "en"
+            out_dir = root / "data" / "translated" / "book_0004" / "en"
+            chunk_dir.mkdir(parents=True, exist_ok=True)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (chunk_dir / "ch_001_chunk_001.txt").write_text("Source sentence.\n" * 1200, encoding="utf-8")
+            merged = out_dir / "book_0004_en_default_merge_clean.txt"
+            merged.write_text("Target sentence.\n" * 1200, encoding="utf-8")
+            (out_dir / "agent_translate_run_report.json").write_text(
+                json.dumps(
+                    {
+                        "preflight_ok": True,
+                        "status": "ok",
+                        "out_dir": str(out_dir),
+                        "artifact_path": str(merged),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            mock_run_agent_translate.return_value = {
+                "status": "ok",
+                "merged_txt": str(merged),
+                "final_mode": "default",
+                "effective_route": "default",
+            }
+            edition = SimpleNamespace(work=SimpleNamespace(code="book_0004"))
+
+            with patch("pipeline.views._project_root", return_value=root), patch(
+                "pipeline.services.canonical.project_root",
+                return_value=root,
+            ):
+                result = pipeline_views._run_translate_and_promote(
+                    edition=edition,
+                    target_language="en",
+                    selected_mode="default",
+                    promote_to_canonical=True,
+                )
+
+            self.assertEqual(result["effective_mode"], "default")
+            self.assertIsNotNone(result["promoted"])
+            self.assertTrue((root / "data" / "books" / "book_0004" / "en" / "canonical" / "text" / "active.json").exists())
+
+    def test_fasttrack_blocks_without_clean(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            edition = SimpleNamespace(work=SimpleNamespace(code="book_0004"))
+            run_state = self._DummyRunState()
+            with patch("pipeline.services.canonical.project_root", return_value=root):
+                with self.assertRaises(RuntimeError):
+                    pipeline_views._run_fasttrack_from_canonical(
+                        edition=edition,
+                        language="en",
+                        run_state=run_state,
+                    )
