@@ -7,7 +7,7 @@ from pathlib import Path
 
 from gaiden.translate_artifacts import list_canonical_artifacts, resolve_active_or_latest
 
-from . import edition_meta, paths, stage_policy, utils
+from . import canonical, edition_meta, paths, stage_policy, utils
 
 
 @dataclass
@@ -68,6 +68,19 @@ def _translated_txt_candidates(book_code: str, language_code: str) -> list[tuple
     data_root = paths.data_dir()
     found: list[tuple[str, Path, str]] = []
     seen: set[str] = set()
+
+    canonical_active = canonical.resolve_canonical_text(book_code, language_code)
+    if canonical_active and canonical_active.exists():
+        key = str(canonical_active)
+        if key not in seen:
+            seen.add(key)
+            found.append(
+                (
+                    utils.normalize_lang(language_code),
+                    canonical_active,
+                    f"{canonical_active.name} (books/{book_code}/canonical active)",
+                )
+            )
 
     for alias in _translated_language_aliases(language_code):
         translated_dir = data_root / "translated" / book_code / alias

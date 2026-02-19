@@ -35,6 +35,8 @@ from editorial import kdp_mode
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
 from gaiden.lang import normalize_lang_code
 from gaiden.secrets_loader import require_openai_ready
+from gaiden.tools.agent_translate_default import run_agent_translate
+from gaiden.translate_engine_v1 import run_translate_safe
 from gaiden.translate_mode_policy import apply_skip_policy
 from gaiden.translate_artifacts import (
     active_pointer_filename,
@@ -62,6 +64,7 @@ from .services import (
     miolo_transform,
     paths,
     image_pipeline,
+    canonical,
     run_state_policy,
     stage_policy,
     utils,
@@ -1730,6 +1733,336 @@ def _resolve_build_output_path(book_code: str, language: str) -> Path:
     )
 
 
+def _relpath_or_abs(path: Path) -> str:
+    try:
+        return path.relative_to(_project_root()).as_posix()
+    except Exception:
+        return str(path)
+
+
+def _source_stats_from_chunk_dir(chunk_dir: Path) -> dict[str, int]:
+    files = sorted(chunk_dir.glob("ch_*_chunk_*.txt"))
+    text_parts: list[str] = []
+    for path in files:
+        if not path.is_file():
+            continue
+        text_parts.append(path.read_text(encoding="utf-8", errors="ignore").rstrip("\n"))
+    merged = ("\n".join(text_parts).rstrip("\n") + "\n") if text_parts else ""
+    lines = merged.splitlines()
+    paragraph_count = 0
+    in_para = False
+    for line in lines:
+        if line.strip():
+            if not in_para:
+                paragraph_count += 1
+                in_para = True
+        else:
+            in_para = False
+    return {
+        "files": len(files),
+        "bytes": len(merged.encode("utf-8")),
+        "chars": len(merged),
+        "lines": len(lines),
+        "paragraphs": paragraph_count,
+    }
+
+
+def _resolve_translate_clean_path(
+    *,
+    result: dict,
+    out_dir: Path,
+    book_code: str,
+    target_lang: str,
+) -> Path | None:
+    merged_txt = str(result.get("merged_txt") or "").strip()
+    if merged_txt:
+        merged_path = Path(merged_txt)
+        if merged_path.exists():
+            return merged_path
+
+    active = resolve_active_or_latest(out_dir, book_code, target_lang)
+    if active and active.exists():
+        return active
+
+    candidates = [
+        out_dir / "merge_refine_clean.txt",
+        out_dir / f"{book_code}_merge_refine_clean.txt",
+    ]
+    candidates.extend(sorted(out_dir.glob("*_merge_refine_clean*.txt")))
+    candidates.extend(sorted(out_dir.glob("*_merge_clean.txt")))
+
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return candidate
+    return None
+
+
+def _book_token_for_outputs(book_code: str) -> str:
+    book_id = _parse_book_id(book_code)
+    if book_id is not None:
+        return f"book{book_id:04d}"
+    digits = "".join(ch for ch in book_code if ch.isdigit())
+    if digits:
+        return f"book{int(digits):04d}"
+    return book_code.replace("_", "")
+
+
+def _translate_clean_output_name(book_code: str, mode: str) -> str:
+    token = _book_token_for_outputs(book_code)
+    normalized_mode = canonical.normalize_mode(mode)
+    return f"{token}_{normalized_mode}_merge_refine_clean.txt"
+
+
+def _translate_full_merge_name(book_code: str) -> str:
+    token = _book_token_for_outputs(book_code)
+    return f"{token}_full_merge.txt"
+
+
+def _run_translate_and_promote(
+    *,
+    edition: EditorialEdition,
+    target_language: str,
+    selected_mode: str,
+    promote_to_canonical: bool,
+) -> dict:
+    book_code = edition.work.code
+    target_lang = utils.normalize_lang(target_language)
+    source_lang = "en"
+    mode = canonical.normalize_mode(selected_mode, default="full")
+
+    project = _project_root()
+    chunk_dir = project / "data" / "chunks" / book_code / source_lang
+    out_dir = project / "data" / "translated" / book_code / target_lang
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not chunk_dir.exists():
+        raise FileNotFoundError(f"Chunks nao encontrados: {chunk_dir}")
+
+    require_openai_ready(dry_run=False, repo_root=project)
+
+    run_id = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    run_dir = canonical.translate_run_dir(book_code, target_lang, run_id)
+    canonical.write_translate_run_mode(book_code, target_lang, run_id, mode)
+
+    input_stats = _source_stats_from_chunk_dir(chunk_dir)
+    canonical.write_translate_run_json(book_code, target_lang, run_id, "input_stats.json", input_stats)
+
+    if mode == "default":
+        translate_result = run_agent_translate(
+            book_id=book_code,
+            chunk_dir=chunk_dir,
+            out_dir=out_dir,
+            suffix=target_lang,
+            mode="default",
+        )
+    else:
+        translate_result = run_translate_safe(
+            book_id=book_code,
+            chunk_dir=chunk_dir,
+            out_dir=out_dir,
+            suffix=target_lang,
+            dry_run=False,
+            selected_mode="automatic",
+        )
+
+    clean_path = _resolve_translate_clean_path(
+        result=translate_result,
+        out_dir=out_dir,
+        book_code=book_code,
+        target_lang=target_lang,
+    )
+    if not clean_path:
+        raise FileNotFoundError(
+            f"Artifact not found after translate. out_dir={out_dir}"
+        )
+
+    effective_mode = canonical.normalize_mode(
+        str(translate_result.get("final_mode") or translate_result.get("effective_route") or mode),
+        default=mode,
+    )
+    output_stats = canonical.text_stats(clean_path)
+    canonical.write_translate_run_json(book_code, target_lang, run_id, "output_stats.json", output_stats)
+
+    copied_clean = canonical.copy_translate_run_output(
+        book_code,
+        target_lang,
+        run_id,
+        clean_path,
+        _translate_clean_output_name(book_code, effective_mode),
+    )
+    if effective_mode == "full":
+        canonical.copy_translate_run_output(
+            book_code,
+            target_lang,
+            run_id,
+            clean_path,
+            _translate_full_merge_name(book_code),
+        )
+
+    log_payload = {
+        "selected_mode": mode,
+        "effective_mode": effective_mode,
+        "result": translate_result,
+        "translate_safe_report": _read_json(out_dir / "translate_safe_run_report.json"),
+        "agent_translate_report": _read_json(out_dir / "agent_translate_run_report.json"),
+    }
+    canonical.write_translate_run_log(
+        book_code,
+        target_lang,
+        run_id,
+        "translate.log",
+        json.dumps(log_payload, ensure_ascii=False, indent=2),
+    )
+
+    promoted = None
+    if promote_to_canonical:
+        enforce_ratio = target_lang == "en"
+        promoted = canonical.promote_clean_to_canonical(
+            book_code,
+            target_lang,
+            effective_mode,
+            clean_path,
+            source_stats=input_stats if enforce_ratio else None,
+            enforce_ratio=enforce_ratio,
+            meta={
+                "run_id": run_id,
+                "selected_mode": mode,
+                "effective_mode": effective_mode,
+                "translate_out_dir": _relpath_or_abs(out_dir),
+                "copied_output": _relpath_or_abs(copied_clean),
+            },
+        )
+
+    validate_payload = {
+        "clean_path": _relpath_or_abs(clean_path),
+        "copied_output": _relpath_or_abs(copied_clean),
+        "output_stats": output_stats,
+        "promoted": bool(promoted),
+        "canonical_active": _relpath_or_abs(promoted["active_path"]) if promoted else None,
+        "canonical_meta": _relpath_or_abs(promoted["active_json_path"]) if promoted else None,
+    }
+    canonical.write_translate_run_log(
+        book_code,
+        target_lang,
+        run_id,
+        "validate.log",
+        json.dumps(validate_payload, ensure_ascii=False, indent=2),
+    )
+
+    return {
+        "book_code": book_code,
+        "target_language": target_lang,
+        "selected_mode": mode,
+        "effective_mode": effective_mode,
+        "run_id": run_id,
+        "run_dir": run_dir,
+        "out_dir": out_dir,
+        "clean_path": clean_path,
+        "copied_clean_path": copied_clean,
+        "input_stats": input_stats,
+        "output_stats": output_stats,
+        "translate_result": translate_result,
+        "promoted": promoted,
+    }
+
+
+def _run_fasttrack_from_canonical(
+    *,
+    edition: EditorialEdition,
+    language: str,
+    run_state: PipelineRunState,
+) -> dict:
+    lang = utils.normalize_lang(language)
+    book_code = edition.work.code
+    canonical_info = canonical.canonical_status(book_code, lang)
+    if not canonical_info.get("fasttrack_ready"):
+        reason = canonical_info.get("reason") or "canonical_missing"
+        raise RuntimeError(f"FastTrack bloqueado: {reason}")
+
+    active_txt = Path(canonical_info["active_path"])
+    md_path = paths.miolo_md_path_for_language(book_code, lang)
+    chapter_pattern = miolo_transform._pattern_for_language(lang)
+    miolo_transform.txt_to_md(active_txt, md_path, chapter_pattern, lang)
+
+    translated_miolo = paths.data_dir() / "translated" / book_code / lang / "miolo.md"
+    translated_miolo.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(md_path, translated_miolo)
+
+    canonical_active_md = canonical.canonical_active_md_path(book_code, lang)
+    canonical_active_md.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(md_path, canonical_active_md)
+
+    canonical_build_source = canonical.canonical_build_source_md_path(book_code, lang)
+    canonical_build_source.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(md_path, canonical_build_source)
+
+    insert_result = image_pipeline.apply_processed_images_to_miolo(
+        book_code=book_code,
+        language=lang,
+        md_path=md_path,
+    )
+    sync_result = image_pipeline.sync_processed_images_into_build(book_code, lang)
+
+    source_sha256 = canonical.sha256_file(active_txt)
+    run_state.asset_language = lang
+    run_state.inserted_images_count = int(insert_result.get("inserted_images_count", 0))
+    run_state.md_path = str(md_path)
+    run_state.md_source_sha256 = source_sha256
+    run_state.md_generated_at = timezone.now()
+    run_state.md_status = "generated"
+    run_state.last_step = "fasttrack"
+    run_state.status = "ok"
+    run_state.build_outputs = {
+        **(run_state.build_outputs or {}),
+        "fasttrack": {
+            "canonical_txt": str(active_txt),
+            "canonical_md": str(canonical_active_md),
+            "build_source_md": str(canonical_build_source),
+            "translated_miolo": str(translated_miolo),
+            "inserted_images_count": insert_result.get("inserted_images_count", 0),
+            "insertion_warnings": insert_result.get("warnings", []),
+            "build_images_dir": sync_result.get("build_images_dir", ""),
+            "build_image_count": sync_result.get("image_count", 0),
+        }
+    }
+    report_v2 = {
+        "book": book_code,
+        "lang": lang,
+        "ts": timezone.now().isoformat(),
+        "stage": "fasttrack",
+        "canonical_txt": str(active_txt),
+        "md_path": str(md_path),
+        "inserted_images_count": insert_result.get("inserted_images_count", 0),
+    }
+    run_state.last_log = "REPORT_V2 " + json.dumps(report_v2, ensure_ascii=False, separators=(",", ":"))
+    run_state.save(
+        update_fields=[
+            "asset_language",
+            "inserted_images_count",
+            "md_path",
+            "md_source_sha256",
+            "md_generated_at",
+            "md_status",
+            "last_step",
+            "status",
+            "build_outputs",
+            "last_log",
+            "updated_at",
+        ]
+    )
+
+    return {
+        "book_code": book_code,
+        "language": lang,
+        "canonical_txt": active_txt,
+        "md_path": md_path,
+        "canonical_md": canonical_active_md,
+        "build_source_md": canonical_build_source,
+        "translated_miolo": translated_miolo,
+        "insert": insert_result,
+        "sync": sync_result,
+    }
+
+
 def _run_save_pipeline(
     *,
     edition: EditorialEdition,
@@ -2599,6 +2932,149 @@ def edition_steps(request, edition_id: int):
             )
             return redirect("edition_steps", edition_id=edition.id)
 
+        if action in {"translate_full", "translate_default"}:
+            lang_code = _asset_language_from_request(request, language, run_state)
+            selected_mode = "default" if action == "translate_default" else "full"
+            promote_on_success = _parse_bool(
+                request.POST.get("promote_on_success", "on"),
+                default=True,
+            )
+            fasttrack_after = _parse_bool(
+                request.POST.get("fasttrack_after", ""),
+                default=False,
+            )
+            try:
+                translate_result = _run_translate_and_promote(
+                    edition=edition,
+                    target_language=lang_code,
+                    selected_mode=selected_mode,
+                    promote_to_canonical=promote_on_success,
+                )
+            except Exception as exc:
+                messages.error(request, f"Translate falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            effective_mode = str(translate_result.get("effective_mode") or selected_mode)
+            run_dir = Path(translate_result["run_dir"])
+            clean_path = Path(translate_result["clean_path"])
+            promoted = translate_result.get("promoted")
+
+            run_state.asset_language = lang_code
+            run_state.selected_mode = "default" if selected_mode == "default" else "automatic"
+            run_state.effective_mode = "default" if effective_mode == "default" else "automatic"
+            run_state.active_artifact_filename = clean_path.name
+            run_state.last_step = "translate"
+            run_state.status = "ok"
+            run_state.build_outputs = {
+                **(run_state.build_outputs or {}),
+                "translate_last": {
+                    "run_id": translate_result.get("run_id"),
+                    "run_dir": str(run_dir),
+                    "clean_path": str(clean_path),
+                    "promoted": bool(promoted),
+                },
+            }
+            run_state.save(
+                update_fields=[
+                    "asset_language",
+                    "selected_mode",
+                    "effective_mode",
+                    "active_artifact_filename",
+                    "last_step",
+                    "status",
+                    "build_outputs",
+                    "updated_at",
+                ]
+            )
+
+            if promoted:
+                active_path = Path(promoted["active_path"])
+                messages.success(
+                    request,
+                    "Translate concluido e promovido para canonical. "
+                    f"modo={effective_mode} "
+                    f"clean={_relpath_or_abs(clean_path)} "
+                    f"active={_relpath_or_abs(active_path)} "
+                    f"run={_relpath_or_abs(run_dir)}",
+                )
+            else:
+                messages.warning(
+                    request,
+                    "Translate concluido sem promoção canônica. "
+                    f"clean={_relpath_or_abs(clean_path)} "
+                    f"run={_relpath_or_abs(run_dir)}",
+                )
+
+            if fasttrack_after:
+                if not promoted:
+                    messages.error(
+                        request,
+                        "FastTrack after canonical marcado, mas canonical nao foi promovido.",
+                    )
+                    return redirect("edition_steps", edition_id=edition.id)
+                try:
+                    fasttrack = _run_fasttrack_from_canonical(
+                        edition=edition,
+                        language=lang_code,
+                        run_state=run_state,
+                    )
+                except Exception as exc:
+                    messages.error(request, f"FastTrack falhou apos translate: {exc}")
+                    return redirect("edition_steps", edition_id=edition.id)
+                messages.success(
+                    request,
+                    "FastTrack concluido. "
+                    f"md={_relpath_or_abs(Path(fasttrack['md_path']))} "
+                    f"build_source={_relpath_or_abs(Path(fasttrack['build_source_md']))}",
+                )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "promote_latest_clean":
+            lang_code = _asset_language_from_request(request, language, run_state)
+            preferred_mode = (request.POST.get("preferred_mode") or "").strip().lower() or None
+            try:
+                promoted = canonical.repromote_latest(
+                    book_code,
+                    lang_code,
+                    preferred_mode=preferred_mode,
+                    meta={"trigger": "edition_steps.promote_latest_clean"},
+                )
+            except Exception as exc:
+                messages.error(request, f"Promote latest clean falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            run_state.asset_language = lang_code
+            run_state.last_step = "promote_canonical"
+            run_state.status = "ok"
+            run_state.save(update_fields=["asset_language", "last_step", "status", "updated_at"])
+            messages.success(
+                request,
+                "Canonical pointer atualizado. "
+                f"active={_relpath_or_abs(Path(promoted['active_path']))}",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "fasttrack_text_to_md":
+            lang_code = _asset_language_from_request(request, language, run_state)
+            try:
+                result = _run_fasttrack_from_canonical(
+                    edition=edition,
+                    language=lang_code,
+                    run_state=run_state,
+                )
+            except Exception as exc:
+                messages.error(request, f"FastTrack bloqueado/falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+
+            messages.success(
+                request,
+                "FastTrack concluido. "
+                f"md={_relpath_or_abs(Path(result['md_path']))} "
+                f"build_source={_relpath_or_abs(Path(result['build_source_md']))} "
+                f"inseridas={result['insert'].get('inserted_images_count', 0)}",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
         if action == "save_pipeline":
             lang_code = _asset_language_from_request(request, language, run_state)
             selected_mode_input = (
@@ -2724,6 +3200,11 @@ def edition_steps(request, edition_id: int):
         run_state,
         fallback_selected_mode="automatic",
     )
+    canonical_info = canonical.canonical_status(book_code, asset_lang_default)
+    canonical_active_rel = _relpath_or_abs(Path(canonical_info["active_path"]))
+    canonical_json_rel = _relpath_or_abs(Path(canonical_info["active_json_path"]))
+    latest_translate_run = canonical.latest_translate_run_dir(book_code, asset_lang_default)
+    latest_translate_run_rel = _relpath_or_abs(latest_translate_run) if latest_translate_run else ""
 
     context = {
         "edition": edition,
@@ -2755,6 +3236,16 @@ def edition_steps(request, edition_id: int):
         "md_status": run_state.md_status,
         "md_generated_at": run_state.md_generated_at,
         "run_build_outputs": run_state.build_outputs or {},
+        "canonical_exists": bool(canonical_info.get("exists")),
+        "canonical_active_path": canonical_active_rel,
+        "canonical_active_json_path": canonical_json_rel,
+        "canonical_mode": canonical_info.get("mode") or "(none)",
+        "canonical_status": canonical_info.get("status") or "(none)",
+        "canonical_sha256": canonical_info.get("sha256") or "(none)",
+        "canonical_size_bytes": canonical_info.get("size_bytes") or 0,
+        "canonical_reason": canonical_info.get("reason") or "",
+        "fasttrack_ready": bool(canonical_info.get("fasttrack_ready")),
+        "latest_translate_run_dir": latest_translate_run_rel,
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -2810,6 +3301,40 @@ def build_book_md(request, book_code, language):
     except Exception as exc:
         messages.error(request, f"Falha inesperada no save/build: {exc}")
 
+    return redirect("edition_steps", edition_id=edition.id)
+
+
+@require_POST
+def fasttrack_text_to_md(request, book_code: str):
+    lang = utils.normalize_lang(request.POST.get("language") or "en")
+    lang_db = _project_lang_db_code(lang)
+
+    edition = EditorialEdition.objects.filter(
+        work__code=book_code,
+        language__code=lang_db,
+    ).first()
+    if not edition:
+        edition = EditorialEdition.objects.filter(work__code=book_code).order_by("id").first()
+    if not edition:
+        raise Http404(f"Edição não encontrada para {book_code}")
+
+    run_state = _get_or_create_run_state(edition)
+    try:
+        result = _run_fasttrack_from_canonical(
+            edition=edition,
+            language=lang,
+            run_state=run_state,
+        )
+    except Exception as exc:
+        messages.error(request, f"FastTrack bloqueado/falhou: {exc}")
+        return redirect("edition_steps", edition_id=edition.id)
+
+    messages.success(
+        request,
+        "FastTrack concluido. "
+        f"md={_relpath_or_abs(Path(result['md_path']))} "
+        f"build_source={_relpath_or_abs(Path(result['build_source_md']))}",
+    )
     return redirect("edition_steps", edition_id=edition.id)
 
 

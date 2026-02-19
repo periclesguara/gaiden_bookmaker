@@ -306,11 +306,85 @@
 
   <section class="grid" style="padding-top: 0;">
     <article class="card">
+      <h2>Translate + Canonical + FastTrack</h2>
+      <form method="post" class="inline-form">
+        {% csrf_token %}
+        <label>
+          Idioma alvo:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="option">
+          <input type="checkbox" name="promote_on_success" checked />
+          <span>Promote to Canonical on success</span>
+        </label>
+        <label class="option">
+          <input type="checkbox" name="fasttrack_after" />
+          <span>FastTrack after canonical</span>
+        </label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" type="submit" name="action" value="translate_full">Translate FULL</button>
+          <button class="btn secondary" type="submit" name="action" value="translate_default">Translate DEFAULT</button>
+        </div>
+      </form>
+
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="promote_latest_clean" />
+        <label>
+          Idioma:
+          <select name="asset_language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          Prioridade:
+          <select name="preferred_mode">
+            <option value="default">default</option>
+            <option value="full">full</option>
+          </select>
+        </label>
+        <button class="btn secondary" type="submit">Promote latest clean</button>
+      </form>
+
+      <form method="post" action="/pipeline/{{ book_code }}/fasttrack_text_to_md/" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <label>
+          Idioma:
+          <select name="language">
+            {% for lang in languages %}
+              <option value="{{ lang.code }}" {% if lang.code == asset_language_selected %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn" type="submit">FastTrack TXT→MD</button>
+      </form>
+
+      <div class="status">Canonical active: <strong>{{ canonical_active_path }}</strong></div>
+      <div class="status">Canonical meta: <strong>{{ canonical_active_json_path }}</strong></div>
+      <div class="status">Canonical exists: <strong>{% if canonical_exists %}yes{% else %}no{% endif %}</strong></div>
+      <div class="status">Mode/status: <strong>{{ canonical_mode }}</strong> / <strong>{{ canonical_status }}</strong></div>
+      <div class="status">Size/SHA: <strong>{{ canonical_size_bytes }}</strong> bytes / <strong>{{ canonical_sha256 }}</strong></div>
+      <div class="status">FastTrack ready: <strong>{% if fasttrack_ready %}yes{% else %}no{% endif %}</strong></div>
+      {% if canonical_reason %}
+      <div class="status">Block reason: <strong>{{ canonical_reason }}</strong></div>
+      {% endif %}
+      {% if latest_translate_run_dir %}
+      <div class="status">Latest run dir: <strong>{{ latest_translate_run_dir }}</strong></div>
+      {% endif %}
+    </article>
+
+    <article class="card">
       <h2>Acoes — SAVE</h2>
       <p class="status">
         SAVE executa: cover->JPG, imagens->JPG, TXT->MD, insercao deterministica por numero e build.
       </p>
-      <form method="post" class="inline-form">
+      <form method="post" class="inline-form" id="save-pipeline-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="save_pipeline" />
         <div class="status"><strong>Translate Route</strong></div>
@@ -356,7 +430,11 @@
   <script>
     (function () {
       function getSaveTranslateMode() {
-        const selected = document.querySelector('input[name="translate_mode"]:checked');
+        const form = document.getElementById('save-pipeline-form');
+        if (!form) {
+          return 'automatic';
+        }
+        const selected = form.querySelector('input[name="translate_mode"]:checked');
         return selected ? selected.value : 'automatic';
       }
       function enforceSaveTranslatePolicy() {
@@ -383,7 +461,11 @@
         helper.hidden = true;
         controls.classList.remove('locked');
       }
-      document.querySelectorAll('input[name="translate_mode"]').forEach((el) => {
+      const form = document.getElementById('save-pipeline-form');
+      if (!form) {
+        return;
+      }
+      form.querySelectorAll('input[name="translate_mode"]').forEach((el) => {
         el.addEventListener('change', enforceSaveTranslatePolicy);
       });
       enforceSaveTranslatePolicy();

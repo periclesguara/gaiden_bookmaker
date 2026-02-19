@@ -44,4 +44,9 @@ urlpatterns = [
         views.build_book_md,
         name="build_book_md",
     ),
+    path(
+        "<str:book_code>/fasttrack_text_to_md/",
+        views.fasttrack_text_to_md,
+        name="pipeline_fasttrack_text_to_md",
+    ),
 ]
