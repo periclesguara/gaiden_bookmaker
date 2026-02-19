@@ -102,6 +102,7 @@ data/images/
 *.pdf
 *.log
 .gaiden_secrets
+secrets_gaiden/.env
 data/builds/
 data/canonical/
 data/chunks/
@@ -156,3 +157,14 @@ translate_book.sh
 
 # legacy runtime outputs (never track)
 legacy/data/
+
+# --- Gaiden runtime / private dirs (never commit) ---
+.gaiden_secrets*
+data/books/
+quarantine/
+vault/
+
+# --- Keep typical runtime outputs out of git (if not already) ---
+web/db.sqlite3
+gaiden_bookmaker.egg-info/
+.pytest_cache/
