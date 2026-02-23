@@ -103,7 +103,7 @@ def build_merged_kdp_source(edition: Edition, version_override: str | None = Non
     if post_cover_block:
         sections.insert(0, post_cover_block)
 
-    canonical_ready = ppaths.canonical_ready_md_path(edition)
+    canonical_ready = ppaths.canonical_ready_md_path(edition, version=version_override)
     if not canonical_ready.exists():
         legacy_ready = (
             ppaths.data_dir()

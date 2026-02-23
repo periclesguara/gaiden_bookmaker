@@ -19,6 +19,13 @@ figure.chapter-illustration,
 figure.post-cover-illustration {
   text-align: center;
   margin: 1.2em auto;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+figure.chapter-illustration {
+  break-after: page;
+  page-break-after: always;
 }
 
 figure.chapter-illustration img,
@@ -39,4 +46,9 @@ section#introduction,
 section#epilogue {
   font-size: 1.12em;
   line-height: 1.6;
+}
+
+.chapter-start + h1,
+.chapter-start + h2 {
+  margin-top: 0;
 }
