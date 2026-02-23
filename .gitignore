@@ -168,3 +168,7 @@ vault/
 web/db.sqlite3
 gaiden_bookmaker.egg-info/
 .pytest_cache/
+
+# local secrets
+secrets_gaiden/
+
