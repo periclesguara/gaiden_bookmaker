@@ -182,6 +182,80 @@
 
   <section class="grid">
     <article class="card">
+      <h2>SoT + Canonical Freeze</h2>
+      <div class="status">Edition status: <strong>{{ canonical_status_db|default:'(none)' }}</strong></div>
+      <div class="status">Uploaded RAW (storage): <strong>{{ raw_upload_name|default:'(none)' }}</strong></div>
+      <div class="status">RAW materialized path: <strong>{{ raw_materialized_path|default:'(none)' }}</strong></div>
+      <div class="status">RAW SHA256: <strong>{{ raw_sha256|default:'(none)' }}</strong></div>
+      <div class="status">Normalized path: <strong>{{ normalized_path|default:'(none)' }}</strong></div>
+      <div class="status">Normalized SHA256: <strong>{{ normalized_sha256|default:'(none)' }}</strong></div>
+      <div class="status">Fixed path: <strong>{{ fixed_path|default:'(none)' }}</strong></div>
+      <div class="status">Fixed SHA256: <strong>{{ fixed_sha256|default:'(none)' }}</strong></div>
+      <div class="status">Fix report status: <strong>{{ fix_report_status|default:'(none)' }}</strong></div>
+      <div class="status">Fix run dir: <strong>{{ fix_run_dir|default:'(none)' }}</strong></div>
+      {% if fix_report_path %}
+      <div class="status">Fix report path: <strong>{{ fix_report_path }}</strong></div>
+      {% endif %}
+      {% if fix_actions %}
+      <div class="status">
+        Fix actions:
+        roman={{ fix_actions.roman_conversions|default:0 }},
+        removed_num={{ fix_actions.removed_numeric_lines|default:0 }},
+        removed_page={{ fix_actions.removed_page_markers|default:0 }},
+        orphans={{ fix_actions.suspect_orphans|default:0 }}
+      </div>
+      {% endif %}
+      <div class="status">Freeze source candidate: <strong>{{ freeze_source_path|default:'(none)' }}</strong></div>
+      <div class="status">TRUTH path (DB): <strong>{{ truth_path_db|default:'(none)' }}</strong></div>
+      <div class="status">TRUTH SHA256 (DB): <strong>{{ truth_sha256_db|default:'(none)' }}</strong></div>
+      <div class="status">Canonical run dir: <strong>{{ canonical_run_dir_db|default:'(none)' }}</strong></div>
+      {% if canonical_tag_db %}
+      <div class="status">Official tag: <strong>{{ canonical_tag_db }}</strong></div>
+      {% endif %}
+
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="materialize_raw" />
+        <button class="btn secondary" type="submit" {% if not can_materialize_raw %}disabled{% endif %}>Materialize RAW</button>
+      </form>
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="freeze_canonical" />
+        <button class="btn" type="submit" {% if not can_freeze_canonical %}disabled{% endif %}>Freeze Canonical</button>
+      </form>
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="normalize_text" />
+        <button class="btn secondary" type="submit" {% if not can_normalize_text %}disabled{% endif %}>Button 01: NORMALIZE</button>
+      </form>
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="fix_text" />
+        <button class="btn secondary" type="submit" {% if not can_fix_text %}disabled{% endif %}>Button 02: FIX_TEXT</button>
+      </form>
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="chunk_from_fixed" />
+        <button class="btn secondary" type="submit" {% if not can_chunk_from_fixed %}disabled{% endif %}>CHUNKS (from fixed)</button>
+      </form>
+      {% if not can_materialize_raw %}
+      <div class="status">Gate: faça upload RAW no Project Hub antes de materializar.</div>
+      {% endif %}
+      {% if not can_freeze_canonical %}
+      <div class="status">Gate: texto final não encontrado para freeze.</div>
+      {% endif %}
+      {% if not can_normalize_text %}
+      <div class="status">Gate NORMALIZE: status deve estar em INGESTED.</div>
+      {% endif %}
+      {% if not can_fix_text %}
+      <div class="status">Gate FIX_TEXT: status NORMALIZED e normalized.md disponível.</div>
+      {% endif %}
+      {% if not can_chunk_from_fixed %}
+      <div class="status">Gate CHUNKS: status FIXED_TEXT e normalized.fixed.md disponível.</div>
+      {% endif %}
+    </article>
+
+    <article class="card">
       <h2>Assets — Images</h2>
       <form method="post" class="inline-form" enctype="multipart/form-data">
         {% csrf_token %}

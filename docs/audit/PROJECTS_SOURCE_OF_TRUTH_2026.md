@@ -1,28 +1,36 @@
-# Projects as Source of Truth (2026)
+# Projects Source of Truth Policy (2026)
 
-## Definition
-Projects is the official entry point for book registration:
-- `/pipeline/projects/` (list)
-- `/pipeline/projects/new/` (wizard)
-- `/pipeline/projects/<book_code>/` (hub)
+## Non-negotiable contract
+- `CANONICAL_INPUT = RAW` and must be immutable after ingest.
+- `CANONICAL_OUTPUT = TRUTH_FINAL` and must be immutable once frozen.
+- Database is a golden index of pointers/hashes/status only. DB is not the canonical text file.
 
-Only Projects can create new books.
+## Canonical directory contract
+- RAW: `data/raw/<book_id>/<lang>/source.(txt|md)`
+- TRUTH_FINAL: `data/books/<book_id>/<lang>/<book_id>_refine_clean.md`
+- RUN AUDIT: `docs/audit/runs/<book_id>_{ingest|freeze}_<timestamp>/`
 
-## Canonical RAW Path
-All RAW uploads are stored as:
-- `data/raw/<book_code>/<language>/source.txt`
-- `data/raw/<book_code>/<language>/source.md`
+## Operational flow
+1. Register edition metadata (`REGISTERED`).
+2. Upload RAW to Django storage (`UPLOADED`).
+3. Materialize RAW to canonical filesystem path (`INGESTED`).
+4. Run pipeline stages (normalize/chunk/translate/refine/polish).
+5. Freeze canonical truth with receipts (`CANONICAL_READY`).
 
-The canonical filename is always `source.<ext>` (original upload name is ignored).
+## Gates
+- `NORMALIZE` and `CHUNK` are blocked when status is below `INGESTED`.
+- `Freeze Canonical` is blocked if no final text source can be resolved.
 
-## Separation of Concerns
-- Projects = registration (metadata + RAW upload only)
-- Runner Matrix = execution (translate/split/return/build)
-- Steps (Assets) = images/cover + read-only status
-- Frontmatter = editorial content
-- Dashboard = observability
+## Mandatory receipts
+- Ingest run must contain at least: `git_head.txt`, `git_status.txt`, `SHA256SUMS.txt`, `manifest.json`.
+- Freeze run must contain at least:
+  - `git_head.txt`, `git_status.txt`
+  - `SHA256SUMS.txt` (truth)
+  - `images_list.txt`, `images_SHA256SUMS.txt` (when images exist)
+  - `cover_list.txt`, `cover_SHA256SUMS.txt` (when cover exists)
+  - `manifest.json`
 
-## Non-goals
-- No pipeline execution from Projects
-- No RAW upload outside Projects
-- No legacy scripts
+## Scope boundaries
+- Projects: registration + RAW upload.
+- Edition Steps: manual materialize/freeze gates.
+- Runner Matrix: execution only after ingest gate is satisfied.

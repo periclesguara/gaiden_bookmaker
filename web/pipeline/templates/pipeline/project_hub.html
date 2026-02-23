@@ -100,6 +100,9 @@
             {% else %}
               <span class="badge warn">MISSING</span>
             {% endif %}
+            <div style="margin-top:6px; font-size: 14px; color:#6c5f54;">
+              DB: {{ row.edition_status|default:"(none)" }}
+            </div>
           </td>
           <td><span class="badge {{ row.normalize_badge }}">{{ row.normalize_status }}</span></td>
           <td><span class="badge {{ row.chunk_badge }}">{{ row.chunk_status }}</span></td>
@@ -107,7 +110,15 @@
             <a class="btn secondary" href="/pipeline/normalize/preview/{{ work.code }}/{{ row.code }}/">Preview</a>
             <a class="btn secondary" href="/pipeline/chunks/manifest/{{ work.code }}/{{ row.code }}/">Manifest</a>
           </td>
-          <td>{{ row.path }}</td>
+          <td>
+            {{ row.path }}
+            {% if row.raw_materialized_path %}
+            <div style="margin-top:6px; font-size: 14px; color:#6c5f54;">Materialized: {{ row.raw_materialized_path }}</div>
+            {% endif %}
+            {% if row.raw_uploaded_name %}
+            <div style="margin-top:6px; font-size: 14px; color:#6c5f54;">Uploaded: {{ row.raw_uploaded_name }}</div>
+            {% endif %}
+          </td>
           <td>{{ row.size|default:"-" }}</td>
           <td>{{ row.mtime|default:"-" }}</td>
           <td><a class="btn secondary" href="/pipeline/projects/{{ work.code }}/upload/{{ row.code }}/">Upload RAW</a></td>

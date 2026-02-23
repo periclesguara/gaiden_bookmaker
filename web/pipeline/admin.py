@@ -37,9 +37,23 @@ class WorkAdmin(admin.ModelAdmin):
 
 @admin.register(Edition)
 class EditionAdmin(admin.ModelAdmin):
-    list_display = ("id", "work", "language", "seal", "edition_year", "raw_source_path")
+    list_display = (
+        "id",
+        "work",
+        "language",
+        "seal",
+        "status",
+        "book_id",
+        "lang",
+        "raw_upload",
+        "raw_materialized_path",
+        "raw_sha256",
+        "truth_path",
+        "truth_sha256",
+        "canonical_run_dir",
+    )
     search_fields = ("work__code", "work__title")
-    list_filter = ("language", "seal")
+    list_filter = ("language", "seal", "status")
 
 
 @admin.register(EditionPipeline)

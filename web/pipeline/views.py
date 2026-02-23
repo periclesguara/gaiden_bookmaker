@@ -56,8 +56,10 @@ from .models import (
 from .services import (
     book_manifest,
     build_book,
+    canonical_index,
     chapter_chunks,
     export_book,
+    fix_text,
     legacy_merges,
     md_quality,
     md_transform,
@@ -543,6 +545,10 @@ def projects_hub(request, book_code: str):
     for lang in enabled_langs:
         lang_code = utils.normalize_lang(lang)
         lang_dir = _fs_lang_dir(lang_code)
+        edition = EditorialEdition.objects.filter(
+            work=work,
+            language__code=_project_lang_db_code(lang_code),
+        ).first()
         normalized_path = data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
         normalize_report = data_dir / "normalized" / book_code / lang_dir / "normalize_report.json"
         chunks_manifest = data_dir / "chunks" / book_code / lang_dir / "chunks_manifest.json"
@@ -584,6 +590,9 @@ def projects_hub(request, book_code: str):
                 "normalize_badge": normalize_badge,
                 "chunk_status": chunk_status,
                 "chunk_badge": chunk_badge,
+                "edition_status": edition.status if edition else "",
+                "raw_uploaded_name": edition.raw_upload.name if edition and edition.raw_upload else "",
+                "raw_materialized_path": edition.raw_materialized_path if edition else "",
             }
         )
 
@@ -793,21 +802,20 @@ def projects_new(request):
             },
         )
 
-        dest_path = _project_raw_path(book_code, base_language, source_format)
-        dest_path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = dest_path.with_suffix(dest_path.suffix + ".tmp")
-        with tmp_path.open("wb+") as dest:
-            for chunk in upload.chunks():
-                dest.write(chunk)
-        tmp_path.replace(dest_path)
-
-        base_edition.raw_source_path = str(dest_path)
-        base_edition.save(update_fields=["raw_source_path", "updated_at"])
+        base_edition.raw_upload = upload
+        base_edition.status = EditorialEdition.STATUS_UPLOADED
+        base_edition.book_id = book_code
+        base_edition.lang = base_language
+        base_edition.save(update_fields=["raw_upload", "status", "book_id", "lang", "updated_at"])
         text, _ = EditionText.objects.get_or_create(edition=base_edition)
-        text.raw_path = str(dest_path)
+        text.raw_path = ""
         text.save(update_fields=["raw_path", "updated_at"])
 
-        messages.success(request, "Projeto criado e RAW salvo.")
+        messages.success(
+            request,
+            "Projeto criado e RAW enviado para storage. "
+            "Use 'Materialize RAW' em Edition Steps para gerar data/raw/<book>/<lang>/source.*.",
+        )
         return redirect("projects_hub", book_code=work.code)
 
     context = {
@@ -923,6 +931,10 @@ def projects_upload_raw(request, book_code: str, language: str):
     if lang_code not in PROJECT_LANG_CODES:
         messages.error(request, "Idioma inválido.")
         return redirect("projects_hub", book_code=book_code)
+    edition = EditorialEdition.objects.filter(
+        work=work,
+        language__code=_project_lang_db_code(lang_code),
+    ).first()
 
     if request.method == "POST":
         upload = request.FILES.get("raw_file")
@@ -942,15 +954,6 @@ def projects_upload_raw(request, book_code: str, language: str):
             messages.error(request, f"Formato esperado: {expected_ext}")
             return redirect("projects_upload_raw", book_code=book_code, language=language)
 
-        dest_path = _project_raw_path(book_code, lang_code, work.source_format)
-        dest_path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = dest_path.with_suffix(dest_path.suffix + ".tmp")
-
-        with tmp_path.open("wb+") as dest:
-            for chunk in upload.chunks():
-                dest.write(chunk)
-        tmp_path.replace(dest_path)
-
         lang_obj = _project_get_or_create_language(lang_code)
         seal_obj, _ = Seal.objects.get_or_create(
             slug=work.publisher.lower() if work.publisher else "mantaquest",
@@ -961,13 +964,20 @@ def projects_upload_raw(request, book_code: str, language: str):
             language=lang_obj,
             seal=seal_obj,
         )
-        edition.raw_source_path = str(dest_path)
-        edition.save(update_fields=["raw_source_path", "updated_at"])
+        edition.raw_upload = upload
+        edition.status = EditorialEdition.STATUS_UPLOADED
+        edition.book_id = book_code
+        edition.lang = lang_code
+        edition.save(update_fields=["raw_upload", "status", "book_id", "lang", "updated_at"])
         texts, _ = EditionText.objects.get_or_create(edition=edition)
-        texts.raw_path = str(dest_path)
+        texts.raw_path = ""
         texts.save(update_fields=["raw_path", "updated_at"])
 
-        messages.success(request, f"RAW salvo em {dest_path}")
+        messages.success(
+            request,
+            "RAW enviado para storage. "
+            "Use 'Materialize RAW' em Edition Steps para gerar o arquivo canônico em data/raw/.",
+        )
         return redirect("projects_upload_raw", book_code=book_code, language=language)
 
     raw_status = _project_raw_status(book_code, lang_code, work.source_format)
@@ -976,6 +986,10 @@ def projects_upload_raw(request, book_code: str, language: str):
         "language": lang_code,
         "raw_status": raw_status,
         "expected_ext": "txt" if work.source_format.upper() == "TXT" else "md",
+        "edition_status": edition.status if edition else "",
+        "raw_upload_name": edition.raw_upload.name if edition and edition.raw_upload else "",
+        "raw_materialized_path": edition.raw_materialized_path if edition else "",
+        "raw_sha256": edition.raw_sha256 if edition else "",
     }
     return render(request, "pipeline/project_upload_raw.html", context)
 
@@ -1195,6 +1209,36 @@ def runner_matrix_run_view(request):
     run_languages = languages
     if action in {"NORMALIZE", "CHUNK"}:
         run_languages = ["en"]
+    if action == "NORMALIZE":
+        blocked_books: list[str] = []
+        for book_code in book_codes:
+            edition = _edition_for_book_lang(book_code, "en")
+            status = (edition.status if edition else "") or "MISSING"
+            if status == EditorialEdition.STATUS_INGESTED:
+                continue
+            blocked_books.append(f"{book_code} ({status})")
+        if blocked_books:
+            messages.error(
+                request,
+                "Gate bloqueado: NORMALIZE exige status exatamente INGESTED "
+                f"(books: {', '.join(blocked_books)}).",
+            )
+            return redirect("pipeline_runner_matrix")
+    if action == "CHUNK":
+        blocked_books: list[str] = []
+        for book_code in book_codes:
+            edition = _edition_for_book_lang(book_code, "en")
+            status = (edition.status if edition else "") or "MISSING"
+            if status == EditorialEdition.STATUS_FIXED_TEXT:
+                continue
+            blocked_books.append(f"{book_code} ({status})")
+        if blocked_books:
+            messages.error(
+                request,
+                "Gate bloqueado: CHUNK exige status FIXED_TEXT "
+                f"(books: {', '.join(blocked_books)}). Rode NORMALIZE + FIX_TEXT antes.",
+            )
+            return redirect("pipeline_runner_matrix")
 
     _persist_policy_for_matrix_selection(
         book_codes=book_codes,
@@ -1588,6 +1632,42 @@ def _edition_for_book_lang(book_code: str, language: str) -> EditorialEdition | 
         work__code=book_code,
         language__code=db_lang,
     ).first()
+
+
+def _edition_materialized_raw_exists(edition: EditorialEdition | None) -> bool:
+    if not edition:
+        return False
+    for raw_path in (
+        (edition.raw_materialized_path or "").strip(),
+        (edition.raw_source_path or "").strip(),
+    ):
+        if not raw_path:
+            continue
+        candidate = Path(raw_path)
+        if not candidate.is_absolute():
+            candidate = _project_root() / candidate
+        if candidate.exists():
+            return True
+    return False
+
+
+def _edition_is_ingested_or_better(edition: EditorialEdition | None) -> bool:
+    if not edition:
+        return False
+    status = (edition.status or "").strip().upper()
+    accepted = {
+        EditorialEdition.STATUS_INGESTED,
+        EditorialEdition.STATUS_NORMALIZED,
+        EditorialEdition.STATUS_FIXED_TEXT,
+        EditorialEdition.STATUS_CHUNKED,
+        EditorialEdition.STATUS_TRANSLATED,
+        EditorialEdition.STATUS_REFINED,
+        EditorialEdition.STATUS_POLISHED,
+        EditorialEdition.STATUS_CANONICAL_READY,
+    }
+    if status in accepted:
+        return True
+    return _edition_materialized_raw_exists(edition)
 
 
 def _resolve_policy_for_state(
@@ -2206,6 +2286,33 @@ def _runner_normalized_path(book_code: str, lang: str) -> Path:
     return data_dir / "normalized" / book_code / lang_dir / f"{book_code}_{lang_code}_v2.txt"
 
 
+def _normalized_md_path(book_code: str, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    lang_code = utils.normalize_lang(lang)
+    lang_dir = _fs_lang_dir(lang_code)
+    return data_dir / "normalized" / book_code / lang_dir / "normalized.md"
+
+
+def _fixed_md_path(book_code: str, lang: str) -> Path:
+    data_dir = _project_root() / "data"
+    lang_code = utils.normalize_lang(lang)
+    lang_dir = _fs_lang_dir(lang_code)
+    return data_dir / "normalized" / book_code / lang_dir / "normalized.fixed.md"
+
+
+def _sha256_or_blank(path: Path) -> str:
+    if not path.exists():
+        return ""
+    try:
+        return canonical_index.sha256_file(path)
+    except Exception:
+        return ""
+
+
+def _latest_fix_report_for_book(book_code: str) -> dict | None:
+    return fix_text.latest_fix_report(book_code)
+
+
 def _runner_split_dir_path(book_id: int, lang: str) -> Path:
     data_dir = _project_root() / "data"
     lang_dir = _runner_lang_dir(lang)
@@ -2737,6 +2844,157 @@ def edition_steps(request, edition_id: int):
             action = "upload_cover"
         elif cover_action == "convert":
             action = "convert_cover_jpg"
+
+        if action == "materialize_raw":
+            try:
+                result = canonical_index.materialize_raw(edition)
+            except Exception as exc:
+                messages.error(request, f"Materialize RAW falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+            if result.get("skipped"):
+                messages.info(
+                    request,
+                    "RAW ja estava materializado com o mesmo hash. "
+                    f"path={result.get('raw_materialized_path')} sha={result.get('raw_sha256')}",
+                )
+            else:
+                messages.success(
+                    request,
+                    "RAW materializado com sucesso. "
+                    f"path={result.get('raw_materialized_path')} sha={result.get('raw_sha256')} "
+                    f"run={result.get('canonical_run_dir')}",
+                )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "freeze_canonical":
+            try:
+                result = canonical_index.freeze_canonical(edition)
+            except Exception as exc:
+                messages.error(request, f"Freeze Canonical falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+            if result.get("skipped"):
+                messages.info(
+                    request,
+                    "Freeze Canonical sem alteracoes (truth/assets inalterados). "
+                    f"run={result.get('canonical_run_dir')}",
+                )
+            else:
+                messages.success(
+                    request,
+                    "Canonical freeze concluido. "
+                    f"truth={result.get('truth_path')} sha={result.get('truth_sha256')} "
+                    f"run={result.get('canonical_run_dir')}",
+                )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "normalize_text":
+            if (edition.status or "").strip().upper() != EditorialEdition.STATUS_INGESTED:
+                messages.error(request, "Gate: NORMALIZE exige status INGESTED.")
+                return redirect("edition_steps", edition_id=edition.id)
+            lang_code = utils.normalize_lang(language)
+            normalized_v2_path = _runner_normalized_path(book_code, lang_code)
+            normalized_md_path = _normalized_md_path(book_code, lang_code)
+            cmd = [str(_runner_python_path()), "-m", "gaiden.normalize", book_code, lang_code]
+            result = subprocess.run(
+                cmd,
+                cwd=str(_project_root()),
+                capture_output=True,
+                text=True,
+                env=os.environ.copy(),
+                check=False,
+            )
+            if result.returncode != 0:
+                messages.error(
+                    request,
+                    "Normalize falhou. "
+                    f"stderr={((result.stderr or '').strip() or (result.stdout or '').strip())[:300]}",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+            if not normalized_v2_path.exists():
+                messages.error(request, f"Normalize não gerou output esperado: {normalized_v2_path}")
+                return redirect("edition_steps", edition_id=edition.id)
+            normalized_md_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_md = normalized_md_path.with_suffix(".md.tmp")
+            tmp_md.write_text(normalized_v2_path.read_text(encoding="utf-8"), encoding="utf-8")
+            tmp_md.replace(normalized_md_path)
+            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            texts.normalized_path = normalized_md_path.relative_to(_project_root()).as_posix()
+            texts.normalized_text = ""
+            texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.normalized_at = timezone.now()
+            pipeline_state.current_stage = PipelineStage.NORMALIZED
+            pipeline_state.save(update_fields=["normalized_at", "current_stage"])
+            edition.status = EditorialEdition.STATUS_NORMALIZED
+            edition.save(update_fields=["status", "updated_at"])
+            messages.success(
+                request,
+                "Normalize concluído. "
+                f"path={normalized_md_path.relative_to(_project_root()).as_posix()}",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "fix_text":
+            if (edition.status or "").strip().upper() != EditorialEdition.STATUS_NORMALIZED:
+                messages.error(request, "Gate: FIX_TEXT exige status NORMALIZED.")
+                return redirect("edition_steps", edition_id=edition.id)
+            try:
+                report = fix_text.fix_text(edition)
+            except Exception as exc:
+                messages.error(request, f"FIX_TEXT falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+            if report.get("status") == "PASS":
+                edition.status = EditorialEdition.STATUS_FIXED_TEXT
+                edition.save(update_fields=["status", "updated_at"])
+                messages.success(
+                    request,
+                    "FIX_TEXT concluído. "
+                    f"output={report.get('output_path')} run={report.get('run_dir')}",
+                )
+            else:
+                edition.status = EditorialEdition.STATUS_NORMALIZED
+                edition.save(update_fields=["status", "updated_at"])
+                heading_diff = report.get("heading_diff") or {}
+                messages.error(
+                    request,
+                    "FIX_TEXT falhou (heading inventory). "
+                    f"reason={heading_diff.get('reason', 'unknown')} run={report.get('run_dir')}",
+                )
+            return redirect("edition_steps", edition_id=edition.id)
+
+        if action == "chunk_from_fixed":
+            if (edition.status or "").strip().upper() != EditorialEdition.STATUS_FIXED_TEXT:
+                messages.error(request, "Gate: CHUNKS exige status FIXED_TEXT.")
+                return redirect("edition_steps", edition_id=edition.id)
+            chunk_lang = utils.normalize_lang(language)
+            if chunk_lang != "en":
+                messages.error(request, "CHUNKS desta etapa suporta apenas EN.")
+                return redirect("edition_steps", edition_id=edition.id)
+            fixed_path = _fixed_md_path(book_code, chunk_lang)
+            if not fixed_path.exists():
+                messages.error(
+                    request,
+                    "normalized.fixed.md ausente. Rode FIX_TEXT antes de gerar CHUNKS.",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+            try:
+                chunk_result = chapter_chunks.run_chapter_chunks(edition, normalized_override=fixed_path)
+            except Exception as exc:
+                messages.error(request, f"CHUNKS falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.chunked_at = timezone.now()
+            pipeline_state.current_stage = PipelineStage.CHUNKED
+            pipeline_state.save(update_fields=["chunked_at", "current_stage"])
+            edition.status = EditorialEdition.STATUS_CHUNKED
+            edition.save(update_fields=["status", "updated_at"])
+            messages.success(
+                request,
+                "CHUNKS concluído a partir de normalized.fixed.md. "
+                f"manifest={chunk_result.get('manifest')}",
+            )
+            return redirect("edition_steps", edition_id=edition.id)
+
         if action == "upload_cover":
             cover_file = request.FILES.get("cover_file")
             if not cover_file:
@@ -3200,6 +3458,18 @@ def edition_steps(request, edition_id: int):
         run_state,
         fallback_selected_mode="automatic",
     )
+    edition_status = (edition.status or "").strip().upper()
+    normalize_lang_code = utils.normalize_lang(language)
+    normalized_v2_path = _runner_normalized_path(book_code, normalize_lang_code)
+    normalized_md_path = _normalized_md_path(book_code, normalize_lang_code)
+    fixed_md_path = _fixed_md_path(book_code, normalize_lang_code)
+    normalized_display_path = normalized_md_path if normalized_md_path.exists() else normalized_v2_path
+    latest_fix_report = _latest_fix_report_for_book(book_code)
+    fix_report_status = (latest_fix_report or {}).get("status", "")
+    fix_run_dir = (latest_fix_report or {}).get("run_dir", "")
+
+    canonical_index.sync_edition_identity(edition)
+    freeze_source = canonical_index.resolve_truth_source_path(edition)
     canonical_info = canonical.canonical_status(book_code, asset_lang_default)
     canonical_active_rel = _relpath_or_abs(Path(canonical_info["active_path"]))
     canonical_json_rel = _relpath_or_abs(Path(canonical_info["active_json_path"]))
@@ -3236,6 +3506,30 @@ def edition_steps(request, edition_id: int):
         "md_status": run_state.md_status,
         "md_generated_at": run_state.md_generated_at,
         "run_build_outputs": run_state.build_outputs or {},
+        "canonical_status_db": edition.status,
+        "can_normalize_text": edition_status == EditorialEdition.STATUS_INGESTED,
+        "can_fix_text": edition_status == EditorialEdition.STATUS_NORMALIZED and normalized_md_path.exists(),
+        "can_chunk_from_fixed": edition_status == EditorialEdition.STATUS_FIXED_TEXT and fixed_md_path.exists(),
+        "raw_upload_name": edition.raw_upload.name if edition.raw_upload else "",
+        "raw_materialized_path": edition.raw_materialized_path,
+        "raw_sha256": edition.raw_sha256,
+        "normalized_path": _relpath_or_abs(normalized_display_path),
+        "normalized_path_is_md": normalized_md_path.exists(),
+        "normalized_sha256": _sha256_or_blank(normalized_display_path),
+        "fixed_path": _relpath_or_abs(fixed_md_path),
+        "fixed_exists": fixed_md_path.exists(),
+        "fixed_sha256": _sha256_or_blank(fixed_md_path),
+        "fix_run_dir": fix_run_dir,
+        "fix_report_status": fix_report_status,
+        "fix_report_path": (latest_fix_report or {}).get("report_path", ""),
+        "fix_actions": (latest_fix_report or {}).get("actions", {}),
+        "truth_path_db": edition.truth_path,
+        "truth_sha256_db": edition.truth_sha256,
+        "canonical_run_dir_db": edition.canonical_run_dir,
+        "canonical_tag_db": edition.canonical_official_tag,
+        "freeze_source_path": _relpath_or_abs(freeze_source) if freeze_source else "",
+        "can_materialize_raw": bool(edition.raw_upload),
+        "can_freeze_canonical": bool(freeze_source),
         "canonical_exists": bool(canonical_info.get("exists")),
         "canonical_active_path": canonical_active_rel,
         "canonical_active_json_path": canonical_json_rel,

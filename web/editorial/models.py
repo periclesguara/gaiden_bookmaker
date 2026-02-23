@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.db import models
 
 
@@ -81,6 +83,15 @@ class Work(models.Model):
         return f"{self.title} ({self.author.name})"
 
 
+def edition_raw_upload_path(instance: "Edition", filename: str) -> str:
+    clean_name = Path(filename).name
+    book_code = (instance.work.code if getattr(instance, "work_id", None) else "unknown_book").strip()
+    lang_code = (
+        instance.language.code if getattr(instance, "language_id", None) else "unknown_lang"
+    ).strip()
+    return f"editorial/raw_uploads/{book_code}/{lang_code}/{clean_name}"
+
+
 class Edition(models.Model):
     LANGUAGE_CHOICES = [
         ("en", "English"),
@@ -103,6 +114,30 @@ class Edition(models.Model):
         ("Brasil", "Brasil"),
         ("Brazil", "Brazil"),
         ("Brazile", "Brazile"),
+    ]
+
+    STATUS_REGISTERED = "REGISTERED"
+    STATUS_UPLOADED = "UPLOADED"
+    STATUS_INGESTED = "INGESTED"
+    STATUS_NORMALIZED = "NORMALIZED"
+    STATUS_FIXED_TEXT = "FIXED_TEXT"
+    STATUS_CHUNKED = "CHUNKED"
+    STATUS_TRANSLATED = "TRANSLATED"
+    STATUS_REFINED = "REFINED"
+    STATUS_POLISHED = "POLISHED"
+    STATUS_CANONICAL_READY = "CANONICAL_READY"
+
+    STATUS_CHOICES = [
+        (STATUS_REGISTERED, "Registered"),
+        (STATUS_UPLOADED, "Uploaded"),
+        (STATUS_INGESTED, "Ingested"),
+        (STATUS_NORMALIZED, "Normalized"),
+        (STATUS_FIXED_TEXT, "Fixed Text"),
+        (STATUS_CHUNKED, "Chunked"),
+        (STATUS_TRANSLATED, "Translated"),
+        (STATUS_REFINED, "Refined"),
+        (STATUS_POLISHED, "Polished"),
+        (STATUS_CANONICAL_READY, "Canonical Ready"),
     ]
 
     work = models.ForeignKey(
@@ -129,7 +164,23 @@ class Edition(models.Model):
     )
     publisher = models.CharField(max_length=255, blank=True)
     edition_year = models.IntegerField(null=True, blank=True)
+    book_id = models.CharField(max_length=64, blank=True, default="")
+    lang = models.CharField(max_length=10, blank=True, default="")
+    raw_upload = models.FileField(upload_to=edition_raw_upload_path, blank=True, null=True)
     raw_source_path = models.CharField(max_length=500, blank=True)
+    raw_materialized_path = models.CharField(max_length=500, blank=True, default="")
+    raw_sha256 = models.CharField(max_length=64, blank=True, default="")
+    raw_materialized_at = models.DateTimeField(null=True, blank=True)
+    truth_path = models.CharField(max_length=500, blank=True, default="")
+    truth_sha256 = models.CharField(max_length=64, blank=True, default="")
+    truth_frozen_at = models.DateTimeField(null=True, blank=True)
+    canonical_run_dir = models.CharField(max_length=500, blank=True, default="")
+    canonical_official_tag = models.CharField(max_length=200, blank=True, default="")
+    status = models.CharField(
+        max_length=32,
+        choices=STATUS_CHOICES,
+        default=STATUS_REGISTERED,
+    )
     title = models.CharField(max_length=255, blank=True)
     subtitle = models.CharField(max_length=255, blank=True)
     author = models.CharField(max_length=255, blank=True)

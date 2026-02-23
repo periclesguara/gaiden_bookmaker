@@ -31,7 +31,12 @@ def _parse_book_id(book_code: str) -> int | None:
         return None
 
 
-def _resolve_normalized_path(edition) -> Path:
+def _resolve_normalized_path(edition, normalized_override: Path | None = None) -> Path:
+    if normalized_override is not None:
+        candidate = Path(normalized_override)
+        if not candidate.exists():
+            raise FileNotFoundError(f"Normalized override not found: {candidate}")
+        return candidate
     book_code = edition_meta.book_code(edition)
     language_code = edition_meta.language_code(edition)
     texts = EditionText.objects.filter(edition=edition).first()
@@ -55,7 +60,7 @@ def _resolve_normalized_path(edition) -> Path:
     return canonical
 
 
-def run_chapter_chunks(edition) -> dict[str, str]:
+def run_chapter_chunks(edition, normalized_override: Path | None = None) -> dict[str, str]:
     language_code = edition_meta.language_code(edition)
     if language_code != "en":
         raise ValueError("chunk stage suporta apenas ingles no momento.")
@@ -65,7 +70,7 @@ def run_chapter_chunks(edition) -> dict[str, str]:
     if book_id is None:
         raise ValueError("book_code must be like book_0001.")
 
-    normalized_path = _resolve_normalized_path(edition)
+    normalized_path = _resolve_normalized_path(edition, normalized_override=normalized_override)
 
     output_dir = paths.data_dir() / "chunks" / f"book_{book_id:04d}" / "en"
     manifest_path = output_dir / "chunks_manifest.json"

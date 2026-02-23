@@ -109,6 +109,12 @@ def _resolve_normalized_path(book_code: str, lang: str) -> Path | None:
     return path if path.exists() else None
 
 
+def _fixed_text_path(book_code: str, lang: str) -> Path:
+    data_dir = Path(settings.BASE_DIR).parent / "data"
+    lang_code = _lang_fs(lang)
+    return data_dir / "normalized" / book_code / lang_code / "normalized.fixed.md"
+
+
 def _resolve_raw_path(book_code: str, lang: str) -> tuple[Path | None, Path, str | None, Path | None]:
     data_dir = Path(settings.BASE_DIR).parent / "data"
     canonical_dir = canonical_raw_dir(book_code, lang, data_dir)
@@ -732,7 +738,7 @@ class Command(BaseCommand):
                     manifest_path = _chunks_manifest_path(chunk_dir)
                     item.out_path = str(manifest_path)
                     item.save(update_fields=["out_path"])
-                    normalized_path = _resolve_normalized_path(book_code, chunk_lang)
+                    normalized_path = _fixed_text_path(book_code, chunk_lang)
                     target_tokens, max_tokens = _chunk_token_limits()
                     command_line = (
                         "python -m gaiden.chunk_book "
@@ -800,8 +806,8 @@ class Command(BaseCommand):
                         book_code=book_code,
                         lang=item.lang if run.action == "NORMALIZE" else "en",
                         log_path=log_path,
-                        ensure_normalized=True,
-                        ensure_chunks=(run.action in {"CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT"}),
+                        ensure_normalized=(run.action in {"NORMALIZE", "TRANSLATE", "TRANSLATE_DEFAULT"}),
+                        ensure_chunks=(run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}),
                         allow_run=False,
                     )
                     if precheck["raw_reason"]:
@@ -960,29 +966,27 @@ class Command(BaseCommand):
                         raise FileNotFoundError("Edition not found for chunk.")
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    norm_path, _report, norm_ok = _normalized_status(book_code, chunk_lang)
-                    if not norm_ok:
+                    edition_status = str(edition.status or "").strip().upper()
+                    if edition_status != "FIXED_TEXT":
                         with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write("AUTO: normalize before chunk (precheck)\n")
-                            norm_path = _run_normalize_dependency(
-                                book_code=book_code,
-                                lang=chunk_lang,
-                                edition=edition,
-                                pipeline_state=pipeline_state,
-                                log_file=log_file,
-                            )
-                        norm_path, _report, norm_ok = _normalized_status(book_code, chunk_lang)
+                            log_file.write("FAIL: CHUNK gate requires Edition.status=FIXED_TEXT\n")
+                            log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
+                        item.status = "FAILED"
+                        item.skipped_reason = "PRECONDITION_STATUS_NOT_FIXED_TEXT"
+                        item.finished_at = timezone.now()
+                        item.save(update_fields=["status", "finished_at", "skipped_reason"])
+                        continue
 
-                    if not norm_ok:
+                    norm_path = _fixed_text_path(book_code, chunk_lang)
+                    if not norm_path.exists():
                         with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("FAIL: precondition missing normalized\n")
-                            expected = _normalized_path(book_code, chunk_lang)
-                            log_file.write(f"EXPECTED_NORMALIZED_PATH: {expected}\n")
+                            log_file.write("FAIL: precondition missing fixed normalized text\n")
+                            log_file.write(f"EXPECTED_FIXED_PATH: {norm_path}\n")
                             log_file.write("CHUNK_SHARED_LANG: en\n")
                             log_file.write("NOTE: Chunking is shared; forced to EN\n")
                         item.status = "FAILED"
-                        item.skipped_reason = "PRECONDITION_MISSING_NORMALIZED"
+                        item.skipped_reason = "PRECONDITION_MISSING_FIXED_TEXT"
                         item.finished_at = timezone.now()
                         item.save(update_fields=["status", "finished_at", "skipped_reason"])
                         continue

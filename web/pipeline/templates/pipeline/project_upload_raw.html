@@ -67,6 +67,18 @@
       Path: <strong>{{ raw_status.path }}</strong>
     </div>
     <div class="status">
+      Edition status (DB): <strong>{{ edition_status|default:"(none)" }}</strong>
+    </div>
+    <div class="status">
+      Uploaded RAW (storage): <strong>{{ raw_upload_name|default:"(none)" }}</strong>
+    </div>
+    <div class="status">
+      Materialized RAW path (DB): <strong>{{ raw_materialized_path|default:"(none)" }}</strong>
+    </div>
+    <div class="status">
+      Materialized RAW SHA256 (DB): <strong>{{ raw_sha256|default:"(none)" }}</strong>
+    </div>
+    <div class="status">
       Status:
       {% if raw_status.exists %}
         <span class="badge ok">EXISTS</span>
@@ -83,6 +95,10 @@
         Upload RAW file:
         <input type="file" name="raw_file" required />
       </label>
+      <div class="status">
+        Upload salva no storage do Django. A materialização em <strong>data/raw/&lt;book&gt;/&lt;lang&gt;/source.*</strong>
+        acontece depois no botão <strong>Materialize RAW</strong> em Edition Steps.
+      </div>
       <div style="margin-top: 10px;">
         <button class="btn" type="submit">Upload</button>
         <a class="btn secondary" href="/pipeline/projects/{{ work.code }}/">Back to Hub</a>
