@@ -108,6 +108,30 @@ def _freeze_run_dir(book_id: str, stamp: str) -> Path:
     return project_root() / "docs" / "audit" / "runs" / f"{book_id}_freeze_{stamp}"
 
 
+def _pretruth_freeze_run_dir(book_id: str, stamp: str) -> Path:
+    return project_root() / "docs" / "audit" / "runs" / f"{book_id}_pretruth_freeze_{stamp}"
+
+
+STATUS_ORDER = {
+    Edition.STATUS_REGISTERED: 0,
+    Edition.STATUS_UPLOADED: 1,
+    Edition.STATUS_INGESTED: 2,
+    Edition.STATUS_NORMALIZED: 3,
+    Edition.STATUS_FIXED_TEXT: 4,
+    Edition.STATUS_PRETRUTH_READY: 5,
+    Edition.STATUS_CHUNKED: 6,
+    Edition.STATUS_TRANSLATED: 7,
+    Edition.STATUS_REFINED: 8,
+    Edition.STATUS_POLISHED: 9,
+    Edition.STATUS_CANONICAL_READY: 10,
+}
+
+
+def status_rank(status: str | None) -> int:
+    key = (status or "").strip().upper()
+    return STATUS_ORDER.get(key, -1)
+
+
 def _write_ingest_receipts(
     *,
     run_dir: Path,
@@ -227,6 +251,28 @@ def resolve_truth_source_path(edition: Edition) -> Path | None:
     return None
 
 
+def resolve_pretruth_source_path(edition: Edition) -> Path | None:
+    sync_edition_identity(edition)
+    root = project_root()
+    book_id = edition.book_id
+    lang = edition.lang
+    lang_upper = lang.upper()
+    candidates = [
+        root / "data" / "normalized" / book_id / lang / "normalized.fixed.md",
+        root / "data" / "normalized" / book_id / lang_upper / "normalized.fixed.md",
+        root / "data" / "normalized" / book_id / lang / "normalized.md",
+        root / "data" / "normalized" / book_id / lang_upper / "normalized.md",
+        root / "data" / "raw" / book_id / lang / "source.txt",
+        root / "data" / "raw" / book_id / lang / "source.md",
+        root / "data" / "raw" / book_id / lang_upper / "source.txt",
+        root / "data" / "raw" / book_id / lang_upper / "source.md",
+    ]
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file() and candidate.stat().st_size > 0:
+            return candidate
+    return None
+
+
 def _list_files_shas(files: list[Path]) -> tuple[list[str], list[str]]:
     rel_paths = [_to_rel(path) for path in files]
     sha_lines = [f"{sha256_file(path)}  {_to_rel(path)}" for path in files]
@@ -276,6 +322,82 @@ def _freeze_is_same_as_last(
     prev_images_lines = prev_images.read_text(encoding="utf-8").splitlines() if prev_images.exists() else []
     prev_cover_lines = prev_cover.read_text(encoding="utf-8").splitlines() if prev_cover.exists() else []
     return prev_images_lines == images_sha_lines and prev_cover_lines == cover_sha_lines
+
+
+def _freeze_pretruth_is_same_as_last(edition: Edition, truth_sha: str) -> bool:
+    if status_rank(edition.status) < status_rank(Edition.STATUS_PRETRUTH_READY):
+        return False
+    if edition.truth_sha256 != truth_sha:
+        return False
+    return True
+
+
+def freeze_pretruth(edition: Edition) -> dict:
+    source_path = resolve_pretruth_source_path(edition)
+    if not source_path:
+        raise CanonicalFlowError("No pretruth source found (normalized.fixed.md/normalized.md/source.*).")
+
+    content = source_path.read_bytes()
+    if not content.strip():
+        raise CanonicalFlowError(f"Pretruth source is empty: {_to_rel(source_path)}")
+
+    source_rel = _to_rel(source_path)
+    truth_sha = _sha256_bytes(content)
+    book_id = edition.book_id
+    lang = edition.lang
+
+    if _freeze_pretruth_is_same_as_last(edition, truth_sha):
+        return {
+            "book_id": book_id,
+            "lang": lang,
+            "truth_source": source_rel,
+            "truth_path": edition.truth_path,
+            "truth_sha256": truth_sha,
+            "canonical_run_dir": edition.canonical_run_dir,
+            "skipped": True,
+        }
+
+    stamp = _utc_stamp()
+    run_dir = _pretruth_freeze_run_dir(book_id, stamp)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    _write_text(run_dir / "git_status.txt", _git_text(["git", "status", "-sb"]) + "\n")
+    _write_text(run_dir / "git_head.txt", _git_text(["git", "rev-parse", "HEAD"]) + "\n")
+    _write_text(run_dir / "SHA256SUMS.txt", f"{truth_sha}  {source_rel}\n")
+    manifest = {
+        "book_id": book_id,
+        "lang": lang,
+        "truth_source": source_rel,
+        "truth_sha256": truth_sha,
+        "mode": "pretruth",
+        "created_utc": stamp,
+    }
+    _write_text(run_dir / "manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+
+    edition.truth_path = source_rel
+    edition.truth_sha256 = truth_sha
+    edition.truth_frozen_at = timezone.now()
+    edition.canonical_run_dir = _to_rel(run_dir)
+    edition.status = Edition.STATUS_PRETRUTH_READY
+    edition.save(
+        update_fields=[
+            "truth_path",
+            "truth_sha256",
+            "truth_frozen_at",
+            "canonical_run_dir",
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return {
+        "book_id": book_id,
+        "lang": lang,
+        "truth_source": source_rel,
+        "truth_path": source_rel,
+        "truth_sha256": truth_sha,
+        "canonical_run_dir": _to_rel(run_dir),
+        "skipped": False,
+    }
 
 
 def freeze_canonical(edition: Edition) -> dict:

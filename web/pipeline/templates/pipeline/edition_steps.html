@@ -206,6 +206,7 @@
       </div>
       {% endif %}
       <div class="status">Freeze source candidate: <strong>{{ freeze_source_path|default:'(none)' }}</strong></div>
+      <div class="status">Pretruth source candidate: <strong>{{ pretruth_source_path|default:'(none)' }}</strong></div>
       <div class="status">TRUTH path (DB): <strong>{{ truth_path_db|default:'(none)' }}</strong></div>
       <div class="status">TRUTH SHA256 (DB): <strong>{{ truth_sha256_db|default:'(none)' }}</strong></div>
       <div class="status">Canonical run dir: <strong>{{ canonical_run_dir_db|default:'(none)' }}</strong></div>
@@ -223,6 +224,13 @@
         <input type="hidden" name="action" value="freeze_canonical" />
         <button class="btn" type="submit" {% if not can_freeze_canonical %}disabled{% endif %}>Freeze Canonical</button>
       </form>
+      {% if show_freeze_pretruth %}
+      <form method="post" class="inline-form" style="margin-top: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="freeze_pretruth" />
+        <button class="btn secondary" type="submit" {% if not can_freeze_pretruth %}disabled{% endif %}>FREEZE (PRETRUTH)</button>
+      </form>
+      {% endif %}
       <form method="post" class="inline-form" style="margin-top: 12px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="normalize_text" />
@@ -243,6 +251,9 @@
       {% endif %}
       {% if not can_freeze_canonical %}
       <div class="status">Gate: texto final não encontrado para freeze.</div>
+      {% endif %}
+      {% if show_freeze_pretruth and not can_freeze_pretruth %}
+      <div class="status">Gate PRETRUTH: exige status >= FIXED_TEXT e fonte pretruth disponível.</div>
       {% endif %}
       {% if not can_normalize_text %}
       <div class="status">Gate NORMALIZE: status deve estar em INGESTED.</div>

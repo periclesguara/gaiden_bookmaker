@@ -967,9 +967,11 @@ class Command(BaseCommand):
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
                     edition_status = str(edition.status or "").strip().upper()
-                    if edition_status != "FIXED_TEXT":
+                    if edition_status not in {"FIXED_TEXT", "PRETRUTH_READY"}:
                         with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write("FAIL: CHUNK gate requires Edition.status=FIXED_TEXT\n")
+                            log_file.write(
+                                "FAIL: CHUNK gate requires Edition.status=FIXED_TEXT/PRETRUTH_READY\n"
+                            )
                             log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
                         item.status = "FAILED"
                         item.skipped_reason = "PRECONDITION_STATUS_NOT_FIXED_TEXT"
