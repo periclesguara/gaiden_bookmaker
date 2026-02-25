@@ -1,0 +1,8 @@
+{
+  "book_id": "book_0005",
+  "lang": "en",
+  "truth_source": "data/normalized/book_0005/en/normalized.fixed.md",
+  "truth_sha256": "7fef7a61bb45e81a6e1147a288413ad9995e3b3ed9e5d73f62b886af3bb25e0f",
+  "mode": "pretruth",
+  "created_utc": "2026-02-25T15-50-31Z"
+}

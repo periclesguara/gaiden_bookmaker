@@ -1,0 +1,9 @@
+## feature/fix-text-step-v1...origin/feature/fix-text-step-v1
+ M web/editorial/models.py
+ M web/pipeline/management/commands/run_pipeline_matrix.py
+ M web/pipeline/services/canonical_index.py
+ M web/pipeline/templates/pipeline/edition_steps.html
+ M web/pipeline/templates/pipeline/runner_matrix.html
+ M web/pipeline/test_canonical_index.py
+ M web/pipeline/views.py
+?? web/editorial/migrations/0024_alter_edition_status.py

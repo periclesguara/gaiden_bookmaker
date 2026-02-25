@@ -1,0 +1,1 @@
+601036cf1be66c29295a81a3c9624f1330e199dd771473ecbbbab3ec1fdce8f5  data/raw/book_0003/EN/source.txt

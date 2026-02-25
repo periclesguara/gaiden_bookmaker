@@ -1,0 +1,8 @@
+{
+  "book_id": "book_0003",
+  "lang": "en",
+  "truth_source": "data/raw/book_0003/EN/source.txt",
+  "truth_sha256": "601036cf1be66c29295a81a3c9624f1330e199dd771473ecbbbab3ec1fdce8f5",
+  "mode": "pretruth",
+  "created_utc": "2026-02-25T15-50-31Z"
+}
