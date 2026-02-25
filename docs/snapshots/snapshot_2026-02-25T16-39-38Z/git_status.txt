@@ -1,0 +1,9 @@
+## feature/editionpipeline-autosync-v1
+ M web/pipeline/management/commands/run_pipeline_matrix.py
+ M web/pipeline/services/canonical_index.py
+ M web/pipeline/templates/pipeline/edition_steps.html
+ M web/pipeline/templates/pipeline/runner_matrix.html
+ M web/pipeline/test_canonical_index.py
+?? docs/audit/runs/book_0003_pretruth_freeze_2026-02-25T15-50-31Z/
+?? docs/audit/runs/book_0005_pretruth_freeze_2026-02-25T15-50-31Z/
+?? docs/snapshots/
