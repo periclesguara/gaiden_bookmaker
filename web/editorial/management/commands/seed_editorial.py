@@ -107,7 +107,7 @@ class Command(BaseCommand):
                 edition.save(update_fields=["raw_source_path", "updated_at"])
 
             pipeline, _ = EditionPipeline.objects.get_or_create(edition=edition)
-            if pipeline.current_stage == PipelineStage.RAW and pipeline.raw_at is None:
+            if pipeline.current_stage == PipelineStage.REGISTERED and pipeline.raw_at is None:
                 pipeline.raw_at = pipeline.raw_at or edition.created_at
                 pipeline.save(update_fields=["raw_at"])
 

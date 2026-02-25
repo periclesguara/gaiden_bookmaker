@@ -121,6 +121,7 @@ class Edition(models.Model):
     STATUS_INGESTED = "INGESTED"
     STATUS_NORMALIZED = "NORMALIZED"
     STATUS_FIXED_TEXT = "FIXED_TEXT"
+    STATUS_PRETRUTH_READY = "PRETRUTH_READY"
     STATUS_CHUNKED = "CHUNKED"
     STATUS_TRANSLATED = "TRANSLATED"
     STATUS_REFINED = "REFINED"
@@ -133,6 +134,7 @@ class Edition(models.Model):
         (STATUS_INGESTED, "Ingested"),
         (STATUS_NORMALIZED, "Normalized"),
         (STATUS_FIXED_TEXT, "Fixed Text"),
+        (STATUS_PRETRUTH_READY, "Pretruth Ready"),
         (STATUS_CHUNKED, "Chunked"),
         (STATUS_TRANSLATED, "Translated"),
         (STATUS_REFINED, "Refined"),
@@ -314,16 +316,17 @@ class EditionBlock(models.Model):
 
 
 class PipelineStage(models.TextChoices):
-    RAW = "RAW", "Original (raw)"
-    NORMALIZED = "NORMALIZED", "Normalizado"
-    CHUNKED = "CHUNKED", "Chunked"
-    TRANSLATED = "TRANSLATED", "Traduzido"
-    REFINED = "REFINED", "Refine"
-    MERGED = "MERGED", "Merge"
-    POLISHED = "POLISHED", "Polish (Codex)"
-    MIOLO_MD = "MIOLO_MD", "Miolo MD"
-    FINAL_MD = "FINAL_MD", "MD Final"
-    DONE = "DONE", "Finalizado"
+    REGISTERED = Edition.STATUS_REGISTERED, "Registered"
+    UPLOADED = Edition.STATUS_UPLOADED, "Uploaded"
+    INGESTED = Edition.STATUS_INGESTED, "Ingested"
+    NORMALIZED = Edition.STATUS_NORMALIZED, "Normalized"
+    FIXED_TEXT = Edition.STATUS_FIXED_TEXT, "Fixed Text"
+    PRETRUTH_READY = Edition.STATUS_PRETRUTH_READY, "Pretruth Ready"
+    CHUNKED = Edition.STATUS_CHUNKED, "Chunked"
+    TRANSLATED = Edition.STATUS_TRANSLATED, "Translated"
+    REFINED = Edition.STATUS_REFINED, "Refined"
+    POLISHED = Edition.STATUS_POLISHED, "Polished"
+    CANONICAL_READY = Edition.STATUS_CANONICAL_READY, "Canonical Ready"
 
 
 class EditionPipeline(models.Model):
@@ -339,7 +342,7 @@ class EditionPipeline(models.Model):
     current_stage = models.CharField(
         max_length=20,
         choices=PipelineStage.choices,
-        default=PipelineStage.RAW,
+        default=PipelineStage.REGISTERED,
     )
     translation_language = models.CharField(max_length=10, blank=True)
     raw_at = models.DateTimeField(null=True, blank=True)
