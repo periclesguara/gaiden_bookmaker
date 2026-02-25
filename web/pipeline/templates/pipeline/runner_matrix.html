@@ -190,6 +190,7 @@
     </nav>
     <h1>Runner Matrix</h1>
     <p class="subtitle">Orquestração em fila (1 a 1) para execução de etapas do pipeline.</p>
+    {% if db_banner %}<p class="subtitle">{{ db_banner }}</p>{% endif %}
   </header>
 
   <form method="post" action="{% url 'pipeline_runner_run' %}">

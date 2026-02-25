@@ -140,6 +140,7 @@
     </nav>
     <h1>Gaiden Pipeline - Visao Geral</h1>
     <p>Resumo por edicao com status das etapas.</p>
+    {% if db_banner %}<p>{{ db_banner }}</p>{% endif %}
     <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>
   </header>
   <section class="grid">

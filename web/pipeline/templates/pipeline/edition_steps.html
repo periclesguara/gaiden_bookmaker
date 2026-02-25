@@ -162,6 +162,7 @@
     </nav>
     <h1>Production Console — Assets & Status</h1>
     <p class="subtitle">{{ book_code }} · {{ edition.work.title }} · {{ edition.work.author.name }}</p>
+    {% if db_banner %}<p class="subtitle">{{ db_banner }}</p>{% endif %}
     <div class="actions">
       <a class="btn secondary" href="/pipeline/runner/?book_code={{ book_code }}">Open Runner Matrix</a>
       <a class="btn secondary" href="/editorial/frontmatter/{{ book_code }}/{{ language }}/">Open Frontmatter</a>

@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.contrib import messages
+from django.db import connection
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -106,6 +107,18 @@ TRANSLATE_LEGACY_BOOKS = {"book_0001", "book_0002"}
 MAX_RAW_UPLOAD_BYTES = 50 * 1024 * 1024
 logger = logging.getLogger(__name__)
 
+
+def _db_banner() -> str:
+    vendor = connection.vendor
+    settings_dict = connection.settings_dict
+    name = settings_dict.get("NAME")
+    host = settings_dict.get("HOST") or "local"
+    port = settings_dict.get("PORT") or ""
+    if vendor == "sqlite":
+        return f"DB: {vendor} / {name}"
+    return f"DB: {vendor} {host}{(':' + str(port)) if port else ''} / {name}"
+
+
 def _parse_bool(value: object, *, default: bool = False) -> bool:
     if value is None:
         return default
@@ -156,6 +169,7 @@ def pipeline_dashboard(request):
         {
             "rows": rows,
             "missing_pipeline_rows": missing_pipeline_rows,
+            "db_banner": _db_banner(),
         },
     )
 
@@ -269,6 +283,7 @@ def pipeline_project_dashboard(request):
 
     context = {
         "books": books,
+        "db_banner": _db_banner(),
     }
     return render(request, "pipeline/project_dashboard.html", context)
 
@@ -1039,7 +1054,14 @@ def edition_steps_by_code(request, book_code: str, language: str):
 
 def pipeline_jobs(request):
     pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("-id")
-    return render(request, "pipeline/jobs.html", {"pipelines": pipelines})
+    return render(
+        request,
+        "pipeline/jobs.html",
+        {
+            "pipelines": pipelines,
+            "db_banner": _db_banner(),
+        },
+    )
 
 
 def runner_matrix_view(request):
@@ -1132,6 +1154,7 @@ def runner_matrix_view(request):
         "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
+        "db_banner": _db_banner(),
     }
     return render(request, "pipeline/runner_matrix.html", context)
 
@@ -1401,6 +1424,7 @@ def runner_matrix_detail_view(request, run_id: int):
         "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
+        "db_banner": _db_banner(),
     }
     return render(request, "pipeline/runner_matrix.html", context)
 
@@ -1410,7 +1434,14 @@ def book_edition_list(request):
         EditorialEdition.objects.select_related("work", "language", "seal")
         .order_by("work__code", "language__code")
     )
-    return render(request, "pipeline/book_edition_list.html", {"editions": editions})
+    return render(
+        request,
+        "pipeline/book_edition_list.html",
+        {
+            "editions": editions,
+            "db_banner": _db_banner(),
+        },
+    )
 
 
 def book_edition_edit(request, book_code=None, language=None):
@@ -3629,6 +3660,7 @@ def edition_steps(request, edition_id: int):
         "canonical_reason": canonical_info.get("reason") or "",
         "fasttrack_ready": bool(canonical_info.get("fasttrack_ready")),
         "latest_translate_run_dir": latest_translate_run_rel,
+        "db_banner": _db_banner(),
     }
 
     return render(request, "pipeline/edition_steps.html", context)

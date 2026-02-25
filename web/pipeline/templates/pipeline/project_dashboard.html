@@ -95,6 +95,7 @@
     </nav>
     <h1>Pipeline Dashboard</h1>
     <p class="subtitle">Estado do projeto por book e idioma (filesystem + último item do runner).</p>
+    {% if db_banner %}<p class="subtitle">{{ db_banner }}</p>{% endif %}
   </header>
 
   <table>
