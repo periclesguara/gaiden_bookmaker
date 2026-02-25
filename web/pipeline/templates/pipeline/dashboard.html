@@ -107,6 +107,27 @@
       font-size: 15px;
       font-weight: 600;
     }
+    .badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      background: #fbe3da;
+      color: #8a2a12;
+    }
+    .missing {
+      margin: 0 24px 24px;
+      padding: 14px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: #fff6ee;
+      color: var(--muted);
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
@@ -122,26 +143,29 @@
     <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>
   </header>
   <section class="grid">
-    {% for pipeline in pipelines %}
+    {% for row in rows %}
     <article class="card">
-      <div class="meta">{{ pipeline.edition.work.code }} · {{ pipeline.edition.language.code }}</div>
-      <h2>{{ pipeline.edition.work.title }}</h2>
+      <div class="meta">
+        {{ row.edition.work.code }} · {{ row.edition.language.code }}
+        {% if row.pipeline_missing %}<span class="badge">pipeline missing</span>{% endif %}
+      </div>
+      <h2>{{ row.edition.work.title }}</h2>
       <div class="stats">
         <div class="stat ok">
-          <strong>{{ pipeline.current_stage }}</strong>
+          <strong>{{ row.current_stage }}</strong>
           Etapa atual
         </div>
         <div class="stat">
-          <strong>{{ pipeline.raw_at|default:"—" }}</strong>
+          <strong>{{ row.raw_at|default:"—" }}</strong>
           RAW
         </div>
         <div class="stat">
-          <strong>{{ pipeline.normalized_at|default:"—" }}</strong>
+          <strong>{{ row.normalized_at|default:"—" }}</strong>
           Normalizado
         </div>
       </div>
       <div class="actions">
-        <a href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
+        <a href="{% url 'edition_steps' edition_id=row.edition.id %}">Ver pipeline</a>
       </div>
     </article>
     {% empty %}
@@ -151,5 +175,10 @@
     </article>
     {% endfor %}
   </section>
+  {% if missing_pipeline_rows %}
+  <section class="missing">
+    Missing pipeline rows: {{ missing_pipeline_rows|length }} edition(s) are shown using status fallback.
+  </section>
+  {% endif %}
 </body>
 </html>

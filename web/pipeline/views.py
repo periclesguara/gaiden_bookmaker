@@ -119,8 +119,45 @@ def _parse_bool(value: object, *, default: bool = False) -> bool:
     return default
 
 def pipeline_dashboard(request):
-    pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
-    return render(request, "pipeline/dashboard.html", {"pipelines": pipelines})
+    editions = EditorialEdition.objects.select_related("work", "language").order_by(
+        "work__code",
+        "language__code",
+        "id",
+    )
+    pipeline_map = {
+        pipeline.edition_id: pipeline
+        for pipeline in EditionPipeline.objects.select_related("edition").filter(edition__in=editions)
+    }
+
+    rows = []
+    missing_pipeline_rows = []
+    for edition in editions:
+        pipeline = pipeline_map.get(edition.id)
+        stage = (edition.status or "").strip().upper() or EditorialEdition.STATUS_REGISTERED
+        if pipeline and pipeline.current_stage:
+            pipeline_stage = (pipeline.current_stage or "").strip().upper()
+            stage = EditorialEdition.STATUS_REGISTERED if pipeline_stage == "RAW" else pipeline_stage
+
+        row = {
+            "edition": edition,
+            "pipeline": pipeline,
+            "current_stage": stage,
+            "pipeline_missing": pipeline is None,
+            "raw_at": pipeline.raw_at if pipeline else None,
+            "normalized_at": pipeline.normalized_at if pipeline else None,
+        }
+        rows.append(row)
+        if row["pipeline_missing"]:
+            missing_pipeline_rows.append(row)
+
+    return render(
+        request,
+        "pipeline/dashboard.html",
+        {
+            "rows": rows,
+            "missing_pipeline_rows": missing_pipeline_rows,
+        },
+    )
 
 
 def pipeline_project_dashboard(request):
@@ -1229,13 +1266,13 @@ def runner_matrix_run_view(request):
         for book_code in book_codes:
             edition = _edition_for_book_lang(book_code, "en")
             status = (edition.status if edition else "") or "MISSING"
-            if status == EditorialEdition.STATUS_FIXED_TEXT:
+            if status in {EditorialEdition.STATUS_FIXED_TEXT, EditorialEdition.STATUS_PRETRUTH_READY}:
                 continue
             blocked_books.append(f"{book_code} ({status})")
         if blocked_books:
             messages.error(
                 request,
-                "Gate bloqueado: CHUNK exige status FIXED_TEXT "
+                "Gate bloqueado: CHUNK exige status FIXED_TEXT/PRETRUTH_READY "
                 f"(books: {', '.join(blocked_books)}). Rode NORMALIZE + FIX_TEXT antes.",
             )
             return redirect("pipeline_runner_matrix")
@@ -1659,6 +1696,7 @@ def _edition_is_ingested_or_better(edition: EditorialEdition | None) -> bool:
         EditorialEdition.STATUS_INGESTED,
         EditorialEdition.STATUS_NORMALIZED,
         EditorialEdition.STATUS_FIXED_TEXT,
+        EditorialEdition.STATUS_PRETRUTH_READY,
         EditorialEdition.STATUS_CHUNKED,
         EditorialEdition.STATUS_TRANSLATED,
         EditorialEdition.STATUS_REFINED,
@@ -2887,6 +2925,40 @@ def edition_steps(request, edition_id: int):
                 )
             return redirect("edition_steps", edition_id=edition.id)
 
+        if action == "freeze_pretruth":
+            edition_status = (edition.status or "").strip().upper()
+            if canonical_index.status_rank(edition_status) < canonical_index.status_rank(EditorialEdition.STATUS_FIXED_TEXT):
+                messages.error(request, "Gate: FREEZE (PRETRUTH) exige status >= FIXED_TEXT.")
+                return redirect("edition_steps", edition_id=edition.id)
+            if canonical_index.resolve_truth_source_path(edition):
+                messages.error(request, "Texto final canonical já existe. Use Freeze Canonical.")
+                return redirect("edition_steps", edition_id=edition.id)
+            if not canonical_index.resolve_pretruth_source_path(edition):
+                messages.error(
+                    request,
+                    "Nenhuma fonte pretruth encontrada (normalized.fixed.md/normalized.md/source.*).",
+                )
+                return redirect("edition_steps", edition_id=edition.id)
+            try:
+                result = canonical_index.freeze_pretruth(edition)
+            except Exception as exc:
+                messages.error(request, f"Freeze PRETRUTH falhou: {exc}")
+                return redirect("edition_steps", edition_id=edition.id)
+            if result.get("skipped"):
+                messages.info(
+                    request,
+                    "Freeze PRETRUTH sem alteracoes (mesmo hash). "
+                    f"run={result.get('canonical_run_dir')}",
+                )
+            else:
+                messages.success(
+                    request,
+                    "PRETRUTH freeze concluido. "
+                    f"truth={result.get('truth_path')} sha={result.get('truth_sha256')} "
+                    f"run={result.get('canonical_run_dir')}",
+                )
+            return redirect("edition_steps", edition_id=edition.id)
+
         if action == "normalize_text":
             if (edition.status or "").strip().upper() != EditorialEdition.STATUS_INGESTED:
                 messages.error(request, "Gate: NORMALIZE exige status INGESTED.")
@@ -2963,8 +3035,11 @@ def edition_steps(request, edition_id: int):
             return redirect("edition_steps", edition_id=edition.id)
 
         if action == "chunk_from_fixed":
-            if (edition.status or "").strip().upper() != EditorialEdition.STATUS_FIXED_TEXT:
-                messages.error(request, "Gate: CHUNKS exige status FIXED_TEXT.")
+            if (edition.status or "").strip().upper() not in {
+                EditorialEdition.STATUS_FIXED_TEXT,
+                EditorialEdition.STATUS_PRETRUTH_READY,
+            }:
+                messages.error(request, "Gate: CHUNKS exige status FIXED_TEXT/PRETRUTH_READY.")
                 return redirect("edition_steps", edition_id=edition.id)
             chunk_lang = utils.normalize_lang(language)
             if chunk_lang != "en":
@@ -3470,6 +3545,13 @@ def edition_steps(request, edition_id: int):
 
     canonical_index.sync_edition_identity(edition)
     freeze_source = canonical_index.resolve_truth_source_path(edition)
+    pretruth_source = canonical_index.resolve_pretruth_source_path(edition)
+    truth_final_exists = bool(freeze_source)
+    can_freeze_pretruth = (
+        canonical_index.status_rank(edition_status) >= canonical_index.status_rank(EditorialEdition.STATUS_FIXED_TEXT)
+        and not truth_final_exists
+        and bool(pretruth_source)
+    )
     canonical_info = canonical.canonical_status(book_code, asset_lang_default)
     canonical_active_rel = _relpath_or_abs(Path(canonical_info["active_path"]))
     canonical_json_rel = _relpath_or_abs(Path(canonical_info["active_json_path"]))
@@ -3509,7 +3591,9 @@ def edition_steps(request, edition_id: int):
         "canonical_status_db": edition.status,
         "can_normalize_text": edition_status == EditorialEdition.STATUS_INGESTED,
         "can_fix_text": edition_status == EditorialEdition.STATUS_NORMALIZED and normalized_md_path.exists(),
-        "can_chunk_from_fixed": edition_status == EditorialEdition.STATUS_FIXED_TEXT and fixed_md_path.exists(),
+        "can_chunk_from_fixed": edition_status
+        in {EditorialEdition.STATUS_FIXED_TEXT, EditorialEdition.STATUS_PRETRUTH_READY}
+        and fixed_md_path.exists(),
         "raw_upload_name": edition.raw_upload.name if edition.raw_upload else "",
         "raw_materialized_path": edition.raw_materialized_path,
         "raw_sha256": edition.raw_sha256,
@@ -3528,8 +3612,13 @@ def edition_steps(request, edition_id: int):
         "canonical_run_dir_db": edition.canonical_run_dir,
         "canonical_tag_db": edition.canonical_official_tag,
         "freeze_source_path": _relpath_or_abs(freeze_source) if freeze_source else "",
+        "pretruth_source_path": _relpath_or_abs(pretruth_source) if pretruth_source else "",
         "can_materialize_raw": bool(edition.raw_upload),
         "can_freeze_canonical": bool(freeze_source),
+        "can_freeze_pretruth": can_freeze_pretruth,
+        "show_freeze_pretruth": canonical_index.status_rank(edition_status)
+        >= canonical_index.status_rank(EditorialEdition.STATUS_FIXED_TEXT)
+        and not truth_final_exists,
         "canonical_exists": bool(canonical_info.get("exists")),
         "canonical_active_path": canonical_active_rel,
         "canonical_active_json_path": canonical_json_rel,
