@@ -172,3 +172,17 @@ gaiden_bookmaker.egg-info/
 # local secrets
 secrets_gaiden/
 
+
+# GAIDEN_LIBRARY-backed dirs (local symlinks, never commit)
+docs/audit/runs
+gaiden/frontmatter_store
+
+# Local backups created during library migration
+data/books.bak_*
+data/builds.bak_*
+docs/audit/runs.bak_*
+gaiden/frontmatter_store.bak_*
+
+# Ignore local symlink entries explicitly
+data/books
+data/builds
