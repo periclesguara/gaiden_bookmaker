@@ -1,0 +1,155 @@
+{
+  "cwd": "/home/periclesguara/Projetos/gaiden_bookmaker",
+  "base_data_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data",
+  "book_code": "book_0006",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0006/en/normalized.fixed.md",
+  "chunks_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0006/en",
+  "manifest_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0006/en/chunks_manifest.json",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "tiktoken"
+  },
+  "headings_detected_count": 16,
+  "single_chapter_mode": false,
+  "headings": [
+    {
+      "chapter_id": 1,
+      "heading_line": "PART 1.",
+      "heading_number": 1,
+      "heading_title": "",
+      "start_line_idx": 0,
+      "end_line_idx": 29
+    },
+    {
+      "chapter_id": 2,
+      "heading_line": "1 - MR. SHERLOCK HOLMES.",
+      "heading_number": 1,
+      "heading_title": "MR. SHERLOCK HOLMES.",
+      "start_line_idx": 30,
+      "end_line_idx": 353
+    },
+    {
+      "chapter_id": 3,
+      "heading_line": "2 - THE SCIENCE OF DEDUCTION.",
+      "heading_number": 2,
+      "heading_title": "THE SCIENCE OF DEDUCTION.",
+      "start_line_idx": 354,
+      "end_line_idx": 725
+    },
+    {
+      "chapter_id": 4,
+      "heading_line": "3 - THE LAURISTON GARDENS MYSTERY",
+      "heading_number": 3,
+      "heading_title": "THE LAURISTON GARDENS MYSTERY",
+      "start_line_idx": 726,
+      "end_line_idx": 1181
+    },
+    {
+      "chapter_id": 5,
+      "heading_line": "4 - WHAT JOHN RANCE HAD TO TELL.",
+      "heading_number": 4,
+      "heading_title": "WHAT JOHN RANCE HAD TO TELL.",
+      "start_line_idx": 1182,
+      "end_line_idx": 1460
+    },
+    {
+      "chapter_id": 6,
+      "heading_line": "5 - OUR ADVERTISEMENT BRINGS A VISITOR.",
+      "heading_number": 5,
+      "heading_title": "OUR ADVERTISEMENT BRINGS A VISITOR.",
+      "start_line_idx": 1461,
+      "end_line_idx": 1736
+    },
+    {
+      "chapter_id": 7,
+      "heading_line": "6 - TOBIAS GREGSON SHOWS WHAT HE CAN DO.",
+      "heading_number": 6,
+      "heading_title": "TOBIAS GREGSON SHOWS WHAT HE CAN DO.",
+      "start_line_idx": 1737,
+      "end_line_idx": 2120
+    },
+    {
+      "chapter_id": 8,
+      "heading_line": "7 - LIGHT IN THE DARKNESS.",
+      "heading_number": 7,
+      "heading_title": "LIGHT IN THE DARKNESS.",
+      "start_line_idx": 2121,
+      "end_line_idx": 2470
+    },
+    {
+      "chapter_id": 9,
+      "heading_line": "2 - _THE COUNTRY OF THE SAINTS._",
+      "heading_number": 2,
+      "heading_title": "_THE COUNTRY OF THE SAINTS._",
+      "start_line_idx": 2471,
+      "end_line_idx": 2472
+    },
+    {
+      "chapter_id": 10,
+      "heading_line": "1 - ON THE GREAT ALKALI PLAIN.",
+      "heading_number": 1,
+      "heading_title": "ON THE GREAT ALKALI PLAIN.",
+      "start_line_idx": 2473,
+      "end_line_idx": 2867
+    },
+    {
+      "chapter_id": 11,
+      "heading_line": "2 - THE FLOWER OF UTAH.",
+      "heading_number": 2,
+      "heading_title": "THE FLOWER OF UTAH.",
+      "start_line_idx": 2868,
+      "end_line_idx": 3122
+    },
+    {
+      "chapter_id": 12,
+      "heading_line": "3 - JOHN FERRIER TALKS WITH THE PROPHET.",
+      "heading_number": 3,
+      "heading_title": "JOHN FERRIER TALKS WITH THE PROPHET.",
+      "start_line_idx": 3123,
+      "end_line_idx": 3325
+    },
+    {
+      "chapter_id": 13,
+      "heading_line": "4 - A FLIGHT FOR LIFE.",
+      "heading_number": 4,
+      "heading_title": "A FLIGHT FOR LIFE.",
+      "start_line_idx": 3326,
+      "end_line_idx": 3684
+    },
+    {
+      "chapter_id": 14,
+      "heading_line": "5 - THE AVENGING ANGELS.",
+      "heading_number": 5,
+      "heading_title": "THE AVENGING ANGELS.",
+      "start_line_idx": 3685,
+      "end_line_idx": 4016
+    },
+    {
+      "chapter_id": 15,
+      "heading_line": "6 - A CONTINUATION OF THE REMINISCENCES OF JOHN WATSON, M.D.",
+      "heading_number": 6,
+      "heading_title": "A CONTINUATION OF THE REMINISCENCES OF JOHN WATSON, M.D.",
+      "start_line_idx": 4017,
+      "end_line_idx": 4433
+    },
+    {
+      "chapter_id": 16,
+      "heading_line": "7 - THE CONCLUSION.",
+      "heading_number": 7,
+      "heading_title": "THE CONCLUSION.",
+      "start_line_idx": 4434,
+      "end_line_idx": 4641
+    }
+  ],
+  "checks": {
+    "check_ok": true,
+    "failures": [],
+    "warnings": [],
+    "coverage_chars_ok": true,
+    "normalized_chars": 239105,
+    "covered_chars": 239059,
+    "coverage_chars_tolerance": 2391
+  }
+}

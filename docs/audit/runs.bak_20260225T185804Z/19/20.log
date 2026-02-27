@@ -1,0 +1,6 @@
+COMMAND: manage.py build_book_text --book-code=book_0004 --language=en
+OUTPUT: /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0004/en/book_0004_en_book.md
+Montando livro para book_0004 [en] em /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0004/en/book_0004_en_book.md
+
+ERROR: CommandError: Nenhum MIOL_TERM.v1.md encontrado para book_0004 [en].
+COMMAND: manage.py build_book_text --book-code=book_0004 --language=en

@@ -1,0 +1,1336 @@
+{
+  "book_code": "book_0004",
+  "src_lang": "en",
+  "agent": "SHINOBI",
+  "model": "gpt-5-chat-latest",
+  "run_id": "20260219T200953",
+  "chunks_dir": "data/chunks/book_0004/en",
+  "out_dir": "data/books/book_0004/en/runs/agent_shinobi/20260219T200953",
+  "started_utc": "2026-02-19T20:09:53.388327Z",
+  "items": [
+    {
+      "i": 1,
+      "chunk": "ch_001_chunk_001.txt",
+      "bytes": 5965,
+      "sha1": "1e41eb6f61e484366cd4801450c6ff88402f6c33",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 2,
+      "chunk": "ch_001_chunk_002.txt",
+      "bytes": 6319,
+      "sha1": "2a3851df80b13c9726e4163db2d89420dd539910",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 3,
+      "chunk": "ch_001_chunk_003.txt",
+      "bytes": 6118,
+      "sha1": "9b49343f73d8e41fab6deb87d09d895fb8686fd5",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 4,
+      "chunk": "ch_001_chunk_004.txt",
+      "bytes": 6242,
+      "sha1": "a5f83e1f60c1295d2b84b5a207395563ca168e9a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 5,
+      "chunk": "ch_001_chunk_005.txt",
+      "bytes": 6276,
+      "sha1": "949e7756fcee0f40bc12bdfb6adee06f5d4ccb37",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 6,
+      "chunk": "ch_001_chunk_006.txt",
+      "bytes": 6374,
+      "sha1": "9b0f4404bdab0796fb0cdcb68e15fd84c345f9f0",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 7,
+      "chunk": "ch_001_chunk_007.txt",
+      "bytes": 6113,
+      "sha1": "be77f908e3a55b6fc38b7bc9290b9648462984e2",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 8,
+      "chunk": "ch_001_chunk_008.txt",
+      "bytes": 5991,
+      "sha1": "cb6b27228c23266b60b2966f77b56f22bbfb7222",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 9,
+      "chunk": "ch_001_chunk_009.txt",
+      "bytes": 6299,
+      "sha1": "bd2644a800d100bbbce3af381da73349228055d3",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 10,
+      "chunk": "ch_001_chunk_010.txt",
+      "bytes": 6075,
+      "sha1": "885c9c8f75e2861955b3fc6824835393ac47776d",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 11,
+      "chunk": "ch_001_chunk_011.txt",
+      "bytes": 6319,
+      "sha1": "bfc6daf561f3d55337fb4310c8e650727ddc85ed",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 12,
+      "chunk": "ch_001_chunk_012.txt",
+      "bytes": 6816,
+      "sha1": "dddc68f4eaf500e9b9ff9b77175865edbedd5ee5",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 13,
+      "chunk": "ch_001_chunk_013.txt",
+      "bytes": 6310,
+      "sha1": "643c23d0a44cda4a4cfd80ffdaa5d57227ec789a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 14,
+      "chunk": "ch_001_chunk_014.txt",
+      "bytes": 6392,
+      "sha1": "07d54835b645b71ff4476d41893d7868d6fe6f0b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 15,
+      "chunk": "ch_001_chunk_015.txt",
+      "bytes": 6242,
+      "sha1": "daa726b22375c46bacbef631f4a42b2ca5531d14",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 16,
+      "chunk": "ch_001_chunk_016.txt",
+      "bytes": 6163,
+      "sha1": "55cba1948f5f17e321d1bf8dfb585aa385059e52",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 17,
+      "chunk": "ch_001_chunk_017.txt",
+      "bytes": 6439,
+      "sha1": "69795c4375098586413e0f592190d9662a6f1f8b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 18,
+      "chunk": "ch_001_chunk_018.txt",
+      "bytes": 6135,
+      "sha1": "386bea0e97da5687b0d94b177821d1fea7afedb3",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 19,
+      "chunk": "ch_001_chunk_019.txt",
+      "bytes": 6480,
+      "sha1": "f456027f5f0e0f53cd6cdb6450f9527e4afcbfd2",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 20,
+      "chunk": "ch_001_chunk_020.txt",
+      "bytes": 6231,
+      "sha1": "e4b495f901747e983e2e9cbaab9b725333f7bc7f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 21,
+      "chunk": "ch_001_chunk_021.txt",
+      "bytes": 6750,
+      "sha1": "b58237623d0cefb3f525d06a947f9e7d0725848c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 22,
+      "chunk": "ch_001_chunk_022.txt",
+      "bytes": 6348,
+      "sha1": "fdba8fec74af1b6244c3605d4ccc71235ddde4ff",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 23,
+      "chunk": "ch_001_chunk_023.txt",
+      "bytes": 6629,
+      "sha1": "2d6bb91a3a2a6dea480f9e77950a6b81098aade8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 24,
+      "chunk": "ch_001_chunk_024.txt",
+      "bytes": 6382,
+      "sha1": "39d4b7cf1b05aae8d48f62ee24d820add8e2ef0e",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 25,
+      "chunk": "ch_001_chunk_025.txt",
+      "bytes": 6522,
+      "sha1": "9c73ed9b3347637d09a9160dc216335792cb2a57",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 26,
+      "chunk": "ch_001_chunk_026.txt",
+      "bytes": 6897,
+      "sha1": "799a9b32f56e3035e5a7563161368a8e7601891c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 27,
+      "chunk": "ch_001_chunk_027.txt",
+      "bytes": 6124,
+      "sha1": "40d6c6da72857fe70b387446fae4e20e5d21cd86",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 28,
+      "chunk": "ch_001_chunk_028.txt",
+      "bytes": 6474,
+      "sha1": "9ff0dcb525d30855f7a9b58099785cf01ef3fd22",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 29,
+      "chunk": "ch_001_chunk_029.txt",
+      "bytes": 6133,
+      "sha1": "f5682ef0eb2c80ea8f7a6ea244dc68873846df4b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 30,
+      "chunk": "ch_001_chunk_030.txt",
+      "bytes": 6129,
+      "sha1": "512fad898180ea7c72187cba5c8338568ffdfbba",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 31,
+      "chunk": "ch_001_chunk_031.txt",
+      "bytes": 5950,
+      "sha1": "bfaec2e40d159b97f8c042a5980df557a33d8d6f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 32,
+      "chunk": "ch_001_chunk_032.txt",
+      "bytes": 6312,
+      "sha1": "26c95692cf2509440626fde30ecc9b414a26902a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 33,
+      "chunk": "ch_001_chunk_033.txt",
+      "bytes": 6629,
+      "sha1": "da8f0ba408926a0a5ca7d1b94fdfeda20c259de7",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 34,
+      "chunk": "ch_001_chunk_034.txt",
+      "bytes": 5891,
+      "sha1": "2b1aa54efd03c9ef72528cd7292b7a7a1608ecae",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 35,
+      "chunk": "ch_001_chunk_035.txt",
+      "bytes": 6511,
+      "sha1": "62e5a0c6202b7150489c101a39b2530e6e69deda",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 36,
+      "chunk": "ch_001_chunk_036.txt",
+      "bytes": 5839,
+      "sha1": "acead7de0a99d415710e60944dc931b3d02f7138",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 37,
+      "chunk": "ch_001_chunk_037.txt",
+      "bytes": 6085,
+      "sha1": "3735411286519efaa449679be211ecec8b0c0f6f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 38,
+      "chunk": "ch_001_chunk_038.txt",
+      "bytes": 6317,
+      "sha1": "1f7656322ac3065fd657f81d06f15a99448bea64",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 39,
+      "chunk": "ch_001_chunk_039.txt",
+      "bytes": 6439,
+      "sha1": "cdfcd91ad956b2d8d4564862b65e173523ee9c1c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 40,
+      "chunk": "ch_001_chunk_040.txt",
+      "bytes": 6134,
+      "sha1": "d6ef44472c2445639ba002ae0fd104ac125fd299",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 41,
+      "chunk": "ch_001_chunk_041.txt",
+      "bytes": 6295,
+      "sha1": "75b37830797945370999a3540bae6784af8536f7",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 42,
+      "chunk": "ch_001_chunk_042.txt",
+      "bytes": 6452,
+      "sha1": "04e2c01d675b9697694067212b3bf6b73e96aa74",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 43,
+      "chunk": "ch_001_chunk_043.txt",
+      "bytes": 6029,
+      "sha1": "0fc208c1b9e41f50b2b234107fb141b57f6f314a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 44,
+      "chunk": "ch_001_chunk_044.txt",
+      "bytes": 6046,
+      "sha1": "e633756fb6406767bbb0d025d8e63a5a7668de54",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 45,
+      "chunk": "ch_001_chunk_045.txt",
+      "bytes": 6319,
+      "sha1": "f8efef319ddd9359b15b660e513237c045a5d1ef",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 46,
+      "chunk": "ch_001_chunk_046.txt",
+      "bytes": 6531,
+      "sha1": "dd65baa0479ceae5571e18ebce4d62ec1d39ecac",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 47,
+      "chunk": "ch_001_chunk_047.txt",
+      "bytes": 6345,
+      "sha1": "3c87680c0aca149c16f4f78d89acd401e30820aa",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 48,
+      "chunk": "ch_001_chunk_048.txt",
+      "bytes": 2796,
+      "sha1": "ea075c2a0275fbde3fbbadfd13a8f183ef5918ba",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 49,
+      "chunk": "ch_002_chunk_001.txt",
+      "bytes": 6163,
+      "sha1": "1058fbee7c82f88a1d4591f57ac96840258ea5a8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 50,
+      "chunk": "ch_002_chunk_002.txt",
+      "bytes": 6744,
+      "sha1": "116c38d43e6e7de567b32a12ce2dd6c3aee3593e",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 51,
+      "chunk": "ch_002_chunk_003.txt",
+      "bytes": 6346,
+      "sha1": "818f65fdbf92698b8585230e426629dad06e9122",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 52,
+      "chunk": "ch_002_chunk_004.txt",
+      "bytes": 6236,
+      "sha1": "62072b3e6d9a37814754cb9c221b01403d6749af",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 53,
+      "chunk": "ch_002_chunk_005.txt",
+      "bytes": 6480,
+      "sha1": "9df95bdd36fb130883706747732d956f9d44ac9d",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 54,
+      "chunk": "ch_002_chunk_006.txt",
+      "bytes": 6021,
+      "sha1": "8ed9ef7501f87959c072d557534002559a531464",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 55,
+      "chunk": "ch_002_chunk_007.txt",
+      "bytes": 6536,
+      "sha1": "6d25c3b0d5ecb1bf8d478fc76ab513a7f2ae7273",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 56,
+      "chunk": "ch_002_chunk_008.txt",
+      "bytes": 6536,
+      "sha1": "9c45d14a5cbe6fcaee54c495f6053025c5000909",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 57,
+      "chunk": "ch_002_chunk_009.txt",
+      "bytes": 6467,
+      "sha1": "cc0c5e2db3058655ed6c9fc616add9a4ff5a99af",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 58,
+      "chunk": "ch_002_chunk_010.txt",
+      "bytes": 6230,
+      "sha1": "a95ee45afc2de4f8d7056b151912a11c8864b80b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 59,
+      "chunk": "ch_002_chunk_011.txt",
+      "bytes": 6323,
+      "sha1": "a69db2bcbb637543388bffc6269d71aadf367067",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 60,
+      "chunk": "ch_002_chunk_012.txt",
+      "bytes": 6472,
+      "sha1": "de1d1cf6f55479cef1bfdb8ad85532dc5d10faa4",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 61,
+      "chunk": "ch_002_chunk_013.txt",
+      "bytes": 6004,
+      "sha1": "41bfe27bfe8ca2dcd6b6c9527fd5b990c5dbf913",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 62,
+      "chunk": "ch_002_chunk_014.txt",
+      "bytes": 6267,
+      "sha1": "bbf9264607d7e3e993079fdbf73f187058f19291",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 63,
+      "chunk": "ch_002_chunk_015.txt",
+      "bytes": 6582,
+      "sha1": "a089cb8c13115595ce6988e6074458938735412f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 64,
+      "chunk": "ch_002_chunk_016.txt",
+      "bytes": 5970,
+      "sha1": "79348b73ca402c8eebf3b9588d3b96a6659844e8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 65,
+      "chunk": "ch_002_chunk_017.txt",
+      "bytes": 6162,
+      "sha1": "7072123712d42a8a074604c91dc189cb02702c9b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 66,
+      "chunk": "ch_002_chunk_018.txt",
+      "bytes": 5218,
+      "sha1": "2693f5888135c95a1332647957c63140b5f999e9",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    }
+  ],
+  "errors": [
+    {
+      "i": 1,
+      "chunk": "ch_001_chunk_001.txt",
+      "bytes": 5965,
+      "sha1": "1e41eb6f61e484366cd4801450c6ff88402f6c33",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 2,
+      "chunk": "ch_001_chunk_002.txt",
+      "bytes": 6319,
+      "sha1": "2a3851df80b13c9726e4163db2d89420dd539910",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 3,
+      "chunk": "ch_001_chunk_003.txt",
+      "bytes": 6118,
+      "sha1": "9b49343f73d8e41fab6deb87d09d895fb8686fd5",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 4,
+      "chunk": "ch_001_chunk_004.txt",
+      "bytes": 6242,
+      "sha1": "a5f83e1f60c1295d2b84b5a207395563ca168e9a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 5,
+      "chunk": "ch_001_chunk_005.txt",
+      "bytes": 6276,
+      "sha1": "949e7756fcee0f40bc12bdfb6adee06f5d4ccb37",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 6,
+      "chunk": "ch_001_chunk_006.txt",
+      "bytes": 6374,
+      "sha1": "9b0f4404bdab0796fb0cdcb68e15fd84c345f9f0",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 7,
+      "chunk": "ch_001_chunk_007.txt",
+      "bytes": 6113,
+      "sha1": "be77f908e3a55b6fc38b7bc9290b9648462984e2",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 8,
+      "chunk": "ch_001_chunk_008.txt",
+      "bytes": 5991,
+      "sha1": "cb6b27228c23266b60b2966f77b56f22bbfb7222",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 9,
+      "chunk": "ch_001_chunk_009.txt",
+      "bytes": 6299,
+      "sha1": "bd2644a800d100bbbce3af381da73349228055d3",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 10,
+      "chunk": "ch_001_chunk_010.txt",
+      "bytes": 6075,
+      "sha1": "885c9c8f75e2861955b3fc6824835393ac47776d",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 11,
+      "chunk": "ch_001_chunk_011.txt",
+      "bytes": 6319,
+      "sha1": "bfc6daf561f3d55337fb4310c8e650727ddc85ed",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 12,
+      "chunk": "ch_001_chunk_012.txt",
+      "bytes": 6816,
+      "sha1": "dddc68f4eaf500e9b9ff9b77175865edbedd5ee5",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 13,
+      "chunk": "ch_001_chunk_013.txt",
+      "bytes": 6310,
+      "sha1": "643c23d0a44cda4a4cfd80ffdaa5d57227ec789a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 14,
+      "chunk": "ch_001_chunk_014.txt",
+      "bytes": 6392,
+      "sha1": "07d54835b645b71ff4476d41893d7868d6fe6f0b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 15,
+      "chunk": "ch_001_chunk_015.txt",
+      "bytes": 6242,
+      "sha1": "daa726b22375c46bacbef631f4a42b2ca5531d14",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 16,
+      "chunk": "ch_001_chunk_016.txt",
+      "bytes": 6163,
+      "sha1": "55cba1948f5f17e321d1bf8dfb585aa385059e52",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 17,
+      "chunk": "ch_001_chunk_017.txt",
+      "bytes": 6439,
+      "sha1": "69795c4375098586413e0f592190d9662a6f1f8b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 18,
+      "chunk": "ch_001_chunk_018.txt",
+      "bytes": 6135,
+      "sha1": "386bea0e97da5687b0d94b177821d1fea7afedb3",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 19,
+      "chunk": "ch_001_chunk_019.txt",
+      "bytes": 6480,
+      "sha1": "f456027f5f0e0f53cd6cdb6450f9527e4afcbfd2",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 20,
+      "chunk": "ch_001_chunk_020.txt",
+      "bytes": 6231,
+      "sha1": "e4b495f901747e983e2e9cbaab9b725333f7bc7f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 21,
+      "chunk": "ch_001_chunk_021.txt",
+      "bytes": 6750,
+      "sha1": "b58237623d0cefb3f525d06a947f9e7d0725848c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 22,
+      "chunk": "ch_001_chunk_022.txt",
+      "bytes": 6348,
+      "sha1": "fdba8fec74af1b6244c3605d4ccc71235ddde4ff",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 23,
+      "chunk": "ch_001_chunk_023.txt",
+      "bytes": 6629,
+      "sha1": "2d6bb91a3a2a6dea480f9e77950a6b81098aade8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 24,
+      "chunk": "ch_001_chunk_024.txt",
+      "bytes": 6382,
+      "sha1": "39d4b7cf1b05aae8d48f62ee24d820add8e2ef0e",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 25,
+      "chunk": "ch_001_chunk_025.txt",
+      "bytes": 6522,
+      "sha1": "9c73ed9b3347637d09a9160dc216335792cb2a57",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 26,
+      "chunk": "ch_001_chunk_026.txt",
+      "bytes": 6897,
+      "sha1": "799a9b32f56e3035e5a7563161368a8e7601891c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 27,
+      "chunk": "ch_001_chunk_027.txt",
+      "bytes": 6124,
+      "sha1": "40d6c6da72857fe70b387446fae4e20e5d21cd86",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 28,
+      "chunk": "ch_001_chunk_028.txt",
+      "bytes": 6474,
+      "sha1": "9ff0dcb525d30855f7a9b58099785cf01ef3fd22",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 29,
+      "chunk": "ch_001_chunk_029.txt",
+      "bytes": 6133,
+      "sha1": "f5682ef0eb2c80ea8f7a6ea244dc68873846df4b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 30,
+      "chunk": "ch_001_chunk_030.txt",
+      "bytes": 6129,
+      "sha1": "512fad898180ea7c72187cba5c8338568ffdfbba",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 31,
+      "chunk": "ch_001_chunk_031.txt",
+      "bytes": 5950,
+      "sha1": "bfaec2e40d159b97f8c042a5980df557a33d8d6f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 32,
+      "chunk": "ch_001_chunk_032.txt",
+      "bytes": 6312,
+      "sha1": "26c95692cf2509440626fde30ecc9b414a26902a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 33,
+      "chunk": "ch_001_chunk_033.txt",
+      "bytes": 6629,
+      "sha1": "da8f0ba408926a0a5ca7d1b94fdfeda20c259de7",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 34,
+      "chunk": "ch_001_chunk_034.txt",
+      "bytes": 5891,
+      "sha1": "2b1aa54efd03c9ef72528cd7292b7a7a1608ecae",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 35,
+      "chunk": "ch_001_chunk_035.txt",
+      "bytes": 6511,
+      "sha1": "62e5a0c6202b7150489c101a39b2530e6e69deda",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 36,
+      "chunk": "ch_001_chunk_036.txt",
+      "bytes": 5839,
+      "sha1": "acead7de0a99d415710e60944dc931b3d02f7138",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 37,
+      "chunk": "ch_001_chunk_037.txt",
+      "bytes": 6085,
+      "sha1": "3735411286519efaa449679be211ecec8b0c0f6f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 38,
+      "chunk": "ch_001_chunk_038.txt",
+      "bytes": 6317,
+      "sha1": "1f7656322ac3065fd657f81d06f15a99448bea64",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 39,
+      "chunk": "ch_001_chunk_039.txt",
+      "bytes": 6439,
+      "sha1": "cdfcd91ad956b2d8d4564862b65e173523ee9c1c",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 40,
+      "chunk": "ch_001_chunk_040.txt",
+      "bytes": 6134,
+      "sha1": "d6ef44472c2445639ba002ae0fd104ac125fd299",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 41,
+      "chunk": "ch_001_chunk_041.txt",
+      "bytes": 6295,
+      "sha1": "75b37830797945370999a3540bae6784af8536f7",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 42,
+      "chunk": "ch_001_chunk_042.txt",
+      "bytes": 6452,
+      "sha1": "04e2c01d675b9697694067212b3bf6b73e96aa74",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 43,
+      "chunk": "ch_001_chunk_043.txt",
+      "bytes": 6029,
+      "sha1": "0fc208c1b9e41f50b2b234107fb141b57f6f314a",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 44,
+      "chunk": "ch_001_chunk_044.txt",
+      "bytes": 6046,
+      "sha1": "e633756fb6406767bbb0d025d8e63a5a7668de54",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 45,
+      "chunk": "ch_001_chunk_045.txt",
+      "bytes": 6319,
+      "sha1": "f8efef319ddd9359b15b660e513237c045a5d1ef",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 46,
+      "chunk": "ch_001_chunk_046.txt",
+      "bytes": 6531,
+      "sha1": "dd65baa0479ceae5571e18ebce4d62ec1d39ecac",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 47,
+      "chunk": "ch_001_chunk_047.txt",
+      "bytes": 6345,
+      "sha1": "3c87680c0aca149c16f4f78d89acd401e30820aa",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 48,
+      "chunk": "ch_001_chunk_048.txt",
+      "bytes": 2796,
+      "sha1": "ea075c2a0275fbde3fbbadfd13a8f183ef5918ba",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 49,
+      "chunk": "ch_002_chunk_001.txt",
+      "bytes": 6163,
+      "sha1": "1058fbee7c82f88a1d4591f57ac96840258ea5a8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 50,
+      "chunk": "ch_002_chunk_002.txt",
+      "bytes": 6744,
+      "sha1": "116c38d43e6e7de567b32a12ce2dd6c3aee3593e",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 51,
+      "chunk": "ch_002_chunk_003.txt",
+      "bytes": 6346,
+      "sha1": "818f65fdbf92698b8585230e426629dad06e9122",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 52,
+      "chunk": "ch_002_chunk_004.txt",
+      "bytes": 6236,
+      "sha1": "62072b3e6d9a37814754cb9c221b01403d6749af",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 53,
+      "chunk": "ch_002_chunk_005.txt",
+      "bytes": 6480,
+      "sha1": "9df95bdd36fb130883706747732d956f9d44ac9d",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 54,
+      "chunk": "ch_002_chunk_006.txt",
+      "bytes": 6021,
+      "sha1": "8ed9ef7501f87959c072d557534002559a531464",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 55,
+      "chunk": "ch_002_chunk_007.txt",
+      "bytes": 6536,
+      "sha1": "6d25c3b0d5ecb1bf8d478fc76ab513a7f2ae7273",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 56,
+      "chunk": "ch_002_chunk_008.txt",
+      "bytes": 6536,
+      "sha1": "9c45d14a5cbe6fcaee54c495f6053025c5000909",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 57,
+      "chunk": "ch_002_chunk_009.txt",
+      "bytes": 6467,
+      "sha1": "cc0c5e2db3058655ed6c9fc616add9a4ff5a99af",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 58,
+      "chunk": "ch_002_chunk_010.txt",
+      "bytes": 6230,
+      "sha1": "a95ee45afc2de4f8d7056b151912a11c8864b80b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 59,
+      "chunk": "ch_002_chunk_011.txt",
+      "bytes": 6323,
+      "sha1": "a69db2bcbb637543388bffc6269d71aadf367067",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 60,
+      "chunk": "ch_002_chunk_012.txt",
+      "bytes": 6472,
+      "sha1": "de1d1cf6f55479cef1bfdb8ad85532dc5d10faa4",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 61,
+      "chunk": "ch_002_chunk_013.txt",
+      "bytes": 6004,
+      "sha1": "41bfe27bfe8ca2dcd6b6c9527fd5b990c5dbf913",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 62,
+      "chunk": "ch_002_chunk_014.txt",
+      "bytes": 6267,
+      "sha1": "bbf9264607d7e3e993079fdbf73f187058f19291",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 63,
+      "chunk": "ch_002_chunk_015.txt",
+      "bytes": 6582,
+      "sha1": "a089cb8c13115595ce6988e6074458938735412f",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 64,
+      "chunk": "ch_002_chunk_016.txt",
+      "bytes": 5970,
+      "sha1": "79348b73ca402c8eebf3b9588d3b96a6659844e8",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 65,
+      "chunk": "ch_002_chunk_017.txt",
+      "bytes": 6162,
+      "sha1": "7072123712d42a8a074604c91dc189cb02702c9b",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    },
+    {
+      "i": 66,
+      "chunk": "ch_002_chunk_018.txt",
+      "bytes": 5218,
+      "sha1": "2693f5888135c95a1332647957c63140b5f999e9",
+      "ok": false,
+      "attempts": 2,
+      "out_file": null,
+      "err": "RuntimeError('AGENT_PROMPT_MISSING: SHINOBI. Set GAIDEN_AGENT_SHINOBI_SYSTEM_PROMPT or create gaiden/agents/SHINOBI.txt')"
+    }
+  ],
+  "finished_utc": "2026-02-19T20:16:14.722827Z",
+  "merged_path": "data/books/book_0004/en/runs/agent_shinobi/20260219T200953/book_0004__en__agent_shinobi__MERGED.txt"
+}

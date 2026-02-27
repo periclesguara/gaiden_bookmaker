@@ -1,0 +1,48 @@
+{
+  "book_code": "book_0003",
+  "language": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0003/en/book_0003_en_v2.txt",
+  "out_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0003/en",
+  "chapter_count": 1,
+  "chunk_count": 7,
+  "total_chunks": 7,
+  "target_tokens": 1500,
+  "max_tokens": 2000,
+  "target_chars_estimate": 6000,
+  "max_chars_estimate": 8000,
+  "per_chapter": [
+    {
+      "chapter_id": 500,
+      "title": "GALVEZ, I LATER MET AND QUESTIONED; AND HE PROVED DISTRACTINGLY",
+      "chunk_files": [
+        "ch_500_chunk_001.txt",
+        "ch_500_chunk_002.txt",
+        "ch_500_chunk_003.txt",
+        "ch_500_chunk_004.txt",
+        "ch_500_chunk_005.txt",
+        "ch_500_chunk_006.txt",
+        "ch_500_chunk_007.txt"
+      ],
+      "char_counts": [
+        6386,
+        5910,
+        6318,
+        6239,
+        6201,
+        5714,
+        2453
+      ],
+      "token_counts": [
+        1468,
+        1378,
+        1495,
+        1466,
+        1467,
+        1352,
+        621
+      ]
+    }
+  ],
+  "check_ok": true,
+  "check_fail_reasons": []
+}

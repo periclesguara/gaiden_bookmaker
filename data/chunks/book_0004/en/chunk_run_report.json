@@ -1,0 +1,43 @@
+{
+  "cwd": "/home/periclesguara/Projetos/gaiden_bookmaker",
+  "base_data_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data",
+  "book_code": "book_0004",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0004/en/book_0004_en_v2.txt",
+  "chunks_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0004/en",
+  "manifest_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0004/en/chunks_manifest.json",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "tiktoken"
+  },
+  "headings_detected_count": 2,
+  "single_chapter_mode": false,
+  "headings": [
+    {
+      "chapter_id": 1,
+      "heading_line": "part was the center, composed entirely of heavily armed knights; the",
+      "heading_number": null,
+      "heading_title": "was the center, composed entirely of heavily armed knights; the",
+      "start_line_idx": 0,
+      "end_line_idx": 5933
+    },
+    {
+      "chapter_id": 2,
+      "heading_line": "part of the city dedicated to the temples. The great structures reared",
+      "heading_number": null,
+      "heading_title": "of the city dedicated to the temples. The great structures reared",
+      "start_line_idx": 5934,
+      "end_line_idx": 8112
+    }
+  ],
+  "checks": {
+    "check_ok": true,
+    "failures": [],
+    "warnings": [],
+    "coverage_chars_ok": true,
+    "normalized_chars": 411357,
+    "covered_chars": 411292,
+    "coverage_chars_tolerance": 4113
+  }
+}

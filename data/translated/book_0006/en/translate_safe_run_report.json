@@ -1,0 +1,36 @@
+{
+  "schema": "gaiden_translate_safe_v2",
+  "book_id": "book_0006",
+  "lang": "en",
+  "selected_mode": "automatic",
+  "final_mode": "automatic",
+  "effective_route": "automatic",
+  "preflight_ok": true,
+  "fallback_used": false,
+  "fallback_reason": "none",
+  "artifact_filename": "book_0006_en_automatic_merge_clean.txt",
+  "artifact_sha256": "2726462b8e17ccdcf519e01bf1d43070b4d68dec29f18aa35c4ad88b96b9d5aa",
+  "artifact_meta_path": "data/translated/book_0006/en/book_0006_en_automatic_merge_clean.meta.json",
+  "errors": [],
+  "exit_code": 0,
+  "suffix": "en",
+  "status": "ok_official",
+  "error": null,
+  "official": {
+    "status": "ok_official",
+    "report_path": "data/translated/book_0006/en/translate_run_report.json",
+    "error": null
+  },
+  "fallback": {
+    "used": false,
+    "status": null,
+    "report_path": null,
+    "error": null
+  },
+  "final": {
+    "merged_txt": "data/translated/book_0006/en/book_0006_en_automatic_merge_clean.txt",
+    "merged_len": 215582,
+    "chunks": 46
+  },
+  "ts": "2026-02-26T01:34:00.539753Z"
+}

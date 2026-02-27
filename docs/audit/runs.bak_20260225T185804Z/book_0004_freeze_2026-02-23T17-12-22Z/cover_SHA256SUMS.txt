@@ -1,0 +1,2 @@
+40d39070a1e55b3b92945124c938d22cd8ec163eb0b897d7c106c2640a91745a  data/covers/book_0004/en/cover.jpg
+76f0fdd07d1450f3e0cb9e8445aefb44fa4bfc4267d1bd0ea5f47ff5f3d78d3f  data/covers/book_0004/en/cover_original.png

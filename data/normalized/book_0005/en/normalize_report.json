@@ -1,0 +1,14 @@
+{
+  "removed_markers_found": [],
+  "removed_license_blocks": false,
+  "removed_frontmatter_legacy": false,
+  "normalized_char_count": 185,
+  "raw_char_count": 213,
+  "delta_ratio": 0.8685,
+  "input_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/raw/book_0005/en/source.txt",
+  "output_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0005/en/book_0005_en_v2.txt",
+  "chapters_detected": 3,
+  "boilerplate_removed": false,
+  "status": "OK",
+  "check_fail_reasons": []
+}

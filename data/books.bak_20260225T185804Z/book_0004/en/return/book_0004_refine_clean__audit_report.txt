@@ -1,0 +1,10 @@
+AUDIT REPORT -- images vs chapters
+FILE: /home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/return/book_0004_refine_clean.txt
+
+Legend:
+- imgs = count of image tags inside the chapter slice
+- edge preview = first/last 2 non-empty lines of slice
+
+(START) | lines 1-3090 | imgs=0
+  head: ['THE HOUR OF THE DRAGON', 'By Robert E. Howard']
+  tail: ['“Yes, there is.”', '“Good.” The king smiled, as if recalling a pleasant memory. “She’ll be your ransom, and nothing else. I’ll come to Belverus for her, as I promised. She was a slave in Nemedia—but I’ll make her queen of Aquilonia!”']

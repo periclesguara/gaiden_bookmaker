@@ -1,0 +1,2 @@
+data/covers/book_0004/en/cover.jpg
+data/covers/book_0004/en/cover_original.png

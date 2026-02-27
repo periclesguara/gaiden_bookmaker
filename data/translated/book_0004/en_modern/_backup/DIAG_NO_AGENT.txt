@@ -1,0 +1,3 @@
+merged_v1 vs merge_refine_clean: similarity_ratio=1.0 (IDENTICAL)
+chunks(reconstructed) vs clean: similarity_ratio=0.999704 (near-identical)
+Conclusion: clean file was NOT produced by ALAMAGUEDERAZ; likely local merge.

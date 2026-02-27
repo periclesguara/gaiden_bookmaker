@@ -1,0 +1,4 @@
+COMMAND: pipeline.services.export_book.run_export_epub(edition=book_0004[en])
+
+ERROR: FileNotFoundError: Miolo traduzido nao encontrado: /home/periclesguara/Projetos/gaiden_bookmaker/data/builds/book_0004/en/MIOL_TERM.v1.md
+COMMAND: pipeline.services.export_book.run_export_epub(edition=book_0004[en])

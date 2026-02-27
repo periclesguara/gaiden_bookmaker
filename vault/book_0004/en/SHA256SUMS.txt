@@ -1,0 +1,3 @@
+b541c44eac206d1440813a26f982cf1674265c4ec92a3b8787b567e4a56aaf71  vault/book_0004/en/active.json
+31d8f0d9dc291479dfc4deeb2f069e7d5ae60159203ee88bb79d64ba25ac3a97  vault/book_0004/en/active.txt
+31d8f0d9dc291479dfc4deeb2f069e7d5ae60159203ee88bb79d64ba25ac3a97  vault/book_0004/en/merge_refine_clean.txt

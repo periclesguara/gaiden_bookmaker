@@ -1,0 +1,16 @@
+{
+  "book_code": "book_0004",
+  "language": "en",
+  "mode": "default",
+  "status": "ok",
+  "promoted_at": "2026-02-18T23:15:00.482673+00:00",
+  "source_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/translated/book_0004/en_modern/merge_refine_clean.txt",
+  "source_name": "merge_refine_clean.txt",
+  "active_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/canonical/text/active.txt",
+  "history_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/canonical/text/history/2026-02-18T23-15-00Z_default_merge_refine_clean.txt",
+  "sha256": "31d8f0d9dc291479dfc4deeb2f069e7d5ae60159203ee88bb79d64ba25ac3a97",
+  "size_bytes": 411731,
+  "source_stats": {},
+  "repromoted": true,
+  "repromote_source": "/home/periclesguara/Projetos/gaiden_bookmaker/data/translated/book_0004/en_modern/merge_refine_clean.txt"
+}

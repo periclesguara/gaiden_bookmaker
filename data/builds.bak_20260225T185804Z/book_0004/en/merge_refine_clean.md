@@ -1,0 +1,1 @@
+/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/return/book_0004_refine_clean.md

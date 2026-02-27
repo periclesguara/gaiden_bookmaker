@@ -1,0 +1,44 @@
+{
+  "schema_version": "chunks_manifest_v2",
+  "book_code": "book_0005",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0005/en/normalized.fixed.md",
+  "normalized_sha256": "7fef7a61bb45e81a6e1147a288413ad9995e3b3ed9e5d73f62b886af3bb25e0f",
+  "chunker_version": "b06df54",
+  "created_at": "2026-02-23T22:02:40.564646Z",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "chars4"
+  },
+  "headings_detected_count": 0,
+  "single_chapter_mode": true,
+  "chapters": [
+    {
+      "chapter_id": 1,
+      "heading_line": "",
+      "heading_number": null,
+      "heading_title": "",
+      "start_line_idx": 0,
+      "end_line_idx": 8,
+      "chunk_count": 1,
+      "chunks": [
+        {
+          "chunk_id": "book_0005__en__c001__001",
+          "file_path": "ch_001_chunk_001.txt",
+          "sha256": "68b53ec62bdbf5a3be1a117098ef0e7bfbc3490fe1fe512c5116bd1b8f6eccfa",
+          "token_estimate": 43,
+          "char_count": 170,
+          "start_line_idx": 0,
+          "end_line_idx": 8,
+          "chapter_id": 1
+        }
+      ]
+    }
+  ],
+  "check_ok": true,
+  "check_fail_reasons": [],
+  "check_warnings": [
+    "token_estimator_chars4"
+  ]
+}

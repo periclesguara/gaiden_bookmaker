@@ -1,0 +1,3089 @@
+By Robert E. Howard  
+
+O Sleeper, Wake Up!  
+
+The tall candles flickered, casting black, shifting shadows along the walls, and the velvet tapestries rippled—though no wind stirred in the room. Four men stood around an ebony table on which rested a green sarcophagus that gleamed like carved jade. In each man’s raised right hand burned a strange black candle with a weird greenish flame. Outside, night had fallen, and a lost wind moaned through the black trees.  
+
+Inside, tense silence reigned, broken only by the wavering of shadows, while four pairs of eyes, burning with intensity, remained fixed on the long green coffin, across which cryptic hieroglyphs seemed to writhe as if alive in the unsteady light. The man standing at the foot of the sarcophagus leaned over it and moved his candle as if writing in the air, tracing a mystic symbol. Then he set the candle down in its black-and-gold holder at the base of the case and, mumbling a formula his companions could not understand, thrust a broad white hand into his fur-trimmed robe. When he drew it out again, it was as though he held a ball of living fire in his palm.  
+
+The other three gasped sharply, and the dark, powerful man at the head of the sarcophagus whispered, “The Heart of Ahriman!” The man with the jewel lifted a quick hand for silence. Somewhere a dog began to howl mournfully, and soft footsteps padded outside the barred and bolted door. But none of them looked away from the coffin, over which the man in the ermine-trimmed robe was now moving the blazing gem while muttering an incantation that was ancient even before Atlantis sank. The glare of the jewel dazzled their eyes so that they could not be sure what they saw; but with a splintering crash, the carved lid of the sarcophagus burst outward as if from some irresistible force within, and the four men, bending eagerly forward, saw the occupant—a shriveled, withered figure, its dried brown limbs like dead wood showing through rotting bandages.  
+
+“Bring that thing back?” muttered the small dark man on the right with a short, mocking laugh. “It’s ready to crumble at a touch. We’re fools—”  
+
+“Quiet!” hissed the large man holding the jewel, his voice sharp with command. Sweat stood on his broad white forehead, and his eyes were wide and wild. He leaned forward and, without touching the thing with his hand, laid the blazing jewel on the mummy’s chest. Then he drew back and watched with fierce intensity, his lips moving in silent invocation.  
+
+It was as if a globe of living fire burned on the dead, withered chest. The watchers’ breath hissed through clenched teeth. For as they stared, a terrible transformation began. The withered shape in the coffin was expanding—growing, lengthening. The bandages split and fell away into brown dust. The shriveled limbs swelled and straightened. Their dark hue began to fade.  
+
+“By Mitra!” whispered the tall, yellow-haired man on the left. “He wasn’t a Stygian. That part was true, at least.”  
+
+Again, a trembling finger warned for silence. The dog outside had stopped howling. It whimpered, as if trapped in a nightmare, and then that sound too faded into silence, during which the yellow-haired man clearly heard the heavy door strain, as if something outside pressed hard against it. He half turned, his hand on his sword, but the man in the ermine robe hissed urgently, “Stay where you are! Don’t break the circle! And for your life’s sake, don’t go to the door!”  
+
+The yellow-haired man shrugged and turned back—then froze, staring. In the jade sarcophagus lay a living man: tall, strong, naked, with white skin and dark hair and beard. He lay motionless, his eyes wide open, blank and unknowing as a newborn’s. On his chest, the great jewel glowed and sparkled.  
+
+The man in the ermine robe staggered as if released from unbearable tension.  
+
+“Ishtar!” he gasped. “It’s Xaltotun—and he lives! Valerius! Tarascus! Amalric! Do you see? Do you see? You doubted me—but I haven’t failed! We’ve stood at the open gates of hell tonight, and the shapes of darkness gathered close around us—yes, they followed him to the very door—but we’ve brought the great sorcerer back to life.”  
+
+“And damned our souls to eternal torment, no doubt,” muttered the small dark man, Tarascus.  
+
+The yellow-haired man, Valerius, laughed harshly.  
+
+“What torment could be worse than life itself? We’re all damned from birth. Besides, who wouldn’t sell his miserable soul for a throne?”  
+
+“There’s no awareness in his eyes, Orastes,” said the large man.  
+
+“He’s been dead a long time,” answered Orastes. “He’s like someone newly awakened. His mind is empty after the long death—no, not sleep, death. We’ve brought his spirit back across the voids of night and oblivion. I’ll speak to him.”  
+
+He bent over the foot of the sarcophagus, fixed his gaze on the dark, wide eyes of the man within, and said slowly, “Wake, Xaltotun!”  
+
+The man’s lips moved mechanically. “Xaltotun,” he repeated in a groping whisper.  
+
+“You are Xaltotun!” exclaimed Orastes, like a hypnotist driving home his command. “You are Xaltotun of Python, in Acheron.”  
+
+A dim flame flickered in the dark eyes.  
+
+“I was Xaltotun,” he whispered. “I am dead.”  
+
+“You are Xaltotun!” cried Orastes. “You are not dead—you live!”  
+
+“I am Xaltotun,” came the eerie whisper. “But I am dead. In my house in Khemi, in Stygia—there I died.”  
+
+“And the priests who poisoned you mummified your body with their dark arts, keeping all your organs intact!” exclaimed Orastes. “But now you live again! The Heart of Ahriman has restored your life, drawn your spirit back from the void of eternity.”  
+
+“The Heart of Ahriman!” The flame of memory flared brighter. “The barbarians stole it from me!”  
+
+“He remembers,” muttered Orastes. “Lift him from the case.”  
+
+The others obeyed hesitantly, reluctant to touch the man they had brought back, and they seemed no more at ease when they felt firm, living flesh beneath their fingers. But they lifted him onto the table, and Orastes dressed him in a strange dark velvet robe spattered with gold stars and crescent moons, fastening a gold cloth band around his temples to hold back the black, wavy hair that fell to his shoulders. He let them do as they wished, saying nothing, not even when they set him in a carved, throne-like chair with a high ebony back, wide silver arms, and feet shaped like golden claws. He sat there motionless, and slowly intelligence returned to his dark eyes, making them deep, strange, and luminous. It was as if long-buried witchlights were rising through midnight pools of darkness.  
+
+Orastes cast a quick, uneasy glance at his companions, who stood staring in grim fascination at their strange guest. Their iron nerves had endured an ordeal that might have driven weaker men insane. He knew he was conspiring not with cowards, but with men whose courage matched their ruthless ambitions and capacity for evil. He turned his attention back to the figure seated in the black, shadowed chair. At last, that one spoke.  
+
+“I remember,” he said in a deep, powerful voice, speaking Nemedian with a strange, old-fashioned accent. “I am Xaltotun, once high priest of Set in Python, which was in Acheron. The Heart of Ahriman—I dreamed I had found it again—where is it?”  
+
+Orastes placed it in his hand, and Xaltotun drew a deep breath as he stared into the depths of the terrible jewel burning in his grasp.  
+
+“They stole it from me long ago,” he said. “It is the red heart of the night, powerful to save or to destroy. It came from far away, and from long ago. While I held it, no one could stand against me. But it was stolen, and Acheron fell, and I fled in exile into dark Stygia. I remember much, but much I have forgotten. I have been in a far place, across misty voids and endless, unlit seas. What year is this?”  
+
+Orastes answered, “It is the waning of the Year of the Lion, three thousand years after the fall of Acheron.”  
+
+“Three thousand years!” murmured the other. “So long? Who are you?”  
+
+“I am Orastes, once a priest of Mitra. This man is Amalric, baron of Tor in Nemedia; this one is Tarascus, younger brother of the king of Nemedia; and this tall man is Valerius, rightful heir to the throne of Aquilonia.”  
+
+“Why have you brought me back to life?” demanded Xaltotun. “What do you want from me?”  
+
+The man was now fully alive and alert, his sharp eyes revealing the workings of a clear and powerful mind. There was no hesitation or confusion in his manner. He went straight to the point, as one who knows that no man gives something for nothing. Orastes met him with equal directness.  
+
+“We have opened the gates of hell tonight to free your soul and return it to your body because we need your help. We want to place Tarascus on the throne of Nemedia and win for Valerius the crown of Aquilonia. With your sorcery, you can help us.”  
+
+Xaltotun’s mind was twisted and full of strange turns.
+
+“You must be deeply learned in the dark arts yourself, Orastes, to have been able to restore my life. How does a priest of Mitra know of the Heart of Ahriman and the spells of Skelos?”
+
+“I am no longer a priest of Mitra,” said Orastes. “I was cast out of my order because I delved into forbidden magic. If not for Amalric there, I would have been burned as a sorcerer.
+
+“But that left me free to pursue my studies. I traveled through Zamora, Vendhya, Stygia, and the haunted jungles of Khitai. I read the iron-bound books of Skelos and spoke with unseen beings in deep wells, and faceless shapes in black, stinking jungles. I glimpsed your sarcophagus in the demon-haunted crypts beneath the massive, black-walled temple of Set in the wilds of Stygia, and I learned the arts that could bring life back to your withered body. From decaying manuscripts I learned of the Heart of Ahriman. Then for a year I searched for its hiding place, and at last I found it.”
+
+“Then why bother bringing me back to life?” demanded Xaltotun, his piercing eyes fixed on the priest. “Why didn’t you use the Heart to increase your own power?”
+
+“Because no man today knows the secrets of the Heart,” answered Orastes. “Not even in legend do the arts survive that could unlock its full powers. I knew it could restore life; of its deeper secrets I know nothing. I used it only to bring you back. It is your knowledge we seek. As for the Heart, only you know its terrible secrets.”
+
+Xaltotun shook his head, staring broodingly into the jewel’s fiery depths.
+
+“My necromantic knowledge is greater than all other men’s combined,” he said, “yet even I do not know the full power of the jewel. I did not use it in the old days; I guarded it so it could not be used against me. At last it was stolen, and in the hands of a feathered shaman of the barbarians it defeated all my mighty sorcery. Then it vanished, and I was poisoned by the jealous priests of Stygia before I could discover where it was hidden.”
+
+“It was hidden in a cavern beneath the temple of Mitra in Tarantia,” said Orastes. “By secret means I discovered this, after I had located your remains in Set’s underground temple in Stygia.
+
+“Zamorian thieves, partly protected by spells I learned from sources best left unnamed, stole your mummy-case from under the very claws of those who guarded it in the dark, and by camel caravan, ship, and ox-wagon it was brought at last to this city.
+
+“Those same thieves—or rather those few who survived their dreadful mission—stole the Heart of Ahriman from its haunted cavern beneath the temple of Mitra, and even then, all the skill of men and the power of spells nearly failed. One of them lived long enough to reach me and place the jewel in my hands before he died, raving and gibbering about what he had seen in that cursed crypt. The thieves of Zamora are the most faithful men alive when it comes to their contracts. Even with my magic, only they could have stolen the Heart from where it had lain in demon-guarded darkness since the fall of Acheron, three thousand years ago.”
+
+Xaltotun lifted his lion-like head and stared far off into space, as if searching through the lost centuries.
+
+“Three thousand years!” he muttered. “Set! Tell me what has happened in the world.”
+
+“The barbarians who destroyed Acheron founded new kingdoms,” replied Orastes. “Where the empire once stretched, there now rise realms called Aquilonia, Nemedia, and Argos, named after the tribes that founded them. The older kingdoms of Ophir, Corinthia, and western Koth, which had once been subject to the kings of Acheron, regained their independence when the empire fell.”
+
+“And what of the people of Acheron?” demanded Xaltotun. “When I fled into Stygia, Python was in ruins, and all the great, purple-towered cities of Acheron were fouled with blood and trampled under the sandals of the barbarians.”
+
+“In the hills, small groups of people still claim descent from Acheron,” answered Orastes. “But for the most part, the tide of my barbarian ancestors swept over them and wiped them out. They—my ancestors—had suffered greatly under the kings of Acheron.”
+
+A grim and terrible smile curved the Pythonian’s lips.
+
+“Yes! Many a barbarian, both man and woman, died screaming on the altar beneath this hand. I have seen their heads piled high into a pyramid in the great square of Python when the kings returned from the west with their spoils and naked captives.”
+
+“Yes. And when the day of judgment came, the sword showed no mercy. So Acheron vanished, and the purple-towered Python became only a memory of forgotten ages. Yet younger kingdoms rose from the ruins of that empire and grew powerful. Now we have brought you back to help us rule these realms, which, though less strange and marvelous than the Acheron of old, are still rich and strong—well worth fighting for. Look!” Orastes unrolled before the stranger a map skillfully drawn on vellum.
+
+Xaltotun studied it, then shook his head in confusion.
+
+“The very shape of the land has changed. It’s like seeing something familiar in a dream—twisted and distorted.”
+
+“Nevertheless,” said Orastes, tracing with his finger, “here is Belverus, the capital of Nemedia, where we are now. Here are the borders of Nemedia. To the south and southeast lie Ophir and Corinthia, to the east Brythunia, and to the west Aquilonia.”
+
+“This is the map of a world I don’t know,” said Xaltotun quietly, but Orastes noticed the dark, burning hatred that flickered in his eyes.
+
+“It’s a map you’ll help us change,” replied Orastes. “Our first goal is to place Tarascus on the throne of Nemedia. We want to do this without conflict and in such a way that no suspicion falls on Tarascus. We don’t want the land torn apart by civil war; we must keep all our strength for the conquest of Aquilonia.
+
+“If King Nimed and his sons were to die naturally—in a plague, for example—Tarascus would take the throne as the next heir, peacefully and without opposition.”
+
+Xaltotun nodded silently, and Orastes continued.
+
+“The other task will be harder. We can’t put Valerius on the Aquilonian throne without war, and that kingdom is a formidable enemy. Its people are a tough, warlike race, hardened by constant battles with the Picts, Zingarians, and Cimmerians. For five hundred years Aquilonia and Nemedia have fought off and on, and the advantage has always been with the Aquilonians.
+
+“Their current king is the most famous warrior among the western nations. He’s a foreigner, an adventurer who seized the crown by force during a time of civil unrest, strangling King Namedides with his own hands upon the throne. His name is Conan, and no man can stand against him in battle.
+
+“Valerius is now the rightful heir to the throne. He was driven into exile by his royal relative, Namedides, and has been away from his homeland for years. Yet he is of the old royal bloodline, and many of the barons would secretly welcome the overthrow of Conan, who is a commoner—without royal or even noble heritage. But the common people are loyal to him, as are the nobles of the outer provinces. Still, if his armies were defeated in the coming war and Conan himself slain, I think it would not be hard to place Valerius on the throne. In fact, with Conan dead, the only true center of power would vanish. He’s not part of a dynasty, merely a lone adventurer.”
+
+“I wish I could see this king,” murmured Xaltotun, glancing toward a silver mirror that formed one of the wall panels. The mirror showed no reflection, but Xaltotun’s expression revealed that he understood its purpose, and Orastes nodded proudly, pleased that a master of his art recognized his work.
+
+“I’ll try to show him to you,” he said. Sitting before the mirror, he stared deeply into its surface, and soon a dim shadow began to take shape.
+
+It was eerie, but those watching knew it was only the reflected image of Orastes’ thoughts, made visible in the mirror as a wizard’s thoughts appear in a magic crystal. It floated hazily for a moment, then snapped into sharp focus—a tall man, broad-shouldered and deep-chested, with a thick, powerful neck and heavily muscled limbs. He wore silk and velvet, with the golden lions of Aquilonia embroidered on his rich tunic, and the crown of Aquilonia gleamed on his square-cut black hair. Yet the great sword at his side seemed more natural to him than the royal finery. His forehead was wide and low, his eyes a volcanic blue that burned with inner fire. His dark, scarred, almost grim face was that of a warrior, and his velvet garments could not conceal the hard, dangerous strength of his body.
+
+“That man isn’t a Hyborian!” exclaimed Xaltotun.
+
+“No; he’s a Cimmerian, one of those wild tribesmen who live in the gray northern hills.”
+
+“I fought his ancestors long ago,” muttered Xaltotun. “Not even the kings of Acheron could conquer them.”
+
+“They’re still a terror to the southern nations,” said Orastes. “He’s a true son of that savage race, and so far, he’s proven impossible to defeat.”  
+
+Xaltotun didn’t answer; he sat staring down at the pool of living fire that shimmered in his hand. Outside, the hound howled again, long and chilling.  
+
+A Black Wind Blows  
+
+The Year of the Dragon began with war, plague, and unrest. The black plague stalked through the streets of Belverus, striking down the merchant in his stall, the serf in his hovel, the knight at his banquet table. The healers’ arts were useless against it. People said it had been sent from hell as punishment for pride and lust. It was as swift and deadly as a viper’s strike. The victim’s body turned purple, then black, and within minutes he collapsed, dying, the stench of his own decay in his nostrils even before death tore his soul from his rotting flesh. A hot, roaring wind blew endlessly from the south; the crops withered in the fields, and the cattle dropped dead where they stood.  
+
+People cried out to Mitra and cursed the king, for somehow, throughout the kingdom, whispers spread that the king secretly indulged in vile acts and disgusting debaucheries in the darkness of his palace. And then, in that same palace, death came grinning, surrounded by the foul vapors of the plague. In one night the king died along with his three sons, and the drums that thundered their funeral dirge drowned out the grim, ominous bells that rang from the carts rumbling through the streets, collecting the rotting dead.  
+
+That night, just before dawn, the hot wind that had blown for weeks stopped rustling through the silken curtains. From the north came a great wind that roared among the towers, with crashing thunder, blinding lightning, and driving rain. But the dawn broke clean, green, and clear; the scorched earth covered itself with grass, the thirsty crops sprang up again, and the plague was gone—its foul air swept away by the mighty wind.  
+
+People said the gods were satisfied because the wicked king and his sons were dead, and when his young brother Tarascus was crowned in the great hall, the crowds cheered until the towers shook, hailing the monarch upon whom the gods smiled.  
+
+Such a wave of excitement and celebration swept across the land that it often signaled the beginning of a war for conquest. So no one was surprised when word spread that King Tarascus had declared the truce made by the late king with their western neighbors null and void, and was gathering his armies to invade Aquilonia. His explanation was open; his motives, loudly proclaimed, gave his actions the luster of a holy crusade. He took up the cause of Valerius, the “rightful heir to the throne.” He declared that he came not as an enemy of Aquilonia but as a friend, to free its people from the tyranny of a usurper and a foreigner.  
+
+If there were cynical smiles in some circles, and whispers about the king’s close friend Amalric—whose enormous personal fortune seemed to be pouring into the nearly empty royal treasury—they went unnoticed amid the general excitement and devotion surrounding Tarascus’ popularity. If any sharp-minded individuals suspected that Amalric was the true ruler of Nemedia behind the scenes, they were careful not to voice such dangerous thoughts. And the war moved forward with great enthusiasm.  
+
+The king and his allies marched west at the head of fifty thousand men—knights in shining armor with banners streaming above their helmets, pikemen in steel caps and brigandines, and crossbowmen in leather jerkins. They crossed the border, captured a frontier castle, and burned three mountain villages. Then, in the valley of the Valkia, ten miles west of the border, they met the forces of Conan, king of Aquilonia—forty-five thousand knights, archers, and men-at-arms, the finest of Aquilonian strength and honor. Only the knights of Poitain, under Prospero, had not yet arrived, for they had a long ride from the southwestern corner of the kingdom. Tarascus had struck without warning. His invasion followed immediately after his proclamation, without any formal declaration of war.  
+
+The two armies faced each other across a wide, shallow valley, with rugged cliffs and a stream winding through thick reeds and willows down the center. The camp followers of both sides came down to the stream for water, shouting insults and throwing stones across at one another. The last rays of the sun glimmered on the golden banner of Nemedia with its scarlet dragon, waving in the breeze above King Tarascus’ pavilion on a rise near the eastern cliffs. But the shadow of the western cliffs spread like a vast purple shroud across the tents and the army of Aquilonia, and over the black banner with its golden lion that flew above King Conan’s pavilion.  
+
+All night long, fires burned along the valley, and the wind carried the sound of trumpets, the clash of weapons, and the sharp challenges of sentries pacing their horses along both banks of the willow-lined stream.  
+
+* * * * *  
+
+In the darkness before dawn, King Conan stirred on his bed, which was nothing more than a pile of silks and furs thrown on a dais, and awoke. He sat up suddenly, shouting sharply and grabbing for his sword. Pallantides, his commander, rushed in at the cry and saw his king sitting upright, hand on his sword hilt, sweat running down his strangely pale face.  
+
+“Your Majesty!” exclaimed Pallantides. “Is something wrong?”  
+
+“What about the camp?” demanded Conan. “Are the guards alert?”  
+
+“Five hundred horsemen patrol the stream, your Majesty,” answered the general. “The Nemedians haven’t tried to move against us during the night. They wait for dawn, just as we do.”  
+
+“By Crom,” muttered Conan. “I woke with the feeling that doom was creeping toward me in the dark.”  
+
+He stared up at the great golden lamp that cast a soft glow over the velvet hangings and carpets of the large tent. They were alone; not even a servant or page slept on the carpeted floor. But Conan’s eyes blazed as they always did in the face of great danger, and the sword trembled in his hand. Pallantides watched him uneasily. Conan seemed to be listening.  
+
+“Listen!” hissed the king. “Did you hear that? A stealthy step!”  
+
+“Seven knights guard your tent, your Majesty,” said Pallantides. “No one could approach it without being challenged.”  
+
+“Not outside,” growled Conan. “It sounded like it came from inside the tent.”  
+
+Pallantides cast a quick, startled look around. The velvet hangings blended with the shadows in the corners, but if anyone else had been in the pavilion, the general would have seen them. Again he shook his head.  
+
+“There’s no one here, sire. You sleep in the middle of your army.”  
+
+“I’ve seen death strike a king in the midst of thousands,” muttered Conan. “Something that walks on invisible feet and can’t be seen—”  
+
+“Maybe you were dreaming, your Majesty,” said Pallantides, a bit uneasy.  
+
+“So I was,” grunted Conan. “And a devilish dream it was, too. I walked again all the long, weary roads I traveled on my way to the throne.”  
+
+He fell silent, and Pallantides watched him without speaking. The king was a mystery to the general, as he was to most of his civilized subjects. Pallantides knew that Conan had walked many strange paths in his wild, eventful life, and had been many things before fate placed him on the throne of Aquilonia.  
+
+“I saw again the battlefield where I was born,” said Conan, resting his chin gloomily on a massive fist. “I saw myself in a panther-skin loincloth, throwing my spear at the mountain beasts. I was once more a mercenary swordsman, a hetman of the kozaki who live along the Zaporoska River, a corsair raiding the coasts of Kush, a pirate of the Barachan Isles, a chief among the Himelian hillmen. I’ve been all these things, and I dreamed of them all; all the forms I’ve taken passed before me like an endless procession, and their feet beat out a funeral rhythm in the echoing dust.  
+
+“But through all my dreams moved strange, veiled figures and ghostly shadows, and a distant voice mocked me. And near the end I seemed to see myself lying on this dais in my tent, and a shape bent over me, cloaked and hooded. I lay unable to move, and then the hood fell back and a decaying skull grinned down at me. That’s when I woke up.”  
+
+“That’s an evil dream, your Majesty,” said Pallantides, suppressing a shiver. “But nothing more.”  
+
+Conan shook his head, more uncertain than dismissive. He came from a barbarian race, and the superstitions and instincts of his heritage lay close beneath the surface of his mind.  
+
+“I’ve dreamed many dark dreams,” he said, “and most of them meant nothing. But by Crom, this one wasn’t like the others! I wish this battle were already fought and won, for I’ve had a grim feeling ever since King Nimed died of the black plague. Why did it stop when he died?”  
+
+“Men say he sinned—”
+
+“Men are fools, as always,” grunted Conan. “If the plague struck everyone who sinned, then by Crom, there wouldn’t be enough left alive to count! Why would the gods—whom the priests claim are just—kill five hundred peasants, merchants, and nobles before they killed the king, if the whole plague was meant for him? Were the gods striking blindly, like swordsmen in a fog? By Mitra, if I swung my sword that wildly, Aquilonia would have had a new king long ago.  
+
+“No! The black plague isn’t some ordinary sickness. It hides in Stygian tombs and can only be brought forth by sorcerers. I was a swordsman in Prince Almuric’s army when we invaded Stygia, and out of thirty thousand men, fifteen thousand died from Stygian arrows, and the rest from the black plague that swept over us like a wind from the south. I was the only one who survived.”  
+
+“Yet only five hundred died in Nemedia,” argued Pallantides.  
+
+“Whoever summoned it knew how to stop it at will,” replied Conan. “That’s how I know it was planned and evil. Someone called it forth, and someone dismissed it once the job was done—once Tarascus was safe on the throne and being hailed as the savior of the people from the wrath of the gods. By Crom, I can sense a dark, cunning mind behind all this. What about this stranger people say advises Tarascus?”  
+
+“He wears a veil,” answered Pallantides. “They say he’s a foreigner—a man from Stygia.”  
+
+“A man from Stygia!” repeated Conan, scowling. “A man from hell, more like!—Ha! What’s that?”  
+
+“The trumpets of the Nemedians!” exclaimed Pallantides. “And listen—our own answering them! Dawn is breaking, and the captains are forming the armies for battle! Mitra be with them, for many won’t live to see the sun set behind the cliffs.”  
+
+“Send my squires to me!” shouted Conan, springing up and throwing off his velvet night-robe; he seemed to have forgotten his dark thoughts at the promise of action. “Go to the captains and make sure everything’s ready. I’ll join you as soon as I’m armored.”  
+
+Many of Conan’s habits were a mystery to the civilized people he ruled, and one of them was his insistence on sleeping alone in his chamber or tent. Pallantides hurried from the pavilion, his armor clanking—he had put it on at midnight after only a few hours of sleep. He cast a quick look over the camp, which was coming alive with movement—mail rattling and men moving dimly in the uncertain light among the long rows of tents. Stars still glimmered faintly in the western sky, but long pink streaks stretched across the eastern horizon, and against them the dragon banner of Nemedia unfurled its silken folds.  
+
+Pallantides turned toward a smaller tent nearby, where the royal squires slept. They were already tumbling out, roused by the trumpets. As Pallantides called to them to hurry, he froze at the sound of a deep, fierce shout and the thud of a heavy blow from inside the king’s tent, followed by the sickening crash of a falling body. Then came a low laugh that chilled his blood.  
+
+Echoing the cry, Pallantides spun around and rushed back into the pavilion. He cried out again when he saw Conan’s massive body sprawled on the carpet. The king’s great two-handed sword lay near his hand, and a shattered tent pole showed where his blow had landed. Pallantides drew his sword and glared around the tent, but nothing met his eyes. Except for the king and himself, it was empty, just as it had been when he left.  
+
+“Your Majesty!” Pallantides dropped to one knee beside the fallen giant.  
+
+Conan’s eyes were open; they blazed with awareness and recognition. His lips twisted, but no sound came out. He seemed unable to move.  
+
+Voices sounded outside. Pallantides rose quickly and stepped to the entrance. The royal squires and one of the knights guarding the tent stood there.  
+
+“We heard a noise inside,” said the knight apologetically. “Is the king all right?”  
+
+Pallantides studied him closely.  
+
+“No one has entered or left the pavilion tonight?”  
+
+“No one but you, my lord,” answered the knight, and Pallantides could tell he was telling the truth.  
+
+“The king stumbled and dropped his sword,” said Pallantides shortly. “Return to your post.”  
+
+As the knight turned away, the general secretly motioned to the five royal squires, and when they had followed him inside, he closed the flap tightly. They went pale at the sight of the king lying on the carpet, but Pallantides’ sharp gesture stopped their cries.  
+
+The general bent over him again, and again Conan tried to speak. The veins in his temples and the cords in his neck bulged with the effort, and he lifted his head off the ground. At last a voice came, mumbling and barely understandable.  
+
+“The thing—the thing in the corner!”  
+
+Pallantides lifted his head and looked around fearfully. He saw only the pale faces of the squires in the lamplight and the velvet shadows along the pavilion walls. That was all.  
+
+“There’s nothing here, Your Majesty,” he said.  
+
+“It was there, in the corner,” muttered the king, tossing his lion-like head from side to side as he struggled to rise. “A man—or at least he looked like a man—wrapped in rags like a mummy, with a rotting cloak and a hood. All I could see were his eyes as he crouched there in the shadows. I thought he was a shadow himself until I saw those eyes. They were like black jewels.  
+
+“I charged him and swung my sword, but I missed completely—how, Crom only knows—and smashed that pole instead. He grabbed my wrist as I stumbled, and his fingers burned like hot iron. All my strength drained away, and the floor rose up and hit me like a club. Then he was gone, and I was down, and—curse him!—I can’t move! I’m paralyzed!”  
+
+Pallantides lifted the giant’s hand, and his skin crawled. On the king’s wrist were the blue marks of long, thin fingers. What kind of hand could grip hard enough to leave prints on that thick wrist? Pallantides remembered the low laugh he’d heard as he rushed into the tent, and cold sweat broke out on his skin. It hadn’t been Conan who laughed.  
+
+“This is something evil!” whispered a trembling squire. “People say the children of darkness fight for Tarascus!”  
+
+“Be silent!” ordered Pallantides sharply.  
+
+Outside, the dawn was fading the stars. A light wind blew down from the peaks and carried the blare of a thousand trumpets. At the sound, a violent shudder ran through the king’s massive body. Again the veins in his temples bulged as he fought to break the invisible chains holding him down.  
+
+“Put my armor on me and tie me into my saddle,” he whispered. “I’ll lead the charge yet!”  
+
+Pallantides shook his head, and a squire tugged at his cloak.  
+
+“My lord, we’re doomed if the army finds out the king has been struck down! Only he could have led us to victory today.”  
+
+“Help me lift him onto the dais,” said the general.  
+
+They obeyed, laying the helpless giant on the furs and covering him with a silken cloak. Pallantides turned to the five squires and studied their pale faces for a long moment before speaking.  
+
+“Our lips must remain sealed forever about what happens in this tent,” he said at last. “The fate of Aquilonia depends on it. One of you, go and bring me the officer Valannus, captain of the Pellian spearmen.”  
+
+The chosen squire bowed and hurried out, while Pallantides stood staring down at the stricken king. Outside, trumpets blared, drums thundered, and the roar of the crowds rose with the growing dawn. Soon the squire returned with the officer Pallantides had named—a tall, broad, powerful man, built much like the king. Like him, he had thick black hair, but his eyes were gray, and his features were unlike Conan’s.  
+
+“The king has been struck by a strange illness,” said Pallantides curtly. “A great honor is yours; you are to wear his armor and ride at the head of the army today. No one must know it isn’t the king who rides.”  
+
+“It’s an honor a man would gladly give his life for,” stammered the captain, overwhelmed by the command. “Mitra grant that I do not fail in this great duty!”  
+
+And while the fallen king stared with burning eyes that revealed the bitter rage and humiliation consuming his heart, the squires stripped Valannus of his mail shirt, helmet, and leg armor, and dressed him in Conan’s black plate armor, with the visored salade and the dark plumes nodding over the wyvern crest. Over it all they placed the silken surcoat with the royal lion embroidered in gold on the chest, and they girded him with a broad gold-buckled belt holding a jewel-hilted broadsword in a gold cloth scabbard. While they worked, trumpets blared outside, weapons clanged, and across the river rose a deep roar as squadron after squadron moved into position.  
+
+Fully armed, Valannus dropped to one knee and bowed his plumes before the figure lying on the dais.  
+
+“My lord king, may Mitra grant that I do not dishonor the armor I wear today!”
+
+“Bring me Tarascus’s head and I’ll make you a baron!” In the torment of his anguish, Conan’s thin layer of civilization fell away. His eyes blazed; he ground his teeth in fury and bloodlust, as savage as any tribesman from the Cimmerian hills.  
+
+
+The Aquilonian army was drawn up—long, tight ranks of pikemen and horsemen in gleaming steel—when a giant figure in black armor stepped out of the royal pavilion. As he swung into the saddle of the black stallion held by four squires, a roar that shook the mountains rose from the army. They brandished their blades and thundered their cheers for their warrior king—knights in gold-chased armor, pikemen in mail coats and helmets, archers in leather jerkins with longbows in their left hands.  
+
+The army on the opposite side of the valley was moving, trotting down the long, gentle slope toward the river; their steel flashed through the morning mists swirling around their horses’ hooves.  
+
+The Aquilonian host advanced steadily to meet them. The rhythmic tramp of armored horses made the ground tremble. Banners unfurled long silken folds in the morning wind; lances swayed like a bristling forest, dipping and rising, their pennons fluttering.  
+
+Ten men-at-arms—grim, silent veterans who could keep their mouths shut—guarded the royal pavilion. One squire stood inside the tent, peering out through a slit in the doorway. Except for those few who knew the secret, no one in the vast army realized it wasn’t Conan riding the great stallion at the head of the host.  
+
+The Aquilonian army had taken its usual formation: the strongest part was the center, composed entirely of heavily armed knights; the wings were formed of smaller groups of horsemen—mostly mounted men-at-arms—supported by pikemen and archers. The archers were Bossonians from the western borders, sturdy men of medium height, wearing leather jackets and iron helmets.  
+
+The Nemedian army advanced in a similar formation, and the two forces moved toward the river, their wings leading their centers. In the middle of the Aquilonian host, the great lion banner streamed its billowing black folds over the steel-clad figure on the black stallion.  
+
+But on his dais in the royal pavilion, Conan groaned in torment and cursed with strange heathen oaths.  
+
+“The armies are closing in,” said the squire, watching from the doorway. “Hear the trumpets! Ha! The rising sun flashes off the lance tips and helmets until I’m blinded. It turns the river crimson—yes, it’ll be truly crimson before this day is done!  
+
+“The enemy has reached the river. Now arrows fly between the armies like stinging clouds that block the sun. Ha! Well shot, bowmen! The Bossonians have the upper hand! Listen to them shout!”  
+
+Faintly, above the blare of trumpets and the clash of steel, the deep, fierce shout of the Bossonians reached the king’s ears as they drew and loosed in perfect rhythm.  
+
+“Their archers are trying to keep ours busy while their knights ride into the river,” said the squire. “The banks aren’t steep; they slope gently to the water’s edge. The knights are coming—they crash through the willows. By Mitra, the clothyard arrows find every gap in their armor! Horses and men go down, struggling and thrashing in the water. It’s not deep, and the current isn’t strong, but men are drowning there, dragged under by their armor and trampled by panicked horses. Now the knights of Aquilonia advance. They ride into the water and clash with the knights of Nemedia. The water swirls around their horses’ bellies, and the clang of sword on sword is deafening.”  
+
+“Crom!” burst from Conan’s lips in agony. Life was slowly returning to his veins, but still he couldn’t lift his mighty body from the dais.  
+
+“The wings are closing in,” said the squire. “Pikemen and swordsmen fight hand to hand in the stream, and behind them the bowmen keep shooting.  
+
+“By Mitra, the Nemedian crossbowmen are taking a beating, and the Bossonians arc their arrows to drop into the rear ranks. Their center gains no ground, and their wings are being pushed back from the river again.”  
+
+“Crom, Ymir, and Mitra!” raged Conan. “Gods and devils, if only I could reach the fight, even if it meant dying at the first blow!”  
+
+* * * * *  
+
+Outside, through the long, scorching day, the battle raged and thundered. The valley shook with charges and countercharges, with the whistling of arrows, the crash of splintering shields, and the shattering of lances. But the armies of Aquilonia held firm. Once they were driven back from the riverbank, but a counterattack, with the black banner streaming above the black stallion, regained the lost ground. Like an iron wall they held the right bank of the stream, and at last the squire brought Conan word that the Nemedians were retreating from the river.  
+
+“Their flanks are in chaos!” he shouted. “Their knights are reeling from the swordplay. But wait—your banner is moving—the center is pushing into the stream! By Mitra, Valannus is leading the army across the river!”  
+
+“Fool!” groaned Conan. “It could be a trap. He should hold his ground; by dawn Prospero will be here with the Poitanian troops.”  
+
+“The knights are riding into a storm of arrows!” cried the squire. “But they don’t falter! They press on—they’ve crossed! They’re charging up the slope! Pallantides has thrown the wings across the river to support them! It’s all he can do. The lion banner dips and wavers above the chaos.  
+
+“The Nemedian knights are making a stand. They’re breaking! They’re falling back! Their left wing is in full flight, and our pikemen are cutting them down as they run! I see Valannus, riding and striking like a madman. The battle frenzy has taken him. The men no longer look to Pallantides. They follow Valannus, thinking he’s Conan since he rides with his visor closed.  
+
+“But look! There’s method in his madness! He’s swinging wide of the Nemedian front with five thousand knights, the best of the army. The main Nemedian host is in confusion—and look! Their flank is guarded by cliffs, but there’s a gap left unguarded! It’s like a great crack in the wall that opens again behind the Nemedian lines. By Mitra, Valannus sees it and seizes the chance! He’s driven their wing before him, and he’s leading his knights into that gap. They swing wide of the main battle; they cut through a line of spearmen—they’re charging into the defile!”  
+
+“An ambush!” cried Conan, struggling to rise.  
+
+“No!” shouted the squire in triumph. “The whole Nemedian host is in plain sight! They’ve forgotten the defile! They never thought they’d be pushed back that far. Oh, fool Tarascus, to make such a mistake! Ah, I see lances and banners pouring from the far mouth of the defile, beyond the Nemedian lines. They’ll strike those ranks from behind and crush them. Mitra, what’s that?”  
+
+He staggered as the tent walls swayed drunkenly. From afar, over the thunder of battle, came a deep, bellowing roar—terrifying and strange.  
+
+“The cliffs are shaking!” screamed the squire. “Gods, what’s happening? The river’s bursting from its bed, and the peaks are crumbling! The ground’s shaking, horses and armored riders are falling! The cliffs! The cliffs are collapsing!”  
+
+As he spoke, a grinding rumble and a thunderous crash shook the earth. Over the roar of battle rose screams of insane terror.  
+
+“The cliffs have fallen!” cried the pale squire. “They’ve crashed down into the defile and crushed everyone in it! I saw the lion banner wave for a heartbeat amid the dust and falling rocks, and then it vanished! Ah, the Nemedians are shouting in triumph! And well they might, for the fall of the cliffs has wiped out five thousand of our bravest knights—listen!”  
+
+To Conan’s ears came a vast, rising roar of voices, growing more frenzied by the moment: “The king is dead! The king is dead! Run! Run! The king is dead!”  
+
+“Liars!” gasped Conan. “Dogs! Cowards! Oh, Crom, if only I could stand—if I could crawl to the river with my sword in my teeth! Tell me, boy, are they fleeing?”  
+
+“Yes!” sobbed the squire. “They’re spurring for the river; they’re broken, swept away like foam before a storm. I see Pallantides trying to stop them—he’s down, and the horses trample him! They’re rushing into the river—knights, archers, pikemen—all mixed together in one mad torrent of ruin. The Nemedians are right behind them, cutting them down like wheat.”  
+
+“But they’ll rally on this side of the river!” cried the king. With an effort that brought sweat streaming down his temples, he pushed himself up on his elbows.  
+
+“No!” cried the squire. “They can’t! They’re shattered! Routed! Oh gods, that I should live to see this day!”  
+
+Then he remembered his duty and shouted to the men-at-arms who stood grimly watching their comrades flee. “Get a horse, quickly, and help me lift the king onto it. We can’t stay here.”
+
+But before they could move, the first wave of the storm hit them. Knights, spearmen, and archers fled through the tents, tripping over ropes and baggage, mixed with Nemedian riders who struck down anyone they didn’t recognize. Tent ropes were slashed, fires sprang up everywhere, and looting had already begun. The grim guards around Conan’s tent died where they stood, fighting to the last, and over their mangled bodies thundered the hooves of the conquerors.  
+
+But the squire had pulled the tent flap shut, and in the chaos of slaughter no one realized the pavilion still held someone inside. The flight and pursuit swept past and roared away up the valley, and soon the squire looked out to see a group of men approaching the royal tent with clear intent.  
+
+“Here comes the king of Nemedia with four companions and his squire,” he said. “He’ll accept your surrender, my lord—”  
+
+“Surrender, my ass!” snarled the king.  
+
+He had forced himself up into a sitting position. He swung his legs painfully off the dais and staggered to his feet, swaying like a drunk. The squire ran to help him, but Conan shoved him aside.  
+
+“Give me that bow!” he growled, pointing to a longbow and quiver hanging from a tent pole.  
+
+“But your Majesty!” cried the squire in distress. “The battle’s lost! It would be more fitting for a king to yield with the dignity of royal blood!”  
+
+“I’ve got no royal blood,” growled Conan. “I’m a barbarian, the son of a blacksmith.”  
+
+Snatching the bow and an arrow, he staggered toward the tent opening. His appearance was so fearsome—bare except for short leather breeches and a sleeveless shirt open over his massive, hairy chest, his huge limbs, and his blue eyes blazing beneath his tangled black hair—that the squire shrank back, more terrified of his king than of the entire Nemedian army.  
+
+Reeling on wide, braced legs, Conan ripped open the tent flap and lurched out under the canopy. The king of Nemedia and his companions had dismounted, and they stopped short, staring in shock at the figure before them.  
+
+“Here I am, you jackals!” roared the Cimmerian. “I’m the king! Death to you, dog-brothers!”  
+
+He yanked the arrow back to the head and released it, the shaft burying itself in the chest of the knight beside Tarascus. Conan hurled the bow at the king of Nemedia.  
+
+“Damn my unsteady hand! Come in and take me if you’ve got the guts!”  
+
+Staggering backward on shaky legs, he fell with his shoulders against a tent pole, and propped upright, he lifted his massive sword with both hands.  
+
+“By Mitra, it’s the king!” swore Tarascus. He glanced quickly around and laughed. “That other one was a jackal in his armor! In, dogs, and take his head!”  
+
+The three soldiers—men-at-arms bearing the royal guard’s emblem—charged the king, and one struck down the squire with a blow from a mace. The other two were not so fortunate. As the first rushed in, sword raised, Conan met him with a sweeping stroke that sliced through chainmail like cloth and sheared the Nemedian’s arm and shoulder clean off. The man’s body fell backward, crashing across his companion’s legs. The second stumbled, and before he could recover, Conan’s great sword ran him through.  
+
+Conan yanked his blade free with a ragged gasp and staggered back against the tent pole. His massive limbs trembled, his chest heaved, and sweat streamed down his face and neck. Yet his eyes blazed with fierce triumph as he panted, “Why do you hang back, dog of Belverus? I can’t reach you—come in and die!”  
+
+Tarascus hesitated, glanced at the last man-at-arms and his squire—a gaunt, grim man in black mail—and took a step forward. He was far smaller and weaker than the giant Cimmerian, but he wore full armor and was known across the western lands as a master swordsman. Yet his squire caught his arm.  
+
+“No, your Majesty, don’t throw your life away. I’ll call the archers to shoot this barbarian, the way we shoot lions.”  
+
+Neither of them noticed that a chariot had rolled up during the fight and now stood before them. But Conan saw it, looking over their shoulders, and a strange chill crept down his spine. There was something unnaturally eerie about the black horses pulling the chariot, but it was the figure inside that seized his attention.  
+
+The man was tall and powerfully built, dressed in a long, plain silk robe. He wore a Shemitish headdress, its lower folds concealing his face except for his dark, magnetic eyes. The hands gripping the reins, holding the rearing horses back on their haunches, were pale but strong. Conan glared at the stranger, every primal instinct on edge. He felt an aura of danger and power radiating from the veiled figure—a threat as real as the silent ripple of tall grass marking a serpent’s path.  
+
+“Hail, Xaltotun!” exclaimed Tarascus. “Here is the king of Aquilonia! He didn’t die in the landslide as we thought.”  
+
+“I know,” said the other, without explaining how. “What do you plan to do with him?”  
+
+“I’ll call the archers to kill him,” said the Nemedian. “As long as he lives, he’s a danger to us.”  
+
+“Even a dog can be useful,” replied Xaltotun. “Take him alive.”  
+
+Conan gave a harsh laugh. “Come in and try!” he taunted. “If not for my treacherous legs, I’d chop you out of that chariot like a woodsman felling a tree. But you’ll never take me alive, damn you!”  
+
+“He speaks the truth, I fear,” said Tarascus. “The man’s a barbarian, with the mindless fury of a wounded tiger. Let me call the archers.”  
+
+“Watch and learn wisdom,” said Xaltotun.  
+
+He reached into his robe and drew out something that gleamed—a shining sphere. He suddenly hurled it at Conan. The Cimmerian contemptuously struck it aside with his sword—at the instant of contact there was a sharp explosion, a flash of blinding white light, and Conan collapsed unconscious to the ground.  
+
+“He’s dead?” Tarascus said, more as a statement than a question.  
+
+“No. Only unconscious. He’ll wake in a few hours. Tell your men to bind his arms and legs and lift him into my chariot.”  
+
+Tarascus gestured, and they obeyed, grunting as they heaved the heavy, limp body into the chariot. Xaltotun threw a velvet cloak over him, completely covering him from view. He gathered the reins in his hands.  
+
+“I’m heading for Belverus,” he said. “Tell Amalric I’ll come if he needs me. But with Conan gone and his army shattered, lance and sword should be enough to finish the conquest. Prospero can’t have more than ten thousand men, and he’ll likely retreat to Tarantia once he hears the news. Say nothing to Amalric, Valerius, or anyone else about our capture. Let them believe Conan died in the cliff fall.”  
+
+He stared at the man-at-arms for a long moment, until the guard shifted uneasily under his gaze.  
+
+“What’s that around your waist?” Xaltotun demanded.  
+
+“My belt, my lord!” stammered the startled guard.  
+
+“You lie!” Xaltotun’s laugh was as merciless as a blade. “It’s a venomous serpent! What a fool you are, to wear a snake around your waist!”  
+
+The man looked down, eyes bulging—and to his horror, he saw the buckle of his belt rise up. It was a snake’s head! He saw the evil eyes, the dripping fangs, heard the hiss, and felt the vile thing coil against his body. He screamed in terror and struck at it with his bare hand, felt the fangs sink into his flesh—and then he went rigid and fell heavily. Tarascus looked down without expression. He saw only the leather belt and the buckle, its pointed tongue stuck in the man’s palm. Xaltotun turned his hypnotic gaze on Tarascus’s squire, and the man went pale and began to tremble, but the king stepped in. “No, we can trust him.”  
+
+The sorcerer tightened the reins and turned the horses.  
+
+“Keep this matter secret. If I’m needed, let Altaro, Orastes’ servant, summon me as I’ve taught him. I’ll be in your palace at Belverus.”  
+
+Tarascus raised his hand in salute, but his face was grim as he watched the departing sorcerer.  
+
+“Why did he spare the Cimmerian?” whispered the frightened squire.  
+
+“I’m wondering that myself,” grunted Tarascus.  
+
+Behind the rumbling chariot, the dull roar of battle and pursuit faded into the distance; the setting sun edged the cliffs with scarlet fire, and the chariot rolled into the vast blue shadows rising from the east.  
+
+
+Conan knew nothing of that long ride in Xaltotun’s chariot. He lay like a dead man while the bronze wheels clattered over the stones of mountain roads and whispered through the tall grass of fertile valleys. At last, descending from the rugged heights, they rolled steadily along the broad white road that wound through the rich meadows toward the walls of Belverus.
+
+Just before dawn, a faint spark of life stirred within him. He heard murmuring voices and the groan of heavy hinges. Through a small slit in the cloak covering him, he saw, dimly lit by flickering torches, the great black arch of a gateway and the bearded faces of armored guards, the torchlight glinting off their spears and helmets.  
+
+“How went the battle, my lord?” asked an eager voice in the Nemedian tongue.  
+
+“Very well,” came the curt reply. “The king of Aquilonia is dead, and his army is shattered.”  
+
+A burst of excited voices followed, but it was drowned out by the rumble of chariot wheels on the stone pavement. Sparks flew from beneath the spinning rims as Xaltotun drove his horses through the archway. Conan heard one of the guards mutter, “From beyond the border to Belverus between sunset and dawn! And the horses barely sweating! By Mitra, they—” Then the voices faded, leaving only the clatter of hooves and wheels echoing down the dark street.  
+
+What he heard registered in Conan’s mind but meant nothing to him. He was like a machine that could see and hear but not comprehend. Sights and sounds drifted past him without meaning. He sank again into deep lethargy, dimly aware only when the chariot stopped in a high-walled courtyard and many hands lifted him, carrying him up a winding stone staircase and down a long, dim corridor. Whispers, soft footsteps, and distant, meaningless sounds surrounded him.  
+
+But when he finally awoke, it was sudden and crystal clear. He remembered everything about the battle in the mountains, understood what had happened, and had a good idea of where he was.  
+
+He lay on a velvet couch, dressed as he had been the day before, but his limbs were bound with chains even he could not break. The room was richly furnished in dark splendor—the walls draped with black velvet tapestries, the floor covered with thick purple carpets. There was no visible door or window, and a single intricately carved golden lamp hanging from the ornate ceiling cast a strange, reddish light over everything.  
+
+In that eerie glow, the figure seated before him in a silver, throne-like chair looked unreal, its outline blurred beneath a thin silken robe. Yet the face was sharply clear—unnaturally so in that uncertain light. It was as if a strange aura surrounded the man’s head, throwing his bearded face into stark relief, making it the only solid, real thing in that ghostly chamber.  
+
+It was a striking face, with strong, finely shaped features of classical beauty. Yet there was something unsettling in its calmness—a sense of knowledge beyond human understanding, of certainty beyond mortal confidence. A faint feeling of recognition stirred in Conan’s mind. He knew he had never seen this man before, yet something about those features reminded him of someone—or something. It was like seeing in the flesh a figure that had haunted his dreams.  
+
+“Who are you?” demanded the king harshly, struggling to sit up despite his chains.  
+
+“Men call me Xaltotun,” came the reply in a deep, golden voice.  
+
+“What place is this?” Conan demanded.  
+
+“A chamber in the palace of King Tarascus, in Belverus.”  
+
+Conan wasn’t surprised. Belverus, the capital, was the largest Nemedian city near the border.  
+
+“And where’s Tarascus?”  
+
+“With the army.”  
+
+“Well,” growled Conan, “if you plan to kill me, why don’t you just do it and be done with it?”  
+
+“I didn’t save you from the king’s archers just to kill you in Belverus,” said Xaltotun.  
+
+“What kind of sorcery did you use on me?” Conan demanded.  
+
+“I destroyed your consciousness,” said Xaltotun. “How, you wouldn’t understand. Call it black magic if you like.”  
+
+Conan had already guessed as much and was thinking of something else.  
+
+“I think I know why you spared me,” he said. “Amalric wants to keep me alive as a counter to Valerius, in case the impossible happens and Valerius becomes king of Aquilonia. Everyone knows the baron of Tor is behind this plan to put Valerius on my throne. And if I know Amalric, he doesn’t intend Valerius to be anything more than a puppet—just like Tarascus is now.”  
+
+“Amalric doesn’t know you were captured,” said Xaltotun. “Neither does Valerius. Both believe you died at Valkia.”  
+
+Conan’s eyes narrowed as he stared at the man in silence.  
+
+“I knew there was a mind behind all this,” he muttered, “but I thought it was Amalric’s. Are Amalric, Tarascus, and Valerius all just puppets dancing on your strings? Who are you really?”  
+
+“What does it matter? If I told you, you wouldn’t believe me. What if I said I could put you back on the throne of Aquilonia?”  
+
+Conan’s eyes burned like a wolf’s.  
+
+“What’s your price?”  
+
+“Obedience to me.”  
+
+“Go to hell with your offer!” snarled Conan. “I’m no puppet. I won my crown with my sword. And besides, you can’t just buy and sell the throne of Aquilonia as you please. The kingdom isn’t conquered; one battle doesn’t end a war.”  
+
+“You fight against more than swords,” said Xaltotun. “Was it a mortal’s blade that struck you down in your tent before the battle? No—it was a creature of darkness, a being from beyond the stars, whose fingers burned with the frozen cold of the black void, freezing the blood in your veins and the marrow in your bones. Cold so intense it seared your flesh like white-hot iron!  
+
+“Was it mere chance that the man wearing your armor led your knights into the gorge—chance that brought the cliffs crashing down on them?”  
+
+Conan glared at him in silence, a chill creeping up his spine. Wizards and sorcerers filled his barbaric legends, and it was obvious this was no ordinary man. Conan sensed something unnatural about him—an aura of alien time and space, a feeling of immense and sinister age. Yet his fierce spirit refused to yield.  
+
+“The fall of the cliffs was chance,” he muttered stubbornly. “The charge into the gorge was what any man would have done.”  
+
+“Not so. You wouldn’t have led that charge. You would have suspected a trap. You would never have crossed the river until you were sure the Nemedian retreat was real. Hypnotic suggestion couldn’t have clouded your mind, even in the madness of battle, to drive you blindly into the trap, as it did the lesser man who pretended to be you.”  
+
+“Then if this was all planned,” Conan grunted skeptically, “a plot to destroy my army, why didn’t your ‘creature of darkness’ kill me in my tent?”  
+
+“Because I wanted you alive. It didn’t take sorcery to predict that Pallantides would send another man out wearing your armor. I wanted you alive and unharmed. You may still have a place in my plans. There’s a power in you greater than the skill and cunning of my allies. You’re a dangerous enemy—but you could become a powerful servant.”  
+
+Conan spat fiercely at the word, and Xaltotun, ignoring his anger, took a crystal globe from a nearby table and set it before him. He didn’t rest it on anything, nor did he hold it up, but it hung motionless in midair, as solid as if it stood on an iron pedestal. Conan snorted at this display of sorcery, though he couldn’t help being impressed.  
+
+“Do you want to know what’s happening in Aquilonia?” Xaltotun asked.  
+
+Conan didn’t answer, but the sudden stiffness in his posture betrayed his interest.  
+
+Xaltotun stared into the cloudy depths and spoke: “It’s now the evening of the day after the battle of Valkia. Last night the main body of the army camped near Valkia, while squadrons of knights chased the fleeing Aquilonians. At dawn the host broke camp and pushed westward through the mountains. Prospero, with ten thousand Poitanians, was miles from the battlefield when he met the fleeing survivors in the early morning. He had ridden all night, hoping to reach the field before the battle began. Unable to rally the remnants of the broken army, he fell back toward Tarantia. Riding hard, changing his exhausted horses for fresh ones seized from the countryside, he now approaches Tarantia.”  
+
+“I see his weary knights, their armor gray with dust, their banners drooping as they urge their tired horses across the plain. I also see the streets of Tarantia. The city is in chaos. Somehow word has reached the people of the defeat and death of King Conan. The mob is mad with fear, shouting that the king is dead and there’s no one to lead them against the Nemedians. Giant shadows rush upon Aquilonia from the east, and the sky is black with vultures.”  
+
+Conan swore bitterly.  
+
+“What are these but words? The poorest beggar in the street could predict as much. If you claim you saw all that in the crystal ball, then you’re a liar as well as a scoundrel—of which last there’s no doubt! Prospero will hold Tarantia, and the barons will rally to him. Count Trocero of Poitain commands the kingdom in my absence, and he’ll drive those Nemedian dogs howling back to their kennels. What are fifty thousand Nemedians? Aquilonia will swallow them whole. They’ll never see Belverus again. It wasn’t Aquilonia that was defeated at Valkia—it was only Conan.”
+
+“Aquilonia is doomed,” said Xaltotun calmly. “Lance, axe, and torch will conquer her; and if they fail, powers from the darkness of the ages will march against her. As the cliffs fell at Valkia, so shall walled cities and mountains fall if the need arises, and rivers will roar from their channels to drown entire provinces.  
+
+“Better that steel and bowstring prevail without further aid from the dark arts, for the constant use of great spells sometimes sets forces in motion that could shake the universe.”  
+
+“From what hell did you crawl, you night-born dog?” muttered Conan, staring at the man. The Cimmerian shivered involuntarily; he sensed something impossibly ancient, impossibly evil.  
+
+Xaltotun lifted his head as if listening to whispers across the void. He seemed to have forgotten his prisoner. Then he shook his head impatiently and looked at Conan with cold detachment.  
+
+“What? Why, if I told you, you wouldn’t believe me. But I’m tired of talking to you; it’s less exhausting to destroy a walled city than to shape my thoughts into words a brainless barbarian can understand.”  
+
+“If my hands were free,” growled Conan, “I’d soon make a brainless corpse out of you.”  
+
+“I don’t doubt it, if I were foolish enough to give you the chance,” replied Xaltotun, clapping his hands.  
+
+His manner had changed; there was impatience in his tone and a certain nervousness in his movements, though Conan didn’t think it had anything to do with him.  
+
+“Think about what I’ve told you, barbarian,” said Xaltotun. “You’ll have plenty of time. I haven’t yet decided what to do with you. It depends on things that haven’t yet come to pass. But remember this: if I decide to use you in my plans, it would be wiser to submit without resistance than to face my anger.”  
+
+Conan spat a curse at him just as the curtains covering a doorway swung apart and four huge black men entered. Each wore only a silk loincloth held by a belt from which hung a large key.  
+
+Xaltotun gestured impatiently toward the king and turned away, as if dismissing the matter from his mind entirely. His fingers twitched strangely. From a carved green jade box he took a handful of shimmering black powder and dropped it into a brazier that stood on a golden tripod beside him. The crystal globe, which he seemed to have forgotten, suddenly fell to the floor as if its invisible support had vanished.  
+
+Then the black men lifted Conan—for he was so loaded with chains that he couldn’t walk—and carried him from the chamber. A glance back, before the heavy gold-bound teak door closed, showed him Xaltotun leaning back in his throne-like chair, arms folded, while a thin wisp of smoke curled up from the brazier. Conan’s scalp tingled. In Stygia, that ancient and evil kingdom far to the south, he had seen such black dust before. It was the pollen of the black lotus, which brings death-like sleep and monstrous dreams; and he knew that only the grisly wizards of the Black Ring, the lowest depths of evil, willingly sought the scarlet nightmares of the black lotus to renew their necromantic powers.  
+
+The Black Ring was a myth and a lie to most people of the western world, but Conan knew of its dreadful reality and its grim followers who practiced their vile sorceries in the black vaults of Stygia and the shadowed domes of cursed Sabatea.  
+
+He looked back at the mysterious, gold-bound door, shuddering at what it concealed.  
+
+Whether it was day or night, the king couldn’t tell. The palace of King Tarascus seemed a shadowy, dark place that shunned natural light. The spirit of darkness and shadow hung over it, and that spirit, Conan felt, was embodied in the stranger Xaltotun. The black men carried the king along a winding corridor so dimly lit that they moved through it like dark ghosts bearing a dead man, and down a stone stairway that seemed to descend forever. A torch in one man’s hand cast huge, distorted shadows along the wall; it was like the descent into hell of a corpse borne by dusky demons.  
+
+At last they reached the bottom of the stairway, then walked down a long, straight corridor. On one side stretched a blank wall, broken here and there by arched doorways with stairs leading upward behind them; on the other side, a wall lined with heavy barred doors set at regular intervals of a few feet.  
+
+Stopping before one of the doors, one of the black men took a key from his belt and turned it in the lock. Pushing open the grille, they entered with their prisoner. They found themselves in a small cell made entirely of heavy stone—walls, floor, and ceiling. In the opposite wall was another barred door. Conan couldn’t tell what lay beyond it, but he doubted it was another hallway. The flickering torchlight shimmered through the bars, hinting at vast shadows and echoing depths beyond.  
+
+In one corner of the dungeon, near the door they had entered, a cluster of rusty chains hung from a large iron ring set into the stone. A skeleton dangled from those chains. Conan looked at it with grim curiosity, noting the state of the bare bones—splintered and broken—and the skull, which had fallen from the spine, crushed as if by a savage blow of tremendous force.  
+
+Without emotion, one of the black men—not the one who had opened the door—unlocked the chains from the ring with his key and dragged the pile of rusted metal and shattered bones aside. Then they fastened Conan’s chains to that same ring, and the third man turned his key in the lock of the farther door, grunting once he was sure it was properly secured.  
+
+They looked at Conan in a strange, unreadable way—tall, dark giants with narrow eyes, the torchlight glinting off their glossy skin.  
+
+The one holding the key to the nearer door spoke in a harsh, guttural tone: “This your palace now, white dog-king! Only master and we know. All palace sleep. We keep secret. You live and die here, maybe. Like him!” He kicked the shattered skull with contempt, sending it clattering across the stone floor.  
+
+Conan didn’t bother to answer, and the man, angered perhaps by his silence, muttered a curse, bent down, and spat full in the king’s face. That was a mistake. Conan sat on the floor, chained by his waist, ankles, and wrists to a ring in the wall. He couldn’t stand or move more than a yard from it. But there was enough slack in the chains around his wrists, and before the man’s bullet-shaped head could pull back out of reach, Conan gathered the slack in his powerful hand and struck him on the skull. The man dropped like a slaughtered ox, and his companions stared to see him lying there with his scalp split open and blood seeping from his nose and ears.  
+
+They made no move to retaliate, nor did they accept Conan’s grim challenge to come within reach of the bloody chain in his hand. Grunting in their ape-like language, they lifted the unconscious man and carried him out like a sack of grain, his arms and legs dangling. They used his key to lock the door behind them but didn’t remove it from the gold chain on his belt. They took the torch with them, and as they moved up the corridor, the darkness crept in behind them like a living thing. Their soft, padded footsteps faded along with the glow of their torch, and darkness and silence took over completely.  
+
+Conan lay still, enduring the weight of his chains and the hopelessness of his situation with the stoic toughness of the wild lands that had shaped him. He didn’t move, because the clinking of his chains when he shifted sounded unnaturally loud in the stillness. It was instinct—born from countless generations of wilderness-dwelling ancestors—not to reveal his position when helpless. It wasn’t a conscious decision; he didn’t stay quiet out of fear that some lurking danger might find him. Xaltotun had told him he wouldn’t be harmed, and Conan believed it was in the man’s interest to keep him alive, at least for now. Still, the instincts of the wild remained—the same instincts that had made him, as a child, lie silent while beasts prowled near his hiding place.  
+
+Even his sharp eyes couldn’t cut through the solid darkness. But after a while—he couldn’t tell how long—a faint glow appeared, a slanted gray beam by which he could just make out the bars of the door beside him and even see the skeleton at the other grille. This puzzled him until he realized what caused it. He was far underground, in the pits beneath the palace; yet for some reason, a shaft had been built from somewhere above. Outside, the moon had risen high enough for its light to slant dimly down the shaft. In this way, he thought, he could track the passing of days and nights. Maybe the sun, too, would shine down that shaft—or maybe it was closed during the day. It might even be a cruel form of torture, allowing a prisoner only a glimpse of daylight or moonlight.
+
+His gaze fell on the broken bones in the far corner, faintly glimmering. He didn’t waste time wondering who the poor soul had been or why he had been condemned, but he did wonder about the shattered state of the bones. They hadn’t been broken on a rack. Then, as he looked closer, he noticed another grim detail: the shinbones were split lengthwise, and there was only one explanation—they had been broken open for the marrow. But what creature other than a human breaks bones for their marrow? Perhaps those remains were silent proof of a horrible act of cannibalism—some prisoner driven mad by hunger. Conan wondered if his own bones would one day hang in those rusty chains. He fought down the wild panic of a trapped wolf.
+
+The Cimmerian didn’t curse, scream, cry, or rant as a civilized man might have done. But the pain and turmoil inside him were no less fierce. His great muscles trembled with the intensity of his emotions. Somewhere far to the west, the Nemedian army was cutting and burning its way through the heart of his kingdom. The small Poitanian force couldn’t stand against them. Prospero might hold Tarantia for weeks or months, but eventually, if not reinforced, he would have to surrender to superior numbers. Surely the barons would rally to him against the invaders. But meanwhile, he, Conan, had to lie helpless in a dark cell while others led his warriors and fought for his realm. The king ground his powerful teeth in furious rage.
+
+Then he froze, for outside the farther door he heard a stealthy step. Straining his eyes, he made out a bent, shadowy figure beyond the grille. There came a rasp of metal against metal, and he heard the click of tumblers, as if a key had turned in the lock. Then the figure moved silently out of sight. Some guard, he supposed, checking the lock. After a while, he heard the same sound faintly farther away, followed by the soft opening of a door and the quick scurry of softly shod feet retreating into the distance. Then silence returned once more.
+
+Conan listened for what felt like a long time, though it couldn’t have been, since the moon still shone down the hidden shaft. He heard nothing more. Finally, he shifted his position, and his chains rattled. Then came another, lighter footstep—a soft tread outside the nearer door, the one he had entered through. A moment later, a slender figure appeared faintly outlined in the dim gray light.
+
+“King Conan!” a soft voice called urgently. “Oh, my lord, are you there?”
+
+“Where else would I be?” he answered cautiously, turning his head to stare at the figure.
+
+It was a girl, gripping the bars with slim fingers. The faint glow behind her outlined her graceful body through the thin silk wrapped around her hips and shimmered faintly on jeweled breastplates. Her dark eyes gleamed in the shadows; her pale limbs glowed softly, like polished ivory. Her hair was a mass of dark waves, its sheen hinted at by the dim light.
+
+“The keys to your chains and to the far door!” she whispered, and a slim white hand slipped through the bars, dropping three objects with a soft clink onto the stones beside him.
+
+“What trick is this?” he demanded. “You speak the Nemedian tongue, and I have no friends in Nemedia. What devilry is your master planning now? Did he send you here to mock me?”
+
+“It’s no trick!” The girl trembled violently. Her bracelets and breastplates jingled against the bars she held. “I swear by Mitra! I stole the keys from the black jailers. They guard the pits, and each one carries a key that opens only one set of locks. I made them drunk. The one whose head you smashed was carried off to a healer, and I couldn’t get his key. But I stole the others. Oh, please, don’t delay! Beyond these dungeons lie the pits that open into hell itself.”
+
+Somewhat impressed, Conan tried the keys skeptically, expecting only failure and mocking laughter. But he was jolted to find that one actually freed him from his chains, fitting not only the lock that fastened them to the ring but also the locks on his limbs. Moments later he stood upright, exulting fiercely in his regained freedom. With a quick stride he reached the grille, his fingers closing around a bar and the slender wrist pressed against it, trapping the girl, who lifted her face bravely to meet his fierce gaze.
+
+“Who are you, girl?” he demanded. “Why are you doing this?”
+
+“I’m only Zenobia,” she murmured, breathless as if frightened, “just a girl from the king’s harem.”
+
+“Unless this is some cursed trick,” Conan muttered, “I can’t see why you’d bring me these keys.”
+
+She bowed her dark head, then lifted it again and looked straight into his suspicious eyes. Tears sparkled like jewels on her long lashes.
+
+“I’m only a girl from the king’s harem,” she said, with a kind of proud humility. “He’s never looked at me, and probably never will. I’m less than one of the dogs that gnaw bones in his banquet hall.
+
+“But I’m no painted toy; I’m flesh and blood. I breathe, hate, fear, rejoice—and love. And I have loved you, King Conan, ever since I saw you riding at the head of your knights through the streets of Belverus when you visited King Nimed years ago. My heart ached to leap from my chest and fall in the dust beneath your horse’s hooves.”
+
+Color rushed to her face as she spoke, but her dark eyes didn’t waver. Conan didn’t answer right away; wild, passionate, and untamed as he was, even he couldn’t remain unmoved by the raw honesty of a woman’s soul laid bare.
+
+She bent her head, pressing her red lips to the fingers that held her slim wrist. Then she suddenly lifted her head, as if remembering their danger, and fear flared in her dark eyes.
+
+“Hurry!” she whispered urgently. “It’s past midnight. You must go.”
+
+“But won’t they flay you alive for stealing these keys?”
+
+“They’ll never know. If the black men remember in the morning who gave them the wine, they won’t dare admit the keys were stolen while they were drunk. The key I couldn’t get is the one that opens this door. You’ll have to reach freedom through the pits. What horrors lie beyond that door, I can’t guess. But greater danger waits if you stay here.
+
+“King Tarascus has returned—”
+
+“What? Tarascus?”
+
+“Yes! He’s back, in great secrecy, and not long ago he went down into the pits and came out again, pale and shaking, like a man who’s faced a terrible danger. I heard him whisper to his squire, Arideus, that despite Xaltotun, you must die.”
+
+“What about Xaltotun?” murmured Conan.
+
+She shuddered.
+
+“Don’t speak his name!” she whispered. “Demons are often summoned by the sound of their names. The slaves say he lies in his chamber behind a bolted door, dreaming the dreams of the black lotus. I think even Tarascus secretly fears him, or he’d have killed you openly. But he’s been in the pits tonight, and what he did there, only Mitra knows.”
+
+“I wonder if that was Tarascus who fumbled at my cell door earlier,” Conan muttered.
+
+“Here’s a dagger!” she whispered, pushing something through the bars. His eager fingers closed around an object he knew well. “Go quickly through that door, turn left, and follow the line of cells until you reach a stone stairway. For your life’s sake, don’t stray from the row of cells! Climb the stairs and open the door at the top; one of the keys will fit it. If Mitra wills it, I’ll be waiting for you there.” Then she was gone, her light slippered feet fading into the darkness.
+
+Conan shrugged and turned toward the farther grille. It might be some devilish trap set by Tarascus, but charging headlong into danger was less hateful to Conan’s nature than sitting quietly to await death. He examined the weapon the girl had given him and smiled grimly. Whatever else she might be, that dagger proved she had practical sense. It wasn’t some delicate stiletto chosen for a jeweled hilt or golden guard, fit only for dainty murder in a lady’s chamber; it was a straightforward poniard, a warrior’s blade—broad, fifteen inches long, tapering to a diamond-sharp point.
+
+He grunted with satisfaction. The feel of the hilt lifted his spirits and filled him with confidence. Whatever webs of conspiracy surrounded him, whatever deceit and treachery trapped him, this knife was real. The great muscles of his right arm tensed in anticipation of deadly blows.
+
+He tried the farther door, fumbling with the keys. It wasn’t locked. Yet he remembered the black man locking it. That furtive, bent figure, then, hadn’t been a jailer checking the bolts but had unlocked the door instead. There was something ominous about that unlocked door. But Conan didn’t hesitate. He pushed the grille open and stepped from the dungeon into the outer darkness.
+
+As he had expected, the door didn’t open into another hallway. The stone floor stretched out beneath his feet, and the row of cells extended to the right and left behind him, but he couldn’t make out the other boundaries of the place. He saw no ceiling or walls. Moonlight filtered into the vast space only through the barred cell doors and was almost swallowed by the darkness. Anyone with less sharp eyes than his would hardly have seen the faint gray patches floating before each cell door.  
+
+Turning left, he moved quickly and silently along the row of dungeons, his bare feet making no sound on the stone floor. He glanced briefly into each cell as he passed. They were all empty but locked. In some, he caught the faint glimmer of bare white bones. These pits were relics of a darker age, built long ago when Belverus had been a fortress instead of a city. Yet their more recent use had clearly been more extensive than anyone in the world suspected.  
+
+Ahead, he saw the dim outline of a staircase slanting sharply upward and knew it must be the one he was looking for. Then he suddenly spun around, crouching in the deep shadows at its base.  
+
+Something was moving behind him—something large and stealthy, padding on feet that weren’t human. He looked down the long row of cells, each with its faint gray square of light, little more than a patch of thinner darkness. Something was moving across those squares. He couldn’t tell what it was, but it was massive and heavy, yet moved with more than human ease and speed. He caught glimpses of it as it passed through the gray patches, then lost sight of it as it melted into the shadows between. Its stealthy approach was eerie, appearing and disappearing like a blur in his vision.  
+
+He heard the bars rattle as it tested each door in turn. Now it had reached the cell he had just left, and the door swung open as it pulled. He saw a huge, bulky shape faintly outlined in the gray doorway, then it vanished into the dungeon. Sweat broke out on Conan’s face and hands. Now he understood why Tarascus had come so quietly to his door and fled so quickly afterward. The king had unlocked his door and, somewhere in these cursed pits, had opened a cell that held some monstrous creature.  
+
+Now the thing was coming out again, moving up the corridor, its misshapen head close to the ground. It no longer tested the locked doors; it was following his scent. He saw it more clearly now—the gray light revealed a giant, ape-like body, larger and thicker than any man’s. It walked on two legs, though hunched forward, gray and shaggy, its thick fur streaked with silver. Its head was a grotesque parody of a human’s, its long arms hanging nearly to the floor.  
+
+Conan recognized it at last—he understood the meaning of those crushed and broken bones in the dungeon and knew the creature that haunted these pits. It was a gray ape, one of the man-eating horrors from the forests that lined the mountainous eastern shores of the Sea of Vilayet. Half legendary and wholly terrifying, these apes were the goblins of Hyborian myth, the ogres of the natural world—cannibals and killers of the dark forests.  
+
+He knew it had caught his scent, for it was coming fast now, rolling its barrel-like body forward on short, powerful, bowed legs. He glanced quickly up the long staircase but knew the thing would reach him before he could get to the distant door. He decided to face it head-on.  
+
+Conan stepped into the nearest patch of moonlight to gain whatever advantage the light could give him, since the beast, he knew, could see better than he in the dark. Instantly the creature saw him; its great yellow tusks gleamed in the shadows, but it made no sound. Creatures of night and silence, the gray apes of Vilayet were voiceless. Yet in its dim, hideous face—a beastly mockery of a human countenance—there was a ghastly look of triumph.  
+
+Conan stood ready, watching the approaching monster without a tremor. He knew he had to risk everything on one strike; there would be no chance for another, no time to hit and leap away. The first blow had to kill—and kill instantly—if he hoped to survive that dreadful struggle. His eyes swept over the short, thick neck, the hairy belly, and the massive chest swelling in huge arches like twin shields. It had to be the heart; better to risk the blade being turned by heavy ribs than to strike where the blow wouldn’t be instantly fatal. Fully aware of the odds, Conan matched his speed, precision, and strength against the brute power and savagery of the man-eater. He had to meet the beast chest to chest, strike a killing blow, and trust his own toughness to survive the brief but deadly grip that would follow.  
+
+As the ape came charging at him, swinging its terrible arms wide, he lunged between them and struck with all his desperate strength. He felt the blade sink to the hilt in the hairy chest, and instantly, letting go of it, he ducked his head and coiled his body into a tight knot of muscle. As he did, he caught the closing arms and drove his knee hard into the creature’s belly, bracing himself against the crushing embrace.  
+
+For one dizzy instant he felt as if he were being torn apart in the grip of an earthquake; then suddenly he was free, sprawling on the floor, while the monster gasped out its life beneath him, its red eyes staring upward, the knife hilt quivering in its chest. His desperate strike had found its mark.  
+
+Conan was panting as if after a long battle, trembling in every limb. Some of his joints felt nearly wrenched out of place, and blood dripped from scratches where the creature’s claws had raked him; his muscles and tendons had been brutally strained and twisted. If the beast had lived a second longer, it would have torn him apart. But the Cimmerian’s immense strength had held out, for that brief instant, against the dying convulsion of the ape that would have ripped a lesser man to pieces.  
+
+The Thrust of a Knife  
+
+Conan bent down and pulled the knife from the creature’s chest. Then he moved quickly up the stairs. He couldn’t guess what other horrors the darkness might hide, but he had no wish to meet any more of them. This kind of close, desperate fighting was exhausting even for the giant Cimmerian. The moonlight was fading from the floor, the darkness closing in, and something close to panic drove him up the stairway. He let out a heavy sigh of relief when he reached the top and felt the third key turn in the lock. He opened the door slightly and craned his neck to look through, half expecting an attack from some human or monstrous foe.  
+
+He looked into a bare stone hallway, dimly lit, and a slender, graceful figure stood before the door.  
+
+“Your Majesty!” It was a low, trembling cry, half relief and half fear. The girl rushed to his side, then hesitated as if suddenly shy.  
+
+“You’re bleeding,” she said. “You’ve been hurt!”  
+
+He brushed off her concern with an impatient gesture.  
+
+“Scratches that wouldn’t hurt a baby. Your skewer came in handy, though. If not for it, Tarascus’s monkey would be cracking my shinbones for the marrow right now. But what now?”  
+
+“Follow me,” she whispered. “I’ll lead you outside the city wall. I have a horse hidden there.”  
+
+She turned to lead the way down the corridor, but he placed a heavy hand on her bare shoulder.  
+
+“Walk beside me,” he said quietly, wrapping his massive arm around her slender waist. “You’ve been honest with me so far, and I’m inclined to believe you; but I’ve survived this long only because I’ve never trusted anyone too much, man or woman. So—if you betray me, you won’t live to enjoy it.”  
+
+She didn’t flinch at the sight of the bloodstained dagger or at the feel of his hard muscles against her supple body.  
+
+“Cut me down without mercy if I betray you,” she replied. “The very feel of your arm around me, even in threat, fulfills a dream.”  
+
+The vaulted corridor ended at a door, which she opened. Outside lay another black man, a giant wearing a turban and silk loincloth, with a curved sword lying on the stones near his hand. He didn’t move.  
+
+“I drugged his wine,” she whispered, stepping carefully around the motionless figure. “He’s the last and outer guard of the pits. No one has ever escaped from them before, and no one has ever wanted to enter them; so only these black men guard them. Only they, of all the servants, knew that it was King Conan whom Xaltotun brought in his chariot as a prisoner. I was watching, sleepless, from an upper window that opened into the courtyard, while the other girls slept; for I knew a battle was being fought, or had been fought, in the west, and I feared for you...”  
+
+“I saw the blacks carry you up the stairs, and I recognized you in the torchlight. I slipped into this wing of the palace tonight, just in time to see them take you to the pits. I hadn’t dared come here before nightfall. You must have lain in drugged unconsciousness all day in Xaltotun’s chamber.”
+
+“Oh, let’s be careful! Strange things are happening in the palace tonight. The slaves said that Xaltotun sleeps as he often does, drugged by the lotus of Stygia, but Tarascus is in the palace. He entered secretly through the postern gate, wrapped in his cloak, dusty as if from long travel, and attended only by his squire, the lean, silent Arideus. I don’t understand it, but I’m afraid.”
+
+They came out at the foot of a narrow, winding stairway, and climbing it, passed through a narrow panel that she slid aside. When they had gone through, she slipped it back into place, and it became just another part of the ornate wall. They were now in a larger corridor, carpeted and hung with tapestries, where golden light from hanging lamps glowed softly.
+
+Conan listened intently but heard no sound anywhere in the palace. He didn’t know what part of the palace he was in, or which direction led to Xaltotun’s chamber. The girl trembled as she drew him along the corridor, stopping beside an alcove hidden by satin drapes. Pulling these aside, she motioned for him to step into the niche and whispered, “Wait here! Beyond that door at the end of the corridor, we might meet slaves or eunuchs at any hour. I’ll go see if the way is clear before we try it.”
+
+Immediately his sharp suspicions flared.
+
+“Are you leading me into a trap?”
+
+Tears welled in her dark eyes. She dropped to her knees and seized his strong hand.
+
+“Oh, my king, don’t mistrust me now!” Her voice shook with desperate urgency. “If you doubt me and hesitate, we’re lost! Why would I bring you up from the pits just to betray you now?”
+
+“All right,” he muttered. “I’ll trust you; though, by Crom, the habits of a lifetime aren’t easily broken. Still, I wouldn’t harm you now, even if you brought all the swordsmen in Nemedia down on me. If not for you, Tarascus’ cursed ape would have found me chained and unarmed. Do as you will, girl.”
+
+Kissing his hands, she sprang up lightly and ran down the corridor, disappearing through a heavy double door.
+
+He looked after her, wondering if he was a fool to trust her; then he shrugged his broad shoulders and pulled the satin hangings together, hiding himself. It wasn’t strange that a passionate young woman would risk her life to help him; such things had happened often enough before. Many women had looked on him with favor, both during his wanderings and his reign as king.
+
+Yet he didn’t stay still in the alcove, waiting for her return. Following his instincts, he searched the niche for another exit and soon found one—the opening of a narrow passage hidden behind the tapestries, leading to an ornately carved door barely visible in the dim light filtering from the outer corridor. As he stared into it, he heard, somewhere beyond that carved door, the sound of another door opening and closing, followed by a low murmur of voices. The familiar tone of one of those voices brought a dark, dangerous look to his face. Without hesitation, he slipped down the passage and crouched like a stalking panther beside the door. It wasn’t locked, and with delicate care he pushed it open a crack—with a reckless disregard for danger that only he could have explained or justified.
+
+It was covered on the other side by tapestries, but through a thin slit in the velvet he looked into a room lit by a candle on an ebony table. Two men were there. One was a scarred, sinister-looking ruffian in leather breeches and a ragged cloak; the other was Tarascus, king of Nemedia.
+
+Tarascus looked uneasy. He was slightly pale and kept starting and glancing around, as if expecting and fearing some sound or movement.
+
+“Go quickly and at once,” he was saying. “He’s deep in a drugged sleep, but I don’t know when he might wake.”
+
+“Strange to hear words of fear from the lips of Tarascus,” rumbled the other in a harsh, deep voice.
+
+The king frowned.
+
+“I fear no ordinary man, as you well know. But when I saw the cliffs fall at Valkia, I knew that the devil we resurrected was no fraud. I fear his powers because I don’t know their full extent. Yet I know they’re somehow tied to this cursed thing I’ve stolen from him. It brought him back to life; therefore it must be the source of his sorcery.
+
+“He had it well hidden, but by my secret order a slave spied on him and saw him place it in a golden chest, and saw where he hid the chest. Even so, I wouldn’t have dared steal it if Xaltotun himself hadn’t been sunk in lotus sleep.
+
+“I believe it’s the secret of his power. With it, Orastes brought him back to life. With it, he’ll make us all slaves if we’re not careful. So take it and throw it into the sea as I’ve ordered you. Make sure you’re far enough from land that neither tide nor storm can wash it ashore. You’ve been paid.”
+
+“So I have,” grunted the thug. “And I owe you more than gold, king; I owe you my gratitude. Even thieves can be thankful.”
+
+“Whatever debt you think you owe me,” replied Tarascus, “will be repaid when you’ve thrown that thing into the sea.”
+
+“I’ll ride for Zingara and take a ship from Kordava,” the other promised. “I can’t show my face in Argos because of a murder or two—”
+
+“I don’t care, as long as it’s done. Here it is; a horse is waiting for you in the courtyard. Go, and go fast!”
+
+Something passed between them—something that blazed like living fire. Conan caught only a quick glimpse of it before the thug pulled a slouch hat low over his eyes, wrapped his cloak around his shoulders, and hurried out of the chamber. As the door closed behind him, Conan moved with the savage fury of unchained bloodlust. He had held himself back as long as he could. The sight of his enemy so close set his wild blood boiling and swept away all caution and restraint.
+
+Tarascus was turning toward an inner door when Conan ripped aside the curtains and leaped into the room like a blood-crazed panther. Tarascus spun around, but before he could even recognize his attacker, Conan’s dagger slashed into him.
+
+But the blow wasn’t fatal, as Conan knew the instant he struck. His foot had caught in a fold of the curtains and tripped him mid-leap. The blade sank into Tarascus’s shoulder and tore down along his ribs, and the king of Nemedia screamed.
+
+The force of the blow and Conan’s lunging body slammed Tarascus back against the table; it toppled, and the candle went out. Both men crashed to the floor in the chaos of Conan’s attack, and the edge of the tapestry tangled them in its folds. Conan stabbed blindly in the dark while Tarascus screamed in a frenzy of terror. As if fear gave him superhuman strength, Tarascus tore free and stumbled away into the darkness, shrieking, “Help! Guards! Arideus! Orastes! Orastes!”
+
+Conan rose, kicking himself free of the tangled tapestry and the shattered table, cursing with the bitter rage of failed vengeance. He was disoriented and unfamiliar with the palace’s layout. Tarascus’s screams still echoed in the distance, and a wild uproar was rising in response. The Nemedian had escaped him in the dark, and Conan didn’t know which way he had gone. His reckless strike for revenge had failed, and now only one task remained—saving his own life.
+
+Swearing furiously, Conan ran back down the passage into the alcove, glaring out into the lit corridor just as Zenobia came running up, her dark eyes wide with fear.
+
+“Oh, what’s happened?” she cried. “The whole palace is awake! I swear I didn’t betray you—”
+
+“No, I stirred up this hornet’s nest myself,” he grunted. “I tried to settle a score. What’s the quickest way out of here?”
+
+She seized his wrist and ran swiftly down the corridor. But before they reached the heavy door at the far end, muffled shouts rose from behind it, and the panels began to shake under blows from the other side. Zenobia wrung her hands and whimpered.
+
+“We’re trapped! I locked that door when I came through, but they’ll break it down any moment. The way to the postern gate is beyond it.”
+
+Conan turned sharply. Up the corridor, though still out of sight, he heard a growing clamor that told him his enemies were behind them as well.
+
+“Quick! In here!” the girl cried desperately, running across the corridor and throwing open the door to a chamber.
+
+Conan followed her inside and slammed the gold latch behind them. They stood in an ornately furnished room, empty except for themselves, and she pulled him to a gold-barred window through which he could see trees and shrubs outside.
+
+“You’re strong,” she gasped. “If you can tear these bars away, you can still escape. The garden’s full of guards, but the bushes are thick—you might slip past them. The southern wall is also the city’s outer wall. Once you’re over that, you have a chance. A horse is hidden for you in a thicket beside the road that runs west, a few hundred paces south of the fountain of Thrallos. You know where that is?”
+
+“Yes! But what about you? I meant to take you with me.”
+
+A flood of joy lit her beautiful face.
+
+“Then my happiness is complete! But I won’t slow you down. If you take me, you’ll fail. No, don’t worry about me. They’ll never suspect I helped you willingly. Go! What you just said will make my life shine through all the years to come.”  
+
+He caught her up in his iron arms, crushed her slender, vibrant body against him, and kissed her fiercely on eyes, cheeks, throat, and lips until she lay breathless in his embrace. Wild and stormy as a tempest, even his love was violent.  
+
+“I’ll go,” he muttered. “But by Crom, I’ll come back for you someday!”  
+
+Turning, he gripped the gold bars and tore them from their sockets with one mighty wrench, swung a leg over the sill, and climbed down swiftly, clinging to the ornaments on the wall. He hit the ground running and vanished like a shadow into the maze of towering rosebushes and spreading trees. One glance back showed Zenobia leaning out the window, her arms stretched toward him in silent farewell and sacrifice.  
+
+Guards were rushing through the garden, all converging on the palace, where the noise grew louder by the moment—tall men in shining cuirasses and crested bronze helmets. The starlight flashed off their armor among the trees, revealing their every move, but the sound of their approach carried even farther. To Conan, raised in the wild, their charge through the shrubbery was like the clumsy stampede of cattle. Some passed within a few feet of where he lay flat in a thick cluster of bushes, never realizing he was there. With the palace as their focus, they noticed nothing else. When they had gone shouting past, he rose and slipped through the garden with no more sound than a panther would make.  
+
+Swiftly he reached the southern wall and climbed the steps leading to the parapet. The wall was built to keep people out, not in. No sentry patrolled the battlements. Crouching by an embrasure, he glanced back at the great palace rising above the cypresses behind him. Lights blazed from every window, and he could see figures darting back and forth across them like puppets on invisible strings. He grinned grimly, shook his fist in farewell and defiance, and lowered himself over the outer edge of the parapet.  
+
+A low tree a few yards below caught his weight as he dropped silently into its branches. An instant later he was racing through the shadows with the long, swinging stride of a hillman built for endless miles.  
+
+Gardens and pleasure villas surrounded the walls of Belverus. Drowsy slaves, half-asleep beside their watchmen’s pikes, didn’t notice the swift, stealthy figure that climbed the walls, crossed tree-arched alleys, and slipped silently through orchards and vineyards. Watchdogs woke and raised their deep, booming howls at a gliding shadow, half-scented, half-sensed—and then it was gone.  
+
+* * * * * * *  
+
+In a chamber of the palace, Tarascus twisted and cursed on a blood-smeared couch under the quick, skilled hands of Orastes. The palace was full of wide-eyed, trembling servants, but the room where the king lay was empty except for him and the renegade priest.  
+
+“Are you sure he’s still asleep?” Tarascus demanded again, clenching his teeth against the sting of the herbal juices Orastes was using to bandage the long, jagged cut across his shoulder and ribs. “Ishtar, Mitra, and Set! That burns like molten pitch from hell!”  
+
+“You’d be feeling the fires of hell right now if not for your luck,” said Orastes calmly. “Whoever swung that knife meant to kill. Yes, I’ve told you Xaltotun still sleeps. Why are you so obsessed with that? What’s he got to do with this?”  
+
+“You don’t know what’s happened in the palace tonight?” Tarascus searched the priest’s face with burning intensity.  
+
+“Nothing. As you know, I’ve been working for months translating manuscripts for Xaltotun—copying ancient texts written in newer languages into scripts he can read. He knew all the tongues and writings of his own time, but he hasn’t yet learned all the modern ones, and to save time he has me translate these works for him, to see if any new knowledge has been discovered since his age. I didn’t know he had returned last night until he sent for me and told me about the battle. Then I went back to my studies, and I didn’t know you had come back until the uproar in the palace pulled me from my cell.”  
+
+“Then you don’t know that Xaltotun brought the king of Aquilonia here as a prisoner?”  
+
+Orastes shook his head, not particularly surprised.  
+
+“Xaltotun only said that Conan would trouble us no more. I assumed he had been killed, but I didn’t ask for details.”  
+
+“Xaltotun saved his life when I would have killed him,” snarled Tarascus. “I saw his purpose instantly. He wants to keep Conan alive as a weapon against us—against Amalric, against Valerius, and against me. As long as Conan lives, he’s a threat, a rallying point for Aquilonia that could be used to force us into actions we wouldn’t otherwise take. I don’t trust that undead Pythonian. Lately, I’ve begun to fear him.”  
+
+I followed him a few hours after he rode east. I wanted to find out what he planned to do with Conan. I discovered that he had locked him in the pits. I intended to make sure the barbarian died, no matter what Xaltotun wanted. And I succeeded—  
+
+A cautious knock sounded at the door.  
+
+“That’s Arideus,” grunted Tarascus. “Let him in.”  
+
+The dark-faced squire entered, his eyes blazing with suppressed excitement.  
+
+“Well, Arideus?” exclaimed Tarascus. “Have you found the man who attacked me?”  
+
+“You didn’t see him, my lord?” asked Arideus, as if confirming something he already suspected. “You didn’t recognize him?”  
+
+“No. It happened so fast, and the candle was out—all I could think was that it was some demon unleashed on me by Xaltotun’s sorcery—”  
+
+“The Pythonian sleeps in his locked and bolted room. But I’ve been down in the pits.” Arideus’s lean shoulders twitched with excitement.  
+
+“Well, speak, man!” snapped Tarascus impatiently. “What did you find?”  
+
+“An empty dungeon,” whispered the squire. “And the corpse of the great ape!”  
+
+“What?” Tarascus jerked upright, and blood gushed from his reopened wound.  
+
+“Yes! The man-eater is dead—stabbed through the heart—and Conan is gone!”  
+
+Tarascus’s face turned gray as he let Orastes push him back down while the priest resumed tending to the torn flesh.  
+
+“Conan!” he repeated. “Not a crushed corpse—escaped! Mitra! He’s no man, but a devil himself! I thought Xaltotun was behind this wound. I see now. Gods and devils! It was Conan who stabbed me! Arideus!”  
+
+“Yes, Your Majesty!”  
+
+“Search every corner of the palace. He might be prowling the dark corridors right now like a hungry tiger. Leave no niche unchecked—and be careful. You’re not hunting a civilized man, but a blood-crazed barbarian with the strength and savagery of a wild beast. Search the palace grounds and the city. Surround the walls. If you find he’s escaped the city, as he might well have, take a troop of horsemen and pursue him. Once he’s past the walls, it’ll be like hunting a wolf through the hills. But hurry, and you might still catch him.”  
+
+“This is a matter that calls for more than ordinary human skill,” said Orastes. “Maybe we should ask Xaltotun’s counsel.”  
+
+“No!” shouted Tarascus violently. “Let the soldiers chase Conan and kill him. Xaltotun can’t blame us for killing a prisoner who escaped.”  
+
+“Well,” said Orastes, “I’m no Acheronian, but I know something of the arts, and of controlling certain spirits that have taken on physical form. Maybe I can help you with this.”  
+
+* * * * * * *  
+
+The fountain of Thrallos stood in a ring of oaks beside the road a mile from the city walls. Its musical trickle reached Conan’s ears through the still starlight. He drank deeply of its icy water, then hurried south toward a small, dense thicket he saw nearby. Circling it, he found a great white horse tied among the bushes. Letting out a deep, gusty sigh, he stepped toward it—when a mocking laugh made him whirl around, glaring.  
+
+A dull-glinting, mail-clad figure stepped out of the shadows into the starlight. This was no plumed, polished palace guard. It was a tall man in a morion and gray chain mail—one of the Adventurers, a class of warriors unique to Nemedia: men who hadn’t gained the wealth or rank of knighthood, or who had fallen from that status; hardened fighters who lived for war and adventure. They were a breed apart, sometimes commanding troops, but answerable to no one except the king. Conan knew he couldn’t have been discovered by a more dangerous foe.  
+
+A quick glance into the shadows told him the man was alone, and he drew a deep breath, his massive chest expanding as his muscles coiled tensely.  
+
+“I was riding to Belverus on Amalric’s business,” said the Adventurer, advancing cautiously. The starlight gleamed along the great two-handed sword he held bare in his hand. “A horse whinnied to mine from the thicket. I checked, and thought it strange to find a steed tied here. I waited—and look, I’ve caught a rare prize!”
+
+The Adventurers lived by their swords.
+
+“I know you,” muttered the Nemedian. “You’re Conan, king of Aquilonia. I thought I saw you die in the valley of the Valkia, but—”
+
+Conan lunged like a dying tiger. Skilled fighter though the Adventurer was, he didn’t realize the deadly speed hidden in a barbarian’s muscles. He was caught off guard, his heavy sword half raised. Before he could strike or block, the king’s dagger drove into his throat above the gorget, angling down into his heart. With a choking gurgle he staggered and fell, and Conan savagely yanked his blade free as his victim collapsed. The white horse snorted violently and shied at the sight and smell of blood on the sword.
+
+Glaring down at his dead enemy, dagger dripping in his hand, sweat shining on his broad chest, Conan stood motionless like a statue, listening intently. In the woods around him there was no sound except the sleepy chirp of waking birds. But from the city, a mile away, he heard the harsh blare of a trumpet.
+
+Quickly he bent over the fallen man. A short search convinced him that whatever message the man carried had been meant to be spoken, not written. But Conan didn’t stop his work. It was only a few hours until dawn. A few minutes later, the white horse was galloping west along the pale road, its rider now wearing the gray mail of a Nemedian Adventurer.
+
+The Rending of the Veil  
+
+Conan knew his only chance to escape was speed. He didn’t even think about hiding near Belverus until the pursuit passed; he was sure Tarascus’s eerie ally could sniff him out. Besides, he wasn’t the kind to skulk and hide; he preferred an open fight or an open chase. He knew he had a long head start. He’d make them run a brutal race for the border.
+
+Zenobia had chosen well when she picked the white horse. Its speed, toughness, and endurance were obvious. The girl knew weapons and horses, and, Conan thought with some satisfaction, she knew men too. He rode west at a pace that devoured the miles.
+
+He passed through a sleeping land, past villages hidden by groves and white-walled villas among wide fields and orchards that grew fewer as he rode west. As the villages thinned, the land grew rougher, and the fortresses that glared down from the hills spoke of centuries of border wars. But no one rode down from those castles to challenge or stop him. The lords of those keeps were following Amalric’s banner; the flags that once flew over those towers now waved above the Aquilonian plains.
+
+When the last clustered village lay behind him, Conan left the road, which was beginning to curve northwest toward the distant passes. Staying on it would mean passing border towers still manned by soldiers who would not let him through without question. He knew there would be no patrols riding the borderlands on either side, as there usually were, but those towers remained, and when dawn came, there would likely be groups of returning soldiers with wounded men in ox carts.  
+
+The road from Belverus was the only one that crossed the border for fifty miles north to south. It wound through a series of passes in the hills, and on either side stretched a wide expanse of wild, sparsely inhabited mountains. He kept heading west, planning to cross the border deep in the wilderness of the hills south of the passes. It was a shorter route—harder, but safer for a hunted man. One rider could cross country that an army could not.  
+
+But by dawn he had not yet reached the hills; they stretched before him like a long, low blue wall on the horizon. There were no farms or villages here, no white villas among trees. The dawn wind stirred the tall, stiff grass, and there was nothing but long rolling waves of brown earth covered in dry grass, and in the distance, the grim walls of a fortress on a low hill. Too many Aquilonian raiders had crossed the mountains lately for the countryside to be as settled as it was farther east.  
+
+Dawn spread like wildfire across the grasslands, and high above came a strange crying as a straggling wedge of wild geese flew swiftly south. In a grassy hollow Conan stopped and unsaddled his horse. Its sides were heaving, its coat slick with sweat. He had driven it mercilessly through the hours before dawn.  
+
+While it chewed the dry grass and rolled on the ground, he lay on the crest of a low rise, staring east. Far to the north he could see the road he had left, stretching like a white ribbon over a distant hill. No black dots moved along that shining line. There was no sign from the far-off castle to show that anyone had noticed the lone traveler.  
+
+An hour later the land still lay empty. The only sign of life was a glint of steel on the distant battlements and a raven circling in the sky, dipping and rising as if searching for something. Conan saddled up again and rode west at an easier pace.  
+
+As he topped the next rise, a harsh screaming burst out overhead, and looking up, he saw the raven flapping above him, cawing endlessly. As he rode on, it followed, keeping its distance and filling the morning with its grating cries, ignoring his efforts to drive it away.  
+
+This went on for hours, until Conan’s nerves were raw and he felt he would give half his kingdom for the chance to wring that black neck.  
+
+“Devils of hell!” he roared in useless fury, shaking his mailed fist at the shrieking bird. “Why do you torment me with your squawking? Get lost, you black spawn of damnation, and go peck for grain in the farmer’s fields!”  
+
+He was climbing the first slope of the hills when he thought he heard an echo of the bird’s cries far behind him. Turning in his saddle, he saw another black speck hanging in the blue sky. Beyond that, he caught the flash of sunlight on steel. That could mean only one thing: armed men. And they were not riding along the main road, which lay out of sight beyond the horizon. They were following him.  
+
+His face hardened, and he shivered slightly as he stared at the raven circling high above.  
+
+“So it’s more than just the whim of a brainless beast?” he muttered. “Those riders can’t see you, spawn of hell, but the other bird can see you, and they can see him. You follow me, he follows you, and they follow him. Are you a cleverly trained creature, or some demon in the shape of a bird? Did Xaltotun send you after me? Are you Xaltotun?”  
+
+Only a harsh screech answered him, vibrating with cruel mockery.  
+
+Conan wasted no more words on his dark betrayer. Grimly, he settled into the long, grinding climb through the hills. He did not dare push his horse too hard; the brief rest he had given it had not been enough to restore its strength. He was still far ahead of his pursuers, but they were steadily closing the distance. Their horses were almost certainly fresher than his, since they had probably changed mounts at the castle he had passed earlier.  
+
+The land grew rougher, the scenery more rugged, with steep grassy slopes rising into thickly forested mountainsides. Here, he knew, he might have lost his hunters—if not for that cursed bird screeching endlessly above him. He could no longer see his pursuers in the broken terrain, but he was sure they were still following, guided without fail by their feathered ally. That black shape had become a demonic tormentor, hounding him through endless hells. The stones he hurled with curses missed or fell harmlessly, though in his youth he had brought down hawks in flight.  
+
+The horse was tiring fast. Conan recognized the grim finality of his situation. He felt an unstoppable fate driving him forward. He could not escape. He was as much a prisoner as he had been in the pits of Belverus. But he was not one to surrender passively to what seemed inevitable. If he could not get away, he would at least take some of his enemies with him into death. He turned into a wide thicket of larches that covered a slope, searching for a place to make his stand.  
+
+Ahead of him came a strange, high-pitched scream—human, but oddly toned. A moment later he pushed through a screen of branches and saw the source of that eerie cry. In a small clearing below, four soldiers in Nemedian chain mail were tying a noose around the neck of a thin old woman dressed like a peasant. A bundle of firewood, bound with rope and lying on the ground nearby, showed what she had been doing when these stragglers found her.  
+
+Conan felt a slow, burning fury rise in his chest as he looked down silently and saw the ruffians dragging her toward a tree whose low, spreading branches were clearly meant to serve as a gallows. He had crossed the border an hour ago. He was standing on his own land, watching the murder of one of his own people. The old woman struggled with surprising strength and energy, and as he watched, she lifted her head and gave again the strange, far-carrying cry he had heard before. It was echoed mockingly by the raven flapping above the trees. The soldiers laughed roughly, and one struck her in the mouth.
+
+Conan swung down from his exhausted horse and dropped over the rocks, landing with a clang of mail on the grass. The four men spun at the sound and drew their swords, staring in shock at the armored giant who faced them, sword in hand.  
+
+Conan laughed harshly. His eyes were as cold as flint.  
+
+“Dogs!” he said, without emotion or mercy. “Do Nemedian jackals think they can play executioner and hang my people as they please? First you’ll have to take the head of their king. Here I stand—come and claim it if you dare!”  
+
+The soldiers stared at him uncertainly as he strode toward them.  
+
+“Who is this madman?” growled a bearded brute. “He wears Nemedian mail, but he speaks with an Aquilonian accent.”  
+
+“No matter,” said another. “Cut him down, then we’ll hang the old witch.”  
+
+With that, he charged at Conan, raising his sword. But before he could strike, the king’s great blade came down, splitting helmet and skull alike. The man fell dead before him, but the others were hardened fighters. They howled like wolves and rushed the lone figure in gray mail, the clash and ring of steel drowning out the cries of the circling raven.  
+
+Conan did not shout. His eyes burned like blue fire, and his lips curved in a grim smile as he swung his two-handed sword right and left. For all his size, he moved like a cat, constantly shifting, presenting a moving target so that most thrusts and swings cut only air. But when he struck, he was perfectly balanced, and his blows landed with crushing force. Three of the four were down, dying in their own blood, and the fourth, bleeding from half a dozen wounds, stumbled backward in panic as he tried to parry—when Conan’s spur caught in the surcoat of one of the fallen men.  
+
+The king stumbled, and before he could recover, the Nemedian, wild with desperation, rushed him so fiercely that Conan staggered and fell sprawling over the corpse. The Nemedian croaked in triumph and leapt forward, raising his great sword with both hands over his right shoulder as he braced his legs wide for the killing stroke—and then, over the fallen king, something huge and hairy shot like lightning straight into the soldier’s chest. His cry of victory turned into a scream of death.  
+
+Scrambling up, Conan saw the man lying dead with his throat torn out, and a huge gray wolf stood over him, head lowered as it sniffed the blood pooling on the grass.  
+
+The king turned as the old woman spoke. She stood tall and straight before him, and despite her ragged clothes, her sharp, aquiline features and piercing black eyes were not those of a common peasant. She called to the wolf, and it trotted to her side like a great dog, rubbing its massive shoulder against her knee while staring at Conan with glowing green eyes. Absentmindedly, she laid her hand on its thick neck, and together they stood facing the king of Aquilonia. Their steady gaze unsettled him, though there was no hostility in it.  
+
+“People say King Conan died under the rocks and dirt when the cliffs collapsed by Valkia,” she said in a deep, strong, resonant voice.  
+
+“So they say,” he growled. He was not in the mood for talk, and he thought of the armored riders drawing closer every moment. The raven above him cawed harshly, and he shot an involuntary glare upward, grinding his teeth in irritation.  
+
+Up on the ledge, the white horse stood with its head drooping. The old woman looked at it, then at the raven, and lifted again that strange, haunting cry. As if recognizing the call, the raven wheeled, suddenly silent, and sped eastward. But before it vanished, the shadow of great wings fell across it. An eagle soared up from the trees, rose above it, and struck the black messenger down to the earth. The harsh voice of betrayal was silenced forever.  
+
+“Crom!” muttered Conan, staring at the old woman. “Are you a sorcerer too?”  
+
+“I am Zelata,” she said. “The people of the valleys call me a witch. Was that creature of the night leading armed men on your trail?”  
+
+“Yes.” She did not seem to find the answer strange. “They can’t be far behind me.”  
+
+“Lead your horse and follow me, King Conan,” she said curtly.  
+
+Without a word, he climbed back up the rocks and brought his horse down to the clearing by a winding path. As he came, he saw the eagle reappear, gliding lazily from the sky to rest for a moment on Zelata’s shoulder, spreading its great wings lightly so as not to crush her with its weight.  
+
+Without a word, she led the way, the great wolf trotting beside her and the eagle soaring overhead. Through thick underbrush and along twisting ledges hanging over dark ravines, she guided him until they reached a narrow, cliff-edged path that led to a strange stone dwelling—half hut, half cave—beneath a cliff hidden among the gorges and crags. The eagle flew to the top of the cliff and perched there like a motionless guard.  
+
+Still silent, Zelata led the horse into a nearby cave, where she had piled leaves and grass for feed, and where a small spring bubbled in the dim shadows.  
+
+Inside the hut, she seated the king on a rough bench covered with hides, while she sat on a low stool before the small fireplace. There she built a fire of tamarisk wood and prepared a simple meal. The great wolf dozed beside her, facing the flames, his massive head resting on his paws, his ears twitching as he dreamed.  
+
+“You’re not afraid to sit in a witch’s hut?” she finally asked, breaking her silence.  
+
+Her guest only shrugged impatiently, the gray mail on his shoulders glinting. She handed him a wooden dish piled with dried fruit, cheese, and barley bread, along with a large pot of strong mountain beer brewed from barley grown in the high valleys.  
+
+“I’ve found the quiet of the glens more pleasant than the noise of city streets,” she said. “The children of the wild are kinder than the children of men.” Her hand brushed the fur of the sleeping wolf. “My children were far from me today, or I wouldn’t have needed your sword, my king. They were coming when I called.”  
+
+“What did those Nemedian dogs have against you?” Conan demanded.  
+
+“Stragglers from the invading army wander all over the land, from the border to Tarantia,” she replied. “The foolish villagers in the valleys told them I had gold hidden away, hoping to turn their greed from their own homes. They demanded treasure from me, and my answers angered them. But neither those stragglers, nor the men hunting you, nor any raven will find you here.”  
+
+He shook his head as he ate hungrily.  
+
+“I’m heading for Tarantia.”  
+
+She shook her head.  
+
+“You’re walking straight into the dragon’s jaws. You’d do better to find safety in another land. The heart has gone out of your kingdom.”  
+
+“What do you mean?” he demanded. “Battles have been lost before, yet wars still won. A kingdom isn’t lost by one defeat.”  
+
+“And you’ll go to Tarantia?”  
+
+“Yes. Prospero will be holding it against Amalric.”  
+
+“Are you sure of that?”  
+
+“By hell’s devils, woman!” he burst out angrily. “What else would he be doing?”  
+
+She shook her head. “I feel it’s otherwise. Let’s see. The veil is not easily torn—but I’ll tear it a little and show you your capital city.”  
+
+Conan did not see what she threw into the fire, but the wolf whimpered in his sleep, and a green smoke rose and swirled through the hut. As he watched, the walls and ceiling seemed to stretch and fade away, merging into endless space. The smoke rolled around him, hiding everything. Shapes moved and faded within it, then came clear.  
+
+He saw the familiar towers and streets of Tarantia, where a mob raged and screamed. At the same time, he somehow saw the banners of Nemedia moving steadily westward through the smoke and fire of a ravaged land. In the great square of Tarantia, the wild crowd shouted that the king was dead, that the barons were preparing to divide the land, and that even the rule of Valerius was better than chaos. Prospero, shining in his armor, rode among them, trying to calm them, urging them to trust Count Trocero, to man the walls, and to help his knights defend the city. They turned on him, screaming in fear and blind fury, shouting that he was Trocero’s butcher, worse than Amalric himself. Garbage and stones were hurled at his knights.  
+
+The vision blurred slightly, as if time had passed, and Conan saw Prospero and his knights riding out through the gates, spurring southward. Behind them, the city was in turmoil.  
+
+“Fools!” Conan muttered thickly. “Fools! Why couldn’t they trust Prospero? Zelata, if you’re mocking me with some trick—”  
+
+“This has already happened,” Zelata said calmly, though her tone was grim. “It was the evening of the day just past when Prospero rode out of Tarantia, with Amalric’s army almost in sight. From the walls, men saw the fires of their looting. So I read it in the smoke. At sunset, the Nemedians rode into Tarantia unopposed. Look! Even now, in the royal hall of Tarantia—”
+
+Suddenly Conan was looking into the great coronation hall. Valerius stood on the royal dais, wearing robes of ermine, while Amalric, still in his dusty, blood-stained armor, placed a rich, gleaming crown upon his yellow hair—the crown of Aquilonia! The people cheered; long lines of steel-clad Nemedian soldiers stood grimly by, and nobles once disgraced at Conan’s court strutted proudly, wearing Valerius’s emblem on their sleeves.  
+
+“Crom!” The word exploded from Conan’s lips as he leapt to his feet, his huge fists clenched, the veins on his temples bulging, his face twisted with fury. “A Nemedian putting the crown of Aquilonia on that traitor—in the royal hall of Tarantia!”  
+
+As if driven away by his rage, the smoke faded, and he saw Zelata’s dark eyes gleaming at him through the mist.  
+
+“You’ve seen it—the people of your capital have thrown away the freedom you won for them with your sweat and blood. They’ve sold themselves to slavers and butchers. They’ve shown they don’t trust their own fate. Can you depend on them to win back your kingdom?”  
+
+“They thought I was dead,” he grunted, regaining some control. “I have no son. Men can’t be ruled by a memory. So what if the Nemedians have taken Tarantia? The provinces, the barons, and the country folk still remain. Valerius has won an empty triumph.”  
+
+“You’re stubborn, as a warrior should be. I can’t show you the future, nor all the past. No—I show you nothing. I only let you see through windows opened in the veil by powers beyond understanding. Do you want to look into the past for a clue to the present?”  
+
+“Yes.” He sat down abruptly.  
+
+Once again, the green smoke rose and swirled. Once again, images unfolded before him—this time strange and seemingly unrelated. He saw immense black walls towering upward, pedestals half-hidden in shadow supporting statues of monstrous, half-animal gods. Men moved in the dimness—dark, wiry men wearing red silk loincloths—carrying a green jade sarcophagus down a vast black corridor. But before he could make out more, the vision shifted. He saw a cavern, dim and shadowy, filled with an eerie, intangible dread. On an altar of black stone stood a strange golden vessel shaped like a scallop shell. Into this cavern came some of the same dark, wiry men who had carried the mummy case. They seized the golden vessel, and then the shadows swirled around them, and he could not tell what happened next. But he saw a glimmer in a whirl of darkness, like a sphere of living fire. Then the smoke was only smoke again, rising from the tamarisk fire, thinning and fading away.  
+
+“But what does this mean?” he demanded, confused. “What I saw in Tarantia I can understand. But what’s the meaning of this vision of Zamorian thieves sneaking through a hidden temple of Set in Stygia? And that cavern—I’ve never seen or heard of anything like it in all my travels. If you can show me that much—these scraps of vision that mean nothing, disconnected as they are—why can’t you show me all that’s to come?”  
+
+Zelata stirred the fire without answering.  
+
+“These things are ruled by unchangeable laws,” she said at last. “I can’t make you understand; I don’t fully understand myself, though I’ve sought wisdom in the silence of the high places for more years than I can count. I can’t save you, though I would if I could. In the end, a man must find his own salvation. Yet perhaps wisdom may come to me in dreams, and by morning I may be able to give you the key to the mystery.”  
+
+“What mystery?” he demanded.  
+
+“The mystery that faces you—the reason you’ve lost your kingdom,” she replied. Then she spread a sheepskin on the floor before the hearth. “Sleep,” she said simply.  
+
+Without a word, he lay down upon it and sank into a restless but deep sleep, through which silent phantoms drifted and monstrous, shapeless shadows crept. Once, outlined against a purple, sunless horizon, he saw the mighty walls and towers of a great city unlike any that stood on the waking earth he knew. Its colossal pylons and violet minarets rose toward the stars, and above it, floating like a vast mirage, hovered the bearded face of the man Xaltotun.  
+
+* * * * *  
+
+Conan awoke in the cold whiteness of early dawn to see Zelata crouched beside the small fire. He had not stirred once during the night, and the sound of the great wolf coming or going should have woken him. Yet the wolf was there beside the hearth, its shaggy coat wet with dew—and with more than dew. Blood glistened darkly in its thick fur, and there was a wound on its shoulder.  
+
+Zelata nodded without turning, as if she could read the thoughts of her royal guest.  
+
+“He hunted before dawn, and the hunt was red. I think the man who hunted a king will hunt no more—neither man nor beast.”  
+
+Conan stared at the great beast with strange fascination as he reached for the food Zelata offered him.  
+
+“When I come to my throne again, I won’t forget,” he said shortly. “You’ve been a friend to me—by Crom, I can’t remember the last time I lay down and slept at the mercy of man or woman as I did last night. But what of the riddle you said you’d read for me this morning?”  
+
+A long silence followed, broken only by the crackle of the tamarisk branches on the hearth.  
+
+“Find the heart of your kingdom,” she said at last. “There lies your downfall and your strength. You fight more than mortal man. You will not reclaim the throne unless you find the heart of your kingdom.”  
+
+“Do you mean the city of Tarantia?”  
+
+She shook her head. “I am only an oracle through whom the gods speak. My lips are sealed by them, lest I speak too much. You must find the heart of your kingdom. I can say no more. My lips are opened and sealed by the gods.”  
+
+* * * * *  
+
+Dawn was still pale on the peaks when Conan rode westward. A glance back showed Zelata standing in the doorway of her hut, as unreadable as ever, the great wolf beside her.  
+
+A gray sky stretched overhead, and a moaning wind carried the chill promise of winter. Brown leaves drifted slowly down from the bare branches, settling on his armored shoulders.  
+
+All day he rode through the hills, avoiding roads and villages. Toward nightfall he began to descend from the heights, level by level, and saw the wide plains of Aquilonia spread out below him.  
+
+Villages and farms clustered at the base of the hills on the western side of the mountains. For half a century most of the raiding across the frontier had been done by the Aquilonians, but now only embers and ashes marked where farmhouses and villas had once stood.  
+
+In the deepening dusk Conan rode slowly onward. There was little danger of discovery, which he feared as much from friend as from foe. The Nemedians had remembered old grudges on their westward march, and Valerius had made no effort to restrain his allies. He did not rely on winning the love of the common people. A vast path of ruin had been carved through the land from the foothills westward. Conan cursed as he rode over blackened fields that had once been rich and saw the gaunt gable-ends of burned houses jutting against the sky. He moved through an empty, forsaken land, like a ghost from a forgotten age.  
+
+The speed with which the army had crossed the land showed how little resistance it had met. Yet if Conan had been leading his Aquilonians, the invading host would have paid for every foot of ground with their blood. The bitter truth burned in his heart: he was not the heir of a dynasty. He was only a lone adventurer. Even the trace of royal blood Valerius claimed held more sway over men’s minds than the memory of Conan and the freedom and strength he had given the kingdom.  
+
+No pursuers followed him down from the hills. He watched for wandering or returning Nemedian troops but saw none. Stragglers gave him a wide berth, taking him for one of the conquerors, judging by his armor. Groves and rivers were far more plentiful on the western side of the mountains, and there was no shortage of places to hide.  
+
+So he moved across the ravaged land, stopping only to rest his horse, eating sparingly of the food Zelata had given him, until one dawn, as he lay hidden on a riverbank thick with willows and oaks, he saw far off across the rolling plains, dotted with rich groves, the blue and golden towers of Tarantia.  
+
+He was no longer in a deserted land, but one alive with people and movement. From then on his progress was slow and cautious, through dense woods and little-used paths. It was dusk when he reached the estate of Servius Galannus.  
+
+Dying Embers  
+
+The countryside around Tarantia had escaped the terrible devastation that had swept through the provinces farther east. There were signs of a conquering army’s passage—broken hedges, plundered fields, and looted granaries—but fire and sword had not been unleashed on a large scale.
+
+Only one grim scar marred the landscape: a blackened stretch of ashes and charred stone where, Conan knew, the grand villa of one of his most loyal supporters had once stood.  
+
+The king dared not approach the Galannus estate openly, since it lay only a few miles from the city. At twilight he rode through a wide forest until he spotted a gamekeeper’s lodge among the trees. Dismounting and tying his horse, he went to the heavy arched door, intending to send the keeper to fetch Servius. He did not know what enemies might be hiding at the manor. He had seen no soldiers, but they could easily be quartered throughout the countryside. As he drew near, however, the door opened and a compact man in silk hose and a richly embroidered doublet stepped out and started up a path winding through the woods.  
+
+“Servius!”  
+
+At the low call, the master of the estate spun around with a startled cry. His hand flew to the short hunting sword at his hip, and he recoiled from the tall, steel-clad figure standing in the dusk before him.  
+
+“Who are you?” he demanded. “What is your—Mitra!”  
+
+His breath hissed in, and his ruddy face went pale. “Go away!” he cried. “Why have you come back from the gray lands of death to haunt me? I was always your loyal man while you lived—”  
+
+“As I still expect you to be,” said Conan. “Stop shaking, man; I’m flesh and blood.”  
+
+Sweating with uncertainty, Servius came closer and peered into the face of the armored giant. Finally convinced that what he saw was real, he dropped to one knee and removed his plumed cap.  
+
+“Your Majesty! This is a miracle beyond belief! The great bell in the citadel tolled your funeral days ago. People said you died at Valkia, crushed under a mountain of earth and stone.”  
+
+“It was another man wearing my armor,” grunted Conan. “But we’ll talk later. If you’ve got a roast on your table—”  
+
+“Forgive me, my lord!” cried Servius, leaping to his feet. “The dust of travel is gray on your mail, and I keep you standing here without food or rest! Mitra! I see now that you’re alive, but I swear, when I turned and saw you standing there all gray and ghostly in the twilight, the strength went out of my knees. It’s a bad thing to meet a man you thought dead in the woods at dusk.”  
+
+“Have the keeper tend to my horse—it’s tied behind that oak,” said Conan. Servius nodded and led the king up the path. The patrician, recovering from his fright, was still visibly nervous.  
+
+“I’ll send a servant from the manor,” he said. “The keeper’s in his lodge—but I don’t dare trust even my own servants these days. It’s better that only I know you’re here.”  
+
+As they neared the large house that glimmered faintly through the trees, Servius turned aside into a little-used path between close-growing oaks whose interlaced branches formed a dark vault overhead, shutting out the last light of dusk. Servius hurried through the darkness without speaking, his manner edged with panic, and soon led Conan through a small side door into a narrow, dimly lit corridor. They moved quickly and silently through it until Servius brought the king into a spacious room with a high, oak-beamed ceiling and richly paneled walls. Logs blazed in the wide fireplace, for the air had a frosty bite, and a great meat pie on a stone platter steamed on a broad mahogany table. Servius locked the heavy door and snuffed out the candles in the silver holder on the table, leaving the room lit only by the fire’s glow.  
+
+“Forgive me, your Majesty,” he said. “These are dangerous times; spies are everywhere. It’s best that no one can look through the windows and recognize you. This pie is fresh from the oven—I meant to eat it after speaking with my keeper. If your Majesty would be so kind—”  
+
+“The light’s good enough,” grunted Conan, sitting down without ceremony and drawing his dagger.  
+
+He tore eagerly into the rich dish and washed it down with great gulps of wine from Servius’ own vineyards. He seemed completely unconcerned about danger, but Servius shifted uneasily on his seat by the fire, nervously fingering the heavy gold chain around his neck. He kept glancing at the diamond-paned windows, dimly gleaming in the firelight, and listening toward the door, as if half-expecting to hear stealthy footsteps in the corridor beyond.  
+
+When Conan finished eating, he rose and sat on another bench before the fire.  
+
+“I won’t endanger you long by staying here, Servius,” he said abruptly. “By dawn I’ll be far from your estate.”  
+
+“My lord—” Servius lifted his hands in protest, but Conan waved him off.  
+
+“I know your loyalty and your courage. Both are beyond question. But if Valerius has taken my throne, it would mean death for you if they found you sheltering me.”  
+
+“I’m not strong enough to defy him openly,” admitted Servius. “The fifty men-at-arms I could muster would be nothing. You saw the ruins of Emilius Scavonus’ estate?”  
+
+Conan nodded, frowning darkly.  
+
+“He was the strongest noble in this province, as you know. He refused to swear allegiance to Valerius. The Nemedians burned him alive in the ruins of his own villa. After that, the rest of us saw how hopeless resistance was—especially since the people of Tarantia refused to fight. We submitted, and Valerius spared our lives, though he’s taxed us so heavily that many will be ruined. But what else could we do? We thought you were dead. Many of the barons had been killed, others captured. The army was broken and scattered. You had no heir to take the crown. There was no one left to lead us—”  
+
+“Wasn’t there Count Trocero of Poitain?” demanded Conan harshly.  
+
+Servius spread his hands helplessly.  
+
+“It’s true that his general, Prospero, was still in the field with a small army. Retreating before Amalric, he urged men to rally to his banner. But with your Majesty dead, people remembered old wars and civil strife, and how Trocero and his Poitanians once rode through these provinces just as Amalric rides now, with fire and sword. The barons were jealous of Trocero. Some men—perhaps Valerius’ spies—shouted that the Count of Poitain meant to seize the crown for himself. Old regional hatreds flared up again. If we’d had even one man of royal blood, we would have crowned him and followed him against Nemedia. But we had none.  
+
+The barons who had loyally followed you would not follow one of their own, since each thought himself as good as the next and feared the ambitions of the others. You were the cord that held the bundle of sticks together. When the cord was cut, the bundle fell apart. If you had a son, the barons would have rallied around him with loyalty. But there was no single point for their patriotism to center on.  
+
+The merchants and commoners, terrified of chaos and a return to the feudal days when every baron ruled by his own law, cried out that any king was better than none—even Valerius, who at least had the blood of the old royal line. No one stood against him when he rode up at the head of his armored hosts, the scarlet dragon of Nemedia flying above him, and struck his lance against the gates of Tarantia.  
+
+No, the people opened the gates and knelt in the dust before him. They had refused to help Prospero defend the city. They said they would rather be ruled by Valerius than by Trocero. They said—truthfully—that the barons would not rally to Trocero, but many would accept Valerius. They said that by surrendering to Valerius they would avoid the destruction of civil war and the wrath of the Nemedians. Prospero rode south with his ten thousand knights, and the Nemedian horsemen entered the city a few hours later. The people did not follow Prospero. They stayed to see Valerius crowned in Tarantia.”  
+
+“Then the old witch’s smoke told the truth,” muttered Conan, feeling a strange chill run down his spine. “Amalric crowned Valerius?”  
+
+“Yes, in the coronation hall, with the blood of slaughter barely dried on his hands.”  
+
+“And do the people prosper under his kind rule?” asked Conan with bitter sarcasm.  
+
+“He lives like a foreign prince in the middle of a conquered land,” answered Servius grimly. “His court is full of Nemedians, the palace guards are of the same stock, and a large garrison of them holds the citadel. Yes, the Hour of the Dragon has truly come.  
+
+“Nemedians strut through the streets like lords. Women are violated and merchants robbed daily, and Valerius either cannot or will not try to stop them. No, he is only their puppet, their figurehead. The wise men knew he would be, and now the people are beginning to see it.”
+
+“Amalric has marched out with a strong army to subdue the outer provinces where some of the barons have defied him. But there is no unity among them. Their jealousy of one another is stronger than their fear of Amalric. He will crush them one by one. Many castles and cities, realizing this, have already surrendered. Those who resist suffer terribly. The Nemedians are feeding their long hatred, and their ranks are growing with Aquilonians whom fear, gold, or the need to survive are driving into their armies. It’s the natural result.”  
+
+Conan nodded grimly, staring at the red reflections of the firelight on the richly carved oak panels.  
+
+“Aquilonia has a king instead of the chaos they feared,” said Servius at last. “But Valerius does not protect his subjects from his allies. Hundreds who couldn’t pay the ransom demanded of them have been sold to the Kothic slave traders.”  
+
+Conan’s head snapped up, and a deadly fire lit his blue eyes. He cursed fiercely, his massive hands clenching into iron fists.  
+
+“Yes, white men are selling white men and white women, just like in the old feudal days. In the palaces of Shem and Turan they will live out their lives as slaves. Valerius is king, but the unity the people longed for, even if born from the sword, is still incomplete.  
+
+“Gunderland in the north and Poitain in the south are still unconquered, and there are provinces in the west still free, where the border barons are supported by the Bossonian bowmen. Yet these outer provinces are no real threat to Valerius. They must stay on the defensive and will be lucky if they can keep their independence. Here, Valerius and his foreign knights rule supreme.”  
+
+“Then let him enjoy it while he can,” said Conan grimly. “His time is short. The people will rise when they learn I’m alive. We’ll retake Tarantia before Amalric can return with his army. Then we’ll drive these dogs out of the kingdom.”  
+
+Servius said nothing. The crackling of the fire was loud in the silence.  
+
+“Well,” said Conan impatiently, “why do you sit there with your head bowed, staring at the fire? Do you doubt my words?”  
+
+Servius avoided the king’s gaze.  
+
+“What any mortal man can do, you will do, your Majesty,” he said. “I’ve ridden behind you in battle, and I know no mortal being can stand before your sword.”  
+
+“Then what is it?”  
+
+Servius pulled his fur-lined tunic tighter around him and shivered despite the heat of the fire.  
+
+“Men say your fall was caused by sorcery,” he said at last.  
+
+“So what?”  
+
+“What mortal can fight against sorcery? Who is this veiled man who, as people say, meets with Valerius and his allies at midnight, appearing and vanishing so mysteriously? Men whisper that he’s a great magician who died thousands of years ago but has returned from the gray lands of death to overthrow the king of Aquilonia and restore the dynasty from which Valerius descends.”  
+
+“What of it?” snapped Conan angrily. “I escaped from the demon-haunted pits of Belverus and from witchcraft in the mountains. If the people rise—”  
+
+Servius shook his head.  
+
+“Your strongest supporters in the eastern and central provinces are dead, fled, or imprisoned. Gunderland lies far to the north, Poitain far to the south. The Bossonians have withdrawn to their western borders. It would take weeks to gather and unite these forces, and before that could happen, each levy would be attacked separately by Amalric and destroyed.”  
+
+“But an uprising in the central provinces would turn the tide for us!” exclaimed Conan. “We could seize Tarantia and hold it against Amalric until the Gundermen and Poitanians arrived.”  
+
+Servius hesitated, and his voice dropped to a whisper.  
+
+“Men say you died cursed. They say this veiled stranger cast a spell on you to kill you and break your army. The great bell has tolled your funeral. Men believe you are dead. And the central provinces would not rise, even if they knew you lived. They would not dare. Sorcery defeated you at Valkia. Sorcery carried the news to Tarantia, for that very night men were shouting it in the streets.  
+
+A Nemedian priest unleashed black magic again in the streets of Tarantia to kill men who still stayed loyal to your memory. I saw it with my own eyes. Armed men dropped like flies, dying in ways no one could explain. And the gaunt priest laughed and said, ‘I am only Altaro, an acolyte of Orastes, who is only an acolyte of the one who wears the veil. The power is not mine; it merely works through me.’”  
+
+“Well,” said Conan harshly, “is it not better to die with honor than to live in disgrace? Is death worse than oppression, slavery, and final ruin?”  
+
+“When fear of witchcraft takes hold, reason disappears,” replied Servius. “The terror gripping the central provinces is too strong for them to rise for you. The outer provinces would fight for you—but the same sorcery that destroyed your army at Valkia would strike again. The Nemedians control the broadest, richest, and most populated regions of Aquilonia, and they can’t be defeated by the forces you still command. You’d be sacrificing your loyal subjects for nothing. It pains me to say it, but it’s true: King Conan, you are a king without a kingdom.”  
+
+Conan stared into the fire without answering. A burning log collapsed among the flames in a burst of sparks. It might as well have been the crashing ruin of his kingdom.  
+
+Once again, Conan felt the harsh presence of reality behind the veil of illusion. He sensed the relentless push of merciless fate. A wave of furious panic pulled at his soul—a feeling of being trapped—and a red-hot rage that burned to destroy and kill.  
+
+“Where are the officials of my court?” he demanded at last.  
+
+“Pallantides was badly wounded at Valkia, ransomed by his family, and now lies in his castle in Attalus. He’ll be lucky if he ever rides again. Publius, the chancellor, fled the kingdom in disguise—no one knows where. The council has been dissolved. Some were imprisoned, others exiled. Many of your loyal subjects have been executed. Tonight, for example, Countess Albiona dies under the headsman’s axe.”  
+
+Conan started and glared at Servius, anger smoldering in his blue eyes until the patrician shrank back.  
+
+“Why?”  
+
+“Because she refused to become Valerius’s mistress. Her lands are confiscated, her followers sold into slavery, and at midnight, in the Iron Tower, her head will fall. Take my advice, my king—to me you will always be my king—and flee before you’re discovered. No one is safe these days. Spies and informers creep among us, betraying even the smallest word or act of discontent as treason and rebellion. If you reveal yourself to your subjects, it will only lead to your capture and death.  
+
+“My horses and all the men I can trust are at your service. Before dawn we can be far from Tarantia and well on our way to the border. If I can’t help you reclaim your kingdom, I can at least follow you into exile.”  
+
+Conan shook his head. Servius glanced uneasily at him as he sat staring into the fire, his chin resting on his massive fist. The firelight glowed red on his steel mail and on his fierce eyes. They burned in the light like a wolf’s. Servius was once again aware, as he had been before—and now more strongly than ever—of something alien about the king. That great body beneath the chain mail was too hard and flexible for a civilized man; the raw fire of the primitive burned in those smoldering eyes. Now the barbaric quality about the king was even more pronounced, as if in his extremity the outer layers of civilization had been stripped away, revealing the primal core. Conan was reverting to his original nature. He didn’t act as a civilized man would under the same circumstances, nor did his thoughts follow the same patterns. He was unpredictable. It was only a short step from the king of Aquilonia to the fur-clad warrior of the Cimmerian hills.  
+
+“I’ll ride to Poitain, if I can,” Conan said at last. “But I’ll ride alone. And I have one last duty to perform as king of Aquilonia.”  
+
+“What do you mean, your Majesty?” asked Servius, shaken by a sense of dread.  
+
+“I’m going into Tarantia tonight for Albiona,” answered the king. “I’ve failed all my other loyal subjects, it seems—if they take her head, they can take mine too.”  
+
+“This is madness!” cried Servius, stumbling to his feet and clutching his throat as if he already felt the noose tightening.  
+
+“There are secrets about the Tower that few know,” said Conan. “In any case, I’d be a dog to leave Albiona to die for her loyalty to me. I may be a king without a kingdom, but I’m not a man without honor.”  
+
+“It will destroy us all!” whispered Servius.  
+
+“It will destroy no one but me if I fail. You’ve risked enough. I ride alone tonight. All I need you to do is get me an eye patch, a walking staff, and clothes like those worn by travelers.”  
+
+
+Many people passed through the great arched gates of Tarantia between sunset and midnight—late travelers, merchants from distant lands with heavily laden mules, and free laborers from nearby farms and vineyards. Now that Valerius ruled the central provinces, there was no strict inspection of the steady stream of people flowing through the wide gates. Discipline had slackened. The Nemedian soldiers on guard were half drunk and too busy watching for pretty peasant girls or rich merchants to harass to notice workmen or dusty travelers—even one tall wanderer whose worn cloak could not hide the hard lines of his powerful body.  
+
+This man carried himself with a straight, commanding posture too natural for him to recognize, let alone disguise. A large patch covered one eye, and his leather hood, pulled low over his brows, shadowed his face. With a long, thick staff in his strong brown hand, he walked calmly through the arch where the torches flickered and smoked and, ignored by the drunken guards, stepped onto the wide streets of Tarantia.  
+
+Along these brightly lit streets, the usual crowds went about their business, and shops and stalls stood open with their goods on display. One thing was constant: Nemedian soldiers, alone or in groups, swaggered through the crowds, pushing their way with deliberate arrogance. Women hurried out of their path, and men stepped aside with dark looks and clenched fists. The Aquilonians were a proud people, and these were their ancestral enemies.  
+
+The tall traveler’s knuckles tightened on his staff, but, like the others, he stepped aside to let the armored men pass. Among the mixed crowd, he drew little attention in his plain, dusty clothes. Yet once, as he passed a sword-seller’s stall and the light from its wide doorway fell full on him, he thought he felt someone staring hard at him. Turning quickly, he saw a man in the brown jacket of a free laborer watching him intently. The man turned away too quickly and vanished into the shifting crowd. Conan turned into a narrow side street and quickened his pace. It might have been idle curiosity—but he could not take any chances.  
+
+The grim Iron Tower stood apart from the citadel, surrounded by a maze of narrow streets and crowded houses, where poorer buildings, taking over space from which the more refined had withdrawn, had invaded a part of the city not meant for them. The Tower was really a fortress—an ancient, formidable mass of heavy stone and black iron that had once served as the citadel in an earlier, rougher age.  
+
+Not far from there, hidden among a maze of half-abandoned tenements and warehouses, stood an ancient watchtower so old and forgotten that it had not appeared on city maps for a century. Its original purpose had long been lost to memory, and no one who noticed it at all realized that the seemingly ancient lock barring its door—keeping beggars and thieves from using it as shelter—was actually fairly new and incredibly strong, cleverly disguised to look rusted and antique. Fewer than six men in the entire kingdom had ever known the secret of that tower.  
+
+No keyhole showed in the massive, green-crusted lock. But Conan’s skilled fingers, moving over it, pressed here and there on knobs invisible to the casual eye. The door swung inward without a sound, and he stepped into total darkness, closing it behind him. If a light had been lit, it would have revealed the tower to be empty—a bare, cylindrical shaft of solid stone.  
+
+Feeling his way in a corner with the confidence of familiarity, he found the projections he was looking for on a slab in the stone floor. Quickly he lifted it and, without hesitation, lowered himself into the opening beneath. His feet found stone steps leading downward into a narrow tunnel that ran straight toward the foundations of the Iron Tower, three streets away.  
+
+The bell on the citadel—rung only at midnight or for the death of a king—suddenly boomed. In a dimly lit chamber of the Iron Tower, a door opened and a figure stepped into a corridor. The inside of the Tower was as grim as its exterior. Its massive stone walls were rough and bare. The flagstones of the floor were worn deep by generations of faltering feet, and the vaulted ceiling loomed dark in the flickering torchlight.  
+
+The man who trudged down that bleak corridor matched his surroundings. He was tall and powerfully built, dressed in tight-fitting black silk. Over his head was drawn a black hood that fell around his shoulders, with two holes for his eyes. A loose black cloak hung from his shoulders, and over one he carried a heavy axe—neither tool nor weapon in shape.  
+
+As he walked down the corridor, a figure came hobbling toward him—a bent, sour old man stooping under the weight of his pike and the lantern he carried.  
+
+“You’re not as prompt as your predecessor, master headsman,” he grumbled. “Midnight just struck, and masked men have gone to milady’s cell. They’re waiting for you.”  
+
+“The tones of the bell still echo among the towers,” replied the executioner. “If I’m not as quick to jump and run at the call of Aquilonians as the dog who held this office before me, they’ll still find my arm just as ready. Get to your duties, old watchman, and leave me to mine. I think mine’s the sweeter trade, by Mitra, for you tramp cold corridors and stare at rusty dungeon doors, while I take off the fairest head in Tarantia tonight.”  
+
+The watchman limped on, still muttering, and the headsman continued his slow pace. A few steps brought him around a bend in the corridor, where he absently noticed a door standing partly open. If he had thought about it, he would have realized it had been opened since the watchman passed—but thinking was not his trade. He was already passing the unlocked door before he sensed something was wrong, and then it was too late.  
+
+A soft, catlike step and the rustle of a cloak warned him, but before he could turn, a powerful arm hooked around his throat from behind, crushing the cry before it could escape his lips. In the brief instant he had, he realized with a surge of panic the strength of his attacker, against which his own muscular body was helpless. He sensed, without seeing, the poised dagger.  
+
+“Nemedian dog!” growled a voice thick with fury in his ear. “You’ve cut off your last Aquilonian head!”  
+
+And that was the last thing he ever heard.  
+
+       *       *       *       *       *  
+
+In a damp dungeon lit only by a flickering torch, three men stood over a young woman who knelt on the rush-covered floor, staring wildly up at them. She wore only a thin shift; her golden hair fell in shining waves over her white shoulders, and her wrists were tied behind her. Even in the uncertain torchlight, despite her disheveled state and the pallor of fear, her beauty was striking. She knelt silently, staring with wide eyes at her tormentors. The men were masked and cloaked—such a deed as this required masks, even in a conquered land. She knew them all the same; but what she knew would harm no one—after that night.  
+
+“Our merciful sovereign offers you one more chance, Countess,” said the tallest of the three, speaking Aquilonian without an accent. “He bids me tell you that if you soften your proud, rebellious spirit, he will still open his arms to you. If not—” He gestured toward a grim wooden block in the center of the cell. It was blackly stained and deeply notched, as if a sharp edge, cutting through something soft, had bitten deep into the wood.  
+
+Albiona shuddered and turned pale, shrinking back. Every fiber of her strong young body trembled with the urge to live. Valerius was young too, and handsome. Many women loved him, she told herself, struggling inwardly to cling to life. But she couldn’t speak the word that would ransom her soft young body from the block and the dripping axe. She couldn’t reason it out; she only knew that when she thought of Valerius’ arms around her, her flesh crawled with a revulsion greater than her fear of death. She shook her head helplessly, driven by an impulse stronger than the instinct to live.  
+
+“Then there’s nothing more to say!” snapped one of the others impatiently, speaking with a Nemedian accent. “Where’s the headsman?”  
+
+As if summoned by the word, the dungeon door opened silently, and a massive figure stood framed within it, like a black shadow from the underworld.  
+
+Albiona gave a low, involuntary cry at the sight of that grim shape, and the others stared in silence for a moment, perhaps struck by a superstitious dread of the hooded figure. Through the coif, the eyes blazed like blue fire, and as those eyes rested on each man in turn, a chill crept down his spine.  
+
+Then the tall Aquilonian roughly grabbed the girl and dragged her to the block. She screamed uncontrollably and fought hopelessly against him, frantic with terror, but he forced her to her knees and bent her golden head down to the bloody block.  
+
+“Why do you delay, headsman?” he demanded angrily. “Do your job!”
+
+He was answered by a short, gusty burst of laughter, indescribably menacing. Everyone in the dungeon froze where they stood, staring at the hooded figure—the two cloaked men, the masked man bending over the girl, and the girl herself on her knees, twisting her trapped head to look upward.  
+
+“What’s the meaning of this laughter, dog?” demanded the Aquilonian uneasily.  
+
+The man in black tore the hood from his head and flung it to the ground. He set his back to the closed door and lifted the headsman’s axe.  
+
+“Do you know me, dogs?” he rumbled. “Do you know me?”  
+
+The breathless silence shattered with a scream.  
+
+“The king!” cried Albiona, tearing herself free from the loosened grip of her captor. “Oh, Mitra, the king!”  
+
+The three men froze like statues, then the Aquilonian started and spoke, as if doubting his own senses.  
+
+“Conan!” he gasped. “It’s the king—or his ghost! What devil’s trick is this?”  
+
+“Devil’s work to match devils!” mocked Conan, his lips twisting in a grin while hellfire burned in his eyes. “Come on then, gentlemen. You’ve got your swords, and I’ve got this cleaver. No, I think this butcher’s tool fits the job just fine, my noble lords!”  
+
+“At him!” muttered the Aquilonian, drawing his sword. “It’s Conan, and we must kill or be killed!”  
+
+Like men waking from a trance, the Nemedians drew their blades and charged the king.  
+
+The headsman’s axe wasn’t made for such fighting, but Conan swung the heavy, awkward weapon as easily as a hatchet. His quick footwork, constantly shifting position, kept them from surrounding him all at once.  
+
+He caught the first man’s sword on the axe head and crushed the man’s chest with a murderous counterstroke before he could step back or block. The next Nemedian, missing a savage swing, had his skull smashed before he could regain his balance, and a moment later the Aquilonian was backed into a corner, desperately parrying the crashing blows raining down on him, unable even to cry for help.  
+
+Suddenly Conan’s long left arm shot out and ripped the mask from the man’s head, revealing pale features.  
+
+“Dog!” snarled the king. “I thought I knew you. Traitor! Damned turncoat! Even this filthy steel is too honorable for your vile head. No—you’ll die like a thief!”  
+
+The axe came down in a terrible arc, and the Aquilonian screamed, collapsing to his knees, clutching the severed stump of his right arm, blood spurting from it. The limb had been cut off at the elbow, and the axe, unchecked in its swing, had gashed deep into his side so that his guts bulged out.  
+
+“Lie there and bleed out,” grunted Conan, tossing the axe away in disgust. “Come on, Countess!”  
+
+Bending down, he slashed the cords binding her wrists and, lifting her as easily as a child, strode out of the dungeon. She was sobbing hysterically, her arms locked around his thick neck in a frantic embrace.  
+
+“Easy now,” he muttered. “We’re not out yet. If we can reach the dungeon with the secret door that opens to the stairs leading to the tunnel—damn it, they’ve heard that racket, even through these walls.”  
+
+Down the corridor came the clatter of weapons and the tramp and shouting of men echoing under the vaulted ceiling. A bent figure came hobbling quickly toward them, lantern held high, its light falling full on Conan and the girl. With a curse, the Cimmerian lunged toward him, but the old watchman dropped both lantern and pike and scurried away down the corridor, shrieking for help at the top of his cracked voice. Louder shouts answered him.  
+
+Conan spun around and ran the other way. He was cut off from the dungeon with the secret lock and hidden door through which he had entered the Tower—and through which he had hoped to leave—but he knew this grim building well. Before he was king, he had been its prisoner.  
+
+He turned into a side passage and quickly came out into another, broader corridor running parallel to the one he had just left, which was, for the moment, empty. He followed it only a few yards before turning down another side passage. This brought him back into the first corridor, but at a better position. A few feet ahead stood a heavy bolted door, and before it a bearded Nemedian in corselet and helmet, his back to Conan as he peered up the corridor toward the growing noise and flickering lanterns.  
+
+Conan didn’t hesitate. Setting the girl down, he ran at the guard swiftly and silently, sword in hand. The man turned just as the king reached him, shouted in surprise and fear, and lifted his pike—but before he could bring the clumsy weapon to bear, Conan’s sword came down on his helmet with a force that would have felled an ox. Helmet and skull split together, and the guard crumpled to the floor.  
+
+In an instant, Conan had drawn back the massive bolt that barred the door—too heavy for an ordinary man to move—and called quickly to Albiona, who stumbled toward him. Grabbing her roughly with one arm, he carried her through the door and into the outer darkness.  
+
+They found themselves in a narrow alley, black as pitch, walled by the Tower on one side and the sheer stone backs of a row of buildings on the other. Moving as fast as he dared through the dark, Conan felt along the opposite wall for doors or windows but found none.  
+
+The great door clanged open behind them, and men poured out, torches gleaming on breastplates and naked swords. They glared around, shouting, unable to see beyond the small circles of light their torches cast, then rushed down the alley at random—heading the opposite way from Conan and Albiona.  
+
+“They’ll figure it out soon enough,” he muttered, quickening his pace. “If we can just find a crack in this damned wall—curse it, the street watch!”  
+
+Ahead, a faint glow showed where the alley opened into a narrow street, and he saw dim figures silhouetted against it, steel glinting faintly. It was indeed the street watch, drawn by the noise echoing down the alley.  
+
+“Who goes there?” they shouted, and Conan ground his teeth at the hated Nemedian accent.  
+
+“Stay behind me,” he told the girl. “We’ve got to cut our way through before the prison guards come back and trap us between them.”  
+
+Gripping his sword, he charged straight at the oncoming figures. The advantage of surprise was his. He could see them, outlined against the faint glow, while they couldn’t see him coming out of the black alley. He was among them before they knew it, striking with the silent fury of a wounded lion.  
+
+His only chance was to hack through before they could recover. But there were ten of them, in full armor—battle-hardened veterans of the border wars, whose instincts could replace stunned senses. Three were down before they realized only one man was attacking, but their reaction was instant. The clash of steel roared deafeningly, sparks flying as Conan’s sword smashed against helmets and mail. He could see better than they could, and in the dim light his swift-moving figure was a blur. Their blades cut empty air or glanced off his, and when he struck, it was with the fury and precision of a hurricane.  
+
+But behind him came the shouts of the prison guards, running back up the alley, while the armored men in front of him still blocked his way with a wall of bristling steel. In another moment the guards would be on his back. Desperate, he struck harder, swinging like a blacksmith at his anvil—then suddenly noticed a distraction. Out of nowhere, behind the watchmen, appeared a group of dark figures, and the sound of savage blows rang out. Steel flashed in the dim light, and men screamed as they were cut down from behind. In an instant, the alley was strewn with writhing bodies. A dark, cloaked figure rushed toward Conan, who lifted his sword, catching a glint of steel in the man’s right hand. But the other hand was empty, and a voice hissed urgently, “This way, your Majesty! Quickly!”  
+
+Cursing in surprise, Conan scooped up Albiona in one massive arm and followed his unknown rescuer. He wasn’t about to hesitate, not with thirty prison guards closing in behind him.  
+
+Surrounded by the mysterious figures, he hurried down the alley, carrying the countess as if she were a child. He could tell nothing about his rescuers except that they wore dark cloaks and hoods. Doubt and suspicion crossed his mind, but they had struck down his enemies, and he saw no better choice than to follow.  
+
+As if sensing his hesitation, the leader lightly touched his arm and said, “Don’t be afraid, King Conan; we are your loyal subjects.” The voice was unfamiliar, but the accent was Aquilonian, from the central provinces.
+
+Behind them, the guards shouted as they stumbled over the bodies in the mud, then came charging furiously down the alley, seeing only a vague dark mass moving between them and the light of the distant street. But the hooded men suddenly turned toward what looked like a blank wall, and Conan saw a door open there. He muttered a curse. He had walked that alley by day many times before and had never noticed a door there. But through it they went, and the door closed behind them with the click of a lock. The sound wasn’t reassuring, but his guides hurried him along, moving with practiced precision, guiding Conan with a hand on each elbow. It felt like passing through a tunnel, and Conan felt Albiona’s slender body trembling in his arms. Then, somewhere ahead, an opening became faintly visible—a slightly lighter arch in the darkness—and through it they passed.  
+
+After that came a confusing series of dim courtyards, shadowy alleys, and twisting corridors, all crossed in complete silence, until at last they entered a wide, brightly lit chamber. Conan couldn’t even guess where they were, for their winding route had completely baffled even his barbarian sense of direction.  
+
+Not all of his guides entered the chamber. When the door closed, Conan saw only one man standing before him—a slim figure, masked in a black cloak with a hood. The man threw it back, revealing a pale, oval face with calm, finely carved features.  
+
+The king set Albiona on her feet, but she still clung to him, looking around nervously. The chamber was large, with marble walls partly covered by black velvet hangings and thick, rich carpets on the mosaic floor, glowing softly in the golden light of bronze lamps.  
+
+Conan instinctively put a hand on his sword hilt. There was blood on his hand, and blood clotted around the mouth of his scabbard, for he had sheathed his blade without cleaning it.  
+
+“Where are we?” he demanded.  
+
+The stranger bowed low, deeply and respectfully, and Conan could sense no mockery in the gesture.  
+
+“In the temple of Asura, Your Majesty.”  
+
+Albiona gasped faintly and pressed closer to Conan, staring fearfully at the black arched doors, as if expecting some horrible creature of darkness to appear.  
+
+“Don’t be afraid, my lady,” said their guide. “There is nothing here that will harm you, despite the ignorant superstitions to the contrary. If your king was wise enough to see the innocence of our faith and protect us from persecution, then surely one of his subjects has nothing to fear.”  
+
+“Who are you?” Conan demanded.  
+
+“I am Hadrathus, priest of Asura. One of my followers recognized you when you entered the city and brought word to me.”  
+
+Conan grunted an oath.  
+
+“Don’t worry that others have discovered who you are,” Hadrathus assured him. “Your disguise would have deceived anyone except a follower of Asura, whose faith teaches us to see beyond illusion. You were followed to the watchtower, and some of my people entered the tunnel to aid you if you returned that way. Others, including myself, surrounded the tower. And now, King Conan, you may command as you will. Here in the temple of Asura, you are still king.”  
+
+“Why would you risk your lives for me?” asked the king.  
+
+“You were our friend when you sat on your throne,” Hadrathus replied. “You protected us when the priests of Mitra sought to drive us from the land.”  
+
+Conan looked around curiously. He had never before entered the temple of Asura, nor had he even been certain that such a temple existed in Tarantia. The priests of that faith were known for concealing their sanctuaries with great skill. The worship of Mitra was overwhelmingly dominant in the Hyborian kingdoms, yet the cult of Asura endured despite official bans and popular hatred. Conan had heard dark tales of hidden temples where thick smoke rose endlessly from black altars, where kidnapped victims were said to be sacrificed before a huge coiled serpent whose monstrous head swayed forever in haunted shadows.  
+
+Persecution had forced the followers of Asura to hide their temples with cunning craft and to keep their rituals secret; and that secrecy, in turn, had bred monstrous suspicions and tales of evil.  
+
+But Conan possessed the broad tolerance of a barbarian. He had refused to persecute the followers of Asura or allow the people to do so on mere rumor and unproven accusation. “If they are sorcerers,” he had said, “how will they let you harm them? If they are not, then there’s no evil in them. Crom’s devils! Let men worship whatever gods they choose.”  
+
+At Hadrathus’s respectful invitation, he sat down on an ivory chair and motioned for Albiona to take another, but she preferred to sit on a golden stool at his feet, pressing close against his leg as if seeking safety in his presence. Like most devout followers of Mitra, she felt an instinctive horror of the cult of Asura, instilled in her since childhood by wild tales of human sacrifice and monstrous gods lurking in shadowed temples.  
+
+Hadrathus stood before them, his uncovered head bowed.  
+
+“What do you wish, Your Majesty?”  
+
+“Food first,” Conan grunted, and the priest struck a golden gong with a silver wand.  
+
+The mellow notes had barely faded when four hooded figures entered through a curtained doorway, carrying a large four-legged silver platter piled high with steaming dishes and crystal vessels. They set it before Conan, bowed deeply, and withdrew. The king wiped his hands on the damask cloth and smacked his lips with open satisfaction.  
+
+“Be careful, Your Majesty!” whispered Albiona. “These people eat human flesh!”  
+
+“I’ll bet my kingdom this is nothing but good roast beef,” Conan replied. “Come on, girl, eat! You must be starving after prison food.”  
+
+Encouraged and reassured by the example of the man whose word was law to her, the countess obeyed and ate hungrily but delicately, while her liege lord tore into the meat and gulped down the wine with as much enthusiasm as if he hadn’t already eaten once that night.  
+
+“You priests are clever, Hadrathus,” he said, holding a large beef bone in his hands and speaking through a mouthful of meat. “I’d welcome your help in my campaign to win back my kingdom.”  
+
+Hadrathus slowly shook his head, and Conan slammed the bone down on the table in a burst of impatient anger.  
+
+“Crom’s devils! What’s wrong with the men of Aquilonia? First Servius—now you! Can you do nothing but wag your foolish heads when I talk about driving out those dogs?”  
+
+Hadrathus sighed and answered slowly, “My lord, it pains me to say this, and I wish I could say otherwise. But the freedom of Aquilonia is gone. No—perhaps the freedom of the whole world is gone! Age follows age in the history of the world, and now we enter an age of horror and slavery, as it was long ago.”  
+
+“What are you talking about?” demanded the king uneasily.  
+
+Hadrathus sank into a chair, resting his elbows on his knees and staring at the floor.  
+
+“It’s not just the rebellious lords of Aquilonia and the armies of Nemedia that stand against you,” he said. “It’s sorcery—grim black magic from the dark youth of the world. A terrible being has risen from the shadows of the past, and no one can stand before it.”  
+
+“What do you mean?” Conan repeated.  
+
+“I speak of Xaltotun of Acheron, who died three thousand years ago, yet walks the earth today.”  
+
+Conan was silent, while in his mind floated an image—the bearded face of calm, inhuman beauty. Again he was haunted by a sense of uneasy familiarity. Acheron—the very sound of the word stirred instinctive echoes of memory and ancient fear.  
+
+“Acheron,” he repeated. “Xaltotun of Acheron—man, are you insane? Acheron has been a myth for more centuries than I can count. I’ve often wondered if it ever existed at all.”  
+
+“It was a dark reality,” answered Hadrathus, “an empire of sorcerers steeped in evil long forgotten. It was finally overthrown by the Hyborian tribes of the West. The wizards of Acheron practiced vile necromancy—magic of the darkest kind—grisly arts taught to them by demons. And of all the sorcerers of that cursed kingdom, none was greater than Xaltotun of Python.”  
+
+“Then how was he ever defeated?” asked Conan skeptically.  
+
+“By some means, a source of cosmic power that he guarded jealously was stolen and turned against him. That source has now been returned to him, and he cannot be defeated.”  
+
+Albiona, clutching the headsman’s black cloak around her, stared from the priest to the king, not understanding their words. Conan shook his head angrily.  
+
+“You’re mocking me,” he growled. “If Xaltotun has been dead three thousand years, how can this man be him? It’s some fraud who’s taken the old one’s name.”  
+
+Hadrathus leaned over an ivory table and opened a small gold chest that stood there. From it he took something that glinted dully in the soft light—a broad gold coin of ancient minting.
+
+“You’ve seen Xaltotun unveiled? Then look at this. It’s a coin struck in ancient Acheron, before its fall. That black empire was so steeped in sorcery that even this coin still holds power in the making of magic.”
+
+Conan took it and frowned down at it. There was no mistaking its great age. He had handled many coins during his years of plundering and knew them well. The edges were worn and the inscription nearly gone, but the face stamped on one side was still clear and sharp. Conan’s breath hissed between his clenched teeth. It wasn’t warm in the chamber, yet he felt his scalp prickle and his skin tighten with cold. The face was that of a bearded man—mysterious, with calm, inhuman beauty.
+
+“By Crom! It’s him!” muttered Conan. He now understood the sense of familiarity that the sight of the bearded man had stirred in him from the beginning. He had seen a coin like this once before, long ago in a distant land.  
+
+With a shake of his shoulders he growled, “The resemblance is just a coincidence—or if he’s clever enough to take a forgotten wizard’s name, he’s clever enough to copy his face.” But he spoke without conviction. The sight of that coin had shaken the foundations of his world. He felt that reality and stability were collapsing into an abyss of illusion and sorcery. A wizard he could understand; but this was madness beyond reason.  
+
+“We cannot doubt that it truly is Xaltotun of Python,” said Hadrathus. “It was he who brought down the cliffs at Valkia with his spells that command the elementals of the earth—it was he who sent the creature of darkness into your tent before dawn.”  
+
+Conan scowled at him. “How do you know that?”  
+
+“The followers of Asura have secret channels of knowledge. That doesn’t matter. But do you realize how useless it is to sacrifice your people in a hopeless attempt to win back your crown?”  
+
+Conan rested his chin on his fist and stared grimly into nothing. Albiona watched him anxiously, her mind struggling to make sense of the maze of problems before him.  
+
+“Is there no wizard in the world who could use magic to fight Xaltotun’s magic?” he asked at last.  
+
+Hadrathus shook his head. “If there were, we of Asura would know of him. People say our cult is a remnant of the ancient Stygian serpent-worship. That’s a lie. Our ancestors came from Vendhya, beyond the Sea of Vilayet and the blue Himelian mountains. We are sons of the East, not the South, and we know all the wizards of the East, who are greater than those of the West. And not one of them would be more than a straw in the wind before the black power of Xaltotun.”  
+
+“But he was defeated once,” insisted Conan.  
+
+“Yes; a cosmic source was turned against him. But now that source is once again in his hands, and he’ll make sure it’s never stolen again.”  
+
+“And what is this cursed source?” demanded Conan irritably.  
+
+“It’s called the Heart of Ahriman. When Acheron fell, the ancient priest who had stolen it and used it against Xaltotun hid it in a haunted cave and built a small temple above it. Three times after that, the temple was rebuilt—each time larger and more elaborate than before—but always on the same spot as the original shrine, though people had long forgotten why. The memory of the hidden relic faded from ordinary minds and survived only in sacred texts and secret writings. No one knows where it came from. Some claim it’s literally the heart of a god; others say it’s a star that fell from the heavens ages ago. Until it was stolen, no one had seen it for three thousand years.  
+
+“When the magic of the Mitran priests failed against the sorcery of Xaltotun’s disciple, Altaro, they remembered the old legend of the Heart. The high priest and an acolyte descended into the dark, dreadful crypt beneath the temple—a place no priest had entered for three thousand years. In the ancient iron-bound books that speak of the Heart in strange symbols, it’s also written that a creature of darkness was left there by the ancient priest to guard it.  
+
+“Far below, in a square chamber with arched doorways leading into endless blackness, the priest and his acolyte found a black stone altar glowing faintly with an eerie light.  
+
+“On that altar lay a strange golden vessel shaped like a double-valved seashell, clinging to the stone like a barnacle. But it was open and empty. The Heart of Ahriman was gone. As they stared in horror, the guardian of the crypt—the creature of darkness—appeared and tore the high priest apart so that he died. But the acolyte fought off the being—a mindless, soulless thing from the pits, left long ago to guard the Heart—and escaped up the long, narrow, black stairway, carrying the dying priest. Before he died, the priest gasped out the news to his followers, told them to submit to a power they couldn’t defeat, and ordered secrecy. But the story was whispered among the priests, and we of Asura learned of it.”  
+
+“And Xaltotun draws his power from this relic?” asked Conan, still doubtful.  
+
+“No. His power comes from the black abyss. But the Heart of Ahriman came from some far-off universe of blazing light, and against it the powers of darkness cannot stand when it’s in the hands of one who knows its use. It’s like a sword that could strike at him, not one he can wield. It can restore life and destroy it. He stole it not to use against his enemies, but to keep them from using it against him.”  
+
+“A shell-shaped golden bowl on a black altar in a deep cave,” Conan muttered, frowning as he tried to grasp the elusive image. “That reminds me of something I’ve heard or seen. But what, by Crom, is this famous Heart?”  
+
+It was shaped like a great jewel, like a ruby, but pulsing with a blinding fire no ruby ever held. It glowed like living flame—  
+
+But Conan suddenly leapt up and slammed his right fist into his left palm with a thunderous crack.  
+
+“Crom!” he roared. “What a fool I’ve been! The Heart of Ahriman! The heart of my kingdom! ‘Find the heart of my kingdom,’ Zelata said. By Ymir, it was the jewel I saw in the green smoke—the jewel Tarascus stole from Xaltotun while he lay under the black lotus sleep!”  
+
+Hadrathus was on his feet too, his calm gone like a discarded cloak.  
+
+“What are you saying? The Heart stolen from Xaltotun?”  
+
+“Yes!” Conan thundered. “Tarascus feared Xaltotun and wanted to weaken his power, thinking it came from the Heart. Maybe he believed the wizard would die if the Heart were lost. By Crom—ahhh!” With a fierce grimace of frustration and disgust, he dropped his clenched hand to his side.  
+
+“I forgot. Tarascus gave it to a thief to throw into the sea. By now the man must be near Kordava. Before I can catch him, he’ll board a ship and toss the Heart into the ocean’s depths.”  
+
+“The sea will not keep it!” cried Hadrathus, trembling with excitement. “Xaltotun would have thrown it into the ocean long ago if he hadn’t known that the first storm would wash it ashore. But on what unknown coast might it land!”  
+
+“Well,” Conan said, regaining some of his usual confidence, “there’s no guarantee the thief will throw it away. If I know thieves—and I should, since I was one in Zamora in my youth—he won’t toss it. He’ll sell it to some rich merchant. By Crom!” He paced back and forth, his excitement rising. “It’s worth searching for! Zelata told me to find the heart of my kingdom, and everything else she said proved true. Could it be that the power to defeat Xaltotun lies in that crimson gem?”  
+
+“Yes! I’d stake my life on it!” shouted Hadrathus, his face glowing with passion, eyes blazing, fists clenched. “With it in our hands, we can defy Xaltotun’s powers! I swear it! If we can recover it, we have a real chance to reclaim your crown and drive the invaders from our gates. It’s not Nemedia’s swords that Aquilonia fears, but Xaltotun’s dark sorcery.”  
+
+Conan looked at him for a moment, moved by the priest’s intensity.  
+
+“It’s like a quest out of a nightmare,” he said finally. “Yet your words echo Zelata’s, and everything else she said was true. I’ll go after this jewel.”  
+
+“It holds Aquilonia’s fate,” said Hadrathus firmly. “I’ll send men with you—”  
+
+“No!” snapped the king impatiently, unwilling to be slowed by priests on his mission, no matter how skilled in secret arts. “This is a job for a warrior. I go alone. First to Poitain, where I’ll leave Albiona with Trocero. Then to Kordava, and to the sea beyond if I must. Maybe even if the thief means to obey Tarascus’s order, he’ll have trouble finding a ship this time of year.”  
+
+“And if you find the Heart,” cried Hadrathus, “I’ll prepare the way for your victory. Before you return to Aquilonia, I’ll spread word through secret channels that you live and are coming back with a magic stronger than Xaltotun’s. I’ll have men ready to rise when you return. They’ll rise if they know they’ll be protected from Xaltotun’s black magic.  
+
+“And I’ll help you on your journey.”  
+
+He stood and struck a gong.
+
+“A hidden tunnel runs from beneath this temple to a place outside the city walls. You’ll travel to Poitain on a pilgrim’s boat. No one will dare interfere with you.”  
+
+“As you wish.” With a clear goal before him, Conan burned with impatience and fierce energy. “Just make it quick.”  
+
+* * * * *  
+
+Meanwhile, events were moving swiftly in other parts of the city. A breathless messenger burst into the palace where Valerius was amusing himself with his dancing girls and, dropping to one knee, gasped out a confused story about a bloody prison break and the escape of a beautiful prisoner. He also brought word that Count Thespius, who had been charged with carrying out Albiona’s execution, was dying and begging to speak with Valerius before he passed away.  
+
+Throwing on a cloak in haste, Valerius followed the man through twisting corridors until they reached a chamber where Thespius lay. There was no doubt the count was dying; bloody foam bubbled from his lips with every ragged breath. His severed arm had been bound to slow the bleeding, but even without that, the wound in his side was fatal.  
+
+Alone in the room with the dying man, Valerius swore under his breath.  
+
+“By Mitra, I thought only one man alive could strike such a blow.”  
+
+“Valerius!” gasped the dying man. “He lives! Conan lives!”  
+
+“What are you saying?” cried Valerius.  
+
+“I swear by Mitra!” gurgled Thespius, choking on the blood that filled his mouth. “It was he who carried off Albiona! He’s not dead—no ghost come back from hell to haunt us. He’s flesh and blood, and more terrible than ever. The alley behind the tower is full of corpses. Beware, Valerius—he’s come back—to kill us all—”  
+
+A violent shudder ran through the blood-smeared body, and Count Thespius went still.  
+
+Valerius frowned down at the corpse, glanced quickly around the empty room, then strode to the door and threw it open. The messenger and a group of Nemedian guards stood several paces down the corridor. Valerius muttered something that might have been satisfaction.  
+
+“Have all the gates been closed?” he demanded.  
+
+“Yes, your Majesty.”  
+
+“Triple the guards at each one. No one enters or leaves the city without the strictest inspection. Send men to search the streets and every district. A very valuable prisoner has escaped, helped by an Aquilonian rebel. Did any of you see the man?”  
+
+“No, your Majesty. The old watchman caught a glimpse of him, but could only say he was a giant, dressed in the black clothes of the executioner, whose naked body we found in an empty cell.”  
+
+“He’s a dangerous man,” said Valerius. “Take no chances with him. You all know the Countess Albiona. Search for her, and if you find her, kill her and her companion immediately. Don’t try to take them alive.”  
+
+Back in his palace chamber, Valerius summoned four men of strange and foreign appearance. They were tall and thin, with yellowish skin and blank faces. They looked almost identical, dressed alike in long black robes that hid their sandaled feet. Their faces were shadowed by their hoods. They stood before Valerius with their hands folded inside their wide sleeves. Valerius looked at them without pleasure. In his travels he had met many strange peoples.  
+
+“When I found you starving in the Khitan jungles,” he said abruptly, “exiles from your homeland, you swore to serve me. You’ve served me well enough, in your vile way. I need one more service from you, and then I’ll release you from your oath.  
+
+“Conan the Cimmerian, king of Aquilonia, still lives, despite Xaltotun’s sorcery—or perhaps because of it. I don’t know. The dark mind of that resurrected devil is too twisted and cunning for any mortal to understand. But as long as Conan lives, I’m not safe. The people accepted me as the lesser of two evils when they thought he was dead. If he reappears, the throne will be shaking under me in rebellion before I can even raise my hand.  
+
+“Maybe my allies plan to use him to replace me if they decide I’ve served my purpose. I don’t know. But I do know this world isn’t big enough for two kings of Aquilonia. Find the Cimmerian. Use your unnatural skills to track him down wherever he hides or runs. He has many friends in Tarantia. He had help when he carried off Albiona. It took more than one man, even a man like Conan, to cause all that slaughter in the alley behind the tower. But enough talk. Take your staffs and follow his trail. Where it leads, I don’t know. But find him! And when you find him—kill him!”  
+
+The four Khitans bowed together and, still silent, turned and slipped soundlessly out of the room.  
+
+Swords of the South  
+
+The dawn rising over the distant hills shone upon the sails of a small boat drifting down the river that curved to within a mile of Tarantia’s walls before looping southward like a great shining serpent. This boat was unlike the usual craft that traveled the wide Khorotas—fishing boats and merchant barges laden with rich goods. It was long and narrow, with a high curving prow, black as ebony, and white skulls painted along its sides. In the middle stood a small cabin with its windows tightly covered. Other boats gave the ominously painted vessel a wide berth, for it was clearly one of those “pilgrim boats” that carried a dead follower of Asura on his final mysterious journey southward, to where, far beyond the Poitanian mountains, the river finally flowed into the blue ocean. In that cabin surely lay the corpse of the departed worshipper. Everyone knew the sight of those grim boats, and even the most fanatical worshipper of Mitra would never dare touch or interfere with their somber voyages.  
+
+No one knew where their final destination lay. Some said Stygia; others, a nameless island beyond the horizon; still others claimed it was in the wondrous and mysterious land of Vendhya, where the dead finally returned home. But no one knew for certain. They only knew that when a follower of Asura died, the body went south down the great river in a black boat rowed by a giant slave, and neither boat, corpse, nor slave was ever seen again—unless, as some dark tales whispered, it was always the same slave who rowed every boat southward.  
+
+The man rowing this particular boat was as huge and brown as the others, though a closer look might have revealed that his color came from carefully applied dye. He wore only a leather loincloth and sandals, and he handled the long oars with remarkable strength and skill. But no one came near the grim vessel, for everyone knew the followers of Asura were cursed, and that these pilgrim boats carried dark magic. So men steered their craft far aside and muttered prayers as the black boat slid past, never realizing they were helping their king and the Countess Albiona escape.  
+
+It was a strange journey in that sleek black boat, drifting down the great river for nearly two hundred miles, until they reached the place where the Khorotas turned east, running along the edge of the Poitanian mountains. The ever-changing scenery slipped by like a dream. During the day, Albiona stayed quietly in the small cabin, as still as the corpse she pretended to be. Only late at night, after the pleasure boats with their elegant passengers lounging on silk cushions under torchlight had left the river, and before dawn brought the rush of fishing boats, did the girl dare to come out. Then she took the long oar, which had been cleverly tied in place with ropes to help her manage it, while Conan snatched a few hours of sleep. But the king needed little rest. The fire of his purpose drove him relentlessly, and his powerful body could bear the strain. Without stopping or slowing, they pushed southward.  
+
+So they fled down the river, through nights when the flowing current reflected a million stars, and through days of golden sunlight, leaving winter behind as they sped south. They passed cities at night, their skies glowing with countless lights, grand riverside villas, and fertile groves. At last, the blue mountains of Poitain rose before them, layer upon layer like the ramparts of the gods, and the great river, turning away from those turreted cliffs, thundered through the marching hills in a rush of rapids and foaming waterfalls.  
+
+Conan studied the shoreline carefully, then turned the long oar and steered toward land at a point where a narrow strip of earth jutted into the water, and fir trees grew in a strangely perfect circle around a gray, oddly shaped rock.  
+
+“I can’t see how these boats manage to ride those falls we hear roaring ahead,” he grunted. “Hadrathus said they could—but this is where we stop. He said a man would be waiting for us with horses, but I don’t see anyone. I don’t even know how word of our coming could have reached here before us.”
+
+He brought the boat to shore and tied the prow to a curved root along the low bank. Then, plunging into the water, he washed the brown paint from his skin and came out dripping, his natural color restored. From the cabin, he brought out a suit of Aquilonian ring-mail that Hadrathus had procured for him, along with his sword. He put them on while Albiona changed into clothes fit for mountain travel. When Conan was fully armed and turned toward the shore, he froze, his hand going to his sword. For there, under the trees, stood a black-cloaked figure holding the reins of a white palfrey and a bay warhorse.
+
+“Who are you?” demanded the king.
+
+The stranger bowed low.  
+“A follower of Asura. A command came. I obeyed.”
+
+“How did it ‘come’?” asked Conan, but the man only bowed again.  
+“I’ve come to guide you through the mountains to the first Poitanian stronghold.”
+
+“I don’t need a guide,” Conan replied. “I know these hills well. I thank you for the horses, but the countess and I will draw less attention alone than if we were accompanied by a servant of Asura.”
+
+The man bowed deeply, handed over the reins, and stepped into the boat. Casting off, he drifted down the swift current toward the distant roar of the unseen rapids. Shaking his head in confusion, Conan lifted the countess into the palfrey’s saddle, mounted the warhorse himself, and turned toward the peaks that crowned the sky like castles.
+
+The rolling land at the base of the towering mountains was now a border region in chaos, where the barons had reverted to old feudal ways and bands of outlaws roamed freely. Poitain had not officially declared independence from Aquilonia, but in practice it was a self-contained kingdom ruled by its hereditary count, Trocero. The southern plains had nominally submitted to Valerius, but he had not dared to force the mountain passes guarded by strongholds where the crimson leopard banner of Poitain flew defiantly.
+
+The king and his fair companion rode up the long blue slopes in the soft evening light. As they climbed higher, the rolling country spread out beneath them like a vast purple cloak, streaked with the shine of rivers and lakes, the golden glint of wide fields, and the white sparkle of distant towers. Ahead and far above, they saw the first of the Poitanian fortresses—a stronghold commanding a narrow pass, its crimson banner streaming against the clear blue sky.
+
+Before they reached it, a band of knights in shining armor rode out from among the trees, and their leader sternly ordered them to halt. They were tall men, with the dark eyes and black hair of the south.
+
+“Halt, sir, and state your business, and why you ride toward Poitain.”
+
+“Is Poitain in rebellion, then,” asked Conan, watching him closely, “that a man in Aquilonian armor is stopped and questioned like a foreigner?”
+
+“Many rogues ride out of Aquilonia these days,” the knight replied coldly. “As for rebellion—if you mean rejecting a usurper, then yes, Poitain is in revolt. We’d rather serve the memory of a dead man than the rule of a living dog.”
+
+Conan pulled off his helmet, shook back his black mane, and looked the man squarely in the face. The Poitanian stared in shock and went pale.
+
+“Saints above!” he gasped. “It’s the king—alive!”
+
+The others stared in disbelief, then a roar of wonder and joy burst from them. They crowded around Conan, shouting their war cries and waving their swords in wild excitement. The cheers of Poitanian warriors were enough to terrify a timid man.
+
+“Oh, Trocero will weep tears of joy to see you, sire!” cried one.
+
+“Yes, and Prospero!” shouted another. “The general has been sunk in gloom, cursing himself day and night that he didn’t reach Valkia in time to die beside his king!”
+
+“Now we’ll fight for empire!” yelled another, swinging his great sword above his head. “Hail, Conan, king of Poitain!”
+
+The clash of bright steel and the thunder of their cheers startled flocks of colorful birds into flight from the surrounding trees. The hot southern blood was aflame, and they wanted nothing more than for their newly found king to lead them into battle and glory.
+
+“What are your orders, sire?” they cried. “Let one of us ride ahead and announce your coming into Poitain! Banners will wave from every tower, roses will carpet the road before your horse’s hooves, and all the beauty and chivalry of the south will honor you as you deserve—”
+
+Conan shook his head.  
+“Who could doubt your loyalty? But the winds that blow over these mountains carry news into the lands of my enemies, and I’d rather they didn’t know I’m alive—yet. Take me to Trocero, and keep my identity secret.”
+
+So what the knights had hoped would be a triumphant procession became instead a secret journey. They traveled swiftly, speaking to no one except for a quiet word to the captain on duty at each pass, and Conan rode among them with his visor lowered.
+
+The mountains were empty except for outlaws and the soldiers stationed there to guard the passes. The pleasure-loving people of Poitain had neither the need nor the desire to scrape out a hard, meager living from those harsh heights. South of the mountain ranges, the rich and beautiful plains of Poitain stretched all the way to the river Alimane; but beyond that river lay the land of Zingara.
+
+Even now, when winter crisped the leaves beyond the mountains, tall, lush grass rippled across the plains where grazed the horses and cattle that made Poitain famous. Palm trees and orange groves glowed in the sunlight, and the magnificent purple, gold, and crimson towers of castles and cities shimmered in the golden light. It was a land of warmth and abundance, of handsome men and fierce warriors. Hard men are not born only in hard lands. Poitain was surrounded by greedy neighbors, and her sons learned toughness through endless wars. To the north, the mountains guarded the land, but to the south only the Alimane separated Poitain’s plains from those of Zingara—and that river had run red with blood countless times. To the east lay Argos, and beyond that Ophir, both proud and covetous kingdoms. The knights of Poitain held their lands by the strength and sharpness of their swords, and knew little of comfort or idleness.
+
+So Conan eventually came to the castle of Count Trocero....
+
+*       *       *       *       *
+
+Conan sat on a silk-covered couch in a richly decorated room whose sheer curtains billowed in the warm breeze. Trocero paced the floor like a panther—a lean, restless man with a narrow waist and the broad shoulders of a swordsman, who carried his years lightly.
+
+“Let us proclaim you king of Poitain!” urged the count. “Let those northern swine wear the yoke they’ve chosen for themselves. The south is still yours. Stay here and rule us, among the flowers and the palms.”
+
+But Conan shook his head. “There’s no nobler land on earth than Poitain. But it can’t stand alone, no matter how brave its sons are.”
+
+“It stood alone for generations,” Trocero shot back, his voice sharp with the quick, jealous pride of his people. “We weren’t always part of Aquilonia.”
+
+“I know. But things aren’t as they were then, when all kingdoms were broken into small principalities constantly at war with each other. The age of dukedoms and free cities is over; the age of empires has come. Rulers dream of empires now, and only unity brings strength.”
+
+“Then let’s unite Zingara with Poitain,” argued Trocero. “Half a dozen princes are fighting each other, and the country is torn apart by civil war. We’ll conquer it, province by province, and add it to your realm. Then, with Zingaran help, we’ll conquer Argos and Ophir. We’ll build an empire—”
+
+Again Conan shook his head. “Let others dream of empires. I only want to hold what’s mine. I’ve no wish to rule an empire forged by blood and fire. It’s one thing to take a throne with the help of its people and rule with their consent; it’s another to crush a foreign land and rule it through fear. I don’t want to become another Valerius. No, Trocero, I’ll rule all Aquilonia and no more—or I’ll rule nothing.”
+
+“Then lead us over the mountains and we’ll strike the Nemedians.”
+
+Conan’s fierce eyes gleamed with approval.
+
+“No, Trocero. That would be a useless sacrifice. I’ve told you what I must do to win back my kingdom. I have to find the Heart of Ahriman.”
+
+“But that’s madness!” protested Trocero. “The ramblings of a heretic priest, the mutterings of a mad witch.”
+
+“You weren’t in my tent before Valkia,” Conan replied grimly, glancing unconsciously at his right wrist, where faint blue marks still showed. “You didn’t see the cliffs crash down and destroy the flower of my army. No, Trocero, I’m convinced. Xaltotun isn’t a mortal man, and only with the Heart of Ahriman can I stand against him. So I’m riding to Kordava—alone.”
+
+“But that’s dangerous,” protested Trocero.
+
+“Life is dangerous,” rumbled the king. “I won’t go as the king of Aquilonia, or even as a knight of Poitain, but as a wandering mercenary, as I once rode in Zingara long ago. Oh, I have plenty of enemies south of the Alimane, in the lands and seas of the south. Many who won’t know me as the king of Aquilonia will remember me as Conan of the Barachan pirates, or Amra of the black corsairs. But I have friends too, and men who’ll help me for their own reasons.” A faint, reminiscent grin crossed his lips.
+
+Trocero dropped his hands helplessly and looked toward Albiona, who sat on a nearby couch.
+
+“I understand your doubts, my lord,” she said. “But I too saw the coin in the temple of Asura, and look—you remember Hadrathus said it was dated five hundred years before the fall of Acheron. If Xaltotun is indeed the man shown on that coin, as His Majesty swears he is, then he was no ordinary wizard, even in his former life, for his years were counted in centuries, not as other men’s lives are.”
+
+Before Trocero could answer, a respectful knock sounded on the door and a voice called, “My lord, we’ve caught a man sneaking around the castle who says he wants to speak with your guest. I await your orders.”
+
+“A spy from Aquilonia!” hissed Trocero, grabbing for his dagger, but Conan raised his voice and said, “Open the door and let me see him.”
+
+The door opened, and a man stood framed in it, held firmly on either side by stern-looking guards. He was slender, dressed in a dark hooded robe.
+
+“Are you a follower of Asura?” asked Conan.
+
+The man nodded, and the strong guards looked uneasy, glancing uncertainly at Trocero.
+
+“The word came south,” said the man. “Beyond the Alimane we can’t help you, for our sect doesn’t extend farther south, but it stretches eastward along the Khorotas. Still, I’ve learned this: the thief who stole the Heart of Ahriman from Tarascus never reached Kordava. In the mountains of Poitain he was killed by bandits. The jewel fell into the hands of their leader, who, not knowing what it truly was, and being hunted after his band was destroyed by Poitanian knights, sold it to the Kothic merchant Zorathus.”
+
+“Ha!” Conan leapt to his feet, electrified. “And what of Zorathus?”
+
+“Four days ago he crossed the Alimane, heading for Argos, with a small group of armed servants.”
+
+“He’s a fool to cross Zingara in times like these,” said Trocero.
+
+“Yes, the times are troubled across the river. But Zorathus is a bold man, reckless in his way. He’s in great haste to reach Messantia, where he hopes to find a buyer for the jewel. Perhaps he hopes to sell it at last in Stygia. Perhaps he suspects its true nature. In any case, instead of following the long road that winds along Poitain’s borders and eventually reaches Argos far from Messantia, he’s gone straight across eastern Zingara, taking the shorter and more direct route.”
+
+Conan slammed his fist on the table so hard that the great board shook.
+
+“Then, by Crom, luck has finally rolled the dice in my favor! A horse, Trocero, and the gear of a Free Companion! Zorathus has a long lead, but not too long for me to catch him—even if I have to chase him to the ends of the earth!”
+
+The Fang of the Dragon
+
+At dawn, Conan rode his horse through the shallow waters of the Alimane and reached the wide caravan road that ran southeast. Behind him, on the far bank, Trocero sat silently on his horse at the head of his armored knights, the crimson leopard of Poitain fluttering above him in the morning breeze. They sat in silence, those dark-haired men in shining steel, until their king’s figure disappeared into the blue distance brightening toward sunrise.
+
+Conan rode a huge black stallion, a gift from Trocero. He no longer wore Aquilonian armor. His gear marked him as a veteran of the Free Companies, men of every race. His helmet was a plain, dented morion. The leather and chain mesh of his hauberk were worn and polished from many campaigns, and the scarlet cloak hanging loosely from his armored shoulders was torn and stained. He looked every bit the seasoned mercenary who had known all the turns of fortune—riches and plunder one day, an empty purse and a hungry belly the next.
+
+And more than looking the part, he felt it. Old memories stirred within him—the return of the wild, reckless, glorious days before he had taken the imperial path, when he was a wandering soldier of fortune, drinking, brawling, and adventuring without a thought for tomorrow, wanting only strong ale, red lips, and a sharp sword to swing on the battlefields of the world.
+
+Without realizing it, he slipped back into his old ways; a new swagger crept into his posture and the way he sat his horse. Half-forgotten oaths came naturally to his lips, and as he rode he hummed old songs he had once shouted with reckless comrades in countless taverns, on dusty roads, and on bloody fields.
+
+He rode through a troubled land. The cavalry units that usually patrolled the river, watching for raids from Poitain, were nowhere to be seen. Civil war had left the borders unguarded. The long white road stretched empty from horizon to horizon. No camel caravans, rumbling wagons, or herds moved along it now—only scattered groups of horsemen in leather and steel, sharp-eyed, hard-faced men who rode close together and kept alert. They looked Conan over carefully but rode on, for his worn armor promised no loot, only hard fighting.
+
+Villages lay in ashes and deserted, the fields and meadows untended. Only the boldest dared travel the roads now, and the local population had been wiped out by civil wars and raids from across the river. In more peaceful times, the road had been crowded with merchants traveling between Poitain and Messantia in Argos, or the other way around. But now they preferred the longer, safer route that ran east through Poitain and then south across Argos. Only the most reckless would risk their lives and goods on this road through Zingara.
+
+At night the southern horizon glowed with fire, and by day thin columns of smoke drifted upward. In the cities and plains to the south, men were dying, thrones were falling, and castles were burning. Conan felt the old pull of the professional warrior—to turn his horse and dive into the chaos, the looting and fighting as in the old days. Why should he struggle to regain the rule of a people who had already forgotten him? Why chase a fading dream, a crown lost forever? Why not seek oblivion, lose himself again in the red tides of war and plunder that had so often carried him away? Could he not carve out another kingdom for himself? The world was entering an age of iron, an age of war and ambition; some strong man might rise above the ruins of nations as a supreme conqueror. Why not him? So his familiar inner devil whispered, and the ghosts of his wild, bloody past crowded his mind. But he did not turn aside. He rode on, following a quest that grew dimmer the farther he went, until it seemed at times he was chasing a dream that had never existed.
+
+He pushed the black stallion as hard as he dared, but the long white road still stretched endlessly before him. Zorathus had a long head start, but Conan rode steadily, knowing he traveled faster than any merchant caravan could. And so he came to the castle of Count Valbroso, perched like a vulture’s nest on a bare hill overlooking the road.
+
+* * * * *
+
+Valbroso rode down with his men-at-arms—a lean, dark man with glittering eyes and a sharp, predatory nose. He wore black plate armor and was followed by thirty spearmen, black-mustached hawks of the border wars, as greedy and ruthless as their master. Lately, the caravan tolls had been poor, and Valbroso cursed the civil wars that had emptied the roads of rich traffic, even as he blessed them for the freedom they gave him to raid his neighbors.
+
+He hadn’t expected much from the lone rider spotted from his tower, but anything was worth investigating. With a practiced eye he took in Conan’s worn mail and dark, scarred face, and came to the same conclusion as the riders who had passed the Cimmerian on the road—an empty purse and a ready sword.
+
+“Who are you, knave?” he demanded.
+
+“A mercenary, heading for Argos,” Conan replied. “What do names matter?”
+
+“You’re riding the wrong way for a Free Companion,” grunted Valbroso. “There’s good fighting to the south—and better plunder. Join my company. You won’t go hungry. The road’s empty of fat merchants to rob, but I plan to take my men south to sell our swords to whichever side looks strongest.”
+
+Conan didn’t answer at once, knowing that if he refused outright, Valbroso’s men might attack him on the spot. Before he could decide, the Zingaran spoke again.
+
+“You Free Company rogues always know tricks to make men talk. I’ve got a prisoner—the last merchant I caught, by Mitra, and the only one I’ve seen in a week—and the dog is stubborn. He has an iron box whose secret defies us, and I haven’t been able to make him open it. By Ishtar, I thought I knew every method of persuasion, but maybe you, as an old Free Companion, know some I don’t. Anyway, come with me and see what you can do.”  
+
+Valbroso’s words made Conan decide instantly. That sounded very much like Zorathus. Conan didn’t know the merchant, but any man bold enough to take the Zingaran road in times like these would likely be stubborn enough to resist torture.  
+
+He fell in beside Valbroso and rode up the winding road to the top of the hill where the grim castle stood. As a man-at-arms, he should have ridden behind the count, but habit made him careless, and Valbroso didn’t mind. Years of life on the border had taught the count that the frontier was nothing like the royal court. He understood the independence of mercenaries, behind whose swords many kings had walked the path to their thrones.  
+
+A dry moat, half filled with rubble in places, surrounded the castle. They clattered across the drawbridge and through the arched gate. Behind them, the portcullis dropped with a heavy clang. They entered a bare courtyard, overgrown with scraggly grass, with a well in the center. Shacks for the men-at-arms leaned against the bailey wall, and women—either slovenly or gaudily dressed—peered from the doors. Fighting-men in rusty armor tossed dice on the flagstones under the arches. It looked more like a bandit’s stronghold than a nobleman’s castle.  
+
+Valbroso dismounted and motioned for Conan to follow. They went through a doorway and along a vaulted corridor, where they met a scarred, hard-faced man in armor coming down a stone staircase—clearly the captain of the guard.  
+
+“Well, Beloso,” said Valbroso. “Has he talked?”  
+
+“He’s stubborn,” muttered Beloso, shooting a suspicious glance at Conan.  
+
+Valbroso cursed and stormed up the winding stairs, followed by Conan and the captain. As they climbed, the groans of a man in mortal agony became audible. Valbroso’s torture chamber was high above the courtyard instead of in a dungeon below. In that chamber, where a gaunt, hairy brute in leather breeches squatted gnawing a beef bone, stood the instruments of torment—racks, boots, hooks, and all the devices human cruelty had invented to tear flesh, break bones, and rip veins and tendons.  
+
+On a rack a man was stretched naked, and one glance told Conan he was dying. The unnatural length of his limbs and body showed dislocated joints and unspeakable ruptures. He was dark, with an intelligent, aquiline face and quick eyes now glazed and bloodshot with pain. Sweat of agony glistened on his brow, and his lips were drawn back from blackened gums.  
+
+“There’s the box.” Valbroso viciously kicked a small but heavy iron chest that stood nearby. It was intricately carved with tiny skulls and writhing dragons intertwined in strange patterns, but Conan saw no catch or hinge that might open the lid. Marks of fire, axe, hammer, and chisel showed on it only as scratches.  
+
+“This is the dog’s treasure box,” said Valbroso angrily. “Everyone in the south knows of Zorathus and his iron chest. Mitra alone knows what’s inside it. But he won’t give up its secret.”  
+
+Zorathus! Then it was true—the man he sought lay before him. Conan’s heart pounded painfully as he leaned over the writhing form, though he showed no sign of his desperate eagerness.  
+
+“Loosen those ropes, you dog!” he ordered the torturer sharply, and Valbroso and his captain stared. In that moment of forgetfulness, Conan had used his imperial tone, and the brute in leather instinctively obeyed the commanding edge in that voice. He eased the ropes gradually, since a sudden slackening would have tortured the torn joints as much as further stretching.  
+
+Grabbing a vessel of wine that stood nearby, Conan held it to the wretch’s lips. Zorathus gulped spasmodically, the liquid spilling over his heaving chest.  
+
+A flicker of recognition came into the bloodshot eyes, and the froth-smeared lips parted. From them came a broken whisper in the Kothic tongue.  
+
+“Is this death, then? Is the long torment over? For this is King Conan who died at Valkia, and I am among the dead.”  
+
+“You’re not dead,” said Conan. “But you’re dying. You’ll be tortured no more—I’ll see to that. But I can’t help you further. Before you die, tell me how to open your iron box.”  
+
+“My iron box,” mumbled Zorathus in delirious, broken phrases. “The chest forged in unholy fires among the flaming mountains of Khrosha; the metal no chisel can cut. How many treasures it has carried across the world! But none like the treasure it holds now.”  
+
+“Tell me how to open it,” urged Conan. “It can do you no good, and it might help me.”  
+
+“Yes, you are Conan,” muttered the Kothian. “I’ve seen you sitting on your throne in the great hall of Tarantia, with your crown on your head and the scepter in your hand. But you are dead—you died at Valkia. And so I know my own end is near.”  
+
+“What’s the dog saying?” demanded Valbroso impatiently, not understanding Kothic. “Will he tell us how to open the box?”  
+
+As if the voice had sparked a last flicker of life in him, Zorathus rolled his bloodshot eyes toward the speaker.  
+
+“Only Valbroso will I tell,” he gasped in Zingaran. “Death is upon me. Lean close, Valbroso!”  
+
+The count did so, his dark face lit with greed; behind him his grim captain, Beloso, pressed closer.  
+
+“Press the seven skulls on the rim, one after another,” gasped Zorathus. “Then press the head of the dragon that winds across the lid. Then press the sphere in the dragon’s claws. That will release the hidden catch.”  
+
+“Quick, the box!” shouted Valbroso with an oath.  
+
+Conan lifted it and set it on a dais, and Valbroso shoved him aside.  
+
+“Let me open it!” cried Beloso, stepping forward.  
+
+Valbroso cursed him back, greed blazing in his black eyes.  
+
+“No one but me will open it!” he shouted.  
+
+Conan, whose hand had instinctively gone to his sword hilt, glanced at Zorathus. The man’s eyes were glazed and bloodshot, yet fixed on Valbroso with burning intensity. Was that the shadow of a grim, twisted smile on the dying man’s lips? Not until he knew he was dying had the merchant given up the secret. Conan turned to watch Valbroso, just as the dying man did.  
+
+Along the rim of the lid, seven skulls were carved among intertwining branches of strange trees. An inlaid dragon writhed across the top amid ornate designs. Valbroso pressed the skulls in frantic haste, and as he jammed his thumb down on the carved dragon’s head, he swore sharply and snatched his hand away, shaking it in irritation.  
+
+“A sharp point in the carving,” he snarled. “I pricked my thumb.”  
+
+He pressed the golden sphere clutched in the dragon’s talons, and the lid flew open suddenly. Their eyes were blinded by a golden blaze. It seemed to them that the carved box was full of glowing fire that spilled over the rim and drifted through the air in trembling flakes. Beloso cried out, and Valbroso gasped. Conan stood speechless, his mind caught by the brilliance.  
+
+“Mitra, what a jewel!” Valbroso’s hand plunged into the chest and came out holding a great, pulsing crimson sphere that filled the room with a flickering glow. In its light, Valbroso looked like a corpse. And the dying man on the loosened rack suddenly burst into wild laughter.  
+
+“Fool!” he screamed. “The jewel is yours! I give you death along with it! The scratch on your thumb—look at the dragon’s head, Valbroso!”  
+
+Everyone turned and stared. Something tiny and dimly gleaming was sticking up from the open, carved mouth.  
+
+“The dragon’s fang!” shrieked Zorathus. “Soaked in the poison of the black Stygian scorpion! Fool, fool, to open the box of Zorathus with your bare hand! Death! You’re a dead man now!”  
+
+And with bloody foam on his lips, he died.  
+
+Valbroso staggered, crying out. “Ah, Mitra, I’m burning!” he screamed. “My veins are filled with liquid fire! My joints are bursting apart! Death! Death!” He stumbled and fell headlong. There was a moment of horrible convulsions, his limbs twisting into grotesque, unnatural shapes, and then, frozen in that position, the man went still—his glassy eyes staring blankly upward, his lips pulled back from blackened gums.  
+
+“Dead!” muttered Conan, bending to pick up the jewel where it had rolled from Valbroso’s stiff hand. It lay on the floor like a trembling pool of sunset fire.  
+
+“Dead!” echoed Beloso, madness in his eyes. Then he moved.  
+
+Conan was caught off guard, his eyes dazzled, his mind dazed by the blazing gem. He didn’t realize Beloso’s intent until something crashed down with terrible force on his helmet. The jewel’s glow flared redder, and he dropped to his knees under the blow.
+
+He heard running feet, a bellow of animal-like agony. Stunned but not completely senseless, he realized Beloso had grabbed the iron box and smashed it down on his head as he bent over. Only his helmet had saved his skull. He staggered up, drawing his sword, trying to shake the fog from his eyes. The room swam before his dizzy gaze. But the door was open, and quick footsteps were fading down the winding stairs. On the floor, the brutish torturer was gasping out his life with a deep wound under his chest. And the Heart of Ahriman was gone.  
+
+Conan stumbled out of the chamber, sword in hand, blood streaming down his face from under his helmet. He ran unsteadily down the steps, hearing the clash of steel in the courtyard below, shouts, then the frantic pounding of hooves. Rushing into the bailey, he saw the men-at-arms milling in confusion while women screamed. The postern gate stood open, and a soldier lay across his pike with his head split open. Horses, still bridled and saddled, were running and neighing around the yard—Conan’s black stallion among them.  
+
+“He’s gone mad!” screamed a woman, wringing her hands as she ran about. “He came out of the castle like a mad dog, slashing everyone! Beloso’s gone mad! Where’s Lord Valbroso?”  
+
+“Which way did he go?” roared Conan.  
+
+Everyone turned and stared at the stranger’s blood-smeared face and drawn sword.  
+
+“Through the postern!” shrieked a woman, pointing eastward, and another shouted, “Who is this man?”  
+
+“Beloso has killed Valbroso!” yelled Conan, leaping forward and grabbing the stallion’s mane as the men-at-arms hesitated. A wild uproar broke out at his words, but their reaction was exactly what he expected. Instead of closing the gates to capture him or chasing the fleeing murderer to avenge their lord, they fell into even greater confusion. Wolves bound together only by fear of Valbroso, they had no loyalty to the castle or to each other.  
+
+Swords clashed in the courtyard, and women screamed. In the chaos, no one noticed Conan as he shot through the postern gate and thundered down the hill. The wide plain spread before him, and beyond the hill the caravan road split: one branch ran south, the other east. On the eastern road he saw another rider, bent low and spurring hard. The plain swam before Conan’s eyes, the sunlight a thick red haze, and he swayed in the saddle, gripping the flowing mane with one hand. Blood dripped onto his armor, but grimly he urged the stallion on.  
+
+Behind him, smoke began to pour from the castle on the hill where the count’s body lay forgotten beside that of his prisoner. The sun was setting; against the blood-red sky, the two black figures fled.  
+
+The stallion wasn’t fresh, but neither was Beloso’s horse. Yet the great beast responded powerfully, drawing on deep reserves of strength. Why the Zingaran fled from a single pursuer, Conan didn’t bother to guess. Perhaps blind panic drove Beloso, born of the madness that lurked in that blazing jewel. The sun was gone; the white road was a faint glimmer through the ghostly twilight fading into purple darkness far ahead.  
+
+The stallion panted, straining hard. The landscape shifted in the deepening dusk. Bare plains gave way to clusters of oaks and alders, and low hills rose in the distance. Stars began to appear. The stallion gasped and stumbled in its stride, but ahead loomed a dense forest stretching to the hills on the horizon. Between it and himself, Conan glimpsed the dim shape of the fugitive. He urged on the exhausted stallion, for he saw he was gaining, yard by yard. Above the pounding of hooves came a strange cry from the shadows, but neither pursuer nor pursued paid heed.  
+
+As they raced beneath the branches that hung over the road, they were almost side by side. A fierce cry burst from Conan’s lips as his sword rose; a pale oval face turned toward him, a sword flashed in a half-seen hand, and Beloso echoed the cry—and then the weary stallion, with a lurch and a groan, lost its footing in the shadows and went tumbling head over heels, throwing its dazed rider from the saddle. Conan’s throbbing head struck a stone, and the stars vanished into deeper darkness.  
+
+* * * * *  
+
+How long Conan lay unconscious he never knew. His first sensation as he came to was that of being dragged by one arm over rough, stony ground and through thick underbrush. Then he was thrown down carelessly, and perhaps the jolt brought him fully awake.  
+
+His helmet was gone, his head throbbed horribly, he felt sick, and blood clotted thickly in his black hair. But with the vitality of a wild beast, life and awareness surged back into him, and he became conscious of his surroundings.  
+
+A broad red moon shone through the trees, telling him it was long past midnight. He had lain unconscious for hours—long enough to recover from the terrible blow Beloso had struck, as well as the fall that had knocked him out. His mind felt clearer than it had during that mad chase after the fugitive.  
+
+He realized with a start that he wasn’t lying beside the white road. The road was nowhere in sight. He lay on the grassy ground in a small clearing surrounded by a black wall of tree trunks and tangled branches. His face and hands were scratched and torn as if he had been dragged through brambles. Shifting his body, he looked around—and then started violently. Something was crouching over him.  
+
+At first, Conan doubted he was truly awake, thinking what he saw was only a fever dream. Surely that strange, motionless gray creature crouching on its haunches and staring down at him with cold, unblinking eyes couldn’t be real.  
+
+Conan lay there staring, half expecting it to fade away like a dream image, when a chill of memory crept down his spine. Half-forgotten tales rushed back—grisly stories whispered about the shapes that haunted the deserted forests at the base of the hills marking the Zingaran-Argossean border. People called them ghouls—eaters of human flesh, spawn of darkness, the offspring of unholy unions between a lost, forgotten race and demons from the underworld. Somewhere in those ancient woods, men said, lay the ruins of a cursed city, and among its tombs crept gray, human-like shadows. Conan shuddered violently.  
+
+He stared at the deformed head looming dimly above him and cautiously reached for the sword at his hip. With a horrible cry that Conan instinctively echoed, the creature lunged for his throat.  
+
+Conan threw up his right arm, and the beast’s dog-like jaws clamped down, driving the mail links into his flesh. Its twisted, almost human hands clawed for his throat, but he twisted and rolled his whole body, pulling his dagger with his left hand.  
+
+They rolled over and over in the grass, striking and tearing. The muscles beneath that gray, corpse-like skin were wiry and hard as steel, stronger than any man’s. But Conan’s own strength was iron, and his mail protected him from the snapping fangs and raking claws long enough for him to drive his dagger home again and again. The creature’s horrible vitality seemed endless, and the king’s skin crawled at the feel of its slick, clammy flesh. He poured all his hatred and disgust into the plunging blade, and suddenly the monster convulsed beneath him as the point struck its vile heart—and then it lay still.  
+
+Conan rose, shaken and nauseated. He stood uncertainly in the middle of the clearing, sword in one hand and dagger in the other. He hadn’t lost his sense of direction, but he had no idea where the road was. He couldn’t know how far the ghoul had dragged him. Conan glared at the silent, black, moonlit woods around him and felt cold sweat bead on his skin. He was without a horse, lost in these haunted woods, and that twisted corpse at his feet was proof of the horrors lurking there. He stood almost holding his breath, straining his ears for any crack of a twig or rustle of grass.  
+
+When a sound finally came, he jerked violently. Suddenly, through the night air, came the scream of a terrified horse. His stallion! There were panthers in the woods—or perhaps ghouls fed on animals as well as men.  
+
+He crashed through the brush toward the sound, whistling sharply as he ran, his fear drowned in a surge of berserk fury. If his horse was killed, his last chance of catching Beloso and recovering the jewel would be gone. Again the stallion screamed in fear and rage, closer now. There was the sound of pounding hooves, a heavy impact, and something gave way.  
+
+Conan burst out onto the wide white road without warning and saw his stallion rearing and plunging in the moonlight, ears pinned back, eyes and teeth flashing. The horse lashed out with his hooves at a slinking shadow that darted around him—and then Conan saw other shadows moving too: gray, stealthy shapes closing in from all sides. A foul, graveyard stench rose into the night air.
+
+Cursing, the king swung his broadsword right and left, stabbing and slashing with his dagger. Fanged mouths gleamed in the moonlight; filthy claws reached for him, but he hacked his way through to the stallion, grabbed the reins, and vaulted into the saddle. His sword rose and fell, a cold arc in the moonlight, spraying blood as it split deformed heads and cleaved shambling bodies. The stallion reared, biting and kicking. Together they broke through and thundered down the road. For a short distance, gray, loathsome shadows flitted on either side. Then they fell behind, and Conan, reaching the crest of a wooded hill, saw a vast stretch of bare slopes rising before him.  
+
+A Ghost Out of the Past  
+
+Soon after sunrise, Conan crossed into Argos. He had seen no sign of Beloso. Either the captain had escaped while the king lay unconscious, or he had fallen victim to the man-eating horrors of the Zingaran forest. But Conan had seen nothing to suggest the latter. The fact that he had lain untouched for so long hinted that the monsters had been busy chasing the captain instead. And if Beloso still lived, Conan was sure he was somewhere ahead on the road. Unless Beloso had intended to go into Argos all along, he would never have taken the eastward road.  
+
+The helmeted border guards didn’t question the Cimmerian. A lone wandering mercenary needed no papers or safe-conduct, especially when his plain mail showed he served no lord. Through low grassy hills where streams murmured and oak groves dappled the ground with light and shadow, he rode, following the long road that rose and dipped ahead of him over valleys and ridges fading into the blue distance. It was an ancient road—the highway from Poitain to the sea.  
+
+Argos was at peace; heavy ox-carts rumbled along the road, and men with bare, sun-browned arms worked in orchards and fields that smiled beneath the roadside trees. Old men sitting before inns under spreading oaks called out greetings to the traveler.  
+
+From the field workers, from the talkative old men in the inns where he quenched his thirst with great leather mugs of foaming ale, and from the sharp-eyed, silk-clad merchants he met on the road, Conan sought news of Beloso.  
+
+The stories didn’t all match, but Conan learned this much: a lean, wiry Zingaran man with the sharp black eyes and mustache typical of westerners was somewhere ahead on the road, apparently heading toward Messantia. That made sense; all the seaports of Argos were cosmopolitan, unlike the inland provinces, and Messantia was the most mixed of them all. Ships from every seafaring nation filled its harbor, and refugees and fugitives from many lands gathered there. The laws were loose, since Messantia thrived on sea trade, and its citizens found it profitable to turn a blind eye when dealing with sailors. Not only legitimate trade flowed into Messantia—smugglers and pirates also had their share in it. Conan knew all this well, for in the old days, when he was a Barachan pirate, he had sailed by night into Messantia’s harbor to unload strange cargoes. Most of the pirates of the Barachan Isles—small islands off Zingara’s southwestern coast—were Argossean sailors, and as long as they limited their raids to foreign ships, the Argossean authorities were not too strict in enforcing sea laws.  
+
+But Conan hadn’t confined his activities to those of the Barachans. He had also sailed with the Zingaran buccaneers, and even with those wild black corsairs who came up from the far south to raid the northern coasts, and that had put him beyond the reach of any law. If he were recognized in any port of Argos, it would cost him his head. Yet he rode on to Messantia without hesitation, stopping only to rest his horse and snatch a few hours of sleep for himself.  
+
+* * * * *  
+
+He entered the city without question, blending into the crowds that constantly flowed in and out of this great trading center. Messantia had no walls; the sea and its ships protected the great southern port.  
+
+It was evening when Conan rode slowly through the streets that sloped down toward the waterfront. At the ends of those streets he could see the wharves and the masts and sails of ships. He smelled salt water for the first time in years, heard the hum of ropes and the creak of spars in the breeze that whipped up whitecaps beyond the headlands. Once again, the urge for faraway wandering stirred in his heart.  
+
+But he didn’t ride on to the wharves. He turned aside and guided his horse up a steep flight of wide, worn stone steps to a broad street where ornate white mansions overlooked the waterfront and harbor below. Here lived the men who had grown rich from the hard-earned wealth of the seas—some old sea captains who had found treasure in distant lands, and many traders and merchants who had never walked a deck barefoot or heard the roar of a storm or sea battle.  
+
+Conan turned his horse through a certain gold-decorated gate and rode into a courtyard where a fountain tinkled and pigeons fluttered from marble ledges to marble paving. A page in a brightly colored silk tunic and hose came forward curiously. The merchants of Messantia dealt with many rough and strange men, but most of them had the look of sailors. It was unusual for a mercenary soldier to ride so boldly into the courtyard of a wealthy merchant.  
+
+“The merchant Publio lives here?” Conan said—it was more a statement than a question, and something in his tone made the page remove his feathered cap as he bowed and answered, “Yes, my captain, he does.”  
+
+Conan dismounted, and the page called a servant, who came running to take the stallion’s reins.  
+
+“Your master is inside?” Conan asked, pulling off his gloves and brushing the road dust from his cloak and mail.  
+
+“Yes, my captain. Whom should I announce?”  
+
+“I’ll announce myself,” Conan grunted. “I know the way. Stay here.”  
+
+Obeying the firm command, the page stood still, staring after Conan as he climbed a short flight of marble steps, wondering what business his master could have with this huge warrior who looked like a northern barbarian.  
+
+Servants at their work stopped and gaped as Conan crossed a wide, cool balcony overlooking the courtyard and entered a broad hallway through which the sea breeze blew. Halfway down, he heard the scratch of a quill and turned into a large room with wide windows that looked out over the harbor.  
+
+Publio sat at a carved teakwood desk, writing on fine parchment with a golden quill. He was a short man with a large head and quick, dark eyes. His blue robe was made of the finest silk, trimmed with gold cloth, and a heavy gold chain hung from his thick white neck.  
+
+When the Cimmerian entered, the merchant looked up with an annoyed gesture—then froze. His mouth fell open; he stared as if he had seen a ghost. Disbelief and fear flickered in his wide eyes.  
+
+“Well,” said Conan, “have you no greeting for me, Publio?”  
+
+Publio wet his lips.  
+
+“Conan!” he whispered in shock. “Mitra! Conan! Amra!”  
+
+“Who else?” said the Cimmerian, unclasping his cloak and tossing it, along with his gloves, onto the desk. “Well, man?” he said impatiently. “Can’t you at least offer me a cup of wine? My throat’s dry with road dust.”  
+
+“Yes, wine!” echoed Publio automatically. His hand reached for a gong, then jerked back as if from a hot coal, and he shuddered.  
+
+While Conan watched him with a hint of grim amusement, the merchant rose and quickly shut the door, first peering up and down the hallway to make sure no servant was nearby. Then, returning, he took a gold vessel of wine from a nearby table and was about to pour it into a slender goblet when Conan impatiently took the vessel from him and, lifting it with both hands, drank deeply and with satisfaction.  
+
+“Yes, it’s Conan, all right,” muttered Publio. “Man, are you insane?”  
+
+“By Crom, Publio,” said Conan, lowering the vessel but keeping it in his hands, “you live in finer quarters than before. It takes an Argossean merchant to turn a little waterfront shop that stank of rotten fish and cheap wine into this kind of wealth.”  
+
+“The old days are gone,” muttered Publio, pulling his robe around him with a slight involuntary shiver. “I’ve cast off the past like an old cloak.”  
+
+“Well,” said Conan, “you can’t cast me off like an old cloak. I don’t want much from you, but what I do want, I’ll have—and you can’t refuse me. We had too many dealings in the old days. Do you think I don’t know this fine mansion was built on my sweat and blood? How many cargoes from my ships passed through your shop?”  
+
+“All merchants of Messantia have done business with sea raiders at one time or another,” mumbled Publio nervously.  
+
+“But not with the black corsairs,” said Conan grimly.  
+
+“For Mitra’s sake, be quiet!” gasped Publio, sweat breaking out on his forehead. His fingers twitched at the gold-trimmed edge of his robe.
+
+“Well, I just wanted to remind you,” said Conan. “Don’t be so nervous. You used to take plenty of risks back when you were fighting for your life and fortune in that filthy little shop by the docks, working hand in hand with every buccaneer, smuggler, and pirate from here to the Barachan Isles. Looks like wealth has made you soft.”  
+
+“I’m respectable,” began Publio.  
+
+“Meaning you’re filthy rich,” snorted Conan. “Why? How did you get rich so much faster than your rivals? Was it because you did big business in ivory and ostrich feathers, copper, hides, pearls, gold ornaments, and other goods from the coast of Kush? And how did you get them so cheap, when other merchants paid their weight in silver to the Stygians? I’ll tell you, in case you’ve forgotten—you bought them from me for far less than they were worth, and I took them from the tribes of the Black Coast and from Stygian ships—me and the black corsairs.”  
+
+“For Mitra’s sake, stop!” begged Publio. “I haven’t forgotten. But what are you doing here? I’m the only man in Argos who knew that the king of Aquilonia was once Conan the buccaneer, back in the old days. But word has come south that Aquilonia has fallen and the king is dead.”  
+
+“My enemies have killed me a hundred times with rumors,” grunted Conan. “Yet here I sit, drinking wine from Kyros.” And he proved it by taking another long swallow.  
+
+Lowering the nearly empty vessel, he said, “I’m only asking a small favor, Publio. I know you keep track of everything that happens in Messantia. I want to know if a Zingaran named Beloso—or maybe he’s using another name—is in this city. He’s tall, lean, and dark like most of his people, and he’s probably trying to sell a very rare jewel.”  
+
+Publio shook his head.  
+
+“I haven’t heard of such a man. But thousands come and go in Messantia. If he’s here, my agents will find him.”  
+
+“Good. Send them to look for him. And in the meantime, have my horse taken care of and bring me food here in this room.”  
+
+Publio agreed eagerly, and Conan drained the wine vessel, tossed it carelessly into a corner, and strode to a nearby window, unconsciously expanding his chest as he breathed in the salty air. He looked down at the winding streets along the waterfront, glanced appreciatively at the ships in the harbor, then lifted his gaze beyond the bay, far into the blue haze where sea met sky. His thoughts drifted beyond that horizon, to the golden southern seas under blazing suns, where there were no laws and life burned hot. Some drifting scent of spice or palm stirred vivid memories of strange coasts where mangroves grew and drums thundered, of ships locked in battle and decks slick with blood, of smoke, fire, and the cries of slaughter. Lost in thought, he barely noticed when Publio slipped out of the room.  
+
+Gathering up his robe, the merchant hurried through the corridors until he reached a certain chamber where a tall, thin man with a scar on his temple was writing steadily on parchment. There was something about this man that made his clerical work seem out of place. Publio spoke to him abruptly:  
+
+“Conan has come back!”  
+
+“Conan?” The gaunt man jumped up, dropping his quill. “The corsair?”  
+
+“Yes!”  
+
+The man went pale. “Is he insane? If he’s found here, we’re finished! They’ll hang anyone who shelters or trades with a corsair just as quickly as they’ll hang the corsair himself! What if the governor finds out about our past dealings with him?”  
+
+“He won’t find out,” said Publio grimly. “Send your men into the markets and dockside taverns to see if a Zingaran named Beloso is in Messantia. Conan said he has a jewel he’ll probably try to sell. The jewel merchants should know of him if anyone does. And there’s something else—gather a dozen or so desperate scoundrels who can be trusted to kill a man and keep their mouths shut afterward. You understand?”  
+
+“I understand.” The other nodded slowly and darkly.  
+
+“I didn’t steal, cheat, lie, and fight my way up from the gutter just to be ruined now by a ghost from my past,” muttered Publio. The sinister look on his face at that moment would have shocked the wealthy nobles and ladies who bought silks and pearls from his many stalls. But when he returned to Conan a short while later, carrying a platter of fruit and meat in his own hands, he wore a calm, pleasant expression for his unwelcome guest.  
+
+Conan was still standing by the window, looking down at the harbor where the purple, crimson, vermilion, and scarlet sails of galleons, carracks, galleys, and dromonds fluttered in the breeze.  
+
+“There’s a Stygian galley out there, if my eyes don’t deceive me,” he remarked, pointing to a long, low, slim black ship lying apart from the others, anchored off the wide sandy beach that curved toward the distant headland. “So there’s peace now between Stygia and Argos?”  
+
+“The same kind of peace there’s always been,” answered Publio, setting the heavy platter on the table with a sigh of relief, knowing his guest’s appetite well. “Stygian ports are temporarily open to our ships, as ours are to theirs. But may none of my vessels meet their cursed galleys out of sight of land! That galley slipped into the bay last night. I don’t know what its masters want. So far they’ve neither bought nor sold anything. I don’t trust those dark-skinned devils. Treachery was born in that shadowed land.”  
+
+“I’ve made them scream,” said Conan casually, turning from the window. “In my galley, manned by black corsairs, I crept by night to the very walls of the sea-washed castles of black-walled Khemi and burned the galleons anchored there. And speaking of treachery, my host, why don’t you taste this food and sip some of this wine, just to show me your heart’s in the right place.”  
+
+Publio did so quickly enough that Conan’s suspicions eased, and without further hesitation he sat down and ate enough for three men.  
+
+While he ate, men moved through the markets and along the docks, searching for a Zingaran who had a jewel to sell or was looking for a ship to take him abroad. And a tall, gaunt man with a scar on his temple sat with his elbows on a wine-stained table in a filthy cellar, a brass lantern hanging from a smoke-blackened beam above him, talking with ten desperate rogues whose sinister faces and ragged clothes revealed their trade.  
+
+As the first stars appeared, they shone on a strange group riding hard along the white road leading to Messantia from the west. There were four of them—tall, thin, dressed in black hooded robes—and they did not speak. They drove their horses mercilessly onward, and the animals were as gaunt, sweat-streaked, and exhausted as their riders, as if they had traveled far and long.  
+
+The Black Hand of Set  
+
+Conan woke from a deep sleep as quickly and silently as a cat. And like a cat, he was on his feet with his sword drawn before the man who had touched him could even step back.  
+
+“What word, Publio?” demanded Conan, recognizing his host. The golden lamp burned low, casting a soft glow over the thick tapestries and the rich coverings of the couch where he had been resting.  
+
+Publio, recovering from the shock of his guest’s sudden movement, replied, “The Zingaran has been found. He arrived yesterday at dawn. Only a few hours ago, he tried to sell a huge, strange jewel to a Shemitish merchant, but the Shemite wanted nothing to do with it. People say he turned pale beneath his black beard at the sight of it and, shutting his stall, fled as if from something cursed.”  
+
+“It must be Beloso,” muttered Conan, feeling his temples throb with impatient eagerness. “Where is he now?”  
+
+“He’s staying in the house of Servio.”  
+
+“I know that dive well,” grunted Conan. “I’d better hurry before some dockside thief cuts his throat for the jewel.”  
+
+He grabbed his cloak and threw it over his shoulders, then put on a helmet that Publio had gotten for him.  
+
+“Have my horse saddled and ready in the courtyard,” he said. “I may return in a hurry. I won’t forget what you’ve done tonight, Publio.”  
+
+A few moments later, Publio stood at a small outer door, watching the tall figure of the king fade down the shadowy street.  
+
+“Farewell to you, corsair,” muttered the merchant. “That must be quite a jewel, to be hunted by a man who’s just lost a kingdom. I wish I’d told my men to let him get it before they did their work. But then, something might have gone wrong. Let Argos forget Amra, and let my dealings with him be buried in the dust of the past. In the alley behind the house of Servio—that’s where Conan will stop being a danger to me.”  
+
+* * * * *
+
+Servio’s house, a grimy, notorious den, stood close to the docks, facing the waterfront. It was a shabby building made of stone and heavy ship timbers, with a long, narrow alley running beside it. Conan made his way down the alley, and as he neared the house, he felt an uneasy sense of being watched. He peered hard into the shadows of the filthy buildings but saw nothing, though once he caught the faint sound of cloth or leather brushing against skin. But that was nothing unusual. Thieves and beggars prowled these alleys all night, and they were not likely to attack him after one look at his size and armor.  
+
+Suddenly, a door opened in the wall ahead of him, and he slipped into the shadow of an archway. A figure stepped out of the open door and moved down the alley—not sneaking, but with a natural, silent grace, like a jungle predator. Enough starlight filtered into the alley to outline the man’s profile as he passed the doorway where Conan waited. The stranger was a Stygian. There was no mistaking that hawk-like face and shaven head, even in the dim light, nor the cloak draped over his broad shoulders. He continued down the alley toward the beach, and once Conan thought the man must be carrying a hidden lantern, for he caught a brief flash of glowing light just as the man disappeared.  
+
+But the Cimmerian forgot the stranger when he noticed that the door the man had come through was still open. Conan had planned to enter through the main door and force Servio to show him the room where the Zingaran slept. But if he could get inside without drawing attention, all the better.  
+
+A few long strides brought him to the door, and as his hand touched the lock, he stifled a grunt. His practiced fingers, trained long ago among the thieves of Zamora, told him the lock had been forced—apparently by tremendous pressure from outside that had twisted and bent the heavy iron bolts, tearing the sockets loose from the frame. How such damage could have been done so violently without waking the whole neighborhood, Conan could not imagine, but he was sure it had happened that night. A broken lock, if discovered, would not go unfixed in Servio’s house, not in this quarter of thieves and killers.  
+
+Conan slipped inside quietly, dagger in hand, wondering how he would find the Zingaran’s room. Feeling his way through total darkness, he suddenly stopped. He sensed death in that room, the way a wild beast senses it—not as danger to himself, but as the presence of something freshly killed. In the dark, his foot struck something heavy and soft. With a sudden chill of foreboding, he groped along the wall until he found a shelf holding a brass lamp, with flint, steel, and tinder beside it. A few seconds later, a flickering, uncertain light sprang up, and he looked around sharply.  
+
+A bunk built against the rough stone wall, a bare table, and a bench made up the furnishings of the shabby room. An inner door stood closed and bolted. On the hard-packed dirt floor lay Beloso. He was on his back, his head drawn back between his shoulders so that he seemed to stare with wide, glassy eyes at the sooty, cobwebbed ceiling. His lips were pulled back from his teeth in a frozen grin of agony. His sword lay near him, still sheathed. His shirt was torn open, and on his brown, muscular chest was the print of a black hand—thumb and four fingers clearly visible.  
+
+Conan stared in silence, the short hairs bristling on the back of his neck.  
+
+“Crom!” he muttered. “The black hand of Set!”  
+
+He had seen that mark before—the death sign of the black priests of Set, the grim cult that ruled in dark Stygia. And suddenly he remembered the strange flash he had seen coming from the mysterious Stygian who had emerged from this room.  
+
+“The Heart, by Crom!” he muttered. “He was carrying it under his cloak. He stole it. He broke that door with his magic and killed Beloso. He was a priest of Set.”  
+
+A quick search confirmed at least part of his suspicions. The jewel was not on the Zingaran’s body. A growing unease stirred in Conan—a sense that this had not happened by chance or accident, but by design. He was convinced that the mysterious Stygian ship had entered the harbor of Messantia on a specific mission. How could the priests of Set have known that the Heart had come south? Yet the thought was no more unbelievable than the sorcery that could kill an armed man with the touch of an open, empty hand.  
+
+A stealthy footstep outside the door made him spin around like a great cat. In one motion he snuffed out the lamp and drew his sword. His ears told him that men were out there in the darkness, closing in on the doorway. As his eyes adjusted to the sudden blackness, he made out dim shapes surrounding the entrance. He could not guess who they were, but as always, he struck first—leaping suddenly from the doorway before they could attack.  
+
+His unexpected move caught the ambushers off guard. He sensed and heard men all around him, saw a dim masked figure in the starlight before him; then his sword struck home, and he was racing down the alley before the slower-thinking attackers could block his escape.  
+
+As he ran, he heard a faint creak of oarlocks somewhere ahead, and he forgot about the men chasing him. A boat was moving out into the bay. Gritting his teeth, he pushed himself to run faster, but before he reached the beach, he heard the rasp and creak of ropes and the grinding of a great sweep turning in its socket.  
+
+Thick clouds rolling in from the sea hid the stars. In the darkness, Conan reached the shore, straining his eyes toward the black, restless water. Something was moving out there—a long, low, dark shape fading into the gloom, gathering speed as it went. He could hear the steady rhythm of long oars. He clenched his teeth in helpless rage. It was the Stygian galley, racing out to sea, carrying with it the jewel that meant the throne of Aquilonia to him.  
+
+With a savage curse, he stepped toward the waves lapping at the sand, grabbing at his mail shirt, ready to tear it off and swim after the disappearing ship. Then the crunch of a heel in the sand made him spin around. He had forgotten his pursuers.  
+
+Dark shapes rushed at him, feet pounding through the sand. The first man went down under the Cimmerian’s sweeping sword, but the others did not hesitate. Blades flashed dimly around him in the dark or scraped against his armor. Blood and entrails spilled over his hand, and someone screamed as he slashed upward with deadly force. A muttered voice urged the attackers on, and that voice sounded vaguely familiar. Conan fought his way through the clutching, hacking figures toward the sound. A faint light flickered through the drifting clouds, revealing a tall, gaunt man with a large, livid scar on his temple. Conan’s sword split his skull like a ripe melon.  
+
+Then an axe, swung blindly in the dark, smashed against the king’s helmet, filling his eyes with sparks. He staggered and lunged, felt his sword sink deep, and heard a scream of agony. Then he tripped over a corpse, and a club knocked the dented helmet from his head; the next instant, the club came down full on his unprotected skull.  
+
+The king of Aquilonia collapsed into the wet sand. Over him, wolfish figures panted in the darkness.  
+
+“Cut off his head,” one muttered.  
+
+“Leave him,” another grunted. “Help me tie up my wounds before I bleed out. The tide will wash him into the bay. Look, he fell right at the water’s edge. His skull’s split; no man could live after that.”  
+
+“Help me strip him,” another urged. “His armor will bring a few silver coins. Hurry—Tiberio’s dead, and I hear sailors singing as they stumble along the shore. Let’s get out of here.”  
+
+There was hurried movement in the dark, then the sound of footsteps fading quickly away. The drunken singing of the sailors grew louder.  
+
+* * * * *  
+
+In his chamber, Publio paced nervously before a window overlooking the shadowed bay. Suddenly he spun around, his nerves on edge. As far as he knew, the door had been bolted from the inside—but now it stood open, and four men entered the room. At the sight of them, his skin crawled. Publio had seen many strange beings in his life, but never anything like these. They were tall and thin, dressed in black robes, their faces pale yellow ovals in the shadows of their hoods. He could not make out their features clearly and was unreasonably glad of that. Each carried a long, oddly mottled staff.  
+
+“Who are you?” he demanded, his voice brittle and hollow. “What do you want here?”  
+
+“Where is Conan, the one who was king of Aquilonia?” asked the tallest of the four in a flat, emotionless tone that made Publio shudder. It sounded like the hollow ring of a Khitan temple bell.  
+
+“I don’t know what you mean,” stammered the merchant, his usual composure shaken by the eerie presence of his visitors. “I don’t know any such man.”
+
+“He has been here,” said the other, his voice unchanged. “His horse is in the courtyard. Tell us where he is before we harm you.”  
+
+“Gebal!” shouted Publio frantically, backing up until he was pressed against the wall. “Gebal!”  
+
+The four Khitans watched him without emotion or expression.  
+
+“If you call your servant, he will die,” one of them warned, which only terrified Publio more.  
+
+“Gebal!” he screamed. “Where are you, curse you? Thieves are murdering your master!”  
+
+Quick footsteps sounded in the corridor outside, and Gebal burst into the room—a Shemite of medium height and powerful build, his curled blue-black beard bristling, a short leaf-shaped sword in his hand.  
+
+He stared in stunned confusion at the four intruders, unable to understand their presence, dimly remembering that he had inexplicably dozed off on the stair he was guarding—the stair they must have climbed. He had never fallen asleep on duty before. But his master’s screams were filled with panic, and the Shemite charged like a bull at the strangers, his thick arm drawing back for a gutting thrust. The blow never landed.  
+
+A black-sleeved arm shot out, extending the long staff. Its tip just touched the Shemite’s broad chest and was instantly withdrawn. The motion was horribly like a snake striking and recoiling.  
+
+Gebal stopped short in his charge, as if he had hit a solid wall. His head drooped forward onto his chest, the sword slipped from his fingers, and he slowly collapsed to the floor. It was as if every bone in his body had suddenly turned to water. Publio felt sick.  
+
+“Don’t shout again,” said the tallest Khitan calmly. “Your servants sleep deeply, but if you wake them, they will die—and so will you. Where is Conan?”  
+
+“He’s gone to the house of Servio, near the waterfront, to look for the Zingaran Beloso,” gasped Publio, all resistance gone. The merchant was not without courage, but these unnatural visitors turned his blood to ice. He jumped at the sudden sound of footsteps hurrying up the stairs outside, loud in the heavy silence.  
+
+“Your servant?” asked the Khitan.  
+
+Publio shook his head mutely, his tongue stuck to the roof of his mouth. He could not speak.  
+
+One of the Khitans snatched a silken cover from a couch and threw it over the corpse. Then they slipped behind the tapestry, but before the tallest one vanished, he said quietly, “Speak to the man who comes and send him away quickly. If you betray us, neither he nor you will live to reach that door. Make no sign that you’re not alone.” Lifting his staff in warning, the yellow-skinned man disappeared behind the hangings.  
+
+Publio shuddered and fought down a wave of nausea. It might have been a trick of the light, but it seemed to him that those staffs moved slightly on their own, as if they possessed some unspeakable life within them.  
+
+He forced himself to appear calm and composed as the ragged ruffian burst into the room.  
+
+“We’ve done as you asked, my lord,” the man exclaimed. “The barbarian lies dead on the sand at the water’s edge.”  
+
+Publio felt movement behind the tapestry and nearly collapsed from fear. The man went on without noticing.  
+
+“Your secretary, Tiberio, is dead. The barbarian killed him, along with four of my comrades. We carried their bodies to the meeting place. The barbarian had nothing of value on him except a few silver coins. Do you have any further orders?”  
+
+“None!” gasped Publio, his lips pale. “Go!”  
+
+The desperado bowed and hurried out, vaguely thinking that Publio was a man with a weak stomach and few words.  
+
+The four Khitans stepped out from behind the tapestry.  
+
+“Who was that man talking about?” the tallest one demanded.  
+
+“About a wandering stranger who wronged me,” panted Publio.  
+
+“You lie,” said the Khitan calmly. “He was speaking of the king of Aquilonia. I can read it in your face. Sit on that couch and don’t move or speak. I’ll stay here with you while my three companions search for the body.”  
+
+So Publio sat, trembling with terror before the silent, unreadable figure watching him, until the three Khitans returned with the news that Conan’s body was not lying on the sands. Publio did not know whether to be relieved or afraid.  
+
+“We found the place where the fight happened,” they said. “There was blood on the sand. But the king was gone.”  
+
+The fourth Khitan traced invisible symbols on the carpet with his staff, which glimmered like scales in the lamplight.  
+
+“Did you read anything from the sands?” he asked.  
+
+“Yes,” they answered. “The king is alive, and he has gone south by ship.”  
+
+The tall Khitan lifted his head and stared at Publio until the merchant broke out in a heavy sweat.  
+
+“What do you want from me?” he stammered.  
+
+“A ship,” said the Khitan. “A ship well manned for a very long voyage.”  
+
+“For how long a voyage?” stammered Publio, not even thinking to refuse.  
+
+“To the ends of the world, perhaps,” said the Khitan, “or to the molten seas of hell that lie beyond the sunrise.”  
+
+The Return of the Corsair  
+
+Conan’s first sensation when he regained consciousness was motion; beneath him there was no solid ground, only endless rolling and pitching. Then he heard the wind humming through ropes and spars and knew he was aboard a ship even before his blurred vision cleared. He heard muttering voices, and then a splash of water drenched him, jerking him fully awake. He sprang up with a furious curse, braced his legs, and glared around him, hearing coarse laughter and smelling the reek of unwashed bodies.  
+
+He was standing on the poop deck of a long galley running before the wind that blew down from the north, its striped sail bulging against taut ropes. The sun was just rising in a dazzling blaze of gold, blue, and green. To the left, the coastline lay in a dim purple haze; to the right stretched the open sea. Conan took all this in at a glance, along with the ship itself.  
+
+It was long and narrow, a typical trading galley of the southern coasts, high at both bow and stern, with cabins at each end. Conan looked down into the open midsection, from which drifted that sickening, abominable stench he knew too well—the body odor of the oarsmen chained to their benches. They were all black men, forty on each side, each bound by a chain locked around his waist, the other end welded to a heavy ring set deep in the solid beam that ran between the benches from bow to stern. The life of a slave aboard an Argossean galley was a hell beyond imagining. Most of these were Kushites, but about thirty of the blacks who now rested on their idle oars and stared up at the stranger with dull curiosity were from the far southern islands, the homelands of the corsairs. Conan recognized them by their straighter features and hair, their leaner, more athletic build. Among them he saw men who had once followed him.  
+
+He took all this in with one swift, sweeping glance as he rose, before turning his attention to the men around him. Reeling briefly on braced legs, fists clenched in fury, he glared at the sailors surrounding him. The one who had thrown the water stood grinning, the empty bucket still in his hand, and Conan cursed him viciously, instinctively reaching for his sword hilt. Then he realized he was unarmed and naked except for his short leather breeches.  
+
+“What cursed ship is this?” he roared. “How did I end up aboard?”  
+
+The sailors laughed mockingly—stocky, bearded Argosseans, every one of them—and one, whose richer clothing and commanding air marked him as captain, folded his arms and said arrogantly, “We found you lying on the beach. Someone had knocked you out and taken your clothes. We needed another man, so we brought you aboard.”  
+
+“What ship is this?” Conan demanded.  
+
+“The Venturer, out of Messantia, carrying a cargo of mirrors, scarlet silk cloaks, shields, gilded helmets, and swords to trade with the Shemites for copper and gold ore. I’m Demetrio, captain of this vessel—and your master from now on.”  
+
+“Then I’m headed the way I wanted to go, after all,” muttered Conan, ignoring that last remark. They were racing southeast, following the long curve of the Argossean coast. These trading ships never strayed far from shore. Somewhere ahead, he knew, that dark Stygian galley was speeding southward.  
+
+“Have you seen a Stygian galley—” began Conan, but the beard of the burly, brutal-faced captain bristled. He wasn’t interested in any question his prisoner might ask and decided it was time to put this defiant wanderer in his place.  
+
+“Get forward!” he roared. “I’ve wasted enough time on you! I did you the honor of bringing you to the poop deck to wake you up and answered enough of your damned questions. Get off this deck! You’ll earn your keep aboard this galley—”  
+
+“I’ll buy your ship—” began Conan, before remembering he was a penniless wanderer.  
+
+A roar of rough laughter greeted his words, and the captain turned purple, thinking he was being mocked.
+
+“You mutinous dog!” he bellowed, stepping forward threateningly, his hand closing on the knife at his belt. “Get forward before I have you flogged! Watch your tongue, or by Mitra, I’ll have you chained with the blacks to pull an oar!”  
+
+Conan’s volcanic temper, never long restrained, exploded. Not in years, even before he was king, had any man spoken to him like that and lived.  
+
+“Don’t raise your voice to me, you tar-soaked cur!” he roared, his voice booming like the sea wind while the sailors stared in shock. “Draw that toy, and I’ll feed you to the sharks!”  
+
+“Who do you think you are?” gasped the captain.  
+
+“I’ll show you!” roared the enraged Cimmerian. He spun and leapt toward the rail, where weapons hung in their racks.  
+
+The captain pulled out his knife and charged, roaring, but before he could strike, Conan seized his wrist and twisted so hard that the arm tore clean out of its socket. The captain bellowed like an ox in pain, then rolled across the deck as Conan contemptuously flung him aside. Conan ripped a heavy axe from the rail and spun like a cat to face the oncoming sailors. They rushed him, shouting like hounds, clumsy and slow compared to the panther-like Cimmerian. Before they could reach him with their knives, he leapt among them, swinging right and left too fast for the eye to follow. Blood and brains splattered as two bodies hit the deck.  
+
+Knives slashed wildly through the air as Conan broke through the stumbling, gasping mob and bounded onto the narrow bridge that spanned the waist from poop to forecastle, just out of reach of the slaves below. Behind him, the few sailors left on the poop stumbled after him, shaken by the slaughter of their comrades, while the rest of the crew—about thirty in all—came running across the bridge toward him, weapons ready.  
+
+Conan sprang out onto the bridge and stood poised above the upturned black faces, axe raised, black mane whipping in the wind.  
+
+“Who am I?” he shouted. “Look, you dogs! Look, Ajonga, Yasunga, Laranga! Who am I?”  
+
+From the waist rose a shout that swelled into a thunderous roar: “Amra! It’s Amra! The Lion has returned!”  
+
+The sailors who heard and understood that terrifying cry went pale and shrank back, staring in sudden fear at the wild figure on the bridge. Could this truly be that bloodthirsty monster of the southern seas who had vanished so mysteriously years ago, yet still lived on in bloody legend? The blacks were now in a frenzy, shaking and tearing at their chains, screaming the name of Amra like a prayer. Kushites who had never seen Conan before joined the cry. The slaves in the pen beneath the after-cabin began smashing at the walls, shrieking like the damned.  
+
+Demetrio, dragging himself along the deck on one hand and his knees, his face gray with the pain of his dislocated arm, screamed, “Get in there and kill him, dogs, before the slaves break loose!”  
+
+Driven to desperation by that word—the most feared among all galley men—the sailors charged onto the bridge from both ends. But with a lion-like leap, Conan jumped from the bridge and landed lightly on his feet in the passage between the benches.  
+
+“Death to the masters!” he thundered, and his axe came down with a crash on a shackle chain, slicing it apart like kindling. In an instant, a screaming slave was free, smashing his oar into a club. Men were racing frantically along the bridge above, and chaos exploded aboard the Venturer. Conan’s axe rose and fell without pause, and with every blow another screaming black giant broke free, crazed with hatred and the wild joy of freedom and revenge.  
+
+Sailors who jumped down into the waist to fight or strike at the naked white giant were dragged down by the hands of slaves still chained, while others, their broken chains whipping around their limbs, surged up from the waist like a blind, black flood, screaming like demons, striking with broken oars and bits of iron, tearing and clawing with nails and teeth. In the midst of the chaos, the slaves in the pen smashed down the walls and poured onto the decks. With fifty blacks freed from their benches, Conan stopped hacking at the chains and bounded up onto the bridge to add his notched axe to the clubs of his followers.  
+
+Then came the slaughter. The Argosseans were strong, tough, and fearless, as their race always was, trained in the brutal life of the sea. But they couldn’t stand against these maddened giants led by the tiger-like barbarian. Years of beatings, insults, and torment were avenged in one red storm of fury that raged like a typhoon from one end of the ship to the other. When it was over, only one white man was left alive aboard the Venturer—the blood-smeared giant around whom the chanting blacks crowded, throwing themselves face down on the bloody deck and beating their heads against the boards in wild worship.  
+
+Conan, his massive chest heaving and glistening with sweat, the red axe clenched in his blood-smeared hand, glared around him like the first chief of men might have glared at the dawn of time, and shook back his black mane. In that moment he was no longer king of Aquilonia; he was once again lord of the black corsairs, who had fought his way to mastery through fire and blood.  
+
+“Amra! Amra!” chanted the delirious blacks, those still alive to chant. “The Lion has returned! Now the Stygians will howl like dogs in the night, and the black dogs of Kush will howl! Now villages will burn and ships will sink! Aie, there will be the wailing of women and the thunder of spears!”  
+
+“Stop that racket, dogs!” Conan roared, his voice drowning out the snap of the sail in the wind. “Ten of you, go below and free the oarsmen still chained. The rest of you, man the sweeps and get to the oars and rigging. Crom’s devils, can’t you see we’ve drifted toward shore during the fight? Do you want to run aground and be caught again by the Argosseans? Throw these bodies overboard! Move, you rogues, or I’ll mark your hides myself!”  
+
+With shouts, laughter, and wild singing they rushed to obey. The corpses, white and black alike, were thrown overboard, where triangular fins already sliced through the water.  
+
+Conan stood on the poop, frowning down at the black men who watched him expectantly. His heavy brown arms were folded, his long black hair, grown wild during his wanderings, whipped in the wind. A wilder, more savage figure had never stood on a ship’s bridge, and in this fierce corsair few of Aquilonia’s courtiers would have recognized their king.  
+
+“There’s food in the hold!” he roared. “Plenty of weapons for you too, since this ship was carrying blades and armor for the Shemites along the coast. There are enough of us to sail her—yes, and to fight! You rowed in chains for the Argossean dogs; will you row as free men for Amra?”  
+
+“Yes!” they roared. “We are your children! Lead us where you will!”  
+
+“Then get to work and clean out that waist,” he ordered. “Free men don’t live in such filth. Three of you come with me and break out food from the after-cabin. By Crom, I’ll fill out your ribs before this voyage is done.”  
+
+Another roar of approval answered him as the half-starved blacks hurried to obey. The sail swelled as the wind swept over the waves with renewed strength, and the white crests danced along the wind’s path. Conan planted his feet to the roll of the deck, breathed deeply, and spread his mighty arms. He might no longer be king of Aquilonia, but he was still king of the blue sea.  
+
+Black-Walled Khemi  
+
+The Venturer swept southward like a living creature, her oars now pulled by free and willing hands. She had been turned from a peaceful merchant ship into a war galley, as much as such a change was possible. Men sat at the benches with swords at their sides and gilded helmets on their curly heads. Shields hung along the rails, and bundles of spears, bows, and arrows decorated the mast. Even the elements seemed to favor Conan now; the wide purple sail filled with a strong wind that held steady day after day, needing little help from the oars.  
+
+Though Conan kept a man on the masthead day and night, they never caught sight of the long, low, black galley fleeing south ahead of them. Day after day the blue waters stretched empty before their eyes, broken only by fishing boats that scattered like frightened birds at the sight of the shields hanging along the rail. The trading season was nearly over for the year, and they saw no other ships.
+
+When the lookout finally spotted a sail, it was to the north, not the south. Far on the horizon behind them appeared a racing galley with a full spread of purple sail. The black sailors urged Conan to turn and plunder it, but he shook his head. Somewhere to the south, a slim black galley was racing toward the ports of Stygia. That night, before darkness fell, the lookout’s last glimpse showed the racing galley still on the horizon, and at dawn it was still there, tiny in the distance. Conan wondered if it was following him, though he could think of no reason for such suspicion. He paid it little attention.
+
+Each day that carried him farther south filled him with greater impatience. Doubt never touched him. As surely as he believed in the rising and setting of the sun, he believed that a priest of Set had stolen the Heart of Ahriman. And where else would a priest of Set take it but to Stygia? The black sailors sensed his eagerness and worked harder than they ever had under the lash, though they didn’t know his goal. They expected a bloody career of raiding and plundering and were satisfied. The men of the southern islands knew no other trade, and the Kushites in the crew eagerly joined in the idea of looting their own people, with the cold indifference of their race. Blood ties meant little; victory and personal gain meant everything.
+
+Soon the coastline began to change. No longer did they sail past steep cliffs with blue hills rising behind them. Now the shore was the edge of wide meadows that barely rose above the water and stretched away into the hazy distance. There were few harbors and even fewer ports, but the green plain was dotted with the cities of the Shemites—green sea lapping at the edge of the green plains, and the ziggurats of the cities gleaming white in the sun, some small and far away.
+
+Across the grazing lands moved herds of cattle and short, broad riders with cylindrical helmets and curled blue-black beards, bows in hand. This was the coast of Shem, where there was no law except what each city-state could enforce for itself. Far to the east, Conan knew, the meadows gave way to desert, where there were no cities and the nomadic tribes roamed freely.
+
+Still they rowed southward, past the unchanging view of meadowlands dotted with cities, until at last the scenery began to shift again. Clumps of tamarind appeared, the palm groves grew thicker. The shoreline became more broken, a marching wall of green fronds and trees, and behind them rose bare, sandy hills. Streams poured into the sea, and along their damp banks the vegetation grew dense and wildly varied.
+
+At last they passed the mouth of a wide river that mixed its waters with the ocean and saw the great black walls and towers of Khemi rising against the southern horizon.
+
+The river was the Styx, the true border of Stygia. Khemi was Stygia’s greatest port and at that time her most important city. The king lived in ancient Luxur, but in Khemi ruled the priesthood, though people said the center of their dark religion lay far inland, in a mysterious, deserted city near the bank of the Styx. This river, springing from some nameless source far in the unknown lands south of Stygia, ran northward for a thousand miles before turning west for several hundred more, finally emptying into the ocean.
+
+The Venturer, showing no lights, slipped past the port in the night and before dawn lay anchored in a small bay a few miles south of the city. It was surrounded by marsh—a green tangle of mangroves, palms, and vines crawling with crocodiles and snakes. Discovery was extremely unlikely. Conan knew the place well; he had hidden there before, in his corsair days.
+
+As they glided silently past the city whose great black fortresses rose on the jutting points of land that enclosed the harbor, torches flickered and glowed redly, and to their ears came the low rumble of drums. The port was not crowded with ships as were the harbors of Argos. The Stygians did not base their glory and power on ships and fleets. They had trading vessels and war galleys, yes, but not in proportion to their inland strength. Many of their ships sailed up and down the great river rather than along the sea coasts.
+
+The Stygians were an ancient race—dark, mysterious, powerful, and merciless. Long ago their rule had stretched far north of the Styx, beyond the meadows of Shem and into the fertile uplands now inhabited by the peoples of Koth, Ophir, and Argos. Their borders had once touched those of ancient Acheron. But Acheron had fallen, and the barbaric ancestors of the Hyborians had swept southward in wolfskins and horned helmets, driving the ancient rulers of the land before them. The Stygians had not forgotten.
+
+All day the Venturer lay at anchor in the tiny bay, surrounded by green branches and tangled vines through which bright-feathered, harsh-voiced birds darted, and among which silent, bright-scaled reptiles glided. Toward sunset, a small boat crept out and down along the shore, searching for and finding what Conan wanted—a Stygian fisherman in his shallow, flat-prowed boat.
+
+They brought him aboard the Venturer—a tall, dark, lean man, pale with fear of his captors, who were monsters to the people of that coast. He was naked except for his silk breeches, for, like the Hyrkanians, even the commoners and slaves of Stygia wore silk. In his boat lay a wide cloak such as these fishermen threw around their shoulders against the chill of night.
+
+He fell to his knees before Conan, expecting torture and death.
+
+“Stand up, man, and stop shaking,” said the Cimmerian impatiently, finding it hard to understand such fear. “You won’t be harmed. Tell me this: has a galley—a black racing galley returning from Argos—come into Khemi within the last few days?”
+
+“Yes, my lord,” answered the fisherman. “Only yesterday at dawn the priest Thutothmes returned from a voyage far to the north. People say he has been to Messantia.”
+
+“What did he bring from Messantia?”
+
+“Alas, my lord, I do not know.”
+
+“Why did he go to Messantia?” Conan demanded.
+
+“No, my lord, I’m just a common man. How could I know the thoughts of the priests of Set? I can only tell you what I’ve seen and what I’ve heard whispered along the docks. People say that news of great importance came from the south, though no one knows what it was; and it’s well known that Lord Thutothmes set out in his black galley in great haste. Now he’s returned, but no one knows what he did in Argos or what cargo he brought back—not even the sailors who crewed his ship. Men say he’s opposed Thoth-Amon, who rules over all the priests of Set and lives in Luxur, and that Thutothmes seeks hidden power to overthrow the Great One. But who am I to say? When priests fight among themselves, a common man can only lie flat and hope neither of them steps on him.”
+
+Conan growled in frustrated disgust at this cowardly reasoning and turned to his men. “I’m going into Khemi alone to find this thief Thutothmes. Keep this man prisoner, but don’t harm him. Crom’s devils, stop your whining! Do you think we can sail into the harbor and take the city by storm? I have to go alone.”
+
+Cutting off their protests, he stripped off his own clothes and put on the prisoner’s silk breeches and sandals, along with the band from the man’s hair, but ignored the short fisherman’s knife. Commoners in Stygia weren’t allowed to carry swords, and the cloak wasn’t large enough to hide Conan’s long blade. Instead, he fastened a Ghanata knife to his hip—a weapon carried by the fierce desert tribes south of Stygia. It was a broad, heavy, slightly curved blade of fine steel, razor-sharp and long enough to cut a man apart.
+
+Then, leaving the Stygian guarded by the corsairs, Conan climbed into the fisherman’s boat.
+
+“Wait for me until dawn,” he said. “If I haven’t returned by then, I never will. Head south to your homes.”
+
+As he climbed over the rail, the men began a mournful wail at his departure, until he stuck his head back up to curse them into silence. Then, dropping into the boat, he seized the oars and sent the small craft flying over the waves faster than its owner had ever managed.
+
+“He Has Slain the Sacred Son of Set!”
+
+The harbor of Khemi lay between two great points of land that jutted into the sea. He rounded the southern point, where the huge black fortresses rose like a man-made hill, and entered the harbor just at dusk, when there was still enough light for the watchers to recognize a fisherman’s boat and cloak, but not enough to notice any suspicious details. Unchallenged, he steered among the great black war galleys lying silent and unlit at anchor and pulled up to a flight of wide stone steps that rose from the water’s edge. There he tied his boat to an iron ring set in the stone, as many similar boats were moored there. It was nothing unusual for a fisherman to leave his boat there. No one else had any use for such a craft, and fishermen didn’t steal from one another.  
+
+No one gave him more than a passing glance as he climbed the long steps, carefully avoiding the torches that flared at intervals above the dark, rippling water. He looked like an ordinary fisherman returning empty-handed after a fruitless day along the coast. If anyone had looked closely, they might have noticed that his step was too light and sure, his posture too straight and confident for a humble fisherman. But he moved quickly, keeping to the shadows, and the common people of Stygia were no more inclined to analyze such things than those of less exotic lands.  
+
+In build, he wasn’t unlike the warrior caste of the Stygians, who were tall and muscular. Sun-browned, he was nearly as dark as many of them. His black, square-cut hair, bound with a copper band, added to the resemblance. What set him apart were the subtle differences in his stride, his foreign features, and his blue eyes.  
+
+But the cloak was a good disguise, and he stayed in the shadows as much as possible, turning his head away when a native passed too close.  
+
+It was a dangerous game, and he knew he couldn’t keep up the deception for long. Khemi wasn’t like the ports of the Hyborian lands, where men of every race mingled. The only foreigners here were black and Shemite slaves, and he looked like neither—no more than he looked like a true Stygian. Strangers weren’t welcome in Stygian cities; they were tolerated only as ambassadors or licensed traders. Even then, the traders weren’t allowed ashore after dark. And now there were no Hyborian ships in the harbor at all. A strange unease stirred through the city—a rising of old ambitions, a whispering that no one could define except those who whispered it. Conan sensed this unrest more than he understood it, his sharpened instincts warning him of tension all around.  
+
+If he were discovered, his fate would be horrible. They would kill him just for being a foreigner; if they realized he was Amra, the pirate chief who had ravaged their coasts with fire and steel—an involuntary shudder ran through Conan’s broad shoulders. He didn’t fear human enemies or any death by sword or flame. But this was a dark land of sorcery and nameless horrors. Set, the Old Serpent, men said, though long banished from the Hyborian races, still lurked in the shadows of secret temples, and terrible, mysterious deeds were done in the dark shrines of the night.  
+
+He had left behind the waterfront streets with their broad steps leading down to the water and was entering the long, shadowed avenues of the main city. There was no scene such as one might find in a Hyborian city—no blaze of lamps and torches, no brightly dressed people laughing and strolling along the streets, no open shops or stalls displaying their goods.  
+
+Here, the stalls were closed at dusk. The only lights came from torches burning smokily at wide intervals. Few people walked the streets; they moved quickly and silently, their numbers thinning as the night deepened. Conan found the scene gloomy and unreal—the silence of the people, their furtive haste, the massive black stone walls rising on either side. There was a grim weight to Stygian architecture that was both awe-inspiring and oppressive.  
+
+Few lights showed anywhere except in the upper parts of the buildings. Conan knew that most people slept on the flat roofs, among the palms of their rooftop gardens under the stars. Strange music drifted faintly from somewhere. Occasionally a bronze chariot rumbled over the paving stones, giving him a brief glimpse of a tall, hawk-faced noble with a silk cloak wrapped around him and a gold band shaped like a rearing serpent’s head holding back his black mane, and of the dark, naked charioteer bracing his muscular legs against the pull of the fierce Stygian horses.  
+
+Those still walking the streets on foot were the common folk—slaves, merchants, prostitutes, laborers—and their numbers dwindled as he went on. He was heading toward the temple of Set, where he knew he would likely find the priest he sought. He was sure he would recognize Thutothmes if he saw him, even though his only glimpse of the man had been in the half-darkness of a Messantian alley. He was certain the man he had seen there had been the priest. Only sorcerers high in the ranks of the vile Black Ring possessed the power of the black hand that killed with a touch, and only such a man would dare defy Thoth-Amon, whom the western world knew only as a figure of terror and legend.  
+
+The street widened, and Conan realized he was entering the part of the city devoted to temples. The massive buildings loomed, their black shapes rising against the faint stars—grim and unspeakably menacing in the flicker of a few torches. Suddenly, he heard a low scream from a woman across the street, a little ahead of him—a naked courtesan wearing the tall plumed headdress of her trade. She had pressed herself against the wall, staring across at something he could not yet see. At her cry, the few people still on the street froze in place. Then Conan heard a sinister slithering sound ahead of him. Around the dark corner of the building he was approaching, a monstrous wedge-shaped head appeared, followed by coil after coil of a rippling, darkly gleaming body.  
+
+The Cimmerian recoiled, remembering the stories he had heard—serpents were sacred to Set, god of Stygia, who was said to be a serpent himself. Beasts like this were kept in the temples of Set, and when they grew hungry, they were allowed to crawl out into the streets to take whatever prey they desired. Their gruesome meals were considered sacrifices to the scaly god.  
+
+The Stygians within Conan’s sight dropped to their knees, men and women alike, calmly awaiting their fate. One of them the great serpent would choose, wrap in its coils, crush into a red pulp, and swallow as a rat-snake swallows a mouse. The rest would live. That was the will of the gods.  
+
+But it was not Conan’s will. The python glided toward him, probably drawn by the fact that he was the only person still standing. Gripping his great knife under his cloak, Conan hoped the slimy monster would pass him by. But it stopped before him and reared up horribly in the flickering torchlight, its forked tongue flicking in and out, its cold eyes gleaming with the ancient cruelty of the serpent race. Its neck arched—but before it could strike, Conan whipped out his knife and struck like lightning. The broad blade split the wedge-shaped head and cut deep into the thick neck.  
+
+Conan yanked his knife free and leapt back as the massive body twisted, coiled, and lashed violently in its death throes. For a moment he stood staring in grim fascination; the only sound was the heavy thud and swish of the snake’s tail against the stones.  
+
+Then from the horrified worshippers came a terrible cry: “Blasphemer! He has killed the sacred son of Set! Kill him! Kill! Kill!”  
+
+Stones flew past him as the frenzied Stygians rushed forward, screaming in hysteria. From all sides others poured out of their houses and joined the cry. Cursing, Conan spun around and darted into the black mouth of an alley. He heard the slap of bare feet on the paving stones behind him as he ran, guided more by instinct than sight, the walls echoing with the furious shouts of his pursuers. Then his left hand brushed a break in the wall, and he turned sharply into another, narrower alley. On both sides rose sheer black stone walls. High above, he could see a thin strip of stars. These towering walls, he knew, belonged to temples. He heard the mob sweep past the dark entrance, still shouting. Their cries grew fainter—they had missed the smaller alley and kept running straight ahead into the darkness. He too kept going forward, though the thought of meeting another of Set’s “sons” in the dark made him shudder.
+
+Then, somewhere ahead, he saw a faint moving glow, like that of a crawling firefly. He stopped, pressed himself against the wall, and gripped his knife. He knew what it was: a man coming with a torch. Soon it was close enough for him to make out the dark hand holding it and the dim oval of a dark face. A few more steps and the man would surely see him. Conan crouched low like a tiger—the torch stopped. A door was briefly outlined in the glow as the torchbearer fumbled with it. Then it opened, the tall figure slipped through, and darkness swallowed the alley again. There was something sinisterly secretive about that shadowy figure sneaking into a doorway in the dark—a priest, perhaps, returning from some evil errand.  
+
+Conan moved toward the door. If one man had come up that alley with a torch, others might come at any moment. Going back the way he had come could mean running straight into the mob he had escaped. They might return at any time, find the narrow alley, and come charging down it. Trapped between those sheer, unscalable walls, he longed for a way out—even if it meant entering some unknown building.  
+
+The heavy bronze door was not locked. It opened under his hand, and he peered through the crack. He saw a large square chamber of massive black stone. A torch burned low in a niche in the wall. The room was empty. He slipped through the lacquered door and closed it behind him.  
+
+His sandaled feet made no sound as he crossed the black marble floor. A teak door stood partly open, and slipping through it, knife in hand, he entered a vast, dim, shadowy space whose high ceiling was only a suggestion of darkness far above, where the black walls rose upward. On all sides, black-arched doorways opened into the great silent hall. It was lit by strange bronze lamps that cast a faint, eerie glow. On the far side of the hall, a wide black marble staircase without railing climbed upward into shadow, and above him, on all sides, dim galleries hung like black stone ledges.  
+
+Conan shivered; he was inside the temple of some Stygian god—if not Set himself, then one nearly as grim. And the shrine was not empty. In the center of the great hall stood a black stone altar, massive and somber, without carvings or decoration, and upon it lay one of the great sacred serpents, its shimmering scales glinting in the lamplight. It didn’t move, and Conan remembered stories that the priests sometimes kept these creatures drugged. The Cimmerian took a cautious step out from the doorway, then suddenly drew back—not into the room he had just left, but into a velvet-curtained alcove. He had heard a soft footstep nearby.  
+
+From one of the black arches came a tall, powerful man wearing sandals and a silk loincloth, with a wide cloak flowing from his shoulders. His face and head were hidden by a monstrous mask—half beast, half human—with a crest of ostrich plumes waving above it.  
+
+During certain rituals, the Stygian priests wore masks. Conan hoped the man wouldn’t notice him, but some instinct alerted the Stygian. He suddenly turned away from his intended path, which seemed to be the staircase, and walked straight toward the alcove. As he yanked aside the velvet curtain, a hand shot out from the shadows, crushed the cry in his throat, dragged him headfirst into the recess, and drove a knife into him.  
+
+Conan’s next move was the obvious one dictated by reason. He pulled off the grinning mask and slipped it over his own head. He threw the priest’s cloak over the body, hid it behind the curtains, and wrapped the mantle around his own broad shoulders. Fate had handed him a disguise. All of Khemi was probably searching for the blasphemer who had dared to defend himself against a sacred serpent—but who would think to look for him beneath a priest’s mask?  
+
+He strode confidently out of the alcove and headed toward one of the arched doorways at random, but he had barely taken a dozen steps when he spun around, every sense alert for danger.  
+
+A group of masked figures was coming down the stairs, dressed exactly as he was. He froze, caught in the open, and stood still, trusting his disguise, though cold sweat gathered on his forehead and the backs of his hands. No one spoke. Like ghosts, they descended into the great hall and moved past him toward a black archway. The leader carried a black staff topped with a grinning white skull, and Conan realized it was one of those ritual processions that were impossible for foreigners to understand, yet played a powerful—and often sinister—role in Stygian religion. The last figure turned his head slightly toward the motionless Cimmerian, as if expecting him to follow. To refuse what was clearly expected would immediately arouse suspicion. Conan fell in behind the last man and matched his pace to their slow, measured rhythm.  
+
+They passed through a long, dark, vaulted corridor where, Conan noticed uneasily, the skull on the staff glowed with a faint, ghostly light. A wave of wild, irrational panic surged through him, urging him to draw his knife and slash at these eerie figures, to flee madly from the grim, dark temple. But he forced himself to stay calm, fighting down the vague, monstrous instincts that stirred in the back of his mind and filled the shadows with imagined horrors. He barely suppressed a sigh of relief when they finally passed through a massive double door three times a man’s height and stepped out into the starlight.  
+
+Conan wondered if he dared slip away into a dark alley, but hesitated, unsure. Down the long, dim street they moved silently, while anyone they met turned away and fled. The procession kept well away from the walls; darting into one of the side alleys would draw too much attention. As he fumed and cursed inwardly, they reached a low-arched gate in the southern wall and passed through it. Ahead and around them lay clusters of low, flat-roofed mud houses and palm groves, shadowy in the starlight. Now, if ever, Conan thought, was the time to escape his silent companions.  
+
+But as soon as they left the gate behind, the silence broke. The masked figures began muttering excitedly among themselves. Their slow, ritual pace was abandoned, the staff with its skull was tucked carelessly under the leader’s arm, and the whole group broke formation and hurried forward. Conan quickened his steps with them, for in their low voices he had caught a word that electrified him. The word was: “Thutothmes!”  
+
+Conan stared intently at his masked companions. One of them might be Thutothmes, or else they were heading to meet the man he sought. And he knew where they were going when, beyond the palms, he saw a black triangular shape rising against the dark sky.  
+
+They passed through the belt of huts and groves, and if anyone saw them, he made sure not to show himself. The huts were dark. Behind them, the black towers of Khemi loomed against the starlit sky, their reflections trembling in the harbor waters; ahead stretched the dim, endless desert. Somewhere, a jackal yelped. The soft tread of the silent priests made no sound in the sand. They might have been ghosts moving toward that colossal pyramid rising from the desert gloom. The whole sleeping land lay silent.  
+
+Conan’s heart beat faster as he looked at the grim black wedge outlined against the stars. His eagerness to confront Thutothmes, whatever the outcome, was mixed with a deep unease. No man could approach one of those dark stone pyramids without dread. Their very name was a symbol of horror among the northern peoples, and legends claimed the Stygians hadn’t built them at all—that they had already stood there when the dark-skinned race first came to the valley of the great river, in ages beyond memory.  
+
+As they neared the pyramid, he saw a faint glow near its base, which soon revealed itself as a doorway flanked by stone lions with women’s heads—cryptic, unreadable, nightmares carved in stone. The leader of the group went straight to the doorway, where Conan saw a shadowy figure standing in the deep recess.  
+
+The leader paused briefly beside the dim figure, then vanished into the dark interior, and one by one the others followed. As each masked priest passed through the shadowed entrance, he was halted for a moment by the mysterious guardian, and something passed between them—a word or gesture Conan could not discern. Seeing this, the Cimmerian deliberately lagged behind, pretending to adjust the strap of his sandal. Only when the last of the masked figures had disappeared did he straighten and approach the doorway.  
+
+He wondered uneasily if the temple’s guardian was even human, recalling the stories he had heard. But his doubts were soon dispelled. A dim bronze lamp glowing just inside the entrance illuminated a long, narrow corridor stretching into darkness, and a man stood silently at its mouth, wrapped in a wide black cloak. No one else was in sight. Clearly, the masked priests had already gone down the corridor.
+
+Over the cloak drawn across his lower face, the Stygian’s sharp eyes studied Conan intently. With his left hand, he made a strange gesture. Taking a chance, Conan copied it. But apparently, another sign was expected; the Stygian’s right hand flashed from beneath his cloak with a glint of steel, and his deadly thrust would have pierced the heart of an ordinary man.  
+
+But he faced someone whose muscles were trained to the speed of a jungle cat. Even as the dagger flashed in the dim light, Conan caught the dark wrist and smashed his clenched right fist into the Stygian’s jaw. The man’s head struck the stone wall with a dull crunch that told of a broken skull.  
+
+For a moment, Conan stood over him, listening intently. The torch burned low, throwing vague shadows around the doorway. Nothing moved in the darkness beyond, though far away and below he thought he heard the faint, muffled sound of a gong.  
+
+He bent down and dragged the body behind the great bronze door, which stood open inward, then moved cautiously but swiftly down the corridor toward whatever fate awaited him.  
+
+He had not gone far before he stopped, uncertain. The corridor split into two branches, and he had no way of knowing which one the masked priests had taken. Taking a chance, he chose the left. The floor sloped slightly downward and was worn smooth by many feet. Here and there, a dim torch cast a faint, eerie twilight. Conan wondered uneasily for what purpose these massive structures had been built, and in what forgotten age. This was an ancient land. No one knew how many ages the black temples of Stygia had stood beneath the stars.  
+
+Narrow black arches opened now and then to the right and left, but he kept to the main corridor, though he was beginning to feel sure he had taken the wrong path. Even with their head start, he should have caught up with the priests by now. He was growing uneasy. The silence felt almost solid, and yet he sensed he was not alone. More than once, passing a shadowed arch, he felt as though unseen eyes were watching him. He paused, half-inclined to turn back to where the corridor had first divided. He spun around suddenly, knife raised, every nerve alert.  
+
+A girl stood at the entrance of a smaller tunnel, staring straight at him. Her ivory skin showed she was Stygian of some ancient noble line, and like all such women, she was tall, graceful, and voluptuously shaped, her hair a great mass of black waves in which a ruby sparkled. Except for her velvet sandals and the wide, jewel-studded belt around her slim waist, she was completely nude.  
+
+“What are you doing here?” she demanded.  
+
+To answer would reveal that he was a foreigner. He stood silent, a grim, dark figure in the grotesque mask with its floating plumes. His sharp gaze searched the shadows behind her and found them empty. But there could be armed men within her call.  
+
+She came toward him, apparently unafraid, though wary.  
+
+“You’re not a priest,” she said. “You’re a warrior. Even with that mask, that’s obvious. There’s as much difference between you and a priest as between a man and a woman. By Set!” she exclaimed suddenly, her eyes widening. “I don’t even think you’re Stygian!”  
+
+With a movement too swift to follow, his hand closed around her smooth throat, lightly, almost like a caress.  
+
+“Not a sound from you,” he muttered.  
+
+Her ivory skin was cold as marble, yet there was no fear in the wide, dark, incredible eyes that looked at him.  
+
+“Don’t be afraid,” she said calmly. “I won’t betray you. But are you insane to come, a stranger and foreigner, into the forbidden temple of Set?”  
+
+“I’m looking for the priest Thutothmes,” he said. “Is he in this temple?”  
+
+“Why do you seek him?” she countered.  
+
+“He has something of mine that was stolen.”  
+
+“I’ll take you to him,” she offered so quickly that his suspicions rose at once.  
+
+“Don’t play games with me, girl,” he growled.  
+
+“I’m not playing. I have no love for Thutothmes.”  
+
+He hesitated, then decided; after all, he was as much in her power as she was in his.  
+
+“Walk beside me,” he ordered, shifting his grip from her throat to her wrist. “But move carefully. If you make one wrong move—”  
+
+She led him down the sloping corridor, farther and farther, until there were no more torches, and he had to feel his way in the dark, aware of the woman beside him more by touch and instinct than by sight. Once, when he spoke to her, she turned her head toward him, and he was startled to see her eyes glowing like golden fire in the darkness. Dim doubts and vague, monstrous suspicions haunted his mind, but he followed her through a twisting maze of black corridors that confused even his primitive sense of direction. He cursed himself silently for a fool, letting himself be led into that black lair of mystery; but it was too late to turn back now. Again, he felt life and movement in the darkness around him, sensed danger and hunger lurking impatiently in the shadows. Unless his ears deceived him, he heard a faint sliding sound that stopped and retreated at a low command from the girl.  
+
+At last, she brought him into a chamber lit by a strange seven-branched candelabrum where black candles burned with an eerie glow. He knew they were deep underground. The chamber was square, with walls and ceiling of polished black marble, furnished in the style of ancient Stygia. There was an ebony couch covered with black velvet, and on a black stone platform lay a carved mummy case.  
+
+Conan stood waiting, alert, watching the various black arches that opened into the room. But the girl made no move to go farther. Stretching out on the couch with feline grace, she clasped her hands behind her sleek head and looked at him from under long, drooping lashes.  
+
+“Well?” he demanded impatiently. “What are you doing? Where’s Thutothmes?”  
+
+“There’s no hurry,” she said lazily. “What’s an hour—or a day, or a year, or even a century, for that matter? Take off your mask. Let me see your face.”  
+
+With a grunt of irritation, Conan pulled off the heavy headpiece, and the girl nodded approvingly as she studied his dark, scarred face and blazing eyes.  
+
+“There’s strength in you—great strength; you could strangle a bull.”  
+
+He shifted uneasily, suspicion growing. With his hand on his sword hilt, he peered into the shadowy arches.  
+
+“If you’ve led me into a trap,” he said, “you won’t live to enjoy it. Are you going to get off that couch and do what you promised, or do I have to—”  
+
+His voice faded. He was staring at the mummy case, where the face of the one inside was carved in ivory with the startling realism of a long-lost art. There was something disturbingly familiar about that carved mask, and with a jolt, he realized what it was: it looked strikingly like the face of the girl lounging on the black couch. She could have been the model for it, yet he knew the carving was centuries old. Ancient hieroglyphs were scrawled across the lacquered lid, and reaching back into his memory for scraps of knowledge gathered through his adventurous life, he sounded them out and said aloud: “Akivasha!”  
+
+“You’ve heard of Princess Akivasha?” asked the girl on the couch.  
+
+“Who hasn’t?” he grunted. The name of that ancient, wicked, beautiful princess still lived across the world in song and legend, though ten thousand years had passed since the daughter of Tuthamon had reveled in royal feasts within the black halls of old Luxur.  
+
+“Her only sin was that she loved life and everything it meant,” said the Stygian girl. “To gain life, she courted death. She couldn’t bear the thought of growing old, shriveled, and worn, and dying in misery like other women. She wooed Darkness as a lover, and his gift was life—life that, not being life as mortals know it, can never age or fade. She went into the shadows to cheat time and death—”  
+
+Conan glared at her, his eyes narrowing into burning slits. He spun around and ripped the lid from the sarcophagus. It was empty. Behind him, the girl was laughing, and the sound froze his blood. He whirled back toward her, the short hairs on his neck bristling.  
+
+“You’re Akivasha!” he growled.  
+
+She laughed and tossed back her shining hair, spreading her arms seductively.  
+
+“I am Akivasha! I am the woman who never died, who never grew old! Fools say the gods lifted me from the earth, still young and beautiful, to reign forever in some heavenly realm! No, it’s in the shadows that mortals find immortality! Ten thousand years ago I died to live forever! Give me your lips, strong man!”  
+
+Moving with feline grace, she came to him, rose on her toes, and threw her arms around his massive neck. Scowling down into her upturned, beautiful face, he felt both a terrible fascination and a cold dread.
+
+“Love me!” she whispered, head tilted back, eyes closed, lips parted. “Give me your blood to renew my youth and keep my eternal life! I’ll make you immortal too! I’ll teach you the wisdom of all the ages, all the secrets that have survived through the eons in the darkness beneath these temples. I’ll make you king of the shadowy host that celebrates among the tombs of the ancients when night covers the desert and bats cross the moon. I’m tired of priests and magicians, and of captive girls dragged screaming through the gates of death. I want a man. Love me, barbarian!”
+
+She pressed her dark head against his powerful chest, and he felt a sharp sting at the base of his throat. Cursing, he tore her away and hurled her sprawling across the couch.
+
+“Damn vampire!” Blood was trickling from a small wound in his neck.
+
+She reared up on the couch like a serpent ready to strike, the golden fires of hell blazing in her wide eyes. Her lips pulled back, revealing white, pointed teeth.
+
+“Fool!” she screamed. “Do you think you can escape me? You’ll live and die in darkness! I’ve brought you far below the temple. You’ll never find your way out alone. You’ll never fight your way through those who guard the tunnels. Without my protection, the sons of Set would have devoured you long ago. Fool, I’ll still drink your blood!”
+
+“Stay back or I’ll cut you in half,” he snarled, his skin crawling with disgust. “You might be immortal, but steel will still tear you apart.”
+
+As he backed toward the archway he had entered through, the light went out all at once. Every candle was extinguished, though he didn’t know how, since Akivasha hadn’t touched them. But her laughter rose behind him, mocking and sweet as poison, and he broke into a sweat as he groped through the darkness for the archway, nearly panicking. His fingers found an opening and he plunged through it. Whether it was the same arch he had entered by, he didn’t know and didn’t care. His only thought was to escape the cursed chamber that had housed that beautiful, horrible, undead creature for countless centuries.
+
+His wandering through those black, twisting tunnels was a sweating nightmare. Behind and around him he heard faint slithering and gliding sounds, and once the echo of that sweet, hellish laughter he had heard in Akivasha’s chamber. He slashed wildly at noises and movements he heard—or thought he heard—in the darkness near him, and once his sword cut through something soft and thin that might have been cobwebs. He had a desperate sense that he was being toyed with, lured deeper and deeper into endless night before being attacked by demonic claws and fangs.
+
+And through his fear ran the sickening disgust of what he had discovered. The legend of Akivasha was ancient, and among the evil tales told of her ran a thread of beauty and longing—for eternal youth. To so many dreamers, poets, and lovers she wasn’t just the wicked princess of Stygian legend, but the symbol of everlasting youth and beauty, shining forever in some divine realm. And this was the awful truth. This vile corruption was the reality behind that eternal life. Alongside his physical revulsion came the sense of a shattered dream of human worship—its glittering gold revealed as slime and cosmic filth. A wave of futility swept over him, a dim fear of the falseness of all human dreams and idols.
+
+And now he knew his ears weren’t deceiving him. He was being followed, and his pursuers were closing in. In the darkness came shuffling and sliding sounds that no human feet could make—nor the feet of any normal beast. Maybe the underworld had its own monstrous life. They were behind him. He turned to face them, though he could see nothing, and slowly backed away. Then the sounds stopped, even before he turned his head and saw, somewhere down the long corridor, a faint glow of light.
+
+Conan moved carefully toward the light he had seen, listening over his shoulder, but there was no further sound of pursuit, though he felt the darkness alive with unseen things.
+
+The glow was not still; it moved, bobbing in a grotesque way. Then he saw where it came from. The tunnel he followed crossed another, wider corridor a short distance ahead. Along that second passage came a strange procession—four tall, thin men in black hooded robes, leaning on staffs. The one in front held a torch high above his head, a torch that burned with a strange, steady light. Like ghosts, they passed across the edge of his vision and disappeared, leaving behind only a fading shimmer to mark their passing. Their appearance was indescribably eerie. They were not Stygians, nor like anything Conan had ever seen. He doubted they were even human. They looked like black phantoms, stalking ghoulishly through the haunted tunnels.
+
+But his situation could not be more desperate than it already was. Before the inhuman feet behind him could start slithering forward again as the distant light faded, Conan was already running down the corridor. He plunged into the other tunnel and saw, far ahead, small in the distance, the strange procession moving within the glowing sphere. He crept silently after them, then suddenly pressed himself against the wall as he saw them stop and gather together as if to confer. They turned as though to go back the way they came, and he slipped into the nearest archway. Feeling his way through the darkness—by now so familiar he could almost see through it—he found that the tunnel curved, and he moved back beyond the first bend so the strangers’ light would not fall on him as they passed.
+
+As he stood there, he became aware of a low humming sound behind him, like the murmur of human voices. Moving down the corridor toward it, he confirmed his suspicion. Abandoning his plan to follow the ghostly travelers to their destination, he turned toward the voices instead.
+
+Soon he saw a faint glimmer of light ahead, and turning into the corridor from which it came, he saw a wide arch filled with a dim glow at the far end. On his left, a narrow stone staircase rose upward, and instinctively cautious, he turned and climbed. The voices he heard came from beyond that flame-lit arch.
+
+The sounds faded beneath him as he climbed, and soon he emerged through a low arched doorway into a vast open space glowing with an eerie light.
+
+He stood on a shadowy balcony overlooking a broad, dimly lit hall of immense size—a hall of the dead, seen only by the silent priests of Stygia. Along the black walls rose tier upon tier of carved and painted sarcophagi. Each stood in a niche in the dark stone, and the tiers climbed higher and higher until they vanished into the shadows above. Thousands of carved masks stared impassively down upon the group in the center of the hall, making them seem small and meaningless before that immense host of the dead.
+
+Of that group, ten were priests, and though they had removed their masks, Conan knew they were the same ones he had accompanied to the pyramid. They stood before a tall, hawk-faced man beside a black altar on which lay a mummy wrapped in rotting bandages. The altar seemed to stand in the heart of a living fire that pulsed and shimmered, dripping flakes of trembling golden flame onto the black stones around it. This dazzling light came from a great red jewel resting on the altar, and in its glow the faces of the priests looked pale and corpse-like. As he watched, Conan felt the weight of all the weary miles and sleepless nights of his long quest, and he trembled with the wild urge to rush among those silent priests, carve a path with his sword, and seize the red gem with desperate hands. But he forced himself to stay still with iron control and crouched in the shadow of the stone railing. A glance showed him that a stair led down into the hall from the balcony, hugging the wall and half hidden in shadow. He peered into the dimness of the vast chamber, searching for other priests or followers, but saw only the group around the altar.
+
+In that great emptiness, the voice of the man beside the altar sounded hollow and ghostlike:
+
+“…And so the word came southward. The night wind whispered it, the ravens croaked it as they flew, and the grim bats told it to the owls and the serpents that hide in ancient ruins. Werewolves and vampires knew, and the black-bodied demons that prowl by night. The sleeping Night of the World stirred and shook its heavy mane, and there began a throbbing of drums in deep darkness, and the echoes of strange, distant cries frightened men who walked at dusk. For the Heart of Ahriman had returned to the world to fulfill its hidden destiny.
+
+“Ask me not how I, Thutothmes of Khemi and the Night, heard the word before Thoth-Amon, who calls himself prince of all wizards. There are secrets not meant for ears like yours, and Thoth-Amon is not the only master of the Black Ring.”
+
+“I knew, and I went to meet the Heart as it came southward. It was like a magnet drawing me without fail. From death to death it came, riding on a river of human blood. Blood feeds it; blood calls to it. Its power is greatest when there is blood on the hands that hold it—when it is taken by slaughter from its owner. Wherever it shines, blood is spilled and kingdoms fall, and the forces of nature are thrown into chaos.  
+
+“And here I stand, master of the Heart, and I have secretly summoned you, my loyal ones, to share in the dark kingdom that will come. Tonight you shall witness the breaking of Thoth-Amon’s chains that enslave us, and the birth of an empire.”  
+
+“Who am I, even I, Thutothmes, to know what powers lie dreaming in those crimson depths? It holds secrets forgotten for three thousand years. But I will learn them. These will tell me!”  
+
+He gestured toward the silent shapes that lined the hall.  
+
+“See how they sleep, staring through their carved masks! Kings, queens, generals, priests, wizards—the dynasties and nobility of Stygia for ten thousand years! The touch of the Heart will wake them from their long sleep. Long, long did the Heart throb and pulse in ancient Stygia. Here was its home in the ages before it journeyed to Acheron. The ancients knew its full power, and they will tell me when, by its magic, I bring them back to life to serve me.  
+
+“I will rouse them, awaken them, learn their forgotten wisdom—the knowledge locked in those withered skulls. By the lore of the dead we shall enslave the living! Yes, kings and generals and wizards of old shall be our helpers and our slaves. Who shall stand against us?  
+
+“Look! This dried, shriveled thing on the altar was once Thothmekri, a high priest of Set, who died three thousand years ago. He was a master of the Black Ring. He knew of the Heart. He will tell us of its powers.”  
+
+Lifting the great jewel, the speaker placed it on the withered chest of the mummy and raised his hand to begin an incantation. But the spell was never finished. With his hand raised and his lips parted, he froze, staring past his followers, who turned to look in the same direction.  
+
+Through the dark arch of a doorway, four thin, black-robed figures entered the great hall in single file. Their faces were pale yellow ovals, dimly visible beneath the shadows of their hoods.  
+
+“Who are you?” demanded Thutothmes, his voice sharp and dangerous, like the hiss of a cobra. “Are you insane, barging into the sacred shrine of Set?”  
+
+The tallest of the strangers spoke, his voice flat and cold as a Khitan temple bell.  
+
+“We follow Conan of Aquilonia.”  
+
+“He isn’t here,” replied Thutothmes, shaking his cloak back from his right hand in a strange, threatening motion, like a panther unsheathing its claws.  
+
+“You lie. He’s in this temple. We tracked him from a corpse behind the bronze door of the outer gate, through a maze of corridors. We were following his twisting trail when we sensed this gathering. We’ll continue our hunt now. But first, give us the Heart of Ahriman.”  
+
+“Death is the reward of madmen,” murmured Thutothmes, stepping closer to the speaker. His priests crept in silently, but the strangers did not seem to notice.  
+
+“Who can look upon it without desire?” said the Khitan. “In Khitai we’ve heard of it. It will give us power over those who cast us out. Glory and wonder burn in its crimson depths. Hand it over before we kill you.”  
+
+A fierce cry rang out as a priest lunged forward, steel flashing. Before he could strike, a scaly staff whipped out and touched his chest, and he fell like a corpse. In an instant the mummified figures looked down upon a scene of blood and horror. Curved knives flashed and dripped red, serpentine staffs darted in and out, and every man they touched screamed and died.  
+
+At the first blow, Conan had leapt to his feet and was racing down the stairs. He caught only glimpses of that short, hellish fight—men swaying, locked in combat, bleeding; one Khitan hacked nearly to pieces but still standing and killing, until Thutothmes struck him on the chest with his open, empty hand, and he dropped dead, though no blade had been able to finish him.  
+
+By the time Conan’s pounding feet reached the floor, the fight was nearly done. Three of the Khitans lay dead, slashed to ribbons and gutted, and only Thutothmes still stood among the Stygians.  
+
+He rushed at the last Khitan, his empty hand raised like a weapon—and that hand was black as a slave’s. But before he could strike, the staff in the tall Khitan’s hand shot out, seeming to stretch as the yellow man thrust. The tip touched Thutothmes’ chest, and he staggered; again and again the staff struck, and Thutothmes reeled and fell dead, his face swallowed by a spreading blackness that turned his whole body the same color as his cursed hand.  
+
+The Khitan turned toward the jewel blazing on the mummy’s chest—but Conan was already there.  
+
+In tense silence the two faced each other amid the carnage, the carved mummies staring down at them.  
+
+“Far have I followed you, O king of Aquilonia,” said the Khitan calmly. “Down the long river, over the mountains, across Poitain and Zingara, through the hills of Argos, and along the coast. It wasn’t easy to pick up your trail from Tarantia, for the priests of Asura are cunning. We lost it in Zingara, but we found your helmet in the forest below the border hills, where you fought the ghouls of the woods. We almost lost your trail again tonight in these twisting passages.”  
+
+Conan realized he had been lucky to return from the vampire’s chamber by a different route than the one he had been led through. Otherwise, he would have run straight into these yellow devils instead of spotting them from afar as they tracked him like supernatural bloodhounds with whatever strange power they possessed.  
+
+The Khitan shook his head slightly, as if reading Conan’s thoughts.  
+
+“It doesn’t matter; the long chase ends here.”  
+
+“Why have you hunted me?” demanded Conan, ready to move in any direction with the speed of a drawn bowstring.  
+
+“It was a debt to settle,” said the Khitan. “To you, who are about to die, I’ll not hide the truth. We were servants of the king of Aquilonia, Valerius. Long we served him, but that service is done—my brothers by death, and I by fulfilling my duty. I’ll return to Aquilonia with two hearts: for myself, the Heart of Ahriman; for Valerius, the heart of Conan. A kiss from the staff cut from the living Tree of Death—”  
+
+The staff darted forward like a viper’s strike, but Conan’s knife was faster. The staff fell in two writhing halves; another flash of steel, bright as lightning, and the Khitan’s head rolled across the floor.  
+
+Conan turned and reached for the jewel—then recoiled, his hair bristling, his blood freezing.  
+
+No longer did a shriveled brown corpse lie on the altar. The jewel gleamed on the full, arched chest of a naked, living man lying among the rotting wrappings. Living? Conan couldn’t tell. The eyes were dark and glassy, with dim, inhuman fires burning beneath.  
+
+Slowly the man rose, taking the jewel in his hand. He stood beside the altar, tall, dusky, and naked, his face like a carved statue. Silently he extended his hand toward Conan, the jewel pulsing like a living heart within it. Conan took it, feeling a strange chill, as if he were accepting a gift from the dead. Somehow he knew the proper spells had not been spoken—the ritual was unfinished—life had not fully returned to the corpse.  
+
+“Who are you?” demanded the Cimmerian.  
+
+The answer came in a flat, hollow tone, like water dripping in a deep cave. “I was Thothmekri; I am dead.”  
+
+“Well, then lead me out of this cursed temple, will you?” Conan said, his skin crawling.  
+
+With slow, mechanical steps, the dead man moved toward a dark archway. Conan followed. A glance back showed him the vast, shadowy hall again, with its rows of sarcophagi, the dead men sprawled around the altar, and the severed head of the Khitan staring blankly up at the shifting shadows.  
+
+The glow of the jewel lit the black tunnels like a magic lamp dripping golden fire. Once Conan caught sight of pale flesh in the darkness—he thought he saw the vampire Akivasha shrinking from the jewel’s light; and with her, other, less human shapes scurried or lurched away into the shadows.  
+
+The dead man walked straight ahead, looking neither right nor left, his stride as steady as the march of doom itself. Cold sweat broke out thickly on Conan’s skin. Icy doubts attacked his mind. How could he be sure that this terrifying figure from the past was leading him to freedom? Yet he knew that, left on his own, he could never find his way through this cursed maze of corridors and tunnels. He followed his dreadful guide through the darkness that loomed before and behind them, filled with lurking shapes of horror and madness that shrank away from the blinding light of the Heart.
+
+Then the bronze doorway appeared before him. Conan felt the night wind blowing across the desert and saw the stars, and the starlit sands over which stretched the great black shadow of the pyramid. Thothmekri silently pointed toward the desert, then turned and walked soundlessly back into the darkness. Conan stared after that silent figure fading into the blackness on relentless, noiseless feet, like one walking toward a known and unavoidable doom—or returning to eternal sleep.  
+
+With a curse, the Cimmerian leaped from the doorway and ran into the desert as if chased by demons. He did not look back at the pyramid or the dark towers of Khemi rising dimly across the sands. He ran south toward the coast, driven by uncontrollable panic. The violent effort cleared the fog from his brain; the clean desert wind blew the nightmares from his soul, and his horror turned into a wild surge of triumph before the desert gave way to a tangle of swampy growth through which he saw the black water before him—and the Venturer anchored there.  
+
+He crashed through the undergrowth, wading hip-deep through the marshes; he dove headfirst into the deep water, uncaring of sharks or crocodiles, and swam to the galley. He was already climbing up the chain onto the deck, dripping and exultant, before the watchman even saw him.  
+
+“Wake up, you dogs!” roared Conan, knocking aside the spear the startled lookout thrust at his chest. “Raise the anchor! Take to the oars! Give that fisherman a helmet full of gold and put him ashore! Dawn will be breaking soon, and before sunrise we must be racing for the nearest port of Zingara!”  
+
+He swung the great jewel above his head, scattering flashes of light that speckled the deck with golden fire.  
+
+Out of the Dust Shall Acheron Arise  
+
+Winter had passed from Aquilonia. Leaves had burst from the trees, and the fresh grass smiled under the touch of the warm southern winds. But many fields lay idle and empty; many blackened heaps of ashes marked the places where proud villas or thriving towns had once stood. Wolves prowled openly along the grass-grown roads, and bands of gaunt, masterless men crept through the forests. Only in Tarantia were there feasting, wealth, and splendor.  
+
+Valerius ruled like a man touched by madness. Even many of the barons who had welcomed his return finally cried out against him. His tax collectors crushed rich and poor alike; the wealth of a plundered kingdom poured into Tarantia, which became less the capital of a nation than the garrison of conquerors in a conquered land. Its merchants grew rich, but it was a fragile prosperity, for no one knew when he might be accused of treason on a false charge, his property seized, and himself thrown into prison or sent to the executioner’s block.  
+
+Valerius made no effort to win over his subjects. He held power through the Nemedian soldiers and desperate mercenaries. He knew he was Amalric’s puppet, ruling only by the Nemedian’s permission. He knew he could never hope to unite Aquilonia under his rule and throw off his masters’ control, for the outer provinces would resist him to their last drop of blood. And the Nemedians would cast him from his throne if he tried to consolidate his kingdom. He was trapped in his own snare. The bitterness of defeated pride ate at his soul, and he plunged into a reign of debauchery, living from day to day without thought or care for the future.  
+
+Yet there was cunning in his madness, so deep that not even Amalric suspected it. Perhaps the wild, chaotic years of exile had bred in him a bitterness beyond ordinary understanding. Perhaps his hatred of his current position had deepened that bitterness into insanity. Whatever the cause, he lived for one purpose: to bring ruin upon all who were connected with him.  
+
+He knew his rule would end the moment he had served Amalric’s purpose. He also knew that as long as he continued to oppress his native kingdom, the Nemedian would allow him to reign, for Amalric wanted to crush Aquilonia into total submission, to destroy its last trace of independence, and then seize it for himself—rebuilding it in his own way with his vast wealth, and using its men and resources to take the crown of Nemedia from Tarascus. For the throne of an emperor was Amalric’s ultimate goal, and Valerius knew it. Valerius did not know whether Tarascus suspected this, but he knew that the king of Nemedia approved of Amalric’s ruthless policy. Tarascus hated Aquilonia with a hatred born of old wars. He wanted only the destruction of the western kingdom.  
+
+And Valerius planned to ruin the country so completely that not even Amalric’s wealth could ever rebuild it. He hated the baron as much as he hated the Aquilonians, and he hoped only to live long enough to see the day when Aquilonia lay in utter ruin, and Tarascus and Amalric were locked in a hopeless civil war that would destroy Nemedia as completely.  
+
+He believed that the conquest of the still-defiant provinces of Gunderland, Poitain, and the Bossonian Marches would mark the end of his reign. By then he would have served Amalric’s purpose and could be discarded. So he delayed the conquest of these provinces, limiting his actions to aimless raids and skirmishes, answering Amalric’s demands for progress with convincing excuses and postponements.  
+
+His life became a cycle of feasts and wild debauchery. He filled his palace with the most beautiful girls in the kingdom, willing or unwilling. He cursed the gods and sprawled drunkenly on the banquet hall floor, wearing the golden crown and staining his royal purple robes with spilled wine. In fits of bloodlust he decorated the gallows in the market square with hanging corpses, satisfied the headsmen’s axes, and sent his Nemedian horsemen thundering through the land, looting and burning. Driven to madness, the realm was in constant turmoil—frantic revolts savagely crushed. Valerius plundered, raped, looted, and destroyed until even Amalric protested, warning him that he would bankrupt the kingdom beyond recovery, not realizing that this was exactly what Valerius intended.  
+
+But while in both Aquilonia and Nemedia people spoke of the king’s madness, in Nemedia they talked even more about Xaltotun, the masked man. Yet few ever saw him in the streets of Belverus. People said he spent much of his time in the hills, holding strange meetings with the last remnants of an ancient race—dark, silent people who claimed descent from a forgotten kingdom. There were whispers of drums echoing high in the dreaming hills, of fires glowing in the night, and of eerie chants carried on the wind—rituals lost for centuries, remembered only as meaningless mutterings beside mountain hearths in villages whose people were oddly different from those of the valleys.  
+
+No one knew the reason for these gatherings, except perhaps Orastes, who often accompanied the Pythonian and whose face had begun to show a haunted, worn look.  
+
+But when spring came in full force, a sudden rumor swept across the fading kingdom and stirred the land to life again. It came like a soft wind rising from the south, awakening men sunk in hopeless despair. Yet no one could truly say how it began. Some spoke of a strange, grim old woman who came down from the mountains with her hair streaming in the wind and a great gray wolf following her like a dog. Others whispered of the priests of Asura, who slipped like shadows from Gunderland to the borders of Poitain and the forest villages of the Bossonians.  
+
+However the word spread, rebellion flared like wildfire along the borders. Outlying Nemedian garrisons were stormed and wiped out; foraging parties were slaughtered; the west was in open revolt. There was a new spirit in this uprising—a fierce determination and inspired fury instead of the desperate madness that had driven earlier revolts. It wasn’t just the common people; barons were fortifying their castles and defying the provincial governors. Bands of Bossonians were seen moving along the marches—sturdy, resolute men in brigandines and steel caps, longbows in hand. From the stagnant decay of ruin, the realm suddenly pulsed with life again—dangerous, vibrant, and awake. So Amalric sent urgently for Tarascus, who came with an army.  
+
+* * * * *  
+
+In the royal palace at Tarantia, the two kings and Amalric met to discuss the rebellion. They had not summoned Xaltotun, who was buried in his mysterious studies in the Nemedian hills. Not since that bloody day in the valley of the Valkia had they called on his sorcery, and he had since withdrawn from them, speaking little, seemingly indifferent to their schemes.  
+
+Nor had they sent for Orastes, but he came anyway—and he was pale as sea foam whipped by a storm. He stood in the gold-domed chamber where the kings held council, and they stared in shock at his hollow eyes, seeing a fear they had never thought possible in Orastes.
+
+“You’re exhausted, Orastes,” said Amalric. “Sit on this couch and I’ll have a slave bring you wine. You’ve ridden hard—”  
+
+Orastes waved the offer away.  
+
+“I’ve killed three horses on the road from Belverus. I can’t drink wine, I can’t rest, until I’ve said what I must.”  
+
+He paced back and forth as if driven by some inner fire, then stopped before his astonished companions.  
+
+“When we used the Heart of Ahriman to bring a dead man back to life,” Orastes said abruptly, “we didn’t think about the consequences of meddling with the black dust of the past. The fault is mine—and the sin. We thought only of our own ambitions, forgetting what ambitions that man might have. And we’ve unleashed a demon on the world, a fiend beyond human understanding. I’ve delved deep into evil, but there’s a limit to how far I—or any man of my race and time—can go. My ancestors were clean men, untouched by demonic corruption; it’s only I who have sunk into darkness, and my sin can reach only as far as my own soul allows. But behind Xaltotun lie a thousand centuries of black magic and devil-worship, an ancient tradition of evil. He’s beyond our understanding not only because he’s a sorcerer himself, but because he’s the son of a race of sorcerers.”  
+
+“I’ve seen things that have shattered my soul. In the heart of the sleeping hills, I’ve watched Xaltotun commune with the souls of the damned and summon the ancient demons of forgotten Acheron. I’ve seen the cursed descendants of that doomed empire worship him and hail him as their high priest. I’ve seen what he plans—and I tell you, it’s nothing less than the restoration of the ancient, black, ghastly kingdom of Acheron!”  
+
+“What do you mean?” demanded Amalric. “Acheron is dust. There aren’t enough remnants left to form an empire. Not even Xaltotun can rebuild the dust of three thousand years.”  
+
+“You know little of his dark powers,” answered Orastes grimly. “I’ve seen the very hills take on an alien, ancient look under the spell of his incantations. I’ve glimpsed, like shadows behind reality, the faint outlines of valleys, forests, mountains, and lakes—not as they are now, but as they were in that distant past. I’ve even sensed, more than seen, the purple towers of forgotten Python shimmering like ghosts in the twilight.  
+
+“And in the last gathering I attended with him, I finally understood his sorcery, while the drums thundered and the beast-like worshippers grovelled with their faces in the dust. I tell you, he means to restore Acheron through magic—through a blood sacrifice so vast the world has never seen its like. He would enslave the world, and with a flood of blood wash away the present and bring back the past!”  
+
+“You’re insane!” exclaimed Tarascus.  
+
+“Insane?” Orastes turned his haunted eyes on him. “Can any man see what I’ve seen and stay completely sane? Yet I speak the truth. He plans to bring back Acheron, with its towers, its wizards, its kings, and its horrors, just as it was long ago. The descendants of Acheron will serve as the core upon which he’ll rebuild, but it’s the blood and bodies of the people of today that will provide the mortar and stones for that rebuilding. I can’t tell you how. My mind reels when I try to grasp it. But I’ve seen it! Acheron will be Acheron again, and even the hills, forests, and rivers will return to their ancient forms. Why not? If I, with my small store of knowledge, could bring to life a man dead three thousand years, why can’t the greatest sorcerer in the world bring back to life a kingdom dead three thousand years? Out of the dust, Acheron will rise again at his command.”  
+
+“How can we stop him?” asked Tarascus, shaken.  
+
+“There’s only one way,” said Orastes. “We must steal the Heart of Ahriman!”  
+
+“But I—” began Tarascus involuntarily, then quickly shut his mouth.  
+
+No one noticed, and Orastes went on.  
+
+“That’s a power that could be turned against him. If I had it, I might be able to defy him. But how can we steal it? He’s hidden it somewhere secret, a place so well concealed that not even a Zamorian thief could take it. I can’t discover where it’s hidden. If only he would fall again into the sleep of the black lotus—but the last time he did that was after the battle of Valkia, when he was exhausted from the great magic he had used, and—”  
+
+The door, though locked and bolted, swung silently open, and Xaltotun stood before them—calm, composed, stroking his long, patriarchal beard—but the flickering lights of hell burned in his eyes.  
+
+“I’ve taught you too much,” he said evenly, pointing a finger like a weapon of doom at Orastes. Before anyone could move, he threw a handful of dust onto the floor near the priest’s feet. Orastes froze like a statue. The dust flared and smoldered; a thin blue coil of smoke rose and twisted upward around Orastes in a slender spiral. When it reached above his shoulders, it whipped around his neck with the speed of a striking snake. Orastes’ scream turned into a choking gurgle. His hands clawed at his throat, his eyes bulged, his tongue protruded. The smoke looked like a blue rope tightening around his neck; then it faded away, and Orastes collapsed to the floor, dead.  
+
+Xaltotun clapped his hands, and two men entered—men often seen with him: small, dark, unpleasant-looking, with slanted red eyes and sharp, rat-like teeth. They said nothing. Lifting the corpse, they carried it out.  
+
+With a dismissive wave, Xaltotun sat down at the ivory table where the pale kings were gathered.  
+
+“Why are you meeting in secret?” he asked.  
+
+“The Aquilonians have risen in the west,” said Amalric, recovering from the horror of Orastes’ death. “The fools believe Conan is alive and leading a Poitanian army to reclaim his throne. If he had reappeared right after Valkia, or if rumors of his survival had spread then, the central provinces wouldn’t have dared rise under him—they feared your powers too much. But they’ve grown so desperate under Valerius’ misrule that they’ll follow anyone who can unite them against us, preferring quick death to endless torture and misery.  
+
+“Of course, the rumor that Conan wasn’t truly killed at Valkia has lingered, but only recently have the people begun to believe it. Pallantides has returned from exile in Ophir, swearing that the king was sick in his tent that day, and that a man-at-arms wore his armor. A squire who just recovered from a mace wound received at Valkia supports his story—or pretends to.  
+
+“An old woman with a pet wolf has wandered across the land, proclaiming that King Conan still lives and will return to reclaim his crown. And lately, those cursed priests of Asura are spreading the same message. They claim they’ve received word through mysterious means that Conan is coming back to retake his kingdom. I can’t catch her or them. It’s obviously a trick of Trocero’s. My spies report undeniable evidence that the Poitanians are gathering to invade Aquilonia. I believe Trocero plans to present some impostor and claim he’s King Conan.”  
+
+Tarascus laughed, but his laughter lacked conviction. He secretly touched a scar beneath his tunic and remembered the ravens that had followed a fugitive’s trail; remembered the mangled body of his squire, Arideus, brought back from the border mountains—torn apart, his terrified soldiers had said, by a great gray wolf. But he also remembered a red jewel stolen from a golden chest while a wizard slept, and he said nothing.  
+
+Valerius, too, remembered—a dying nobleman gasping out a tale of terror, and four Khitans who had vanished into the southern labyrinths and never returned. But he kept silent, for hatred and suspicion of his allies gnawed at him like a worm, and he wanted nothing more than to see both rebels and Nemedians destroyed together.  
+
+But Amalric burst out, “It’s ridiculous to think Conan’s alive!”  
+
+In response, Xaltotun tossed a scroll of parchment onto the table.  
+
+Amalric snatched it up and glared at it. A furious, incoherent cry escaped his lips. He read:  
+
+     To Xaltotun, grand fakir of Nemedia: Dog of Acheron, I am  
+     coming back to my kingdom, and I’ll hang your hide on a  
+     bramble.  
+
+     Conan  
+
+“A forgery!” shouted Amalric.  
+
+Xaltotun shook his head.  
+
+“It’s real. I’ve compared it with the signature on the royal documents in the court archives. No one could imitate that bold handwriting.”  
+
+“Then if Conan truly lives,” muttered Amalric, “this rebellion won’t be like the others, because he’s the only man alive who can unite the Aquilonians. But,” he protested, “this isn’t like Conan. Why would he warn us with such boasting? You’d think he’d strike without warning, like the barbarian he is.”  
+
+“We’re already warned,” said Xaltotun. “Our spies have told us about the war preparations in Poitain. He couldn’t cross the mountains without our knowing, so he sends me his challenge in his usual fashion.”  
+
+“Why send it to you?” demanded Valerius. “Why not to me, or to Tarascus?”  
+
+Xaltotun turned his unreadable gaze on the king.
+
+“Conan is wiser than you,” he said finally. “He already knows what you kings have yet to learn—that it isn’t Tarascus, nor Valerius, nor Amalric, but Xaltotun who is the true master of the western nations.”
+
+They said nothing; they sat staring at him, struck by the chilling truth of his words.
+
+“There’s only one path for me—the imperial road,” said Xaltotun. “But first we must destroy Conan. I don’t know how he escaped me at Belverus, for what happened while I lay in the sleep of the black lotus is hidden from me. But he’s in the south, raising an army. It’s his last desperate attempt, made possible only by the despair of the people who’ve suffered under Valerius. Let them rise; I hold them all in my hand. We’ll wait until he moves against us, and then we’ll crush him once and for all.
+
+“Then we’ll destroy Poitain, Gunderland, and the foolish Bossonians. After that, Ophir, Argos, Zingara, Koth—all the nations of the world will be forged into one vast empire. You’ll rule as my governors, and as my captains you’ll be greater than kings are now. I cannot be defeated, for the Heart of Ahriman is hidden where no man can ever use it against me again.”
+
+Tarascus looked away so Xaltotun wouldn’t read his thoughts. He knew the wizard hadn’t looked inside the golden chest with its carved serpents that had seemed to sleep ever since he placed the Heart inside. Strange as it was, Xaltotun didn’t know the Heart had been stolen; the strange jewel was beyond or outside the reach of his dark knowledge. His unnatural powers didn’t warn him that the chest was empty. Tarascus didn’t believe Xaltotun knew the full extent of Orastes’ revelations, since the Pythonian had spoken only of building a new earthly empire, not of restoring Acheron. Tarascus also didn’t believe Xaltotun was yet confident in his own power; if they needed his help to achieve their ambitions, he needed theirs just as much. Magic, after all, still depended to some degree on sword strikes and spear thrusts. The king understood the meaning in Amalric’s secret glance: let the wizard use his sorcery to help them destroy their most dangerous enemy. There would be time enough later to turn on him. There might still be a way to outwit the dark power they had unleashed.
+
+Drums of Peril
+
+The confirmation of war came when the army of Poitain, ten thousand strong, marched through the southern passes with banners flying and steel flashing. At their head, the spies swore, rode a giant figure in black armor, the royal lion of Aquilonia embroidered in gold on the chest of his rich silk surcoat. Conan lived! The king lived! There was no longer any doubt in anyone’s mind, friend or foe alike.
+
+With the news of the invasion from the south came word, carried by hard-riding messengers, that a host of Gundermen was moving south, reinforced by the barons of the northwest and the northern Bossonians. Tarascus marched with thirty-one thousand men to Galparan, on the river Shirki, which the Gundermen would have to cross to strike at the towns still held by the Nemedians. The Shirki was a fast, wild river rushing southwest through rocky gorges and canyons, and there were few places where an army could cross at that time of year, when the stream was nearly full from the melting snow. All the land east of the Shirki was in Nemedian hands, and it was logical to assume that the Gundermen would try to cross either at Galparan or at Tanasul, farther south. Reinforcements were expected daily from Nemedia, until word came that the king of Ophir was making hostile moves on Nemedia’s southern border, and sending more troops away would risk an invasion from the south.
+
+Amalric and Valerius left Tarantia with twenty-five thousand men, leaving behind as large a garrison as they dared to prevent uprisings in the cities while they were gone. They wanted to meet and crush Conan before he could join forces with the rebels of the kingdom.
+
+The king and his Poitanians had crossed the mountains, but there had been no real battles, no attacks on towns or fortresses. Conan appeared and vanished again. Apparently, he had turned west through the wild, sparsely settled hill country and entered the Bossonian marches, gathering recruits as he went. Amalric and Valerius, with their host of Nemedians, Aquilonian traitors, and savage mercenaries, moved through the land in frustrated rage, searching for an enemy who never showed himself.
+
+Amalric found it impossible to get more than vague, general reports about Conan’s movements. Scouting parties often rode out and never came back, and it wasn’t unusual to find a spy nailed to an oak tree. The countryside was rising up and fighting back as peasants and villagers do—fiercely, murderously, and in secret. All Amalric knew for sure was that a large force of Gundermen and northern Bossonians was somewhere north of him, beyond the Shirki, and that Conan, with a smaller force of Poitanians and southern Bossonians, was somewhere to the southwest.
+
+He began to fear that if he and Valerius advanced farther into the wild country, Conan might slip past them entirely, march around them, and invade the central provinces behind them. Amalric pulled back from the Shirki valley and camped on a plain a day’s ride from Tanasul. There he waited. Tarascus held his position at Galparan, afraid that Conan’s maneuvers were meant to lure him south and let the Gundermen cross the river at the northern ford.
+
+* * * * *
+
+Xaltotun came to Amalric’s camp in his chariot drawn by the eerie horses that never tired. He entered Amalric’s tent, where the baron was conferring with Valerius over a map spread out on an ivory camp table.
+
+Xaltotun crumpled the map and threw it aside.
+
+“What your scouts can’t find out for you,” he said, “my spies tell me—though their information is strangely blurred and incomplete, as if unseen forces were working against me.
+
+“Conan is advancing along the Shirki River with ten thousand Poitanians, three thousand southern Bossonians, and the barons of the west and south with their retainers, numbering five thousand. An army of thirty thousand Gundermen and northern Bossonians is pushing south to join him. They’ve made contact through secret communications used by the cursed priests of Asura, who seem to be opposing me—and whom I’ll feed to a serpent when the battle is over. I swear it by Set!
+
+“Both armies are heading for the crossing at Tanasul, but I don’t believe the Gundermen will cross the river. I believe Conan will cross instead, to join them.”
+
+“Why would Conan cross the river?”
+
+“Because it’s to his advantage to delay the battle. The longer he waits, the stronger he becomes, and the more dangerous our position grows. The hills on the far side of the river are full of people fiercely loyal to his cause—outlaws, refugees, fugitives from Valerius’ cruelty. From all over the kingdom men hurry to join his army, alone or in groups. Every day, our patrols are ambushed and wiped out by the locals. Rebellion is spreading in the central provinces and will soon erupt into open revolt. The garrisons we left there are too small, and we can’t expect reinforcements from Nemedia right now. I see the hand of Pallantides in this trouble on the Ophirean border—he has family in Ophir.
+
+“If we don’t catch and destroy Conan soon, the provinces will rise in flames behind us. We’ll have to retreat to Tarantia to defend what we’ve taken, and we might have to fight our way through a rebellious land with Conan’s whole army chasing us, then endure a siege in the city itself, with enemies both inside and outside the walls. No, we can’t wait. We must crush Conan before his army grows too large, before the central provinces rebel. Once his head hangs above the gate at Tarantia, you’ll see how quickly the rebellion will collapse.”
+
+“Why don’t you just cast a spell on his army and kill them all?” asked Valerius, half mocking.
+
+Xaltotun stared at the Aquilonian as if he could see straight into the mocking madness hidden behind those wild eyes.
+
+“Don’t worry,” he said finally. “My powers will crush Conan in the end, like a lizard underfoot. But even sorcery works best when backed by pikes and swords.”
+
+“If he crosses the river and takes position in the Goralian Hills, it’ll be hard to drive him out,” said Amalric. “But if we catch him in the valley on this side of the river, we can wipe him out. How far is Conan from Tanasul?”
+
+“At the pace he’s marching, he should reach the crossing sometime tomorrow night. His men are tough, and he’s pushing them hard. He should get there at least a day before the Gundermen.”
+
+“Good!” Amalric slammed his fist on the table. “I can reach Tanasul before he does. I’ll send a rider to Tarascus, telling him to follow me to Tanasul. By the time he arrives, I’ll have cut Conan off from the crossing and destroyed him. Then our combined force can cross the river and deal with the Gundermen.”
+
+Xaltotun shook his head impatiently.
+
+“That plan would work against anyone but Conan. But your twenty-five thousand men aren’t enough to destroy his eighteen thousand before the Gundermen arrive. They’ll fight like wounded panthers. And what if the Gundermen appear while the armies are locked in battle? You’ll be caught between two fires and destroyed before Tarascus can reach you. He’ll come too late to help.”  
+
+“What then?” demanded Amalric.  
+
+“Move with your full strength against Conan,” said the man from Acheron. “Send a rider to tell Tarascus to join us here. We’ll wait for him. Then we’ll march together to Tanasul.”  
+
+“But if we wait,” protested Amalric, “Conan will cross the river and join the Gundermen.”  
+
+“Conan will not cross the river,” said Xaltotun.  
+
+Amalric’s head snapped up, and he stared into those dark, unreadable eyes.  
+
+“What do you mean?”  
+
+“Suppose there were heavy rains far to the north, at the source of the Shirki? Suppose the river flooded so badly that the crossing at Tanasul became impassable? Then we could take our time bringing up our full force, trap Conan on this side of the river, and crush him—and then, when the flood went down, which I think it would the next day, we could cross and destroy the Gundermen. That way we could use our full strength against each smaller army in turn.”  
+
+Valerius laughed, as he always did when ruin threatened either friend or foe, and ran a restless hand through his tangled yellow hair. Amalric stared at the man from Acheron with a mixture of fear and admiration.  
+
+“If we caught Conan in the Shirki Valley, with the hills to his right and the flooded river to his left,” he admitted, “with our full force we could wipe him out. Do you think—are you sure—such rains will fall?”  
+
+“I’m going to my tent,” said Xaltotun, rising. “Necromancy isn’t done with a simple wave of the hand. Send a rider to Tarascus. And let no one come near my tent.”  
+
+That last order wasn’t needed. No man in that army would have taken any amount of gold to approach the mysterious black silk pavilion, whose flaps were always tightly closed. Only Xaltotun ever entered it, yet voices were often heard from within; its walls sometimes billowed when there was no wind, and strange music drifted out. Sometimes, deep in the night, the silk walls glowed red with flickering flames, casting twisted shadows that moved back and forth.  
+
+Lying in his own tent that night, Amalric heard the steady beat of a drum coming from Xaltotun’s tent; it throbbed through the darkness, and at times the Nemedian could have sworn he heard a deep, croaking voice joining in with the rhythm. He shuddered, because he knew that voice wasn’t Xaltotun’s. The drum muttered on like distant thunder, and before dawn Amalric, glancing out from his tent, saw red flashes of lightning far off on the northern horizon. Everywhere else the stars burned bright and white, but that distant lightning flickered endlessly, like the red glint of firelight on a turning blade.  
+
+* * * * *  
+
+At sunset the next day Tarascus arrived with his army, dusty and exhausted from the hard march, the foot soldiers trailing hours behind the cavalry. They camped on the plain near Amalric’s forces, and at dawn the combined army moved west.  
+
+A swarm of scouts rode ahead, and Amalric waited impatiently for their return, expecting news that the Poitanians were trapped beside a raging flood. But when the scouts came back, they brought word that Conan had already crossed the river.  
+
+“What?” exclaimed Amalric. “Did he cross before the flood?”  
+
+“There was no flood,” said the scouts, confused. “Late last night he reached Tanasul and threw his army across.”  
+
+“No flood?” exclaimed Xaltotun, startled for the first time since Amalric had known him. “Impossible! There were great rains at the headwaters of the Shirki last night and the night before!”  
+
+“That may be, my lord,” said the scout. “The water was muddy, and the people of Tanasul said the river rose maybe a foot yesterday—but not enough to stop Conan’s crossing.”  
+
+Xaltotun’s magic had failed! The thought pounded in Amalric’s mind. His horror of this strange man from the past had grown steadily since that night in Belverus when he had seen a dried, shriveled mummy swell and come to life. The death of Orastes had turned that hidden dread into real fear. Deep down, he was convinced that the man—or demon—was unstoppable. Yet now he had undeniable proof of failure.  
+
+Still, even the greatest sorcerer might falter sometimes, thought the baron. In any case, he didn’t dare oppose the man from Acheron—at least not yet. Orastes was dead, writhing in whatever nameless hell Mitra alone knew, and Amalric knew his sword would be useless where the black wisdom of the renegade priest had failed. Whatever dark horror Xaltotun was planning lay somewhere in the uncertain future. Conan and his army were the immediate threat, and Xaltotun’s sorcery might still be needed before the struggle was over.  
+
+* * * * *  
+
+They reached Tanasul, a small fortified village where a ridge of rocks formed a natural bridge across the river, usable except during the worst floods. Scouts reported that Conan had taken position in the Goralian Hills, which rose a few miles beyond the river. And just before sunset, the Gundermen had arrived in his camp.  
+
+Amalric looked at Xaltotun, who stood cold and unreadable in the torchlight. Night had fallen.  
+
+“What now? Your magic has failed. Conan faces us with an army nearly as strong as ours, and he holds the better ground. We have two bad choices: to camp here and wait for his attack, or to fall back toward Tarantia and wait for reinforcements.”  
+
+“We’re doomed if we wait,” said Xaltotun. “Cross the river and make camp on the plain. We’ll attack at dawn.”  
+
+“But his position is too strong!” protested Amalric.  
+
+“Fool!” A surge of fury cracked through the wizard’s calm. “Have you forgotten Valkia? Because some obscure elemental force stopped the flood, do you think I’m powerless? I meant for your spears to wipe out our enemies—but don’t worry—it’s my sorcery that will destroy their army. Conan is trapped. He’ll never see another sunset. Cross the river!”  
+
+They crossed by torchlight. The horses’ hooves clattered on the rocky bridge and splashed through the shallows. The torchlight gleamed red on shields and breastplates, reflecting in the black water. The bridge was wide enough, but it was past midnight before the army was camped on the plain beyond. Above them, they could see fires flickering red in the distance. Conan had turned to make his stand in the Goralian Hills, which had served more than once before as the last refuge of an Aquilonian king.  
+
+Amalric left his tent and paced restlessly through the camp. A strange glow flickered inside Xaltotun’s tent, and from time to time a demonic cry tore through the silence, accompanied by the low, sinister rustle of a drum that murmured rather than rumbled.  
+
+Amalric, his instincts sharpened by the night and the tension, sensed that Xaltotun was struggling against more than physical forces. Doubts about the wizard’s power gnawed at him. He looked up at the distant fires, and his face hardened. He and his army were deep in enemy territory. In those hills lurked thousands of wolfish men whose hearts and souls had been stripped of all emotion and hope except a crazed hatred for their conquerors—a mad thirst for revenge. Defeat meant annihilation—retreat through a land crawling with blood-crazed foes. And tomorrow he would have to throw his army against the fiercest warrior of the western nations and his desperate host. If Xaltotun failed them now—  
+
+Half a dozen soldiers came out of the shadows. The firelight gleamed on their armor and helmet crests. Between them they half led, half dragged a gaunt figure in rags.  
+
+Saluting, they said, “My lord, this man came to the outposts saying he wanted to speak with King Valerius. He’s an Aquilonian.”  
+
+He looked more like a wolf—a wolf scarred by traps. Old wounds, the kind made by shackles, showed on his wrists and ankles. A great brand, the mark of a hot iron, disfigured his face. His eyes glared through the tangle of his matted hair as he crouched before the baron.  
+
+“Who are you, you filthy dog?” demanded the Nemedian.  
+
+“Call me Tiberias,” said the man, his teeth clicking in an involuntary spasm. “I’ve come to tell you how to trap Conan.”  
+
+“A traitor, huh?” growled the baron.  
+
+“People say you have gold,” the man muttered, shivering under his rags. “Give me some! Give me gold, and I’ll show you how to defeat the king!” His eyes were wide and glassy; his outstretched hands trembled like claws.  
+
+Amalric shrugged in disgust. But no tool was too low for his use.  
+
+“If you’re telling the truth, you’ll have more gold than you can carry,” he said. “If you’re lying or spying, I’ll have you crucified upside down. Bring him along.”  
+
+In Valerius’s tent, the baron pointed to the man crouching and shivering before them, clutching his rags around him.
+
+“He says he knows a way to help us tomorrow. We’ll need help if Xaltotun’s plan keeps failing. Speak, dog.”
+
+The man’s body twisted in strange spasms. His words came in a stumbling rush:
+
+“Conan’s camp is at the head of the Valley of Lions. It’s shaped like a fan, with steep hills on both sides. If you attack tomorrow, you’ll have to march straight up the valley. You can’t climb the hills on either side. But if King Valerius will accept my service, I’ll guide him through the hills and show him how to come upon King Conan from behind. But we must start soon if we’re to do it. It’s many hours’ ride—you have to go miles west, then miles north, then turn east and come into the Valley of Lions from behind, like the Gundermen did.”
+
+Amalric hesitated, tugging at his chin. In these chaotic times, it wasn’t rare to find men willing to sell their souls for a handful of gold.
+
+“If you lead me astray, you’ll die,” said Valerius. “You understand that, don’t you?”
+
+The man shivered, but his wide eyes didn’t waver.
+
+“If I betray you, kill me!”
+
+“Conan won’t dare split his forces,” mused Amalric. “He’ll need every man to repel our attack. He can’t spare any to set ambushes in the hills. Besides, this man knows his life depends on leading you as he promised. Would a dog like him sacrifice himself? Nonsense! No, Valerius, I think he’s telling the truth.”
+
+“Or he’s an even greater thief than most, since he’d sell out his liberator,” laughed Valerius. “Very well. I’ll follow the dog. How many men can you spare me?”
+
+“Five thousand should be enough,” said Amalric. “A surprise attack on their rear will throw them into confusion, and that’ll be enough. I’ll expect your attack around noon.”
+
+“You’ll know when I strike,” said Valerius.
+
+As Amalric returned to his tent, he noted with satisfaction that Xaltotun was still inside, judging by the blood-chilling cries that occasionally tore through the night air. When he later heard the clink of steel and the jingle of bridles in the darkness, he smiled grimly. Valerius had nearly served his purpose. The baron knew that Conan was like a wounded lion—deadly even in his final moments. When Valerius struck from behind, the Cimmerian’s desperate fury might well destroy his rival before he himself fell. All the better. Amalric felt he could easily do without Valerius once the way was cleared for a Nemedian victory.
+
+       *       *       *       *       *
+
+The five thousand horsemen who rode with Valerius were mostly hardened Aquilonian deserters. In the still starlight they moved out of the sleeping camp, following the westward line of the great black hills rising against the stars ahead. Valerius rode at their head, with Tiberias beside him, a leather thong around his wrist held by a soldier riding on the other side. Others rode close behind with drawn swords.
+
+“Try to trick us and you die instantly,” Valerius warned. “I don’t know every path in these hills, but I know enough about the lay of the land to know which way we must go to come in behind the Valley of Lions. See that you don’t lead us wrong.”
+
+The man ducked his head, his teeth chattering as he babbled assurances of loyalty, staring stupidly up at the banner waving above him—the golden serpent of the old dynasty.
+
+Skirting the far edges of the hills that enclosed the Valley of Lions, they swung wide to the west. After an hour of riding, they turned north, pushing through wild, rugged terrain, following faint trails and twisting paths. When the sun rose, they were several miles northwest of Conan’s position, and there the guide turned east, leading them through a maze of ridges and crags. Valerius nodded, judging their location by the peaks jutting above the rest. He had kept his general sense of direction and knew they were still heading the right way.
+
+But suddenly, without warning, a gray, woolly mass rolled down from the north, covering the slopes and spreading through the valleys. It blotted out the sun; the world became a blind gray void where they could see only a few yards ahead. Their advance turned into a stumbling, groping mess. Valerius cursed. He could no longer see the peaks that had guided him. Now he had to rely completely on the treacherous guide. The golden serpent standard hung limp in the windless air.
+
+At that moment, Tiberias seemed uncertain; he stopped and looked around, confused.
+
+“Are you lost, dog?” Valerius demanded harshly.
+
+“Listen!”
+
+Somewhere ahead, a faint vibration began—the rhythmic rumble of a drum.
+
+“Conan’s drum!” exclaimed the Aquilonian.
+
+“If we’re close enough to hear the drum,” said Valerius, “why don’t we hear the shouting and the clash of weapons? Surely the battle has begun.”
+
+“The gorges and the winds play strange tricks,” answered Tiberias, his teeth chattering with the fever that often strikes men who’ve spent years in damp underground dungeons.
+
+“Listen!”
+
+Faintly, they heard a low, muffled roar.
+
+“They’re fighting down in the valley!” cried Tiberias. “The drum is beating on the heights. Let’s hurry!”
+
+He rode straight toward the sound of the distant drum, as if he finally knew where he was going. Valerius followed, cursing the fog. Then it struck him that the mist would hide his approach. Conan wouldn’t see him coming. He’d be at the Cimmerian’s back before the noonday sun burned away the haze.
+
+Right now, he couldn’t tell what lay on either side—cliffs, thickets, or ravines. The drum kept beating, louder as they advanced, but they heard no other sounds of battle. Valerius had no idea which direction they were heading. He started when he saw gray rock walls looming through the smoky fog on both sides and realized they were riding through a narrow pass. But the guide showed no concern, and Valerius sighed in relief when the walls widened and disappeared again into the mist. They were through the pass; if there had been an ambush, it would have been there.
+
+But now Tiberias stopped again. The drum was rumbling louder, and Valerius couldn’t tell where the sound came from. Now it seemed ahead, then behind, then to one side or the other. Valerius glared around impatiently, sitting on his warhorse with wisps of mist curling around him and moisture gleaming on his armor. Behind him, the long lines of steel-clad riders faded into the fog like ghosts.
+
+“Why do you hesitate, dog?” he demanded.
+
+The man seemed to be listening to the eerie drum. Slowly he straightened in his saddle, turned his head, and faced Valerius. The smile on his lips was terrible to see.
+
+“The fog is thinning, Valerius,” he said in a strange new voice, pointing a bony finger. “Look!”
+
+The drum went silent. The fog was fading. First the tops of cliffs appeared above the gray clouds, tall and ghostly. Lower and lower the mists crawled, shrinking and dissolving. Valerius rose in his stirrups with a cry that echoed from the horsemen behind him. On all sides, cliffs towered high. They weren’t in a wide, open valley as he had thought—they were trapped in a dead-end gorge walled by sheer cliffs hundreds of feet high. The only way in or out was the narrow pass they had just ridden through.
+
+“Dog!” Valerius struck Tiberias full in the mouth with his mailed fist. “What devil’s trick is this?”
+
+Tiberias spat blood and shook with mad laughter.
+
+“A trick to rid the world of a beast! Look, dog!”
+
+Again Valerius cried out, more in rage than fear.
+
+The pass was blocked by a wild, terrifying band of men who stood silent as statues—ragged, wild-haired men with spears in their hands—hundreds of them. And on the cliffs above appeared more faces—thousands of faces—wild, gaunt, savage, marked by fire, steel, and starvation.
+
+“A trick of Conan’s!” shouted Valerius.
+
+“Conan knows nothing of it,” laughed Tiberias. “This was the plan of broken men—men you destroyed and turned into beasts. Amalric was right. Conan hasn’t divided his army. We are the rabble who followed him, the wolves who hid in these hills, the homeless, the hopeless. This was our plan, and the priests of Asura helped us with their mist. Look at them, Valerius! Each one bears your mark—on his body or on his soul!
+
+“Look at me! You don’t recognize me, do you? What about this scar your hangman burned into me? You once knew me. I was the lord of Amilius—the man whose sons you murdered, whose daughter your soldiers violated and killed. You said I wouldn’t sacrifice myself to trap you? By the gods, if I had a thousand lives, I’d give them all to buy your doom!
+
+“And I have bought it! Look at the men you broke—dead men who once ruled as kings! Their time has come! This gorge is your grave. Try to climb the cliffs—they’re steep, they’re high. Try to fight your way back through the pass—spears will block your path, boulders will crush you from above! Dog! I’ll be waiting for you in hell!”
+
+Throwing back his head, he laughed until the rocks echoed. Valerius leaned from his saddle and slashed down with his great sword, cutting through shoulder and chest. Tiberias sank to the ground, still laughing horribly through a gurgle of blood.
+
+The drums began again, surrounding the gorge with deep, guttural thunder; boulders came crashing down; above the screams of dying men, arrows shrieked in blinding clouds from the cliffs.
+
+The Road to Acheron
+
+Dawn was just whitening the east when Amalric drew up his forces at the mouth of the Valley of Lions. The valley was bordered by low, rolling but steep hills, and the valley floor rose in a series of uneven natural terraces. On the highest of these terraces, Conan’s army held its ground, waiting for the attack. The host that had joined him, marching down from Gunderland, hadn’t been made up only of spearmen. Along with them came seven thousand Bossonian archers and four thousand barons and retainers from the north and west, swelling the ranks of his cavalry.
+
+The pikemen were arranged in a tight, wedge-shaped formation at the narrow head of the valley. There were nineteen thousand of them, mostly Gundermen, though about four thousand were Aquilonians from other provinces. On each side of them stood five thousand Bossonian archers. Behind the pikemen, the knights sat motionless on their horses, lances raised—ten thousand knights from Poitain, nine thousand Aquilonians, barons and their retainers.
+
+It was a strong defensive position. His flanks couldn’t be turned, since that would mean climbing the steep, wooded hills under a rain of Bossonian arrows and sword blows. His camp lay directly behind him in a narrow, steep-walled valley, a continuation of the Valley of Lions but higher in elevation. He had no fear of a surprise attack from the rear, because the hills behind him were filled with refugees and broken men whose loyalty to him was unquestionable.
+
+But while his position was hard to break, it was just as hard to escape from. It was both a trap and a fortress for the defenders—a desperate last stand for men who expected death unless they won. The only possible retreat was through the narrow valley behind them.
+
+       *       *       *       *       *
+
+Xaltotun climbed a hill on the left side of the valley, near its wide mouth. This hill rose higher than the rest and was known as the King’s Altar, though the reason for the name had long been forgotten. Only Xaltotun remembered, and his memory stretched back three thousand years.
+
+He wasn’t alone. His two familiars—silent, hairy, stealthy, and dark—were with him, carrying a young Aquilonian girl bound hand and foot. They laid her upon an ancient stone that looked strangely like an altar crowning the hill’s summit. For countless centuries it had stood there, worn by wind and rain until many believed it was nothing more than a naturally shaped rock. But Xaltotun knew what it was and why it stood there. The familiars withdrew, their bent backs like silent gnomes, and Xaltotun stood alone beside the altar, his dark beard blowing in the wind as he gazed down over the valley.
+
+He could see all the way back to the winding Shirki River and up into the hills beyond the valley’s head. He saw the gleaming wedge of steel drawn up on the terraces, the helmets of archers glinting among rocks and bushes, the silent knights motionless on their horses, pennons streaming above their helmets, lances rising like a forest of spears.
+
+Looking the other way, he saw the long, ordered lines of the Nemedians moving in ranks of shining steel into the valley’s mouth. Behind them stretched the bright pavilions of the lords and knights and the dull tents of the common soldiers, reaching almost to the river.
+
+Like a river of molten steel, the Nemedian army flowed into the valley, the great scarlet dragon banner rippling above it. First came the bowmen in even ranks, crossbows half raised, bolts loaded, fingers on triggers. Behind them marched the pikemen, and behind them came the true strength of the army—the mounted knights, banners unfurled in the wind, lances lifted, guiding their great steeds forward as if riding to a feast.
+
+Higher up on the slopes, the smaller Aquilonian force stood grim and silent.
+
+There were thirty thousand Nemedian knights, and as in most Hyborian nations, the knights were the main weapon of the army. The foot soldiers existed only to clear the way for the charge of the armored horsemen. There were twenty-one thousand of these—pikemen and archers.
+
+The bowmen began shooting as they advanced, keeping their ranks steady, loosing their bolts with a whir and a snap. But the bolts fell short or bounced harmlessly off the overlapping shields of the Gundermen. Before the crossbowmen could get close enough to kill, the arching arrows of the Bossonians were tearing through their ranks.
+
+After a short, futile exchange of fire, the Nemedian bowmen began to fall back in confusion. Their armor was light, their weapons no match for the Bossonian longbows. The western archers were protected by rocks and bushes. Besides, the Nemedian foot soldiers lacked the courage of the horsemen, knowing they were used only to clear the way for the knights.
+
+The crossbowmen retreated, and through the gaps they left, the pikemen advanced. These were mostly mercenaries, and their commanders had no hesitation in sacrificing them. They were meant to cover the knights’ approach until the horsemen were close enough to strike. So while the crossbowmen fired from both flanks at long range, the pikemen marched straight into the deadly storm from above, and behind them came the knights.
+
+When the pikemen began to waver under the savage rain of death whistling down the slopes, a trumpet sounded, their companies split to right and left, and through them thundered the armored knights.
+
+They rode straight into a storm of stinging death. The long arrows found every gap in their armor and the coverings of their horses. Horses scrambling up the grassy terraces reared and fell backward, crushing their riders. Steel-clad bodies littered the slopes. The charge faltered and rolled back.
+
+Down in the valley, Amalric reformed his lines. Tarascus fought with drawn sword beneath the scarlet dragon, but it was the Baron of Tor who commanded that day. Amalric cursed as he looked at the forest of lance tips visible above and beyond the Gundermen’s helmets. He had hoped his retreat would lure the knights into charging down the slopes after him, where they would be raked from both sides by his bowmen and overwhelmed by his superior numbers of horsemen. But they hadn’t moved. Camp servants brought skins of water from the river. Knights removed their helmets and drenched their sweating heads. The wounded on the slopes screamed in vain for water. In the upper valley, springs supplied the defenders. They did not thirst that long, hot spring day.
+
+On the King’s Altar, beside the ancient carved stone, Xaltotun watched the steel tide surge and fall. On came the knights, with waving plumes and dipping lances. Through a whistling storm of arrows they charged, only to crash like a thunderous wave against the bristling wall of spears and shields. Axes rose and fell above the plumed helmets, spears thrust upward, bringing down horses and riders. The pride of the Gundermen was as fierce as that of the knights. They were not fodder to be thrown away for the glory of others. They were the finest infantry in the world, with a tradition that made their morale unbreakable. The kings of Aquilonia had long known the value of such steadfast soldiers. They held their formation firm; over their shining ranks flew the great lion banner, and at the tip of the wedge a giant figure in black armor roared and struck like a storm, wielding a blood-soaked axe that split steel and bone alike.
+
+The Nemedians fought as bravely as their proud traditions demanded. But they couldn’t break through the iron wedge, and from the wooded hills on both sides, arrows tore mercilessly into their tightly packed ranks. Their own archers were useless, their pikemen unable to climb the slopes and engage the Bossonians. Slowly, stubbornly, grimly, the hardened knights fell back, counting their empty saddles. Above them, the Gundermen made no cry of victory. They closed their ranks, filling the gaps left by the fallen. Sweat ran into their eyes beneath their steel helmets. They gripped their spears and waited, their fierce hearts swelling with pride that their king fought beside them on foot. Behind them, the Aquilonian knights had not moved. They sat their horses, grim and motionless.
+
+A knight spurred his sweating horse up the hill called the King’s Altar and glared at Xaltotun with bitter eyes.
+
+“Amalric sends word that it’s time to use your magic, wizard,” he said. “We’re dying like flies down there in the valley. We can’t break their lines.”
+
+Xaltotun seemed to grow taller, more terrible, and awe-inspiring.
+
+“Go back to Amalric,” he said. “Tell him to reform his ranks for a charge, but to wait for my signal. Before that signal comes, he’ll see something he’ll remember until his dying breath!”
+
+The knight saluted as if compelled against his will and galloped down the hill at breakneck speed.
+
+Xaltotun stood beside the dark altar stone and looked across the valley—at the dead and wounded men on the terraces, at the grim, blood-stained band at the top of the slopes, at the dusty, steel-clad ranks reforming in the valley below. He looked up at the sky, then down at the slim white figure lying on the dark stone. Raising a dagger engraved with ancient hieroglyphs, he began to chant an age-old invocation:
+
+“Set, god of darkness, scaly lord of shadows, by the blood of a virgin and the sevenfold symbol I call to your sons beneath the black earth! Children of the depths, beneath the red earth, under the black earth, awaken and shake your dreadful manes! Let the hills quake and the stones fall upon my enemies! Let the sky darken above them, the earth tremble beneath their feet! Let a wind from the deep black earth rise up beneath them, to blacken and shrivel them—”
+
+He stopped suddenly, dagger raised. In the tense silence, the roar of the armies below drifted up to him on the wind.
+
+On the other side of the altar stood a man in a black hooded robe, the cowl shadowing pale, delicate features and calm, thoughtful dark eyes.
+
+“Dog of Asura!” hissed Xaltotun, his voice like an angry serpent. “Are you insane, that you come seeking your death? Ho, Baal! Chiron!”
+
+“Call again, dog of Acheron!” said the other, laughing. “Shout louder. They won’t hear you unless your cries echo in hell.”
+
+From a thicket at the edge of the ridge came a grim old woman in peasant clothes, her hair flowing over her shoulders, a great gray wolf padding at her heels.
+
+“Witch, priest, and wolf,” muttered Xaltotun darkly, then laughed. “Fools, to pit your cheap tricks against my power! With a wave of my hand I could sweep you aside!”
+
+“Your power is nothing but straw in the wind, dog of Python,” replied the Asurian. “Have you wondered why the Shirki didn’t flood and trap Conan on the far bank? When I saw the lightning last night, I guessed your plan, and my spells scattered the clouds you summoned before they could pour their rain. You didn’t even know your storm magic had failed.”
+
+“You lie!” shouted Xaltotun, though his confidence faltered. “I felt the clash of a strong sorcery against mine—but no man alive could undo the rain-magic once cast, unless he held the very heart of sorcery itself.”
+
+“But the flood you planned never came,” said the priest. “Look at your allies in the valley, Pythonian! You’ve led them to slaughter! They’re trapped, and you can’t help them. Look!”
+
+He pointed. Out of the narrow gorge of the upper valley, behind the Poitanians, a horseman came racing, swinging something above his head that flashed in the sunlight. Recklessly he charged down the slopes, through the ranks of the Gundermen, who roared deeply and clashed their spears and shields like thunder rolling through the hills. On the terraces between the armies, the sweat-drenched horse reared and plunged, and its wild rider shouted and waved the thing in his hands like a madman. It was the torn remnant of a scarlet banner, and the sun glinted off the golden scales of a serpent writhing upon it.
+
+“Valerius is dead!” cried Hadrathus, his voice ringing. “A fog and a drum lured him to his doom! I gathered that fog, dog of Python, and I dispersed it! I, with my magic, which is greater than yours!”
+
+“What does it matter?” roared Xaltotun, a terrible sight, his eyes blazing, his face twisted with fury. “Valerius was a fool. I don’t need him. I can crush Conan without human help!”
+
+“Then why have you waited?” mocked Hadrathus. “Why have you let so many of your allies die, pierced by arrows and impaled on spears?”
+
+“Because blood fuels great sorcery!” thundered Xaltotun, his voice making the rocks tremble. A fiery aura glowed around his dreadful head. “Because no wizard wastes his strength carelessly. Because I would save my power for the great days ahead, rather than waste it in a skirmish in the hills. But now, by Set, I’ll unleash it completely! Watch, dog of Asura, false priest of a dead god, and see a sight that will shatter your sanity forever!”
+
+Hadrathus threw back his head and laughed, and his laughter sounded like the echo of hell itself.
+
+“Look, black devil of Python!”
+
+His hand came from beneath his robe holding something that blazed and burned in the sunlight, turning it into a pulsing golden glow that made Xaltotun’s flesh look corpse-like.
+
+Xaltotun cried out as if stabbed.
+
+“The Heart! The Heart of Ahriman!”
+
+“Yes! The one power greater than yours!”
+
+Xaltotun seemed to wither, to age before their eyes. Suddenly his beard was streaked with white, his hair flecked with gray.
+
+“The Heart!” he muttered. “You stole it! Dog! Thief!”
+
+“Not I! It’s been on a long journey far to the south. But now it’s in my hands, and your black magic can’t stand against it. As it brought you back to life, so shall it cast you down again into the darkness from which it drew you. You’ll go down the dark road to Acheron, the road of silence and shadow. The dark empire will remain unreborn, only a legend and a black memory. Conan will rule again. And the Heart of Ahriman will return to the cavern beneath the temple of Mitra, to burn as a symbol of Aquilonia’s power for a thousand years!”
+
+Xaltotun let out an inhuman scream and rushed around the altar, dagger raised high. But from somewhere—perhaps the sky, or perhaps the blazing jewel in Hadrathus’s hand—a jet of blinding blue light shot forth. It struck Xaltotun square in the chest, and the hills echoed with the impact. The wizard of Acheron fell as if struck by lightning, and before he even hit the ground, he was horribly transformed. Beside the altar stone lay not a freshly slain body, but a shriveled mummy—a dry, brown, unrecognizable corpse sprawled among rotting wrappings.
+
+Grimly, old Zelata looked down.
+
+“He wasn’t truly alive,” she said. “The Heart gave him a false appearance of life that fooled even himself. I never saw him as anything but a mummy.”
+
+Hadrathus bent to untie the fainting girl on the altar when, from the trees, a strange sight appeared—Xaltotun’s chariot, drawn by those eerie horses. Silently they came forward to the altar and stopped, the chariot wheel almost touching the withered thing lying on the grass. Hadrathus lifted the wizard’s body and placed it in the chariot. Without hesitation, the ghostly steeds turned and moved southward, down the hill. Hadrathus, Zelata, and the gray wolf watched them go—down the long road to Acheron, beyond the reach of mortal men.
+
+* * * * *
+
+Down in the valley, Amalric stiffened in his saddle when he saw that wild rider galloping and wheeling on the slopes, waving the bloodstained serpent banner. Then some instinct made him look toward the hill called the King’s Altar. His mouth fell open. Every man in the valley saw it—a blazing column of light shooting up from the summit, showering golden fire. High above the armies it burst in a blinding flash that dimmed the sun for an instant.
+
+“That’s not Xaltotun’s signal!” roared the baron.
+
+“No!” shouted Tarascus. “It’s a signal to the Aquilonians! Look!”
+
+Above them, the motionless ranks were finally moving, and a deep roar rolled across the valley.
+
+“Xaltotun has failed us!” bellowed Amalric in fury. “Valerius has failed us! We’ve been led into a trap! Mitra’s curse on Xaltotun for bringing us here! Sound the retreat!”
+
+“Too late!” yelled Tarascus. “Look!”
+
+Up on the slopes, the forest of lances dipped and leveled. The ranks of the Gundermen rolled back to the right and left like a curtain being drawn aside. And with a thunder like a rising storm, the knights of Aquilonia charged down the slopes.
+
+The force of that charge was unstoppable. Bolts from the panicked crossbowmen glanced off their shields and helmets. With plumes and pennons streaming behind them, lances lowered, they swept over the wavering lines of pikemen and thundered down the slopes like a crashing wave.
+
+Amalric shouted an order to charge, and the Nemedians, with desperate courage, spurred their weary horses uphill. They still outnumbered the attackers.
+
+But they were exhausted men on tired mounts, charging upward. The oncoming knights had not yet struck a blow that day; their horses were fresh. They came downhill like a thunderbolt—and like a thunderbolt they smashed into the struggling Nemedian ranks, splitting them apart, tearing them to pieces, and hurling the survivors headlong down the slopes.
+
+After them came the blood-crazed Gundermen on foot, and the Bossonians swarmed down the hills, shooting arrows as they ran at every enemy still standing.
+
+Down the slopes the tide of battle poured, the stunned Nemedians swept along with it. Their archers had thrown down their crossbows and were fleeing. The surviving pikemen, shattered by the knights’ charge, were cut down by the relentless Gundermen.  
+
+In wild confusion, the battle surged through the wide mouth of the valley and out onto the plain beyond. All over the plain, warriors swarmed—fleeing and pursuing, locked in single combat or clashing in clusters of hacking, slashing knights on rearing, wheeling horses. But the Nemedians were broken, unable to rally or make a stand. Hundreds broke away, spurring for the river. Many reached it, crossed, and rode eastward. The countryside rose up behind them; the people hunted them like wolves. Few ever reached Tarantia.  
+
+The final collapse came with Amalric’s fall. The baron, trying in vain to rally his men, rode straight at the group of knights following the giant in black armor whose surcoat bore the royal lion, and above whose head flew the golden lion banner beside the scarlet leopard of Poitain. A tall warrior in shining armor lowered his lance and charged to meet the lord of Tor. They met with a thunderous crash. The Nemedian’s lance struck his foe’s helmet, snapping bolts and rivets and tearing off the helm, revealing the face of Pallantides. But the Aquilonian’s lance drove through shield and breastplate, piercing the baron’s heart.  
+
+A roar went up as Amalric was thrown from his saddle, snapping the lance that impaled him, and the Nemedians broke as a barrier shatters under the force of a tidal wave. They fled for the river in a blind stampede that swept across the plain like a storm. The Hour of the Dragon had ended.  
+
+Tarascus did not flee. Amalric was dead, the standard-bearer slain, and the royal Nemedian banner trampled in blood and dust. Most of his knights were running, and the Aquilonians were cutting them down. Tarascus knew the day was lost, yet with a handful of loyal followers he raged through the chaos, driven by one desire—to face Conan, the Cimmerian. And at last, he found him.  
+
+Formations were completely destroyed, tight ranks shattered and scattered. The crest of Trocero gleamed in one part of the plain, those of Prospero and Pallantides in others. Conan was alone. The household troops of Tarascus had fallen one by one. The two kings met face to face.  
+
+Even as they charged each other, Tarascus’s horse gave a choking sound and collapsed beneath him. Conan leaped from his own steed and ran forward as the king of Nemedia freed himself and rose. Steel flashed blindingly in the sunlight, clashed loudly, and blue sparks flew; then came a crash of armor as Tarascus fell full length to the ground under a thunderous blow from Conan’s broadsword.  
+
+The Cimmerian planted a mailed foot on his enemy’s chest and raised his sword. His helmet was gone; he shook back his black hair, and his blue eyes blazed with their old fire.  
+
+“Do you surrender?”  
+
+“Will you spare me?” demanded the Nemedian.  
+
+“Yes. Better than you would have spared me, you dog. Life for you and all your men who throw down their arms—though I ought to split your skull for a damned thief,” Conan added.  
+
+Tarascus twisted his neck and glared across the plain. The remnants of the Nemedian army were fleeing over the stone bridge, with swarms of victorious Aquilonians chasing them, striking with the fury of long-suppressed vengeance. Bossonians and Gundermen flooded through the enemy camp, tearing down tents in search of loot, capturing prisoners, ripping open baggage, and overturning wagons.  
+
+Tarascus cursed fiercely, then shrugged as best he could under the circumstances.  
+
+“Fine. I have no choice. What are your terms?”  
+
+“Hand over all your current holdings in Aquilonia. Order your garrisons to leave the castles and towns they occupy, unarmed, and get your damned armies out of Aquilonia as fast as possible. Also, you’ll return all Aquilonians sold into slavery and pay compensation to be decided later, once the damage your occupation caused has been properly assessed. You’ll stay as a hostage until these terms are met.”  
+
+“Very well,” Tarascus agreed. “I’ll surrender all the castles and towns my garrisons hold without resistance, and everything else will be done. What ransom for my life?”  
+
+Conan laughed, lifted his foot from his enemy’s steel-covered chest, grabbed his shoulder, and hauled him to his feet. He started to speak, then turned as he saw Hadrathus approaching. The priest was calm and composed as always, stepping carefully between rows of dead men and horses.  
+
+Conan wiped the sweat-streaked dust from his face with a blood-smeared hand. He had fought all day—first on foot with the pikemen, then on horseback, leading the charge. His surcoat was gone, his armor splattered with blood and dented by sword, mace, and axe. He loomed huge against the backdrop of blood and carnage, like some grim pagan hero out of legend.  
+
+“Well done, Hadrathus!” he said heartily. “By Crom, I’m glad to see your signal! My knights were nearly mad with impatience, burning to get into the fight. I couldn’t have held them back much longer. What about the wizard?”  
+
+“He’s gone down the dark road to Acheron,” Hadrathus replied. “And I—I’m heading for Tarantia. My work here is finished, and duties await me at the temple of Mitra. All our tasks are complete. On this field we’ve saved Aquilonia—and more than Aquilonia. Your ride to your capital will be a triumphal procession through a kingdom wild with joy. All Aquilonia will cheer the return of their king. So, until we meet again in the great royal hall—farewell!”  
+
+Conan stood silently, watching the priest depart. From different parts of the field, knights were hurrying toward him. He saw Pallantides, Trocero, Prospero, and Servius Galannus—their armor splashed with blood. The thunder of battle was fading into a roar of triumph and celebration. All eyes, fierce from combat and shining with victory, turned toward the great dark figure of the king; armored arms raised red-stained swords. A deep, thunderous wave of sound rose like the crash of the sea: “Hail, Conan, king of Aquilonia!”  
+
+Tarascus spoke.  
+
+“You still haven’t named my ransom.”  
+
+Conan laughed and sheathed his sword. He flexed his powerful arms and ran his blood-stained fingers through his thick black hair, as if feeling the crown he had won back.  
+
+“There’s a girl in your harem named Zenobia.”  
+
+“Yes, there is.”  
+
+“Good.” The king smiled, as if recalling a pleasant memory. “She’ll be your ransom, and nothing else. I’ll come to Belverus for her, as I promised. She was a slave in Nemedia—but I’ll make her queen of Aquilonia!”

@@ -1,0 +1,28 @@
+{
+  "schema": "gaiden_translate_default_v2",
+  "ts_start": "2026-02-18T01:24:01-0300",
+  "ts_end": "2026-02-18T01:24:01-0300",
+  "book_id": "book_0004",
+  "lang": "en",
+  "selected_mode": "default",
+  "final_mode": "default",
+  "effective_route": "default",
+  "preflight_ok": false,
+  "fallback_used": false,
+  "fallback_reason": "none",
+  "artifact_filename": null,
+  "artifact_sha256": null,
+  "artifact_meta_path": null,
+  "errors": [
+    "APIConnectionError: Connection error."
+  ],
+  "exit_code": 2,
+  "agent": "ALAMAGUEDERAZ",
+  "chunk_dir": "data/chunks/book_0004/en",
+  "out_dir": "data/translated/book_0004/en_modern",
+  "suffix": "en_modern",
+  "count": 0,
+  "items": [],
+  "status": "error_preflight",
+  "error": "APIConnectionError: Connection error."
+}

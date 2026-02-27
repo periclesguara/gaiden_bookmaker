@@ -1,0 +1,10 @@
+{
+  "ts": "2026-02-26T03:29:21.977356+00:00",
+  "source": "secrets_gaiden",
+  "key_prefix": "sk-proj-w8",
+  "key_len": 164,
+  "ok": false,
+  "error": "APIConnectionError: Connection error.",
+  "reason": "unknown",
+  "action": "Fix key"
+}

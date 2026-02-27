@@ -1,0 +1,24 @@
+## hotfix/book_0004-canonical-freeze
+ M web/editorial/epub.css
+ M web/editorial/kdp_mode.py
+ M web/editorial/templates/gaiden/about_edition_en.md.j2
+ M web/pipeline/templates/pipeline/about_edition_en.md.j2
+?? docs/audit/runs/
+?? gaiden/agents/SHINOBI.txt
+?? scripts/ops/conan_hodt_anchors_v42.txt
+?? scripts/ops/fix_chapter01_02_swap.py
+?? scripts/ops/fix_conan_headings_v2.py
+?? scripts/ops/fix_conan_headings_v3.py
+?? scripts/ops/fix_conan_headings_v3_1.py
+?? scripts/ops/fix_conan_headings_v3_2.py
+?? scripts/ops/fix_conan_headings_v4.py
+?? scripts/ops/fix_conan_headings_v41.py
+?? scripts/ops/fix_conan_headings_v42.py
+?? scripts/ops/fix_conan_titles_official.py
+?? scripts/ops/fix_conan_titles_official_v2.py
+?? scripts/ops/fix_top_ch1_ch2_conan.py
+?? scripts/ops/rechunk_by_chapter.py
+?? scripts/ops/send_chunks_to_agent.py
+?? scripts/ops/swap_first_two_chapter_headings.py
+?? scripts/ops/txt_to_md_chapters.py
+?? secrets_gaiden/

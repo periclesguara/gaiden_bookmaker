@@ -1,0 +1,28 @@
+{
+  "schema": "gaiden_translate_default_v2",
+  "ts_start": "2026-02-18T21:39:52+0000",
+  "ts_end": "2026-02-18T21:39:52+0000",
+  "book_id": "book_0005",
+  "lang": "en",
+  "selected_mode": "default",
+  "final_mode": "default",
+  "effective_route": "default",
+  "preflight_ok": false,
+  "fallback_used": false,
+  "fallback_reason": "none",
+  "artifact_filename": null,
+  "artifact_sha256": null,
+  "artifact_meta_path": null,
+  "errors": [
+    "AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*******************************************************************************************************************************************..."
+  ],
+  "exit_code": 2,
+  "agent": "ALAMAGUEDERAZ",
+  "chunk_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0005/en",
+  "out_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/translated/book_0005/en",
+  "suffix": "en",
+  "count": 0,
+  "items": [],
+  "status": "error_preflight",
+  "error": "AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*******************************************************************************************************************************************..."
+}

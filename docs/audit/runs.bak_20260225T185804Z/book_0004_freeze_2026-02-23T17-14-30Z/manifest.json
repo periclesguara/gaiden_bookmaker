@@ -1,0 +1,8 @@
+{
+  "book_id": "book_0004",
+  "lang": "en",
+  "truth_file": "data/books/book_0004/en/book_0004_refine_clean.md",
+  "images_dir": "data/builds/book_0004/en/images",
+  "cover_dir": "data/covers/book_0004/en",
+  "created_utc": "2026-02-23T17-14-30Z"
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "gaiden_translate_safe_v2",
+  "book_id": "book_0005",
+  "lang": "en",
+  "selected_mode": "automatic",
+  "final_mode": "automatic",
+  "effective_route": "automatic",
+  "preflight_ok": false,
+  "fallback_used": false,
+  "fallback_reason": "none",
+  "artifact_filename": null,
+  "artifact_sha256": null,
+  "artifact_meta_path": null,
+  "errors": [
+    "AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*******************************************************************************************************************************************..."
+  ],
+  "exit_code": 2,
+  "suffix": "en",
+  "status": "error_preflight",
+  "error": "AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*******************************************************************************************************************************************...",
+  "official": {
+    "status": "skipped",
+    "reason": "preflight_failed"
+  },
+  "fallback": {
+    "used": false,
+    "status": "skipped",
+    "reason": "preflight_failed"
+  },
+  "final": {
+    "merged_txt": null,
+    "merged_len": null,
+    "chunks": null
+  },
+  "ts": "2026-02-18T21:40:17.308071Z"
+}

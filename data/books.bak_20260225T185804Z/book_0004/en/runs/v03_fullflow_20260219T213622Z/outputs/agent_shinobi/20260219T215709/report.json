@@ -1,0 +1,465 @@
+{
+  "book_code": "book_0004",
+  "src_lang": "en",
+  "agent": "SHINOBI",
+  "model": "gpt-5-chat-latest",
+  "run_id": "20260219T215709",
+  "chunks_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/chunks_in",
+  "out_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709",
+  "started_utc": "2026-02-19T21:57:09.659698Z",
+  "items": [
+    {
+      "i": 1,
+      "chunk": "0001__chunk.txt",
+      "bytes": 9167,
+      "sha1": "81157827d201fa79ad75b44bd39b81b02e816836",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0001__0001__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 2,
+      "chunk": "0002__chunk.txt",
+      "bytes": 9066,
+      "sha1": "05feb8c169f39f7f99ea319452c78418dc23716a",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0002__0002__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 3,
+      "chunk": "0003__chunk.txt",
+      "bytes": 9125,
+      "sha1": "6ef7be6be5e6a4d6bbb19e46f851131d7b745cd4",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0003__0003__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 4,
+      "chunk": "0004__chunk.txt",
+      "bytes": 9126,
+      "sha1": "58ab862738cce2966e273d23286446b2be2aeb41",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0004__0004__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 5,
+      "chunk": "0005__chunk.txt",
+      "bytes": 9125,
+      "sha1": "9b052eab05f7e5819ee2dcdd7ec5369e13742afe",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0005__0005__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 6,
+      "chunk": "0006__chunk.txt",
+      "bytes": 8944,
+      "sha1": "0f172031b182cf5f029af48f085e4ea65c30edca",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0006__0006__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 7,
+      "chunk": "0007__chunk.txt",
+      "bytes": 9252,
+      "sha1": "aaa48f149c7f472a561a3c04e9ae2896ba9a706f",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0007__0007__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 8,
+      "chunk": "0008__chunk.txt",
+      "bytes": 8929,
+      "sha1": "3be86dab299703cb0035f272326114a759429065",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0008__0008__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 9,
+      "chunk": "0009__chunk.txt",
+      "bytes": 8902,
+      "sha1": "c2eaf14895c5e862699cc8bba33eb84e645d1d39",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0009__0009__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 10,
+      "chunk": "0010__chunk.txt",
+      "bytes": 9108,
+      "sha1": "f7aba4d4537baba31d06fdaf13c304a428e57ab1",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0010__0010__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 11,
+      "chunk": "0011__chunk.txt",
+      "bytes": 9144,
+      "sha1": "132da92ab15a19ee878873d789ba056de46f6891",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0011__0011__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 12,
+      "chunk": "0012__chunk.txt",
+      "bytes": 9242,
+      "sha1": "f4086719648d68e8a1a231fdce37ac0db24b0d29",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0012__0012__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 13,
+      "chunk": "0013__chunk.txt",
+      "bytes": 9039,
+      "sha1": "936d1bf63b91c7450a35344cd1b93fb7713e1d28",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0013__0013__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 14,
+      "chunk": "0014__chunk.txt",
+      "bytes": 9120,
+      "sha1": "d3132b6e83d189d1f4d2231af5edda4ca63f7b52",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0014__0014__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 15,
+      "chunk": "0015__chunk.txt",
+      "bytes": 9048,
+      "sha1": "a5dfcecd88c2916257da6724d0fc9ef8b21b8d04",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0015__0015__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 16,
+      "chunk": "0016__chunk.txt",
+      "bytes": 8747,
+      "sha1": "9d04ad96809073c8094485d8348b7a757880ec62",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0016__0016__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 17,
+      "chunk": "0017__chunk.txt",
+      "bytes": 9122,
+      "sha1": "aa4495f2c885aee152cd9fb969a0202dca986fcd",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0017__0017__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 18,
+      "chunk": "0018__chunk.txt",
+      "bytes": 9102,
+      "sha1": "8dbb6d413ef4ae4c0a7252b6e29e853e49bd1c74",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0018__0018__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 19,
+      "chunk": "0019__chunk.txt",
+      "bytes": 8761,
+      "sha1": "9f09f675fbb5b8cd302af11d2b9cf95d4887457d",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0019__0019__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 20,
+      "chunk": "0020__chunk.txt",
+      "bytes": 9031,
+      "sha1": "2b718145e232556039c3256bd72877cfd9294b9e",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0020__0020__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 21,
+      "chunk": "0021__chunk.txt",
+      "bytes": 9212,
+      "sha1": "d4e5b4021fe7409777e48964a108a3df47caf538",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0021__0021__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 22,
+      "chunk": "0022__chunk.txt",
+      "bytes": 8945,
+      "sha1": "839af97eb14b76d9dde4731a016c0198616e8016",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0022__0022__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 23,
+      "chunk": "0023__chunk.txt",
+      "bytes": 9072,
+      "sha1": "d76a85c38650ea2c2604fd109704b2e43402c017",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0023__0023__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 24,
+      "chunk": "0024__chunk.txt",
+      "bytes": 8904,
+      "sha1": "f84ae959766f5abadf339881badff3c1920aad46",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0024__0024__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 25,
+      "chunk": "0025__chunk.txt",
+      "bytes": 9173,
+      "sha1": "a0e1fa12ca0ff80dfa0f749ad4f118d34a03f183",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0025__0025__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 26,
+      "chunk": "0026__chunk.txt",
+      "bytes": 8939,
+      "sha1": "b3cf0d0170c03ed1649366823f87400ad2052ea5",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0026__0026__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 27,
+      "chunk": "0027__chunk.txt",
+      "bytes": 9071,
+      "sha1": "c050e7f2fdab0993270e5a484f4405a6980829ff",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0027__0027__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 28,
+      "chunk": "0028__chunk.txt",
+      "bytes": 8868,
+      "sha1": "25f5de03e4bea0cd07918a85576039b3ee91fb8c",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0028__0028__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 29,
+      "chunk": "0029__chunk.txt",
+      "bytes": 9005,
+      "sha1": "53584c25911f3a298e7f944b473d338a78f52e5d",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0029__0029__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 30,
+      "chunk": "0030__chunk.txt",
+      "bytes": 9183,
+      "sha1": "379eff4189669881f1e4b1b087cc6a96d1170389",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0030__0030__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 31,
+      "chunk": "0031__chunk.txt",
+      "bytes": 8601,
+      "sha1": "c82179fe738c57c50d33b9017591bed625b0f4ef",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0031__0031__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 32,
+      "chunk": "0032__chunk.txt",
+      "bytes": 8373,
+      "sha1": "560bdd077a840f7abf1027eac60d491f9bdd9346",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0032__0032__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 33,
+      "chunk": "0033__chunk.txt",
+      "bytes": 8650,
+      "sha1": "7353b30ca1aadb18fce6104bd0ca02d9b36d1edb",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0033__0033__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 34,
+      "chunk": "0034__chunk.txt",
+      "bytes": 8994,
+      "sha1": "889f4b43f511126a18dc9b3a9d489fcdd3980f0d",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0034__0034__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 35,
+      "chunk": "0035__chunk.txt",
+      "bytes": 8907,
+      "sha1": "394072963f519889ff126d5b8f6d1b043351c65b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0035__0035__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 36,
+      "chunk": "0036__chunk.txt",
+      "bytes": 8941,
+      "sha1": "3eddf6c9ecab8a65fc80e8cb25b49459aec8ee91",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0036__0036__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 37,
+      "chunk": "0037__chunk.txt",
+      "bytes": 9085,
+      "sha1": "2d6ab2b1a530110383042a7901364f709ae67442",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0037__0037__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 38,
+      "chunk": "0038__chunk.txt",
+      "bytes": 9009,
+      "sha1": "226d70cbfa6b220303c32d4d66df5b540e7aaa7b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0038__0038__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 39,
+      "chunk": "0039__chunk.txt",
+      "bytes": 9264,
+      "sha1": "18415aa525168695aa1186ae2f761fe31bd81c5d",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0039__0039__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 40,
+      "chunk": "0040__chunk.txt",
+      "bytes": 9141,
+      "sha1": "f7179c298b880df5a6028ef4f18aeadd0752be09",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0040__0040__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 41,
+      "chunk": "0041__chunk.txt",
+      "bytes": 9238,
+      "sha1": "75c82dd2ea5110540580420fe8ff9263c79fa3d3",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0041__0041__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 42,
+      "chunk": "0042__chunk.txt",
+      "bytes": 9042,
+      "sha1": "169ac7d6c4dffd17864070ec307a69998ffc6597",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0042__0042__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 43,
+      "chunk": "0043__chunk.txt",
+      "bytes": 9053,
+      "sha1": "328efcd02c81ad96feb6aa81a0ebdad2f089fa02",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0043__0043__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 44,
+      "chunk": "0044__chunk.txt",
+      "bytes": 9129,
+      "sha1": "299a56fbd194fd5f1999fc7ec9b39c9c38911283",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0044__0044__chunk.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 45,
+      "chunk": "0045__chunk.txt",
+      "bytes": 6808,
+      "sha1": "308b81c2500b4cad830527ffde1000850b0375de",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/chunks_out/0045__0045__chunk.txt.out.txt",
+      "err": null
+    }
+  ],
+  "errors": [],
+  "finished_utc": "2026-02-19T22:03:34.044779Z",
+  "merged_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v03_fullflow_20260219T213622Z/outputs/agent_shinobi/20260219T215709/book_0004__en__agent_shinobi__MERGED.txt"
+}

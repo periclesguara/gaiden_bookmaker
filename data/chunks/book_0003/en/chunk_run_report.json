@@ -1,0 +1,35 @@
+{
+  "cwd": "/home/periclesguara/Projetos/gaiden_bookmaker",
+  "base_data_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data",
+  "book_code": "book_0003",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0003/en/book_0003_en_v2.txt",
+  "chunks_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0003/en",
+  "manifest_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/chunks/book_0003/en/chunks_manifest.json",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "tiktoken"
+  },
+  "headings_detected_count": 0,
+  "single_chapter_mode": true,
+  "headings": [
+    {
+      "chapter_id": 1,
+      "heading_line": "",
+      "heading_number": null,
+      "heading_title": "",
+      "start_line_idx": 0,
+      "end_line_idx": 1201
+    }
+  ],
+  "checks": {
+    "check_ok": true,
+    "failures": [],
+    "warnings": [],
+    "coverage_chars_ok": true,
+    "normalized_chars": 71010,
+    "covered_chars": 71000,
+    "coverage_chars_tolerance": 1000
+  }
+}

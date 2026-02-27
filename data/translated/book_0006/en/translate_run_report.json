@@ -1,0 +1,296 @@
+{
+  "schema": "gaiden_translate_run_report_v1",
+  "book": "book_0006",
+  "source_lang": "en",
+  "target_lang": "en",
+  "model": "gpt-5-chat-latest",
+  "contract_path": "gaiden/contracts_v2/translate/lang/en_modern_2026.json",
+  "contract_name": "en_modern_2026_aggressive",
+  "temperature": 0.55,
+  "max_output_tokens": 3200,
+  "started_at": "2026-02-26T01:34:02.510951Z",
+  "input_dir": "data/chunks/book_0006/en",
+  "output_dir": "data/translated/book_0006/en",
+  "file_glob": "ch_*_chunk_*.txt",
+  "validation_ratio_min": 0.8,
+  "validation_ratio_max": 1.2,
+  "items": [
+    {
+      "chunk_file": "ch_001_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_001_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_001_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_002_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_002_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_002_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_002_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_002_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_002_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_002_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_002_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_002_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_003_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_003_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_003_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_003_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_003_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_003_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_003_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_003_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_003_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_003_chunk_004.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_003_chunk_004.txt",
+      "meta_path": "data/translated/book_0006/en/ch_003_chunk_004.meta.json"
+    },
+    {
+      "chunk_file": "ch_004_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_004_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_004_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_004_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_004_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_004_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_004_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_004_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_004_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_004_chunk_004.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_004_chunk_004.txt",
+      "meta_path": "data/translated/book_0006/en/ch_004_chunk_004.meta.json"
+    },
+    {
+      "chunk_file": "ch_005_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_005_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_005_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_005_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_005_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_005_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_005_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_005_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_005_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_006_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_006_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_006_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_006_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_006_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_006_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_006_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_006_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_006_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_007_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_007_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_007_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_007_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_007_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_007_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_007_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_007_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_007_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_008_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_008_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_008_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_008_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_008_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_008_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_008_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_008_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_008_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_009_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_009_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_009_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_010_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_010_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_010_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_010_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_010_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_010_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_010_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_010_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_010_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_010_chunk_004.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_010_chunk_004.txt",
+      "meta_path": "data/translated/book_0006/en/ch_010_chunk_004.meta.json"
+    },
+    {
+      "chunk_file": "ch_011_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_011_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_011_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_011_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_011_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_011_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_011_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_011_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_011_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_012_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_012_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_012_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_012_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_012_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_012_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_013_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_013_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_013_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_013_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_013_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_013_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_013_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_013_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_013_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_014_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_014_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_014_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_014_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_014_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_014_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_014_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_014_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_014_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_015_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_015_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_015_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_015_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_015_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_015_chunk_002.meta.json"
+    },
+    {
+      "chunk_file": "ch_015_chunk_003.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_015_chunk_003.txt",
+      "meta_path": "data/translated/book_0006/en/ch_015_chunk_003.meta.json"
+    },
+    {
+      "chunk_file": "ch_015_chunk_004.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_015_chunk_004.txt",
+      "meta_path": "data/translated/book_0006/en/ch_015_chunk_004.meta.json"
+    },
+    {
+      "chunk_file": "ch_016_chunk_001.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_016_chunk_001.txt",
+      "meta_path": "data/translated/book_0006/en/ch_016_chunk_001.meta.json"
+    },
+    {
+      "chunk_file": "ch_016_chunk_002.txt",
+      "status": "skipped_exists",
+      "output_path": "data/translated/book_0006/en/ch_016_chunk_002.txt",
+      "meta_path": "data/translated/book_0006/en/ch_016_chunk_002.meta.json"
+    }
+  ],
+  "finished_at": "2026-02-26T01:34:02.511947Z"
+}

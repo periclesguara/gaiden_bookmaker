@@ -1,0 +1,657 @@
+{
+  "schema_version": "chunks_manifest_v2",
+  "book_code": "book_0006",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0006/en/normalized.fixed.md",
+  "normalized_sha256": "2af336c169dbfbaf5178537cf4330f635623458d2f85e2e4d8fdeb66ebcb7b68",
+  "chunker_version": "d92b78c",
+  "created_at": "2026-02-26T00:10:46.317841Z",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "tiktoken"
+  },
+  "headings_detected_count": 16,
+  "single_chapter_mode": false,
+  "chapters": [
+    {
+      "chapter_id": 1,
+      "heading_line": "PART 1.",
+      "heading_number": 1,
+      "heading_title": "",
+      "start_line_idx": 0,
+      "end_line_idx": 29,
+      "chunk_count": 1,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c001__001",
+          "file_path": "ch_001_chunk_001.txt",
+          "sha256": "980045546cfadc6546c25a981e042982f8bf705aeb508081bb565b0a2183c5c4",
+          "token_estimate": 240,
+          "char_count": 696,
+          "start_line_idx": 0,
+          "end_line_idx": 29,
+          "chapter_id": 1
+        }
+      ]
+    },
+    {
+      "chapter_id": 2,
+      "heading_line": "1 - MR. SHERLOCK HOLMES.",
+      "heading_number": 1,
+      "heading_title": "MR. SHERLOCK HOLMES.",
+      "start_line_idx": 30,
+      "end_line_idx": 353,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c002__001",
+          "file_path": "ch_002_chunk_001.txt",
+          "sha256": "1a0f685e4a1da87dfb01b8efab9e73b10c800b35fbb5b4e4a4a88d47b23440bd",
+          "token_estimate": 1531,
+          "char_count": 6464,
+          "start_line_idx": 30,
+          "end_line_idx": 157,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0006__en__c002__002",
+          "file_path": "ch_002_chunk_002.txt",
+          "sha256": "d3200904f18d0ebf815bdc753c12e8e4627b6a1c82bc7ec75e1e6f6f55614c46",
+          "token_estimate": 1563,
+          "char_count": 6538,
+          "start_line_idx": 158,
+          "end_line_idx": 292,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0006__en__c002__003",
+          "file_path": "ch_002_chunk_003.txt",
+          "sha256": "cc0f43be274283bfdfbbc7433e118bf7705ed68baa0463cb36a645c369afc7d3",
+          "token_estimate": 595,
+          "char_count": 2348,
+          "start_line_idx": 293,
+          "end_line_idx": 353,
+          "chapter_id": 2
+        }
+      ]
+    },
+    {
+      "chapter_id": 3,
+      "heading_line": "2 - THE SCIENCE OF DEDUCTION.",
+      "heading_number": 2,
+      "heading_title": "THE SCIENCE OF DEDUCTION.",
+      "start_line_idx": 354,
+      "end_line_idx": 725,
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c003__001",
+          "file_path": "ch_003_chunk_001.txt",
+          "sha256": "b21113c0cb6741516dbde3fda8a98d92a0686b3817889cce3abc6a6dc3917d28",
+          "token_estimate": 1508,
+          "char_count": 6639,
+          "start_line_idx": 354,
+          "end_line_idx": 471,
+          "chapter_id": 3
+        },
+        {
+          "chunk_id": "book_0006__en__c003__002",
+          "file_path": "ch_003_chunk_002.txt",
+          "sha256": "b05a4511e18cb85aaaf78b4469f1539b05935d0154a65772ed5ef5bb039c1d51",
+          "token_estimate": 1508,
+          "char_count": 6236,
+          "start_line_idx": 472,
+          "end_line_idx": 577,
+          "chapter_id": 3
+        },
+        {
+          "chunk_id": "book_0006__en__c003__003",
+          "file_path": "ch_003_chunk_003.txt",
+          "sha256": "97acfc7ba88e8e0834c5b710e9d308890da4bcff569daf9526999d41064592f5",
+          "token_estimate": 1515,
+          "char_count": 6413,
+          "start_line_idx": 578,
+          "end_line_idx": 707,
+          "chapter_id": 3
+        },
+        {
+          "chunk_id": "book_0006__en__c003__004",
+          "file_path": "ch_003_chunk_004.txt",
+          "sha256": "5062ad7665faa29ce1b089b94e2ccae3388fa3e6ef36e056895b2ee81573bf37",
+          "token_estimate": 147,
+          "char_count": 585,
+          "start_line_idx": 708,
+          "end_line_idx": 725,
+          "chapter_id": 3
+        }
+      ]
+    },
+    {
+      "chapter_id": 4,
+      "heading_line": "3 - THE LAURISTON GARDENS MYSTERY",
+      "heading_number": 3,
+      "heading_title": "THE LAURISTON GARDENS MYSTERY",
+      "start_line_idx": 726,
+      "end_line_idx": 1181,
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c004__001",
+          "file_path": "ch_004_chunk_001.txt",
+          "sha256": "0650d22c2eeb25de95ead68e2207c37124ee2cab574edc9d50bcc5a3001f0294",
+          "token_estimate": 1670,
+          "char_count": 6792,
+          "start_line_idx": 726,
+          "end_line_idx": 869,
+          "chapter_id": 4
+        },
+        {
+          "chunk_id": "book_0006__en__c004__002",
+          "file_path": "ch_004_chunk_002.txt",
+          "sha256": "8399222eb642c8bf1ca2a58bf367c6f18f9f490cf6806c35a74c16f8d67ae896",
+          "token_estimate": 1508,
+          "char_count": 6351,
+          "start_line_idx": 870,
+          "end_line_idx": 1003,
+          "chapter_id": 4
+        },
+        {
+          "chunk_id": "book_0006__en__c004__003",
+          "file_path": "ch_004_chunk_003.txt",
+          "sha256": "ac4ed1b2fc0277a3dff15ab7935f8324a644291e1938f9f96e364b5a7f0b8cae",
+          "token_estimate": 1541,
+          "char_count": 6480,
+          "start_line_idx": 1004,
+          "end_line_idx": 1144,
+          "chapter_id": 4
+        },
+        {
+          "chunk_id": "book_0006__en__c004__004",
+          "file_path": "ch_004_chunk_004.txt",
+          "sha256": "9755d59beba7f860b7682ea741fc89d520f68c1e2bfdbccbfd8bb01c2d9910a6",
+          "token_estimate": 464,
+          "char_count": 1813,
+          "start_line_idx": 1145,
+          "end_line_idx": 1181,
+          "chapter_id": 4
+        }
+      ]
+    },
+    {
+      "chapter_id": 5,
+      "heading_line": "4 - WHAT JOHN RANCE HAD TO TELL.",
+      "heading_number": 4,
+      "heading_title": "WHAT JOHN RANCE HAD TO TELL.",
+      "start_line_idx": 1182,
+      "end_line_idx": 1460,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c005__001",
+          "file_path": "ch_005_chunk_001.txt",
+          "sha256": "3f7aec66716e9ef86f77e78fac3372d31aa6bfec1403aa733090ffa8020c4dfa",
+          "token_estimate": 1539,
+          "char_count": 6336,
+          "start_line_idx": 1182,
+          "end_line_idx": 1300,
+          "chapter_id": 5
+        },
+        {
+          "chunk_id": "book_0006__en__c005__002",
+          "file_path": "ch_005_chunk_002.txt",
+          "sha256": "5cf16397a5986e241c58a8a731e4a9afb432ff7faf3435ff1c068fae10f57236",
+          "token_estimate": 1502,
+          "char_count": 5815,
+          "start_line_idx": 1301,
+          "end_line_idx": 1433,
+          "chapter_id": 5
+        },
+        {
+          "chunk_id": "book_0006__en__c005__003",
+          "file_path": "ch_005_chunk_003.txt",
+          "sha256": "0c9ec4a982b009fc60b3cbb534f2a8620cc7ec5bade4bbbecff408ecde3c94a7",
+          "token_estimate": 354,
+          "char_count": 1383,
+          "start_line_idx": 1434,
+          "end_line_idx": 1460,
+          "chapter_id": 5
+        }
+      ]
+    },
+    {
+      "chapter_id": 6,
+      "heading_line": "5 - OUR ADVERTISEMENT BRINGS A VISITOR.",
+      "heading_number": 5,
+      "heading_title": "OUR ADVERTISEMENT BRINGS A VISITOR.",
+      "start_line_idx": 1461,
+      "end_line_idx": 1736,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c006__001",
+          "file_path": "ch_006_chunk_001.txt",
+          "sha256": "ec4f5ed08e2af48369f17ad47baf23db49b47f8a9a9bdee8fd5cc70416912e41",
+          "token_estimate": 1555,
+          "char_count": 6509,
+          "start_line_idx": 1461,
+          "end_line_idx": 1598,
+          "chapter_id": 6
+        },
+        {
+          "chunk_id": "book_0006__en__c006__002",
+          "file_path": "ch_006_chunk_002.txt",
+          "sha256": "6bd828995fa5f65726ba4a75f03f0be1a01f6adb5851509058aea4296543a3ec",
+          "token_estimate": 1530,
+          "char_count": 6119,
+          "start_line_idx": 1599,
+          "end_line_idx": 1717,
+          "chapter_id": 6
+        },
+        {
+          "chunk_id": "book_0006__en__c006__003",
+          "file_path": "ch_006_chunk_003.txt",
+          "sha256": "d3ebe001b66be8c201f497e3e754fc8eddcedc0e3d0f9ffa948808f12c918769",
+          "token_estimate": 249,
+          "char_count": 994,
+          "start_line_idx": 1718,
+          "end_line_idx": 1736,
+          "chapter_id": 6
+        }
+      ]
+    },
+    {
+      "chapter_id": 7,
+      "heading_line": "6 - TOBIAS GREGSON SHOWS WHAT HE CAN DO.",
+      "heading_number": 6,
+      "heading_title": "TOBIAS GREGSON SHOWS WHAT HE CAN DO.",
+      "start_line_idx": 1737,
+      "end_line_idx": 2120,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c007__001",
+          "file_path": "ch_007_chunk_001.txt",
+          "sha256": "9fc4c771793ed7f27fb9f03043e7678dcefd0cabb4d393b0eaf22e422048a9f0",
+          "token_estimate": 1551,
+          "char_count": 6523,
+          "start_line_idx": 1737,
+          "end_line_idx": 1869,
+          "chapter_id": 7
+        },
+        {
+          "chunk_id": "book_0006__en__c007__002",
+          "file_path": "ch_007_chunk_002.txt",
+          "sha256": "e0bdb6b0e089c18ed55feb9b6851534e9382b717da053aae12f62e483e1da48b",
+          "token_estimate": 1522,
+          "char_count": 6059,
+          "start_line_idx": 1870,
+          "end_line_idx": 2001,
+          "chapter_id": 7
+        },
+        {
+          "chunk_id": "book_0006__en__c007__003",
+          "file_path": "ch_007_chunk_003.txt",
+          "sha256": "d01b720753251f040a965a2d53026eb144cc21a6c5d3b61b9d324a4602889e66",
+          "token_estimate": 1340,
+          "char_count": 5353,
+          "start_line_idx": 2002,
+          "end_line_idx": 2120,
+          "chapter_id": 7
+        }
+      ]
+    },
+    {
+      "chapter_id": 8,
+      "heading_line": "7 - LIGHT IN THE DARKNESS.",
+      "heading_number": 7,
+      "heading_title": "LIGHT IN THE DARKNESS.",
+      "start_line_idx": 2121,
+      "end_line_idx": 2470,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c008__001",
+          "file_path": "ch_008_chunk_001.txt",
+          "sha256": "cd0562e0a29cce33ee4b745d52ea0e0f3b11d0285dcc3bb5787bcc88ef370c86",
+          "token_estimate": 1509,
+          "char_count": 6295,
+          "start_line_idx": 2121,
+          "end_line_idx": 2246,
+          "chapter_id": 8
+        },
+        {
+          "chunk_id": "book_0006__en__c008__002",
+          "file_path": "ch_008_chunk_002.txt",
+          "sha256": "e76bd76699f7ace3eac410993fdb15cd37cb6cfebd192dbbb9bf485f8306d6f6",
+          "token_estimate": 1603,
+          "char_count": 6783,
+          "start_line_idx": 2247,
+          "end_line_idx": 2372,
+          "chapter_id": 8
+        },
+        {
+          "chunk_id": "book_0006__en__c008__003",
+          "file_path": "ch_008_chunk_003.txt",
+          "sha256": "8282417f749a2777f11bdce49ed172d8e958cbad2e5feb5bcd6568b93fea08ae",
+          "token_estimate": 1266,
+          "char_count": 5231,
+          "start_line_idx": 2373,
+          "end_line_idx": 2470,
+          "chapter_id": 8
+        }
+      ]
+    },
+    {
+      "chapter_id": 9,
+      "heading_line": "2 - _THE COUNTRY OF THE SAINTS._",
+      "heading_number": 2,
+      "heading_title": "_THE COUNTRY OF THE SAINTS._",
+      "start_line_idx": 2471,
+      "end_line_idx": 2472,
+      "chunk_count": 1,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c009__001",
+          "file_path": "ch_009_chunk_001.txt",
+          "sha256": "7a3ce9267d7b092b923580a20505383409415952e97fbe41d0efdcfefc88cb98",
+          "token_estimate": 11,
+          "char_count": 33,
+          "start_line_idx": 2471,
+          "end_line_idx": 2472,
+          "chapter_id": 9
+        }
+      ]
+    },
+    {
+      "chapter_id": 10,
+      "heading_line": "1 - ON THE GREAT ALKALI PLAIN.",
+      "heading_number": 1,
+      "heading_title": "ON THE GREAT ALKALI PLAIN.",
+      "start_line_idx": 2473,
+      "end_line_idx": 2867,
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c010__001",
+          "file_path": "ch_010_chunk_001.txt",
+          "sha256": "cd99ceff0be1896736623035e997a40120addf277078c418997a098ff32c2d9c",
+          "token_estimate": 1522,
+          "char_count": 6301,
+          "start_line_idx": 2473,
+          "end_line_idx": 2583,
+          "chapter_id": 10
+        },
+        {
+          "chunk_id": "book_0006__en__c010__002",
+          "file_path": "ch_010_chunk_002.txt",
+          "sha256": "ac83bceb3f23e5b3ba129b7e9a171a2ce4e3c805da025f37e2a88f57f008a841",
+          "token_estimate": 1529,
+          "char_count": 6294,
+          "start_line_idx": 2584,
+          "end_line_idx": 2712,
+          "chapter_id": 10
+        },
+        {
+          "chunk_id": "book_0006__en__c010__003",
+          "file_path": "ch_010_chunk_003.txt",
+          "sha256": "32d01dd8ff2f7bd28c0acde25ddb9d0ee9250356b3a831d857988c83ad5bdd88",
+          "token_estimate": 1518,
+          "char_count": 6340,
+          "start_line_idx": 2713,
+          "end_line_idx": 2840,
+          "chapter_id": 10
+        },
+        {
+          "chunk_id": "book_0006__en__c010__004",
+          "file_path": "ch_010_chunk_004.txt",
+          "sha256": "e99e792da74fb6fee2ca7551f34e0c58985f79142e77d636c3ff761babeb38ec",
+          "token_estimate": 357,
+          "char_count": 1435,
+          "start_line_idx": 2841,
+          "end_line_idx": 2867,
+          "chapter_id": 10
+        }
+      ]
+    },
+    {
+      "chapter_id": 11,
+      "heading_line": "2 - THE FLOWER OF UTAH.",
+      "heading_number": 2,
+      "heading_title": "THE FLOWER OF UTAH.",
+      "start_line_idx": 2868,
+      "end_line_idx": 3122,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c011__001",
+          "file_path": "ch_011_chunk_001.txt",
+          "sha256": "ac7bd301390c64673af5b15fe9506bfae94bfd7f816d919aaf2ce9c015da2d08",
+          "token_estimate": 1644,
+          "char_count": 7199,
+          "start_line_idx": 2868,
+          "end_line_idx": 2986,
+          "chapter_id": 11
+        },
+        {
+          "chunk_id": "book_0006__en__c011__002",
+          "file_path": "ch_011_chunk_002.txt",
+          "sha256": "6f1587bbc9df411f326ee887fbef2783644565b9647eeb90fd24a5a157725c46",
+          "token_estimate": 1528,
+          "char_count": 6280,
+          "start_line_idx": 2987,
+          "end_line_idx": 3101,
+          "chapter_id": 11
+        },
+        {
+          "chunk_id": "book_0006__en__c011__003",
+          "file_path": "ch_011_chunk_003.txt",
+          "sha256": "2a196551439ce4abc8508bc48dc674c264c7e077ade06a2670389bdea3a67298",
+          "token_estimate": 232,
+          "char_count": 891,
+          "start_line_idx": 3102,
+          "end_line_idx": 3122,
+          "chapter_id": 11
+        }
+      ]
+    },
+    {
+      "chapter_id": 12,
+      "heading_line": "3 - JOHN FERRIER TALKS WITH THE PROPHET.",
+      "heading_number": 3,
+      "heading_title": "JOHN FERRIER TALKS WITH THE PROPHET.",
+      "start_line_idx": 3123,
+      "end_line_idx": 3325,
+      "chunk_count": 2,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c012__001",
+          "file_path": "ch_012_chunk_001.txt",
+          "sha256": "806ce78f869ceba2803fb6d0231460d0c276ef444f0e2a2ad0f6137f78188218",
+          "token_estimate": 1599,
+          "char_count": 6714,
+          "start_line_idx": 3123,
+          "end_line_idx": 3246,
+          "chapter_id": 12
+        },
+        {
+          "chunk_id": "book_0006__en__c012__002",
+          "file_path": "ch_012_chunk_002.txt",
+          "sha256": "8b34cf7456bd30b7a79a3a78ef0d49ea9aa9beb9ffd8f406abf71b8a77078bde",
+          "token_estimate": 870,
+          "char_count": 3540,
+          "start_line_idx": 3247,
+          "end_line_idx": 3325,
+          "chapter_id": 12
+        }
+      ]
+    },
+    {
+      "chapter_id": 13,
+      "heading_line": "4 - A FLIGHT FOR LIFE.",
+      "heading_number": 4,
+      "heading_title": "A FLIGHT FOR LIFE.",
+      "start_line_idx": 3326,
+      "end_line_idx": 3684,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c013__001",
+          "file_path": "ch_013_chunk_001.txt",
+          "sha256": "e69d5f38049f9140089bff9810351648fe61b056e5e91d24ceb9b24385bb01c0",
+          "token_estimate": 1537,
+          "char_count": 6374,
+          "start_line_idx": 3326,
+          "end_line_idx": 3455,
+          "chapter_id": 13
+        },
+        {
+          "chunk_id": "book_0006__en__c013__002",
+          "file_path": "ch_013_chunk_002.txt",
+          "sha256": "2bbbaa3affffa1386001fc28e28e65d8123cca237ae36d7bdb3d45a79fcbeae2",
+          "token_estimate": 1526,
+          "char_count": 6498,
+          "start_line_idx": 3456,
+          "end_line_idx": 3575,
+          "chapter_id": 13
+        },
+        {
+          "chunk_id": "book_0006__en__c013__003",
+          "file_path": "ch_013_chunk_003.txt",
+          "sha256": "98cc41baeef40849d28260d8b77f009a5b51ae848a718e108cc2d93d5ac7a9dd",
+          "token_estimate": 1315,
+          "char_count": 5779,
+          "start_line_idx": 3576,
+          "end_line_idx": 3684,
+          "chapter_id": 13
+        }
+      ]
+    },
+    {
+      "chapter_id": 14,
+      "heading_line": "5 - THE AVENGING ANGELS.",
+      "heading_number": 5,
+      "heading_title": "THE AVENGING ANGELS.",
+      "start_line_idx": 3685,
+      "end_line_idx": 4016,
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c014__001",
+          "file_path": "ch_014_chunk_001.txt",
+          "sha256": "83a9b0956333725a9b124f5ae2b08223d0ad8c883a159b9c8de54bbe99c399e8",
+          "token_estimate": 1607,
+          "char_count": 6940,
+          "start_line_idx": 3685,
+          "end_line_idx": 3798,
+          "chapter_id": 14
+        },
+        {
+          "chunk_id": "book_0006__en__c014__002",
+          "file_path": "ch_014_chunk_002.txt",
+          "sha256": "ff20d87a9ac0f668da84a47f4f6ec17620ade33e1f5ff54edeb541f01d642c07",
+          "token_estimate": 1788,
+          "char_count": 7397,
+          "start_line_idx": 3799,
+          "end_line_idx": 3932,
+          "chapter_id": 14
+        },
+        {
+          "chunk_id": "book_0006__en__c014__003",
+          "file_path": "ch_014_chunk_003.txt",
+          "sha256": "d2660b2ecd3ca06c9f215e6768b9b47ed8fd7b1214969bae25fdb0e53ac20b7f",
+          "token_estimate": 1221,
+          "char_count": 5292,
+          "start_line_idx": 3933,
+          "end_line_idx": 4016,
+          "chapter_id": 14
+        }
+      ]
+    },
+    {
+      "chapter_id": 15,
+      "heading_line": "6 - A CONTINUATION OF THE REMINISCENCES OF JOHN WATSON, M.D.",
+      "heading_number": 6,
+      "heading_title": "A CONTINUATION OF THE REMINISCENCES OF JOHN WATSON, M.D.",
+      "start_line_idx": 4017,
+      "end_line_idx": 4433,
+      "chunk_count": 4,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c015__001",
+          "file_path": "ch_015_chunk_001.txt",
+          "sha256": "cc909a5a7bf59be084a70c855854dbe71f683ae1f9998f94b45ce6f1892bb3b7",
+          "token_estimate": 1648,
+          "char_count": 6756,
+          "start_line_idx": 4017,
+          "end_line_idx": 4146,
+          "chapter_id": 15
+        },
+        {
+          "chunk_id": "book_0006__en__c015__002",
+          "file_path": "ch_015_chunk_002.txt",
+          "sha256": "7f0a85e12c54863b2e2673773a3c23978aa7b00bb2f13d6647e042dc22ef5af3",
+          "token_estimate": 1564,
+          "char_count": 6435,
+          "start_line_idx": 4147,
+          "end_line_idx": 4251,
+          "chapter_id": 15
+        },
+        {
+          "chunk_id": "book_0006__en__c015__003",
+          "file_path": "ch_015_chunk_003.txt",
+          "sha256": "837a16d2ab6b862530eafe70c9f9969151dd9467d51a0d669b956df42256989e",
+          "token_estimate": 1778,
+          "char_count": 6955,
+          "start_line_idx": 4252,
+          "end_line_idx": 4377,
+          "chapter_id": 15
+        },
+        {
+          "chunk_id": "book_0006__en__c015__004",
+          "file_path": "ch_015_chunk_004.txt",
+          "sha256": "34113b63817bd294b17b474c37fca12dd717c815d20547681a336c1d66a4d46f",
+          "token_estimate": 793,
+          "char_count": 3212,
+          "start_line_idx": 4378,
+          "end_line_idx": 4433,
+          "chapter_id": 15
+        }
+      ]
+    },
+    {
+      "chapter_id": 16,
+      "heading_line": "7 - THE CONCLUSION.",
+      "heading_number": 7,
+      "heading_title": "THE CONCLUSION.",
+      "start_line_idx": 4434,
+      "end_line_idx": 4641,
+      "chunk_count": 2,
+      "chunks": [
+        {
+          "chunk_id": "book_0006__en__c016__001",
+          "file_path": "ch_016_chunk_001.txt",
+          "sha256": "e54f1275549a9a7c539f518029bd465c1f54e9a2705b96c7ca0d37bf333d91fc",
+          "token_estimate": 1500,
+          "char_count": 6471,
+          "start_line_idx": 4434,
+          "end_line_idx": 4550,
+          "chapter_id": 16
+        },
+        {
+          "chunk_id": "book_0006__en__c016__002",
+          "file_path": "ch_016_chunk_002.txt",
+          "sha256": "48a96262353ef464fe8aa3947b84668ab4a5694cd3b8acb97fd1b8007db73b14",
+          "token_estimate": 1215,
+          "char_count": 5168,
+          "start_line_idx": 4551,
+          "end_line_idx": 4641,
+          "chapter_id": 16
+        }
+      ]
+    }
+  ],
+  "check_ok": true,
+  "check_fail_reasons": [],
+  "check_warnings": []
+}

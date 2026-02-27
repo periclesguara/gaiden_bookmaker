@@ -1,0 +1,575 @@
+{
+  "book_code": "book_0004",
+  "src_lang": "en",
+  "agent": "TIAMATI",
+  "model": "gpt-5-chat-latest",
+  "run_id": "20260219T230231",
+  "chunks_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/chunks_in",
+  "out_dir": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231",
+  "started_utc": "2026-02-19T23:02:31.096817Z",
+  "items": [
+    {
+      "i": 1,
+      "chunk": "ch_001_chunk_001.txt",
+      "bytes": 8585,
+      "sha1": "ea0ba7c0af4616879682950c3a4a98882e0fb010",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0001__ch_001_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 2,
+      "chunk": "ch_001_chunk_002.txt",
+      "bytes": 8563,
+      "sha1": "57a984ffc9ea7de450ed90c3ecfcad814b464020",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0002__ch_001_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 3,
+      "chunk": "ch_001_chunk_003.txt",
+      "bytes": 1392,
+      "sha1": "ede025552ded6bc362a670e9fe98776546c9eb52",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0003__ch_001_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 4,
+      "chunk": "ch_002_chunk_001.txt",
+      "bytes": 8482,
+      "sha1": "b16b6390b8dca96f57395f49a2774051497f7295",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0004__ch_002_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 5,
+      "chunk": "ch_002_chunk_002.txt",
+      "bytes": 8589,
+      "sha1": "3ff0c6ba408c82e7a1438887fae2bd8bc990ff5b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0005__ch_002_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 6,
+      "chunk": "ch_002_chunk_003.txt",
+      "bytes": 1112,
+      "sha1": "65fdbc0ff77d5903effe17d3c680e6baa3c4fd31",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0006__ch_002_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 7,
+      "chunk": "ch_003_chunk_001.txt",
+      "bytes": 8678,
+      "sha1": "8d13d39c05d841364099fb300ebadf430eadb715",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0007__ch_003_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 8,
+      "chunk": "ch_003_chunk_002.txt",
+      "bytes": 8719,
+      "sha1": "961f3979daef30d19a3a940dd9ba2d417ffcef0d",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0008__ch_003_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 9,
+      "chunk": "ch_004_chunk_001.txt",
+      "bytes": 8589,
+      "sha1": "06b70a3886b7f26572745a9334d8b690c1225408",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0009__ch_004_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 10,
+      "chunk": "ch_004_chunk_002.txt",
+      "bytes": 8440,
+      "sha1": "49882c656c8474b22d16032c71e2b3e7a742c532",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0010__ch_004_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 11,
+      "chunk": "ch_005_chunk_001.txt",
+      "bytes": 8665,
+      "sha1": "fd767b5cacbf3a2b23bf9ab380fe10f3dadc7e46",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0011__ch_005_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 12,
+      "chunk": "ch_005_chunk_002.txt",
+      "bytes": 7743,
+      "sha1": "1cbaab2a7146024890b3c5c002f3236b9d6311fa",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0012__ch_005_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 13,
+      "chunk": "ch_006_chunk_001.txt",
+      "bytes": 8512,
+      "sha1": "bf81a808c9c721d78a45ead86c4319f8ec5697e7",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0013__ch_006_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 14,
+      "chunk": "ch_006_chunk_002.txt",
+      "bytes": 8415,
+      "sha1": "b346fddca71e8cfcfa4339cee5d225be264b07ff",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0014__ch_006_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 15,
+      "chunk": "ch_006_chunk_003.txt",
+      "bytes": 6004,
+      "sha1": "dcfddde678ba9528e65f1416785e0ad1795c4426",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0015__ch_006_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 16,
+      "chunk": "ch_007_chunk_001.txt",
+      "bytes": 8481,
+      "sha1": "5857ea99fe05eb264c32183b3cf651aefd37b4ae",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0016__ch_007_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 17,
+      "chunk": "ch_007_chunk_002.txt",
+      "bytes": 8306,
+      "sha1": "3dcb67e129cd16fbbcef10bf9d08b87b40e42f42",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0017__ch_007_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 18,
+      "chunk": "ch_007_chunk_003.txt",
+      "bytes": 8452,
+      "sha1": "94e4a4f64505f3932f046186431824a31e7967b2",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0018__ch_007_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 19,
+      "chunk": "ch_007_chunk_004.txt",
+      "bytes": 229,
+      "sha1": "e736afeb6c8a7486c9c40a21af4c0531e434b0bc",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0019__ch_007_chunk_004.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 20,
+      "chunk": "ch_008_chunk_001.txt",
+      "bytes": 8525,
+      "sha1": "9e1e8db7e60a6ad13bd7003c675957d900260b10",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0020__ch_008_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 21,
+      "chunk": "ch_008_chunk_002.txt",
+      "bytes": 8609,
+      "sha1": "2c00a607e90aeda28aa4e70a4b724e870752721b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0021__ch_008_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 22,
+      "chunk": "ch_008_chunk_003.txt",
+      "bytes": 1018,
+      "sha1": "fe8906fb6e31af60750cebebfc20f5912a9ffa7c",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0022__ch_008_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 23,
+      "chunk": "ch_009_chunk_001.txt",
+      "bytes": 8512,
+      "sha1": "f1e6a1da708166433e7b6ebead0559eac5b23e57",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0023__ch_009_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 24,
+      "chunk": "ch_009_chunk_002.txt",
+      "bytes": 8660,
+      "sha1": "a5c24fd23148d5aa44d77292ca5ca7264ca7419c",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0024__ch_009_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 25,
+      "chunk": "ch_009_chunk_003.txt",
+      "bytes": 1926,
+      "sha1": "dcfbefee697428a5fd538089c6e02b700faf1433",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0025__ch_009_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 26,
+      "chunk": "ch_010_chunk_001.txt",
+      "bytes": 8609,
+      "sha1": "c0d5d447bc3b903ff87e73c560d673c0d4e015f6",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0026__ch_010_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 27,
+      "chunk": "ch_010_chunk_002.txt",
+      "bytes": 8690,
+      "sha1": "aac45780e6220505e8ab91112167b1dc6d3c9263",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0027__ch_010_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 28,
+      "chunk": "ch_010_chunk_003.txt",
+      "bytes": 4537,
+      "sha1": "2fbdfe9768cd3c38fe0e27b147e9865b7489a32b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0028__ch_010_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 29,
+      "chunk": "ch_011_chunk_001.txt",
+      "bytes": 8422,
+      "sha1": "bfaa8aecabb5927b50d4b52645a9eafde9776ac6",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0029__ch_011_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 30,
+      "chunk": "ch_011_chunk_002.txt",
+      "bytes": 8125,
+      "sha1": "a0397499f32ec8d6325efc417d5cf5dc8bd6f27b",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0030__ch_011_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 31,
+      "chunk": "ch_012_chunk_001.txt",
+      "bytes": 8518,
+      "sha1": "68cca1412041672f18d17fd3097fed4ea4b8cc86",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0031__ch_012_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 32,
+      "chunk": "ch_012_chunk_002.txt",
+      "bytes": 8209,
+      "sha1": "9dc4a8c06951971324518c207f240099d5e1a0c5",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0032__ch_012_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 33,
+      "chunk": "ch_012_chunk_003.txt",
+      "bytes": 7649,
+      "sha1": "fca8fd0b3393aff785a3acc1822f9cf0ce9cc234",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0033__ch_012_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 34,
+      "chunk": "ch_013_chunk_001.txt",
+      "bytes": 8395,
+      "sha1": "e68ed91158f87cb4273e778dccb058f41e9dbc24",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0034__ch_013_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 35,
+      "chunk": "ch_013_chunk_002.txt",
+      "bytes": 6888,
+      "sha1": "0a01ec957814e00b3183d53ffa25ade9ebf8b639",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0035__ch_013_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 36,
+      "chunk": "ch_014_chunk_001.txt",
+      "bytes": 8199,
+      "sha1": "e806fc7273984dc332b52b062f8c84ec579d6d80",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0036__ch_014_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 37,
+      "chunk": "ch_014_chunk_002.txt",
+      "bytes": 7926,
+      "sha1": "88d1ba5add38d659f1ca4f0aab6236a6bc18c0fd",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0037__ch_014_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 38,
+      "chunk": "ch_015_chunk_001.txt",
+      "bytes": 8347,
+      "sha1": "74ee8ab046efa415aa60140ba583b58647bb759f",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0038__ch_015_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 39,
+      "chunk": "ch_015_chunk_002.txt",
+      "bytes": 3305,
+      "sha1": "755320e34e3e8f3256b7a90009e84cd54a740549",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0039__ch_015_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 40,
+      "chunk": "ch_016_chunk_001.txt",
+      "bytes": 8222,
+      "sha1": "46a7246179fdf0998633b773215731d13ce3d6bc",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0040__ch_016_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 41,
+      "chunk": "ch_016_chunk_002.txt",
+      "bytes": 1030,
+      "sha1": "bad7453cdbf81cdafc3b20271aff5f77a8fb1021",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0041__ch_016_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 42,
+      "chunk": "ch_017_chunk_001.txt",
+      "bytes": 7811,
+      "sha1": "e8f5b6e4968a59efd647cf9e2d11e3c9b4512603",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0042__ch_017_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 43,
+      "chunk": "ch_017_chunk_002.txt",
+      "bytes": 7419,
+      "sha1": "e9e514f32c265680a9bc0db1c1b15adf48b7de81",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0043__ch_017_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 44,
+      "chunk": "ch_018_chunk_001.txt",
+      "bytes": 8472,
+      "sha1": "b63760ea5a186ef7687ea7b9ee7f610eba04dbdd",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0044__ch_018_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 45,
+      "chunk": "ch_018_chunk_002.txt",
+      "bytes": 6910,
+      "sha1": "878b8817d548a4ba555860772cb05228c7801e4e",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0045__ch_018_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 46,
+      "chunk": "ch_019_chunk_001.txt",
+      "bytes": 8510,
+      "sha1": "a22366741e001f759a8c3dde3e4646d7cd20a233",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0046__ch_019_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 47,
+      "chunk": "ch_019_chunk_002.txt",
+      "bytes": 7335,
+      "sha1": "16f3f5f0b6cb07c8b35db4847b5b4e663060f7e8",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0047__ch_019_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 48,
+      "chunk": "ch_020_chunk_001.txt",
+      "bytes": 8563,
+      "sha1": "5892e63e4cd5a2e8cab00a1272b0fd93a4bd368f",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0048__ch_020_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 49,
+      "chunk": "ch_020_chunk_002.txt",
+      "bytes": 8311,
+      "sha1": "ccf8df409727eccd12a3bb74b165135567f86c29",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0049__ch_020_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 50,
+      "chunk": "ch_020_chunk_003.txt",
+      "bytes": 2006,
+      "sha1": "de6d27874f056c0b955481a664616bd2eb2d8b73",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0050__ch_020_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 51,
+      "chunk": "ch_021_chunk_001.txt",
+      "bytes": 8626,
+      "sha1": "c6123d49f4ea4e71203fd1ec61eadd84ea4261c1",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0051__ch_021_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 52,
+      "chunk": "ch_021_chunk_002.txt",
+      "bytes": 8557,
+      "sha1": "3992e0e8efd1204a6819ec81bf4184ce7a653a49",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0052__ch_021_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 53,
+      "chunk": "ch_021_chunk_003.txt",
+      "bytes": 8378,
+      "sha1": "1a9e62d50de82184f817bd652992da55409c27ea",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0053__ch_021_chunk_003.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 54,
+      "chunk": "ch_022_chunk_001.txt",
+      "bytes": 8550,
+      "sha1": "6a6e1a7374813a3c041767e144bfaa8c71683153",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0054__ch_022_chunk_001.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 55,
+      "chunk": "ch_022_chunk_002.txt",
+      "bytes": 8635,
+      "sha1": "2cb3cfb9c04aa6be5347fd468fbc83100ce1ed4a",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0055__ch_022_chunk_002.txt.out.txt",
+      "err": null
+    },
+    {
+      "i": 56,
+      "chunk": "ch_022_chunk_003.txt",
+      "bytes": 7334,
+      "sha1": "4da0fa68c3ffe295aa52c83be7570a1067ca42de",
+      "ok": true,
+      "attempts": 1,
+      "out_file": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/chunks_out/0056__ch_022_chunk_003.txt.out.txt",
+      "err": null
+    }
+  ],
+  "errors": [],
+  "finished_utc": "2026-02-19T23:09:01.446540Z",
+  "merged_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/books/book_0004/en/runs/v04_rechunk_fullflow_20260219T224357Z/outputs/agent_tiamati/20260219T230231/book_0004__en__agent_tiamati__MERGED.txt"
+}

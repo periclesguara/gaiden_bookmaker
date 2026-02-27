@@ -1,0 +1,12 @@
+Chapter 1 - The Beginning
+12
+This is the first chapter body.
+PAGE 12
+
+Chapter 2 - The Middle
+Louis XIV appears in this paragraph and must not change.
+[ 45 ]
+More body text.
+
+Chapter 3 - The End
+Closing paragraph.

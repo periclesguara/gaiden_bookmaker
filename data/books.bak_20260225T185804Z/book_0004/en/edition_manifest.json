@@ -1,0 +1,8 @@
+{
+  "book_id": "book_0004",
+  "language": "en",
+  "canonical_text": "data/books/book_0004/en/return/book_0004_refine_clean.md",
+  "frontmatter_dir": "gaiden/frontmatter_store/book_0004/en",
+  "build_alias": "data/builds/book_0004/en/merge_refine_clean.md",
+  "notes": "Conan official refine_clean located under return/; alias created for pipeline discovery."
+}

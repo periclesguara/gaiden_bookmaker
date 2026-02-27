@@ -1,0 +1,703 @@
+{
+  "schema_version": "chunks_manifest_v2",
+  "book_code": "book_0004",
+  "lang": "en",
+  "normalized_path": "/home/periclesguara/Projetos/gaiden_bookmaker/data/normalized/book_0004/en/book_0004_en_v2.txt",
+  "normalized_sha256": "915c246c35acc561e1e75c6da0130f65d6d297e8b17640d285cedb3986097224",
+  "chunker_version": "6457103",
+  "created_at": "2026-02-12T21:44:27.147801Z",
+  "config": {
+    "target_tokens": 1500,
+    "max_tokens": 2000,
+    "estimator": "tiktoken"
+  },
+  "headings_detected_count": 2,
+  "single_chapter_mode": false,
+  "chapters": [
+    {
+      "chapter_id": 1,
+      "heading_line": "part was the center, composed entirely of heavily armed knights; the",
+      "heading_number": null,
+      "heading_title": "was the center, composed entirely of heavily armed knights; the",
+      "start_line_idx": 0,
+      "end_line_idx": 5933,
+      "chunk_count": 48,
+      "chunks": [
+        {
+          "chunk_id": "book_0004__en__c001__001",
+          "file_path": "ch_001_chunk_001.txt",
+          "sha256": "f565ae925f9e7b58c0b9c0bb7af084b6fd0964321cf5841dec299d1fd74304a6",
+          "token_estimate": 1524,
+          "char_count": 5964,
+          "start_line_idx": 0,
+          "end_line_idx": 124,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__002",
+          "file_path": "ch_001_chunk_002.txt",
+          "sha256": "5c213b86ad34b967bc458ef90bb40ff4de4bbe06ce732e1e65efadeaefad1902",
+          "token_estimate": 1601,
+          "char_count": 6318,
+          "start_line_idx": 125,
+          "end_line_idx": 245,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__003",
+          "file_path": "ch_001_chunk_003.txt",
+          "sha256": "6be25a676a9497741aae8cb73e58ea8563731a86d51eaf888debce1ee01df736",
+          "token_estimate": 1524,
+          "char_count": 6117,
+          "start_line_idx": 246,
+          "end_line_idx": 370,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__004",
+          "file_path": "ch_001_chunk_004.txt",
+          "sha256": "b1192bc3d6cced41846ee5fb15c01b33b483633ff46ec231cf6a558ddc2459b2",
+          "token_estimate": 1501,
+          "char_count": 6241,
+          "start_line_idx": 371,
+          "end_line_idx": 486,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__005",
+          "file_path": "ch_001_chunk_005.txt",
+          "sha256": "356c53480b20d9c498a039ad7a172685b01650c4e23478723cf4012c32874054",
+          "token_estimate": 1590,
+          "char_count": 6275,
+          "start_line_idx": 487,
+          "end_line_idx": 611,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__006",
+          "file_path": "ch_001_chunk_006.txt",
+          "sha256": "6aac50cafa8b2855bc45889033feb4b8abdf4a4095fe17dd2ad892958ccae0d9",
+          "token_estimate": 1609,
+          "char_count": 6373,
+          "start_line_idx": 612,
+          "end_line_idx": 754,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__007",
+          "file_path": "ch_001_chunk_007.txt",
+          "sha256": "066cce7dad29da605a2dddd58ba851902a36173d6fc761069326892098414f2b",
+          "token_estimate": 1538,
+          "char_count": 6110,
+          "start_line_idx": 755,
+          "end_line_idx": 872,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__008",
+          "file_path": "ch_001_chunk_008.txt",
+          "sha256": "d684601052294faa4ff25e17dbec4b21fcb7f23b84b37e53f04725b733442105",
+          "token_estimate": 1544,
+          "char_count": 5990,
+          "start_line_idx": 873,
+          "end_line_idx": 1000,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__009",
+          "file_path": "ch_001_chunk_009.txt",
+          "sha256": "1d67a5519e10f7e1b15b99655efcf2e90612e4ef3ae94ba9a516f38f6e4c4054",
+          "token_estimate": 1574,
+          "char_count": 6298,
+          "start_line_idx": 1001,
+          "end_line_idx": 1136,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__010",
+          "file_path": "ch_001_chunk_010.txt",
+          "sha256": "f786624940b8de1d3db375dfe91f87625f2609571db0969e0c9af2c2f8c7a5f8",
+          "token_estimate": 1506,
+          "char_count": 6074,
+          "start_line_idx": 1137,
+          "end_line_idx": 1271,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__011",
+          "file_path": "ch_001_chunk_011.txt",
+          "sha256": "50f3081309f424694e70caa3461dcade6c9703b796a12b95e7c41a26f536f37c",
+          "token_estimate": 1550,
+          "char_count": 6318,
+          "start_line_idx": 1272,
+          "end_line_idx": 1393,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__012",
+          "file_path": "ch_001_chunk_012.txt",
+          "sha256": "f0d5650f5758023b1a35369ce69feb1b849b33d4193c0a0bfd9f2b54aabe2fd8",
+          "token_estimate": 1605,
+          "char_count": 6815,
+          "start_line_idx": 1394,
+          "end_line_idx": 1510,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__013",
+          "file_path": "ch_001_chunk_013.txt",
+          "sha256": "fed2f1a65d3d5981520f64c97063319bdeeccb2025fbc7b2ec74ebf4b4455e3d",
+          "token_estimate": 1576,
+          "char_count": 6309,
+          "start_line_idx": 1511,
+          "end_line_idx": 1640,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__014",
+          "file_path": "ch_001_chunk_014.txt",
+          "sha256": "ba04d76d723b0e19798e1ce2dbd6a04beda4e5865ed7be2aa3d88da197ee5c18",
+          "token_estimate": 1544,
+          "char_count": 6391,
+          "start_line_idx": 1641,
+          "end_line_idx": 1751,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__015",
+          "file_path": "ch_001_chunk_015.txt",
+          "sha256": "2f598483199437d8b07e4711052c666030181215ff341961254132ebc138c85a",
+          "token_estimate": 1542,
+          "char_count": 6241,
+          "start_line_idx": 1752,
+          "end_line_idx": 1878,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__016",
+          "file_path": "ch_001_chunk_016.txt",
+          "sha256": "0c8f6c67929724cae550f9ee750d8424bc01dc5aa20ebd4c35301764ec682065",
+          "token_estimate": 1523,
+          "char_count": 6162,
+          "start_line_idx": 1879,
+          "end_line_idx": 2001,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__017",
+          "file_path": "ch_001_chunk_017.txt",
+          "sha256": "6fd2f239e2dfb2e25c49c8501093f7435377704df588587e0d284e3b4490996b",
+          "token_estimate": 1556,
+          "char_count": 6438,
+          "start_line_idx": 2002,
+          "end_line_idx": 2126,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__018",
+          "file_path": "ch_001_chunk_018.txt",
+          "sha256": "cd72c14d003ef240157cae5a0753c6a561178c9f4429fe227e0f74185cc6ead7",
+          "token_estimate": 1561,
+          "char_count": 6134,
+          "start_line_idx": 2127,
+          "end_line_idx": 2259,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__019",
+          "file_path": "ch_001_chunk_019.txt",
+          "sha256": "a9b734188437a9e2a46b8b2a5ebec63aeee443298890ffb5042e29e14b0de6c5",
+          "token_estimate": 1558,
+          "char_count": 6479,
+          "start_line_idx": 2260,
+          "end_line_idx": 2379,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__020",
+          "file_path": "ch_001_chunk_020.txt",
+          "sha256": "cf278ba7ded89ad0a2bb7c460e660e0617df75834c795d99c6c75e2f52f53ccd",
+          "token_estimate": 1523,
+          "char_count": 6230,
+          "start_line_idx": 2380,
+          "end_line_idx": 2502,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__021",
+          "file_path": "ch_001_chunk_021.txt",
+          "sha256": "8d4d067aa2c79f46216231f7dab967a51cdb02c7206216772d637055dde902fd",
+          "token_estimate": 1700,
+          "char_count": 6749,
+          "start_line_idx": 2503,
+          "end_line_idx": 2638,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__022",
+          "file_path": "ch_001_chunk_022.txt",
+          "sha256": "3e9837ae350c72848554e88bc057aa51bcca63cc7da56d648d296d7201ff12e6",
+          "token_estimate": 1542,
+          "char_count": 6347,
+          "start_line_idx": 2639,
+          "end_line_idx": 2770,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__023",
+          "file_path": "ch_001_chunk_023.txt",
+          "sha256": "af2d9b893eae5f016f93b77bb6c3b8f53d85f6eca35e666d8da784d8afd3dd78",
+          "token_estimate": 1626,
+          "char_count": 6628,
+          "start_line_idx": 2771,
+          "end_line_idx": 2905,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__024",
+          "file_path": "ch_001_chunk_024.txt",
+          "sha256": "5c0b86ae45215dee1d728af86e8aca0c04475fb26b5b14ceb4c923738ef86ff0",
+          "token_estimate": 1569,
+          "char_count": 6381,
+          "start_line_idx": 2906,
+          "end_line_idx": 3038,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__025",
+          "file_path": "ch_001_chunk_025.txt",
+          "sha256": "d498e5aeb8366f8fc47af1df23f5d7226242dc1552577182a18ee355c3eeadd6",
+          "token_estimate": 1581,
+          "char_count": 6521,
+          "start_line_idx": 3039,
+          "end_line_idx": 3164,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__026",
+          "file_path": "ch_001_chunk_026.txt",
+          "sha256": "70997dd0cff273017867635474ec7567d3cf00ac88806f32ef9c0dde58665f32",
+          "token_estimate": 1640,
+          "char_count": 6896,
+          "start_line_idx": 3165,
+          "end_line_idx": 3287,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__027",
+          "file_path": "ch_001_chunk_027.txt",
+          "sha256": "aec35d159c7852b5b50340812760bcc62419eeac03fcc48117bb1c59ddce0e18",
+          "token_estimate": 1515,
+          "char_count": 6123,
+          "start_line_idx": 3288,
+          "end_line_idx": 3419,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__028",
+          "file_path": "ch_001_chunk_028.txt",
+          "sha256": "4b6d2b7285b3738c0e688ce0b3b4f79890cb814f2307857d00c119a4ce6ffa91",
+          "token_estimate": 1533,
+          "char_count": 6473,
+          "start_line_idx": 3420,
+          "end_line_idx": 3545,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__029",
+          "file_path": "ch_001_chunk_029.txt",
+          "sha256": "6e50329db5d991926fd377733f2e344c3413442d0689880e54ba585b08f23bd7",
+          "token_estimate": 1514,
+          "char_count": 6132,
+          "start_line_idx": 3546,
+          "end_line_idx": 3680,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__030",
+          "file_path": "ch_001_chunk_030.txt",
+          "sha256": "1a555caee3e14c14e479cbb60f82358f0ce0a6639c84d32561bae65c1ec4a0a3",
+          "token_estimate": 1519,
+          "char_count": 6128,
+          "start_line_idx": 3681,
+          "end_line_idx": 3798,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__031",
+          "file_path": "ch_001_chunk_031.txt",
+          "sha256": "72eb097fe29f3f8b9a68129589dd111381f4b2f8fe0c66e8d5a5ae23a2ab4e66",
+          "token_estimate": 1528,
+          "char_count": 5949,
+          "start_line_idx": 3799,
+          "end_line_idx": 3930,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__032",
+          "file_path": "ch_001_chunk_032.txt",
+          "sha256": "5f8d406973fb3833da61c6188726c27429bd6da647b6dcaa8944ca4736eb6caa",
+          "token_estimate": 1510,
+          "char_count": 6311,
+          "start_line_idx": 3931,
+          "end_line_idx": 4043,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__033",
+          "file_path": "ch_001_chunk_033.txt",
+          "sha256": "09d75795245a78a065cd0780a5d7739216bd387414add6f22d4e8cf47f7c0280",
+          "token_estimate": 1605,
+          "char_count": 6628,
+          "start_line_idx": 4044,
+          "end_line_idx": 4174,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__034",
+          "file_path": "ch_001_chunk_034.txt",
+          "sha256": "bcdd715a09f8d3fc4ce3d9b4bb081106a0fd9bed14c9c795a439e9febaa9f6b1",
+          "token_estimate": 1539,
+          "char_count": 5890,
+          "start_line_idx": 4175,
+          "end_line_idx": 4301,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__035",
+          "file_path": "ch_001_chunk_035.txt",
+          "sha256": "e83d85c3043dccc1448f68904ce4ebd69f324caa5fbe304fd001f9e9b4c1a16e",
+          "token_estimate": 1604,
+          "char_count": 6510,
+          "start_line_idx": 4302,
+          "end_line_idx": 4418,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__036",
+          "file_path": "ch_001_chunk_036.txt",
+          "sha256": "8e997e59ae016a5e5c9b40bdb21f2f46604a8e7e38b7a6f55a1df9cdaf22494b",
+          "token_estimate": 1505,
+          "char_count": 5838,
+          "start_line_idx": 4419,
+          "end_line_idx": 4543,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__037",
+          "file_path": "ch_001_chunk_037.txt",
+          "sha256": "f6c52f8db85798a755c728eeeb2fed2b95d70a7637d37aa49306e2786f69040e",
+          "token_estimate": 1539,
+          "char_count": 6084,
+          "start_line_idx": 4544,
+          "end_line_idx": 4663,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__038",
+          "file_path": "ch_001_chunk_038.txt",
+          "sha256": "271d0563a9115f36c7a9c7547a70d4b4241549bfa76e19965b5cc1e61bd34fce",
+          "token_estimate": 1534,
+          "char_count": 6316,
+          "start_line_idx": 4664,
+          "end_line_idx": 4776,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__039",
+          "file_path": "ch_001_chunk_039.txt",
+          "sha256": "37f84864319eeb5c66b1625c3e51ba7379effc987ede8ad6f7c773736d5e7d67",
+          "token_estimate": 1552,
+          "char_count": 6438,
+          "start_line_idx": 4777,
+          "end_line_idx": 4895,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__040",
+          "file_path": "ch_001_chunk_040.txt",
+          "sha256": "814cb9270294898ef6081dc463e986bd8cc7728bca29ce7b68e89c290ca2b3b8",
+          "token_estimate": 1529,
+          "char_count": 6133,
+          "start_line_idx": 4896,
+          "end_line_idx": 5021,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__041",
+          "file_path": "ch_001_chunk_041.txt",
+          "sha256": "dfd377fe4a03c42adac5b2f37d0ad0f0df327ca598150f071af55f7fff8f950a",
+          "token_estimate": 1570,
+          "char_count": 6294,
+          "start_line_idx": 5022,
+          "end_line_idx": 5151,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__042",
+          "file_path": "ch_001_chunk_042.txt",
+          "sha256": "f899ff110bce92d600109662c39a3dc621a24618a431af45832d52f2e7312142",
+          "token_estimate": 1542,
+          "char_count": 6451,
+          "start_line_idx": 5152,
+          "end_line_idx": 5267,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__043",
+          "file_path": "ch_001_chunk_043.txt",
+          "sha256": "d92f554396b89ed29f1ebd9a42bf9b6d79d0d1967ddda80d19929c64c517c34b",
+          "token_estimate": 1505,
+          "char_count": 6028,
+          "start_line_idx": 5268,
+          "end_line_idx": 5405,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__044",
+          "file_path": "ch_001_chunk_044.txt",
+          "sha256": "fff9e2b4b288b3815e1cd14a64845d9eeb97575adb99e2baa9a044ea762febbe",
+          "token_estimate": 1509,
+          "char_count": 6045,
+          "start_line_idx": 5406,
+          "end_line_idx": 5534,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__045",
+          "file_path": "ch_001_chunk_045.txt",
+          "sha256": "727a69dc96fd9a08b3722d407a0fc78f8f0f0c476431f9b0d07a44a95ea8b626",
+          "token_estimate": 1570,
+          "char_count": 6316,
+          "start_line_idx": 5535,
+          "end_line_idx": 5649,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__046",
+          "file_path": "ch_001_chunk_046.txt",
+          "sha256": "d79e35d23e79be1d774efa62971f4cba1dcfb8af8fb61024bd9c8891525cffae",
+          "token_estimate": 1598,
+          "char_count": 6530,
+          "start_line_idx": 5650,
+          "end_line_idx": 5766,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__047",
+          "file_path": "ch_001_chunk_047.txt",
+          "sha256": "0708bb0fe9b426edd490c482f53cd94b3c72da5188843e3db49a1f1c88eab301",
+          "token_estimate": 1580,
+          "char_count": 6344,
+          "start_line_idx": 5767,
+          "end_line_idx": 5886,
+          "chapter_id": 1
+        },
+        {
+          "chunk_id": "book_0004__en__c001__048",
+          "file_path": "ch_001_chunk_048.txt",
+          "sha256": "a05c14ad478081907dbf50fc722aee78ad3d06a48fadcd5ff2d59850487a1ff7",
+          "token_estimate": 664,
+          "char_count": 2795,
+          "start_line_idx": 5887,
+          "end_line_idx": 5933,
+          "chapter_id": 1
+        }
+      ]
+    },
+    {
+      "chapter_id": 2,
+      "heading_line": "part of the city dedicated to the temples. The great structures reared",
+      "heading_number": null,
+      "heading_title": "of the city dedicated to the temples. The great structures reared",
+      "start_line_idx": 5934,
+      "end_line_idx": 8112,
+      "chunk_count": 18,
+      "chunks": [
+        {
+          "chunk_id": "book_0004__en__c002__001",
+          "file_path": "ch_002_chunk_001.txt",
+          "sha256": "9f080b39d2f1741202aae53e0467343cdabf3221ae15fd2fba4e31d56aa68206",
+          "token_estimate": 1500,
+          "char_count": 6162,
+          "start_line_idx": 5934,
+          "end_line_idx": 6037,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__002",
+          "file_path": "ch_002_chunk_002.txt",
+          "sha256": "fcae5aa2e593eaed17e42525601ac8bcf7b2210f05d72df9f054b69f831e39bd",
+          "token_estimate": 1564,
+          "char_count": 6743,
+          "start_line_idx": 6038,
+          "end_line_idx": 6155,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__003",
+          "file_path": "ch_002_chunk_003.txt",
+          "sha256": "ed182177b36ec3dfb7c6051f841ebca035bfd781d3813248a86e42f39c701439",
+          "token_estimate": 1520,
+          "char_count": 6345,
+          "start_line_idx": 6156,
+          "end_line_idx": 6289,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__004",
+          "file_path": "ch_002_chunk_004.txt",
+          "sha256": "b61b9e0470054f2e957232aca38b44d3661788cf4e5d2a5f1cb229ae0d95015d",
+          "token_estimate": 1531,
+          "char_count": 6235,
+          "start_line_idx": 6290,
+          "end_line_idx": 6408,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__005",
+          "file_path": "ch_002_chunk_005.txt",
+          "sha256": "8e32479cc9586269dfdfa0e039f01e204558a11c66858d60860a6ac2d4c3aca2",
+          "token_estimate": 1547,
+          "char_count": 6479,
+          "start_line_idx": 6409,
+          "end_line_idx": 6522,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__006",
+          "file_path": "ch_002_chunk_006.txt",
+          "sha256": "dcd82f62fb0aed2448e94bbb659a93d2d13e94ad48ffa1dc2bfde8cfa454d1fd",
+          "token_estimate": 1510,
+          "char_count": 6020,
+          "start_line_idx": 6523,
+          "end_line_idx": 6643,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__007",
+          "file_path": "ch_002_chunk_007.txt",
+          "sha256": "72ea5c26f8d20a508e976e44cf0a1d6e0774d247534a99b4fbb235611f5aa2ca",
+          "token_estimate": 1574,
+          "char_count": 6535,
+          "start_line_idx": 6644,
+          "end_line_idx": 6765,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__008",
+          "file_path": "ch_002_chunk_008.txt",
+          "sha256": "bed491aef2344bada14f08693b8226e6dff3b6c6a13eef088a49e1b01744adb9",
+          "token_estimate": 1564,
+          "char_count": 6535,
+          "start_line_idx": 6766,
+          "end_line_idx": 6881,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__009",
+          "file_path": "ch_002_chunk_009.txt",
+          "sha256": "48c8386cfee40712322895f5e9b6c3754bb442c87eabff45c71831021d35759a",
+          "token_estimate": 1603,
+          "char_count": 6466,
+          "start_line_idx": 6882,
+          "end_line_idx": 7002,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__010",
+          "file_path": "ch_002_chunk_010.txt",
+          "sha256": "861e774dd4d0319b837f01651b08d7d70b6a6ed34981d0015bdb7a39ee1a6be0",
+          "token_estimate": 1541,
+          "char_count": 6229,
+          "start_line_idx": 7003,
+          "end_line_idx": 7125,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__011",
+          "file_path": "ch_002_chunk_011.txt",
+          "sha256": "6ced31d934aced5224081cb196aff6faa6e133e99daba693f85d85e5674745cf",
+          "token_estimate": 1537,
+          "char_count": 6322,
+          "start_line_idx": 7126,
+          "end_line_idx": 7253,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__012",
+          "file_path": "ch_002_chunk_012.txt",
+          "sha256": "cb74fb10a8cd7f91ca9938f8ed2d00398553476a42a027cb069e37087046d2b4",
+          "token_estimate": 1595,
+          "char_count": 6471,
+          "start_line_idx": 7254,
+          "end_line_idx": 7378,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__013",
+          "file_path": "ch_002_chunk_013.txt",
+          "sha256": "a8c1d8c13290ad9b41acc3273763f28c6eeb28eb88194f438371871525697b09",
+          "token_estimate": 1503,
+          "char_count": 6003,
+          "start_line_idx": 7379,
+          "end_line_idx": 7503,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__014",
+          "file_path": "ch_002_chunk_014.txt",
+          "sha256": "4636fd5d4813d0cb07bdfc41c1fa52e36ec3977aa3835eebd491e58e190e0703",
+          "token_estimate": 1574,
+          "char_count": 6266,
+          "start_line_idx": 7504,
+          "end_line_idx": 7639,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__015",
+          "file_path": "ch_002_chunk_015.txt",
+          "sha256": "d69b58072dfea82c657b4053237f28b1c939492a42f83b13cd266f70cb9bc99b",
+          "token_estimate": 1562,
+          "char_count": 6581,
+          "start_line_idx": 7640,
+          "end_line_idx": 7758,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__016",
+          "file_path": "ch_002_chunk_016.txt",
+          "sha256": "08d8231089a7ebb457a924b4a2c97be56e2ac1a262d878c04bdaad7429201eee",
+          "token_estimate": 1503,
+          "char_count": 5969,
+          "start_line_idx": 7759,
+          "end_line_idx": 7878,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__017",
+          "file_path": "ch_002_chunk_017.txt",
+          "sha256": "0549501e4862bfb20e718ed40e5f3e7790946cec9dd2d52f2c3974ef78ee62f3",
+          "token_estimate": 1555,
+          "char_count": 6161,
+          "start_line_idx": 7879,
+          "end_line_idx": 8005,
+          "chapter_id": 2
+        },
+        {
+          "chunk_id": "book_0004__en__c002__018",
+          "file_path": "ch_002_chunk_018.txt",
+          "sha256": "4f718fd1a809734fbb0c60763b840bcd147892dcb52a66b67ff4d6a9f433c4ea",
+          "token_estimate": 1307,
+          "char_count": 5215,
+          "start_line_idx": 8006,
+          "end_line_idx": 8112,
+          "chapter_id": 2
+        }
+      ]
+    }
+  ],
+  "check_ok": true,
+  "check_fail_reasons": [],
+  "check_warnings": []
+}
