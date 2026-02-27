@@ -186,3 +186,18 @@ gaiden/frontmatter_store.bak_*
 # Ignore local symlink entries explicitly
 data/books
 data/builds
+
+# --- workspace/artefatos ---
+/data/**
+/editorial/raw_uploads/
+/backups/
+/vault/
+/secrets_gaiden/
+
+*.bak
+*.sqlite3
+*.db
+__pycache__/
+*.pyc
+*.log
+.DS_Store
