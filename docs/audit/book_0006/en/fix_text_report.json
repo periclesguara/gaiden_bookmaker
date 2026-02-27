@@ -1,0 +1,179 @@
+{
+  "input_path": "data/normalized/book_0006/en/normalized.md",
+  "output_path": "data/normalized/book_0006/en/fixed.md",
+  "changes": {
+    "chapter_headings": 0,
+    "section_headings": 42,
+    "blanklines_inserted": 3
+  },
+  "lint_before": {
+    "count": 28,
+    "issues": [
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 8,
+        "line": "2 - THE SCIENCE OF DEDUCTION."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 9,
+        "line": "3 - THE LAURISTON GARDENS MYSTERY"
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 10,
+        "line": "4 - WHAT JOHN RANCE HAD TO TELL."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 11,
+        "line": "5 - OUR ADVERTISEMENT BRINGS A VISITOR."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 12,
+        "line": "6 - TOBIAS GREGSON SHOWS WHAT HE CAN DO."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 16,
+        "line": "1 - ON THE GREAT ALKALI PLAIN."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 17,
+        "line": "2 - THE FLOWER OF UTAH."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 18,
+        "line": "3 - JOHN FERRIER TALKS WITH THE PROPHET."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 19,
+        "line": "4 - A FLIGHT FOR LIFE."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 20,
+        "line": "5 - THE AVENGING ANGELS."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 21,
+        "line": "6 - A CONTINUATION OF THE REMINISCENCES OF JOHN WATSON, M.D."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 474,
+        "line": "2 - PHILOSOPHY.—NIL."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 475,
+        "line": "3 - ASTRONOMY.—NIL."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 476,
+        "line": "4 - POLITICS.—FEEBLE."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 477,
+        "line": "5 - BOTANY.—VARIABLE. WELL UP IN BELLADONNA, OPIUM, AND POISONS"
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 479,
+        "line": "6 - GEOLOGY.—PRACTICAL, BUT LIMITED. TELLS AT A GLANCE DIFFERENT SOILS"
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 483,
+        "line": "7 - CHEMISTRY.—PROFOUND."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 484,
+        "line": "8 - ANATOMY.—ACCURATE, BUT UNSYSTEMATIC."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 485,
+        "line": "9 - SENSATIONAL LITERATURE.—IMMENSE. HE APPEARS TO KNOW EVERY DETAIL OF"
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 487,
+        "line": "10 - PLAYS THE VIOLIN WELL."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 488,
+        "line": "11 - IS AN EXPERT SINGLESTICK PLAYER, BOXER, AND SWORDSMAN."
+      },
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 3820,
+        "line": "FORMERLY OF SALT LAKE CITY,"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 1,
+        "line": "A STUDY IN SCARLET"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 9,
+        "line": "3 - THE LAURISTON GARDENS MYSTERY"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 15,
+        "line": "2 - THE COUNTRY OF THE SAINTS"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 727,
+        "line": "3 - THE LAURISTON GARDENS MYSTERY"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 3819,
+        "line": "JOHN FERRIER,"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 3820,
+        "line": "FORMERLY OF SALT LAKE CITY,"
+      }
+    ]
+  },
+  "lint_after": {
+    "count": 4,
+    "issues": [
+      {
+        "code": "HEADING_NOT_SEPARATED",
+        "line_no": 3863,
+        "line": "FORMERLY OF SALT LAKE CITY,"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 1,
+        "line": "A STUDY IN SCARLET"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 3862,
+        "line": "JOHN FERRIER,"
+      },
+      {
+        "code": "SUSPECT_ALLCAPS",
+        "line_no": 3863,
+        "line": "FORMERLY OF SALT LAKE CITY,"
+      }
+    ]
+  }
+}
