@@ -195,6 +195,9 @@ data/builds
 /data/**
 /editorial/raw_uploads/
 /backups/
+!/backups/
+/backups/*
+!/backups/README.md
 /vault/
 /secrets_gaiden/
 
