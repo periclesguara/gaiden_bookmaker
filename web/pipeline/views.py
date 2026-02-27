@@ -1064,6 +1064,33 @@ def pipeline_jobs(request):
     )
 
 
+def _summarize_run_items(items) -> dict:
+    counts = {
+        "total": 0,
+        "pending": 0,
+        "running": 0,
+        "done": 0,
+        "failed": 0,
+        "skipped": 0,
+    }
+    for item in items:
+        counts["total"] += 1
+        status = (item.status or "").upper()
+        if status == "PENDING":
+            counts["pending"] += 1
+        elif status == "RUNNING":
+            counts["running"] += 1
+        elif status == "DONE":
+            counts["done"] += 1
+        elif status == "FAILED":
+            counts["failed"] += 1
+        elif status == "SKIPPED":
+            counts["skipped"] += 1
+    counts["finished"] = counts["pending"] == 0 and counts["running"] == 0
+    counts["success"] = counts["finished"] and counts["failed"] == 0
+    return counts
+
+
 def runner_matrix_view(request):
     works = Work.objects.order_by("code")
     selected_book_code = (request.GET.get("book_code") or "").strip()
@@ -1086,7 +1113,7 @@ def runner_matrix_view(request):
         run = get_object_or_404(PipelineRun, id=run_id)
     else:
         run = PipelineRun.objects.order_by("-created_at").first()
-    items = run.items.all() if run else []
+    items = list(run.items.all()) if run else []
     if run and run.action == "NORMALIZE":
         for item in items:
             item.normalize_check = ""
@@ -1154,9 +1181,40 @@ def runner_matrix_view(request):
         "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
+        "run_summary": _summarize_run_items(items) if run else None,
         "db_banner": _db_banner(),
     }
     return render(request, "pipeline/runner_matrix.html", context)
+
+
+def _sync_normalized_state_from_artifact(book_code: str) -> tuple[str, bool]:
+    edition = _edition_for_book_lang(book_code, "en")
+    if not edition:
+        return "MISSING", False
+
+    status = (edition.status or "").strip().upper()
+    if status == EditorialEdition.STATUS_NORMALIZED:
+        return status, False
+
+    norm_path = _runner_normalized_path(book_code, "en")
+    report_path = norm_path.parent / "normalize_report.json"
+    report = _read_json(report_path)
+    if not (norm_path.exists() and isinstance(report, dict) and report.get("status") == "OK"):
+        return status, False
+
+    texts, _ = EditionText.objects.get_or_create(edition=edition)
+    texts.normalized_path = str(norm_path)
+    texts.normalized_text = ""
+    texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.normalized_at = timezone.now()
+    pipeline_state.current_stage = PipelineStage.NORMALIZED
+    pipeline_state.save(update_fields=["normalized_at", "current_stage"])
+
+    edition.status = EditorialEdition.STATUS_NORMALIZED
+    edition.save(update_fields=["status", "updated_at"])
+    return EditorialEdition.STATUS_NORMALIZED, True
 
 
 @require_POST
@@ -1189,6 +1247,7 @@ def runner_matrix_run_view(request):
 
     if action not in {
         "NORMALIZE",
+        "FIX_TEXT",
         "CHUNK",
         "TRANSLATE",
         "TRANSLATE_DEFAULT",
@@ -1267,7 +1326,7 @@ def runner_matrix_run_view(request):
     request.session["refine_mode"] = refine_mode
 
     run_languages = languages
-    if action in {"NORMALIZE", "CHUNK"}:
+    if action in {"NORMALIZE", "FIX_TEXT", "CHUNK"}:
         run_languages = ["en"]
     if action == "NORMALIZE":
         blocked_books: list[str] = []
@@ -1284,19 +1343,92 @@ def runner_matrix_run_view(request):
                 f"(books: {', '.join(blocked_books)}).",
             )
             return redirect("pipeline_runner_matrix")
+    if action == "FIX_TEXT":
+        blocked_books: list[str] = []
+        promoted_books: list[str] = []
+        for book_code in book_codes:
+            status, promoted = _sync_normalized_state_from_artifact(book_code)
+            if promoted:
+                promoted_books.append(book_code)
+            if status == EditorialEdition.STATUS_NORMALIZED:
+                continue
+            blocked_books.append(f"{book_code} ({status})")
+        if promoted_books:
+            messages.info(
+                request,
+                "Status reconciliado a partir de normalized OK para: " + ", ".join(promoted_books),
+            )
+        if blocked_books:
+            messages.error(
+                request,
+                "Gate bloqueado: FIX_TEXT exige status NORMALIZED "
+                f"(books: {', '.join(blocked_books)}). Rode NORMALIZE antes.",
+            )
+            return redirect("pipeline_runner_matrix")
     if action == "CHUNK":
         blocked_books: list[str] = []
         for book_code in book_codes:
             edition = _edition_for_book_lang(book_code, "en")
             status = (edition.status if edition else "") or "MISSING"
-            if status in {EditorialEdition.STATUS_FIXED_TEXT, EditorialEdition.STATUS_PRETRUTH_READY}:
+            if status == EditorialEdition.STATUS_FIXED_TEXT:
                 continue
             blocked_books.append(f"{book_code} ({status})")
         if blocked_books:
             messages.error(
                 request,
-                "Gate bloqueado: CHUNK exige status FIXED_TEXT/PRETRUTH_READY "
+                "Gate bloqueado: CHUNK exige status FIXED_TEXT "
                 f"(books: {', '.join(blocked_books)}). Rode NORMALIZE + FIX_TEXT antes.",
+            )
+            return redirect("pipeline_runner_matrix")
+    if action in {"TRANSLATE", "TRANSLATE_DEFAULT"}:
+        blocked_books: list[str] = []
+        for book_code in book_codes:
+            edition = _edition_for_book_lang(book_code, "en")
+            status = (edition.status if edition else "") or "MISSING"
+            if status == EditorialEdition.STATUS_CHUNKED:
+                continue
+            blocked_books.append(f"{book_code} ({status})")
+        if blocked_books:
+            messages.error(
+                request,
+                "Gate bloqueado: TRANSLATE exige status CHUNKED "
+                f"(books: {', '.join(blocked_books)}). Rode CHUNK antes.",
+            )
+            return redirect("pipeline_runner_matrix")
+    if action == "SPLIT_FOR_REFINE":
+        blocked_pairs: list[str] = []
+        for book_code in book_codes:
+            for lang in run_languages:
+                edition = _edition_for_book_lang(book_code, lang)
+                status = (edition.status if edition else "") or "MISSING"
+                if status == EditorialEdition.STATUS_TRANSLATED:
+                    continue
+                blocked_pairs.append(f"{book_code}/{lang} ({status})")
+        if blocked_pairs:
+            messages.error(
+                request,
+                "Gate bloqueado: SPLIT_FOR_REFINE exige status TRANSLATED "
+                f"(items: {', '.join(blocked_pairs)}). Rode TRANSLATE antes.",
+            )
+            return redirect("pipeline_runner_matrix")
+    if action == "RETURN_REFINE":
+        blocked_pairs: list[str] = []
+        for book_code in book_codes:
+            for lang in run_languages:
+                book_id = _parse_book_id(book_code)
+                if book_id is None:
+                    blocked_pairs.append(f"{book_code}/{lang} (invalid_book_id)")
+                    continue
+                split_dir = _runner_split_dir_path(book_id, lang)
+                has_splits = split_dir.exists() and any(split_dir.glob("*.txt"))
+                if has_splits:
+                    continue
+                blocked_pairs.append(f"{book_code}/{lang} (split_missing)")
+        if blocked_pairs:
+            messages.error(
+                request,
+                "Gate bloqueado: RETURN_REFINE exige SPLIT_FOR_REFINE_READY "
+                f"(items: {', '.join(blocked_pairs)}). Rode SPLIT_FOR_REFINE antes.",
             )
             return redirect("pipeline_runner_matrix")
 
@@ -1338,6 +1470,8 @@ def runner_matrix_run_view(request):
             if book_id is not None:
                 if action == "NORMALIZE":
                     out_path = str(_runner_normalized_path(book_code, lang))
+                elif action == "FIX_TEXT":
+                    out_path = str(_fixed_md_path(book_code, "en"))
                 elif action == "CHUNK":
                     lang_code = utils.normalize_lang(lang)
                     out_path = str((_project_root() / "data" / "chunks" / book_code / lang_code / "chunks_manifest.json"))
@@ -1362,13 +1496,17 @@ def runner_matrix_run_view(request):
     PipelineRunItem.objects.bulk_create(items)
 
     _spawn_runner_process(run.id)
+    messages.info(
+        request,
+        f"Run #{run.id} iniciado ({action}). Acompanhe status e logs na seção Last Run.",
+    )
 
     return redirect("pipeline_runner_matrix_detail", run_id=run.id)
 
 
 def runner_matrix_detail_view(request, run_id: int):
     run = get_object_or_404(PipelineRun, id=run_id)
-    items = run.items.all()
+    items = list(run.items.all())
     works = Work.objects.order_by("code")
     languages = [
         {"code": "en", "label": "EN"},
@@ -1424,6 +1562,7 @@ def runner_matrix_detail_view(request, run_id: int):
         "skip_locked_automatic": session_policy["effective_mode"] == "automatic",
         "run": run,
         "items": items,
+        "run_summary": _summarize_run_items(items),
         "db_banner": _db_banner(),
     }
     return render(request, "pipeline/runner_matrix.html", context)
@@ -3066,11 +3205,8 @@ def edition_steps(request, edition_id: int):
             return redirect("edition_steps", edition_id=edition.id)
 
         if action == "chunk_from_fixed":
-            if (edition.status or "").strip().upper() not in {
-                EditorialEdition.STATUS_FIXED_TEXT,
-                EditorialEdition.STATUS_PRETRUTH_READY,
-            }:
-                messages.error(request, "Gate: CHUNKS exige status FIXED_TEXT/PRETRUTH_READY.")
+            if (edition.status or "").strip().upper() != EditorialEdition.STATUS_FIXED_TEXT:
+                messages.error(request, "Gate: CHUNKS exige status FIXED_TEXT.")
                 return redirect("edition_steps", edition_id=edition.id)
             chunk_lang = utils.normalize_lang(language)
             if chunk_lang != "en":
@@ -3622,9 +3758,7 @@ def edition_steps(request, edition_id: int):
         "canonical_status_db": edition.status,
         "can_normalize_text": edition_status == EditorialEdition.STATUS_INGESTED,
         "can_fix_text": edition_status == EditorialEdition.STATUS_NORMALIZED and normalized_md_path.exists(),
-        "can_chunk_from_fixed": edition_status
-        in {EditorialEdition.STATUS_FIXED_TEXT, EditorialEdition.STATUS_PRETRUTH_READY}
-        and fixed_md_path.exists(),
+        "can_chunk_from_fixed": edition_status == EditorialEdition.STATUS_FIXED_TEXT and fixed_md_path.exists(),
         "raw_upload_name": edition.raw_upload.name if edition.raw_upload else "",
         "raw_materialized_path": edition.raw_materialized_path,
         "raw_sha256": edition.raw_sha256,

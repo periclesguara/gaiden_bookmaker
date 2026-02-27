@@ -178,6 +178,18 @@
     .skip-controls.locked {
       opacity: 0.75;
     }
+    .flash {
+      margin: 0 24px 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 15px;
+    }
+    .flash.success { border-color: #8dcf9b; background: #edf9f0; color: #1f7a3b; }
+    .flash.error { border-color: #dfa2a2; background: #fff1f1; color: #8b1f1f; }
+    .flash.warning { border-color: #e6c785; background: #fff7e8; color: #7a4c00; }
+    .flash.info { border-color: #9eb8e9; background: #edf3ff; color: #234c96; }
   </style>
 </head>
 <body>
@@ -187,11 +199,18 @@
       <a href="/pipeline/runner/" class="current">Runner</a>
       <a href="/pipeline/dashboard/">Dashboard</a>
       <a href="/pipeline/editions/">Editions</a>
+      <a href="/pipeline/console/">Production Console</a>
     </nav>
     <h1>Runner Matrix</h1>
     <p class="subtitle">Orquestração em fila (1 a 1) para execução de etapas do pipeline.</p>
     {% if db_banner %}<p class="subtitle">{{ db_banner }}</p>{% endif %}
   </header>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
   <form method="post" action="{% url 'pipeline_runner_run' %}">
     {% csrf_token %}
@@ -266,10 +285,14 @@
           <span>NORMALIZE (remove Gutenberg + frontmatter)</span>
         </label>
         <label class="option">
+          <input type="radio" name="action" value="FIX_TEXT" />
+          <span>FIX_TEXT (headings + OCR cleanup)</span>
+        </label>
+        <label class="option">
           <input type="radio" name="action" value="CHUNK" />
           <span>CHUNK (shared EN)</span>
         </label>
-        <p class="helper">Gate: NORMALIZE exige INGESTED; CHUNK exige FIXED_TEXT.</p>
+        <p class="helper">Gate: NORMALIZE exige INGESTED; FIX_TEXT exige NORMALIZED; CHUNK exige FIXED_TEXT; TRANSLATE exige CHUNKED; SPLIT_FOR_REFINE exige TRANSLATED; RETURN_REFINE exige SPLIT_FOR_REFINE_READY.</p>
         <label class="option">
           <input type="radio" name="action" value="TRANSLATE" checked />
           <span>TRANSLATE (MVP)</span>
@@ -301,7 +324,7 @@
         </label>
         <label class="option">
           <input type="radio" name="translate_mode" value="default" {% if translate_mode == "default" %}checked{% endif %} />
-          <span>Default (ALAMAGUEDERAZ)</span>
+          <span>Default (agent route; EN => ALDEBARAN)</span>
         </label>
 
         <div class="option"><strong>Split / Refine</strong></div>
@@ -355,6 +378,21 @@
       <p class="subtitle">Status: <strong>{{ run.status }}</strong> · Action: {{ run.action }} · Created: {{ run.created_at }}</p>
       {% if run.started_at %}<p class="subtitle">Started: {{ run.started_at }} · Finished: {{ run.finished_at }}</p>{% endif %}
     </header>
+    {% if run_summary %}
+      {% if run_summary.success %}
+        <div class="flash success">
+          Execução concluída com sucesso: {{ run_summary.done }}/{{ run_summary.total }} item(ns) OK.
+        </div>
+      {% elif run_summary.finished and run_summary.failed > 0 %}
+        <div class="flash error">
+          Execução concluída com falhas: OK={{ run_summary.done }}, FAIL={{ run_summary.failed }}, SKIPPED={{ run_summary.skipped }}.
+        </div>
+      {% else %}
+        <div class="flash info">
+          Execução em andamento: PENDING={{ run_summary.pending }}, RUNNING={{ run_summary.running }}, OK={{ run_summary.done }}, FAIL={{ run_summary.failed }}.
+        </div>
+      {% endif %}
+    {% endif %}
 
     <table>
       <thead>
@@ -552,6 +590,9 @@
     });
     restoreModeFromStorage();
     enforceAll();
+    {% if run and run.status == 'PENDING' or run and run.status == 'RUNNING' %}
+    setTimeout(() => { window.location.reload(); }, 4000);
+    {% endif %}
   </script>
 </body>
 </html>
