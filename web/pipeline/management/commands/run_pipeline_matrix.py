@@ -609,6 +609,10 @@ class Command(BaseCommand):
             help="run a single stage without DB",
         )
 
+    def run_from_argv(self, argv):
+        require_active_db()
+        return super().run_from_argv(argv)
+
     def handle(self, *args, **options):
         run_id = options["run_id"]
         stage = options.get("stage")
