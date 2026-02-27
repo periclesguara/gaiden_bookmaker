@@ -25,3 +25,6 @@ exports/*
 
 !backups/README.md
 !exports/README.md
+
+# local-only dev env (do not commit)
+/scripts/ops/env_local_dev.sh
