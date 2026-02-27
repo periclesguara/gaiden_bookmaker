@@ -142,10 +142,14 @@ db.sqlite3
 docs/*.log
 docs/*pipeline_log*
 
-# Loose scripts (if not canonical)
-scripts/
-!scripts/
-!scripts/fix_raw_casing_aliases.sh
+# scripts are versioned (ignore only local outputs/caches)
+/scripts/**/tmp/
+/scripts/**/out/
+/scripts/**/outputs/
+/scripts/**/.cache/
+/scripts/**/.venv/
+/scripts/**/*.log
+/scripts/private/
 
 # --- local / derived artifacts ---
 /data/db/
