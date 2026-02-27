@@ -1,27 +1,203 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual env / secrets
 .venv/
+.env
+.env.*
 
 # OS / IDE
 .DS_Store
+.idea/
 .vscode/
 
-# Build artifacts
+# Editorial exports / binaries
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.docx
+
+# Generated / cache-ish folders (adjust as needed)
+tmp/
+output/
+exports/
+cache/
+
+# Backups (usually huge + noisy)
+backups/
+
+# DB / local data (be careful: keep schema, ignore runtime dbs)
+sqlite3/*.db
+sqlite3/*.sqlite
+sqlite3/*.sqlite3
+
+# Data dumps (keep only small fixtures tracked if needed)
+data/**/*.parquet
+data/**/*.csv
+data/**/*.jsonl
+data/**/raw/
+
+# generated artifacts
+backups/
+exports/
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.sqlite3
+*.db
+
+# generated artifacts
+backups/
+exports/
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.sqlite3
+*.db
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# OS/editor
+.DS_Store
+.vscode/
+
+# build artifacts
 dist/
 build/
 *.log
+docs/gaiden_pipeline_log.*
 
-# LaTeX
+# latex
 *.aux
 *.toc
 *.out
 *.lof
 *.lot
 
-# Editorial artifacts
-backups/*
-exports/*
+# --- Generated artifacts ---
+data/builds/
+web/data/builds/
+data/frontmatter/
+data/translated/
+data/images/
+*.epub
+*.pdf
+*.log
+.gaiden_secrets
+secrets_gaiden/.env
+data/builds/
+data/canonical/
+data/chunks/
+data/frontmatter/
+web/db.sqlite3
+*.epub
+*.pdf
+*.log
+__pycache__/
+.venv/
 
-!backups/README.md
-!exports/README.md
+# local backups
+/backups/
+
+# generated artifacts
+/data/frontmatter/
+
+# backups editor/IDE
+*.bak.*
+data/miolo/
+
+*_BUILD_STAMP_*.txt
+
+# ===============================
+# Runtime / build artifacts
+# ===============================
+data/builds/
+data/covers/
+data/contracts_runtime/*.json
+/merge_refine_clean*.txt
+**/merge_refine_clean*.txt
+
+# Local DB
+db.sqlite3
+
+# Logs
+docs/*.log
+docs/*pipeline_log*
+
+# Loose scripts (if not canonical)
+scripts/
+!scripts/
+!scripts/fix_raw_casing_aliases.sh
+
+# --- local / derived artifacts ---
+/data/db/
+/data/normalized/
+
+# Local operator scripts (untracked)
+return_book.sh
+translate_book.sh
+
+# legacy runtime outputs (never track)
+legacy/data/
+
+# --- Gaiden runtime / private dirs (never commit) ---
+.gaiden_secrets*
+data/books/
+quarantine/
+vault/
+
+# --- Keep typical runtime outputs out of git (if not already) ---
+web/db.sqlite3
+gaiden_bookmaker.egg-info/
+.pytest_cache/
+
+# local secrets
+secrets_gaiden/
+
+
+# GAIDEN_LIBRARY-backed dirs (local symlinks, never commit)
+docs/audit/runs
+gaiden/frontmatter_store
+
+# Local backups created during library migration
+data/books.bak_*
+data/builds.bak_*
+docs/audit/runs.bak_*
+gaiden/frontmatter_store.bak_*
+
+# Ignore local symlink entries explicitly
+data/books
+data/builds
+
+# --- workspace/artefatos ---
+/data/**
+/editorial/raw_uploads/
+/backups/
+/vault/
+/secrets_gaiden/
+
+*.bak
+*.sqlite3
+*.db
+__pycache__/
+*.pyc
+*.log
+.DS_Store
