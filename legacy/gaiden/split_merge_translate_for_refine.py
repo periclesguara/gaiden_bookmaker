@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Accept numeric headings like "1. TITLE" (current standard),
 # while still allowing legacy "## TITLE" if present.
-CHAPTER_RE = re.compile(r"^(?:\d+\.\s+.+|##\s+.+)$", re.MULTILINE)
+CHAPTER_RE = re.compile(r"^(?:\d+\.\s+.+|\d+\s*-\s+.+|##\s+.+)$", re.MULTILINE)
 
 
 def read(p: Path) -> str:
@@ -21,7 +21,7 @@ def write(p: Path, s: str):
 def split_chapters(text: str):
     matches = list(CHAPTER_RE.finditer(text))
     if not matches:
-        raise ValueError("No chapter headings found (expected 'N. ' or '## ')")
+        raise ValueError("No chapter headings found (expected 'N. ', 'N - ' or '## ')")
 
     blocks = []
     for i, m in enumerate(matches):

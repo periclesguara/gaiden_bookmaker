@@ -74,3 +74,51 @@ class CanonicalIndexFlowTests(TestCase):
             self.assertTrue((root / edition.truth_path).exists())
             self.assertTrue((root / result["canonical_run_dir"] / "SHA256SUMS.txt").exists())
             self.assertTrue((root / result["canonical_run_dir"] / "manifest.json").exists())
+
+    def test_freeze_pretruth_uses_fixed(self):
+        edition = self._make_edition()
+        edition.book_id = "book_0005"
+        edition.lang = "en"
+        edition.status = Edition.STATUS_FIXED_TEXT
+        edition.save(update_fields=["book_id", "lang", "status", "updated_at"])
+
+        with TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            fixed = root / "data" / "normalized" / "book_0005" / "en" / "normalized.fixed.md"
+            fixed.parent.mkdir(parents=True, exist_ok=True)
+            fixed.write_text("# Chapter 01 - Start\nBody\n", encoding="utf-8")
+
+            with patch.object(canonical_index, "project_root", return_value=root), patch.object(
+                canonical_index, "_git_text", return_value="ok"
+            ):
+                result = canonical_index.freeze_pretruth(edition)
+
+            edition.refresh_from_db()
+            self.assertEqual(edition.status, Edition.STATUS_PRETRUTH_READY)
+            self.assertTrue(edition.truth_path.endswith("data/normalized/book_0005/en/normalized.fixed.md"))
+            self.assertEqual(result["truth_path"], edition.truth_path)
+            self.assertTrue((root / result["canonical_run_dir"] / "SHA256SUMS.txt").exists())
+            self.assertTrue((root / result["canonical_run_dir"] / "manifest.json").exists())
+
+    def test_freeze_pretruth_falls_back_to_normalized(self):
+        edition = self._make_edition()
+        edition.book_id = "book_0005"
+        edition.lang = "en"
+        edition.status = Edition.STATUS_FIXED_TEXT
+        edition.save(update_fields=["book_id", "lang", "status", "updated_at"])
+
+        with TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            normalized = root / "data" / "normalized" / "book_0005" / "en" / "normalized.md"
+            normalized.parent.mkdir(parents=True, exist_ok=True)
+            normalized.write_text("# Chapter 01 - Start\nBody\n", encoding="utf-8")
+
+            with patch.object(canonical_index, "project_root", return_value=root), patch.object(
+                canonical_index, "_git_text", return_value="ok"
+            ):
+                result = canonical_index.freeze_pretruth(edition)
+
+            edition.refresh_from_db()
+            self.assertEqual(edition.status, Edition.STATUS_PRETRUTH_READY)
+            self.assertTrue(edition.truth_path.endswith("data/normalized/book_0005/en/normalized.md"))
+            self.assertEqual(result["truth_path"], edition.truth_path)

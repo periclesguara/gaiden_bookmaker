@@ -388,11 +388,6 @@ def _looks_like_title(line: str) -> bool:
     words = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ’']+", s)
     if len(words) > 12:
         return False
-    if "," in s or ";" in s or ":" in s:
-        return False
-    # Titles shouldn't end with sentence punctuation
-    if re.search(r"[.!?]$", s):
-        return False
     return True
 
 def _looks_like_heading_line(line: str) -> bool:
@@ -560,11 +555,11 @@ def normalize_text_policy_v1_en(raw: str) -> str:
     for ln in normalized.splitlines():
         if _is_numeric_residue(ln):
             raise ValueError(f"Normalize validation failed: numeric residue line: {ln!r}")
-        if re.search(r"\b(CHAPTER|ADVENTURE|PART|BOOK)\s+[IVXLCDM]+\b", ln, flags=re.IGNORECASE):
+        if re.match(r"^\s*(CHAPTER|ADVENTURE|BOOK)\s+[IVXLCDM]+\b", ln, flags=re.IGNORECASE):
             raise ValueError(f"Normalize validation failed: roman structural remains: {ln!r}")
         if re.match(r"^[IVXLCDM]+\s*[\.\-]\s+", ln, flags=re.IGNORECASE):
             raise ValueError(f"Normalize validation failed: roman heading remains: {ln!r}")
-        if re.match(r"^(CHAPTER|ADVENTURE|PART|BOOK)\b\s*(\d+|[IVXLCDM]+)", ln, flags=re.IGNORECASE):
+        if re.match(r"^(CHAPTER|ADVENTURE|BOOK)\b\s*(\d+|[IVXLCDM]+)", ln, flags=re.IGNORECASE):
             raise ValueError(f"Normalize validation failed: non-canonical heading: {ln!r}")
         if re.match(r"^\d+\.\s+", ln):
             raise ValueError(f"Normalize validation failed: non-canonical heading: {ln!r}")

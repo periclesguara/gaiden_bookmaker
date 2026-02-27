@@ -158,12 +158,14 @@
       <a href="/pipeline/projects/">Projects</a>
       <a href="/pipeline/runner/">Runner</a>
       <a href="/pipeline/dashboard/">Dashboard</a>
-      <a href="/pipeline/editions/" class="current">Editions</a>
+      <a href="/pipeline/editions/">Editions</a>
+      <a href="/pipeline/console/" class="current">Production Console</a>
     </nav>
     <h1>Production Console — Assets & Status</h1>
     <p class="subtitle">{{ book_code }} · {{ edition.work.title }} · {{ edition.work.author.name }}</p>
     {% if db_banner %}<p class="subtitle">{{ db_banner }}</p>{% endif %}
     <div class="actions">
+      <a class="btn" href="/pipeline/console/">Open Production Console</a>
       <a class="btn secondary" href="/pipeline/runner/?book_code={{ book_code }}">Open Runner Matrix</a>
       <a class="btn secondary" href="/editorial/frontmatter/{{ book_code }}/{{ language }}/">Open Frontmatter</a>
       <a class="btn secondary" href="/pipeline/dashboard/">Open Global Dashboard</a>
@@ -183,7 +185,7 @@
 
   <section class="grid">
     <article class="card">
-      <h2>SoT + Canonical Freeze</h2>
+      <h2>SoT + Canonical Freeze + Pipeline Steps</h2>
       <div class="status">Edition status: <strong>{{ canonical_status_db|default:'(none)' }}</strong></div>
       <div class="status">Uploaded RAW (storage): <strong>{{ raw_upload_name|default:'(none)' }}</strong></div>
       <div class="status">RAW materialized path: <strong>{{ raw_materialized_path|default:'(none)' }}</strong></div>
@@ -234,6 +236,10 @@
         <input type="hidden" name="action" value="fix_text" />
         <button class="btn secondary" type="submit" {% if not can_fix_text %}disabled{% endif %}>Button 02: FIX_TEXT</button>
       </form>
+      <div class="status">
+        FIX_TEXT:
+        <strong>{% if can_fix_text %}Disponível{% else %}Bloqueado{% endif %}</strong>
+      </div>
       <form method="post" class="inline-form" style="margin-top: 12px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="chunk_from_fixed" />

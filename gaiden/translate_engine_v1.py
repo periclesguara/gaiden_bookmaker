@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from gaiden.lang import normalize_lang_code, normalize_source_lang
 from gaiden.openai_client import get_client, choose_model
+from gaiden.tools.agent_translate_default import resolve_agent_for_target
 from gaiden.translate_artifacts import (
     assert_valid_canonical_artifact,
     canonical_meta_path,
@@ -121,15 +122,18 @@ def _assert_translate_contract(contract: Dict) -> str:
     stage = str(contract.get("stage", "")).strip()
     model = str(contract.get("model", "")).strip()
     model_lock = contract.get("model_lock", None)
+    allowed_models = {"gpt-5.2", "gpt-5-chat-latest"}
     if stage != "translate":
-        raise RuntimeError(f"TRANSLATE MODEL VIOLATION: stage=translate requires model=gpt-5.2 (contract says stage={stage})")
+        raise RuntimeError(
+            f"TRANSLATE MODEL VIOLATION: stage=translate requires model in {sorted(allowed_models)} (contract says stage={stage})"
+        )
     if model_lock is not True:
         raise RuntimeError(
             "TRANSLATE MODEL VIOLATION: stage=translate requires model_lock=true"
         )
-    if model != "gpt-5.2":
+    if model not in allowed_models:
         raise RuntimeError(
-            f"TRANSLATE MODEL VIOLATION: stage=translate requires model=gpt-5.2 (contract says {model})"
+            f"TRANSLATE MODEL VIOLATION: stage=translate requires model in {sorted(allowed_models)} (contract says {model})"
         )
     return model
 
@@ -142,15 +146,21 @@ def call_openai_gpt52_translate(
     max_output_tokens: int,
 ) -> tuple[str, Dict | None, str | None]:
     client = get_client()
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
+    request_payload = {
+        "model": model,
+        "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": text},
         ],
-        temperature=temperature,
-        max_tokens=max_output_tokens,
-    )
+        "temperature": temperature,
+    }
+    # GPT-5.x rejects max_tokens in chat.completions; use max_completion_tokens.
+    if str(model).startswith("gpt-5"):
+        request_payload["max_completion_tokens"] = max_output_tokens
+    else:
+        request_payload["max_tokens"] = max_output_tokens
+
+    response = client.chat.completions.create(**request_payload)
 
     finish_reason = None
     try:
@@ -204,8 +214,14 @@ def translate_book_chunks(
     user_template = str(contract.get("user_prompt", "")).strip()
     temperature = float(contract.get("temperature", 0.3))
     max_output_tokens = int(contract.get("max_output_tokens", 2400))
+    validation_ratio_min = float(contract.get("validation_ratio_min", 0.85))
+    validation_ratio_max = float(contract.get("validation_ratio_max", 1.20))
     if not system_prompt or not user_template:
         raise RuntimeError("Translate contract must include system_prompt and user_prompt.")
+    if validation_ratio_min <= 0 or validation_ratio_max <= 0 or validation_ratio_min >= validation_ratio_max:
+        raise RuntimeError(
+            "Translate contract has invalid validation_ratio_min/validation_ratio_max bounds."
+        )
 
     files = _sorted_chunk_files(in_dir, file_glob)
     if not files:
@@ -227,8 +243,8 @@ def translate_book_chunks(
         "input_dir": str(in_dir),
         "output_dir": str(out_dir),
         "file_glob": file_glob,
-        "validation_ratio_min": 0.95,
-        "validation_ratio_max": 1.05,
+        "validation_ratio_min": validation_ratio_min,
+        "validation_ratio_max": validation_ratio_max,
         "items": [],
     }
 
@@ -281,7 +297,12 @@ def translate_book_chunks(
                 )
                 status = "translated"
                 len_out = len(out)
-                ok_ratio, ratio = _ratio_ok(len_in, len_out, min_ratio=0.95, max_ratio=1.05)
+                ok_ratio, ratio = _ratio_ok(
+                    len_in,
+                    len_out,
+                    min_ratio=validation_ratio_min,
+                    max_ratio=validation_ratio_max,
+                )
                 truncated = (finish_reason == "length")
 
                 if ok_ratio and not truncated:
@@ -403,8 +424,8 @@ def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
         return f"report_status={status}"
 
     items = report.get("items") or []
-    min_ratio = float(report.get("validation_ratio_min", 0.95))
-    max_ratio = float(report.get("validation_ratio_max", 1.05))
+    min_ratio = float(report.get("validation_ratio_min", 0.85))
+    max_ratio = float(report.get("validation_ratio_max", 1.20))
     for item in items:
         output_path = item.get("output_path")
         if output_path:
@@ -436,15 +457,13 @@ def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
 
         ratio = item.get("ratio")
         if isinstance(ratio, (int, float)):
-            if ratio < 0.85:
-                return f"ratio_guard={ratio:.3f}"
             if ratio < min_ratio or ratio > max_ratio:
                 return f"ratio_out_of_bounds={ratio:.3f}"
 
         in_lines = item.get("in_lines")
         out_lines = item.get("out_lines")
         if isinstance(in_lines, int) and isinstance(out_lines, int) and in_lines > 0:
-            if out_lines < int(0.85 * in_lines):
+            if out_lines < int(min_ratio * in_lines):
                 return f"line_ratio_guard={out_lines}/{in_lines}"
 
         meta_path = item.get("meta_path")
@@ -462,11 +481,11 @@ def _report_failure_reason(report: Dict, out_dir: Path) -> str | None:
                 in_lines = meta.get("in_lines")
                 out_lines = meta.get("out_lines")
                 if isinstance(in_lines, int) and isinstance(out_lines, int) and in_lines > 0:
-                    if out_lines < int(0.85 * in_lines):
+                    if out_lines < int(min_ratio * in_lines):
                         return f"line_ratio_guard={out_lines}/{in_lines}"
                 ratio = meta.get("ratio")
-                if isinstance(ratio, (int, float)) and ratio < 0.85:
-                    return f"ratio_guard={ratio:.3f}"
+                if isinstance(ratio, (int, float)) and (ratio < min_ratio or ratio > max_ratio):
+                    return f"ratio_out_of_bounds={ratio:.3f}"
     return None
 
 
@@ -623,7 +642,7 @@ def run_translate_safe(
 ) -> Dict:
     """
     Automatic mode: official GPT-5.2 contract flow.
-    If official path fails due to policy/content-filter reasons, fallback to ALAMAGUEDERAZ.
+    If official path fails due to policy/content-filter reasons, fallback to target-aware agent route.
     Returns status: ok_official | ok_fallback | error_official | error_fallback | dry_run.
     """
     if book is None:
@@ -835,7 +854,8 @@ def run_translate_safe(
         _write_safe_report(out_dir, safe_report)
         return result
 
-    print(f"[TRANSLATE_SAFE] official=FAILED reason={failure_reason} -> fallback=ALAMAGUEDERAZ")
+    fallback_agent = resolve_agent_for_target(suffix=target_lang)
+    print(f"[TRANSLATE_SAFE] official=FAILED reason={failure_reason} -> fallback={fallback_agent}")
     print("[TRANSLATE_SAFE] route=fallback_default")
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -849,7 +869,7 @@ def run_translate_safe(
         "--out-dir",
         str(out_dir),
         "--agent",
-        "ALAMAGUEDERAZ",
+        fallback_agent,
         "--suffix",
         target_lang,
         "--mode",

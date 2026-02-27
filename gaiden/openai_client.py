@@ -101,6 +101,7 @@ def call_agent_text(
     *,
     agent_name: str,
     text: str,
+    system_prompt: Optional[str] = None,
     model: Optional[str] = None,
     temperature: float = 0.0,
     max_output_tokens: int = 8000,
@@ -123,12 +124,14 @@ def call_agent_text(
         or "gpt-5-chat-latest"
     )
 
-    system_prompt = _load_agent_system_prompt(agent_name)
+    resolved_system_prompt = (system_prompt or "").strip()
+    if not resolved_system_prompt:
+        resolved_system_prompt = _load_agent_system_prompt(agent_name)
 
     # Responses API: instructions (system) + input (user text)
     resp = client.responses.create(
         model=model,
-        instructions=system_prompt,
+        instructions=resolved_system_prompt,
         input=text,
         temperature=temperature,
         max_output_tokens=max_output_tokens,

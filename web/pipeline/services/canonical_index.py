@@ -15,6 +15,22 @@ class CanonicalFlowError(RuntimeError):
     """Raised when canonical flow preconditions are not met."""
 
 
+STATUS_ORDER = [
+    Edition.STATUS_REGISTERED,
+    Edition.STATUS_UPLOADED,
+    Edition.STATUS_INGESTED,
+    Edition.STATUS_NORMALIZED,
+    Edition.STATUS_FIXED_TEXT,
+    Edition.STATUS_PRETRUTH_READY,
+    Edition.STATUS_CHUNKED,
+    Edition.STATUS_TRANSLATED,
+    Edition.STATUS_REFINED,
+    Edition.STATUS_POLISHED,
+    Edition.STATUS_CANONICAL_READY,
+]
+STATUS_RANK = {value: idx for idx, value in enumerate(STATUS_ORDER)}
+
+
 def project_root() -> Path:
     return Path(settings.BASE_DIR).parent
 
@@ -106,6 +122,15 @@ def _ingest_run_dir(book_id: str, stamp: str) -> Path:
 
 def _freeze_run_dir(book_id: str, stamp: str) -> Path:
     return project_root() / "docs" / "audit" / "runs" / f"{book_id}_freeze_{stamp}"
+
+
+def _pretruth_run_dir(book_id: str, stamp: str) -> Path:
+    return project_root() / "docs" / "audit" / "runs" / f"{book_id}_pretruth_freeze_{stamp}"
+
+
+def status_rank(status: str | None) -> int:
+    key = (status or "").strip().upper()
+    return STATUS_RANK.get(key, -1)
 
 
 def _write_ingest_receipts(
@@ -221,6 +246,38 @@ def resolve_truth_source_path(edition: Edition) -> Path | None:
         root / "data" / "builds" / book_id / lang / "merge_refine.txt",
         root / "data" / "builds" / book_id / lang_upper / "merge_refine.txt",
     ]
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file() and candidate.stat().st_size > 0:
+            return candidate
+    return None
+
+
+def _lang_variants(lang: str) -> list[str]:
+    normalized = utils.normalize_lang(lang)
+    variants = {normalized, normalized.upper()}
+    if normalized == "ptbr":
+        variants.add("pt-br")
+        variants.add("PT-BR")
+    return sorted(variants)
+
+
+def resolve_pretruth_source_path(edition: Edition) -> Path | None:
+    sync_edition_identity(edition)
+    book_id = edition.book_id
+    lang = edition.lang
+    root = project_root()
+    candidates: list[Path] = []
+    for lang_variant in _lang_variants(lang):
+        normalized_dir = root / "data" / "normalized" / book_id / lang_variant
+        raw_dir = root / "data" / "raw" / book_id / lang_variant
+        candidates.extend(
+            [
+                normalized_dir / "normalized.fixed.md",
+                normalized_dir / "normalized.md",
+                raw_dir / "source.txt",
+                raw_dir / "source.md",
+            ]
+        )
     for candidate in candidates:
         if candidate.exists() and candidate.is_file() and candidate.stat().st_size > 0:
             return candidate
@@ -361,6 +418,80 @@ def freeze_canonical(edition: Edition) -> dict:
         "lang": lang,
         "truth_source": _to_rel(source_path),
         "truth_path": _to_rel(truth_target),
+        "truth_sha256": truth_sha,
+        "canonical_run_dir": _to_rel(run_dir),
+        "skipped": False,
+    }
+
+
+def freeze_pretruth(edition: Edition) -> dict:
+    source_path = resolve_pretruth_source_path(edition)
+    if not source_path:
+        raise CanonicalFlowError("No pretruth source found (normalized.fixed.md/normalized.md/source.*).")
+
+    content = source_path.read_bytes()
+    if not content.strip():
+        raise CanonicalFlowError(f"Pretruth source is empty: {_to_rel(source_path)}")
+
+    truth_sha = _sha256_bytes(content)
+    sync_edition_identity(edition)
+    book_id = edition.book_id
+    lang = edition.lang
+    source_rel = _to_rel(source_path)
+
+    if (
+        edition.truth_sha256 == truth_sha
+        and edition.truth_path == source_rel
+        and status_rank(edition.status) >= status_rank(Edition.STATUS_PRETRUTH_READY)
+    ):
+        return {
+            "book_id": book_id,
+            "lang": lang,
+            "truth_source": source_rel,
+            "truth_path": edition.truth_path,
+            "truth_sha256": truth_sha,
+            "canonical_run_dir": edition.canonical_run_dir,
+            "skipped": True,
+        }
+
+    stamp = _utc_stamp()
+    run_dir = _pretruth_run_dir(book_id, stamp)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    _write_text(run_dir / "git_status.txt", _git_text(["git", "status", "-sb"]) + "\n")
+    _write_text(run_dir / "git_head.txt", _git_text(["git", "rev-parse", "HEAD"]) + "\n")
+    _write_text(run_dir / "SHA256SUMS.txt", f"{truth_sha}  {source_rel}\n")
+    manifest = {
+        "book_id": book_id,
+        "lang": lang,
+        "truth_file": source_rel,
+        "truth_source": source_rel,
+        "truth_sha256": truth_sha,
+        "created_utc": stamp,
+        "mode": "pretruth",
+    }
+    _write_text(run_dir / "manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+
+    edition.truth_path = source_rel
+    edition.truth_sha256 = truth_sha
+    edition.truth_frozen_at = timezone.now()
+    edition.canonical_run_dir = _to_rel(run_dir)
+    edition.status = Edition.STATUS_PRETRUTH_READY
+    edition.save(
+        update_fields=[
+            "truth_path",
+            "truth_sha256",
+            "truth_frozen_at",
+            "canonical_run_dir",
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return {
+        "book_id": book_id,
+        "lang": lang,
+        "truth_source": source_rel,
+        "truth_path": source_rel,
         "truth_sha256": truth_sha,
         "canonical_run_dir": _to_rel(run_dir),
         "skipped": False,

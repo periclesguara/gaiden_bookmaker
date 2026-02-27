@@ -10,7 +10,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 
 from pipeline import views as pipeline_views
-from gaiden.tools.agent_translate_default import run_agent_translate
+from gaiden.tools.agent_translate_default import resolve_agent_for_target, run_agent_translate
 from gaiden.translate_mode_policy import apply_skip_policy
 from gaiden.translate_artifacts import (
     active_pointer_path,
@@ -20,7 +20,7 @@ from gaiden.translate_artifacts import (
     write_active_pointer,
     write_canonical_meta,
 )
-from gaiden.translate_engine_v1 import run_translate_safe
+from gaiden.translate_engine_v1 import run_translate_safe, translate_book_chunks
 from pipeline.services import canonical
 from pipeline.services import image_pipeline
 from pipeline.services import miolo_transform
@@ -58,6 +58,15 @@ class TranslateModePolicyTests(SimpleTestCase):
         self.assertIsNone(policy["skip_block_reason"])
 
 
+class TranslateAgentRoutingTests(SimpleTestCase):
+    def test_english_target_forces_aldebaran(self):
+        self.assertEqual(resolve_agent_for_target(suffix="en"), "ALDEBARAN")
+        self.assertEqual(resolve_agent_for_target(suffix="en_modern"), "ALDEBARAN")
+
+    def test_non_english_keeps_requested_agent(self):
+        self.assertEqual(resolve_agent_for_target(suffix="es", requested_agent="TIAMATI"), "TIAMATI")
+
+
 class TranslateArtifactsHardeningTests(SimpleTestCase):
     def test_active_pointer_write_is_atomic_and_validated(self):
         with TemporaryDirectory() as td:
@@ -88,6 +97,41 @@ class TranslatePipelineOperationalTests(SimpleTestCase):
         chunk.parent.mkdir(parents=True, exist_ok=True)
         chunk.write_text(content, encoding="utf-8")
         return chunk
+
+    @patch("gaiden.translate_engine_v1.call_openai_gpt52_translate")
+    def test_translate_book_chunks_uses_contract_ratio_bounds(self, mock_call_openai):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            chunks_root = root / "chunks"
+            translated_root = root / "translated"
+            book = "book_0124"
+            source = ("A" * 1000) + "\n"
+            target = ("B" * 940) + "\n"
+            self._create_chunk(chunks_root, book, "en", source)
+            mock_call_openai.return_value = (target, {"total_tokens": 1}, "stop")
+
+            contract = {
+                "stage": "translate",
+                "model": "gpt-5.2",
+                "model_lock": True,
+                "system_prompt": "sys",
+                "user_prompt": "{{TEXT}}",
+                "validation_ratio_min": 0.90,
+                "validation_ratio_max": 1.10,
+            }
+            report = translate_book_chunks(
+                book=book,
+                source_lang="en",
+                target_lang="en_modern",
+                chunks_root=chunks_root,
+                translated_root=translated_root,
+                dry_run=False,
+                contract=contract,
+            )
+
+            self.assertEqual(report.get("validation_ratio_min"), 0.90)
+            self.assertEqual(report.get("validation_ratio_max"), 1.10)
+            self.assertEqual(report["items"][0]["status"], "translated")
 
     @patch("gaiden.openai_client.openai_healthcheck", return_value=(True, None))
     @patch("gaiden.translate_engine_v1.translate_book_chunks")
@@ -157,6 +201,8 @@ class TranslatePipelineOperationalTests(SimpleTestCase):
                 out_dir = Path(cmd[cmd.index("--out-dir") + 1])
                 suffix = cmd[cmd.index("--suffix") + 1]
                 book_id = cmd[cmd.index("--book-id") + 1]
+                agent = cmd[cmd.index("--agent") + 1]
+                self.assertEqual(agent, "ALDEBARAN")
                 out_dir.mkdir(parents=True, exist_ok=True)
                 translated_chunk = out_dir / f"ch_001_chunk_001.{suffix}.txt"
                 translated_chunk.write_text("Fallback line\n" * 90, encoding="utf-8")

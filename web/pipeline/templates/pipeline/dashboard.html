@@ -137,6 +137,7 @@
       <a href="/pipeline/runner/">Runner</a>
       <a href="/pipeline/dashboard/" class="current">Dashboard</a>
       <a href="/pipeline/editions/">Editions</a>
+      <a href="/pipeline/console/">Production Console</a>
     </nav>
     <h1>Gaiden Pipeline - Visao Geral</h1>
     <p>Resumo por edicao com status das etapas.</p>
@@ -166,7 +167,7 @@
         </div>
       </div>
       <div class="actions">
-        <a href="{% url 'edition_steps' edition_id=row.edition.id %}">Ver pipeline</a>
+        <a href="{% url 'edition_steps' edition_id=row.edition.id %}">Open Production Console</a>
       </div>
     </article>
     {% empty %}

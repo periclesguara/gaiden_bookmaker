@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Force-translate chunks via an OpenAI Agent (default: ALAMAGUEDERAZ).
+Force-translate chunks via an OpenAI Agent.
 
 This bypasses any gpt-5.2 translate path and sends each chunk directly to the agent.
 Outputs are written into out_dir, preserving per-chunk filenames, plus a run report.
@@ -10,7 +10,7 @@ PYTHONPATH=. python gaiden/tools/agent_translate_default.py \
   --book-id book_0003 \
   --chunk-dir data/chunks/book_0003/en \
   --out-dir data/translated/book_0003/en_modern \
-  --agent ALAMAGUEDERAZ \
+  --agent ALDEBARAN \
   --suffix en_modern \
   --limit 1
 """
@@ -25,6 +25,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from gaiden.lang import normalize_lang_code
 from gaiden.translate_artifacts import (
     assert_valid_canonical_artifact,
     canonical_meta_path,
@@ -39,6 +40,7 @@ from gaiden.translate_artifacts import (
 )
 
 CHUNK_GLOB = "ch_*_chunk_*.txt"
+ENGLISH_TARGETS = {"en", "en_modern"}
 
 
 def _now_iso() -> str:
@@ -137,6 +139,18 @@ def _chunk_paths(chunk_dir: Path) -> List[Path]:
     return sorted(chunk_dir.glob(CHUNK_GLOB))
 
 
+def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
+    # Business rule: english targets always use ALDEBARAN.
+    target = normalize_lang_code(suffix, default="en_modern")
+    if target in ENGLISH_TARGETS:
+        return "ALDEBARAN"
+
+    candidate = (requested_agent or "").strip()
+    if candidate:
+        return candidate
+    return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()
+
+
 def run_agent_translate(
     *,
     book_id: str,
@@ -153,7 +167,7 @@ def run_agent_translate(
     out_dir = Path(out_dir)
     book_id = normalize_book_code(book_id)
     mode = normalize_mode(mode, default="default")
-    agent = agent or os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ")
+    agent = resolve_agent_for_target(suffix=suffix, requested_agent=agent)
 
     out_dir.mkdir(parents=True, exist_ok=True)
 

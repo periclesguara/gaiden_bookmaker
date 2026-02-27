@@ -47,6 +47,7 @@
     <a href="/pipeline/runner/">Runner</a>
     <a href="/pipeline/dashboard/" class="current">Dashboard</a>
     <a href="/pipeline/editions/">Editions</a>
+    <a href="/pipeline/console/">Production Console</a>
   </nav>
   <h1>Status da Pipeline</h1>
   {% if db_banner %}<p>{{ db_banner }}</p>{% endif %}
@@ -74,7 +75,7 @@
         <td>{{ pipeline.raw_at|default:"—" }}</td>
         <td>{{ pipeline.normalized_at|default:"—" }}</td>
         <td>
-          <a class="btn" href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver pipeline</a>
+          <a class="btn" href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Open Production Console</a>
         </td>
       </tr>
       {% empty %}

@@ -52,3 +52,15 @@ section#epilogue {
 .chapter-start + h2 {
   margin-top: 0;
 }
+
+/* Fallback for pipelines that keep chapters as Markdown H2 headings. */
+h2 {
+  break-before: page;
+  page-break-before: always;
+  margin-top: 0;
+  margin-bottom: 0.9em;
+}
+
+h2 + p {
+  margin-top: 0.2em;
+}
