@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from gaiden.contracts_v2.resolver import resolve_translate_contract_path
+from gaiden.db_preflight import require_active_db
 from gaiden.lang import normalize_lang_code
 from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
 from gaiden.translate_engine_v1 import run_translate_safe
@@ -635,6 +636,7 @@ class Command(BaseCommand):
             return
         if run_id is None:
             raise CommandError("run_id é obrigatório quando --stage não é usado.")
+        require_active_db()
         run = PipelineRun.objects.get(pk=run_id)
 
         updated = PipelineRun.objects.filter(pk=run_id, status="PENDING").update(

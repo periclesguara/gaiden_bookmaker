@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
+from gaiden.db_preflight import require_active_db
 from gaiden.openai_client import call_agent_text
+from gaiden.secrets_loader import bootstrap_openai_env
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,6 +30,10 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0, help="process only N files (0=all)")
     ap.add_argument("--dry-run", action="store_true", help="do not call API; just show planned actions")
     args = ap.parse_args()
+    require_active_db()
+    bootstrap_openai_env(dry_run=bool(args.dry_run))
+    if not args.dry_run and not (os.getenv("OPENAI_API_KEY") or "").strip():
+        raise RuntimeError("OPENAI_API_KEY ausente após bootstrap de secrets.")
 
     cfg = load_contract(args.contract)
 
@@ -48,7 +55,22 @@ def main() -> None:
     if not splits_dir.exists():
         raise FileNotFoundError(f"splits_dir não existe: {splits_dir}")
 
-    files = sorted([p for p in splits_dir.glob(file_glob) if p.is_file()])
+    index_file = splits_dir / "_INDEX.tsv"
+    files = []
+    if index_file.exists():
+        for raw in index_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = raw.strip()
+            if not line:
+                continue
+            name = line.split("\t", 1)[0].strip()
+            if not name:
+                continue
+            p = splits_dir / name
+            if p.is_file():
+                files.append(p)
+        files = sorted(files)
+    else:
+        files = sorted([p for p in splits_dir.glob(file_glob) if p.is_file()])
     if not files:
         raise RuntimeError(f"Nenhum split encontrado em {splits_dir}")
 
@@ -63,6 +85,7 @@ def main() -> None:
     print(f"[CFG] model={model}")
     print(f"[CFG] splits_dir={splits_dir}")
     print(f"[CFG] out_dir={out_dir}")
+    print(f"[CFG] index_mode={'_INDEX.tsv' if index_file.exists() else 'glob'}")
     print(f"[CFG] files={len(files)}")
 
     for i, f in enumerate(files, start=1):

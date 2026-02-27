@@ -4,7 +4,8 @@ import sys
 import argparse
 from pathlib import Path
 
-from gaiden.tools.agent_translate_default import run_agent_translate
+from gaiden.db_preflight import require_active_db
+from gaiden.tools.agent_translate_default import resolve_agent_for_target, run_agent_translate
 
 
 def ensure_dir(path):
@@ -34,6 +35,7 @@ def main():
     parser.add_argument("--max-output-tokens", type=int, default=8000)
 
     args = parser.parse_args()
+    require_active_db()
 
     book_id = args.book_id
     suffix = args.suffix
@@ -45,8 +47,9 @@ def main():
     ensure_dir(out_dir)
     validate_chunks(chunk_dir)
 
+    agent_name = resolve_agent_for_target(suffix=suffix)
     print(f"[TRANSLATE_DEFAULT] START book={book_id} suffix={suffix}")
-    print("[TRANSLATE_DEFAULT] agent=ALAMAGUEDERAZ")
+    print(f"[TRANSLATE_DEFAULT] agent={agent_name}")
 
     try:
         result = run_agent_translate(
