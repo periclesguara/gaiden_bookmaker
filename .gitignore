@@ -28,3 +28,6 @@ exports/*
 
 # local-only dev env (do not commit)
 /scripts/ops/env_local_dev.sh
+
+# local sqlite DB (do not commit)
+/web/db.sqlite3
