@@ -31,3 +31,6 @@ exports/*
 
 # local sqlite DB (do not commit)
 /web/db.sqlite3
+
+# generated audit outputs
+/docs/audit/
