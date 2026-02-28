@@ -18,7 +18,7 @@ from gaiden.lang import normalize_lang_code
 from gaiden.raw_resolver import canonical_raw_dir, resolve_raw_source
 from gaiden.translate_engine_v1 import run_translate_safe
 from gaiden.translate_mode_policy import apply_skip_policy
-from gaiden.tools.agent_translate_default import resolve_agent_for_target, run_agent_translate
+from gaiden.tools.agent_translate_default import run_agent_translate
 from gaiden.translate_artifacts import (
     active_pointer_filename,
     normalize_book_code,
@@ -28,7 +28,6 @@ from gaiden.refine_split import process_language
 from editorial.models import EditionPipeline, EditionText, PipelineStage, Edition
 from pipeline.models import PipelineRun, PipelineRunItem
 from pipeline.services.export_book import run_export_epub
-from pipeline.services import fix_text as fix_text_service
 from pipeline.services import utils
 
 
@@ -590,7 +589,7 @@ def _run_chunk_dependency(
 
 
 class Command(BaseCommand):
-    help = "Run MATRIX pipeline queue (normalize/fix_text/chunk/translate/split/build/export)."
+    help = "Run MATRIX pipeline queue (normalize/chunk/translate/split/build/export)."
 
     def add_arguments(self, parser):
         parser.add_argument("run_id", nargs="?", type=int, help="PipelineRun id")
@@ -739,11 +738,6 @@ class Command(BaseCommand):
                     item.out_path = str(norm_path)
                     item.save(update_fields=["out_path"])
                     command_line = f"python -m gaiden.normalize {book_code} {_lang_fs(item.lang)}"
-                elif run.action == "FIX_TEXT":
-                    fixed_path = _fixed_text_path(book_code, "en")
-                    item.out_path = str(fixed_path)
-                    item.save(update_fields=["out_path"])
-                    command_line = "pipeline.services.fix_text.fix_text(edition=en)"
                 elif run.action == "CHUNK":
                     chunk_lang = "en"
                     chunk_dir = _chunks_dir(book_code, chunk_lang)
@@ -762,19 +756,17 @@ class Command(BaseCommand):
                     chunk_dir, out_dir, pointer_path = _translate_paths(book_id, book_code, item.lang)
                     item.out_path = str(pointer_path)
                     item.save(update_fields=["out_path"])
-                    target_suffix = _lang_dir(item.lang)
-                    resolved_agent = resolve_agent_for_target(suffix=target_suffix)
                     if translate_mode_for_item == "default":
                         command_line = (
                             "run_agent_translate("
                             f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
-                            f"suffix={target_suffix}, mode=default, agent={resolved_agent})"
+                            f"suffix={_lang_dir(item.lang)}, mode=default, agent=ALAMAGUEDERAZ)"
                         )
                     else:
                         command_line = (
                             "run_translate_safe("
                             f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
-                            f"suffix={target_suffix}, contract={_resolve_contract_path(item.lang)}, "
+                            f"suffix={_lang_dir(item.lang)}, contract={_resolve_contract_path(item.lang)}, "
                             "selected_mode=automatic)"
                         )
                 elif run.action == "TRANSLATE_DEFAULT":
@@ -782,12 +774,10 @@ class Command(BaseCommand):
                     item.out_path = str(pointer_path)
                     item.save(update_fields=["out_path"])
                     translate_mode_for_item = "default"
-                    target_suffix = _lang_dir(item.lang)
-                    resolved_agent = resolve_agent_for_target(suffix=target_suffix)
                     command_line = (
                         "run_agent_translate("
                         f"book_id={book_code}, chunk_dir={chunk_dir}, out_dir={out_dir}, "
-                        f"suffix={target_suffix}, mode=default, agent={resolved_agent})"
+                        f"suffix={_lang_dir(item.lang)}, mode=default, agent=ALAMAGUEDERAZ)"
                     )
                 elif run.action == "SPLIT_FOR_REFINE":
                     base_dir, split_dir = _split_paths(book_id, item.lang)
@@ -796,21 +786,6 @@ class Command(BaseCommand):
                     command_line = (
                         "process_language("
                         f"book='book_{book_id:04d}', lang='{_lang_dir(item.lang)}', parts=2)"
-                    )
-                elif run.action == "RETURN_REFINE":
-                    data_dir = Path(settings.BASE_DIR).parent / "data"
-                    refine_path = (
-                        data_dir
-                        / "builds"
-                        / book_code
-                        / _lang_db_code(item.lang)
-                        / "merge_refine.txt"
-                    )
-                    item.out_path = str(refine_path)
-                    item.save(update_fields=["out_path"])
-                    command_line = (
-                        "return_refine("
-                        f"book={book_code}, lang={_lang_db_code(item.lang)}, expected={refine_path})"
                     )
                 elif run.action == "BUILD":
                     build_path = _build_output_path(book_code, item.lang)
@@ -832,12 +807,12 @@ class Command(BaseCommand):
                     raise ValueError(f"Unsupported action: {run.action}")
 
                 precheck = None
-                if run.action in {"NORMALIZE", "FIX_TEXT", "CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT"}:
+                if run.action in {"NORMALIZE", "CHUNK", "TRANSLATE", "TRANSLATE_DEFAULT"}:
                     precheck = _run_precheck(
                         book_code=book_code,
                         lang=item.lang if run.action == "NORMALIZE" else "en",
                         log_path=log_path,
-                        ensure_normalized=(run.action in {"NORMALIZE", "FIX_TEXT", "TRANSLATE", "TRANSLATE_DEFAULT"}),
+                        ensure_normalized=(run.action in {"NORMALIZE", "TRANSLATE", "TRANSLATE_DEFAULT"}),
                         ensure_chunks=(run.action in {"TRANSLATE", "TRANSLATE_DEFAULT"}),
                         allow_run=False,
                     )
@@ -937,16 +912,6 @@ class Command(BaseCommand):
                         with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write(f"COMMAND: {command_line}\n")
                             log_file.write("SKIP: normalized exists\n")
-                            log_file.write("SYNC: promoting edition status to NORMALIZED\n")
-                        texts, _ = EditionText.objects.get_or_create(edition=edition)
-                        texts.normalized_path = str(norm_path)
-                        texts.normalized_text = ""
-                        texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
-                        pipeline_state.normalized_at = timezone.now()
-                        pipeline_state.current_stage = PipelineStage.NORMALIZED
-                        pipeline_state.save(update_fields=["normalized_at", "current_stage"])
-                        edition.status = Edition.STATUS_NORMALIZED
-                        edition.save(update_fields=["status", "updated_at"])
                         item.status = "SKIPPED"
                         item.skipped_reason = "NORMALIZED_EXISTS"
                         item.finished_at = timezone.now()
@@ -991,73 +956,11 @@ class Command(BaseCommand):
                     pipeline_state.normalized_at = timezone.now()
                     pipeline_state.current_stage = PipelineStage.NORMALIZED
                     pipeline_state.save(update_fields=["normalized_at", "current_stage"])
-                    edition.status = Edition.STATUS_NORMALIZED
-                    edition.save(update_fields=["status", "updated_at"])
 
                     item.status = "DONE"
                     item.finished_at = timezone.now()
                     item.overwrote = bool(had_existing)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
-
-                elif run.action == "FIX_TEXT":
-                    source_lang = "en"
-                    edition = Edition.objects.select_related("work", "language").filter(
-                        work__code=book_code,
-                        language__code=source_lang,
-                    ).first()
-                    if not edition:
-                        raise FileNotFoundError("Edition not found for fix_text.")
-
-                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    edition_status = str(edition.status or "").strip().upper()
-                    if edition_status != Edition.STATUS_NORMALIZED:
-                        with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write("FAIL: FIX_TEXT gate requires Edition.status=NORMALIZED\n")
-                            log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
-                        item.status = "FAILED"
-                        item.skipped_reason = "PRECONDITION_STATUS_NOT_NORMALIZED"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "finished_at", "skipped_reason"])
-                        continue
-
-                    fixed_path = _fixed_text_path(book_code, source_lang)
-                    if skip_existing and fixed_path.exists():
-                        with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: fixed text exists\n")
-                        item.status = "SKIPPED"
-                        item.skipped_reason = "FIXED_TEXT_EXISTS"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
-
-                    with log_path.open("a", encoding="utf-8") as log_file:
-                        log_file.write(f"COMMAND: {command_line}\n")
-                        report = fix_text_service.fix_text(edition)
-                        log_file.write(f"FIX_TEXT_STATUS: {report.get('status')}\n")
-                        log_file.write(f"FIX_TEXT_RUN_DIR: {report.get('run_dir')}\n")
-                        log_file.write(f"FIX_TEXT_OUTPUT: {report.get('output_path')}\n")
-                        if report.get("status") != "PASS":
-                            heading_diff = report.get("heading_diff") or {}
-                            log_file.write(f"FIX_TEXT_DIFF: {heading_diff}\n")
-
-                    if report.get("status") != "PASS":
-                        item.status = "FAILED"
-                        item.skipped_reason = "FIX_TEXT_FAILED"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "finished_at", "skipped_reason"])
-                        continue
-
-                    pipeline_state.current_stage = PipelineStage.FIXED_TEXT
-                    pipeline_state.save(update_fields=["current_stage"])
-                    edition.status = Edition.STATUS_FIXED_TEXT
-                    edition.save(update_fields=["status", "updated_at"])
-
-                    item.status = "DONE"
-                    item.finished_at = timezone.now()
-                    item.overwrote = True
-                    item.out_path = str(fixed_path)
-                    item.save(update_fields=["status", "finished_at", "overwrote", "out_path"])
 
                 elif run.action == "CHUNK":
                     chunk_lang = "en"
@@ -1070,7 +973,7 @@ class Command(BaseCommand):
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
                     edition_status = str(edition.status or "").strip().upper()
-                    if edition_status != Edition.STATUS_FIXED_TEXT:
+                    if edition_status != "FIXED_TEXT":
                         with log_path.open("a", encoding="utf-8") as log_file:
                             log_file.write("FAIL: CHUNK gate requires Edition.status=FIXED_TEXT\n")
                             log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
@@ -1121,8 +1024,6 @@ class Command(BaseCommand):
                         pipeline_state.chunked_at = timezone.now()
                         pipeline_state.current_stage = PipelineStage.CHUNKED
                         pipeline_state.save(update_fields=["chunked_at", "current_stage"])
-                        edition.status = Edition.STATUS_CHUNKED
-                        edition.save(update_fields=["status", "updated_at"])
 
                     item.status = "DONE"
                     item.finished_at = timezone.now()
@@ -1140,16 +1041,36 @@ class Command(BaseCommand):
                         raise FileNotFoundError("Edition not found for translate.")
 
                     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    edition_status = str(edition.status or "").strip().upper()
-                    if edition_status != Edition.STATUS_CHUNKED:
-                        with log_path.open("a", encoding="utf-8") as log_file:
-                            log_file.write("FAIL: TRANSLATE gate requires Edition.status=CHUNKED\n")
-                            log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
-                        item.status = "FAILED"
-                        item.skipped_reason = "PRECONDITION_STATUS_NOT_CHUNKED"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "finished_at", "skipped_reason"])
-                        continue
+
+                    if not dry_run:
+                        source_lang = "en"
+                        norm_path, _report, norm_ok = _normalized_status(book_code, source_lang)
+                        if not norm_ok:
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                log_file.write("AUTO: normalize before translate\n")
+                                norm_path = _run_normalize_dependency(
+                                    book_code=book_code,
+                                    lang=source_lang,
+                                    edition=edition,
+                                    pipeline_state=pipeline_state,
+                                    log_file=log_file,
+                                )
+
+                        chunk_dir = _chunks_dir(book_code, source_lang)
+                        chunks_ok, _manifest = _chunks_v2_status(chunk_dir)
+                        if not chunks_ok:
+                            with log_path.open("a", encoding="utf-8") as log_file:
+                                log_file.write("AUTO: chunk before translate\n")
+                                chunk_dir, ran_chunk = _run_chunk_dependency(
+                                    book_code=book_code,
+                                    norm_path=norm_path,
+                                    log_file=log_file,
+                                    skip_existing=False,
+                                )
+                            if ran_chunk:
+                                pipeline_state.chunked_at = timezone.now()
+                                pipeline_state.current_stage = PipelineStage.CHUNKED
+                                pipeline_state.save(update_fields=["chunked_at", "current_stage"])
 
                     existing_merge = resolve_active_or_latest(out_dir, book_code, _lang_dir(item.lang))
                     if skip_existing and existing_merge and existing_merge.exists():
@@ -1354,12 +1275,6 @@ class Command(BaseCommand):
                     item.finished_at = timezone.now()
                     item.overwrote = bool(had_existing)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
-                    if not dry_run:
-                        pipeline_state.translated_at = timezone.now()
-                        pipeline_state.current_stage = PipelineStage.TRANSLATED
-                        pipeline_state.save(update_fields=["translated_at", "current_stage"])
-                        edition.status = Edition.STATUS_TRANSLATED
-                        edition.save(update_fields=["status", "updated_at"])
                     duration_total = None
                     if item.started_at and item.finished_at:
                         duration_total = int(
@@ -1403,25 +1318,6 @@ class Command(BaseCommand):
                     )
 
                 elif run.action == "SPLIT_FOR_REFINE":
-                    edition = Edition.objects.select_related("work", "language").filter(
-                        work__code=book_code,
-                        language__code=_lang_db_code(item.lang),
-                    ).first()
-                    if not edition:
-                        raise FileNotFoundError("Edition not found for split.")
-                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    edition_status = str(edition.status or "").strip().upper()
-                    if edition_status != Edition.STATUS_TRANSLATED:
-                        with log_path.open("w", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("FAIL: SPLIT_FOR_REFINE gate requires Edition.status=TRANSLATED\n")
-                            log_file.write(f"CURRENT_STATUS: {edition_status or 'MISSING'}\n")
-                        item.status = "FAILED"
-                        item.skipped_reason = "PRECONDITION_STATUS_NOT_TRANSLATED"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
-
                     canonical_merge = resolve_active_or_latest(
                         base_dir,
                         normalize_book_code(book_code),
@@ -1463,62 +1359,6 @@ class Command(BaseCommand):
                     item.finished_at = timezone.now()
                     item.overwrote = bool(had_existing)
                     item.save(update_fields=["status", "finished_at", "overwrote"])
-                    pipeline_state.split_at = timezone.now()
-                    pipeline_state.save(update_fields=["split_at"])
-
-                elif run.action == "RETURN_REFINE":
-                    data_dir = Path(settings.BASE_DIR).parent / "data"
-                    _base_dir, split_dir = _split_paths(book_id, item.lang)
-                    split_files = list(split_dir.glob("*.txt")) if split_dir.exists() else []
-                    if not split_files:
-                        with log_path.open("w", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write(
-                                "FAIL: RETURN_REFINE gate requires SPLIT_FOR_REFINE_READY (split files present)\n"
-                            )
-                            log_file.write(f"SPLIT_DIR: {split_dir}\n")
-                        item.status = "FAILED"
-                        item.skipped_reason = "PRECONDITION_SPLIT_NOT_READY"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
-
-                    refine_path = (
-                        data_dir
-                        / "builds"
-                        / book_code
-                        / _lang_db_code(item.lang)
-                        / "merge_refine.txt"
-                    )
-                    if not refine_path.exists():
-                        with log_path.open("w", encoding="utf-8") as log_file:
-                            log_file.write(f"COMMAND: {command_line}\n")
-                            log_file.write("SKIP: merge_refine.txt not found yet\n")
-                            log_file.write(f"EXPECTED: {refine_path}\n")
-                        item.status = "SKIPPED"
-                        item.skipped_reason = "INVALID_STATE"
-                        item.finished_at = timezone.now()
-                        item.save(update_fields=["status", "skipped_reason", "finished_at"])
-                        continue
-
-                    edition = Edition.objects.select_related("work", "language").filter(
-                        work__code=book_code,
-                        language__code=_lang_db_code(item.lang),
-                    ).first()
-                    if not edition:
-                        raise FileNotFoundError("Edition not found for return_refine.")
-                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    pipeline_state.refined_at = timezone.now()
-                    pipeline_state.current_stage = PipelineStage.REFINED
-                    pipeline_state.save(update_fields=["refined_at", "current_stage"])
-                    edition.status = Edition.STATUS_REFINED
-                    edition.save(update_fields=["status", "updated_at"])
-
-                    item.out_path = str(refine_path)
-                    item.status = "DONE"
-                    item.finished_at = timezone.now()
-                    item.overwrote = False
-                    item.save(update_fields=["out_path", "status", "finished_at", "overwrote"])
 
                 elif run.action == "BUILD":
                     edition = Edition.objects.select_related("work", "language").filter(
