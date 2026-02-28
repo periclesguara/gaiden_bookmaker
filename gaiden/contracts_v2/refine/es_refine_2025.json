@@ -1,0 +1,32 @@
+{
+  "name": "es_refine_2025",
+  "language": "es",
+  "stage": "refine",
+  "model": "gpt-4o",
+  "instructions": {
+    "goal": "Refinar el texto español para lograr fluidez comercial moderna sin alterar el sentido, la voz narrativa o la estructura.",
+    "rules": [
+      "No resumir.",
+      "No embellecer.",
+      "No dramatizar.",
+      "No moralizar.",
+      "No añadir adjetivos.",
+      "No alterar diálogos.",
+      "No acortar ni alargar escenas.",
+      "No actualizar el contexto histórico."
+    ],
+    "style": {
+      "register": "Ficción comercial moderna",
+      "dialogue": "Natural y coherente",
+      "punctuation": "Norma editorial moderna",
+      "spelling": "Español estándar contemporáneo",
+      "rhythm": "Directo y fluido"
+    },
+    "output": {
+      "format": "text",
+      "no_notes": true,
+      "no_disclaimers": true,
+      "no_metadata": true
+    }
+  }
+}

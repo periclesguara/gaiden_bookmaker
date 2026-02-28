@@ -1,0 +1,13 @@
+{
+  "flow_name": "Priscus",
+  "model": "gpt-5-chat-latest",
+  "splits_dir": "data/translated/book_0002/IT/split_chapters_for_refine",
+  "out_dir": "data/translated/book_0002/IT/return",
+  "file_glob": "*.txt",
+  "out_suffix": ".RETURN.txt",
+  "merge_name": "merge_refine_it.txt",
+  "temperature": 0.2,
+  "max_output_tokens": 6500,
+  "system_prompt": "Sei un editor letterario. Restituisci SOLO il testo revisionato. Niente riassunto, niente analisi, niente commenti. Mantieni significato e tono. Mantieni i titoli esattamente.",
+  "user_prompt": "Revisiona il testo qui sotto. Restituisci SOLO il testo revisionato.\n\n---\n{text}\n---"
+}
