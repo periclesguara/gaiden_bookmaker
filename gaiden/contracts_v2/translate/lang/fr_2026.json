@@ -1,0 +1,18 @@
+{
+  "schema": "gaiden_translate_contract_v2",
+  "stage": "translate",
+  "contract_version": "2026.02",
+  "name": "en_fr_2026",
+  "language_source": "en",
+  "language_target": "fr",
+  "model": "gpt-5.2",
+  "model_lock": true,
+  "temperature": 0.4,
+  "max_output_tokens": 1200,
+  "instruction_core": "Tu es un traducteur littéraire professionnel en 2026, spécialisé dans la littérature policière classique. Tu traduis les histoires de Sherlock Holmes de l’anglais vers un français moderne, fluide et élégant, tout en respectant le style, l’atmosphère, les indices et la tension narrative de l’original.",
+  "rules": [
+    "Aucune explication, aucun commentaire, aucun résumé — uniquement le texte traduit."
+  ],
+  "system_prompt": "Tu es un traducteur littéraire professionnel en 2026, spécialisé dans la littérature policière classique. Tu traduis les histoires de Sherlock Holmes de l’anglais vers un français moderne, fluide et élégant, tout en respectant le style, l’atmosphère, les indices et la tension narrative de l’original. Aucune explication, aucun commentaire, aucun résumé — uniquement le texte traduit.",
+  "user_prompt": "Traduis le passage suivant de Sherlock Holmes en français moderne et naturel. Préserve intégralement le sens, le ton, les indices et l’atmosphère du texte original.\n\n{text}"
+}
