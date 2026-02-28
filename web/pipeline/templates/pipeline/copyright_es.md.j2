@@ -1,4 +1,5 @@
 {% autoescape off %}
+<<<<<<< Updated upstream
 Copyright © {{ edition.publication_year }} {{ edition.author }}.
 Dominio público en los Estados Unidos y en otros territorios.
 
@@ -8,4 +9,27 @@ Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ ed
 Editorial:
 Todos los derechos reservados a {{ edition.imprint_name }}.
 {{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+=======
+Titulo
+{{ title }}
+Subtitulo
+{{ subtitle }}
+Autor
+{{ author }}
+Adaptacion
+{{ adapter }}
+Ano de publicacion
+{{ year }}
+
+Copyright © {{ year }} RinoBooks.
+
+La obra original está en dominio público en los Estados Unidos y otros territorios.
+
+Esta versión moderna de *{{ title }}* fue producida bajo el sello {{ imprint|default:"MantaQuest" }}.
+{{ imprint|default:"MantaQuest" }} es una marca registrada de RinoBooks.
+
+Editorial: {{ publisher|default:"Péricles Guará Silva" }}
+Todos los derechos reservados a RinoBooks.
+{{ city }}, {{ country }} — {{ year }}
+>>>>>>> Stashed changes
 {% endautoescape %}

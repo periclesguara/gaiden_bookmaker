@@ -6,6 +6,7 @@ Sobre esta edicion
 {{ edition.about_edition_text }}
 {% endif %}
 
+<<<<<<< Updated upstream
 Autor: {{ edition.author }}
 Adaptado por {{ edition.adapter }}
 
@@ -20,3 +21,12 @@ Esta edición moderna de *{{ edition.title }}* fue producida bajo el sello {{ ed
 Editorial:
 Todos los derechos reservados a {{ edition.imprint_name }}.
 {{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
+=======
+**Autor:** {{ edition.author }}
+
+{% if edition.adapter %}
+**Adaptación:** {{ edition.adapter }}
+{% endif %}
+
+{{ edition.publication_year }}
+>>>>>>> Stashed changes

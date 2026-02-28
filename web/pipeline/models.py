@@ -138,28 +138,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "{imprint}\n"
             "{city}, {country} · {year}"
         ),
-        "copyright_text": (
-            "Titulo\n"
-            "{title}\n"
-            "Subtitulo\n"
-            "{subtitle}\n"
-            "Autor\n"
-            "{author}\n"
-            "Adaptacion\n"
-            "{adapter}\n"
-            "Ano de publicacion\n"
-            "{year}\n"
-            "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
-            "Dominio publico en los Estados Unidos y otros territorios.\n"
-            "\n"
-            "Esta version moderna de *{title}* fue producida bajo el sello MantaQuest.\n"
-            "MantaQuest es una marca registrada de RinoBooks.\n"
-            "\n"
-            "Editorial: {publisher}\n"
-            "Todos los derechos reservados a RinoBooks.\n"
-            "{city}, {country} — {year}"
-        ),
+        "copyright_text": "",
     },
     "de": {
         "frontispiece_text": (
@@ -391,9 +370,6 @@ class BookEditionTemplate(models.Model):
         if not self.frontispiece_text or is_any_default(self.frontispiece_text, "frontispiece_text"):
             self.frontispiece_text = defaults["frontispiece_text"]
             updated_fields.append("frontispiece_text")
-        if not self.copyright_text or is_any_default(self.copyright_text, "copyright_text"):
-            self.copyright_text = defaults["copyright_text"]
-            updated_fields.append("copyright_text")
         return updated_fields
 
     def save(self, *args, **kwargs):

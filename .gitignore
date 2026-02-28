@@ -28,3 +28,9 @@ exports/*
 
 # local-only dev env (do not commit)
 /scripts/ops/env_local_dev.sh
+
+# generated refine merges (do not commit)
+/data/translated/**/refine_*/merged_*.txt
+
+# generated merge artifacts
+/data/**/merged_*.txt

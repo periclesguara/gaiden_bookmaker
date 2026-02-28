@@ -85,7 +85,13 @@ def _default_country(language: str) -> str:
     }.get(language, "Brasil")
 
 
-def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialEdition) -> None:
+def _sync_template_to_edition(
+    template: BookEditionTemplate,
+    edition: EditorialEdition,
+    *,
+    introduction_text: str | None = None,
+    epilogue_text: str | None = None,
+) -> None:
     edition.title = template.title
     edition.subtitle = template.subtitle
     edition.author = template.author_name
@@ -102,7 +108,12 @@ def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialE
     edition.frontispiece_template = template.frontispiece_text
     edition.copyright_template = template.copyright_text
     edition.about_edition_template = template.about_edition_text
+    edition.about_edition_text = template.about_edition_text
     edition.about_contributor_template = template.about_contributor_text
+    if introduction_text is not None:
+        edition.introduction_text = introduction_text
+    if epilogue_text is not None:
+        edition.epilogue_text = epilogue_text
     edition.save(
         update_fields=[
             "title",
@@ -119,8 +130,11 @@ def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialE
             "publisher",
             "frontispiece_template",
             "copyright_template",
+            "about_edition_text",
             "about_edition_template",
             "about_contributor_template",
+            "introduction_text",
+            "epilogue_text",
         ]
     )
 
@@ -253,7 +267,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
     warning = ""
 
     if request.method == "POST":
-        form = FrontmatterTemplateForm(request.POST, instance=template)
+        form = FrontmatterTemplateForm(request.POST, instance=template, edition=edition)
         if form.is_valid():
             confirm_overwrite = request.POST.get("confirm_overwrite") == "1"
             if files_exist and not confirm_overwrite:
@@ -261,11 +275,16 @@ def frontmatter_template_edit(request, book_code: str, language: str):
             else:
                 form.save()
                 if edition:
-                    _sync_template_to_edition(template, edition)
+                    _sync_template_to_edition(
+                        template,
+                        edition,
+                        introduction_text=form.cleaned_data.get("introduction_text", ""),
+                        epilogue_text=form.cleaned_data.get("epilogue_text", ""),
+                    )
                     _write_frontmatter_files(edition)
                 return redirect("frontmatter_template_edit", book_code=book_code, language=language)
     else:
-        form = FrontmatterTemplateForm(instance=template)
+        form = FrontmatterTemplateForm(instance=template, edition=edition)
         warning = ""
 
     context = {
@@ -274,6 +293,17 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "form": form,
         "frontmatter_preview": template.frontispiece_rendered,
         "copyright_preview": template.copyright_rendered,
+        "introduction_preview": (
+            form.cleaned_data.get("introduction_text", "")
+            if request.method == "POST" and form.is_valid()
+            else (edition.introduction_text if edition else "")
+        ),
+        "about_edition_preview": template.about_edition_rendered,
+        "epilogue_preview": (
+            form.cleaned_data.get("epilogue_text", "")
+            if request.method == "POST" and form.is_valid()
+            else (edition.epilogue_text if edition else "")
+        ),
         "language_options": BookEditionTemplate.LANG_CHOICES,
         "book_code": book_code,
         "language": language,
