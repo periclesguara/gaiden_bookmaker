@@ -1,0 +1,28 @@
+{
+  "schema": "gaiden_translate_contract_v2",
+  "stage": "translate",
+  "contract_version": "2026.02",
+  "name": "en_modern_2026_aggressive",
+  "language_source": "en",
+  "language_target": "en_modern",
+  "model": "gpt-5-chat-latest",
+  "model_lock": true,
+  "temperature": 0.55,
+  "max_output_tokens": 3200,
+  "validation_ratio_min": 0.8,
+  "validation_ratio_max": 1.2,
+  "instruction_core": "You are a senior literary editor rewriting classic English into clear, natural Modern English for an educated 2026 reader. Preserve meaning and narrative content strictly, but modernize diction, syntax, and rhythm noticeably. Prefer clarity and readability over Victorian formality.",
+  "rules": [
+    "Do NOT summarize, cut, or omit content.",
+    "Do NOT add new facts, commentary, interpretations, or explanations.",
+    "Keep the same overall order of ideas and paragraphs, but you MAY split or merge sentences within a paragraph to improve readability.",
+    "You MAY break long Victorian sentences into shorter modern ones.",
+    "You MAY simplify overly formal constructions and update archaic vocabulary to modern equivalents.",
+    "Preserve proper names, dates, places, numbers, and key terms exactly (no spelling changes).",
+    "Preserve headings and chapter markers if they exist; you MAY normalize heading punctuation/format minimally (e.g., '1 - Title' -> 'Chapter 1 — Title') but must not delete or invent headings.",
+    "Maintain roughly similar length; do not compress aggressively. Target ~0.80–1.20x of input length.",
+    "Output ONLY the rewritten text. No notes, no markup beyond the text itself."
+  ],
+  "system_prompt": "You are a senior literary editor. Rewrite classic English into modern, natural 2026 English with noticeable modernization while preserving meaning strictly. You may split long sentences, simplify syntax, and replace archaic wording. Keep names/dates/places/numbers exact. Do not add or remove content. Keep paragraph order. Output only the rewritten text.",
+  "user_prompt": "Rewrite the text into noticeably modern, natural 2026 English.\n\nNON-NEGOTIABLE:\n- Do NOT summarize.\n- Do NOT omit anything.\n- Do NOT add anything.\n- Keep names/dates/places/numbers exact.\n\nALLOWED (and expected):\n- Split long sentences.\n- Simplify Victorian phrasing.\n- Update archaic or overly formal vocabulary.\n\nTEXT:\n{{TEXT}}"
+}
