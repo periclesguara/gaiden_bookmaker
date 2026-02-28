@@ -6,7 +6,7 @@ export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-gaiden_portal.settings}
 export DJANGO_SECRET_KEY="${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY not set}"
 
 export PGHOST="${PGHOST:-127.0.0.1}"
-export PGPORT="${PGPORT:-5433}"
+export PGPORT="${PGPORT:-5432}"
 export PGDATABASE="${PGDATABASE:-gaiden}"
 export PGUSER="${PGUSER:-gaiden}"
 export PGPASSWORD="${PGPASSWORD:-gaiden}"
