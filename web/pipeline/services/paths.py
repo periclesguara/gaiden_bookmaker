@@ -130,6 +130,14 @@ def qa_log_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.QA_LOG.json"
 
 
+def refine_qa_json_path(edition) -> Path:
+    return edition_build_dir(edition) / "REFINE.QA.json"
+
+
+def refine_qa_md_path(edition) -> Path:
+    return edition_build_dir(edition) / "REFINE.QA.md"
+
+
 def final_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.MD_FINAL"
 

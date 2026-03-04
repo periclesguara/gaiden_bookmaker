@@ -25,11 +25,14 @@ from editorial import kdp_mode
 from .models import (
     BookEditionTemplate,
     PipelineJob,
-    PipelineRun,
-    PipelineRunItem,
     TextSnapshot,
     get_book_md_path,
 )
+try:
+    from .models import PipelineRun, PipelineRunItem
+except ImportError:
+    PipelineRun = None
+    PipelineRunItem = None
 from .forms import BookEditionTemplateForm
 from .services import (
     book_manifest,
@@ -73,7 +76,10 @@ def pipeline_home(request):
         }
         for ed in editions
     ]
-    recent_runs = list(PipelineRun.objects.prefetch_related("items").order_by("-id")[:10])
+    if PipelineRun is not None:
+        recent_runs = list(PipelineRun.objects.prefetch_related("items").order_by("-id")[:10])
+    else:
+        recent_runs = []
     book_0008 = next(
         (ed for ed in editions if ed.work.code == "book_0008" and utils.normalize_lang(ed.language.code) == "en"),
         None,
@@ -713,6 +719,9 @@ def edition_steps(request, edition_id: int):
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "run_matrix":
+            if PipelineRun is None or PipelineRunItem is None:
+                messages.error(request, "Runner Matrix indisponivel nesta branch (models PipelineRun ausentes).")
+                return redirect("edition_steps", edition_id=edition.id)
             matrix_action = (request.POST.get("matrix_action") or "TRANSLATE").strip().upper()
             matrix_lang = utils.normalize_lang(request.POST.get("matrix_lang") or language)
             matrix_mode = (request.POST.get("matrix_mode") or "automatic").strip().lower()
@@ -1210,12 +1219,15 @@ def edition_steps(request, edition_id: int):
         for lang in ("en", "es", "ptbr", "de")
     }
     md_source_map_json = json.dumps(md_source_map)
-    matrix_runs = (
-        PipelineRun.objects.filter(items__book_code=book_code)
-        .distinct()
-        .prefetch_related("items")
-        .order_by("-id")[:8]
-    )
+    if PipelineRun is not None:
+        matrix_runs = (
+            PipelineRun.objects.filter(items__book_code=book_code)
+            .distinct()
+            .prefetch_related("items")
+            .order_by("-id")[:8]
+        )
+    else:
+        matrix_runs = []
     images_dir = _images_dir_for_edition(edition, pipeline_state)
     images_count = len(md_transform.list_available_images(images_dir))
     consolidated_images_dir = _consolidated_images_dir_for_edition(edition)
