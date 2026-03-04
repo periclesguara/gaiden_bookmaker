@@ -14,7 +14,11 @@ from gaiden_portal.utils import (
 )
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
 from pipeline.services import utils
-from editorial.frontmatter import build_frontmatter_files
+from editorial.frontmatter import (
+    build_frontmatter_files,
+    build_frontmatter_sections,
+    merge_frontmatter_sections,
+)
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
 
@@ -243,9 +247,10 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         elif not template.country_name:
             template.country_name = country_name
             updated_fields.append("country_name")
-        default_updates = template.apply_language_defaults_if_empty()
-        if default_updates:
-            updated_fields.extend(default_updates)
+        if force_defaults:
+            default_updates = template.apply_language_defaults_if_empty()
+            if default_updates:
+                updated_fields.extend(default_updates)
 
         if updated_fields:
             template.save(update_fields=updated_fields)
@@ -268,12 +273,23 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         form = FrontmatterTemplateForm(instance=template)
         warning = ""
 
+    rendered_sections = {
+        "frontispiece": template.frontispiece_rendered,
+        "copyright": template.copyright_rendered,
+        "about_edition": template.about_edition_rendered,
+        "about_contributor": template.about_contributor_rendered,
+    }
+    preview_sections = build_frontmatter_sections(language, rendered_sections)
+
     context = {
         "edition": edition,
         "is_generic": is_generic,
         "form": form,
-        "frontmatter_preview": template.frontispiece_rendered,
-        "copyright_preview": template.copyright_rendered,
+        "frontmatter_preview": preview_sections.get("frontispiece", ""),
+        "copyright_preview": preview_sections.get("copyright", ""),
+        "about_edition_preview": preview_sections.get("about_edition", ""),
+        "about_contributor_preview": preview_sections.get("about_contributor", ""),
+        "frontmatter_merged_preview": merge_frontmatter_sections(preview_sections),
         "language_options": BookEditionTemplate.LANG_CHOICES,
         "book_code": book_code,
         "language": language,

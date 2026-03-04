@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
@@ -9,15 +10,26 @@ from . import paths
 
 PAGE_MARKER_RE = re.compile(r"@@P\d{4}@@\s*")
 IMAGE_PLACEHOLDER_RE = re.compile(r"\{\{IMAGE:CH\d{2}:\d{2}\}\}")
+IMAGE_PLACEHOLDER_TOKEN_RE = re.compile(r"\{\{IMAGE:CH(\d{2}):(\d{2})\}\}")
+IMAGE_MARKDOWN_RE = re.compile(r"!\[CH\d{2}:\d{2}\]\(assets/images/[^)]+\)")
+IMAGE_MARKDOWN_ANY_RE = re.compile(r"!\[[^\]]*\]\(assets/images/[^)]+\)")
 ROMAN_HEADING_RE = re.compile(r"^([IVXLCDM]+)\s+([A-Z].+)")
 ROMAN_GLUE_RE = re.compile(r"([A-Za-z])([IVXLCDM]+)\.")
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*$")
+CHAPTER_NUM_RE = re.compile(
+    r"^\s*(?:chapter|adventure|cap[ií]tulo)\s+([ivxlcdm]+|\d+)\b",
+    re.IGNORECASE,
+)
 
 CHAPTER_PATTERNS = [
     r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*",
-    r"^CHAPTER\s+[IVXLCDM]+(\.|:)?\s*.*",
-    r"^CAPITULO\s+[IVXLCDM]+(\.|:)?\s*.*",
+    r"^CHAPTER\s+[IVXLCDM\d]+(\.|:)?\s*.*",
+    r"^CAPITULO\s+[IVXLCDM\d]+(\.|:)?\s*.*",
     r"^[IVXLCDM]+\.\s+.*",
+    r"^\d+\.\s+.*",
     r"^[IVXLCDM]+$",
+    r"^\d+$",
 ]
 
 CHAPTER_RE = re.compile("|".join(f"(?:{p})" for p in CHAPTER_PATTERNS), re.IGNORECASE)
@@ -97,6 +109,46 @@ def _is_chapter_heading(line: str) -> bool:
     if not line:
         return False
     return bool(CHAPTER_RE.match(line.strip()))
+
+
+def _md_heading_text(line: str) -> str | None:
+    match = MD_HEADING_RE.match(line or "")
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def _is_md_chapter_heading(line: str) -> bool:
+    heading_text = _md_heading_text(line)
+    if not heading_text:
+        return False
+    return _is_chapter_heading(heading_text)
+
+
+def _roman_to_int(value: str) -> int | None:
+    table = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+    total = 0
+    prev = 0
+    for ch in reversed(value.upper()):
+        v = table.get(ch)
+        if v is None:
+            return None
+        if v < prev:
+            total -= v
+        else:
+            total += v
+            prev = v
+    return total if total > 0 else None
+
+
+def _extract_chapter_number(heading_text: str) -> int | None:
+    match = CHAPTER_NUM_RE.match((heading_text or "").strip())
+    if not match:
+        return None
+    token = match.group(1)
+    if token.isdigit():
+        return int(token)
+    return _roman_to_int(token)
 
 
 def _split_lines(txt: str) -> list[str]:
@@ -331,16 +383,17 @@ def insert_page_headlines(md_path: Path, lang: str = "en") -> None:
 
 def insert_image_placeholders(md_path: Path) -> None:
     text = md_path.read_text(encoding="utf-8")
+    # Rebuild placeholders from scratch so old misplaced placeholders
+    # do not accumulate across repeated runs.
+    text = IMAGE_PLACEHOLDER_RE.sub("", text)
+    text = IMAGE_MARKDOWN_RE.sub("", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
 
     has_chapter = False
-    if re.search(r"^##\s+", text, flags=re.MULTILINE):
-        has_chapter = True
-    elif re.search(r"^#\s+.+", text, flags=re.MULTILINE):
-        for line in text.splitlines():
-            if line.startswith("# "):
-                if CHAPTER_RE.match(line[2:].strip()):
-                    has_chapter = True
-                    break
+    for line in text.splitlines():
+        if _is_md_chapter_heading(line):
+            has_chapter = True
+            break
 
     if not has_chapter:
         if IMAGE_PLACEHOLDER_RE.search(text):
@@ -352,19 +405,24 @@ def insert_image_placeholders(md_path: Path) -> None:
     lines = text.splitlines()
     out_lines: list[str] = []
     chapter_idx = 0
+    seen_chapters: set[int] = set()
     i = 0
     while i < len(lines):
         line = lines[i]
         out_lines.append(line)
-        is_chapter = False
-        if line.startswith("## "):
-            is_chapter = True
-        elif line.startswith("# ") and CHAPTER_RE.match(line[2:].strip()):
-            is_chapter = True
+        is_chapter = _is_md_chapter_heading(line)
 
         if is_chapter:
-            chapter_idx += 1
-            idx_str = f"{chapter_idx:02d}"
+            chapter_text = _md_heading_text(line) or ""
+            chapter_no = _extract_chapter_number(chapter_text)
+            if chapter_no is None:
+                chapter_idx += 1
+                chapter_no = chapter_idx
+            if chapter_no in seen_chapters:
+                i += 1
+                continue
+            seen_chapters.add(chapter_no)
+            idx_str = f"{chapter_no:02d}"
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
@@ -376,3 +434,157 @@ def insert_image_placeholders(md_path: Path) -> None:
 
     new_text = "\n".join(out_lines)
     md_path.write_text(new_text, encoding="utf-8")
+
+
+def _natural_sort_key(path: Path) -> tuple:
+    parts = re.split(r"(\d+)", path.name.lower())
+    key: list[object] = []
+    for part in parts:
+        if part.isdigit():
+            key.append(int(part))
+        else:
+            key.append(part)
+    return tuple(key)
+
+
+def list_available_images(images_dir: Path) -> list[Path]:
+    if not images_dir.exists():
+        return []
+    items = [
+        path
+        for path in images_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+    ]
+    return sorted(items, key=_natural_sort_key)
+
+
+def _normalize_stem(path: Path) -> str:
+    return re.sub(r"[^a-z0-9]+", "", path.stem.lower())
+
+
+def _extract_numbers(path: Path) -> list[int]:
+    return [int(x) for x in re.findall(r"\d+", path.stem)]
+
+
+def _is_cover_asset(path: Path) -> bool:
+    stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
+    if stem in {"00", "0", "cover", "capa", "frontcover"}:
+        return True
+    nums = _extract_numbers(path)
+    return bool(nums) and nums[0] == 0
+
+
+def _score_candidate(path: Path, chapter: int, slot: int) -> int | None:
+    nums = _extract_numbers(path)
+    norm = _normalize_stem(path)
+    ch = f"{chapter:02d}"
+    sl = f"{slot:02d}"
+    if len(nums) >= 2 and nums[0] == chapter and nums[1] == slot:
+        return 0
+    if f"ch{ch}{sl}" in norm or f"chapter{ch}{sl}" in norm:
+        return 0
+    if f"ch{ch}" in norm and sl in norm:
+        return 1
+    if len(nums) >= 1 and nums[0] == chapter:
+        return 2
+    return None
+
+
+def _pick_image_for_placeholder(
+    images: list[Path],
+    used: set[Path],
+    chapter: int,
+    slot: int,
+) -> Path | None:
+    scored: list[tuple[int, int, Path]] = []
+    for idx, path in enumerate(images):
+        if path in used:
+            continue
+        score = _score_candidate(path, chapter, slot)
+        if score is None:
+            continue
+        scored.append((score, idx, path))
+    if scored:
+        scored.sort(key=lambda row: (row[0], row[1]))
+        return scored[0][2]
+
+    # Fallback: first remaining image in natural order.
+    for path in images:
+        if path not in used:
+            return path
+    return None
+
+
+def _safe_copy_name(chapter: int, slot: int, src: Path) -> str:
+    base = re.sub(r"[^a-zA-Z0-9._-]+", "_", src.stem).strip("._-") or "image"
+    return f"ch{chapter:02d}_{slot:02d}_{base}{src.suffix.lower()}"
+
+
+def apply_images_to_pre_edition(md_path: Path, images_dir: Path) -> dict[str, int | str]:
+    text = md_path.read_text(encoding="utf-8")
+    placeholders = list(IMAGE_PLACEHOLDER_TOKEN_RE.finditer(text))
+    existing_refs = len(IMAGE_MARKDOWN_ANY_RE.findall(text))
+    if not placeholders:
+        return {
+            "placeholders_total": 0,
+            "inserted": 0,
+            "unresolved": 0,
+            "images_available": 0,
+            "images_used": 0,
+            "assets_dir": "",
+            "existing_refs": existing_refs,
+            "already_applied": 1 if existing_refs > 0 else 0,
+        }
+
+    images = [p for p in list_available_images(images_dir) if not _is_cover_asset(p)]
+    assets_dir = md_path.parent / "assets" / "images"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+
+    used: set[Path] = set()
+    mapping: dict[str, Path] = {}
+    copied: dict[Path, str] = {}
+    inserted = 0
+    unresolved = 0
+
+    def repl(match: re.Match[str]) -> str:
+        nonlocal inserted, unresolved
+        chapter_s, slot_s = match.group(1), match.group(2)
+        key = f"{chapter_s}:{slot_s}"
+        chapter = int(chapter_s)
+        slot = int(slot_s)
+
+        chosen = mapping.get(key)
+        if chosen is None:
+            chosen = _pick_image_for_placeholder(images, used, chapter, slot)
+            if chosen is None:
+                unresolved += 1
+                return match.group(0)
+            mapping[key] = chosen
+            used.add(chosen)
+
+        out_name = copied.get(chosen)
+        if out_name is None:
+            if chosen.resolve().parent == assets_dir.resolve():
+                out_name = chosen.name
+            else:
+                out_name = _safe_copy_name(chapter, slot, chosen)
+                shutil.copy2(chosen, assets_dir / out_name)
+            copied[chosen] = out_name
+
+        inserted += 1
+        rel_path = Path("assets") / "images" / out_name
+        return f"![CH{chapter_s}:{slot_s}]({rel_path.as_posix()})"
+
+    updated = IMAGE_PLACEHOLDER_TOKEN_RE.sub(repl, text)
+    md_path.write_text(updated, encoding="utf-8")
+
+    return {
+        "placeholders_total": len(placeholders),
+        "inserted": inserted,
+        "unresolved": unresolved,
+        "images_available": len(images),
+        "images_used": len(used),
+        "assets_dir": str(assets_dir),
+        "existing_refs": len(IMAGE_MARKDOWN_ANY_RE.findall(updated)),
+        "already_applied": 1 if inserted == 0 and len(IMAGE_MARKDOWN_ANY_RE.findall(updated)) > 0 else 0,
+    }

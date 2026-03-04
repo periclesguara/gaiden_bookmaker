@@ -37,7 +37,10 @@ def promote_chapter_h2_to_h1(md_text: str) -> tuple[str, int]:
 
 CHAPTER_PATTERNS_BY_LANG = {
     "en": [
-        ChapterPattern("CHAPTER_NUM", re.compile(r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$", re.I)),
+        ChapterPattern(
+            "CHAPTER_NUM_OR_ROMAN",
+            re.compile(r"^CHAPTER\s+(?:\d+|[IVXLCDM]+)\s*[-–:.]?\s*(.*)$", re.I),
+        ),
     ],
     "de": [
         ChapterPattern("ROMAN_DOT", re.compile(r"^[IVXLCDM]+\.\s+.+$", re.I)),

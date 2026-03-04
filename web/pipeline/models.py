@@ -397,7 +397,10 @@ class BookEditionTemplate(models.Model):
         return updated_fields
 
     def save(self, *args, **kwargs):
-        updated_fields = self.apply_language_defaults_if_empty()
+        apply_defaults = kwargs.pop("apply_defaults", True)
+        updated_fields = []
+        if apply_defaults:
+            updated_fields = self.apply_language_defaults_if_empty()
         if updated_fields and kwargs.get("update_fields") is not None:
             update_fields = set(kwargs["update_fields"])
             update_fields.update(updated_fields)

@@ -144,11 +144,15 @@
     <div>
       <label for="{{ form.about_edition_text.id_for_label }}">About edition</label>
       {{ form.about_edition_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ about_edition_preview }}</div>
     </div>
 
     <div>
       <label for="{{ form.about_contributor_text.id_for_label }}">About contributor</label>
       {{ form.about_contributor_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ about_contributor_preview }}</div>
     </div>
 
     <div class="actions">
@@ -156,6 +160,8 @@
       <a href="{% url 'book_edition_list' %}">Voltar</a>
     </div>
   </form>
+  <div class="preview-title">Preview consolidado (final)</div>
+  <div class="preview">{{ frontmatter_merged_preview }}</div>
   {% if overwrite_warning %}
   <div class="preview">{{ overwrite_warning }}</div>
   {% endif %}

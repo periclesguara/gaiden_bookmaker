@@ -2,6 +2,8 @@ from django import forms
 
 from pipeline.models import BookEditionTemplate
 
+BLANK_MARKERS = {"blank", "[blank]", "{blank}", "__blank__"}
+
 
 class FrontmatterTemplateForm(forms.ModelForm):
     class Meta:
@@ -36,3 +38,28 @@ class FrontmatterTemplateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["book_code"].disabled = True
         self.fields["language"].disabled = True
+
+    @staticmethod
+    def _normalize_blank(value: str) -> str:
+        raw = (value or "").strip()
+        if not raw or raw.lower() in BLANK_MARKERS:
+            return ""
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        for field in (
+            "frontispiece_text",
+            "copyright_text",
+            "about_edition_text",
+            "about_contributor_text",
+        ):
+            cleaned[field] = self._normalize_blank(cleaned.get(field, ""))
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # Keep intentional blank sections as blank (don't auto-reseed defaults on save).
+            instance.save(apply_defaults=False)
+        return instance
