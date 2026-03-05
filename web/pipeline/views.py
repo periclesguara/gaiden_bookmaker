@@ -40,6 +40,7 @@ from .services import (
     chapter_chunks,
     editorial_split,
     export_book,
+    html_preprod,
     heading_cleaner,
     legacy_merges,
     md_quality,
@@ -54,6 +55,17 @@ from .services import (
 SOURCE_FORMAT_HTML = "html"
 SOURCE_FORMAT_TXT = "txt"
 SOURCE_FORMAT_ALLOWED = {SOURCE_FORMAT_HTML, SOURCE_FORMAT_TXT}
+STAGE_HTML_UPLOADED = "HTML_UPLOADED"
+STAGE_HTML_PREPROD_READY = "HTML_PREPROD_READY"
+STAGE_MD_SOURCE_READY = "MD_SOURCE_READY"
+
+_HTML_STAGE_ORDER = {
+    PipelineStage.RAW: 10,
+    STAGE_HTML_UPLOADED: 20,
+    STAGE_HTML_PREPROD_READY: 30,
+    STAGE_MD_SOURCE_READY: 40,
+    PipelineStage.NORMALIZED: 50,
+}
 
 
 def _normalize_source_format(value: str | None) -> str:
@@ -76,15 +88,34 @@ def _allowed_upload_exts(source_format: str) -> set[str]:
 
 
 def _html_artifact_paths(book_code: str, language: str, source_format: str) -> dict[str, Path]:
-    source_ext = "html" if source_format == SOURCE_FORMAT_HTML else "txt"
-    base = Path("data") / "builds" / book_code / language / "html_pipeline"
+    language = utils.normalize_lang(language)
+    root = Path(settings.BASE_DIR).parent
+    abs_paths = html_preprod.artifact_paths(book_code, language)
+    if source_format == SOURCE_FORMAT_HTML:
+        source_original = abs_paths["raw_html"]
+        if not source_original.exists() and abs_paths["raw_htm"].exists():
+            source_original = abs_paths["raw_htm"]
+    else:
+        source_original = abs_paths["raw_html"]
+
+    def _rel(path: Path) -> Path:
+        try:
+            return path.relative_to(root)
+        except ValueError:
+            return path
+
     return {
-        "source_original": base / "source" / f"original.{source_ext}",
-        "preprod_clean_html": base / "preprod" / "clean.html",
-        "md_source": base / "md" / "source.md",
-        "md_normalized": base / "md" / "normalized.md",
-        "md_canonical": Path("data") / "canonical" / book_code / language / "canonical.md",
+        "source_original": _rel(source_original),
+        "preprod_clean_html": _rel(abs_paths["preprod_clean_html"]),
+        "preprod_report_json": _rel(abs_paths["preprod_report_json"]),
+        "md_source": _rel(abs_paths["md_source"]),
+        "md_normalized": _rel(abs_paths["md_normalized"]),
+        "md_canonical": _rel(abs_paths["md_canonical"]),
     }
+
+
+def _html_stage_rank(stage: str | None) -> int:
+    return _HTML_STAGE_ORDER.get((stage or "").strip(), 0)
 
 
 def pipeline_dashboard(request):
@@ -160,6 +191,31 @@ def pipeline_html_dashboard(request, edition_id: int):
 
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
     artifacts = _html_artifact_paths(book_code, language, source_format)
+    report_payload = None
+    report_errors: list[str] = []
+    report_path_abs = root / artifacts["preprod_report_json"]
+    if report_path_abs.exists():
+        try:
+            report_payload = json.loads(report_path_abs.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            report_errors.append("Report JSON invalido. Rode novamente o preprod.")
+
+    raw_source_abs = None
+    if (edition.raw_source_path or "").strip():
+        raw_source_abs = Path(edition.raw_source_path.strip())
+        if not raw_source_abs.is_absolute():
+            raw_source_abs = root / raw_source_abs
+
+    stage_rank = _html_stage_rank(pipeline_state.current_stage)
+    report_ok = bool(report_payload and report_payload.get("ok_to_convert") is True)
+    clean_ready = (root / artifacts["preprod_clean_html"]).exists()
+    can_run_preprod = (root / artifacts["source_original"]).exists() or bool(raw_source_abs and raw_source_abs.exists())
+    can_run_convert = (
+        stage_rank >= _html_stage_rank(STAGE_HTML_PREPROD_READY)
+        and clean_ready
+        and report_ok
+    )
+
     artifact_rows = [
         {
             "label": "Original",
@@ -170,6 +226,11 @@ def pipeline_html_dashboard(request, edition_id: int):
             "label": "Clean HTML",
             "path": str(artifacts["preprod_clean_html"]),
             "exists": (root / artifacts["preprod_clean_html"]).exists(),
+        },
+        {
+            "label": "Preprod report",
+            "path": str(artifacts["preprod_report_json"]),
+            "exists": report_path_abs.exists(),
         },
         {
             "label": "Source MD",
@@ -200,11 +261,16 @@ def pipeline_html_dashboard(request, edition_id: int):
             "last_log": pipeline_state.last_log,
             "artifact_rows": artifact_rows,
             "raw_source_path": edition.raw_source_path,
+            "report_payload": report_payload,
+            "report_errors": report_errors,
+            "can_run_preprod": can_run_preprod,
+            "can_run_convert": can_run_convert,
+            "can_continue_common": (root / artifacts["md_source"]).exists(),
         },
     )
 
 
-def _run_html_placeholder(request, edition_id: int, action_label: str):
+def _ensure_html_lane(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
     language = utils.normalize_lang(language)
@@ -212,33 +278,79 @@ def _run_html_placeholder(request, edition_id: int, action_label: str):
     source_format = _source_format_from_template(template)
     if source_format != SOURCE_FORMAT_HTML:
         messages.error(request, "Acao HTML indisponivel: source_format atual nao e HTML.")
-        return redirect("edition_steps", edition_id=edition.id)
-
-    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-    pipeline_state.last_log = (
-        f"{timezone.now().isoformat()} :: {action_label} placeholder executado (sem processamento real)."
-    )
-    pipeline_state.save(update_fields=["last_log"])
-    messages.success(request, f"{action_label}: placeholder executado.")
-    return redirect("pipeline_html_dashboard", edition_id=edition.id)
+        return None, redirect("edition_steps", edition_id=edition.id)
+    return edition, None
 
 
 def pipeline_html_preprod_run(request, edition_id: int):
     if request.method != "POST":
         return redirect("pipeline_html_dashboard", edition_id=edition_id)
-    return _run_html_placeholder(request, edition_id, "Pre-producao HTML")
+    edition, failure = _ensure_html_lane(request, edition_id)
+    if failure:
+        return failure
+
+    try:
+        clean_path, report_path, report = html_preprod.run_html_preprod(edition)
+    except Exception as exc:
+        messages.error(request, f"Pre-producao HTML falhou: {exc}")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.current_stage = STAGE_HTML_PREPROD_READY
+    pipeline_state.last_log = f"{timezone.now().isoformat()} :: HTML_PREPROD_READY :: {clean_path}"
+    pipeline_state.save(update_fields=["current_stage", "last_log"])
+
+    if report.get("ok_to_convert"):
+        messages.success(request, f"Preprod OK. clean.html gerado: {clean_path}")
+    else:
+        messages.warning(request, "Preprod concluido, mas gate de conversao bloqueado (ok_to_convert=false).")
+    for warning in report.get("warnings", [])[:5]:
+        messages.warning(request, warning)
+    messages.info(request, f"Report: {report_path}")
+    return redirect("pipeline_html_dashboard", edition_id=edition.id)
 
 
 def pipeline_html_convert_run(request, edition_id: int):
     if request.method != "POST":
         return redirect("pipeline_html_dashboard", edition_id=edition_id)
-    return _run_html_placeholder(request, edition_id, "Conversao HTML -> MD")
+    edition, failure = _ensure_html_lane(request, edition_id)
+    if failure:
+        return failure
+
+    try:
+        _, report = html_preprod.load_preprod_report(edition)
+    except Exception as exc:
+        messages.error(request, f"Conversao bloqueada: report de preprod indisponivel ({exc}).")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    if report.get("ok_to_convert") is not True:
+        messages.error(request, "Conversao bloqueada: report indica ok_to_convert=false.")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    try:
+        md_path, engine = html_preprod.run_html_to_md(edition)
+    except Exception as exc:
+        messages.error(request, f"Conversao HTML->MD falhou: {exc}")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.current_stage = STAGE_MD_SOURCE_READY
+    pipeline_state.core_last_txt_path = str(md_path)
+    pipeline_state.last_log = f"{timezone.now().isoformat()} :: MD_SOURCE_READY :: {md_path} [{engine}]"
+    pipeline_state.save(update_fields=["current_stage", "core_last_txt_path", "last_log"])
+
+    messages.success(request, f"Conversao HTML->MD OK ({engine}): {md_path}")
+    return redirect(f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}?allow_html_to_common=1")
 
 
 def pipeline_html_md_normalize_run(request, edition_id: int):
     if request.method != "POST":
         return redirect("pipeline_html_dashboard", edition_id=edition_id)
-    return _run_html_placeholder(request, edition_id, "Normalize MD")
+    edition, failure = _ensure_html_lane(request, edition_id)
+    if failure:
+        return failure
+    messages.info(request, "Siga para os steps do pipeline comum e rode Normalize.")
+    return redirect(f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}?allow_html_to_common=1")
 
 
 def book_edition_edit(request, book_code=None, language=None):
@@ -366,7 +478,11 @@ def book_edition_edit(request, book_code=None, language=None):
                 pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
                 if "raw_path" in saved_paths:
                     pipeline_state.raw_at = timezone.now()
-                    pipeline_state.current_stage = PipelineStage.RAW
+                    pipeline_state.current_stage = (
+                        STAGE_HTML_UPLOADED
+                        if selected_source_format == SOURCE_FORMAT_HTML
+                        else PipelineStage.RAW
+                    )
                     pipeline_state.save(update_fields=["raw_at", "current_stage"])
 
                 kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
