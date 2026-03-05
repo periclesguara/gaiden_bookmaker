@@ -1,6 +1,27 @@
 from django.db import migrations, models
 
 
+def _ensure_template_columns(apps, schema_editor):
+    model = apps.get_model("pipeline", "BookEditionTemplate")
+    table_name = model._meta.db_table
+    with schema_editor.connection.cursor() as cursor:
+        description = schema_editor.connection.introspection.get_table_description(cursor, table_name)
+    existing_columns = {getattr(col, "name", col[0]) for col in description}
+
+    if "editorial_name" not in existing_columns:
+        field = models.CharField(max_length=120, blank=True, default="")
+        field.set_attributes_from_name("editorial_name")
+        schema_editor.add_field(model, field)
+    if "edition_year" not in existing_columns:
+        field = models.IntegerField(blank=True, null=True)
+        field.set_attributes_from_name("edition_year")
+        schema_editor.add_field(model, field)
+    if "edition_copyright_holder" not in existing_columns:
+        field = models.CharField(max_length=120, blank=True, default="")
+        field.set_attributes_from_name("edition_copyright_holder")
+        schema_editor.add_field(model, field)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("pipeline", "0011_alter_bookeditiontemplate_language"),
@@ -9,17 +30,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.SeparateDatabaseAndState(
             database_operations=[
-                migrations.RunSQL(
-                    sql=(
-                        "ALTER TABLE pipeline_bookeditiontemplate "
-                        "ADD COLUMN IF NOT EXISTS editorial_name varchar(120) NOT NULL DEFAULT '';"
-                        "ALTER TABLE pipeline_bookeditiontemplate "
-                        "ADD COLUMN IF NOT EXISTS edition_year integer NULL;"
-                        "ALTER TABLE pipeline_bookeditiontemplate "
-                        "ADD COLUMN IF NOT EXISTS edition_copyright_holder varchar(120) NOT NULL DEFAULT '';"
-                    ),
-                    reverse_sql=migrations.RunSQL.noop,
-                )
+                migrations.RunPython(_ensure_template_columns, migrations.RunPython.noop),
             ],
             state_operations=[
                 migrations.AddField(

@@ -10,15 +10,21 @@ from django.conf import settings
 from django.core.management import call_command
 from django.contrib import messages
 from django.http import Http404, HttpResponse
+from django.db import IntegrityError, connection
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 
 from editorial.models import (
+    Contributor,
     Edition as EditorialEdition,
     EditionPipeline,
     EditionText,
+    Language,
     PipelineStage,
+    Seal,
+    Work,
 )
 from editorial import kdp_mode
 
@@ -83,8 +89,389 @@ def _source_format_from_template(template: BookEditionTemplate | None) -> str:
 
 def _allowed_upload_exts(source_format: str) -> set[str]:
     if source_format == SOURCE_FORMAT_HTML:
-        return {".html", ".htm"}
+        return {".html", ".htm", ".xhtml"}
     return {".txt", ".md"}
+
+
+def _allowed_upload_content_types(source_format: str) -> set[str]:
+    if source_format == SOURCE_FORMAT_HTML:
+        return {"text/html", "application/xhtml+xml"}
+    return {"text/plain", "text/markdown", "text/x-markdown"}
+
+
+def _peek_upload_text(source_file, limit: int = 4096) -> str:
+    pos = source_file.tell()
+    try:
+        head = source_file.read(limit) or b""
+    finally:
+        source_file.seek(pos)
+    if isinstance(head, bytes):
+        return head.decode("utf-8", errors="ignore").lower()
+    return str(head).lower()
+
+
+def _looks_like_html_upload(source_file) -> bool:
+    sample = _peek_upload_text(source_file)
+    html_markers = ("<!doctype html", "<html", "<head", "<body")
+    return any(marker in sample for marker in html_markers)
+
+
+def _looks_like_text_upload(source_file) -> bool:
+    sample = _peek_upload_text(source_file)
+    return "\x00" not in sample
+
+
+def _infer_source_format_from_upload(source_file) -> str:
+    if source_file is None:
+        return SOURCE_FORMAT_TXT
+    ext = (Path(source_file.name).suffix or "").lower()
+    if ext in {".html", ".htm", ".xhtml"}:
+        return SOURCE_FORMAT_HTML
+    content_type = (getattr(source_file, "content_type", "") or "").strip().lower()
+    if content_type in {"text/html", "application/xhtml+xml"}:
+        return SOURCE_FORMAT_HTML
+    if _looks_like_html_upload(source_file):
+        return SOURCE_FORMAT_HTML
+    return SOURCE_FORMAT_TXT
+
+
+def _is_allowed_source_upload(source_format: str, source_file) -> bool:
+    uploaded_ext = (Path(source_file.name).suffix or "").lower()
+    if uploaded_ext in _allowed_upload_exts(source_format):
+        return True
+    content_type = (getattr(source_file, "content_type", "") or "").strip().lower()
+    if content_type in _allowed_upload_content_types(source_format):
+        return True
+    if source_format == SOURCE_FORMAT_HTML:
+        return _looks_like_html_upload(source_file)
+    return _looks_like_text_upload(source_file)
+
+
+def _language_defaults(language_code: str) -> dict[str, str]:
+    labels = {
+        "en": "English",
+        "ptbr": "Portugues (Brasil)",
+        "es": "Espanol",
+        "de": "Deutsch",
+    }
+    label = labels.get(language_code, language_code)
+    return {"name": label, "native_name": label}
+
+
+def _insert_work_row_legacy_schema(
+    *,
+    book_code: str,
+    title: str,
+    subtitle: str,
+    publisher: str,
+    year: int | None,
+    language_code: str,
+    original_language_id: int,
+    author_id: int,
+) -> None:
+    now = timezone.now()
+    candidate_values: dict[str, object] = {
+        "code": book_code,
+        "title": title,
+        "subtitle": subtitle,
+        "publisher": publisher,
+        "year": year,
+        "is_public_domain": True,
+        "original_language_id": original_language_id,
+        "author_id": author_id,
+        "created_at": now,
+        "updated_at": now,
+    }
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT column_name, is_nullable, column_default, data_type, udt_name
+            FROM information_schema.columns
+            WHERE table_name = 'work'
+            ORDER BY ordinal_position
+            """
+        )
+        rows = cursor.fetchall()
+        table_columns = {row[0] for row in rows}
+
+        # Extra compatibility for legacy schema variants.
+        if "enabled_languages" in table_columns and "enabled_languages" not in candidate_values:
+            enabled_languages_meta = next((row for row in rows if row[0] == "enabled_languages"), None)
+            if enabled_languages_meta:
+                enabled_type = enabled_languages_meta[3]
+                if enabled_type == "ARRAY":
+                    candidate_values["enabled_languages"] = [language_code]
+                elif enabled_type in {"json", "jsonb"}:
+                    candidate_values["enabled_languages"] = json.dumps([language_code])
+                else:
+                    candidate_values["enabled_languages"] = language_code
+
+        # Fill unknown NOT NULL columns without default when possible.
+        for column_name, is_nullable, column_default, data_type, udt_name in rows:
+            if column_name in candidate_values:
+                continue
+            if column_name == "id":
+                continue
+            if is_nullable != "NO" or column_default is not None:
+                continue
+            if column_name.endswith("_id"):
+                continue
+            if data_type in {"character varying", "text"}:
+                candidate_values[column_name] = ""
+            elif data_type == "boolean":
+                candidate_values[column_name] = False
+            elif data_type in {"integer", "smallint", "bigint"}:
+                candidate_values[column_name] = 0
+            elif data_type in {"timestamp without time zone", "timestamp with time zone", "date"}:
+                candidate_values[column_name] = now
+            elif data_type == "ARRAY":
+                if udt_name in {"_varchar", "_text"}:
+                    candidate_values[column_name] = []
+            elif data_type in {"json", "jsonb"}:
+                candidate_values[column_name] = "[]"
+
+        insert_columns = [name for name in candidate_values if name in table_columns]
+        placeholders = ", ".join(["%s"] * len(insert_columns))
+        values = [candidate_values[name] for name in insert_columns]
+        columns_sql = ", ".join(insert_columns)
+        cursor.execute(
+            f"INSERT INTO work ({columns_sql}) VALUES ({placeholders}) ON CONFLICT (code) DO NOTHING",
+            values,
+        )
+
+
+def _insert_edition_row_legacy_schema(
+    *,
+    work_id: int,
+    language_id: int,
+    seal_id: int,
+    language_code: str,
+    seal_name: str,
+    template: BookEditionTemplate,
+    author_name: str,
+) -> None:
+    now = timezone.now()
+    parsed_book_id = _parse_book_id(template.book_code)
+    candidate_values: dict[str, object] = {
+        # Some legacy schemas require this explicit FK-like integer.
+        "book_id": parsed_book_id if parsed_book_id is not None else work_id,
+        "work_id": work_id,
+        "language_id": language_id,
+        "seal_id": seal_id,
+        "publisher": template.imprint_name or "",
+        "edition_year": template.edition_year,
+        "raw_source_path": "",
+        "title": template.title or template.book_code,
+        "subtitle": template.subtitle or "",
+        "author": author_name,
+        "adapter": template.adapter_name or "",
+        "translator": template.translator_name or "",
+        "editor": template.editor_name or "",
+        "about_edition_text": "",
+        "publication_year": template.publication_year or 2026,
+        "city": template.city_name or "Rio de Janeiro",
+        "country": template.country_name or "Brasil",
+        "imprint_name": template.imprint_name or "RinoBooks",
+        "seal_name": seal_name,
+        "frontispiece_template": template.frontispiece_text or "",
+        "copyright_template": template.copyright_text or "",
+        "about_edition_template": template.about_edition_text or "",
+        "about_contributor_template": template.about_contributor_text or "",
+        "cover_filepath": "",
+        "language_code": language_code,
+        "language_variant": language_code,
+        "lock_translate": False,
+        "lock_refine": False,
+        "lock_polish": False,
+        "miolo_source_stage": "",
+        "created_at": now,
+        "updated_at": now,
+    }
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT kcu.column_name, ccu.table_name
+            FROM information_schema.table_constraints AS tc
+            JOIN information_schema.key_column_usage AS kcu
+              ON tc.constraint_name = kcu.constraint_name
+             AND tc.table_schema = kcu.table_schema
+            JOIN information_schema.constraint_column_usage AS ccu
+              ON ccu.constraint_name = tc.constraint_name
+             AND ccu.table_schema = tc.table_schema
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+              AND tc.table_schema = current_schema()
+              AND tc.table_name = 'edition'
+            """
+        )
+        fk_map = {row[0]: row[1] for row in cursor.fetchall()}
+
+        cursor.execute(
+            """
+            SELECT column_name, is_nullable, column_default, data_type, udt_name
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = 'edition'
+            ORDER BY ordinal_position
+            """
+        )
+        rows = cursor.fetchall()
+        table_columns = {row[0] for row in rows}
+        has_book_id = "book_id" in table_columns
+        if has_book_id and (
+            "book_id" not in candidate_values or candidate_values.get("book_id") in (None, "")
+        ):
+            candidate_values["book_id"] = work_id
+
+        # Fill unknown NOT NULL columns without default when possible.
+        for column_name, is_nullable, column_default, data_type, udt_name in rows:
+            if column_name in candidate_values:
+                continue
+            if column_name == "id":
+                continue
+            if is_nullable != "NO" or column_default is not None:
+                continue
+            if column_name.endswith("_id"):
+                ref_table = fk_map.get(column_name, "")
+                if column_name == "book_id":
+                    candidate_values[column_name] = _parse_book_id(template.book_code) or work_id
+                    continue
+                if ref_table == "work":
+                    candidate_values[column_name] = work_id
+                    continue
+                if ref_table == "language":
+                    candidate_values[column_name] = language_id
+                    continue
+                if ref_table == "seal":
+                    candidate_values[column_name] = seal_id
+                    continue
+                continue
+            if column_name == "language_variant":
+                candidate_values[column_name] = language_code
+                continue
+            if data_type in {"character varying", "text"}:
+                candidate_values[column_name] = ""
+            elif data_type == "boolean":
+                candidate_values[column_name] = False
+            elif data_type in {"integer", "smallint", "bigint"}:
+                candidate_values[column_name] = 0
+            elif data_type in {"timestamp without time zone", "timestamp with time zone", "date"}:
+                candidate_values[column_name] = now
+            elif data_type == "ARRAY":
+                if udt_name in {"_varchar", "_text"}:
+                    candidate_values[column_name] = []
+            elif data_type in {"json", "jsonb"}:
+                candidate_values[column_name] = "{}"
+
+        insert_columns = [name for name in candidate_values if name in table_columns]
+        if has_book_id and "book_id" not in insert_columns:
+            insert_columns = ["book_id", *insert_columns]
+        placeholders = ", ".join(["%s"] * len(insert_columns))
+        values = [candidate_values[name] for name in insert_columns]
+        columns_sql = ", ".join(insert_columns)
+        cursor.execute(
+            f"INSERT INTO edition ({columns_sql}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
+            values,
+        )
+
+
+def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialEdition, bool]:
+    book_code = template.book_code
+    language_code = utils.normalize_lang(template.language)
+
+    language_obj, _ = Language.objects.get_or_create(
+        code=language_code,
+        defaults=_language_defaults(language_code),
+    )
+    author_name = (template.author_name or "").strip() or "Unknown Author"
+    author_obj, _ = Contributor.objects.get_or_create(name=author_name)
+
+    work_defaults = {
+        "title": template.title or book_code,
+        "original_language": language_obj,
+        "author": author_obj,
+        "publisher": template.imprint_name or "",
+        "year": template.publication_year or None,
+    }
+    try:
+        work_obj, _ = Work.objects.get_or_create(
+            code=book_code,
+            defaults=work_defaults,
+        )
+    except IntegrityError as exc:
+        # Legacy databases may require work.subtitle (NOT NULL) even if the current
+        # Django model no longer exposes that field.
+        if 'column "subtitle"' not in str(exc):
+            raise
+        _insert_work_row_legacy_schema(
+            book_code=book_code,
+            title=template.title or book_code,
+            subtitle=template.subtitle or "",
+            publisher=template.imprint_name or "",
+            year=template.publication_year or None,
+            language_code=language_code,
+            original_language_id=language_obj.id,
+            author_id=author_obj.id,
+        )
+        work_obj = Work.objects.get(code=book_code)
+
+    existing_edition = (
+        EditorialEdition.objects.select_related("work", "language", "seal")
+        .filter(work__code=book_code, language__code=language_code)
+        .first()
+    )
+    if existing_edition:
+        return existing_edition, False
+
+    seal_name = (template.seal_name or "").strip() or "MantaQuest"
+    seal_slug = slugify(seal_name) or "mantaquest"
+    seal_obj, _ = Seal.objects.get_or_create(
+        slug=seal_slug,
+        defaults={"name": seal_name},
+    )
+
+    try:
+        edition = EditorialEdition.objects.create(
+            work=work_obj,
+            language=language_obj,
+            seal=seal_obj,
+            publisher=template.imprint_name or "",
+            edition_year=template.edition_year,
+            title=template.title or work_obj.title,
+            subtitle=template.subtitle,
+            author=author_name,
+            adapter=template.adapter_name,
+            translator=template.translator_name,
+            editor=template.editor_name,
+            publication_year=template.publication_year or 2026,
+            city=template.city_name or "Rio de Janeiro",
+            country=template.country_name or "Brasil",
+            imprint_name=template.imprint_name or "RinoBooks",
+            seal_name=seal_name,
+            language_code=language_code,
+            frontispiece_template=template.frontispiece_text,
+            copyright_template=template.copyright_text,
+            about_edition_template=template.about_edition_text,
+            about_contributor_template=template.about_contributor_text,
+        )
+    except IntegrityError:
+        _insert_edition_row_legacy_schema(
+            work_id=work_obj.id,
+            language_id=language_obj.id,
+            seal_id=seal_obj.id,
+            language_code=language_code,
+            seal_name=seal_name,
+            template=template,
+            author_name=author_name,
+        )
+        edition = (
+            EditorialEdition.objects.select_related("work", "language", "seal")
+            .filter(work=work_obj, language=language_obj, seal=seal_obj)
+            .order_by("-id")
+            .first()
+        )
+        if edition is None:
+            raise
+    return edition, True
 
 
 def _html_artifact_paths(book_code: str, language: str, source_format: str) -> dict[str, Path]:
@@ -366,24 +753,42 @@ def book_edition_edit(request, book_code=None, language=None):
             ).first()
         )
 
-    selected_source_format = _normalize_source_format(
-        request.POST.get("source_format")
-        if request.method == "POST"
-        else (template.text_source_mode if template else SOURCE_FORMAT_TXT)
-    )
+    # When posting from the generic cadastro URL, load the existing template
+    # by the submitted pair to avoid duplicate (book_code, language) creation.
+    if request.method == "POST" and template is None:
+        posted_book_code = (request.POST.get("book_code") or "").strip()
+        posted_language = utils.normalize_lang((request.POST.get("language") or "").strip())
+        if posted_book_code and posted_language:
+            template = (
+                BookEditionTemplate.objects.filter(
+                    book_code=posted_book_code,
+                    language=posted_language,
+                ).first()
+            )
+
+    if request.method == "POST":
+        posted_source_format = _normalize_source_format(request.POST.get("source_format"))
+        selected_source_format = posted_source_format
+        if "source_format" not in request.POST and request.FILES.get("source_file"):
+            selected_source_format = _infer_source_format_from_upload(request.FILES.get("source_file"))
+    else:
+        selected_source_format = _normalize_source_format(
+            template.text_source_mode if template else SOURCE_FORMAT_TXT
+        )
 
     if request.method == "POST":
         form = BookEditionTemplateForm(request.POST, request.FILES, instance=template)
         if form.is_valid():
             source_file = form.cleaned_data.get("source_file")
-            allowed_exts = _allowed_upload_exts(selected_source_format)
-            uploaded_ext = (Path(source_file.name).suffix or "").lower() if source_file else ""
-
-            if source_file and uploaded_ext not in allowed_exts:
-                allowed_labels = ", ".join(sorted(allowed_exts))
+            if source_file and not _is_allowed_source_upload(selected_source_format, source_file):
+                allowed_exts = ", ".join(sorted(_allowed_upload_exts(selected_source_format)))
+                allowed_types = ", ".join(sorted(_allowed_upload_content_types(selected_source_format)))
                 form.add_error(
                     "source_file",
-                    f"Arquivo invalido para '{selected_source_format}'. Aceitos: {allowed_labels}.",
+                    (
+                        f"Arquivo invalido para '{selected_source_format}'. "
+                        f"Aceitos por extensao: {allowed_exts}; por tipo: {allowed_types}."
+                    ),
                 )
 
             if template is None and not source_file:
@@ -441,65 +846,89 @@ def book_edition_edit(request, book_code=None, language=None):
                 template.save(update_fields=["images_dir"])
                 saved_paths["images_dir"] = template.images_dir
 
-            edition = (
-                EditorialEdition.objects.select_related("work", "language", "seal")
-                .filter(work__code=book_code, language__code=language)
-                .first()
-            )
-            if edition:
-                edition.title = template.title
-                edition.subtitle = template.subtitle
-                edition.author = template.author_name
-                edition.adapter = template.adapter_name
-                edition.translator = template.translator_name
-                edition.editor = template.editor_name
-                edition.publication_year = template.publication_year
-                edition.city = template.city_name or edition.city
-                edition.country = template.country_name or edition.country
-                edition.imprint_name = template.imprint_name or edition.imprint_name
-                edition.seal_name = template.seal_name or edition.seal_name
-                if template.imprint_name:
-                    edition.publisher = template.imprint_name
-                edition.frontispiece_template = template.frontispiece_text
-                edition.copyright_template = template.copyright_text
-                edition.about_edition_template = template.about_edition_text
-                edition.about_contributor_template = template.about_contributor_text
-                if "raw_path" in saved_paths:
-                    edition.raw_source_path = saved_paths["raw_path"]
-                if "cover_path" in saved_paths:
-                    edition.cover_filepath = saved_paths["cover_path"]
-                edition.save()
-
-                texts, _ = EditionText.objects.get_or_create(edition=edition)
-                if "raw_path" in saved_paths:
-                    texts.raw_path = saved_paths["raw_path"]
-                texts.save(update_fields=["raw_path", "updated_at"])
-
-                pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                if "raw_path" in saved_paths:
-                    pipeline_state.raw_at = timezone.now()
-                    pipeline_state.current_stage = (
-                        STAGE_HTML_UPLOADED
-                        if selected_source_format == SOURCE_FORMAT_HTML
-                        else PipelineStage.RAW
+            try:
+                edition, edition_created = _ensure_editorial_edition(template)
+            except Exception as exc:
+                form.add_error(
+                    None,
+                    "Falha ao criar registro editorial automaticamente. "
+                    f"Detalhe tecnico: {exc}",
+                )
+                incoming_file = request.FILES.get("source_file")
+                if incoming_file:
+                    messages.warning(
+                        request,
+                        (
+                            f"Arquivo recebido ({incoming_file.name}), mas houve erro ao criar a edicao no DB. "
+                            "Corrija os erros e tente novamente."
+                        ),
                     )
-                    pipeline_state.save(update_fields=["raw_at", "current_stage"])
+                return render(
+                    request,
+                    "pipeline/book_edition_form.html",
+                    {
+                        "form": form,
+                        "source_format": selected_source_format,
+                    },
+                )
+            edition.title = template.title
+            edition.subtitle = template.subtitle
+            edition.author = template.author_name
+            edition.adapter = template.adapter_name
+            edition.translator = template.translator_name
+            edition.editor = template.editor_name
+            edition.publication_year = template.publication_year
+            edition.city = template.city_name or edition.city
+            edition.country = template.country_name or edition.country
+            edition.imprint_name = template.imprint_name or edition.imprint_name
+            edition.seal_name = template.seal_name or edition.seal_name
+            if template.imprint_name:
+                edition.publisher = template.imprint_name
+            edition.frontispiece_template = template.frontispiece_text
+            edition.copyright_template = template.copyright_text
+            edition.about_edition_template = template.about_edition_text
+            edition.about_contributor_template = template.about_contributor_text
+            if "raw_path" in saved_paths:
+                edition.raw_source_path = saved_paths["raw_path"]
+            if "cover_path" in saved_paths:
+                edition.cover_filepath = saved_paths["cover_path"]
+            edition.save()
 
-                kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
-                messages.success(request, f"Cadastro salvo e arquivos prontos para {book_code} [{language}].")
-                if selected_source_format == SOURCE_FORMAT_HTML:
-                    return redirect("pipeline_html_dashboard", edition_id=edition.id)
-                return redirect("edition_steps", edition_id=edition.id)
+            texts, _ = EditionText.objects.get_or_create(edition=edition)
+            if "raw_path" in saved_paths:
+                texts.raw_path = saved_paths["raw_path"]
+            texts.save(update_fields=["raw_path", "updated_at"])
 
-            messages.success(request, f"Template salvo para {book_code} [{language}].")
-            messages.info(
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            if "raw_path" in saved_paths:
+                pipeline_state.raw_at = timezone.now()
+                pipeline_state.current_stage = (
+                    STAGE_HTML_UPLOADED
+                    if selected_source_format == SOURCE_FORMAT_HTML
+                    else PipelineStage.RAW
+                )
+                pipeline_state.save(update_fields=["raw_at", "current_stage"])
+
+            kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
+            if edition_created:
+                messages.info(request, f"Edicao editorial criada automaticamente para {book_code} [{language}].")
+            messages.success(request, f"Cadastro salvo e arquivos prontos para {book_code} [{language}].")
+            if selected_source_format == SOURCE_FORMAT_HTML:
+                return redirect("pipeline_html_dashboard", edition_id=edition.id)
+            return redirect("edition_steps", edition_id=edition.id)
+        incoming_file = request.FILES.get("source_file")
+        if incoming_file:
+            messages.warning(
                 request,
-                "Edicao editorial nao encontrada; arquivos de template/upload foram salvos.",
+                (
+                    f"Arquivo recebido ({incoming_file.name}), mas o cadastro teve erro em outros campos. "
+                    "Veja os erros abaixo."
+                ),
             )
-            return redirect(
-                "book_edition_edit",
-                book_code=book_code,
-                language=language,
+        elif template is None:
+            messages.error(
+                request,
+                "Nenhum arquivo chegou ao backend nesta submissao. Selecione o arquivo novamente e envie.",
             )
     else:
         if template:

@@ -90,6 +90,16 @@
         </div>
       {% endif %}
 
+      {% if form.errors %}
+        <div class="alert">
+          {% for field, errors in form.errors.items %}
+            {% if field != "__all__" %}
+              <div class="error">{{ field }}: {{ errors|join:", " }}</div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -156,10 +166,19 @@
 
           <div style="margin-top:12px;">
             <label for="source_file">Arquivo</label><br />
-            <input id="source_file" name="source_file" type="file" {% if not form.instance.pk %}required{% endif %} />
+            <input
+              id="source_file"
+              name="source_file"
+              type="file"
+              accept=".html,.htm,.xhtml,.txt,.md,text/html,application/xhtml+xml,text/plain,text/markdown,text/x-markdown"
+              {% if not form.instance.pk %}required{% endif %}
+            />
             {% if form.source_file.errors %}<div class="error">{{ form.source_file.errors|join:", " }}</div>{% endif %}
+            <div id="file_selected" style="margin-top:6px; color:#444; font-size:0.95em;">
+              Nenhum arquivo selecionado.
+            </div>
             <div style="margin-top:6px; color:#666; font-size:0.95em;">
-              Aceita: HTML (.html/.htm) ou TXT/MD (.txt/.md) conforme selecao.
+              Aceita: HTML (.html/.htm/.xhtml) ou TXT/MD (.txt/.md) conforme selecao.
             </div>
           </div>
         </fieldset>
@@ -175,6 +194,8 @@
   <script>
     const radios = document.querySelectorAll('input[name="source_format"]');
     const hint = document.getElementById('hint');
+    const sourceFileInput = document.getElementById('source_file');
+    const fileSelected = document.getElementById('file_selected');
 
     function refreshHint() {
       const selected = document.querySelector('input[name="source_format"]:checked');
@@ -184,8 +205,17 @@
         : 'Se escolher TXT, o proximo passo sera <strong>Normalize/Clean</strong> (linha TXT).';
     }
 
-    radios.forEach((radio) => radio.addEventListener('change', refreshHint));
+    function refreshSelectedFile() {
+      const file = sourceFileInput.files && sourceFileInput.files[0];
+      fileSelected.textContent = file ? `Selecionado: ${file.name}` : "Nenhum arquivo selecionado.";
+    }
+
+    radios.forEach((radio) => radio.addEventListener('change', () => {
+      refreshHint();
+    }));
+    sourceFileInput.addEventListener('change', refreshSelectedFile);
     refreshHint();
+    refreshSelectedFile();
   </script>
 </body>
 </html>

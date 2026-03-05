@@ -88,6 +88,142 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertEqual(template.text_source_mode, "txt")
         mock_frontmatter.assert_called_once()
 
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_accepts_html_content_type_without_html_extension(self, mock_frontmatter):
+        upload = SimpleUploadedFile(
+            "source",
+            b"<html><body>Hello</body></html>",
+            content_type="text/html",
+        )
+        response = self.client.post(
+            self.cadastro_url,
+            data=self._payload("html", upload),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_accepts_xhtml_extension(self, mock_frontmatter):
+        upload = SimpleUploadedFile(
+            "source.xhtml",
+            b"<?xml version='1.0'?><html><body>Hello</body></html>",
+            content_type="application/xhtml+xml",
+        )
+        response = self.client.post(
+            self.cadastro_url,
+            data=self._payload("html", upload),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_accepts_html_content_with_octet_stream(self, mock_frontmatter):
+        upload = SimpleUploadedFile(
+            "source",
+            b"<!doctype html><html><body>Hello</body></html>",
+            content_type="application/octet-stream",
+        )
+        response = self.client.post(
+            self.cadastro_url,
+            data=self._payload("html", upload),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_infers_html_when_source_format_missing_in_post(self, mock_frontmatter):
+        upload = SimpleUploadedFile(
+            "pg108-images.html",
+            b"<!doctype html><html><body>Hello</body></html>",
+            content_type="text/html",
+        )
+        payload = self._payload("html", upload)
+        payload.pop("source_format")
+        response = self.client.post(
+            self.cadastro_url,
+            data=payload,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
+        self.assertEqual(template.text_source_mode, "html")
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_updates_existing_template_instead_of_duplicate(self, mock_frontmatter):
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title="Old Title",
+            author_name=self.author.name,
+            publication_year=2025,
+            text_source_mode="txt",
+        )
+        upload = SimpleUploadedFile(
+            "source.html",
+            b"<!doctype html><html><body>Updated</body></html>",
+            content_type="text/html",
+        )
+        response = self.client.post(
+            self.cadastro_url,
+            data=self._payload("html", upload),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        self.assertEqual(
+            BookEditionTemplate.objects.filter(book_code=self.work.code, language="en").count(),
+            1,
+        )
+        template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
+        self.assertEqual(template.title, "Book Test")
+        self.assertEqual(template.text_source_mode, "html")
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_creates_editorial_edition_when_missing(self, mock_frontmatter):
+        self.edition.delete()
+        upload = SimpleUploadedFile(
+            "source.html",
+            b"<!doctype html><html><body>Created</body></html>",
+            content_type="text/html",
+        )
+        response = self.client.post(
+            self.cadastro_url,
+            data=self._payload("html", upload),
+        )
+
+        created_edition = Edition.objects.filter(work__code=self.work.code, language__code="en").first()
+        self.assertIsNotNone(created_edition)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": created_edition.id}),
+        )
+        mock_frontmatter.assert_called_once()
+
 
 class HtmlLanePreprodConvertTests(TestCase):
     def setUp(self):

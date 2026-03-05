@@ -75,16 +75,29 @@ WSGI_APPLICATION = 'gaiden_portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("PGDATABASE", "gaiden_django"),
-        "USER": os.environ.get("PGUSER", "gaiden"),
-        "PASSWORD": os.environ.get("PGPASSWORD", "gaiden"),
-        "HOST": os.environ.get("PGHOST", "127.0.0.1"),
-        "PORT": os.environ.get("PGPORT", "5432"),
+
+def _has_pg_env() -> bool:
+    return bool(os.getenv("PGHOST")) and bool(os.getenv("PGDATABASE")) and bool(os.getenv("PGUSER"))
+
+
+if _has_pg_env():
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ["PGDATABASE"],
+            "USER": os.environ["PGUSER"],
+            "PASSWORD": os.environ.get("PGPASSWORD", ""),
+            "HOST": os.environ["PGHOST"],
+            "PORT": os.environ.get("PGPORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
