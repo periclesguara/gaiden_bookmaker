@@ -51,6 +51,41 @@ from .services import (
     utils,
 )
 
+SOURCE_FORMAT_HTML = "html"
+SOURCE_FORMAT_TXT = "txt"
+SOURCE_FORMAT_ALLOWED = {SOURCE_FORMAT_HTML, SOURCE_FORMAT_TXT}
+
+
+def _normalize_source_format(value: str | None) -> str:
+    normalized = (value or "").strip().lower()
+    if normalized not in SOURCE_FORMAT_ALLOWED:
+        return SOURCE_FORMAT_TXT
+    return normalized
+
+
+def _source_format_from_template(template: BookEditionTemplate | None) -> str:
+    if template is None:
+        return SOURCE_FORMAT_TXT
+    return _normalize_source_format(getattr(template, "text_source_mode", SOURCE_FORMAT_TXT))
+
+
+def _allowed_upload_exts(source_format: str) -> set[str]:
+    if source_format == SOURCE_FORMAT_HTML:
+        return {".html", ".htm"}
+    return {".txt", ".md"}
+
+
+def _html_artifact_paths(book_code: str, language: str, source_format: str) -> dict[str, Path]:
+    source_ext = "html" if source_format == SOURCE_FORMAT_HTML else "txt"
+    base = Path("data") / "builds" / book_code / language / "html_pipeline"
+    return {
+        "source_original": base / "source" / f"original.{source_ext}",
+        "preprod_clean_html": base / "preprod" / "clean.html",
+        "md_source": base / "md" / "source.md",
+        "md_normalized": base / "md" / "normalized.md",
+        "md_canonical": Path("data") / "canonical" / book_code / language / "canonical.md",
+    }
+
 
 def pipeline_dashboard(request):
     pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
@@ -109,6 +144,103 @@ def book_edition_list(request):
     return render(request, "pipeline/book_edition_list.html", {"editions": editions})
 
 
+def pipeline_html_dashboard(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, language = _edition_codes(edition)
+    language = utils.normalize_lang(language)
+    root = Path(settings.BASE_DIR).parent
+
+    template = (
+        BookEditionTemplate.objects.filter(book_code=book_code, language=language).first()
+    )
+    source_format = _source_format_from_template(template)
+    if source_format != SOURCE_FORMAT_HTML:
+        messages.info(request, "Esta edicao esta configurada como TXT. Seguindo para o pipeline comum.")
+        return redirect("edition_steps", edition_id=edition.id)
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    artifacts = _html_artifact_paths(book_code, language, source_format)
+    artifact_rows = [
+        {
+            "label": "Original",
+            "path": str(artifacts["source_original"]),
+            "exists": (root / artifacts["source_original"]).exists(),
+        },
+        {
+            "label": "Clean HTML",
+            "path": str(artifacts["preprod_clean_html"]),
+            "exists": (root / artifacts["preprod_clean_html"]).exists(),
+        },
+        {
+            "label": "Source MD",
+            "path": str(artifacts["md_source"]),
+            "exists": (root / artifacts["md_source"]).exists(),
+        },
+        {
+            "label": "Normalized MD",
+            "path": str(artifacts["md_normalized"]),
+            "exists": (root / artifacts["md_normalized"]).exists(),
+        },
+        {
+            "label": "Canonical MD",
+            "path": str(artifacts["md_canonical"]),
+            "exists": (root / artifacts["md_canonical"]).exists(),
+        },
+    ]
+
+    return render(
+        request,
+        "pipeline/html_pipeline_dashboard.html",
+        {
+            "edition": edition,
+            "book_code": book_code,
+            "language": language,
+            "source_format": source_format,
+            "current_stage": pipeline_state.current_stage,
+            "last_log": pipeline_state.last_log,
+            "artifact_rows": artifact_rows,
+            "raw_source_path": edition.raw_source_path,
+        },
+    )
+
+
+def _run_html_placeholder(request, edition_id: int, action_label: str):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, language = _edition_codes(edition)
+    language = utils.normalize_lang(language)
+    template = BookEditionTemplate.objects.filter(book_code=book_code, language=language).first()
+    source_format = _source_format_from_template(template)
+    if source_format != SOURCE_FORMAT_HTML:
+        messages.error(request, "Acao HTML indisponivel: source_format atual nao e HTML.")
+        return redirect("edition_steps", edition_id=edition.id)
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.last_log = (
+        f"{timezone.now().isoformat()} :: {action_label} placeholder executado (sem processamento real)."
+    )
+    pipeline_state.save(update_fields=["last_log"])
+    messages.success(request, f"{action_label}: placeholder executado.")
+    return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+
+def pipeline_html_preprod_run(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("pipeline_html_dashboard", edition_id=edition_id)
+    return _run_html_placeholder(request, edition_id, "Pre-producao HTML")
+
+
+def pipeline_html_convert_run(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("pipeline_html_dashboard", edition_id=edition_id)
+    return _run_html_placeholder(request, edition_id, "Conversao HTML -> MD")
+
+
+def pipeline_html_md_normalize_run(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("pipeline_html_dashboard", edition_id=edition_id)
+    return _run_html_placeholder(request, edition_id, "Normalize MD")
+
+
 def book_edition_edit(request, book_code=None, language=None):
     initial_book_code = (book_code or request.GET.get("book_code") or "").strip()
     initial_language = utils.normalize_lang((language or request.GET.get("language") or "en").strip())
@@ -122,10 +254,33 @@ def book_edition_edit(request, book_code=None, language=None):
             ).first()
         )
 
+    selected_source_format = _normalize_source_format(
+        request.POST.get("source_format")
+        if request.method == "POST"
+        else (template.text_source_mode if template else SOURCE_FORMAT_TXT)
+    )
+
     if request.method == "POST":
         form = BookEditionTemplateForm(request.POST, request.FILES, instance=template)
         if form.is_valid():
-            template = form.save()
+            source_file = form.cleaned_data.get("source_file")
+            allowed_exts = _allowed_upload_exts(selected_source_format)
+            uploaded_ext = (Path(source_file.name).suffix or "").lower() if source_file else ""
+
+            if source_file and uploaded_ext not in allowed_exts:
+                allowed_labels = ", ".join(sorted(allowed_exts))
+                form.add_error(
+                    "source_file",
+                    f"Arquivo invalido para '{selected_source_format}'. Aceitos: {allowed_labels}.",
+                )
+
+            if template is None and not source_file:
+                form.add_error("source_file", "Envie o arquivo de origem no cadastro inicial.")
+
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.text_source_mode = selected_source_format
+            template.save()
             book_code = template.book_code
             language = utils.normalize_lang(template.language)
             root = Path(settings.BASE_DIR).parent
@@ -135,7 +290,8 @@ def book_edition_edit(request, book_code=None, language=None):
             if source_file:
                 raw_dir = root / "data" / "raw" / book_code
                 raw_dir.mkdir(parents=True, exist_ok=True)
-                ext = Path(source_file.name).suffix or ".txt"
+                default_ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
+                ext = (Path(source_file.name).suffix or default_ext).lower()
                 raw_path = raw_dir / f"{book_code}_{language}_raw{ext}"
                 with raw_path.open("wb") as dest:
                     for chunk in source_file.chunks():
@@ -215,6 +371,8 @@ def book_edition_edit(request, book_code=None, language=None):
 
                 kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
                 messages.success(request, f"Cadastro salvo e arquivos prontos para {book_code} [{language}].")
+                if selected_source_format == SOURCE_FORMAT_HTML:
+                    return redirect("pipeline_html_dashboard", edition_id=edition.id)
                 return redirect("edition_steps", edition_id=edition.id)
 
             messages.success(request, f"Template salvo para {book_code} [{language}].")
@@ -241,7 +399,10 @@ def book_edition_edit(request, book_code=None, language=None):
     return render(
         request,
         "pipeline/book_edition_form.html",
-        {"form": form},
+        {
+            "form": form,
+            "source_format": selected_source_format,
+        },
     )
 
 
@@ -698,6 +859,19 @@ def _consolidate_internal_images(images_dir: Path, consolidated_dir: Path) -> di
 def edition_steps(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
+    normalized_language = utils.normalize_lang(language)
+    source_template = (
+        BookEditionTemplate.objects.filter(book_code=book_code, language=normalized_language).first()
+    )
+    if source_template is None:
+        messages.warning(request, "Cadastro obrigatorio: preencha a Etapa 1 antes de acessar o pipeline.")
+        return redirect("book_edition_edit", book_code=book_code, language=normalized_language)
+
+    source_format = _source_format_from_template(source_template)
+    allow_html_to_common = request.GET.get("allow_html_to_common") == "1"
+    if source_format == SOURCE_FORMAT_HTML and not allow_html_to_common:
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
     texts = EditionText.objects.filter(edition=edition).first()
     raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
 
@@ -1236,6 +1410,7 @@ def edition_steps(request, edition_id: int):
 
     context = {
         "edition": edition,
+        "source_format": source_format,
         "status": {
             "raw": _status(bool(raw_path)),
             "normalize": _status(bool(pipeline_state.normalized_at)),

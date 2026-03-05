@@ -3,6 +3,22 @@ from . import views
 
 urlpatterns = [
     path("", views.pipeline_dashboard, name="pipeline_dashboard"),
+    path("html/<int:edition_id>/", views.pipeline_html_dashboard, name="pipeline_html_dashboard"),
+    path(
+        "html/<int:edition_id>/preprod/run/",
+        views.pipeline_html_preprod_run,
+        name="pipeline_html_preprod_run",
+    ),
+    path(
+        "html/<int:edition_id>/convert/run/",
+        views.pipeline_html_convert_run,
+        name="pipeline_html_convert_run",
+    ),
+    path(
+        "html/<int:edition_id>/md_normalize/run/",
+        views.pipeline_html_md_normalize_run,
+        name="pipeline_html_md_normalize_run",
+    ),
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/edit/", views.book_edition_edit, name="book_edition_new"),
