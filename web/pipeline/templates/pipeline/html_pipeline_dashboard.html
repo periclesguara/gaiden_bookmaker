@@ -75,6 +75,12 @@
       background: #fff;
       color: var(--accent);
     }
+    .btn.disabled, .btn[disabled] {
+      background: #9aa4b2;
+      border-color: #9aa4b2;
+      color: #f3f4f6;
+      cursor: not-allowed;
+    }
     ul {
       margin: 8px 0 0;
       padding-left: 20px;
@@ -102,6 +108,37 @@
       <section class="card">
         {% for message in messages %}
           <div>{{ message }}</div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if report_payload %}
+      <section class="card">
+        <h2>Report Preprod</h2>
+        <p class="muted">ok_to_convert: <strong>{{ report_payload.ok_to_convert }}</strong></p>
+        <p class="muted">headings_found: {{ report_payload.headings_found }} | chapters_detected: {{ report_payload.chapters_detected }}</p>
+        {% if report_payload.warnings %}
+          <div class="muted">Warnings:</div>
+          <ul>
+            {% for warn in report_payload.warnings %}
+              <li>{{ warn }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if report_payload.errors %}
+          <div class="muted">Errors:</div>
+          <ul>
+            {% for err in report_payload.errors %}
+              <li>{{ err }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    {% endif %}
+    {% if report_errors %}
+      <section class="card">
+        {% for err in report_errors %}
+          <div>{{ err }}</div>
         {% endfor %}
       </section>
     {% endif %}
@@ -136,9 +173,12 @@
         <div class="actions">
           <form method="post" action="{% url 'pipeline_html_preprod_run' edition.id %}">
             {% csrf_token %}
-            <button class="btn" type="submit">Rodar</button>
+            <button class="btn" type="submit" {% if not can_run_preprod %}disabled{% endif %}>Rodar</button>
           </form>
         </div>
+        {% if not can_run_preprod %}
+          <div class="muted">Envie o RAW HTML no cadastro para habilitar.</div>
+        {% endif %}
       </div>
 
       <div class="step">
@@ -146,9 +186,12 @@
         <div class="actions">
           <form method="post" action="{% url 'pipeline_html_convert_run' edition.id %}">
             {% csrf_token %}
-            <button class="btn" type="submit">Rodar</button>
+            <button class="btn" type="submit" {% if not can_run_convert %}disabled{% endif %}>Rodar</button>
           </form>
         </div>
+        {% if not can_run_convert %}
+          <div class="muted">Requer stage >= HTML_PREPROD_READY e report ok_to_convert=true.</div>
+        {% endif %}
       </div>
 
       <div class="step">
@@ -171,6 +214,9 @@
             Voltar ao dashboard
           </a>
         </div>
+        {% if not can_continue_common %}
+          <div class="muted">Dica: rode "Converter HTML -> MD" antes de seguir.</div>
+        {% endif %}
       </div>
     </section>
   </main>
