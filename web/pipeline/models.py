@@ -272,6 +272,9 @@ class BookEditionTemplate(models.Model):
     adapter_name = models.CharField(max_length=255, blank=True)
     city_name = models.CharField(max_length=255, blank=True)
     country_name = models.CharField(max_length=255, blank=True)
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
+    edition_year = models.IntegerField(null=True, blank=True)
+    edition_copyright_holder = models.CharField(max_length=120, blank=True, default="")
     cover_filepath = models.CharField(
         "Cover file path",
         max_length=500,
