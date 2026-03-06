@@ -1517,6 +1517,57 @@ def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
     return Path(settings.BASE_DIR).parent / out_dir
 
 
+def _build_runtime_refine_contract(edition, target_language: str) -> tuple[Path, Path, Path]:
+    payload = json.loads(_select_refine_contract(target_language).read_text(encoding="utf-8"))
+    source_dir = _runtime_translate_dir_for_edition(edition, target_language)
+    if not source_dir.exists():
+        raise FileNotFoundError(f"Translate chunks not found for refine: {source_dir}. Run Translate first.")
+
+    refine_input_dir = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "editions"
+        / str(edition.id)
+        / "core"
+        / f"refine_input_{utils.normalize_lang(target_language)}"
+    )
+    refine_input_dir.mkdir(parents=True, exist_ok=True)
+    for stale in refine_input_dir.glob("*.txt"):
+        stale.unlink()
+
+    source_chunks = [
+        p for p in sorted(source_dir.glob("*.txt"))
+        if not (p.name == "merged.txt" or p.name.startswith("merged_"))
+    ]
+    if not source_chunks:
+        raise FileNotFoundError(f"No translate chunks found in {source_dir} for refine input.")
+    for path in source_chunks:
+        shutil.copyfile(path, refine_input_dir / path.name)
+
+    out_dir = source_dir / "return_aldebaran"
+    payload["chunk_dir"] = str(refine_input_dir)
+    payload["out_dir"] = str(out_dir)
+    payload["target_language"] = utils.normalize_lang(target_language)
+    if not isinstance(payload.get("output"), dict):
+        payload["output"] = {}
+    payload["output"]["language"] = utils.normalize_lang(target_language)
+
+    runtime_contract_path = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "editions"
+        / str(edition.id)
+        / "core"
+        / f"contract_refine_{utils.normalize_lang(target_language)}.json"
+    )
+    runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
+    runtime_contract_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return runtime_contract_path, refine_input_dir, out_dir
+
+
 def _resolve_core_path(path_value: str) -> Path:
     candidate = Path(path_value)
     if candidate.is_absolute():
@@ -2688,8 +2739,6 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, "Translate OK")
 
         elif step == "refine":
-            from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
-
             refine_step = next(
                 (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "refine"),
                 None,
@@ -2708,14 +2757,41 @@ def run_edition_step(request, edition_id: int, step: str):
                     f"Translate chunks not found for refine: {source_dir}. Run Translate first."
                 )
 
-            out_dir_path = source_dir / "return_aldebaran"
-            result = run_aldebaran_refine_return(
-                chunk_dir=source_dir,
-                out_dir=out_dir_path,
-                merge_name=f"merge_refine_{target_language}.txt",
-                agent_name="Aldebaran",
-            )
-            merged_path = Path(result["merge_path"])
+            try:
+                from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+
+                out_dir_path = source_dir / "return_aldebaran"
+                result = run_aldebaran_refine_return(
+                    chunk_dir=source_dir,
+                    out_dir=out_dir_path,
+                    merge_name=f"merge_refine_{target_language}.txt",
+                    agent_name="Aldebaran",
+                )
+                merged_path = Path(result["merge_path"])
+            except ModuleNotFoundError:
+                from gaiden.translate import run_translate_with_contract
+
+                runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
+                    target_edition, target_language
+                )
+                run_translate_with_contract(runtime_contract_path)
+                merged_candidates = [
+                    out_dir_path / f"merge_refine_{target_language}.txt",
+                    out_dir_path / "merge_refine.txt",
+                    out_dir_path / "merged_return_aldebaran.txt",
+                    out_dir_path / "merged.txt",
+                ]
+                merged_candidates.extend(sorted(out_dir_path.glob("merged_*.txt")))
+                merged_path = next((p for p in merged_candidates if p.exists()), None)
+                if merged_path is None:
+                    raise FileNotFoundError(f"Refine merged output not found in {out_dir_path}")
+                result = {
+                    "agent_name": "Aldebaran (contract-fallback)",
+                    "source_dir": str(refine_input_dir),
+                    "report_path": str(runtime_contract_path),
+                    "merge_path": str(merged_path),
+                }
+
             build_path = _copy_merge_to_build(
                 target_edition,
                 merged_path,
