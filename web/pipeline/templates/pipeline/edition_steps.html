@@ -185,7 +185,7 @@
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Split</button>
+          <button class="btn" type="submit">Split Struct</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split_by_chapter' %}">
           {% csrf_token %}
@@ -193,7 +193,7 @@
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Chunk</button>
+          <button class="btn" type="submit">Chunk (split_01)</button>
         </form>
         <form method="post" action="{% url 'pipeline_heading_cleaner_run' edition.id %}">
           {% csrf_token %}
@@ -202,14 +202,18 @@
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');">
           {% csrf_token %}
-          <select name="target_language" aria-label="Idioma de traducao">
+          <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
             <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
             <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
             <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
           </select>
-          <button id="btn_translate" class="btn" type="submit" {% if not can_translate %}disabled{% endif %}>Translate</button>
+          <button id="btn_translate" class="btn" type="submit" {% if not can_translate %}disabled{% endif %}>Translate (Contrato JSON)</button>
         </form>
+        <div class="status">
+          Etapa 1: Translate por contrato.
+          <strong id="translate_contract_path"></strong>
+        </div>
         {% if not can_translate %}
         <div id="translate_prereq_msg" class="status">
           Prerequisito: rode HeadingCleaner (gera <code>data/chunks/.../heading_cleaner/*.clean.txt</code>).
@@ -262,7 +266,7 @@
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'refine' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Refine (full text)</button>
+          <button class="btn" type="submit">Refine (Aldebaran)</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
           {% csrf_token %}
@@ -537,14 +541,30 @@
     const mdSourceMap = {{ md_source_map|safe }};
     const mdSelect = document.getElementById("md_language");
     const mdSourceLabel = document.getElementById("md_source_path");
+    const translateContractMap = {{ translate_contract_map|safe }};
+    const translateSelect = document.getElementById("translate_target_language");
+    const translateContractLabel = document.getElementById("translate_contract_path");
+
     function updateMdSource() {
       if (!mdSelect || !mdSourceLabel) return;
       const lang = mdSelect.value;
       mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
     }
+
+    function updateTranslateContract() {
+      if (!translateSelect || !translateContractLabel) return;
+      const lang = translateSelect.value;
+      const contractPath = translateContractMap[lang] || "contrato nao encontrado";
+      translateContractLabel.textContent = contractPath;
+    }
+
     if (mdSelect) {
       mdSelect.addEventListener("change", updateMdSource);
       updateMdSource();
+    }
+    if (translateSelect) {
+      translateSelect.addEventListener("change", updateTranslateContract);
+      updateTranslateContract();
     }
   </script>
 </body>

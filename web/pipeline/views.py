@@ -2119,6 +2119,18 @@ def edition_steps(request, edition_id: int):
         for lang in ("en", "es", "ptbr", "de")
     }
     md_source_map_json = json.dumps(md_source_map)
+    translate_contract_map: dict[str, str] = {}
+    project_root = Path(settings.BASE_DIR).parent
+    for lang in ("en", "es", "ptbr", "de"):
+        try:
+            contract_path = _select_contract_path(lang)
+            try:
+                translate_contract_map[lang] = str(contract_path.relative_to(project_root))
+            except ValueError:
+                translate_contract_map[lang] = str(contract_path)
+        except ValueError:
+            translate_contract_map[lang] = ""
+    translate_contract_map_json = json.dumps(translate_contract_map)
     if PipelineRun is not None:
         matrix_runs = (
             PipelineRun.objects.filter(items__book_code=book_code)
@@ -2175,6 +2187,7 @@ def edition_steps(request, edition_id: int):
         "frontmatter_locked": frontmatter_locked,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
+        "translate_contract_map": translate_contract_map_json,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
         "pipeline_prereqs": {
