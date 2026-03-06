@@ -1477,6 +1477,8 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
 
     chunk_dir, input_glob, source_label = _translate_source_chunks(book_code)
     out_dir = _runtime_translate_out_dir(book_code, target_language, payload)
+    if not out_dir.is_absolute():
+        out_dir = Path(settings.BASE_DIR).parent / out_dir
 
     payload["chunk_dir"] = str(chunk_dir)
     payload["input_glob"] = input_glob
@@ -2639,7 +2641,8 @@ def run_edition_step(request, edition_id: int, step: str):
                 contract_payload = json.loads(contract_path.read_text(encoding="utf-8"))
                 contract_payload["chunk_dir"] = str(core_chunks_dir)
                 contract_payload["out_dir"] = str(
-                    Path("data")
+                    Path(settings.BASE_DIR).parent
+                    / "data"
                     / "editions"
                     / str(target_edition.id)
                     / "translate"
