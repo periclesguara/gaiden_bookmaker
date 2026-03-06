@@ -42,3 +42,7 @@ _vault/
 BOOK.MD_FINAL*
 kdp_merged/
 *.epub
+
+# django runtime artifacts (do not commit)
+web/data/
+!web/data/README.md
