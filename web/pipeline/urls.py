@@ -30,9 +30,34 @@ urlpatterns = [
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),
     path("editions/<int:edition_id>/steps/", views.edition_steps, name="edition_steps"),
     path(
+        "editions/<int:edition_id>/normalize/run/",
+        views.pipeline_normalize_run,
+        name="pipeline_normalize_run",
+    ),
+    path(
+        "editions/<int:edition_id>/chunk/run/",
+        views.pipeline_chunk_run,
+        name="pipeline_chunk_run",
+    ),
+    path(
         "editions/<int:edition_id>/heading_cleaner/run/",
         views.pipeline_heading_cleaner_run,
         name="pipeline_heading_cleaner_run",
+    ),
+    path(
+        "editions/<int:edition_id>/translate/run/",
+        views.pipeline_translate_run,
+        name="pipeline_translate_run",
+    ),
+    path(
+        "editions/<int:edition_id>/refine/run/",
+        views.pipeline_refine_run,
+        name="pipeline_refine_run",
+    ),
+    path(
+        "editions/<int:edition_id>/merge_refine/run/",
+        views.pipeline_merge_refine_run,
+        name="pipeline_merge_refine_run",
     ),
     path(
         "editions/<int:edition_id>/steps/run/<str:step>/",

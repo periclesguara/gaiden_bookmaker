@@ -179,46 +179,59 @@
           <input type="file" name="raw_file" required />
           <button class="btn secondary" type="submit">Salvar RAW (upload)</button>
         </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'normalize' %}">
+        {% for s in pipeline01_steps %}
+        <div class="status">
+          <strong>{{ s.n }}) {{ s.title }}</strong>
+          {% if s.done %}
+            <span class="badge ok">OK</span>
+          {% elif s.can_run %}
+            <span class="badge">pronto</span>
+          {% else %}
+            <span class="badge warn">bloqueado</span>
+          {% endif %}
+          {% if s.block_reason %}
+            {{ s.block_reason }}
+          {% endif %}
+        </div>
+        <div class="status">
+          {% if s.notes %}{{ s.notes }}{% endif %}
+        </div>
+        <div class="status">
+          Saidas:
+          {% for out in s.outputs %}
+            <code>{{ out }}</code>
+          {% endfor %}
+        </div>
+        <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
           {% csrf_token %}
-          <button class="btn" type="submit">Normalize</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split' %}">
-          {% csrf_token %}
-          <button class="btn" type="submit">Split Struct</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split_by_chapter' %}">
-          {% csrf_token %}
-          <button class="btn secondary" type="submit">Split by Chapter</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'chunk' %}">
-          {% csrf_token %}
-          <button class="btn" type="submit">Chunk (split_01)</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_heading_cleaner_run' edition.id %}">
-          {% csrf_token %}
+          {% if s.key == "heading_cleaner" %}
           <input type="hidden" name="agent_name" value="Agente01" />
-          <button class="btn secondary" type="submit">Rodar HeadingCleaner</button>
-        </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');">
-          {% csrf_token %}
+          {% endif %}
+          {% if s.key == "translate" %}
           <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
             <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
             <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
             <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
           </select>
-          <button id="btn_translate" class="btn" type="submit" {% if not can_translate %}disabled{% endif %}>Translate (Contrato JSON)</button>
+          <span class="status">Contrato: <strong id="translate_contract_path"></strong></span>
+          {% endif %}
+          <button
+            {% if s.key == "translate" %}id="btn_translate"{% endif %}
+            {% if s.key == "refine" %}id="btn_refine"{% endif %}
+            class="btn"
+            type="submit"
+            {% if not s.can_run %}disabled{% endif %}
+          >
+            {{ s.button_label }}
+          </button>
         </form>
-        <div class="status">
-          Etapa 1: Translate por contrato.
-          <strong id="translate_contract_path"></strong>
-        </div>
-        {% if not can_translate %}
+        {% if s.key == "translate" and not s.can_run %}
         <div id="translate_prereq_msg" class="status">
           Prerequisito: rode HeadingCleaner (gera <code>data/chunks/.../heading_cleaner/*.clean.txt</code>).
         </div>
         {% endif %}
+        {% endfor %}
         <a class="btn secondary" href="{% url 'preview_merge_translate' edition_id=edition.id %}">
           Preview Merge Translate
         </a>
@@ -264,10 +277,6 @@
           </select>
           <button class="btn secondary" type="submit">Next step</button>
         </form>
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'refine' %}">
-          {% csrf_token %}
-          <button class="btn" type="submit">Refine (Aldebaran)</button>
-        </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
           {% csrf_token %}
           <button class="btn secondary" type="submit">Polish (optional)</button>
@@ -300,18 +309,11 @@
           <span class="badge">nenhum arquivo</span>
         {% endif %}
       </div>
+      {% for s in pipeline01_steps %}
       <div class="status">
-        Normalize: <strong>{{ status.normalize }}</strong>
+        {{ s.n }}) {{ s.title }}: <strong>{% if s.done %}OK{% elif s.can_run %}pronto{% else %}bloqueado{% endif %}</strong>
       </div>
-      <div class="status">
-        Split: <strong>{{ status.split }}</strong>
-      </div>
-      <div class="status">
-        HeadingCleaner: <strong>{{ status.heading_cleaner }}</strong>
-        {% if pipeline_prereqs.heading_clean_count %}
-          <span class="badge ok">{{ pipeline_prereqs.heading_clean_count }} clean chunks</span>
-        {% endif %}
-      </div>
+      {% endfor %}
       <div class="status">
         Gate normalize_v2:
         {% if pipeline_prereqs.normalized_v2_exists %}

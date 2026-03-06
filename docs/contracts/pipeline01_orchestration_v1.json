@@ -1,0 +1,57 @@
+{
+  "name": "pipeline01_orchestration_v1",
+  "version": 1,
+  "steps": [
+    {
+      "n": 1,
+      "key": "normalize",
+      "title": "Normalize",
+      "outputs": [
+        "data/normalized/{book}_{lang}_v2.txt"
+      ]
+    },
+    {
+      "n": 2,
+      "key": "chunk",
+      "title": "Split/Chunk",
+      "outputs": [
+        "data/chunks/{book}/split_01/*.txt"
+      ]
+    },
+    {
+      "n": 3,
+      "key": "heading_cleaner",
+      "title": "HeadingCleaner (OpenAI)",
+      "outputs": [
+        "data/chunks/{book}/heading_cleaner/*.clean.txt"
+      ]
+    },
+    {
+      "n": 4,
+      "key": "translate",
+      "title": "Translate (script + JSON)",
+      "contract_path": "gaiden/contracts/{contract}.json",
+      "outputs": [
+        "data/translated/{book}/{lang_variant}/*.txt",
+        "data/builds/{book}/{lang}/merge_translate.txt"
+      ]
+    },
+    {
+      "n": 5,
+      "key": "refine",
+      "title": "Refine (Aldebaran)",
+      "outputs": [
+        "data/translated/{book}/{lang_variant}/return_aldebaran/*.txt",
+        "data/builds/{book}/{lang}/merge_refine.txt"
+      ]
+    },
+    {
+      "n": 6,
+      "key": "merge_refine",
+      "title": "Merge/Finalize",
+      "outputs": [
+        "data/translated/{book}/merge_refine_clean.txt"
+      ]
+    }
+  ]
+}

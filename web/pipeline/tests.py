@@ -618,3 +618,54 @@ class HeadingCleanerGateTests(TestCase):
         self.assertTrue(bool(response.context["can_translate"]))
         self.assertNotRegex(html, r'id="btn_translate"[^>]*disabled')
         self.assertNotIn("translate_prereq_msg", html)
+
+    def test_pipeline01_step_order_is_fixed(self):
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        expected = [
+            "1) Normalize",
+            "2) Split/Chunk",
+            "3) HeadingCleaner (OpenAI)",
+            "4) Translate (script + JSON)",
+            "5) Refine (Aldebaran)",
+            "6) Merge/Finalize",
+        ]
+        positions = [html.find(item) for item in expected]
+        self.assertTrue(all(pos >= 0 for pos in positions))
+        self.assertEqual(positions, sorted(positions))
+
+    def test_translate_disabled_without_heading_cleaner(self):
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        self.assertRegex(html, r'id="btn_translate"[^>]*disabled')
+
+    def test_translate_shows_contract_path(self):
+        response = self.client.get(self.steps_url)
+
+        self.assertContains(response, "gaiden/contracts/en_modern_2025.json")
+
+    def test_refine_disabled_without_translate_outputs(self):
+        self.client.post(self.heading_url)
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        self.assertRegex(html, r'id="btn_refine"[^>]*disabled')
+
+    def test_heading_cleaner_smoke_keeps_step_order(self):
+        self.client.post(self.heading_url)
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        expected = [
+            "1) Normalize",
+            "2) Split/Chunk",
+            "3) HeadingCleaner (OpenAI)",
+            "4) Translate (script + JSON)",
+            "5) Refine (Aldebaran)",
+            "6) Merge/Finalize",
+        ]
+        positions = [html.find(item) for item in expected]
+        self.assertTrue(all(pos >= 0 for pos in positions))
+        self.assertEqual(positions, sorted(positions))
