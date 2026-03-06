@@ -170,15 +170,15 @@
               id="source_file"
               name="source_file"
               type="file"
-              accept=".html,.htm,.xhtml,.txt,.md,text/html,application/xhtml+xml,text/plain,text/markdown,text/x-markdown"
-              {% if not form.instance.pk %}required{% endif %}
+              accept=".html,.htm,.txt"
+              required
             />
             {% if form.source_file.errors %}<div class="error">{{ form.source_file.errors|join:", " }}</div>{% endif %}
             <div id="file_selected" style="margin-top:6px; color:#444; font-size:0.95em;">
               Nenhum arquivo selecionado.
             </div>
             <div style="margin-top:6px; color:#666; font-size:0.95em;">
-              Aceita: HTML (.html/.htm/.xhtml) ou TXT/MD (.txt/.md) conforme selecao.
+              Aceita: HTML (.html/.htm) ou TXT (.txt) conforme selecao.
             </div>
           </div>
         </fieldset>

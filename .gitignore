@@ -32,7 +32,11 @@ exports/*
 data/db/gaiden.sqlite3
 web/db.sqlite3
 docs/audit/
-data/builds/
+# pipeline artifacts
+data/**
+!data/**/
+!data/README.md
+!data/**/README.md
 web/data/builds/
 _vault/
 BOOK.MD_FINAL*
