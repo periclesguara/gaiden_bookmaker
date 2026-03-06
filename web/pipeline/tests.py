@@ -398,6 +398,16 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.edition.raw_source_path = str(self.raw_path)
         self.edition.save(update_fields=["raw_source_path"])
 
+    def test_html_dashboard_shows_step1_html_uploaded(self):
+        EditionPipeline.objects.create(edition=self.edition, current_stage="HTML_UPLOADED")
+
+        response = self.client.get(self.dashboard_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Step 1 - HTML_UPLOADED")
+        self.assertContains(response, "RAW HTML")
+        self.assertContains(response, f"{self.work.code}_en_raw.html")
+
     def test_preprod_generates_clean_and_report(self):
         self._write_raw_html()
 

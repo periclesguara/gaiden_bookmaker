@@ -164,8 +164,31 @@
       <h2>Etapas da linha HTML</h2>
 
       <div class="step">
-        <strong>1) Cadastro</strong>
-        <div class="muted">Concluido: source_format + upload registrados.</div>
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+          <div>
+            <strong>Step 1 - HTML_UPLOADED</strong>
+            <div class="muted">Gate 0 (cadastro) salvou o RAW HTML deterministico.</div>
+          </div>
+          {% if step1_ok %}
+            <span class="badge ok">OK</span>
+          {% else %}
+            <span class="badge">Pendente</span>
+          {% endif %}
+        </div>
+        <ul>
+          <li><strong>Book:</strong> {{ book_code }}</li>
+          <li><strong>Lang:</strong> {{ lang }}</li>
+          <li><strong>Lane:</strong> {{ source_format|upper }}</li>
+        </ul>
+        <div class="muted">
+          <strong>RAW HTML:</strong>
+          <code>{{ artifacts.raw_html_path }}</code>
+        </div>
+        <div class="actions">
+          <a class="btn secondary" href="{% url 'book_edition_new' %}?book_code={{ book_code }}&language={{ lang }}">
+            Voltar ao cadastro
+          </a>
+        </div>
       </div>
 
       <div class="step">

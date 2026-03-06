@@ -400,6 +400,7 @@ def _html_artifact_paths(book_code: str, language: str, source_format: str) -> d
             return path
 
     return {
+        "raw_html_path": _rel(abs_paths["raw_html"]),
         "source_original": _rel(source_original),
         "preprod_clean_html": _rel(abs_paths["preprod_clean_html"]),
         "preprod_report_json": _rel(abs_paths["preprod_report_json"]),
@@ -502,6 +503,7 @@ def pipeline_html_dashboard(request, edition_id: int):
             raw_source_abs = root / raw_source_abs
 
     stage_rank = _html_stage_rank(pipeline_state.current_stage)
+    step1_ok = stage_rank >= _html_stage_rank(STAGE_HTML_UPLOADED)
     report_ok = bool(report_payload and report_payload.get("ok_to_convert") is True)
     clean_ready = (root / artifacts["preprod_clean_html"]).exists()
     can_run_preprod = (root / artifacts["source_original"]).exists() or bool(raw_source_abs and raw_source_abs.exists())
@@ -551,9 +553,13 @@ def pipeline_html_dashboard(request, edition_id: int):
             "edition": edition,
             "book_code": book_code,
             "language": language,
+            "lang": language,
             "source_format": source_format,
+            "stage": pipeline_state.current_stage,
             "current_stage": pipeline_state.current_stage,
+            "step1_ok": step1_ok,
             "last_log": pipeline_state.last_log,
+            "artifacts": {key: str(value) for key, value in artifacts.items()},
             "artifact_rows": artifact_rows,
             "raw_source_path": edition.raw_source_path,
             "report_payload": report_payload,
