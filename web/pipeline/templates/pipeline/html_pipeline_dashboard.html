@@ -185,11 +185,16 @@
           <code>{{ artifacts.raw_html_path }}</code>
         </div>
         <div class="actions">
-          <form method="post" action="{% url 'pipeline_html_reupload_run' edition.id %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="file" name="source_file" accept=".html,.htm" required>
-            <button class="btn" type="submit">Re-upload HTML</button>
-          </form>
+          {% url 'pipeline_html_reupload_run' edition.id as reupload_url %}
+          {% if reupload_url %}
+            <form method="post" action="{{ reupload_url }}" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="file" name="source_file" accept=".html,.htm" required>
+              <button class="btn" type="submit">Re-upload HTML</button>
+            </form>
+          {% else %}
+            <span class="muted">Re-upload indisponivel neste servidor. Reinicie o Django.</span>
+          {% endif %}
           <a class="btn secondary" href="{% url 'book_edition_new' %}?book_code={{ book_code }}&language={{ lang }}">
             Voltar ao cadastro
           </a>
@@ -223,13 +228,14 @@
       </div>
 
       <div class="step">
-        <strong>4) Normalize MD</strong>
+        <strong>4) Pipeline 01</strong>
         <div class="actions">
           <form method="post" action="{% url 'pipeline_html_md_normalize_run' edition.id %}">
             {% csrf_token %}
-            <button class="btn" type="submit">Rodar</button>
+            <button class="btn" type="submit">Abrir</button>
           </form>
         </div>
+        <div class="muted">Esta etapa apenas direciona para os Steps comuns.</div>
       </div>
 
       <div class="step">

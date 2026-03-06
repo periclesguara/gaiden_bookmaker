@@ -748,7 +748,7 @@ def pipeline_html_md_normalize_run(request, edition_id: int):
     edition, failure = _ensure_html_lane(request, edition_id)
     if failure:
         return failure
-    messages.info(request, "Siga para os steps do pipeline comum e rode Normalize.")
+    messages.info(request, "Redirecionando para o Pipeline 01 (Steps comuns).")
     return redirect(f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}?allow_html_to_common=1")
 
 
