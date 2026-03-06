@@ -534,15 +534,16 @@ def pipeline_html_dashboard(request, edition_id: int):
             "path": str(artifacts["md_source"]),
             "exists": (root / artifacts["md_source"]).exists(),
         },
+    ]
+
+    pipeline01_artifact_rows = [
         {
             "label": "Normalized MD",
             "path": str(artifacts["md_normalized"]),
-            "exists": (root / artifacts["md_normalized"]).exists(),
         },
         {
             "label": "Canonical MD",
             "path": str(artifacts["md_canonical"]),
-            "exists": (root / artifacts["md_canonical"]).exists(),
         },
     ]
 
@@ -561,6 +562,7 @@ def pipeline_html_dashboard(request, edition_id: int):
             "last_log": pipeline_state.last_log,
             "artifacts": {key: str(value) for key, value in artifacts.items()},
             "artifact_rows": artifact_rows,
+            "pipeline01_artifact_rows": pipeline01_artifact_rows,
             "raw_source_path": edition.raw_source_path,
             "report_payload": report_payload,
             "report_errors": report_errors,

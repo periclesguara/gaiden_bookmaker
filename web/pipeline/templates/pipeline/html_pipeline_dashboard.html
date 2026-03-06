@@ -161,6 +161,20 @@
     </section>
 
     <section class="card">
+      <h2>Depois do Pipeline 01</h2>
+      <div class="muted">Depois que voce abrir o Pipeline 01 (Steps comuns), o pipeline comum podera gerar:</div>
+      <ul>
+        {% for row in pipeline01_artifact_rows %}
+          <li>
+            <strong>{{ row.label }}:</strong>
+            <code>{{ row.path }}</code>
+            <span class="muted">gerado no Pipeline 01</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
       <h2>Etapas da linha HTML</h2>
 
       <div class="step">
