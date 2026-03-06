@@ -1041,6 +1041,144 @@ def _raw_upload_path(edition, uploaded_name: str) -> Path:
     return dest_dir / f"{book_code}_{language}_raw{ext}"
 
 
+def _resolve_project_path(path_value: str | Path) -> Path:
+    candidate = Path(path_value)
+    if candidate.is_absolute():
+        return candidate
+    return Path(settings.BASE_DIR).parent / candidate
+
+
+def _normalized_v2_path(book_code: str, language: str) -> Path:
+    lang = utils.normalize_lang(language)
+    return (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "normalized"
+        / f"{book_code}_{lang}_v2.txt"
+    )
+
+
+def _split_01_dir(book_code: str) -> Path:
+    book_id = _parse_book_id(book_code)
+    if book_id is None:
+        raise ValueError("book_code must be like book_0001 to resolve split_01 dir.")
+    return Path(settings.BASE_DIR).parent / "data" / "chunks" / f"book_{book_id:04d}" / "split_01"
+
+
+def _heading_cleaner_dir(book_code: str) -> Path:
+    book_id = _parse_book_id(book_code)
+    if book_id is None:
+        raise ValueError("book_code must be like book_0001 to resolve heading_cleaner dir.")
+    return Path(settings.BASE_DIR).parent / "data" / "chunks" / f"book_{book_id:04d}" / "heading_cleaner"
+
+
+def _pipeline01_prereq_state(edition) -> dict[str, object]:
+    core_edition = _global_core_edition(edition)
+    book_code, language = _edition_codes(core_edition)
+    language = utils.normalize_lang(language)
+
+    normalized_path = _normalized_v2_path(book_code, language)
+    split_dir = _split_01_dir(book_code)
+    heading_dir = _heading_cleaner_dir(book_code)
+
+    split_chunks = sorted(split_dir.glob("*.txt")) if split_dir.exists() else []
+    heading_chunks = sorted(heading_dir.glob("*.clean.txt")) if heading_dir.exists() else []
+
+    return {
+        "book_code": book_code,
+        "language": language,
+        "normalized_v2_path": normalized_path,
+        "normalized_v2_exists": normalized_path.exists(),
+        "split_01_dir": split_dir,
+        "split_01_count": len(split_chunks),
+        "split_01_exists": bool(split_chunks),
+        "heading_clean_dir": heading_dir,
+        "heading_clean_count": len(heading_chunks),
+        "heading_clean_exists": bool(heading_chunks),
+        "can_translate": bool(heading_chunks),
+    }
+
+
+def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
+    book_code, language = _edition_codes(core_edition)
+    language = utils.normalize_lang(language)
+    out_path = _normalized_v2_path(book_code, language)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    texts, _ = EditionText.objects.get_or_create(edition=core_edition)
+    if out_path.exists():
+        if texts.normalized_path != str(out_path):
+            texts.normalized_path = str(out_path)
+            texts.save(update_fields=["normalized_path", "updated_at"])
+        return out_path, "normalized_v2"
+
+    if texts.normalized_text:
+        out_path.write_text(texts.normalized_text, encoding="utf-8")
+        texts.normalized_path = str(out_path)
+        texts.save(update_fields=["normalized_path", "updated_at"])
+        return out_path, "edition_text.normalized_text"
+
+    if texts.normalized_path:
+        prev = _resolve_project_path(texts.normalized_path)
+        if prev.exists():
+            out_path.write_text(prev.read_text(encoding="utf-8"), encoding="utf-8")
+            texts.normalized_path = str(out_path)
+            texts.save(update_fields=["normalized_path", "updated_at"])
+            return out_path, "edition_text.normalized_path"
+
+    source_md_path = html_preprod.artifact_paths(book_code, language)["md_source"]
+    if source_md_path.exists():
+        normalized_text = source_md_path.read_text(encoding="utf-8")
+        out_path.write_text(normalized_text, encoding="utf-8")
+        texts.normalized_text = normalized_text
+        texts.normalized_path = str(out_path)
+        texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
+        return out_path, "html_source_md"
+
+    from gaiden import ingest, normalize as gaiden_normalize
+
+    raw_path_str = (texts.raw_path or "").strip() or (core_edition.raw_source_path or "").strip()
+    if not raw_path_str:
+        raise FileNotFoundError("RAW file not found and source.md missing. Cannot prepare normalized_v2.")
+    raw_path = _resolve_project_path(raw_path_str)
+    if not raw_path.exists():
+        raise FileNotFoundError(f"RAW path not found: {raw_path}")
+    ext = raw_path.suffix.lstrip(".")
+    text = ingest.extract_text_from_file(raw_path, ext)
+    if not text:
+        raise ValueError("Could not extract text from RAW file to prepare normalized_v2.")
+    normalized_text = gaiden_normalize.normalize_text_v2(text)
+    out_path.write_text(normalized_text, encoding="utf-8")
+    texts.raw_text = text
+    texts.normalized_text = normalized_text
+    texts.raw_path = str(raw_path)
+    texts.normalized_path = str(out_path)
+    texts.save()
+    return out_path, "raw_normalize"
+
+
+def _ensure_split_01_for_heading_cleaner(core_edition) -> tuple[Path, int]:
+    book_code, _language = _edition_codes(core_edition)
+    split_dir = _split_01_dir(book_code)
+    existing = sorted(split_dir.glob("*.txt")) if split_dir.exists() else []
+    if existing:
+        return split_dir, len(existing)
+    count = editorial_split.run_split_01(core_edition)
+    return split_dir, count
+
+
+def _edition_steps_redirect_url(edition) -> str:
+    book_code, language = _edition_codes(edition)
+    template = BookEditionTemplate.objects.filter(
+        book_code=book_code,
+        language=utils.normalize_lang(language),
+    ).first()
+    url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+    if _source_format_from_template(template) == SOURCE_FORMAT_HTML:
+        return f"{url}?allow_html_to_common=1"
+    return url
+
+
 def _select_contract_path(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/en_modern_2025.json",
@@ -1844,8 +1982,12 @@ def edition_steps(request, edition_id: int):
         )
 
     chunk_count = _count_split_chunks(book_code)
-    heading_clean_path = heading_cleaner.clean_path_for_book_code(book_code)
-    heading_cleaner_done = heading_clean_path.exists()
+    pipeline_prereqs = _pipeline01_prereq_state(edition)
+    heading_clean_path = heading_cleaner.clean_path_for_book_code(
+        str(pipeline_prereqs["book_code"])
+    )
+    heading_cleaner_done = bool(pipeline_prereqs["heading_clean_exists"])
+    can_translate = bool(pipeline_prereqs["can_translate"])
 
     pre_edition_path = paths.pre_edition_md_path(edition)
     pre_qa_path = paths.pre_qa_md_path(edition)
@@ -2035,6 +2177,18 @@ def edition_steps(request, edition_id: int):
         "md_source_map": md_source_map_json,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
+        "pipeline_prereqs": {
+            "normalized_v2_path": str(pipeline_prereqs["normalized_v2_path"]),
+            "normalized_v2_exists": bool(pipeline_prereqs["normalized_v2_exists"]),
+            "split_01_dir": str(pipeline_prereqs["split_01_dir"]),
+            "split_01_count": int(pipeline_prereqs["split_01_count"]),
+            "split_01_exists": bool(pipeline_prereqs["split_01_exists"]),
+            "heading_clean_dir": str(pipeline_prereqs["heading_clean_dir"]),
+            "heading_clean_count": int(pipeline_prereqs["heading_clean_count"]),
+            "heading_clean_exists": bool(pipeline_prereqs["heading_clean_exists"]),
+            "can_translate": bool(pipeline_prereqs["can_translate"]),
+        },
+        "can_translate": can_translate,
         "refine_qa_status": refine_qa_status,
         "refine_qa_summary": refine_qa_summary,
         "refine_qa_json_path": str(refine_qa_json_path) if refine_qa_json_path.exists() else None,
@@ -2049,6 +2203,54 @@ def edition_steps(request, edition_id: int):
     }
 
     return render(request, "pipeline/edition_steps.html", context)
+
+
+def pipeline_heading_cleaner_run(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return redirect(_edition_steps_redirect_url(edition))
+
+    core_edition = _global_core_edition(edition)
+    core_book_code, _core_lang = _edition_codes(core_edition)
+    try:
+        normalized_path, normalized_source = _ensure_normalized_v2_for_heading_cleaner(core_edition)
+        split_dir, split_count = _ensure_split_01_for_heading_cleaner(core_edition)
+        agent_name = (request.POST.get("agent_name") or "HeadingCleaner").strip()
+        result = heading_cleaner.run_heading_cleaner(core_edition, agent_name=agent_name)
+
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
+        pipeline_state.current_stage = PipelineStage.CHUNKED
+        pipeline_state.chunked_at = timezone.now()
+        pipeline_state.last_log = (
+            f"{timezone.now().isoformat()} :: HEADING_CLEAN_READY :: {result['clean_path']}"
+        )
+        pipeline_state.save(update_fields=["current_stage", "chunked_at", "last_log"])
+
+        messages.info(
+            request,
+            f"Prereq normalized_v2: {normalized_path} ({normalized_source})",
+        )
+        messages.info(
+            request,
+            f"Prereq split_01: {split_dir} [chunks={split_count}]",
+        )
+        messages.success(
+            request,
+            (
+                f"HeadingCleaner OK ({result['agent_name']}): {result['clean_path']} "
+                f"[chunks={result['chunks']}]"
+            ),
+        )
+        messages.info(request, f"Report: {result['report_path']}")
+    except Exception as exc:
+        messages.error(request, f"HeadingCleaner failed: {exc}")
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
+        pipeline_state.last_log = str(exc)
+        pipeline_state.save(update_fields=["last_log"])
+
+    if core_edition.id != edition.id:
+        messages.info(request, f"HeadingCleaner executado na edicao core EN de {core_book_code}.")
+    return redirect(_edition_steps_redirect_url(edition))
 
 
 def run_edition_step(request, edition_id: int, step: str):
@@ -2191,6 +2393,13 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "translate":
             from gaiden.translate import run_translate_with_contract
+
+            translate_prereqs = _pipeline01_prereq_state(edition)
+            if not bool(translate_prereqs["can_translate"]):
+                raise ValueError(
+                    "Prerequisito para Translate: rode HeadingCleaner "
+                    "(gera data/chunks/.../heading_cleaner/*.clean.txt)."
+                )
 
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
             target_edition = _edition_for_language(edition, target_language)

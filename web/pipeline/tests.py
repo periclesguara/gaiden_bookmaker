@@ -520,3 +520,101 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertIn("Chapter I", md_text)
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "MD_SOURCE_READY")
+
+
+class HeadingCleanerGateTests(TestCase):
+    def setUp(self):
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Author Gate Test")
+        self.seal = Seal.objects.create(slug="mantaquest-gate", name="MantaQuest Gate")
+        self.work = Work.objects.create(
+            code="book_9001",
+            title="Book Gate Test",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+
+        self.root = Path(settings.BASE_DIR).parent
+        self.book_code = self.work.code
+        self.source_md_dir = self.root / "data" / "md" / self.book_code
+        self.source_md_path = self.source_md_dir / f"{self.book_code}_en_source.md"
+        self.normalized_path = self.root / "data" / "normalized" / f"{self.book_code}_en_v2.txt"
+        self.split_dir = self.root / "data" / "chunks" / "book_9001" / "split_01"
+        self.cleaner_dir = self.root / "data" / "chunks" / "book_9001" / "heading_cleaner"
+
+        self.source_md_dir.mkdir(parents=True, exist_ok=True)
+        self.source_md_path.write_text(
+            (
+                "# Book Gate Test\n\n"
+                "CHAPTER I\n"
+                + ("lorem ipsum " * 1400)
+                + "\n\nCHAPTER II\n"
+                + ("dolor sit amet " * 1400)
+                + "\n"
+            ),
+            encoding="utf-8",
+        )
+
+        self.steps_url = (
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1"
+        )
+        self.heading_url = reverse("pipeline_heading_cleaner_run", kwargs={"edition_id": self.edition.id})
+
+    def tearDown(self):
+        shutil.rmtree(self.source_md_dir, ignore_errors=True)
+        if self.normalized_path.exists():
+            self.normalized_path.unlink()
+        shutil.rmtree(self.root / "data" / "chunks" / "book_9001", ignore_errors=True)
+
+    def test_heading_cleaner_button_visible(self):
+        response = self.client.get(self.steps_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rodar HeadingCleaner")
+        self.assertContains(response, self.heading_url)
+
+    def test_heading_cleaner_run_creates_outputs(self):
+        response = self.client.post(self.heading_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.steps_url)
+        self.assertTrue(self.normalized_path.exists())
+        self.assertTrue(self.split_dir.exists())
+        self.assertTrue(any(self.split_dir.glob("*.txt")))
+        self.assertTrue(self.cleaner_dir.exists())
+        self.assertTrue(any(self.cleaner_dir.glob("*.clean.txt")))
+
+    def test_translate_disabled_without_heading_clean(self):
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        self.assertFalse(bool(response.context["can_translate"]))
+        self.assertRegex(html, r'id="btn_translate"[^>]*disabled')
+        self.assertIn("translate_prereq_msg", html)
+
+    def test_translate_enabled_with_heading_clean(self):
+        self.client.post(self.heading_url)
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        self.assertTrue(bool(response.context["can_translate"]))
+        self.assertNotRegex(html, r'id="btn_translate"[^>]*disabled')
+        self.assertNotIn("translate_prereq_msg", html)

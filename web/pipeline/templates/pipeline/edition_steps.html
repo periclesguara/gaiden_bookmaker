@@ -195,6 +195,11 @@
           {% csrf_token %}
           <button class="btn" type="submit">Chunk</button>
         </form>
+        <form method="post" action="{% url 'pipeline_heading_cleaner_run' edition.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="agent_name" value="Agente01" />
+          <button class="btn secondary" type="submit">Rodar HeadingCleaner</button>
+        </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'translate' %}" onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');">
           {% csrf_token %}
           <select name="target_language" aria-label="Idioma de traducao">
@@ -203,8 +208,13 @@
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
             <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
           </select>
-          <button class="btn" type="submit">Translate</button>
+          <button id="btn_translate" class="btn" type="submit" {% if not can_translate %}disabled{% endif %}>Translate</button>
         </form>
+        {% if not can_translate %}
+        <div id="translate_prereq_msg" class="status">
+          Prerequisito: rode HeadingCleaner (gera <code>data/chunks/.../heading_cleaner/*.clean.txt</code>).
+        </div>
+        {% endif %}
         <a class="btn secondary" href="{% url 'preview_merge_translate' edition_id=edition.id %}">
           Preview Merge Translate
         </a>
@@ -291,6 +301,37 @@
       </div>
       <div class="status">
         Split: <strong>{{ status.split }}</strong>
+      </div>
+      <div class="status">
+        HeadingCleaner: <strong>{{ status.heading_cleaner }}</strong>
+        {% if pipeline_prereqs.heading_clean_count %}
+          <span class="badge ok">{{ pipeline_prereqs.heading_clean_count }} clean chunks</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        Gate normalize_v2:
+        {% if pipeline_prereqs.normalized_v2_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.normalized_v2_path }}</code>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.normalized_v2_path }}</code>
+        {% endif %}
+      </div>
+      <div class="status">
+        Gate split_01:
+        {% if pipeline_prereqs.split_01_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.split_01_dir }}</code>
+          <span class="badge ok">{{ pipeline_prereqs.split_01_count }} chunks</span>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.split_01_dir }}</code>
+        {% endif %}
+      </div>
+      <div class="status">
+        Gate heading_cleaner:
+        {% if pipeline_prereqs.heading_clean_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.heading_clean_dir }}</code>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.heading_clean_dir }}</code>
+        {% endif %}
       </div>
       <div class="status">
         Split by Chapter: <strong>{{ status.split_by_chapter }}</strong>

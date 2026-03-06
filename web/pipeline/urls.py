@@ -30,6 +30,11 @@ urlpatterns = [
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),
     path("editions/<int:edition_id>/steps/", views.edition_steps, name="edition_steps"),
     path(
+        "editions/<int:edition_id>/heading_cleaner/run/",
+        views.pipeline_heading_cleaner_run,
+        name="pipeline_heading_cleaner_run",
+    ),
+    path(
         "editions/<int:edition_id>/steps/run/<str:step>/",
         views.run_edition_step,
         name="pipeline_run_edition_step",
