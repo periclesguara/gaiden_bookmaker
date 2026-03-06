@@ -185,6 +185,11 @@
           <code>{{ artifacts.raw_html_path }}</code>
         </div>
         <div class="actions">
+          <form method="post" action="{% url 'pipeline_html_reupload_run' edition.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="source_file" accept=".html,.htm" required>
+            <button class="btn" type="submit">Re-upload HTML</button>
+          </form>
           <a class="btn secondary" href="{% url 'book_edition_new' %}?book_code={{ book_code }}&language={{ lang }}">
             Voltar ao cadastro
           </a>

@@ -5,6 +5,11 @@ urlpatterns = [
     path("", views.pipeline_dashboard, name="pipeline_dashboard"),
     path("html/<int:edition_id>/", views.pipeline_html_dashboard, name="pipeline_html_dashboard"),
     path(
+        "html/<int:edition_id>/reupload/run/",
+        views.pipeline_html_reupload_run,
+        name="pipeline_html_reupload_run",
+    ),
+    path(
         "html/<int:edition_id>/preprod/run/",
         views.pipeline_html_preprod_run,
         name="pipeline_html_preprod_run",

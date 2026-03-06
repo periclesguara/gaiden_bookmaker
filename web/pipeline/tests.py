@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 
-from editorial.models import Contributor, Edition, EditionPipeline, Language, Seal, Work
+from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, Seal, Work
 from pipeline.models import BookEditionTemplate
 
 
@@ -375,6 +375,9 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.clean_path = self.preprod_dir / f"{self.work.code}_en_clean.html"
         self.report_path = self.preprod_dir / f"{self.work.code}_en_report.json"
         self.source_md_path = self.md_dir / f"{self.work.code}_en_source.md"
+        self.normalized_md_path = self.md_dir / f"{self.work.code}_en_normalized.md"
+        self.canonical_md_path = self.md_dir / f"{self.work.code}_en_canonical.md"
+        self.reupload_url = reverse("pipeline_html_reupload_run", kwargs={"edition_id": self.edition.id})
         self.preprod_url = reverse("pipeline_html_preprod_run", kwargs={"edition_id": self.edition.id})
         self.convert_url = reverse("pipeline_html_convert_run", kwargs={"edition_id": self.edition.id})
         self.dashboard_url = reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id})
@@ -407,6 +410,48 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertContains(response, "Step 1 - HTML_UPLOADED")
         self.assertContains(response, "RAW HTML")
         self.assertContains(response, f"{self.work.code}_en_raw.html")
+
+    def test_reupload_resets_stage_and_cleans_stale_artifacts(self):
+        self._write_raw_html()
+        self.preprod_dir.mkdir(parents=True, exist_ok=True)
+        self.md_dir.mkdir(parents=True, exist_ok=True)
+        self.clean_path.write_text("<html><body><h2>Old</h2></body></html>", encoding="utf-8")
+        self.report_path.write_text('{"ok_to_convert": true}', encoding="utf-8")
+        self.source_md_path.write_text("# old md", encoding="utf-8")
+        self.normalized_md_path.write_text("# old normalized", encoding="utf-8")
+        self.canonical_md_path.write_text("# old canonical", encoding="utf-8")
+        EditionPipeline.objects.update_or_create(
+            edition=self.edition,
+            defaults={"current_stage": "MD_SOURCE_READY"},
+        )
+
+        response = self.client.post(
+            self.reupload_url,
+            data={
+                "source_file": SimpleUploadedFile(
+                    "replacement.html",
+                    b"<html><body><h2>New Raw</h2><p>Body</p></body></html>",
+                    content_type="text/html",
+                )
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.dashboard_url)
+        self.assertTrue(self.raw_path.exists())
+        self.assertIn("New Raw", self.raw_path.read_text(encoding="utf-8"))
+        self.assertFalse(self.clean_path.exists())
+        self.assertFalse(self.report_path.exists())
+        self.assertFalse(self.source_md_path.exists())
+        self.assertFalse(self.normalized_md_path.exists())
+        self.assertFalse(self.canonical_md_path.exists())
+        self.edition.refresh_from_db()
+        self.assertEqual(self.edition.raw_source_path, str(self.raw_path))
+        texts = EditionText.objects.get(edition=self.edition)
+        self.assertEqual(texts.raw_path, str(self.raw_path))
+        pipeline_state = EditionPipeline.objects.get(edition=self.edition)
+        self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
+        self.assertIn("reupload", pipeline_state.last_log)
 
     def test_preprod_generates_clean_and_report(self):
         self._write_raw_html()

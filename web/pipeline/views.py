@@ -583,6 +583,104 @@ def _ensure_html_lane(request, edition_id: int):
     return edition, None
 
 
+def pipeline_html_reupload_run(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("pipeline_html_dashboard", edition_id=edition_id)
+    edition, failure = _ensure_html_lane(request, edition_id)
+    if failure:
+        return failure
+
+    source_file = request.FILES.get("source_file")
+    if source_file is None:
+        messages.error(request, "Selecione um arquivo HTML (.html/.htm) para re-upload.")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+    if not _is_allowed_source_upload(SOURCE_FORMAT_HTML, source_file):
+        messages.error(request, "Arquivo invalido para re-upload HTML. Aceitos: .html, .htm.")
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    book_code, language = _edition_codes(edition)
+    language = utils.normalize_lang(language)
+    root = Path(settings.BASE_DIR).parent
+    artifacts = _html_artifact_paths(book_code, language, SOURCE_FORMAT_HTML)
+    raw_path = root / artifacts["raw_html_path"]
+
+    _write_uploaded_file_atomic(raw_path, source_file)
+
+    stale_keys = (
+        "preprod_clean_html",
+        "preprod_report_json",
+        "md_source",
+        "md_normalized",
+        "md_canonical",
+    )
+    removed_paths: list[str] = []
+    for key in stale_keys:
+        stale_path = root / artifacts[key]
+        if not stale_path.exists():
+            continue
+        if stale_path.is_dir():
+            shutil.rmtree(stale_path)
+        else:
+            stale_path.unlink()
+        removed_paths.append(str(stale_path))
+
+    with transaction.atomic():
+        edition.raw_source_path = str(raw_path)
+        edition.save(update_fields=["raw_source_path", "updated_at"])
+
+        texts, _ = EditionText.objects.get_or_create(edition=edition)
+        texts.raw_path = str(raw_path)
+        texts.save(update_fields=["raw_path", "updated_at"])
+
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+        pipeline_state.current_stage = STAGE_HTML_UPLOADED
+        pipeline_state.raw_at = timezone.now()
+        pipeline_state.normalized_at = None
+        pipeline_state.split_at = None
+        pipeline_state.chunked_at = None
+        pipeline_state.translated_at = None
+        pipeline_state.refined_at = None
+        pipeline_state.merged_at = None
+        pipeline_state.polished_at = None
+        pipeline_state.miolo_md_at = None
+        pipeline_state.final_md_at = None
+        pipeline_state.last_log = f"{timezone.now().isoformat()} :: HTML_UPLOADED :: reupload :: {raw_path}"
+        pipeline_state.save(
+            update_fields=[
+                "current_stage",
+                "raw_at",
+                "normalized_at",
+                "split_at",
+                "chunked_at",
+                "translated_at",
+                "refined_at",
+                "merged_at",
+                "polished_at",
+                "miolo_md_at",
+                "final_md_at",
+                "last_log",
+            ]
+        )
+
+    logger.info(
+        "pipeline_ingest_v1_reupload",
+        extra={
+            "book_code": book_code,
+            "language": language,
+            "source_format": SOURCE_FORMAT_HTML,
+            "stage": STAGE_HTML_UPLOADED,
+            "raw_path": str(raw_path),
+            "removed_artifacts": len(removed_paths),
+            "result": "ok",
+        },
+    )
+    messages.success(
+        request,
+        f"RAW HTML atualizado: {raw_path}. Artefatos invalidados: {len(removed_paths)}.",
+    )
+    return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+
 def pipeline_html_preprod_run(request, edition_id: int):
     if request.method != "POST":
         return redirect("pipeline_html_dashboard", edition_id=edition_id)
