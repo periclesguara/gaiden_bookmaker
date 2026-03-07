@@ -431,7 +431,7 @@
         </p>
         {% endif %}
       </form>
-      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="upload_images_files">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_files" />
         <label for="images_files">Insert multiple images</label>
@@ -449,14 +449,14 @@
           {% endif %}
         </p>
       </form>
-      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="upload_images_zip">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_images_zip" />
         <label for="images_zip">ZIP de imagens</label>
         <input id="images_zip" type="file" name="images_zip" accept=".zip,application/zip" />
         <button type="submit" class="btn btn-sm btn-secondary">Upload ZIP images</button>
       </form>
-      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="consolidate_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="consolidate_images" />
         <button type="submit" class="btn btn-sm btn-secondary">
@@ -474,7 +474,7 @@
           {% endif %}
         </p>
       </form>
-      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="insert_headlines">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_headlines" />
         <button type="submit" class="btn btn-sm btn-secondary">
@@ -484,7 +484,7 @@
           Aplica pagebreak + heading de capitulo no PRE_EDITION atual.
         </p>
       </form>
-      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="insert_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_images" />
         <button type="submit" class="btn btn-sm btn-secondary">
@@ -494,7 +494,7 @@
           Insere placeholders de imagem (&#123;&#123;IMAGE:CHXX:01&#125;&#125;) no MD atual.
         </p>
       </form>
-      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial">
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="apply_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="apply_images" />
         <button type="submit" class="btn btn-sm btn-secondary">

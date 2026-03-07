@@ -15,6 +15,18 @@ Contract for the editorial image flow in the common pipeline (`edition_steps`) f
 - `Insert image placeholders`
 - `Apply images to PRE_EDITION`
 
+## Canonical UI Order
+- The image controls must remain inside `#transformacao-editorial`.
+- The canonical order is:
+  1. `Salvar e converter imagens`
+  2. `Upload ZIP images`
+  3. `Consolidate internal images`
+  4. `Insert page headlines`
+  5. `Insert image placeholders`
+  6. `Apply images to PRE_EDITION`
+- `Insert image placeholders` is fixed between `Insert page headlines` and `Apply images to PRE_EDITION`.
+- Moving `Insert image placeholders` to another section, tab, modal, or position is a contract break.
+
 ## Mandatory POST Actions
 - `upload_images_files`
 - `upload_images_zip`
@@ -37,6 +49,7 @@ Contract for the editorial image flow in the common pipeline (`edition_steps`) f
 - `insert_images` injects placeholders into `BOOK.PRE_EDITION.md`.
 - `apply_images` replaces placeholders with Markdown image refs and copies assets into `assets/images/`.
 - Chapter images must remain positioned after the chapter heading and before the body text.
+- The `edition_steps` template must expose stable contract markers for this block so tests can verify presence and order.
 
 ## Definition of Done
 - The controls render in `edition_steps`.

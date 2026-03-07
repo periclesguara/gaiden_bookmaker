@@ -9,6 +9,14 @@
     "Insert image placeholders",
     "Apply images to PRE_EDITION"
   ],
+  "canonical_ui_order": [
+    "upload_images_files",
+    "upload_images_zip",
+    "consolidate_images",
+    "insert_headlines",
+    "insert_images",
+    "apply_images"
+  ],
   "actions": [
     "upload_images_files",
     "upload_images_zip",
@@ -27,7 +35,9 @@
     "HTML common-lane POSTs preserve allow_html_to_common=1 and return to #transformacao-editorial",
     "insert_images injects placeholders into BOOK.PRE_EDITION.md",
     "apply_images replaces placeholders with markdown image refs and copies assets to assets/images",
-    "chapter image placement remains heading -> image -> body"
+    "chapter image placement remains heading -> image -> body",
+    "the image pipeline controls stay in the transformacao-editorial section in canonical order",
+    "insert_images stays between insert_headlines and apply_images"
   ],
   "enforcement": {
     "tests_file": "web/pipeline/tests.py"

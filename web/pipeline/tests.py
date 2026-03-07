@@ -1,5 +1,6 @@
 import io
 import json
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -742,6 +743,7 @@ class EditorialImagePipelineContractTests(TestCase):
 
     def test_image_pipeline_controls_are_mandatory_in_common_pipeline(self):
         response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Salvar e converter imagens")
@@ -751,6 +753,40 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertContains(response, "Insert image placeholders")
         self.assertContains(response, "Apply images to PRE_EDITION")
         self.assertContains(response, "?allow_html_to_common=1#transformacao-editorial")
+        self.assertIn('id="transformacao-editorial"', html)
+
+        section_start = html.index('id="transformacao-editorial"')
+        ordered_steps = [
+            'data-contract-step="upload_images_files"',
+            'data-contract-step="upload_images_zip"',
+            'data-contract-step="consolidate_images"',
+            'data-contract-step="insert_headlines"',
+            'data-contract-step="insert_images"',
+            'data-contract-step="apply_images"',
+        ]
+        step_positions = [html.index(step, section_start) for step in ordered_steps]
+        self.assertEqual(step_positions, sorted(step_positions))
+        self.assertRegex(
+            html,
+            re.compile(
+                r'data-contract-step="upload_images_files".*?name="action" value="upload_images_files"',
+                re.DOTALL,
+            ),
+        )
+        self.assertRegex(
+            html,
+            re.compile(
+                r'data-contract-step="upload_images_zip".*?name="action" value="upload_images_zip"',
+                re.DOTALL,
+            ),
+        )
+        self.assertRegex(
+            html,
+            re.compile(
+                r'data-contract-step="insert_images".*?name="action" value="insert_images"',
+                re.DOTALL,
+            ),
+        )
 
     def test_upload_multiple_images_is_persisted_as_jpg_in_active_images_dir(self):
         response = self.client.post(
@@ -799,7 +835,90 @@ class EditorialImagePipelineContractTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         final_md = self.pre_edition_path.read_text(encoding="utf-8")
-        self.assertIn("![CH01:01](assets/images/ch01_01_01.jpg)", final_md)
-        self.assertIn("![CH02:01](assets/images/ch02_01_02.jpg)", final_md)
+        self.assertIn("![](assets/images/ch01_01_01.jpg)", final_md)
+        self.assertIn("![](assets/images/ch02_01_02.jpg)", final_md)
         self.assertTrue((self.assets_dir / "ch01_01_01.jpg").exists())
         self.assertTrue((self.assets_dir / "ch02_01_02.jpg").exists())
+
+
+class KdpMarkerCleanupContractTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Author Marker Contract")
+        self.seal = Seal.objects.create(slug="mantaquest-marker", name="MantaQuest Marker")
+        self.work = Work.objects.create(
+            code="book_0102",
+            title="Marker Contract Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+
+        self.build_dir = Path("data") / "builds" / self.work.code / "en"
+        self.pre_edition_path = self.build_dir / "BOOK.PRE_EDITION.md"
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        shutil.rmtree(Path("data") / "builds" / self.work.code, ignore_errors=True)
+        shutil.rmtree(Path("data") / "translated" / self.work.code, ignore_errors=True)
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_build_kdp_cleans_leaked_body_markers_and_writes_report(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "# Chapter 01 - The Sign\n\n"
+                "CH01:01 The moor was dark and silent.\n\n"
+                "![](assets/images/ch01_01_sign.jpg)\n\n"
+                "# Chapter 02 - The Return\n\n"
+                "CHAPTER02:01\n\n"
+                "CAP03:01 The door was locked.\n\n"
+                "![CH02:01](assets/images/ch02_01_return.jpg)\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_path = kdp_mode.build_merged_kdp_source(self.edition)
+        merged_text = merged_path.read_text(encoding="utf-8")
+        report_path = self.build_dir / "BOOK.MARKER_CLEANUP_REPORT.json"
+
+        self.assertNotIn("CH01:01", merged_text)
+        self.assertNotIn("CHAPTER02:01", merged_text)
+        self.assertNotIn("CAP03:01", merged_text)
+        self.assertNotIn("![CH02:01]", merged_text)
+        self.assertIn("![](assets/images/ch02_01_return.jpg)", merged_text)
+        self.assertIn("The moor was dark and silent.", merged_text)
+        self.assertIn("The door was locked.", merged_text)
+        self.assertTrue(report_path.exists())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual(len(report), 4)
+        self.assertEqual(report[-1]["kind"], "image_alt")
+
+    def test_build_kdp_raises_manual_review_when_marker_leaks_into_heading(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            "# Chapter 01 - CH01:01 Broken heading\n\nBody text.\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaises(RuntimeError):
+            kdp_mode.build_merged_kdp_source(self.edition)

@@ -729,7 +729,7 @@ def apply_images_to_pre_edition(md_path: Path, images_dir: Path) -> dict[str, in
 
         inserted += 1
         rel_path = Path("assets") / "images" / out_name
-        return f"![CH{chapter_s}:{slot_s}]({rel_path.as_posix()})"
+        return f"![]({rel_path.as_posix()})"
 
     updated = IMAGE_PLACEHOLDER_TOKEN_RE.sub(repl, text)
     md_path.write_text(updated, encoding="utf-8")

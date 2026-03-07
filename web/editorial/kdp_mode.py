@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
@@ -46,6 +47,16 @@ _IMAGE_LINE_RE = re.compile(r"^!\[[^\]]*\]\([^)]+\)$")
 _UNWANTED_TAGLINE_RE = re.compile(
     r"^\s*\*?\s*Another Adventure of Sherlock Holmes\s*\*?\s*$",
     re.IGNORECASE,
+)
+_LEAKED_MARKER_TOKEN = r"(?:CH|CAP|CHAPTER)\d{1,3}:\d{1,3}"
+_FULL_LINE_MARKER_RE = re.compile(rf"(?m)^[ \t]*{_LEAKED_MARKER_TOKEN}[ \t]*$(?:\n)?")
+_PARA_LEAD_MARKER_RE = re.compile(
+    rf"(?m)(^|\n)([ \t]*){_LEAKED_MARKER_TOKEN}[ \t]+(?=[A-Z“\"'(\[])"
+)
+_ANY_MARKER_RE = re.compile(_LEAKED_MARKER_TOKEN)
+_TRIPLE_BLANKS_RE = re.compile(r"\n{3,}")
+_TECH_IMAGE_ALT_RE = re.compile(
+    rf"!\[(?P<token>{_LEAKED_MARKER_TOKEN})\]\((?P<path>assets/images/[^)]+)\)"
 )
 
 
@@ -159,6 +170,82 @@ def _remove_unwanted_taglines(md_text: str) -> str:
             continue
         lines.append(raw)
     return "\n".join(lines).strip() + "\n"
+
+
+def _marker_preview(text: str, start: int, end: int, radius: int = 60) -> str:
+    lo = max(0, start - radius)
+    hi = min(len(text), end + radius)
+    return text[lo:hi].replace("\n", "\\n")
+
+
+def _find_leaked_marker_matches(md_text: str) -> list[dict[str, object]]:
+    matches: list[dict[str, object]] = []
+    seen: set[tuple[int, str]] = set()
+    for kind, rx in (
+        ("full_line", _FULL_LINE_MARKER_RE),
+        ("paragraph_lead", _PARA_LEAD_MARKER_RE),
+    ):
+        for match in rx.finditer(md_text):
+            line_no = md_text.count("\n", 0, match.start()) + 1
+            preview = _marker_preview(md_text, match.start(), match.end())
+            token_match = _ANY_MARKER_RE.search(match.group(0))
+            token = token_match.group(0) if token_match else match.group(0).strip()
+            signature = (line_no, token)
+            if signature in seen:
+                continue
+            seen.add(signature)
+            matches.append(
+                {
+                    "kind": kind,
+                    "line": line_no,
+                    "match": match.group(0),
+                    "preview": preview,
+                }
+            )
+    return matches
+
+
+def _assert_no_marker_in_headings(md_text: str) -> None:
+    for line_no, raw in enumerate(md_text.splitlines(), start=1):
+        stripped = raw.strip()
+        if not stripped.startswith("#"):
+            continue
+        if _ANY_MARKER_RE.search(stripped):
+            raise RuntimeError(
+                f"Marker cleanup requires manual review: leaked marker inside heading at line {line_no}: {stripped}"
+            )
+
+
+def _clean_leaked_body_markers(md_text: str) -> tuple[str, list[dict[str, object]]]:
+    _assert_no_marker_in_headings(md_text)
+    matches = _find_leaked_marker_matches(md_text)
+    cleaned = _FULL_LINE_MARKER_RE.sub("", md_text)
+    cleaned = _PARA_LEAD_MARKER_RE.sub(r"\1\2", cleaned)
+    cleaned = _TRIPLE_BLANKS_RE.sub("\n\n", cleaned)
+    cleaned = "\n".join(line.rstrip() for line in cleaned.splitlines()).strip() + "\n"
+    return cleaned, matches
+
+
+def _clean_technical_image_alt_markers(md_text: str) -> tuple[str, list[dict[str, object]]]:
+    matches: list[dict[str, object]] = []
+    for match in _TECH_IMAGE_ALT_RE.finditer(md_text):
+        line_no = md_text.count("\n", 0, match.start()) + 1
+        matches.append(
+            {
+                "kind": "image_alt",
+                "line": line_no,
+                "match": match.group(0),
+                "preview": _marker_preview(md_text, match.start(), match.end()),
+            }
+        )
+    cleaned = _TECH_IMAGE_ALT_RE.sub(r"![](\g<path>)", md_text)
+    return cleaned, matches
+
+
+def _write_marker_cleanup_report(builds_base: Path, matches: list[dict[str, object]]) -> Path:
+    report_path = builds_base / "BOOK.MARKER_CLEANUP_REPORT.json"
+    report_path.write_text(json.dumps(matches, ensure_ascii=False, indent=2), encoding="utf-8")
+    return report_path
 
 
 def _normalize_chapter_headings(md_text: str) -> str:
@@ -340,16 +427,16 @@ def _miolo_candidates(edition: Edition) -> list[Path]:
     lang = edition.language.code
     build_dir = builds_dir(edition)
     return [
-        # Legacy published miolo path.
-        translated_miolo_path(edition),
         # Current pipeline outputs.
-        build_dir / "BOOK.MD_FINAL",
         build_dir / f"BOOK.PRE_EDITION.{lang}.md",
         build_dir / "BOOK.PRE_EDITION.md",
         build_dir / f"BOOK.PRE_QA.{lang}.md",
         build_dir / "BOOK.PRE_QA.md",
+        build_dir / "BOOK.MD_FINAL",
         build_dir / "MIOL_TERM.v1.md",
         build_dir / "miolo.md",
+        # Legacy published miolo path.
+        translated_miolo_path(edition),
         # Last-resort textual sources (still better than failing hard).
         build_dir / f"merge_polish_{lang}.txt",
         build_dir / "merge_polish.txt",
@@ -438,6 +525,10 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     miolo_txt = _normalize_chapter_headings(miolo_txt).strip()
     miolo_txt = _demote_pre_chapter_headings(miolo_txt).strip()
     miolo_txt = _remove_unwanted_taglines(miolo_txt).strip()
+    miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
+    miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)
+    cleanup_matches.extend(image_alt_matches)
+    _write_marker_cleanup_report(builds_base, cleanup_matches)
     merged_txt = "".join(sections) + "\n\n" + miolo_txt + "\n"
     _repair_missing_referenced_assets(edition, builds_base, merged_txt)
 
