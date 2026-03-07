@@ -1,3 +1,4 @@
+import io
 import json
 import shutil
 import tempfile
@@ -669,3 +670,136 @@ class HeadingCleanerGateTests(TestCase):
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
+
+
+class EditorialImagePipelineContractTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Author Images Contract")
+        self.seal = Seal.objects.create(slug="mantaquest-images", name="MantaQuest Images")
+        self.work = Work.objects.create(
+            code="book_0101",
+            title="Image Contract Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+
+        self.root = Path(settings.BASE_DIR).parent
+        self.build_dir = self.root / "data" / "builds" / self.work.code / "en"
+        self.images_dir = self.root / "data" / "images" / self.work.code / "en"
+        self.assets_dir = self.build_dir / "assets" / "images"
+        self.pre_edition_path = self.build_dir / "BOOK.PRE_EDITION.md"
+        self.steps_url = (
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1"
+        )
+
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        self.pre_edition_path.write_text(
+            (
+                "# Chapter 01 - The Adventure of the Empty House\n\n"
+                "Body of chapter one.\n\n"
+                "# Chapter 02 - The Adventure of the Norwood Builder\n\n"
+                "Body of chapter two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def _image_upload(self, name: str) -> SimpleUploadedFile:
+        from PIL import Image
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), "red").save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    def test_image_pipeline_controls_are_mandatory_in_common_pipeline(self):
+        response = self.client.get(self.steps_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Salvar e converter imagens")
+        self.assertContains(response, "Upload ZIP images")
+        self.assertContains(response, "Consolidate internal images")
+        self.assertContains(response, "Insert page headlines")
+        self.assertContains(response, "Insert image placeholders")
+        self.assertContains(response, "Apply images to PRE_EDITION")
+        self.assertContains(response, "?allow_html_to_common=1#transformacao-editorial")
+
+    def test_upload_multiple_images_is_persisted_as_jpg_in_active_images_dir(self):
+        response = self.client.post(
+            self.steps_url,
+            data={
+                "action": "upload_images_files",
+                "images_files": [
+                    self._image_upload("01.png"),
+                    self._image_upload("02.png"),
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1#transformacao-editorial",
+        )
+        self.assertTrue((self.images_dir / "01.jpg").exists())
+        self.assertTrue((self.images_dir / "02.jpg").exists())
+
+    def test_insert_and_apply_images_are_contractually_preserved(self):
+        self.client.post(
+            self.steps_url,
+            data={
+                "action": "upload_images_files",
+                "images_files": [
+                    self._image_upload("01.png"),
+                    self._image_upload("02.png"),
+                ],
+            },
+        )
+
+        response = self.client.post(
+            self.steps_url,
+            data={"action": "insert_images"},
+        )
+        self.assertEqual(response.status_code, 302)
+        md_with_placeholders = self.pre_edition_path.read_text(encoding="utf-8")
+        self.assertIn("{{IMAGE:CH01:01}}", md_with_placeholders)
+        self.assertIn("{{IMAGE:CH02:01}}", md_with_placeholders)
+
+        response = self.client.post(
+            self.steps_url,
+            data={"action": "apply_images"},
+        )
+        self.assertEqual(response.status_code, 302)
+        final_md = self.pre_edition_path.read_text(encoding="utf-8")
+        self.assertIn("![CH01:01](assets/images/ch01_01_01.jpg)", final_md)
+        self.assertIn("![CH02:01](assets/images/ch02_01_02.jpg)", final_md)
+        self.assertTrue((self.assets_dir / "ch01_01_01.jpg").exists())
+        self.assertTrue((self.assets_dir / "ch02_01_02.jpg").exists())

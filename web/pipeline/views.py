@@ -1869,8 +1869,11 @@ def edition_steps(request, edition_id: int):
 
     source_format = _source_format_from_template(source_template)
     allow_html_to_common = request.GET.get("allow_html_to_common") == "1"
-    if source_format == SOURCE_FORMAT_HTML and not allow_html_to_common:
+    if request.method == "GET" and source_format == SOURCE_FORMAT_HTML and not allow_html_to_common:
         return redirect("pipeline_html_dashboard", edition_id=edition.id)
+
+    def _redirect_editorial():
+        return redirect(f"{_edition_steps_redirect_url(edition)}#transformacao-editorial")
 
     texts = EditionText.objects.filter(edition=edition).first()
     raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
@@ -1974,7 +1977,7 @@ def edition_steps(request, edition_id: int):
             cover_file = request.FILES.get("cover_file")
             if not cover_file:
                 messages.error(request, "Selecione uma imagem de capa.")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
             try:
                 from PIL import Image
             except ImportError:
@@ -2011,12 +2014,12 @@ def edition_steps(request, edition_id: int):
                 edition.cover_filepath = str(cover_path)
             edition.save(update_fields=["cover_filepath"])
             messages.success(request, f"Capa salva: {edition.cover_filepath}")
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "upload_images_zip":
             images_zip = request.FILES.get("images_zip")
             if not images_zip:
                 messages.error(request, "Selecione um arquivo ZIP com imagens.")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             images_dir = _images_dir_for_edition(edition, pipeline_state)
@@ -2028,19 +2031,19 @@ def edition_steps(request, edition_id: int):
                 extracted = _extract_images_zip(images_zip, images_dir)
             except zipfile.BadZipFile:
                 messages.error(request, "Arquivo ZIP invalido.")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             if extracted == 0:
                 messages.warning(request, "ZIP processado, mas nenhuma imagem valida foi encontrada.")
             else:
                 messages.success(request, f"Imagens importadas: {extracted}")
             messages.info(request, f"Diretorio de imagens: {images_dir}")
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "upload_images_files":
             files = request.FILES.getlist("images_files")
             if not files:
                 messages.error(request, "Selecione uma ou mais imagens.")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             images_dir = _images_dir_for_edition(edition, pipeline_state)
@@ -2052,11 +2055,11 @@ def edition_steps(request, edition_id: int):
                 converted, outputs, skipped_cover = _convert_uploaded_images_to_jpg(files, images_dir)
             except RuntimeError as exc:
                 messages.error(request, str(exc))
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             if converted == 0:
                 messages.error(request, "Nenhuma imagem valida foi convertida para JPG.")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             messages.success(request, f"Imagens convertidas para JPG: {converted}")
             if skipped_cover:
@@ -2065,20 +2068,20 @@ def edition_steps(request, edition_id: int):
                     "Arquivos de capa (00/cover) foram ignorados aqui. Use o bloco Cover para a capa.",
                 )
             messages.info(request, f"Diretorio de imagens: {images_dir}")
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "consolidate_images":
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             images_dir = _images_dir_for_edition(edition, pipeline_state)
             if not images_dir.exists():
                 messages.error(request, f"Diretorio de imagens nao encontrado: {images_dir}")
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             consolidated_dir = _consolidated_images_dir_for_edition(edition)
             try:
                 result = _consolidate_internal_images(images_dir, consolidated_dir)
             except RuntimeError as exc:
                 messages.error(request, str(exc))
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             if int(result.get("consolidated_count", 0)) == 0:
                 messages.warning(request, "Nenhuma imagem interna foi consolidada.")
@@ -2092,7 +2095,7 @@ def edition_steps(request, edition_id: int):
                 )
                 messages.info(request, f"Consolidado: {result.get('dir')}")
                 messages.info(request, f"Mapeamento: {result.get('manifest_path')}")
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "save_core_txt":
             core_text = _core_text()
             if not core_text.strip():
@@ -2147,7 +2150,7 @@ def edition_steps(request, edition_id: int):
                     request,
                     "BOOK.PRE_QA nao encontrado. Rode TXT -> MD antes de inserir headlines.",
                 )
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
             for md_path in md_targets:
                 out_path = md_path
                 lang = language.lower()
@@ -2162,7 +2165,7 @@ def edition_steps(request, edition_id: int):
                 request,
                 "Headlines de capitulo inseridos no PRE_EDITION.",
             )
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "insert_images":
             build_dir = paths.edition_build_dir(edition)
             md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
@@ -2172,14 +2175,14 @@ def edition_steps(request, edition_id: int):
                     request,
                     "BOOK.PRE_EDITION nao encontrado. Rode headlines antes de inserir imagens.",
                 )
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
             for md_path in md_targets:
                 md_transform.insert_image_placeholders(md_path)
             messages.success(
                 request,
                 "Placeholders de imagem inseridos no PRE_EDITION.",
             )
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
         if action == "apply_images":
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             raw_images_dir = _images_dir_for_edition(edition, pipeline_state)
@@ -2191,7 +2194,7 @@ def edition_steps(request, edition_id: int):
                     request,
                     f"Nenhuma imagem encontrada em {images_dir}. Suba as imagens antes.",
                 )
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             build_dir = paths.edition_build_dir(edition)
             md_targets = sorted(build_dir.glob("BOOK.PRE_EDITION*"))
@@ -2201,7 +2204,7 @@ def edition_steps(request, edition_id: int):
                     request,
                     "BOOK.PRE_EDITION nao encontrado. Rode headlines/placeholders antes de inserir imagens.",
                 )
-                return redirect("edition_steps", edition_id=edition.id)
+                return _redirect_editorial()
 
             total_inserted = 0
             total_placeholders = 0
@@ -2237,7 +2240,7 @@ def edition_steps(request, edition_id: int):
                     f"Placeholders sem imagem: {total_unresolved}",
                 )
             messages.info(request, f"Fonte das imagens: {images_dir}")
-            return redirect("edition_steps", edition_id=edition.id)
+            return _redirect_editorial()
 
     legacy_merges.sync_legacy_merges_from_translated(edition)
     sync_log = []
@@ -2428,6 +2431,7 @@ def edition_steps(request, edition_id: int):
 
     context = {
         "edition": edition,
+        "edition_steps_action_url": _edition_steps_redirect_url(edition),
         "source_format": source_format,
         "status": {
             "raw": _status(bool(raw_path)),

@@ -226,7 +226,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
                 break
 
         if tail:
-            return f"{prefix} {num}: {tail}", consumed
+            return f"{prefix} {num} - {tail}", consumed
         return f"{prefix} {num}", consumed
 
     src_lines = md_text.splitlines()

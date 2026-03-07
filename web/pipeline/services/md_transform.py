@@ -21,13 +21,47 @@ CHAPTER_NUM_RE = re.compile(
     r"^\s*(?:chapter|adventure|cap[ií]tulo)\s+([ivxlcdm]+|\d+)\b",
     re.IGNORECASE,
 )
+CHAPTER_PREFIX_RE = re.compile(
+    r"^\s*(?:chapter|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\s*[-.:]?\s*(.*)$",
+    re.IGNORECASE,
+)
+LEADING_NUMERIC_CHAPTER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\s*[\.\-:]\s*(.+)$", re.IGNORECASE)
+TITLE_SMALL_WORDS = {
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "but",
+    "by",
+    "da",
+    "de",
+    "del",
+    "der",
+    "des",
+    "die",
+    "el",
+    "for",
+    "from",
+    "in",
+    "la",
+    "le",
+    "los",
+    "of",
+    "on",
+    "or",
+    "the",
+    "to",
+    "und",
+    "von",
+    "with",
+    "y",
+}
 
 CHAPTER_PATTERNS = [
     r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*",
     r"^CHAPTER\s+[IVXLCDM\d]+(\.|:)?\s*.*",
     r"^CAPITULO\s+[IVXLCDM\d]+(\.|:)?\s*.*",
-    r"^[IVXLCDM]+\.\s+.*",
-    r"^\d+\.\s+.*",
     r"^[IVXLCDM]+$",
     r"^\d+$",
 ]
@@ -108,7 +142,15 @@ def _normalize_txt_for_md(raw: str) -> str:
 def _is_chapter_heading(line: str) -> bool:
     if not line:
         return False
-    return bool(CHAPTER_RE.match(line.strip()))
+    stripped = line.strip()
+    if CHAPTER_PREFIX_RE.match(stripped):
+        return True
+    if re.match(r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*", stripped, re.IGNORECASE):
+        return True
+    numeric = LEADING_NUMERIC_CHAPTER_RE.match(stripped)
+    if numeric:
+        return _looks_like_story_title(numeric.group(2))
+    return _looks_like_story_title(stripped)
 
 
 def _md_heading_text(line: str) -> str | None:
@@ -144,11 +186,96 @@ def _roman_to_int(value: str) -> int | None:
 def _extract_chapter_number(heading_text: str) -> int | None:
     match = CHAPTER_NUM_RE.match((heading_text or "").strip())
     if not match:
-        return None
-    token = match.group(1)
+        prefixed = CHAPTER_PREFIX_RE.match((heading_text or "").strip())
+        if prefixed:
+            token = prefixed.group(1)
+        else:
+            numeric = LEADING_NUMERIC_CHAPTER_RE.match((heading_text or "").strip())
+            if not numeric:
+                return None
+            token = numeric.group(1)
+    else:
+        token = match.group(1)
     if token.isdigit():
         return int(token)
     return _roman_to_int(token)
+
+
+def _looks_like_story_title(line: str) -> bool:
+    stripped = (line or "").strip()
+    if not stripped:
+        return False
+    if len(stripped) > 120:
+        return False
+    if stripped[0] in {'"', "'", "“", "‘", "(", "["}:
+        return False
+    if stripped[-1] in {".", "!", "?", ",", ";", ":"}:
+        return False
+    if any(ch in stripped for ch in {"@", "{", "}", "`"}):
+        return False
+
+    words = re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’-]*", stripped)
+    if len(words) < 2 or len(words) > 12:
+        return False
+
+    recognized = 0
+    alpha_words = 0
+    for idx, word in enumerate(words):
+        lower = word.lower()
+        if any(ch.isalpha() for ch in word):
+            alpha_words += 1
+        if re.fullmatch(r"[IVXLCDM]+", word, re.IGNORECASE):
+            recognized += 1
+            continue
+        if word.isdigit():
+            recognized += 1
+            continue
+        if idx > 0 and lower in TITLE_SMALL_WORDS:
+            recognized += 1
+            continue
+        if word.isupper() and len(word) > 1:
+            continue
+        if word[0].isupper():
+            recognized += 1
+            continue
+
+    if alpha_words < 2:
+        return False
+    if len(words) <= 2 and not any(word[0].isupper() and not word.isupper() for word in words if word):
+        return False
+    return recognized >= max(len(words) - 1, 2)
+
+
+def _chapter_label_for_language(language: str) -> str:
+    lang = (language or "").lower()
+    if lang.startswith("pt") or lang.startswith("es"):
+        return "Capitulo"
+    if lang.startswith("de"):
+        return "Kapitel"
+    return "Chapter"
+
+
+def _chapter_title_only(text: str) -> str:
+    stripped = (text or "").strip()
+    if not stripped:
+        return stripped
+
+    prefixed = CHAPTER_PREFIX_RE.match(stripped)
+    if prefixed:
+        title = prefixed.group(2).strip()
+        return title or stripped
+
+    numeric = LEADING_NUMERIC_CHAPTER_RE.match(stripped)
+    if numeric:
+        return numeric.group(2).strip()
+
+    return stripped
+
+
+def _format_chapter_heading(text: str, chapter_no: int, language: str) -> str:
+    label = _chapter_label_for_language(language)
+    title = _chapter_title_only(text)
+    return f"{label} {chapter_no:02d} - {title}"
 
 
 def _split_lines(txt: str) -> list[str]:
@@ -232,13 +359,15 @@ def _markdown_for_title(cfg: PreEditionConfig) -> str:
 
 def _markdown_from_blocks(blocks: list[tuple[str, str]], cfg: PreEditionConfig) -> str:
     out_lines: list[str] = []
+    chapter_no = 0
 
     for kind, text in blocks:
         if kind == "chapter":
+            chapter_no += 1
             if cfg.add_pagebreak_before_chapter:
                 out_lines.append(r"\newpage")
                 out_lines.append("")
-            out_lines.append(f"# {text.strip()}")
+            out_lines.append(f"# {_format_chapter_heading(text.strip(), chapter_no, cfg.language)}")
             out_lines.append("")
         elif kind == "md_heading":
             out_lines.append(text.strip())
@@ -346,32 +475,36 @@ def insert_page_headlines(md_path: Path, lang: str = "en") -> None:
     out_lines: list[str] = []
     chapter_idx = 0
     found_chapter = False
+    pending_pagebreak = False
 
     for line in lines:
-        if line.startswith("## "):
-            chapter_idx += 1
-            found_chapter = True
-            out_lines.append("::: pagebreak")
-            out_lines.append(line)
+        stripped = line.strip()
+        if stripped == r"\newpage":
+            pending_pagebreak = True
             continue
         if line.startswith("# "):
             heading_text = line[2:].strip()
-            if CHAPTER_RE.match(heading_text):
+            if _is_chapter_heading(heading_text):
                 chapter_idx += 1
                 found_chapter = True
-                out_lines.append("::: pagebreak")
-                out_lines.append(line)
+                if not pending_pagebreak:
+                    out_lines.append(r"\newpage")
+                    out_lines.append("")
+                out_lines.append(f"# {_format_chapter_heading(heading_text, chapter_idx, lang)}")
+                out_lines.append("")
+                pending_pagebreak = False
                 continue
+        pending_pagebreak = False
         out_lines.append(line)
 
     if not found_chapter:
-        heading = "Chapter 01 — [TITLE HERE]"
-        if lang.lower().startswith("pt"):
-            heading = "Capitulo 01 — [TITULO AQUI]"
+        heading = _format_chapter_heading("[TITLE HERE]", 1, lang)
+        if lang.lower().startswith("pt") or lang.lower().startswith("es"):
+            heading = _format_chapter_heading("[TITULO AQUI]", 1, lang)
 
         new_text = (
-            "::: pagebreak\n"
-            f"## {heading}\n\n"
+            "\\newpage\n\n"
+            f"# {heading}\n\n"
             + text.lstrip()
         )
         md_path.write_text(new_text, encoding="utf-8")
@@ -389,8 +522,18 @@ def insert_image_placeholders(md_path: Path) -> None:
     text = IMAGE_MARKDOWN_RE.sub("", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
 
+    inside_center_block = False
     has_chapter = False
     for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("::: center"):
+            inside_center_block = True
+            continue
+        if inside_center_block and stripped == ":::": 
+            inside_center_block = False
+            continue
+        if inside_center_block:
+            continue
         if _is_md_chapter_heading(line):
             has_chapter = True
             break
@@ -406,10 +549,23 @@ def insert_image_placeholders(md_path: Path) -> None:
     out_lines: list[str] = []
     chapter_idx = 0
     seen_chapters: set[int] = set()
+    inside_center_block = False
     i = 0
     while i < len(lines):
         line = lines[i]
         out_lines.append(line)
+        stripped = line.strip()
+        if stripped.startswith("::: center"):
+            inside_center_block = True
+            i += 1
+            continue
+        if inside_center_block and stripped == ":::": 
+            inside_center_block = False
+            i += 1
+            continue
+        if inside_center_block:
+            i += 1
+            continue
         is_chapter = _is_md_chapter_heading(line)
 
         if is_chapter:
