@@ -1470,10 +1470,50 @@ def _runtime_translate_out_dir(book_code: str, target_language: str, payload: di
     return Path("data") / "translated" / book_token / str(variant)
 
 
+def _append_prompt_block(prompt: str, block: str) -> str:
+    prompt = (prompt or "").strip()
+    block = block.strip()
+    if not block:
+        return prompt
+    if block in prompt:
+        return prompt
+    if not prompt:
+        return block
+    return f"{prompt}\n\n{block}"
+
+
+def _harden_translate_contract(payload: dict) -> dict:
+    system_prompt = payload.get("system_prompt") or payload.get("system") or ""
+    user_prompt = payload.get("user_prompt") or payload.get("user") or "{text}"
+
+    system_rules = (
+        "CRITICAL OUTPUT RULES:\n"
+        "- Output only the translated literary passage.\n"
+        "- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n"
+        "- Do not mention the prompt, the source text, copyright, safety policies, or your own translation choices.\n"
+        "- Do not wrap the answer in quotes, code fences, markdown, or labels.\n"
+        "- Preserve the passage as continuous narrative prose."
+    )
+    user_rules = (
+        "Return only the final translated passage.\n"
+        "No comments.\n"
+        "No explanatory text.\n"
+        "No summaries.\n"
+        "No headings.\n"
+        "No lists.\n"
+        "No notes before or after the passage."
+    )
+
+    payload["system_prompt"] = _append_prompt_block(system_prompt, system_rules)
+    payload["user_prompt"] = _append_prompt_block(user_prompt, user_rules)
+    return payload
+
+
 def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Path, str]:
     book_code, _language = _edition_codes(edition)
     base_contract_path = _select_contract_path(target_language)
     payload = json.loads(base_contract_path.read_text(encoding="utf-8"))
+    payload = _harden_translate_contract(payload)
 
     chunk_dir, input_glob, source_label = _translate_source_chunks(book_code)
     out_dir = _runtime_translate_out_dir(book_code, target_language, payload)

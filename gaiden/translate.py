@@ -55,6 +55,60 @@ def _build_messages(chunk_text: str, contract: Dict[str, Any]) -> List[Dict[str,
     messages.append({"role": "user", "content": user_text})
     return messages
 
+
+_META_OUTPUT_PATTERNS = [
+    re.compile(
+        r"^(here is|here's|output:|translated text:|translation:|rewrite:|rewritten text:|summary:|analysis:|note:)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(aqui est[áa]|texto traduzido:|tradu[cç][ãa]o:|resumo:|an[aá]lise:|nota:)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(aqu[ií] est[áa]|texto traducido:|traducci[oó]n:|resumen:|an[aá]lisis:|nota:)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(hier ist|übersetzung:|zusammenfassung:|analyse:|hinweis:)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(of course|sure|certainly|claro|por supuesto|natürlich|i'm sorry|lo siento|desculpe|es tut mir leid)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(this passage|the passage|este trecho|este fragmento|este pasaje|dieser abschnitt)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"^\d+\.\s"),
+    re.compile(r"^[-*]\s"),
+]
+
+
+def _sanitize_translated_output(text: str) -> str:
+    cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\n?", "", cleaned)
+    cleaned = re.sub(r"\n?```$", "", cleaned).strip()
+
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", cleaned) if p.strip()]
+    kept: List[str] = []
+    for para in paragraphs:
+        if any(pattern.search(para) for pattern in _META_OUTPUT_PATTERNS):
+            continue
+        kept.append(para)
+
+    cleaned = "\n\n".join(kept).strip()
+    if not cleaned:
+        raise RuntimeError("Model output was empty after removing meta/commentary text.")
+
+    first_line = cleaned.splitlines()[0].strip()
+    if any(pattern.search(first_line) for pattern in _META_OUTPUT_PATTERNS):
+        raise RuntimeError(f"Model output still contains meta/commentary text: {first_line[:120]}")
+
+    return cleaned
+
+
 def _detect_chunk_dir(contract: Dict[str, Any]) -> Path:
     chunk_dir = contract.get("chunk_dir")
     if chunk_dir:
@@ -213,6 +267,8 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
                 translated = resp.output[0].content[0].text.strip()
             except Exception:
                 translated = ""
+
+        translated = _sanitize_translated_output(translated)
 
         out_path = out_dir_path / chunk_path.name
         out_path.write_text(translated, encoding="utf-8")
