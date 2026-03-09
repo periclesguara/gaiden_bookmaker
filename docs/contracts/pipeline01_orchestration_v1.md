@@ -15,6 +15,8 @@ Pipeline 01 (Steps comuns) has a fixed 6-step orchestration for both TXT and HTM
 - The step order source of truth is backend `build_pipeline01_steps(...)` in `web/pipeline/views.py`.
 - `HeadingCleaner` is a fixed mechanical step and must not be removed, replaced by a remote agent, or moved to another position without a new contract version.
 - `Split/Chunk` must run after `HeadingCleaner` and must use the cleaned output, not the pre-clean normalized text.
+- Any rerun of `Split/Chunk` is a source change event and must invalidate stale downstream artifacts from `Translate`, `Refine`, and `Merge/Finalize`.
+- `Refine` runtime contracts must be hardened into explicit `system_prompt` and `user_prompt` rules before execution; raw `instructions` blocks alone are not sufficient.
 
 ## Canonical Artifacts
 - Source inputs:
@@ -50,4 +52,6 @@ Pipeline 01 (Steps comuns) has a fixed 6-step orchestration for both TXT and HTM
 - Translate is disabled without heading cleaner output, re-chunked `split_01`, and contract.
 - Refine is disabled without translate outputs.
 - Merge/Finalize is disabled without refine outputs.
+- Rechunking removes stale translated/refined outputs so downstream steps cannot silently reuse mismatched chunk files.
+- Refine runs only with a hardened runtime contract that explicitly forbids summarization, omission, commentary, and structural drift.
 - Tests in `web/pipeline/tests.py` enforce order and key gates.

@@ -652,6 +652,9 @@ class HeadingCleanerGateTests(TestCase):
         self.normalized_path = self.root / "data" / "normalized" / f"{self.book_code}_en_v2.txt"
         self.split_dir = self.root / "data" / "chunks" / "book_9001" / "split_01"
         self.cleaner_dir = self.root / "data" / "chunks" / "book_9001" / "heading_cleaner"
+        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_modern_2025"
+        self.build_dir = self.root / "data" / "builds" / self.book_code / "en"
+        self.edition_core_dir = self.root / "data" / "editions" / str(self.edition.id) / "core"
 
         self.source_md_dir.mkdir(parents=True, exist_ok=True)
         self.source_md_path.write_text(
@@ -681,6 +684,10 @@ class HeadingCleanerGateTests(TestCase):
         if self.normalized_path.exists():
             self.normalized_path.unlink()
         shutil.rmtree(self.root / "data" / "chunks" / "book_9001", ignore_errors=True)
+        shutil.rmtree(self.root / "data" / "translated" / "book_9001", ignore_errors=True)
+        shutil.rmtree(self.root / "data" / "translated" / self.book_code, ignore_errors=True)
+        shutil.rmtree(self.build_dir, ignore_errors=True)
+        shutil.rmtree(self.edition_core_dir.parent, ignore_errors=True)
 
     def test_heading_cleaner_button_visible(self):
         response = self.client.get(self.steps_url)
@@ -738,6 +745,76 @@ class HeadingCleanerGateTests(TestCase):
         merged = "\n".join(path.read_text(encoding="utf-8") for path in rebuilt_chunks[:2])
         self.assertNotIn("## Contents", merged)
         self.assertNotIn(".pginternal", merged)
+
+    def test_rechunk_invalidates_stale_downstream_outputs(self):
+        self.client.post(self.heading_url)
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("stale translate", encoding="utf-8")
+        (self.translated_dir / "merged_en_modern_2025.txt").write_text("stale merged", encoding="utf-8")
+        (self.translated_dir / "return_aldebaran").mkdir(parents=True, exist_ok=True)
+        ((self.translated_dir / "return_aldebaran") / "0001.txt").write_text("stale refine", encoding="utf-8")
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("stale build translate", encoding="utf-8")
+        (self.build_dir / "merge_refine.txt").write_text("stale build refine", encoding="utf-8")
+        self.edition_core_dir.mkdir(parents=True, exist_ok=True)
+        (self.edition_core_dir / "contract_translate_en.json").write_text("{}", encoding="utf-8")
+        (self.edition_core_dir / "contract_refine_en.json").write_text("{}", encoding="utf-8")
+        (self.edition_core_dir / "refine_input_en").mkdir(parents=True, exist_ok=True)
+
+        response = self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(self.translated_dir.exists())
+        self.assertFalse((self.build_dir / "merge_translate.txt").exists())
+        self.assertFalse((self.build_dir / "merge_refine.txt").exists())
+        self.assertFalse((self.edition_core_dir / "contract_translate_en.json").exists())
+        self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
+        self.assertFalse((self.edition_core_dir / "refine_input_en").exists())
+
+    def test_runtime_refine_contract_is_hardened_into_prompts(self):
+        from pipeline.views import _build_runtime_refine_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text(
+            "Holmes spoke plainly.\n\nWatson listened carefully.",
+            encoding="utf-8",
+        )
+
+        runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(self.edition, "en")
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(refine_input_dir, self.edition_core_dir / "refine_input_en")
+        self.assertEqual(out_dir_path, self.translated_dir / "return_aldebaran")
+        self.assertIn("professional literary editor", payload["system_prompt"])
+        self.assertIn("Do not summarize", payload["system_prompt"])
+        self.assertIn("Return only the refined passage", payload["user_prompt"])
+        self.assertIn("Do not omit any sentence", payload["user_prompt"])
+
+    def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
+        self.client.post(self.heading_url)
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("chunk 1", encoding="utf-8")
+        (self.split_dir / "0002.txt").write_text("chunk 2", encoding="utf-8")
+
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
+        (self.translated_dir / "0002.txt").write_text("translated 2", encoding="utf-8")
+        (self.build_dir / "merge_translate.txt").parent.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text("partial refine", encoding="utf-8")
+        (refine_dir / "merged_return_aldebaran.txt").write_text("partial merged refine", encoding="utf-8")
+
+        response = self.client.get(self.steps_url)
+        html = response.content.decode("utf-8")
+
+        self.assertContains(response, "chunks=1/2")
+        self.assertRegex(html, r'<button[^>]*disabled[^>]*>\s*Rodar MergeRefine\s*</button>')
+        self.assertIn("refine completo com merge correspondente", html)
 
     def test_pipeline01_step_order_is_fixed(self):
         response = self.client.get(self.steps_url)

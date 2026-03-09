@@ -1181,6 +1181,61 @@ def _invalidate_split_01_after_heading_cleaner(core_edition) -> tuple[Path, int]
     return split_dir, len(existing)
 
 
+def _invalidate_downstream_pipeline_outputs(core_edition) -> dict[str, int]:
+    book_code, _language = _edition_codes(core_edition)
+    root = Path(settings.BASE_DIR).parent
+    removed = {
+        "translated_dirs": 0,
+        "translated_files": 0,
+        "build_files": 0,
+        "edition_core_files": 0,
+    }
+
+    book_id = _parse_book_id(book_code)
+    if book_id is not None:
+        translated_root = root / "data" / "translated" / f"book_{book_id:04d}"
+        if translated_root.exists():
+            for child in translated_root.iterdir():
+                if child.is_dir():
+                    shutil.rmtree(child)
+                    removed["translated_dirs"] += 1
+                elif child.is_file():
+                    child.unlink()
+                    removed["translated_files"] += 1
+
+    legacy_merge_clean = root / "data" / "translated" / book_code / "merge_refine_clean.txt"
+    if legacy_merge_clean.exists():
+        legacy_merge_clean.unlink()
+        removed["translated_files"] += 1
+
+    for edition_obj in EditorialEdition.objects.filter(work__code=book_code):
+        for build_path in (
+            paths.merge_translate_path(edition_obj),
+            paths.merge_refine_path(edition_obj),
+        ):
+            if build_path.exists():
+                build_path.unlink()
+                removed["build_files"] += 1
+
+        edition_core_dir = root / "data" / "editions" / str(edition_obj.id) / "core"
+        if edition_core_dir.exists():
+            for stale in edition_core_dir.glob("contract_translate_*.json"):
+                stale.unlink()
+                removed["edition_core_files"] += 1
+            for stale in edition_core_dir.glob("contract_refine_*.json"):
+                stale.unlink()
+                removed["edition_core_files"] += 1
+            for stale in edition_core_dir.glob("refine_input_*"):
+                if stale.is_dir():
+                    shutil.rmtree(stale)
+                    removed["edition_core_files"] += 1
+                elif stale.exists():
+                    stale.unlink()
+                    removed["edition_core_files"] += 1
+
+    return removed
+
+
 def _edition_steps_redirect_url(edition) -> str:
     book_code, language = _edition_codes(edition)
     template = BookEditionTemplate.objects.filter(
@@ -1199,6 +1254,30 @@ def _rel_project_path(path: Path) -> str:
         return str(path.relative_to(root))
     except ValueError:
         return str(path)
+
+
+def _count_non_merged_txt_files(directory: Path | None) -> int:
+    if not directory or not directory.exists():
+        return 0
+    return len(
+        [
+            p for p in directory.glob("*.txt")
+            if not (p.name == "merged.txt" or p.name.startswith("merged_") or p.name.startswith("merge_"))
+        ]
+    )
+
+
+def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: str) -> Path | None:
+    if not refine_dir or not refine_dir.exists():
+        return None
+    candidates = [
+        refine_dir / f"merge_refine_{target_language}.txt",
+        refine_dir / "merge_refine.txt",
+        refine_dir / "merged_return_aldebaran.txt",
+        refine_dir / "merged.txt",
+    ]
+    candidates.extend(sorted(refine_dir.glob("merged_*.txt")))
+    return next((p for p in candidates if p.exists()), None)
 
 
 def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = None) -> list[dict]:
@@ -1239,21 +1318,28 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     translate_merge_path = paths.merge_translate_path(target_edition)
     try:
         translate_dir = _runtime_translate_dir_for_edition(target_edition, target_lang)
-        if translate_dir.exists():
-            translate_outputs_count = len(list(translate_dir.glob("*.txt")))
+        translate_outputs_count = _count_non_merged_txt_files(translate_dir)
     except Exception:
         translate_dir = None
-    translate_done = translate_merge_path.exists() or translate_outputs_count > 0
+    expected_translate_chunks = len(split_chunks)
+    translate_done = bool(
+        expected_translate_chunks
+        and translate_outputs_count >= expected_translate_chunks
+        and translate_merge_path.exists()
+    )
 
     refine_dir = translate_dir / "return_aldebaran" if translate_dir else None
-    refine_outputs_count = 0
-    if refine_dir and refine_dir.exists():
-        refine_outputs_count = len(list(refine_dir.glob("*.txt")))
+    refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
-    refine_done = refine_merge_path.exists() or refine_outputs_count > 0
+    refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
+    refine_done = bool(
+        translate_done
+        and refine_outputs_count >= translate_outputs_count
+        and (refine_merge_path.exists() or refine_runtime_merge)
+    )
 
     merge_refine_clean_path = root / "data" / "translated" / core_book_code / "merge_refine_clean.txt"
-    merge_refine_done = merge_refine_clean_path.exists()
+    merge_refine_done = merge_refine_clean_path.exists() and refine_done
 
     texts = EditionText.objects.filter(edition=core_edition).first()
     raw_path_str = ((texts.raw_path if texts else "") or core_edition.raw_source_path or "").strip()
@@ -1336,7 +1422,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
                 _rel_project_path(translate_merge_path),
             ],
             "notes": (
-                f"Translate contract: {_rel_project_path(contract_path)}"
+                f"Translate contract: {_rel_project_path(contract_path)} | chunks={translate_outputs_count}/{expected_translate_chunks}"
                 if contract_path
                 else f"Translate contract: {contract_error or 'nao resolvido'}"
             ),
@@ -1352,12 +1438,16 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "button_label": "Rodar Refine",
             "can_run": translate_done,
             "done": refine_done,
-            "block_reason": "Prerequisito: outputs de translate." if not translate_done else "",
+            "block_reason": (
+                "Prerequisito: translate completo com merge correspondente."
+                if not translate_done
+                else ""
+            ),
             "outputs": [
                 _rel_project_path(refine_dir / "*.txt") if refine_dir else "data/translated/<book>/<lang_variant>/return_aldebaran/*.txt",
                 _rel_project_path(refine_merge_path),
             ],
-            "notes": "Agent: Aldebaran",
+            "notes": f"Agent: Aldebaran | chunks={refine_outputs_count}/{translate_outputs_count}",
         }
     )
 
@@ -1370,7 +1460,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "button_label": "Rodar MergeRefine",
             "can_run": refine_done,
             "done": merge_refine_done,
-            "block_reason": "Prerequisito: outputs de refine." if not refine_done else "",
+            "block_reason": "Prerequisito: refine completo com merge correspondente." if not refine_done else "",
             "outputs": [
                 _rel_project_path(refine_merge_path),
                 _rel_project_path(merge_refine_clean_path),
@@ -1522,6 +1612,70 @@ def _harden_translate_contract(payload: dict) -> dict:
     return payload
 
 
+def _harden_refine_contract(payload: dict) -> dict:
+    instructions = payload.get("instructions") if isinstance(payload.get("instructions"), dict) else {}
+    style = instructions.get("style") if isinstance(instructions.get("style"), dict) else {}
+    output = instructions.get("output") if isinstance(instructions.get("output"), dict) else {}
+    rules = instructions.get("rules") if isinstance(instructions.get("rules"), list) else []
+
+    goal = str(instructions.get("goal") or "").strip()
+    style_lines = [
+        f"- Register: {style.get('register')}" if style.get("register") else "",
+        f"- Rhythm: {style.get('rhythm')}" if style.get("rhythm") else "",
+        f"- Dialogue: {style.get('dialogue')}" if style.get("dialogue") else "",
+        f"- Punctuation: {style.get('punctuation')}" if style.get("punctuation") else "",
+        f"- Spelling: {style.get('spelling')}" if style.get("spelling") else "",
+    ]
+    style_block = "\n".join(line for line in style_lines if line)
+    rules_block = "\n".join(f"- {rule}" for rule in rules if str(rule).strip())
+
+    system_parts = [
+        "You are a professional literary editor refining already-translated book text.",
+    ]
+    if goal:
+        system_parts.append(goal)
+    if rules_block:
+        system_parts.append(f"Refine rules:\n{rules_block}")
+    if style_block:
+        system_parts.append(f"Style target:\n{style_block}")
+
+    output_rules = [
+        "CRITICAL OUTPUT RULES:",
+        "- Output only the refined literary passage.",
+        "- Preserve all information, chronology, speakers, dialogue, and paragraph structure.",
+        "- Do not summarize, compress, paraphrase away details, or skip any sentence.",
+        "- Do not add titles, headings, notes, labels, commentary, explanations, or metadata.",
+        "- Do not mention the prompt, the source text, or your editing choices.",
+        "- Return only the refined passage as continuous prose and dialogue.",
+    ]
+    if output.get("no_notes"):
+        output_rules.append("- No notes before or after the passage.")
+    if output.get("no_disclaimers"):
+        output_rules.append("- No disclaimers.")
+    if output.get("no_metadata"):
+        output_rules.append("- No metadata.")
+
+    user_prompt = (
+        "Refine the following passage line by line for fluency and clarity while preserving every fact, "
+        "sentence-level meaning, dialogue turn, and paragraph boundary.\n\n"
+        "Return only the refined passage.\n"
+        "Do not summarize.\n"
+        "Do not omit any sentence.\n"
+        "Do not add commentary.\n\n"
+        "{text}"
+    )
+
+    payload["system_prompt"] = _append_prompt_block(
+        payload.get("system_prompt") or payload.get("system") or "",
+        "\n\n".join(system_parts + ["\n".join(output_rules)]),
+    )
+    payload["user_prompt"] = _append_prompt_block(
+        payload.get("user_prompt") or payload.get("user") or "",
+        user_prompt,
+    )
+    return payload
+
+
 def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Path, str]:
     book_code, _language = _edition_codes(edition)
     base_contract_path = _select_contract_path(target_language)
@@ -1572,6 +1726,7 @@ def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
 
 def _build_runtime_refine_contract(edition, target_language: str) -> tuple[Path, Path, Path]:
     payload = json.loads(_select_refine_contract(target_language).read_text(encoding="utf-8"))
+    payload = _harden_refine_contract(payload)
     source_dir = _runtime_translate_dir_for_edition(edition, target_language)
     if not source_dir.exists():
         raise FileNotFoundError(f"Translate chunks not found for refine: {source_dir}. Run Translate first.")
@@ -2681,6 +2836,7 @@ def run_edition_step(request, edition_id: int, step: str):
             if not clean_path.exists():
                 raise ValueError("Prerequisito: heading_cleaner/clean.txt.")
             count = editorial_split.run_split_01(core_edition)
+            invalidated = _invalidate_downstream_pipeline_outputs(core_edition)
             book_id = _parse_book_id(book_code)
             chunks_dir = Path("data/chunks") / f"book_{book_id:04d}" / "split_01"
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
@@ -2689,6 +2845,15 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.last_log = ""
             pipeline_state.save()
             messages.success(request, f"Chunks OK: {count}")
+            if any(invalidated.values()):
+                messages.info(
+                    request,
+                    "Downstream invalidados apos rechunk: "
+                    f"translated_dirs={invalidated['translated_dirs']}, "
+                    f"translated_files={invalidated['translated_files']}, "
+                    f"build_files={invalidated['build_files']}, "
+                    f"edition_core_files={invalidated['edition_core_files']}"
+                )
 
         elif step == "split_by_chapter":
             result = chapter_chunks.run_split_by_chapter(edition)

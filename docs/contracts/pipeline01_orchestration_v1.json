@@ -58,6 +58,8 @@
   "invariants": [
     "heading_cleaner is a fixed mechanical step after normalize",
     "split_chunk runs only after heading_cleaner and consumes heading_cleaner/clean.txt",
-    "translate requires heading_cleaner output plus fresh split_01 chunks"
+    "translate requires heading_cleaner output plus fresh split_01 chunks",
+    "rechunk invalidates stale downstream translate refine and merge artifacts",
+    "refine runtime contract must expose hardened system_prompt and user_prompt rules before execution"
   ]
 }
