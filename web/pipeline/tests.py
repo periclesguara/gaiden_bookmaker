@@ -357,6 +357,80 @@ class ContractIngestV1Tests(TestCase):
         raw_path = self.temp_root / "data" / "raw" / self.work.code / f"{self.work.code}_en_raw.txt"
         self.assertTrue(raw_path.exists())
 
+
+class MergeTranslatePreviewTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Author Merge Preview")
+        self.seal = Seal.objects.create(slug="mantaquest-preview", name="MantaQuest Preview")
+        self.work = Work.objects.create(
+            code="book_0103",
+            title="Merge Preview Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+        self.pipeline_state = EditionPipeline.objects.create(
+            edition=self.edition,
+            translation_language="en",
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+        contract_dir = self.temp_root / "gaiden" / "contracts"
+        contract_dir.mkdir(parents=True, exist_ok=True)
+        (contract_dir / "en_modern_2025.json").write_text(
+            json.dumps({"out_dir": "data/translated/book_0001/en_modern_2025"}),
+            encoding="utf-8",
+        )
+        self.runtime_dir = self.temp_root / "data" / "translated" / "book_0103" / "en_modern_2025"
+        self.runtime_dir.mkdir(parents=True, exist_ok=True)
+        self.merged_runtime_path = self.runtime_dir / "merged_en_modern_2025.txt"
+        self.merged_runtime_path.write_text("Merged preview content.\n", encoding="utf-8")
+        self.preview_url = reverse("preview_merge_translate", kwargs={"edition_id": self.edition.id})
+        self.save_url = reverse("save_merge_translate_preview", kwargs={"edition_id": self.edition.id})
+
+    def tearDown(self):
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_preview_merge_translate_reads_runtime_out_dir_for_current_book(self):
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Merged preview content.")
+        self.assertEqual(response.context["md_path"], str(self.merged_runtime_path))
+
+    def test_save_merge_translate_preview_copies_runtime_merge_to_build_dir(self):
+        response = self.client.post(self.save_url)
+
+        self.assertEqual(response.status_code, 302)
+        saved_path = self.temp_root / "data" / "builds" / self.work.code / "en" / "merge_translate_en.txt"
+        self.assertTrue(saved_path.exists())
+        self.assertEqual(saved_path.read_text(encoding="utf-8"), "Merged preview content.\n")
+
+
 class HtmlLanePreprodConvertTests(TestCase):
     def setUp(self):
         self.language = Language.objects.create(

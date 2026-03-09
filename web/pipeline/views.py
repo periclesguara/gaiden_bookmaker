@@ -3177,8 +3177,7 @@ def preview_merge_translate(request, edition_id: int):
     target_language = utils.normalize_lang(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
-    contract_path = _select_contract_path(target_language)
-    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+    out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         raise Http404("Merged translation file not found.")
@@ -3204,8 +3203,7 @@ def save_merge_translate_preview(request, edition_id: int):
     target_language = utils.normalize_lang(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
-    contract_path = _select_contract_path(target_language)
-    out_dir_path = _resolve_contract_out_dir(contract_path, edition)
+    out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         messages.error(request, "Merged translation file not found.")
