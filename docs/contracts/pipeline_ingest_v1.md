@@ -47,8 +47,9 @@
 - `EditionPipeline` must exist and set deterministic initial stage:
   - `HTML_UPLOADED` for HTML lane
   - `TXT_UPLOADED` for TXT lane
-- Editorial `Edition` auto-create requires resolvable `Work` by `book_code`.
-  - If `Work` does not exist, fail with user-facing message.
+- Editorial `Edition` auto-create must tolerate a new `book_code`.
+  - If `Work` does not exist, the ingest flow must auto-create `Work`.
+  - If the author contributor does not exist, the ingest flow must auto-create the author contributor.
 
 ## Artifact Paths (deterministic)
 
@@ -76,7 +77,7 @@
 - `test_cadastro_get_is_canonical_entrypoint_for_new_html_books`
 - `test_cadastro_redirects_to_html_dashboard_when_source_format_is_html`
 - `test_cadastro_redirects_to_common_pipeline_when_source_format_is_txt`
-- `test_editorial_autocreate_requires_existing_work`
+- `test_editorial_autocreate_creates_missing_work_and_edition`
 - `test_cadastro_accepts_backcompat_post_field_names`
 
 Any incompatible change must be introduced as `pipeline_ingest_v2` without silently breaking v1.

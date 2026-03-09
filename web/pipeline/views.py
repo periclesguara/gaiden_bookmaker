@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from editorial.models import (
+    Contributor,
     Edition as EditorialEdition,
     EditionPipeline,
     EditionText,
@@ -317,10 +318,21 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
         defaults=_language_defaults(language_code),
     )
     author_name = (template.author_name or "").strip() or "Unknown Author"
-    try:
-        work_obj = Work.objects.get(code=book_code)
-    except Work.DoesNotExist as exc:
-        raise ValidationError(f"Work/Book nao encontrado para book_code='{book_code}'.") from exc
+    author_obj, _ = Contributor.objects.get_or_create(
+        name=author_name,
+        defaults={"role": "AUTHOR"},
+    )
+    work_obj, _ = Work.objects.get_or_create(
+        code=book_code,
+        defaults={
+            "title": template.title or book_code,
+            "original_language": language_obj,
+            "author": author_obj,
+            "publisher": template.imprint_name or "",
+            "year": template.publication_year or 2026,
+            "is_public_domain": True,
+        },
+    )
 
     existing_edition = (
         EditorialEdition.objects.select_related("work", "language", "seal")

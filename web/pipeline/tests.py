@@ -195,7 +195,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
         mock_frontmatter.assert_called_once()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
-    def test_editorial_autocreate_requires_existing_work(self, mock_frontmatter):
+    def test_editorial_autocreate_creates_missing_work_and_edition(self, mock_frontmatter):
         self.edition.delete()
         self.work.delete()
         upload = SimpleUploadedFile(
@@ -208,10 +208,15 @@ class CadastroSourceFormatRoutingTests(TestCase):
             data=self._payload("html", upload),
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Work/Book nao encontrado")
-        self.assertFalse(Edition.objects.filter(work__code=self.work.code, language__code="en").exists())
-        mock_frontmatter.assert_not_called()
+        self.assertEqual(response.status_code, 302)
+        edition = Edition.objects.get(work__code=self.work.code, language__code="en")
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
+        )
+        self.assertTrue(Work.objects.filter(code=self.work.code).exists())
+        self.assertTrue(Edition.objects.filter(work__code=self.work.code, language__code="en").exists())
+        mock_frontmatter.assert_called_once()
 
 
 class ContractIngestV1Tests(TestCase):
