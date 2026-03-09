@@ -12,18 +12,19 @@
     },
     {
       "n": 2,
-      "key": "chunk",
-      "title": "Split/Chunk",
+      "key": "heading_cleaner",
+      "title": "HeadingCleaner (Mechanical)",
       "outputs": [
-        "data/chunks/{book}/split_01/*.txt"
+        "data/chunks/{book}/heading_cleaner/clean.txt",
+        "data/chunks/{book}/heading_cleaner/heading_cleaner_report.json"
       ]
     },
     {
       "n": 3,
-      "key": "heading_cleaner",
-      "title": "HeadingCleaner (OpenAI)",
+      "key": "chunk",
+      "title": "Split/Chunk",
       "outputs": [
-        "data/chunks/{book}/heading_cleaner/*.clean.txt"
+        "data/chunks/{book}/split_01/*.txt"
       ]
     },
     {
@@ -53,5 +54,10 @@
         "data/translated/{book}/merge_refine_clean.txt"
       ]
     }
+  ],
+  "invariants": [
+    "heading_cleaner is a fixed mechanical step after normalize",
+    "split_chunk runs only after heading_cleaner and consumes heading_cleaner/clean.txt",
+    "translate requires heading_cleaner output plus fresh split_01 chunks"
   ]
 }

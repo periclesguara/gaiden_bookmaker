@@ -27,6 +27,12 @@ def _parse_book_id(book_code: str) -> int:
 
 
 def _get_normalized_text(edition) -> str:
+    from . import heading_cleaner
+
+    clean_path = heading_cleaner.clean_path_for_book_code(edition_meta.book_code(edition))
+    if clean_path.exists():
+        return clean_path.read_text(encoding="utf-8")
+
     texts = EditionText.objects.filter(edition=edition).first()
     if texts and texts.normalized_text:
         return texts.normalized_text

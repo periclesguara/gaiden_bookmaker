@@ -1092,9 +1092,10 @@ def _pipeline01_prereq_state(edition) -> dict[str, object]:
     normalized_path = _normalized_v2_path(book_code, language)
     split_dir = _split_01_dir(book_code)
     heading_dir = _heading_cleaner_dir(book_code)
+    heading_clean_path = heading_cleaner.clean_path_for_book_code(book_code)
+    heading_report_path = heading_cleaner.report_path_for_book_code(book_code)
 
     split_chunks = sorted(split_dir.glob("*.txt")) if split_dir.exists() else []
-    heading_chunks = sorted(heading_dir.glob("*.clean.txt")) if heading_dir.exists() else []
 
     return {
         "book_code": book_code,
@@ -1105,9 +1106,11 @@ def _pipeline01_prereq_state(edition) -> dict[str, object]:
         "split_01_count": len(split_chunks),
         "split_01_exists": bool(split_chunks),
         "heading_clean_dir": heading_dir,
-        "heading_clean_count": len(heading_chunks),
-        "heading_clean_exists": bool(heading_chunks),
-        "can_translate": bool(heading_chunks),
+        "heading_clean_path": heading_clean_path,
+        "heading_clean_report_path": heading_report_path,
+        "heading_clean_count": 1 if heading_clean_path.exists() else 0,
+        "heading_clean_exists": heading_clean_path.exists(),
+        "can_translate": bool(heading_clean_path.exists() and split_chunks),
     }
 
 
@@ -1169,14 +1172,13 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
     return out_path, "raw_normalize"
 
 
-def _ensure_split_01_for_heading_cleaner(core_edition) -> tuple[Path, int]:
+def _invalidate_split_01_after_heading_cleaner(core_edition) -> tuple[Path, int]:
     book_code, _language = _edition_codes(core_edition)
     split_dir = _split_01_dir(book_code)
     existing = sorted(split_dir.glob("*.txt")) if split_dir.exists() else []
-    if existing:
-        return split_dir, len(existing)
-    count = editorial_split.run_split_01(core_edition)
-    return split_dir, count
+    if split_dir.exists():
+        shutil.rmtree(split_dir)
+    return split_dir, len(existing)
 
 
 def _edition_steps_redirect_url(edition) -> str:
@@ -1210,7 +1212,8 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     split_dir = _split_01_dir(core_book_code)
     split_chunks = sorted(split_dir.glob("*.txt")) if split_dir.exists() else []
     heading_dir = _heading_cleaner_dir(core_book_code)
-    heading_chunks = sorted(heading_dir.glob("*.clean.txt")) if heading_dir.exists() else []
+    heading_clean_path = heading_cleaner.clean_path_for_book_code(core_book_code)
+    heading_report_path = heading_cleaner.report_path_for_book_code(core_book_code)
 
     target_lang = utils.normalize_lang(
         (pipeline_state.translation_language if pipeline_state and pipeline_state.translation_language else "")
@@ -1284,30 +1287,33 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     step_defs.append(
         {
             "n": 2,
-            "key": "chunk",
-            "title": "Split/Chunk",
-            "run_url": reverse("pipeline_chunk_run", kwargs={"edition_id": edition.id}),
-            "button_label": "Rodar Split/Chunk",
+            "key": "heading_cleaner",
+            "title": "HeadingCleaner (Mechanical)",
+            "run_url": reverse("pipeline_heading_cleaner_run", kwargs={"edition_id": edition.id}),
+            "button_label": "Rodar HeadingCleaner",
             "can_run": normalized_path.exists(),
-            "done": bool(split_chunks),
+            "done": heading_clean_path.exists(),
             "block_reason": "Prerequisito: normalized_v2.txt." if not normalized_path.exists() else "",
-            "outputs": [_rel_project_path(split_dir / "*.txt")],
-            "notes": f"Chunks detectados: {len(split_chunks)}",
+            "outputs": [
+                _rel_project_path(heading_clean_path),
+                _rel_project_path(heading_report_path),
+            ],
+            "notes": "Mechanical cleaner: remove TOC, divisorias e wrappers antes de refazer split_01.",
         }
     )
 
     step_defs.append(
         {
             "n": 3,
-            "key": "heading_cleaner",
-            "title": "HeadingCleaner (OpenAI)",
-            "run_url": reverse("pipeline_heading_cleaner_run", kwargs={"edition_id": edition.id}),
-            "button_label": "Rodar HeadingCleaner",
-            "can_run": bool(split_chunks),
-            "done": bool(heading_chunks),
-            "block_reason": "Prerequisito: split_01/*.txt." if not split_chunks else "",
-            "outputs": [_rel_project_path(heading_dir / "*.clean.txt")],
-            "notes": f"Agent: OpenAI HeadingCleaner | clean chunks: {len(heading_chunks)}",
+            "key": "chunk",
+            "title": "Split/Chunk",
+            "run_url": reverse("pipeline_chunk_run", kwargs={"edition_id": edition.id}),
+            "button_label": "Rodar Split/Chunk",
+            "can_run": heading_clean_path.exists(),
+            "done": bool(split_chunks),
+            "block_reason": "Prerequisito: heading_cleaner/clean.txt." if not heading_clean_path.exists() else "",
+            "outputs": [_rel_project_path(split_dir / "*.txt")],
+            "notes": f"Chunks detectados: {len(split_chunks)} | fonte: {_rel_project_path(heading_clean_path)}",
         }
     )
 
@@ -1318,11 +1324,11 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "title": "Translate (script + JSON)",
             "run_url": reverse("pipeline_translate_run", kwargs={"edition_id": edition.id}),
             "button_label": "Rodar Translate",
-            "can_run": bool(heading_chunks) and contract_exists,
+            "can_run": bool(heading_clean_path.exists() and split_chunks) and contract_exists,
             "done": translate_done,
             "block_reason": (
-                "Prerequisito: heading_cleaner/*.clean.txt."
-                if not heading_chunks
+                "Prerequisito: rode HeadingCleaner e depois refaca split_01."
+                if not heading_clean_path.exists() or not split_chunks
                 else ("Contrato JSON nao encontrado." if not contract_exists else "")
             ),
             "outputs": [
@@ -1441,7 +1447,7 @@ def _resolve_contract_out_dir(contract_path: Path, edition) -> Path:
 
 def _translate_source_chunks(book_code: str) -> tuple[Path, str, str]:
     """
-    Prefer HeadingCleaner outputs when available; fallback to split_01.
+    Translate reads only the rechunked split_01 generated after HeadingCleaner.
     Returns (chunk_dir, input_glob, source_label).
     """
     book_id = _parse_book_id(book_code)
@@ -1449,11 +1455,6 @@ def _translate_source_chunks(book_code: str) -> tuple[Path, str, str]:
         raise ValueError("book_code must be like book_0001 to resolve translate chunks.")
 
     project_root = Path(settings.BASE_DIR).parent
-    cleaner_dir = project_root / "data" / "chunks" / f"book_{book_id:04d}" / "heading_cleaner"
-    cleaner_chunks = sorted(cleaner_dir.glob("*.clean.txt")) if cleaner_dir.exists() else []
-    if cleaner_chunks:
-        return cleaner_dir, "*.clean.txt", "heading_cleaner"
-
     split_dir = project_root / "data" / "chunks" / f"book_{book_id:04d}" / "split_01"
     return split_dir, "*.txt", "split_01"
 
@@ -2524,13 +2525,13 @@ def pipeline_heading_cleaner_run(request, edition_id: int):
     core_book_code, _core_lang = _edition_codes(core_edition)
     try:
         normalized_path, normalized_source = _ensure_normalized_v2_for_heading_cleaner(core_edition)
-        split_dir, split_count = _ensure_split_01_for_heading_cleaner(core_edition)
-        agent_name = (request.POST.get("agent_name") or "HeadingCleaner").strip()
+        split_dir, stale_split_count = _invalidate_split_01_after_heading_cleaner(core_edition)
+        agent_name = (request.POST.get("agent_name") or "MechanicalHeadingCleaner").strip()
         result = heading_cleaner.run_heading_cleaner(core_edition, agent_name=agent_name)
 
         pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
-        pipeline_state.current_stage = PipelineStage.CHUNKED
-        pipeline_state.chunked_at = timezone.now()
+        pipeline_state.current_stage = PipelineStage.NORMALIZED
+        pipeline_state.chunked_at = None
         pipeline_state.last_log = (
             f"{timezone.now().isoformat()} :: HEADING_CLEAN_READY :: {result['clean_path']}"
         )
@@ -2542,13 +2543,12 @@ def pipeline_heading_cleaner_run(request, edition_id: int):
         )
         messages.info(
             request,
-            f"Prereq split_01: {split_dir} [chunks={split_count}]",
+            f"Split invalidado: {split_dir} [chunks_removidos={stale_split_count}]",
         )
         messages.success(
             request,
             (
-                f"HeadingCleaner OK ({result['agent_name']}): {result['clean_path']} "
-                f"[chunks={result['chunks']}]"
+                f"HeadingCleaner OK ({result['engine']}): {result['clean_path']}"
             ),
         )
         messages.info(request, f"Report: {result['report_path']}")
@@ -2645,23 +2645,23 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "heading_cleaner":
             core_edition = _global_core_edition(edition)
-            agent_name = (request.POST.get("agent_name") or "HeadingCleaner").strip()
+            _ensure_normalized_v2_for_heading_cleaner(core_edition)
+            _invalidate_split_01_after_heading_cleaner(core_edition)
+            agent_name = (request.POST.get("agent_name") or "MechanicalHeadingCleaner").strip()
             result = heading_cleaner.run_heading_cleaner(
                 core_edition,
                 agent_name=agent_name,
             )
 
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
-            pipeline_state.current_stage = PipelineStage.CHUNKED
+            pipeline_state.current_stage = PipelineStage.NORMALIZED
+            pipeline_state.chunked_at = None
             pipeline_state.last_log = ""
             pipeline_state.save()
 
             messages.success(
                 request,
-                (
-                    f"HeadingCleaner OK ({result['agent_name']}): {result['clean_path']} "
-                    f"[chunks={result['chunks']}]"
-                ),
+                f"HeadingCleaner OK ({result['engine']}): {result['clean_path']}",
             )
             messages.info(request, f"Report: {result['report_path']}")
 
@@ -2677,6 +2677,9 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "chunk":
             core_edition = _global_core_edition(edition)
+            clean_path = heading_cleaner.clean_path_for_book_code(_edition_codes(core_edition)[0])
+            if not clean_path.exists():
+                raise ValueError("Prerequisito: heading_cleaner/clean.txt.")
             count = editorial_split.run_split_01(core_edition)
             book_id = _parse_book_id(book_code)
             chunks_dir = Path("data/chunks") / f"book_{book_id:04d}" / "split_01"
@@ -2705,8 +2708,7 @@ def run_edition_step(request, edition_id: int, step: str):
             )
             if not (translate_step and bool(translate_step.get("can_run"))):
                 reason = (translate_step or {}).get("block_reason") or (
-                    "Prerequisito para Translate: rode HeadingCleaner "
-                    "(gera data/chunks/.../heading_cleaner/*.clean.txt)."
+                    "Prerequisito para Translate: rode HeadingCleaner e depois refaca split_01."
                 )
                 raise ValueError(
                     reason

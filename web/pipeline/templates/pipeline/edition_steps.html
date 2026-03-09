@@ -204,9 +204,6 @@
         </div>
         <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
           {% csrf_token %}
-          {% if s.key == "heading_cleaner" %}
-          <input type="hidden" name="agent_name" value="Agente01" />
-          {% endif %}
           {% if s.key == "translate" %}
           <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
             <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
@@ -228,7 +225,7 @@
         </form>
         {% if s.key == "translate" and not s.can_run %}
         <div id="translate_prereq_msg" class="status">
-          Prerequisito: rode HeadingCleaner (gera <code>data/chunks/.../heading_cleaner/*.clean.txt</code>).
+          Prerequisito: rode HeadingCleaner e depois refaca <code>data/chunks/.../split_01/*.txt</code>.
         </div>
         {% endif %}
         {% endfor %}

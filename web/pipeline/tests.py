@@ -583,9 +583,14 @@ class HeadingCleanerGateTests(TestCase):
         self.source_md_path.write_text(
             (
                 "# Book Gate Test\n\n"
-                "CHAPTER I\n"
+                "## Contents\n\n"
+                "[I. Chapter One](#chap01){.pginternal}\n"
+                "[II. Chapter Two](#chap02){.pginternal}\n\n"
+                "----------\n\n"
+                "::: chapter\n\n"
+                "## CHAPTER I\n\n"
                 + ("lorem ipsum " * 1400)
-                + "\n\nCHAPTER II\n"
+                + "\n\n::: chapter\n\n## CHAPTER II\n\n"
                 + ("dolor sit amet " * 1400)
                 + "\n"
             ),
@@ -616,10 +621,15 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, self.steps_url)
         self.assertTrue(self.normalized_path.exists())
-        self.assertTrue(self.split_dir.exists())
-        self.assertTrue(any(self.split_dir.glob("*.txt")))
         self.assertTrue(self.cleaner_dir.exists())
-        self.assertTrue(any(self.cleaner_dir.glob("*.clean.txt")))
+        self.assertTrue((self.cleaner_dir / "clean.txt").exists())
+        self.assertTrue((self.cleaner_dir / "heading_cleaner_report.json").exists())
+
+        clean_text = (self.cleaner_dir / "clean.txt").read_text(encoding="utf-8")
+        self.assertNotIn("## Contents", clean_text)
+        self.assertNotIn(".pginternal", clean_text)
+        self.assertNotIn("----------", clean_text)
+        self.assertNotIn("::: chapter", clean_text)
 
     def test_translate_disabled_without_heading_clean(self):
         response = self.client.get(self.steps_url)
@@ -629,8 +639,9 @@ class HeadingCleanerGateTests(TestCase):
         self.assertRegex(html, r'id="btn_translate"[^>]*disabled')
         self.assertIn("translate_prereq_msg", html)
 
-    def test_translate_enabled_with_heading_clean(self):
+    def test_translate_enabled_with_heading_clean_and_chunk(self):
         self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
         response = self.client.get(self.steps_url)
         html = response.content.decode("utf-8")
 
@@ -638,14 +649,30 @@ class HeadingCleanerGateTests(TestCase):
         self.assertNotRegex(html, r'id="btn_translate"[^>]*disabled')
         self.assertNotIn("translate_prereq_msg", html)
 
+    def test_heading_cleaner_invalidates_stale_split_and_chunk_rebuilds_from_clean_text(self):
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.assertTrue(self.split_dir.exists())
+        self.assertTrue(any(self.split_dir.glob("*.txt")))
+
+        self.client.post(self.heading_url)
+        self.assertFalse(self.split_dir.exists())
+
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        rebuilt_chunks = sorted(self.split_dir.glob("*.txt"))
+        self.assertTrue(rebuilt_chunks)
+        merged = "\n".join(path.read_text(encoding="utf-8") for path in rebuilt_chunks[:2])
+        self.assertNotIn("## Contents", merged)
+        self.assertNotIn(".pginternal", merged)
+
     def test_pipeline01_step_order_is_fixed(self):
         response = self.client.get(self.steps_url)
         html = response.content.decode("utf-8")
 
         expected = [
             "1) Normalize",
-            "2) Split/Chunk",
-            "3) HeadingCleaner (OpenAI)",
+            "2) HeadingCleaner (Mechanical)",
+            "3) Split/Chunk",
             "4) Translate (script + JSON)",
             "5) Refine (Aldebaran)",
             "6) Merge/Finalize",
@@ -659,6 +686,13 @@ class HeadingCleanerGateTests(TestCase):
         html = response.content.decode("utf-8")
 
         self.assertRegex(html, r'id="btn_translate"[^>]*disabled')
+
+    def test_chunk_post_is_blocked_without_heading_cleaner(self):
+        response = self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.steps_url)
+        self.assertFalse(self.split_dir.exists())
 
     def test_translate_shows_contract_path(self):
         response = self.client.get(self.steps_url)
@@ -679,8 +713,8 @@ class HeadingCleanerGateTests(TestCase):
 
         expected = [
             "1) Normalize",
-            "2) Split/Chunk",
-            "3) HeadingCleaner (OpenAI)",
+            "2) HeadingCleaner (Mechanical)",
+            "3) Split/Chunk",
             "4) Translate (script + JSON)",
             "5) Refine (Aldebaran)",
             "6) Merge/Finalize",
