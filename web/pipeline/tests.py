@@ -55,6 +55,18 @@ class CadastroSourceFormatRoutingTests(TestCase):
             "source_file": source_file,
         }
 
+    def test_cadastro_get_is_canonical_entrypoint_for_new_html_books(self):
+        response = self.client.get(self.cadastro_url)
+        html = response.content.decode("utf-8")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cadastro")
+        self.assertContains(response, "Cadastrar e Enviar")
+        self.assertContains(response, "Pre-producao HTML")
+        self.assertIn('data-contract="pipeline_ingest_v1"', html)
+        self.assertIn('data-contract-entrypoint="book_edition_new"', html)
+        self.assertIn('data-contract-html-next="pipeline_html_dashboard"', html)
+
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
         upload = SimpleUploadedFile(

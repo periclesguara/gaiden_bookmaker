@@ -100,7 +100,13 @@
         </div>
       {% endif %}
 
-      <form method="post" enctype="multipart/form-data">
+      <form
+        method="post"
+        enctype="multipart/form-data"
+        data-contract="pipeline_ingest_v1"
+        data-contract-entrypoint="book_edition_new"
+        data-contract-html-next="pipeline_html_dashboard"
+      >
         {% csrf_token %}
 
         <fieldset>
