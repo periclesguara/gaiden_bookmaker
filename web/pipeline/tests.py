@@ -16,6 +16,24 @@ from editorial.models import Contributor, Edition, EditionPipeline, EditionText,
 from pipeline.models import BookEditionTemplate
 
 
+class _FakeResponsesAPI:
+    def __init__(self, output_text: str):
+        self.output_text = output_text
+
+    def create(self, **kwargs):
+        class _Resp:
+            pass
+
+        resp = _Resp()
+        resp.output_text = self.output_text
+        return resp
+
+
+class _FakeOpenAIClient:
+    def __init__(self, output_text: str):
+        self.responses = _FakeResponsesAPI(output_text)
+
+
 class CadastroSourceFormatRoutingTests(TestCase):
     def setUp(self):
         self.language = Language.objects.create(
@@ -756,6 +774,8 @@ class HeadingCleanerGateTests(TestCase):
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("stale build translate", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("stale build refine", encoding="utf-8")
+        (self.build_dir / "PRE_FLIGHT.json").write_text("{}", encoding="utf-8")
+        (self.build_dir / "PRE_FLIGHT.md").write_text("# stale", encoding="utf-8")
         self.edition_core_dir.mkdir(parents=True, exist_ok=True)
         (self.edition_core_dir / "contract_translate_en.json").write_text("{}", encoding="utf-8")
         (self.edition_core_dir / "contract_refine_en.json").write_text("{}", encoding="utf-8")
@@ -767,6 +787,8 @@ class HeadingCleanerGateTests(TestCase):
         self.assertFalse(self.translated_dir.exists())
         self.assertFalse((self.build_dir / "merge_translate.txt").exists())
         self.assertFalse((self.build_dir / "merge_refine.txt").exists())
+        self.assertFalse((self.build_dir / "PRE_FLIGHT.json").exists())
+        self.assertFalse((self.build_dir / "PRE_FLIGHT.md").exists())
         self.assertFalse((self.edition_core_dir / "contract_translate_en.json").exists())
         self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
         self.assertFalse((self.edition_core_dir / "refine_input_en").exists())
@@ -827,6 +849,7 @@ class HeadingCleanerGateTests(TestCase):
             "4) Translate (script + JSON)",
             "5) Refine (Aldebaran)",
             "6) Merge/Finalize",
+            "7) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
@@ -869,10 +892,54 @@ class HeadingCleanerGateTests(TestCase):
             "4) Translate (script + JSON)",
             "5) Refine (Aldebaran)",
             "6) Merge/Finalize",
+            "7) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
+
+    @patch("pipeline.services.preflight.get_client")
+    def test_preflight_run_creates_structured_report_after_merge_refine(self, mock_get_client):
+        analysis_json = json.dumps(
+            {
+                "critical": [],
+                "medium": ["A passage still sounds syntactically stiff for modern trade reading."],
+                "light": ["Minor punctuation noise remains in one local transition."],
+                "good": ["Narrative voice stays coherent and commercially readable."],
+            }
+        )
+        mock_get_client.return_value = _FakeOpenAIClient(analysis_json)
+
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("chunk 1", encoding="utf-8")
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
+        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
+        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean.parent.mkdir(parents=True, exist_ok=True)
+        translated_clean.write_text(
+            "# Chapter I\n\nA clean merged passage for pre-flight review.\n\n# Chapter II\n\nAnother passage.",
+            encoding="utf-8",
+        )
+
+        response = self.client.post(reverse("pipeline_preflight_run", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.steps_url)
+        preflight_json = self.build_dir / "PRE_FLIGHT.json"
+        preflight_md = self.build_dir / "PRE_FLIGHT.md"
+        self.assertTrue(preflight_json.exists())
+        self.assertTrue(preflight_md.exists())
+        self.assertIn("1. PROBLEMAS CRITICOS", preflight_md.read_text(encoding="utf-8"))
+        self.assertIn("2. PROBLEMAS MEDIOS", preflight_md.read_text(encoding="utf-8"))
+        self.assertIn("4. O QUE ESTA BOM", preflight_md.read_text(encoding="utf-8"))
+        self.assertIn("pronto para MD com pequenos ajustes", preflight_md.read_text(encoding="utf-8"))
 
 
 class EditorialImagePipelineContractTests(TestCase):

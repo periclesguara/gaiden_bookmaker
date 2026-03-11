@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -76,11 +77,30 @@ WSGI_APPLICATION = 'gaiden_portal.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-def _has_pg_env() -> bool:
-    return bool(os.getenv("PGHOST")) and bool(os.getenv("PGDATABASE")) and bool(os.getenv("PGUSER"))
+def _is_test_mode() -> bool:
+    return "test" in sys.argv
 
 
-if _has_pg_env():
+def _pg_config_missing() -> list[str]:
+    required = ["PGHOST", "PGDATABASE", "PGUSER"]
+    return [name for name in required if not os.getenv(name)]
+
+
+if _is_test_mode():
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    missing = _pg_config_missing()
+    if missing:
+        raise RuntimeError(
+            "Default Django runtime requires PostgreSQL. Missing env vars: "
+            + ", ".join(missing)
+            + ". Use gaiden_portal.settings_sqlite only for explicit local/test workflows."
+        )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -89,13 +109,6 @@ if _has_pg_env():
             "PASSWORD": os.environ.get("PGPASSWORD", ""),
             "HOST": os.environ["PGHOST"],
             "PORT": os.environ.get("PGPORT", "5432"),
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 

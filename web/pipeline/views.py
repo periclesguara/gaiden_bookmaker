@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 import shutil
 import tempfile
@@ -56,6 +57,7 @@ from .services import (
     md_transform,
     miolo_transform,
     paths,
+    preflight,
     refine_qa,
     stage_policy,
     utils,
@@ -99,6 +101,25 @@ def _post_field(post_data, *keys: str) -> str:
         if value:
             return value
     return ""
+
+
+def _running_under_tests() -> bool:
+    return "test" in sys.argv
+
+
+def _require_postgres_ingest_runtime():
+    if _running_under_tests():
+        return None
+    if connection.vendor == "postgresql":
+        return None
+    return HttpResponse(
+        (
+            "Cadastro bloqueado: o runtime web oficial deve usar PostgreSQL. "
+            "Suba o Django com PGHOST/PGDATABASE/PGUSER/PGPASSWORD exportados "
+            "ou use gaiden_portal.settings apenas com Postgres."
+        ),
+        status=503,
+    )
 
 
 def _canonicalize_ingest_post_data(post_data):
@@ -767,6 +788,10 @@ def pipeline_html_md_normalize_run(request, edition_id: int):
 
 
 def book_edition_edit(request, book_code=None, language=None):
+    postgres_guard = _require_postgres_ingest_runtime()
+    if postgres_guard is not None:
+        return postgres_guard
+
     initial_book_code = (book_code or request.GET.get("book_code") or "").strip()
     initial_language = utils.normalize_lang((language or request.GET.get("language") or "en").strip())
     canonical_post_data = _canonicalize_ingest_post_data(request.POST) if request.method == "POST" else None
@@ -1212,6 +1237,8 @@ def _invalidate_downstream_pipeline_outputs(core_edition) -> dict[str, int]:
         for build_path in (
             paths.merge_translate_path(edition_obj),
             paths.merge_refine_path(edition_obj),
+            paths.preflight_json_path(edition_obj),
+            paths.preflight_md_path(edition_obj),
         ):
             if build_path.exists():
                 build_path.unlink()
@@ -1466,6 +1493,28 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
                 _rel_project_path(merge_refine_clean_path),
             ],
             "notes": "Gera merge_refine_clean.txt canônico do Pipeline 01.",
+        }
+    )
+
+    preflight_json = paths.preflight_json_path(target_edition)
+    preflight_md = paths.preflight_md_path(target_edition)
+    preflight_done = preflight_json.exists() and preflight_md.exists()
+
+    step_defs.append(
+        {
+            "n": 7,
+            "key": "preflight",
+            "title": "Pre-producao (Pre-flight)",
+            "run_url": reverse("pipeline_preflight_run", kwargs={"edition_id": edition.id}),
+            "button_label": "Rodar Pre-flight",
+            "can_run": merge_refine_done,
+            "done": preflight_done,
+            "block_reason": "Prerequisito: rode Merge/Finalize e gere merge_refine_clean.txt." if not merge_refine_done else "",
+            "outputs": [
+                _rel_project_path(preflight_json),
+                _rel_project_path(preflight_md),
+            ],
+            "notes": "Analise editorial/estrutural antes do MD final, headings, figuras e build.",
         }
     )
 
@@ -2738,6 +2787,10 @@ def pipeline_merge_refine_run(request, edition_id: int):
     return run_edition_step(request, edition_id, "merge_refine")
 
 
+def pipeline_preflight_run(request, edition_id: int):
+    return run_edition_step(request, edition_id, "preflight")
+
+
 def run_edition_step(request, edition_id: int, step: str):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
@@ -3087,6 +3140,30 @@ def run_edition_step(request, edition_id: int, step: str):
                 )
             messages.info(request, f"Refine QA JSON: {result['json_path']}")
             messages.info(request, f"Refine QA MD: {result['md_path']}")
+
+        elif step == "preflight":
+            preflight_step = next(
+                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "preflight"),
+                None,
+            )
+            if not (preflight_step and bool(preflight_step.get("can_run"))):
+                raise ValueError(
+                    (preflight_step or {}).get("block_reason")
+                    or "Prerequisito para Pre-flight: rode Merge/Finalize."
+                )
+            target_edition = edition
+            result = preflight.run_preflight(target_edition)
+            messages.success(
+                request,
+                (
+                    "Pre-flight OK: "
+                    f"{result['verdict']} "
+                    f"(critical={result['critical_count']}, medium={result['medium_count']}, light={result['light_count']})"
+                ),
+            )
+            messages.info(request, f"Pre-flight source: {result['source_path']}")
+            messages.info(request, f"Pre-flight JSON: {result['json_path']}")
+            messages.info(request, f"Pre-flight MD: {result['md_path']}")
 
         elif step == "polish":
             from gaiden.polish_en_2025 import run_polish_en_2025

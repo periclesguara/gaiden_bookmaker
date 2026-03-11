@@ -1,7 +1,7 @@
 # Pipeline Ingest Contract v1
 
 - `contract_name`: `pipeline_ingest_v1`
-- `contract_version`: `1.0.0`
+- `contract_version`: `1.0.1`
 
 ## Gate 0 Endpoint
 
@@ -15,6 +15,16 @@
 - For `source_format=html`, the next fixed page is the HTML lane dashboard.
 - The HTML conversion stages already behind that dashboard are considered stable project surface and must not be silently reordered, bypassed, or replaced from another entrypoint.
 - Any incompatible change to this opening flow requires a new contract version.
+
+## Runtime DB Contract
+
+- The official web runtime for cadastro and ingest must use PostgreSQL.
+- New books registered through `book_edition_new` must be persisted in the PostgreSQL database used by the platform runtime.
+- Default `gaiden_portal.settings` is PostgreSQL-only for non-test runtime.
+- SQLite is allowed only for:
+  - automated tests
+  - explicit local diagnostics using `gaiden_portal.settings_sqlite`
+- If the web runtime is started on SQLite by mistake, the cadastro endpoint must fail fast instead of creating books in the wrong database.
 
 ## Canonical Input Fields (required)
 

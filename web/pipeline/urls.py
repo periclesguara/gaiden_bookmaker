@@ -60,6 +60,11 @@ urlpatterns = [
         name="pipeline_merge_refine_run",
     ),
     path(
+        "editions/<int:edition_id>/preflight/run/",
+        views.pipeline_preflight_run,
+        name="pipeline_preflight_run",
+    ),
+    path(
         "editions/<int:edition_id>/steps/run/<str:step>/",
         views.run_edition_step,
         name="pipeline_run_edition_step",

@@ -138,6 +138,14 @@ def refine_qa_md_path(edition) -> Path:
     return edition_build_dir(edition) / "REFINE.QA.md"
 
 
+def preflight_json_path(edition) -> Path:
+    return edition_build_dir(edition) / "PRE_FLIGHT.json"
+
+
+def preflight_md_path(edition) -> Path:
+    return edition_build_dir(edition) / "PRE_FLIGHT.md"
+
+
 def final_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.MD_FINAL"
 
