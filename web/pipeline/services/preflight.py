@@ -3,7 +3,14 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+WEB_ROOT = REPO_ROOT / "web"
+for candidate in (str(REPO_ROOT), str(WEB_ROOT)):
+    if candidate not in sys.path:
+        sys.path.insert(0, candidate)
 
 from gaiden.openai_client import get_client
 
@@ -12,6 +19,7 @@ from . import paths
 SEGMENT_MAX_CHARS = 18000
 SEGMENT_MIN_CHARS = 5000
 DEFAULT_MODEL = os.environ.get("GAIDEN_PREFLIGHT_MODEL", "gpt-5-mini")
+REQUEST_TIMEOUT = float(os.environ.get("GAIDEN_PREFLIGHT_TIMEOUT", "45"))
 
 
 def _pick_source_text(edition) -> Path:
@@ -189,6 +197,68 @@ def _fallback_issue(segment_label: str, raw_output: str) -> str:
     return f"[{segment_label}] Pre-flight returned non-JSON output; review manually. Raw: {snippet}"
 
 
+def _heuristic_analysis(text: str) -> dict[str, list[str]]:
+    paragraphs = [para.strip() for para in text.split("\n\n") if para.strip()]
+    critical: list[str] = []
+    medium: list[str] = []
+    light: list[str] = []
+    good: list[str] = []
+
+    bad_starts = [
+        para[:180]
+        for para in paragraphs
+        if para and (para[0] in ".;,:" or para[0].islower())
+    ]
+    if bad_starts:
+        critical.append(
+            f"[Global] {len(bad_starts)} paragrafos com inicio amputado ou colado detectados."
+        )
+    else:
+        good.append("[Global] Nao ha paragrafos com inicio evidentemente truncado.")
+
+    residue_checks = {
+        "Project Gutenberg": "residuo Project Gutenberg",
+        ".pginternal": "links pginternal",
+        "::: chapter": "wrappers ::: chapter",
+        "## Contents": "bloco de contents bruto",
+        "As an AI": "meta-resposta do modelo",
+        "Please provide": "pedido meta do modelo",
+    }
+    found_residue = 0
+    for token, label in residue_checks.items():
+        count = text.count(token)
+        if count:
+            medium.append(f"[Global] Encontrado {count}x: {label}.")
+            found_residue += count
+    if found_residue == 0:
+        good.append("[Global] Nao ha residuos tecnicos visiveis do pipeline bruto.")
+
+    seen: dict[str, int] = {}
+    long_duplicates = 0
+    for para in paragraphs:
+        normalized = " ".join(para.split())
+        if len(normalized) < 180:
+            continue
+        if normalized in seen:
+            long_duplicates += 1
+        else:
+            seen[normalized] = 1
+    if long_duplicates:
+        medium.append(f"[Global] {long_duplicates} paragrafos longos duplicados detectados.")
+    else:
+        good.append("[Global] Nao ha duplicacao longa evidente entre paragrafos.")
+
+    if any(ch in text for ch in ['“', '”', '’']) and any(ch in text for ch in ['"', "'"]):
+        light.append("[Global] Ha mistura de aspas curvas e retas; vale uniformizar na etapa final.")
+
+    return {
+        "critical": critical,
+        "medium": medium,
+        "light": light,
+        "good": good,
+    }
+
+
 def _build_markdown_report(source_path: Path, analysis: dict[str, object]) -> str:
     lines = [
         "# Pre-flight Editorial Report",
@@ -272,23 +342,36 @@ def run_preflight(edition) -> dict[str, object]:
     if not segments:
         raise ValueError(f"Pre-flight source is empty: {source_path}")
 
-    client = get_client()
-    critical: list[str] = []
-    medium: list[str] = []
-    light: list[str] = []
-    good: list[str] = []
+    heuristic = _heuristic_analysis(text)
+    critical: list[str] = list(heuristic["critical"])
+    medium: list[str] = list(heuristic["medium"])
+    light: list[str] = list(heuristic["light"])
+    good: list[str] = list(heuristic["good"])
     raw_segments: list[dict[str, object]] = []
+    client = None
+    try:
+        client = get_client()
+    except Exception as exc:
+        light.append(f"[Global] OpenAI indisponivel no pre-flight; mantendo analise heuristica. Detalhe: {exc}")
 
     for idx, segment in enumerate(segments, start=1):
         label = segment["label"] or f"Segment {idx}"
-        response = client.responses.create(
-            model=DEFAULT_MODEL,
-            input=_json_prompt(label, segment["text"]),
-            max_output_tokens=1800,
-        )
-        raw_output = _extract_output_text(response)
+        raw_output = ""
+        payload: dict[str, object] = {"critical": [], "medium": [], "light": [], "good": []}
+        if client is not None:
+            try:
+                response = client.responses.create(
+                    model=DEFAULT_MODEL,
+                    input=_json_prompt(label, segment["text"]),
+                    max_output_tokens=1800,
+                    timeout=REQUEST_TIMEOUT,
+                )
+                raw_output = _extract_output_text(response)
+                payload = json.loads(raw_output)
+            except Exception as exc:
+                light.append(f"[{label}] Pre-flight AI fallback acionado: {exc}")
         try:
-            payload = json.loads(raw_output)
+            payload = payload if isinstance(payload, dict) else json.loads(raw_output)
         except json.JSONDecodeError:
             payload = {"critical": [_fallback_issue(label, raw_output)], "medium": [], "light": [], "good": []}
 

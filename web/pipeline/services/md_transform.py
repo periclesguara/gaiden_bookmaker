@@ -73,9 +73,46 @@ CHAPTER_RE = re.compile("|".join(f"(?:{p})" for p in CHAPTER_PATTERNS), re.IGNOR
 class PreEditionConfig:
     title: str | None = None
     subtitle: str | None = None
+    book_code: str | None = None
     language: str = "en"
     add_pagebreak_before_chapter: bool = True
     center_title: bool = True
+
+
+KNOWN_CHAPTER_MARKERS: dict[tuple[str, str], dict[str, list[str]]] = {
+    (
+        "book10",
+        "en",
+    ): {
+        "titles": [
+            "Silver Blaze",
+            "The Adventure of the Cardboard Box",
+            "The Yellow Face",
+            "The Stockbroker's Clerk",
+            'The "Gloria Scott"',
+            "The Musgrave Ritual",
+            "The Reigate Squires",
+            "The Crooked Man",
+            "The Resident Patient",
+            "The Greek Interpreter",
+            "The Naval Treaty",
+            "The Final Problem",
+        ],
+        "markers": [
+            "In choosing a few representative cases that showcase the remarkable mental powers of my friend Sherlock Holmes",
+            "In publishing these short sketches based on the many cases where my companion’s remarkable talents have made us first listeners and then actors in some strange drama",
+            "Shortly after my marriage, I bought a medical practice in the Paddington district.",
+            "“I’ve got some papers here,” said my friend Sherlock Holmes as we sat one winter night by the fire",
+            "“These,” he said, “are all that I have left to remind me of the adventure of the Musgrave Ritual.”",
+            "It took quite some time for my friend, Mr. Sherlock Holmes, to recover his health after the strain of his immense exertions in the spring of '87.",
+            "One summer night, a few months after my marriage, I sat by the fireplace, smoking a last pipe and nodding over a novel.",
+            "Looking back over the somewhat disjointed collection of memoirs with which I’ve tried to illustrate a few of the quirks of my friend Mr. Sherlock Holmes’s mind",
+            "During all the years I had known Mr. Sherlock Holmes, he never spoke of his family and rarely of his early life.",
+            "The July following my marriage stands out in my memory due to three particularly interesting cases where I had the privilege of working with Sherlock Holmes and observing his methods.",
+            "With a heavy heart, I pick up my pen to write these final words about the remarkable gifts that distinguished my friend, Mr. Sherlock Holmes.",
+        ],
+    }
+}
 
 
 def _selected_txt_sources(edition):
@@ -357,6 +394,42 @@ def _markdown_for_title(cfg: PreEditionConfig) -> str:
     return "\n".join(parts)
 
 
+def _markdown_from_known_chapter_markers(txt: str, cfg: PreEditionConfig) -> str | None:
+    book_code = (cfg.book_code or "").strip()
+    spec = KNOWN_CHAPTER_MARKERS.get((book_code, (cfg.language or "").lower()))
+    if not spec:
+        return None
+
+    titles = spec["titles"]
+    markers = spec["markers"]
+    starts = [0]
+    for marker in markers:
+        idx = txt.find(marker)
+        if idx == -1:
+            return None
+        starts.append(idx)
+    if starts != sorted(starts):
+        return None
+    starts.append(len(txt))
+
+    out_lines: list[str] = []
+    for idx, title in enumerate(titles):
+        segment = txt[starts[idx] : starts[idx + 1]].strip()
+        if not segment:
+            continue
+        if cfg.add_pagebreak_before_chapter:
+            out_lines.append(r"\newpage")
+            out_lines.append("")
+        out_lines.append(f"# {_format_chapter_heading(title, idx + 1, cfg.language)}")
+        out_lines.append("")
+        out_lines.append(segment)
+        out_lines.append("")
+
+    while out_lines and not out_lines[-1].strip():
+        out_lines.pop()
+    return "\n".join(out_lines)
+
+
 def _markdown_from_blocks(blocks: list[tuple[str, str]], cfg: PreEditionConfig) -> str:
     out_lines: list[str] = []
     chapter_no = 0
@@ -395,8 +468,6 @@ def pre_edition_txt_to_md(
 
     raw = txt_path.read_text(encoding="utf-8")
     cleaned = _normalize_txt_for_md(raw)
-    lines = cleaned.split("\n")
-    blocks = _reflow_to_blocks(lines)
 
     md_parts: list[str] = []
 
@@ -404,7 +475,11 @@ def pre_edition_txt_to_md(
     if title_block:
         md_parts.append(title_block)
 
-    body_md = _markdown_from_blocks(blocks, cfg)
+    body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
+    if body_md is None:
+        lines = cleaned.split("\n")
+        blocks = _reflow_to_blocks(lines)
+        body_md = _markdown_from_blocks(blocks, cfg)
     if body_md:
         md_parts.append(body_md)
 
@@ -438,6 +513,7 @@ def run_txt_to_md(edition, language_override: str | None = None) -> Dict[str, st
         cfg = PreEditionConfig(
             title=getattr(edition, "title", None),
             subtitle=subtitle,
+            book_code=getattr(getattr(edition, "work", None), "code", None),
             language=source.language,
         )
         if len(sources) == 1:
@@ -476,11 +552,26 @@ def insert_page_headlines(md_path: Path, lang: str = "en") -> None:
     chapter_idx = 0
     found_chapter = False
     pending_pagebreak = False
+    inside_center_block = False
 
     for line in lines:
         stripped = line.strip()
         if stripped == r"\newpage":
             pending_pagebreak = True
+            out_lines.append(line)
+            continue
+        if stripped.startswith("::: center"):
+            inside_center_block = True
+            pending_pagebreak = False
+            out_lines.append(line)
+            continue
+        if inside_center_block and stripped == ":::":
+            inside_center_block = False
+            pending_pagebreak = False
+            out_lines.append(line)
+            continue
+        if inside_center_block:
+            out_lines.append(line)
             continue
         if line.startswith("# "):
             heading_text = line[2:].strip()

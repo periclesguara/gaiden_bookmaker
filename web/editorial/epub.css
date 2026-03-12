@@ -15,8 +15,17 @@ p > img {
   height: auto;
 }
 
+p.image-block,
+p.illustration,
+div.image-block,
+div.illustration {
+  text-align: center;
+}
+
 figure.chapter-illustration,
-figure.post-cover-illustration {
+figure.post-cover-illustration,
+.chapter-illustration,
+.post-cover-illustration {
   text-align: center;
   margin: 1.2em auto;
   break-inside: avoid;
@@ -29,7 +38,9 @@ figure.chapter-illustration {
 }
 
 figure.chapter-illustration img,
-figure.post-cover-illustration img {
+figure.post-cover-illustration img,
+.chapter-illustration img,
+.post-cover-illustration img {
   display: block;
   margin: 0 auto;
   max-width: 100%;

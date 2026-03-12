@@ -491,9 +491,10 @@ def _ensure_epub_css(builds_base: Path) -> Path:
             "body { margin: 0 4%; }\n"
             "p { text-indent: 0 !important; margin: 0 0 0.9em 0; }\n"
             "img { display: block; margin: 1.2em auto !important; max-width: 100%; height: auto; }\n"
-            "p > img:only-child { display: block; margin: 1.2em auto !important; }\n"
-            "figure, .figure { margin: 1.2em auto; text-align: center; }\n"
-            "figure img, .figure img { margin: 0 auto !important; }\n"
+            "p.image-block, p.illustration, div.image-block, div.illustration { text-align: center; }\n"
+            "p > img:only-child, p > img { display: block; margin: 1.2em auto !important; }\n"
+            "figure, .figure, .chapter-illustration, .post-cover-illustration { margin: 1.2em auto; text-align: center; }\n"
+            "figure img, .figure img, .chapter-illustration img, .post-cover-illustration img { margin: 0 auto !important; }\n"
             "h1, h2, h3, h4, h5, h6 { text-indent: 0 !important; }\n"
         ),
         encoding="utf-8",
