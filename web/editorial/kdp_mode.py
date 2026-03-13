@@ -58,6 +58,7 @@ _TRIPLE_BLANKS_RE = re.compile(r"\n{3,}")
 _TECH_IMAGE_ALT_RE = re.compile(
     rf"!\[(?P<token>{_LEAKED_MARKER_TOKEN})\]\((?P<path>assets/images/[^)]+)\)"
 )
+_PLAIN_TOC_LINE_RE = re.compile(r"^\s*(?:[IVXLCDM]+|\d+)\s+[A-Z].+$", re.IGNORECASE)
 
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
@@ -170,6 +171,139 @@ def _remove_unwanted_taglines(md_text: str) -> str:
             continue
         lines.append(raw)
     return "\n".join(lines).strip() + "\n"
+
+
+def _normalize_title_token(text: str) -> str:
+    return re.sub(r"[^A-Z0-9]+", "", (text or "").upper())
+
+
+def _strip_leading_center_block(lines: list[str]) -> list[str]:
+    if not lines:
+        return lines
+    if lines[0].strip() != "::: center":
+        return lines
+    end = None
+    for idx in range(1, len(lines)):
+        if lines[idx].strip() == ":::":
+            end = idx
+            break
+    if end is None:
+        return lines
+    return lines[end + 1 :]
+
+
+def _looks_like_legacy_boilerplate(line: str, edition: Edition) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return True
+
+    upper = stripped.upper()
+    title_token = _normalize_title_token(getattr(edition, "title", "") or "")
+    author_name = ""
+    author = getattr(getattr(edition, "work", None), "author", None)
+    if author is not None:
+        author_name = getattr(author, "name", "") or ""
+    author_token = _normalize_title_token(author_name)
+    line_token = _normalize_title_token(stripped)
+
+    if title_token and line_token == title_token:
+        return True
+    if author_token and line_token == author_token:
+        return True
+    if author_token and line_token == f"BY{author_token}":
+        return True
+    if upper.startswith("FIRST PUBLISHED"):
+        return True
+    if upper == "CONTENTS" or upper == "TABLE OF CONTENTS":
+        return True
+    if stripped in {"by", "BY"}:
+        return True
+    if len(stripped.split()) <= 10 and stripped == upper:
+        return True
+    if len(stripped) <= 80 and stripped == upper and not any(ch in stripped for ch in ".!?"):
+        return True
+    return False
+
+
+def _strip_legacy_contents_block(lines: list[str]) -> list[str]:
+    start = None
+    for idx, raw in enumerate(lines[:120]):
+        upper = raw.strip().upper()
+        if upper in {"CONTENTS", "TABLE OF CONTENTS"}:
+            start = idx
+            break
+    if start is None:
+        return lines
+
+    end = start + 1
+    while end < len(lines):
+        stripped = lines[end].strip()
+        if not stripped:
+            end += 1
+            continue
+        if stripped == r"\newpage" or _CHAPTER_MD_LINE_RE.match(stripped):
+            break
+        if _PLAIN_TOC_LINE_RE.match(stripped):
+            end += 1
+            continue
+        break
+    return lines[:start] + lines[end:]
+
+
+def _looks_like_paragraph(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    words = stripped.split()
+    if len(words) < 8:
+        return False
+    return any(ch in stripped for ch in {".", ",", ";", ":", "?", "!"})
+
+
+def _normalize_pre_chapter_prelude(md_text: str, edition: Edition) -> str:
+    lines = md_text.splitlines()
+    first_chapter = None
+    for idx, raw in enumerate(lines):
+        if _CHAPTER_MD_LINE_RE.match(raw.strip()):
+            first_chapter = idx
+            break
+    if first_chapter is None:
+        return md_text
+
+    prelude = lines[:first_chapter]
+    chapters = lines[first_chapter:]
+
+    while prelude and not prelude[0].strip():
+        prelude.pop(0)
+    prelude = _strip_leading_center_block(prelude)
+    while prelude and not prelude[0].strip():
+        prelude.pop(0)
+
+    cutoff = 0
+    while cutoff < len(prelude):
+        current = prelude[cutoff]
+        if _looks_like_paragraph(current):
+            break
+        if _looks_like_legacy_boilerplate(current, edition):
+            cutoff += 1
+            continue
+        break
+    prelude = prelude[cutoff:]
+    prelude = _strip_legacy_contents_block(prelude)
+
+    while prelude and not prelude[0].strip():
+        prelude.pop(0)
+    while prelude and not prelude[-1].strip():
+        prelude.pop()
+
+    if not prelude:
+        return "\n".join(chapters).strip() + "\n"
+
+    if not any(line.strip().startswith("#") for line in prelude):
+        prelude = ["# Adapted Preface", ""] + prelude
+
+    merged = prelude + [""] + chapters
+    return "\n".join(merged).strip() + "\n"
 
 
 def _marker_preview(text: str, start: int, end: int, radius: int = 60) -> str:
@@ -531,6 +665,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     miolo_txt = _remove_manual_contents_block(miolo_txt).strip()
     miolo_txt = _normalize_chapter_headings(miolo_txt).strip()
     miolo_txt = _demote_pre_chapter_headings(miolo_txt).strip()
+    miolo_txt = _normalize_pre_chapter_prelude(miolo_txt, edition).strip()
     miolo_txt = _remove_unwanted_taglines(miolo_txt).strip()
     miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)

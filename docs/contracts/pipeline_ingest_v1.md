@@ -81,6 +81,8 @@
 - `source.md` is allowed to supply chapter titles, but it must not override `split_01` chapter boundaries.
 - Free-text heading guesses remain fallback-only for legacy books with no split/source artifacts.
 - Title page, author line, `CONTENTS`, publication notes, and frontmatter must never be promoted as chapters.
+- Books with a curated title list must validate against that list before `TXT -> MD` succeeds.
+- If detected titles differ from the curated list, the pipeline must fail early with a mismatch report instead of silently generating wrong chapters.
 
 ## Redirect Contract (deterministic)
 

@@ -1464,6 +1464,39 @@ class MdTransformSourceHeadingContractTests(TestCase):
             ],
         )
 
+    def test_heading_contract_fails_when_expected_titles_do_not_match(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0203" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text(
+            "### THE ADVENTURE OF THE WRONG CASE\n\nOriginal opening one.",
+            encoding="utf-8",
+        )
+        (split_dir / "0002.txt").write_text(
+            "### THE PROBLEM OF THE SECOND CASE\n\nOriginal opening two.",
+            encoding="utf-8",
+        )
+
+        with patch.dict(
+            md_transform.EXPECTED_CHAPTER_TITLES,
+            {("book_0203", "en"): ["The Adventure of the First Case", "The Problem of the Second Case"]},
+            clear=False,
+        ):
+            with self.assertRaises(RuntimeError) as exc:
+                md_transform._resolve_heading_contract(
+                    self.temp_root / "merge_refine.txt",
+                    md_transform.PreEditionConfig(
+                        title="Test Book",
+                        book_code="book_0203",
+                        language="en",
+                    ),
+                )
+
+        self.assertIn("Chapter title contract failed", str(exc.exception))
+        self.assertIn("expected='The Adventure of the First Case'", str(exc.exception))
+        self.assertIn("actual='The Adventure of the Wrong Case'", str(exc.exception))
+
 
 class KdpMarkerCleanupContractTests(TestCase):
     def setUp(self):
@@ -1546,6 +1579,40 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         with self.assertRaises(RuntimeError):
             kdp_mode.build_merged_kdp_source(self.edition)
+
+    def test_build_kdp_strips_legacy_title_page_and_contents_and_labels_preface(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "::: center\n"
+                "# Marker Contract Book\n\n"
+                "## Illustrated Edition\n"
+                ":::\n\n"
+                "MARKER CONTRACT BOOK\n\n"
+                "BY AUTHOR MARKER CONTRACT\n\n"
+                "LONDON\n"
+                "JOHN MURRAY\n\n"
+                "First published 1927\n\n"
+                "This is the real prefatory paragraph that should remain in the book and not be swallowed by the generated frontmatter.\n\n"
+                "CONTENTS\n\n"
+                "I First Case\n"
+                "II Second Case\n\n"
+                "# Chapter 01 - First Case\n\n"
+                "Body text.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_path = kdp_mode.build_merged_kdp_source(self.edition)
+        merged_text = merged_path.read_text(encoding="utf-8")
+
+        self.assertIn("# Adapted Preface", merged_text)
+        self.assertIn("This is the real prefatory paragraph", merged_text)
+        self.assertIn("# Chapter 01 - First Case", merged_text)
+        self.assertNotIn("MARKER CONTRACT BOOK", merged_text)
+        self.assertNotIn("First published 1927", merged_text)
+        self.assertNotIn("\nCONTENTS\n", merged_text)
 
 
 class MdApproveImagesContractTests(TestCase):

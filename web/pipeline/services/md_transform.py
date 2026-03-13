@@ -123,6 +123,61 @@ KNOWN_CHAPTER_MARKERS: dict[tuple[str, str], dict[str, list[str]]] = {
     }
 }
 
+EXPECTED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
+    (
+        "book10",
+        "en",
+    ): [
+        "Silver Blaze",
+        "The Adventure of the Cardboard Box",
+        "The Yellow Face",
+        "The Stockbroker's Clerk",
+        'The "Gloria Scott"',
+        "The Musgrave Ritual",
+        "The Reigate Squires",
+        "The Crooked Man",
+        "The Resident Patient",
+        "The Greek Interpreter",
+        "The Naval Treaty",
+        "The Final Problem",
+    ],
+    (
+        "book_011",
+        "en",
+    ): [
+        "The Adventure of the Illustrious Client",
+        "The Adventure of the Blanched Soldier",
+        "The Adventure of the Mazarin Stone",
+        "The Adventure of the Three Gables",
+        "The Adventure of the Sussex Vampire",
+        "The Adventure of the Three Garridebs",
+        "The Problem of Thor Bridge",
+        "The Adventure of the Creeping Man",
+        "The Adventure of the Lion's Mane",
+        "The Adventure of the Veiled Lodger",
+        "The Adventure of Shoscombe Old Place",
+        "The Adventure of the Retired Colourman",
+    ],
+    (
+        "book_0009",
+        "en",
+    ): [
+        "The Adventure of the Empty House",
+        "The Adventure of the Norwood Builder",
+        "The Adventure of the Dancing Men",
+        "The Adventure of the Solitary Cyclist",
+        "The Adventure of the Priory School",
+        "The Adventure of Black Peter",
+        "The Adventure of Charles Augustus Milverton",
+        "The Adventure of the Six Napoleons",
+        "The Adventure of the Three Students",
+        "The Adventure of the Golden Pince-Nez",
+        "The Adventure of the Missing Three-Quarter",
+        "The Adventure of the Abbey Grange",
+        "The Adventure of the Second Stain",
+    ],
+}
+
 
 def _selected_txt_sources(edition):
     from . import text_source
@@ -452,6 +507,56 @@ def _normalize_source_heading(text: str) -> str:
     return "".join(converted)
 
 
+def _normalize_chapter_title_for_compare(text: str) -> str:
+    normalized = (text or "").strip()
+    normalized = normalized.replace("“", '"').replace("”", '"')
+    normalized = normalized.replace("’", "'").replace("‘", "'")
+    normalized = normalized.replace("*", "")
+    normalized = " ".join(normalized.split())
+    return normalized.casefold()
+
+
+def _expected_titles_for_cfg(cfg: PreEditionConfig) -> list[str] | None:
+    book_code = (cfg.book_code or "").strip()
+    language = (cfg.language or "").strip().lower()
+    if not book_code or not language:
+        return None
+    return EXPECTED_CHAPTER_TITLES.get((book_code, language))
+
+
+def _validate_heading_contract(cfg: PreEditionConfig, contract: HeadingContract | None) -> None:
+    expected_titles = _expected_titles_for_cfg(cfg)
+    if not expected_titles:
+        return
+    if contract is None:
+        raise RuntimeError(
+            f"Chapter title contract failed for {cfg.book_code} [{cfg.language}]: "
+            "no deterministic heading source was resolved."
+        )
+
+    actual_titles = contract.titles
+    expected_norm = [_normalize_chapter_title_for_compare(item) for item in expected_titles]
+    actual_norm = [_normalize_chapter_title_for_compare(item) for item in actual_titles]
+    if actual_norm == expected_norm:
+        return
+
+    mismatch_lines = [
+        f"expected_count={len(expected_titles)} actual_count={len(actual_titles)}",
+    ]
+    max_len = max(len(expected_titles), len(actual_titles))
+    for idx in range(max_len):
+        expected = expected_titles[idx] if idx < len(expected_titles) else "<missing>"
+        actual = actual_titles[idx] if idx < len(actual_titles) else "<missing>"
+        if _normalize_chapter_title_for_compare(expected) == _normalize_chapter_title_for_compare(actual):
+            continue
+        mismatch_lines.append(f"{idx + 1:02d}. expected={expected!r} actual={actual!r}")
+
+    raise RuntimeError(
+        f"Chapter title contract failed for {cfg.book_code} [{cfg.language}] "
+        f"using {contract.source}.\n" + "\n".join(mismatch_lines)
+    )
+
+
 def _looks_like_source_story_heading(text: str, cfg: PreEditionConfig) -> bool:
     stripped = _normalize_source_heading(text)
     if not stripped:
@@ -521,28 +626,35 @@ def _extract_source_md_markers(cfg: PreEditionConfig) -> dict[str, list[str]] | 
 def _resolve_heading_contract(txt_path: Path, cfg: PreEditionConfig) -> HeadingContract | None:
     chapter_map = _extract_split_chapter_map(cfg)
     if chapter_map:
-        return HeadingContract(
+        contract = HeadingContract(
             source="split_01",
             titles=[title for _chunk, title in chapter_map],
             chunk_starts=[chunk for chunk, _title in chapter_map],
         )
+        _validate_heading_contract(cfg, contract)
+        return contract
 
     source_spec = _extract_source_md_markers(cfg)
     if source_spec:
-        return HeadingContract(
+        contract = HeadingContract(
             source="source_md_markers",
             titles=list(source_spec["titles"]),
             markers=list(source_spec["markers"]),
         )
+        _validate_heading_contract(cfg, contract)
+        return contract
 
     book_code = (cfg.book_code or "").strip()
     known = KNOWN_CHAPTER_MARKERS.get((book_code, (cfg.language or "").lower()))
     if known:
-        return HeadingContract(
+        contract = HeadingContract(
             source="known_markers",
             titles=list(known["titles"]),
             markers=list(known["markers"]),
         )
+        _validate_heading_contract(cfg, contract)
+        return contract
+    _validate_heading_contract(cfg, None)
     return None
 
 
