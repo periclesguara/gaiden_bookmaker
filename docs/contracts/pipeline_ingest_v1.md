@@ -70,6 +70,18 @@
 - TXT upload:
   - `data/raw/<book_code>/<book_code>_<lang>_raw.txt`
 
+## Chapter Heading Contract
+
+- Final chapter headings for `TXT -> MD` must be resolved from deterministic project artifacts, not from loose prose heuristics.
+- Source of truth priority:
+  - `data/chunks/<book_code>/split_01/*.txt`
+  - `data/md/<book_code>/<book_code>_<lang>_source.md`
+  - legacy hardcoded marker map only as backward-compatibility fallback
+- If `split_01` exists, chapter titles and chapter boundaries must come from that split map.
+- `source.md` is allowed to supply chapter titles, but it must not override `split_01` chapter boundaries.
+- Free-text heading guesses remain fallback-only for legacy books with no split/source artifacts.
+- Title page, author line, `CONTENTS`, publication notes, and frontmatter must never be promoted as chapters.
+
 ## Redirect Contract (deterministic)
 
 - `source_format=html` -> `302 /pipeline/html/<edition_id>/`

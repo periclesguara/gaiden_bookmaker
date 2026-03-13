@@ -80,6 +80,14 @@ class PreEditionConfig:
     center_title: bool = True
 
 
+@dataclass
+class HeadingContract:
+    source: str
+    titles: list[str]
+    chunk_starts: list[str] | None = None
+    markers: list[str] | None = None
+
+
 KNOWN_CHAPTER_MARKERS: dict[tuple[str, str], dict[str, list[str]]] = {
     (
         "book10",
@@ -510,6 +518,34 @@ def _extract_source_md_markers(cfg: PreEditionConfig) -> dict[str, list[str]] | 
     return {"titles": titles, "markers": markers}
 
 
+def _resolve_heading_contract(txt_path: Path, cfg: PreEditionConfig) -> HeadingContract | None:
+    chapter_map = _extract_split_chapter_map(cfg)
+    if chapter_map:
+        return HeadingContract(
+            source="split_01",
+            titles=[title for _chunk, title in chapter_map],
+            chunk_starts=[chunk for chunk, _title in chapter_map],
+        )
+
+    source_spec = _extract_source_md_markers(cfg)
+    if source_spec:
+        return HeadingContract(
+            source="source_md_markers",
+            titles=list(source_spec["titles"]),
+            markers=list(source_spec["markers"]),
+        )
+
+    book_code = (cfg.book_code or "").strip()
+    known = KNOWN_CHAPTER_MARKERS.get((book_code, (cfg.language or "").lower()))
+    if known:
+        return HeadingContract(
+            source="known_markers",
+            titles=list(known["titles"]),
+            markers=list(known["markers"]),
+        )
+    return None
+
+
 def _markdown_from_source_md_markers(txt: str, cfg: PreEditionConfig) -> str | None:
     spec = _extract_source_md_markers(cfg)
     if not spec:
@@ -736,11 +772,21 @@ def pre_edition_txt_to_md(
     if title_block:
         md_parts.append(title_block)
 
-    body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
+    heading_contract = _resolve_heading_contract(txt_path, cfg)
+
+    body_md = None
+    if heading_contract and heading_contract.source == "split_01":
+        body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
+    if body_md is None and heading_contract and heading_contract.source == "source_md_markers":
+        body_md = _markdown_from_source_md_markers(cleaned, cfg)
+    if body_md is None and heading_contract and heading_contract.source == "known_markers":
+        body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
+    if body_md is None:
+        body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
     if body_md is None:
         body_md = _markdown_from_source_md_markers(cleaned, cfg)
     if body_md is None:
-        body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
+        body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
     if body_md is None:
         lines = cleaned.split("\n")
         blocks = _reflow_to_blocks(lines)

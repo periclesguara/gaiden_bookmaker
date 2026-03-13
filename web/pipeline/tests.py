@@ -1403,6 +1403,67 @@ class MdTransformSourceHeadingContractTests(TestCase):
         self.assertLess(output.index("Rewritten opening for case one."), second_idx)
         self.assertGreater(output.index("Rewritten opening for case two."), second_idx)
 
+    def test_heading_contract_prefers_split_map_over_source_marker_heuristics(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0202" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("PREFACE\n\nFront matter.", encoding="utf-8")
+        (split_dir / "0002.txt").write_text(
+            "### THE ADVENTURE OF THE FIRST CASE\n\nOriginal opening one.",
+            encoding="utf-8",
+        )
+        (split_dir / "0003.txt").write_text("Continuation one.", encoding="utf-8")
+        (split_dir / "0004.txt").write_text(
+            "### THE PROBLEM OF THE SECOND CASE\n\nOriginal opening two.",
+            encoding="utf-8",
+        )
+
+        source_dir = self.temp_root / "data" / "md" / "book_0202"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        (source_dir / "book_0202_en_source.md").write_text(
+            (
+                "# TEST BOOK\n\n"
+                "### I\n\n"
+                "### THE ADVENTURE OF THE FIRST CASE\n\n"
+                "Original opening one.\n\n"
+                "### II\n\n"
+                "### THE PROBLEM OF THE SECOND CASE\n\n"
+                "Original opening two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_refine.txt"
+        txt_path.write_text(
+            (
+                "Front matter.\n\n"
+                "Rewritten opening for case one.\n\n"
+                "Continuation for case one.\n\n"
+                "Rewritten opening for case two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        contract = md_transform._resolve_heading_contract(
+            txt_path,
+            md_transform.PreEditionConfig(
+                title="Test Book",
+                book_code="book_0202",
+                language="en",
+            ),
+        )
+
+        self.assertIsNotNone(contract)
+        self.assertEqual(contract.source, "split_01")
+        self.assertEqual(
+            contract.titles,
+            [
+                "The Adventure of the First Case",
+                "The Problem of the Second Case",
+            ],
+        )
+
 
 class KdpMarkerCleanupContractTests(TestCase):
     def setUp(self):
