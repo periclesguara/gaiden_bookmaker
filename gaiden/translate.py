@@ -109,6 +109,30 @@ def _sanitize_translated_output(text: str) -> str:
     return cleaned
 
 
+def _sanitize_with_contract_fallback(
+    translated_text: str,
+    source_text: str,
+    contract: Dict[str, Any],
+    chunk_name: str,
+) -> str:
+    try:
+        return _sanitize_translated_output(translated_text)
+    except RuntimeError as exc:
+        fallback_mode = str(contract.get("sanitize_failure_fallback") or "").strip().lower()
+        if fallback_mode != "keep_source_chunk":
+            raise
+
+        source_clean = source_text.strip()
+        if not source_clean:
+            raise
+
+        print(
+            f"[WARN] sanitize fallback for {chunk_name}: {exc}. "
+            "Keeping source chunk unchanged."
+        )
+        return source_clean
+
+
 def _detect_chunk_dir(contract: Dict[str, Any]) -> Path:
     chunk_dir = contract.get("chunk_dir")
     if chunk_dir:
@@ -268,7 +292,12 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
             except Exception:
                 translated = ""
 
-        translated = _sanitize_translated_output(translated)
+        translated = _sanitize_with_contract_fallback(
+            translated,
+            text,
+            contract,
+            chunk_path.name,
+        )
 
         out_path = out_dir_path / chunk_path.name
         out_path.write_text(translated, encoding="utf-8")

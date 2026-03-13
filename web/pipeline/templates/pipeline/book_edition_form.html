@@ -72,7 +72,7 @@
   <div class="container">
     <div class="card">
       <h1>Cadastro</h1>
-      <p>Primeira etapa obrigatoria. Escolha o formato de entrada e envie o arquivo.</p>
+        <p>Primeira etapa obrigatoria. Salve os metadados do livro e, em seguida, envie o arquivo de entrada.</p>
 
       {% if messages %}
         <div>
@@ -98,6 +98,22 @@
             {% endif %}
           {% endfor %}
         </div>
+      {% endif %}
+
+      {% if continue_options %}
+        <fieldset>
+          <legend><strong>Continuar Livro Existente</strong></legend>
+          <p>Selecione um dos livros de 01 a 11 para retomar o trabalho do ponto onde parou.</p>
+          <div class="actions">
+            <select id="continue_book_select" style="min-width: 420px;">
+              <option value="">Selecione um livro...</option>
+              {% for option in continue_options %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <button type="button" id="continue_book_button">Abrir</button>
+          </div>
+        </fieldset>
       {% endif %}
 
       <form
@@ -177,7 +193,6 @@
               name="source_file"
               type="file"
               accept=".html,.htm,.txt"
-              required
             />
             {% if form.source_file.errors %}<div class="error">{{ form.source_file.errors|join:", " }}</div>{% endif %}
             <div id="file_selected" style="margin-top:6px; color:#444; font-size:0.95em;">
@@ -190,7 +205,8 @@
         </fieldset>
 
         <div class="actions">
-          <button type="submit">Cadastrar e Enviar</button>
+          <button type="submit" name="action" value="save_metadata">Salvar Cadastro</button>
+          <button type="submit" name="action" value="upload_source">Enviar Arquivo</button>
           <a href="{% url 'pipeline_dashboard' %}">Voltar ao Dashboard</a>
         </div>
       </form>
@@ -202,6 +218,8 @@
     const hint = document.getElementById('hint');
     const sourceFileInput = document.getElementById('source_file');
     const fileSelected = document.getElementById('file_selected');
+    const continueBookSelect = document.getElementById('continue_book_select');
+    const continueBookButton = document.getElementById('continue_book_button');
 
     function refreshHint() {
       const selected = document.querySelector('input[name="source_format"]:checked');
@@ -220,6 +238,18 @@
       refreshHint();
     }));
     sourceFileInput.addEventListener('change', refreshSelectedFile);
+    if (continueBookButton && continueBookSelect) {
+      continueBookButton.addEventListener('click', () => {
+        if (continueBookSelect.value) {
+          window.location.href = continueBookSelect.value;
+        }
+      });
+      continueBookSelect.addEventListener('change', () => {
+        if (continueBookSelect.value) {
+          window.location.href = continueBookSelect.value;
+        }
+      });
+    }
     refreshHint();
     refreshSelectedFile();
   </script>

@@ -171,6 +171,19 @@ def _validate_ingest_v1_request(post_data, files) -> str:
     return source_format
 
 
+def _validate_ingest_metadata_request(post_data) -> str:
+    source_format = (post_data.get("source_format") or "").strip().lower()
+    if source_format not in SOURCE_FORMAT_ALLOWED:
+        raise ValidationError("source_format invalido. Use 'html' ou 'txt'.")
+
+    required_fields = ("book_code", "language", "title", "author_name")
+    for field in required_fields:
+        if not (post_data.get(field) or "").strip():
+            raise ValidationError(f"Campo obrigatorio ausente: {field}.")
+
+    return source_format
+
+
 def _write_uploaded_file_atomic(dest_path: Path, uploaded_file) -> None:
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=".upload_", dir=str(dest_path.parent))
@@ -330,6 +343,112 @@ def _insert_edition_row_legacy_schema(
         )
 
 
+def _insert_work_row_legacy_schema(
+    *,
+    book_code: str,
+    title: str,
+    language_id: int,
+    language_code: str,
+    author_id: int,
+    publisher: str,
+    year: int,
+) -> None:
+    now = timezone.now()
+    normalized_lang = utils.normalize_lang(language_code)
+    candidate_values: dict[str, object] = {
+        "code": book_code,
+        "title": title or book_code,
+        "subtitle": "",
+        "publisher": publisher or "",
+        "year": year or 2026,
+        "is_public_domain": True,
+        "original_language_id": language_id,
+        "author_id": author_id,
+    }
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT kcu.column_name, ccu.table_name
+            FROM information_schema.table_constraints AS tc
+            JOIN information_schema.key_column_usage AS kcu
+              ON tc.constraint_name = kcu.constraint_name
+             AND tc.table_schema = kcu.table_schema
+            JOIN information_schema.constraint_column_usage AS ccu
+              ON ccu.constraint_name = tc.constraint_name
+             AND ccu.table_schema = tc.table_schema
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+              AND tc.table_schema = current_schema()
+              AND tc.table_name = 'work'
+            """
+        )
+        fk_map = {row[0]: row[1] for row in cursor.fetchall()}
+
+        cursor.execute(
+            """
+            SELECT column_name, is_nullable, column_default, data_type, udt_name
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = 'work'
+            ORDER BY ordinal_position
+            """
+        )
+        rows = cursor.fetchall()
+        table_columns = {row[0] for row in rows}
+
+        for column_name, is_nullable, column_default, data_type, udt_name in rows:
+            if column_name in candidate_values or column_name == "id":
+                continue
+            if is_nullable != "NO" or column_default is not None:
+                continue
+
+            if column_name.endswith("_id"):
+                ref_table = fk_map.get(column_name, "")
+                if ref_table == "language":
+                    candidate_values[column_name] = language_id
+                    continue
+                if ref_table == "contributor":
+                    candidate_values[column_name] = author_id
+                    continue
+                continue
+
+            if column_name in {"subtitle"}:
+                candidate_values[column_name] = ""
+                continue
+            if column_name in {"language_code", "original_language_code", "language_variant"}:
+                candidate_values[column_name] = normalized_lang
+                continue
+            if column_name == "enabled_languages":
+                if data_type == "ARRAY" and udt_name in {"_varchar", "_text"}:
+                    candidate_values[column_name] = [normalized_lang]
+                elif data_type in {"json", "jsonb"}:
+                    candidate_values[column_name] = json.dumps([normalized_lang])
+                else:
+                    candidate_values[column_name] = normalized_lang
+                continue
+            if data_type in {"character varying", "text"}:
+                candidate_values[column_name] = ""
+            elif data_type == "boolean":
+                candidate_values[column_name] = False
+            elif data_type in {"integer", "smallint", "bigint"}:
+                candidate_values[column_name] = 0
+            elif data_type in {"timestamp without time zone", "timestamp with time zone", "date"}:
+                candidate_values[column_name] = now
+            elif data_type == "ARRAY" and udt_name in {"_varchar", "_text"}:
+                candidate_values[column_name] = []
+            elif data_type in {"json", "jsonb"}:
+                candidate_values[column_name] = json.dumps({})
+
+        insert_columns = [name for name in candidate_values if name in table_columns]
+        placeholders = ", ".join(["%s"] * len(insert_columns))
+        values = [candidate_values[name] for name in insert_columns]
+        columns_sql = ", ".join(insert_columns)
+        cursor.execute(
+            f"INSERT INTO work ({columns_sql}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
+            values,
+        )
+
+
 def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialEdition, bool]:
     book_code = template.book_code
     language_code = utils.normalize_lang(template.language)
@@ -343,17 +462,29 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
         name=author_name,
         defaults={"role": "AUTHOR"},
     )
-    work_obj, _ = Work.objects.get_or_create(
-        code=book_code,
-        defaults={
-            "title": template.title or book_code,
-            "original_language": language_obj,
-            "author": author_obj,
-            "publisher": template.imprint_name or "",
-            "year": template.publication_year or 2026,
-            "is_public_domain": True,
-        },
-    )
+    try:
+        work_obj, _ = Work.objects.get_or_create(
+            code=book_code,
+            defaults={
+                "title": template.title or book_code,
+                "original_language": language_obj,
+                "author": author_obj,
+                "publisher": template.imprint_name or "",
+                "year": template.publication_year or 2026,
+                "is_public_domain": True,
+            },
+        )
+    except IntegrityError:
+        _insert_work_row_legacy_schema(
+            book_code=book_code,
+            title=template.title or book_code,
+            language_id=language_obj.id,
+            language_code=language_code,
+            author_id=author_obj.id,
+            publisher=template.imprint_name or "",
+            year=template.publication_year or 2026,
+        )
+        work_obj = Work.objects.get(code=book_code)
 
     existing_edition = (
         EditorialEdition.objects.select_related("work", "language", "seal")
@@ -804,6 +935,7 @@ def book_edition_edit(request, book_code=None, language=None):
                 language=initial_language,
             ).first()
         )
+    continue_options = _continue_book_options()
 
     # When posting from the generic cadastro URL, load the existing template
     # by the submitted pair to avoid duplicate (book_code, language) creation.
@@ -819,11 +951,16 @@ def book_edition_edit(request, book_code=None, language=None):
             )
 
     if request.method == "POST":
+        action = (request.POST.get("action") or "upload_source").strip()
         try:
-            selected_source_format = _validate_ingest_v1_request(canonical_post_data, request.FILES)
+            if action == "save_metadata":
+                selected_source_format = _validate_ingest_metadata_request(canonical_post_data)
+            else:
+                selected_source_format = _validate_ingest_v1_request(canonical_post_data, request.FILES)
         except ValidationError as exc:
             return HttpResponseBadRequest(str(exc))
     else:
+        action = ""
         selected_source_format = _normalize_source_format(
             template.text_source_mode if template else SOURCE_FORMAT_TXT
         )
@@ -831,7 +968,6 @@ def book_edition_edit(request, book_code=None, language=None):
     if request.method == "POST":
         form = BookEditionTemplateForm(canonical_post_data, request.FILES, instance=template)
         if form.is_valid():
-            source_file = form.cleaned_data["source_file"]
             try:
                 with transaction.atomic():
                     template = form.save(commit=False)
@@ -848,10 +984,22 @@ def book_edition_edit(request, book_code=None, language=None):
                         form.add_error(None, str(exc))
                         raise
 
-                    ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
-                    raw_path = root / "data" / "raw" / book_code / f"{book_code}_{language}_raw{ext}"
-                    _write_uploaded_file_atomic(raw_path, source_file)
-                    saved_paths["raw_path"] = str(raw_path)
+                    if action == "save_metadata":
+                        logger.info(
+                            "pipeline_ingest_v1_metadata_saved",
+                            extra={
+                                "book_code": book_code,
+                                "language": language,
+                                "source_format": template.text_source_mode,
+                                "result": "ok",
+                            },
+                        )
+                    else:
+                        source_file = form.cleaned_data["source_file"]
+                        ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
+                        raw_path = root / "data" / "raw" / book_code / f"{book_code}_{language}_raw{ext}"
+                        _write_uploaded_file_atomic(raw_path, source_file)
+                        saved_paths["raw_path"] = str(raw_path)
 
                     cover_file = form.cleaned_data.get("cover_file")
                     if cover_file:
@@ -899,42 +1047,45 @@ def book_edition_edit(request, book_code=None, language=None):
                     edition.copyright_template = template.copyright_text
                     edition.about_edition_template = template.about_edition_text
                     edition.about_contributor_template = template.about_contributor_text
-                    edition.raw_source_path = saved_paths["raw_path"]
+                    if "raw_path" in saved_paths:
+                        edition.raw_source_path = saved_paths["raw_path"]
                     if "cover_path" in saved_paths:
                         edition.cover_filepath = saved_paths["cover_path"]
                     edition.save()
 
-                    texts, _ = EditionText.objects.get_or_create(edition=edition)
-                    texts.raw_path = saved_paths["raw_path"]
-                    texts.save(update_fields=["raw_path", "updated_at"])
+                    if action != "save_metadata":
+                        texts, _ = EditionText.objects.get_or_create(edition=edition)
+                        texts.raw_path = saved_paths["raw_path"]
+                        texts.save(update_fields=["raw_path", "updated_at"])
 
-                    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                    pipeline_state.raw_at = timezone.now()
-                    pipeline_state.current_stage = (
-                        STAGE_HTML_UPLOADED
-                        if template.text_source_mode == SOURCE_FORMAT_HTML
-                        else STAGE_TXT_UPLOADED
-                    )
-                    pipeline_state.save(update_fields=["raw_at", "current_stage"])
-
-                    kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
-
-                logger.info(
-                    "pipeline_ingest_v1",
-                    extra={
-                        "book_code": book_code,
-                        "language": language,
-                        "source_format": template.text_source_mode,
-                        "stage": pipeline_state.current_stage,
-                        "redirect": (
-                            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
+                        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+                        pipeline_state.raw_at = timezone.now()
+                        pipeline_state.current_stage = (
+                            STAGE_HTML_UPLOADED
                             if template.text_source_mode == SOURCE_FORMAT_HTML
-                            else reverse("edition_steps", kwargs={"edition_id": edition.id})
-                        ),
-                        "raw_path": saved_paths["raw_path"],
-                        "result": "ok",
-                    },
-                )
+                            else STAGE_TXT_UPLOADED
+                        )
+                        pipeline_state.save(update_fields=["raw_at", "current_stage"])
+
+                        kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
+
+                if action != "save_metadata":
+                    logger.info(
+                        "pipeline_ingest_v1",
+                        extra={
+                            "book_code": book_code,
+                            "language": language,
+                            "source_format": template.text_source_mode,
+                            "stage": pipeline_state.current_stage,
+                            "redirect": (
+                                reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
+                                if template.text_source_mode == SOURCE_FORMAT_HTML
+                                else reverse("edition_steps", kwargs={"edition_id": edition.id})
+                            ),
+                            "raw_path": saved_paths["raw_path"],
+                            "result": "ok",
+                        },
+                    )
             except ValidationError:
                 incoming_file = request.FILES.get("source_file")
                 if incoming_file:
@@ -951,6 +1102,7 @@ def book_edition_edit(request, book_code=None, language=None):
                     {
                         "form": form,
                         "source_format": selected_source_format,
+                        "continue_options": continue_options,
                     },
                 )
             except Exception as exc:
@@ -983,11 +1135,18 @@ def book_edition_edit(request, book_code=None, language=None):
                     {
                         "form": form,
                         "source_format": selected_source_format,
+                        "continue_options": continue_options,
                     },
                 )
 
             if edition_created:
                 messages.info(request, f"Edicao editorial criada automaticamente para {book_code} [{language}].")
+            if action == "save_metadata":
+                messages.success(
+                    request,
+                    f"Cadastro salvo para {book_code} [{language}]. Agora envie o arquivo para iniciar o pipeline.",
+                )
+                return redirect("book_edition_edit", book_code=book_code, language=language)
             messages.success(request, f"Cadastro salvo e arquivos prontos para {book_code} [{language}].")
             if template.text_source_mode == SOURCE_FORMAT_HTML:
                 return redirect("pipeline_html_dashboard", edition_id=edition.id)
@@ -1023,6 +1182,7 @@ def book_edition_edit(request, book_code=None, language=None):
         {
             "form": form,
             "source_format": selected_source_format,
+            "continue_options": continue_options,
         },
     )
 
@@ -1041,6 +1201,52 @@ def _parse_book_id(book_code: str) -> int | None:
         except ValueError:
             return None
     return None
+
+
+def _continue_book_options() -> list[dict[str, str]]:
+    editions = (
+        EditorialEdition.objects.select_related("work", "language")
+        .order_by("work__code", "language__code")
+    )
+    pipeline_map = {
+        row.edition_id: row
+        for row in EditionPipeline.objects.select_related("edition").filter(
+            edition_id__in=[edition.id for edition in editions]
+        )
+    }
+    template_map = {
+        (row.book_code, utils.normalize_lang(row.language)): row
+        for row in BookEditionTemplate.objects.all()
+    }
+
+    options: list[dict[str, str]] = []
+    for edition in editions:
+        book_code = edition.work.code
+        parsed = _parse_book_id(book_code)
+        if parsed is None or not (1 <= parsed <= 11):
+            continue
+        lang = utils.normalize_lang(edition.language.code)
+        template = template_map.get((book_code, lang))
+        pipeline_state = pipeline_map.get(edition.id)
+        current_stage = (pipeline_state.current_stage if pipeline_state else "") or ""
+        text_source_mode = _normalize_source_format(
+            template.text_source_mode if template else SOURCE_FORMAT_TXT
+        )
+        if (
+            text_source_mode == SOURCE_FORMAT_HTML
+            and current_stage
+            and _html_stage_rank(current_stage) > 0
+        ):
+            target_url = reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
+        else:
+            target_url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+        options.append(
+            {
+                "value": target_url,
+                "label": f"{parsed:02d} - {book_code} [{lang}] - {edition.title or edition.work.title}",
+            }
+        )
+    return options
 
 
 
@@ -1805,6 +2011,7 @@ def _build_runtime_refine_contract(edition, target_language: str) -> tuple[Path,
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
+    payload["sanitize_failure_fallback"] = "keep_source_chunk"
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
     payload["output"]["language"] = utils.normalize_lang(target_language)

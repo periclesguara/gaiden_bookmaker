@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import threading
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -19,7 +20,7 @@ from . import paths
 SEGMENT_MAX_CHARS = 18000
 SEGMENT_MIN_CHARS = 5000
 DEFAULT_MODEL = os.environ.get("GAIDEN_PREFLIGHT_MODEL", "gpt-5-mini")
-REQUEST_TIMEOUT = float(os.environ.get("GAIDEN_PREFLIGHT_TIMEOUT", "45"))
+REQUEST_TIMEOUT = float(os.environ.get("GAIDEN_PREFLIGHT_TIMEOUT", "8"))
 
 
 def _pick_source_text(edition) -> Path:
@@ -159,6 +160,39 @@ def _json_prompt(segment_label: str, segment_text: str) -> list[dict[str, object
             "content": [{"type": "input_text", "text": user_prompt}],
         },
     ]
+
+
+def _request_segment_analysis(client, segment_label: str, segment_text: str) -> tuple[str, dict[str, object]]:
+    raw_output_holder: dict[str, str] = {"value": ""}
+    error_holder: dict[str, Exception] = {}
+
+    def _target() -> None:
+        try:
+            response = client.responses.create(
+                model=DEFAULT_MODEL,
+                input=_json_prompt(segment_label, segment_text),
+                max_output_tokens=1800,
+                timeout=REQUEST_TIMEOUT,
+            )
+            raw_output_holder["value"] = _extract_output_text(response)
+        except Exception as exc:
+            error_holder["value"] = exc
+
+    worker = threading.Thread(
+        target=_target,
+        name=f"preflight-{segment_label[:24]}",
+        daemon=True,
+    )
+    worker.start()
+    worker.join(REQUEST_TIMEOUT)
+    if worker.is_alive():
+        raise TimeoutError(f"Pre-flight AI timed out after {REQUEST_TIMEOUT:.1f}s")
+    if "value" in error_holder:
+        raise error_holder["value"]
+
+    raw_output = raw_output_holder["value"]
+    payload = json.loads(raw_output) if raw_output else {}
+    return raw_output, payload
 
 
 def _normalize_items(segment_label: str, payload: dict[str, object], key: str) -> list[str]:
@@ -349,6 +383,7 @@ def run_preflight(edition) -> dict[str, object]:
     good: list[str] = list(heuristic["good"])
     raw_segments: list[dict[str, object]] = []
     client = None
+    remote_disabled_reason = ""
     try:
         client = get_client()
     except Exception as exc:
@@ -358,18 +393,16 @@ def run_preflight(edition) -> dict[str, object]:
         label = segment["label"] or f"Segment {idx}"
         raw_output = ""
         payload: dict[str, object] = {"critical": [], "medium": [], "light": [], "good": []}
-        if client is not None:
+        if client is not None and not remote_disabled_reason:
             try:
-                response = client.responses.create(
-                    model=DEFAULT_MODEL,
-                    input=_json_prompt(label, segment["text"]),
-                    max_output_tokens=1800,
-                    timeout=REQUEST_TIMEOUT,
-                )
-                raw_output = _extract_output_text(response)
-                payload = json.loads(raw_output)
+                raw_output, payload = _request_segment_analysis(client, label, segment["text"])
             except Exception as exc:
                 light.append(f"[{label}] Pre-flight AI fallback acionado: {exc}")
+                remote_disabled_reason = str(exc)
+        elif client is not None and remote_disabled_reason:
+            light.append(
+                f"[{label}] Pre-flight AI skipped after earlier fallback: {remote_disabled_reason}"
+            )
         try:
             payload = payload if isinstance(payload, dict) else json.loads(raw_output)
         except json.JSONDecodeError:

@@ -486,6 +486,11 @@ def _ensure_miolo_headings(text: str, language: str) -> str:
 
 def _ensure_epub_css(builds_base: Path) -> Path:
     css_path = builds_base / "epub.css"
+    template_path = Path(__file__).with_name("epub.css")
+    if template_path.exists():
+        css_path.write_text(template_path.read_text(encoding="utf-8"), encoding="utf-8")
+        return css_path
+
     css_path.write_text(
         (
             "body { margin: 0 4%; }\n"
@@ -496,6 +501,7 @@ def _ensure_epub_css(builds_base: Path) -> Path:
             "figure, .figure, .chapter-illustration, .post-cover-illustration { margin: 1.2em auto; text-align: center; }\n"
             "figure img, .figure img, .chapter-illustration img, .post-cover-illustration img { margin: 0 auto !important; }\n"
             "h1, h2, h3, h4, h5, h6 { text-indent: 0 !important; }\n"
+            "h2 { break-before: page; page-break-before: always; margin-top: 0; }\n"
         ),
         encoding="utf-8",
     )
@@ -542,7 +548,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     return kdp_merged_path
 
 
-def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") -> Path:
+def build_epub_for_edition(edition: Edition, epub_filename: str = "BOOK.epub") -> Path:
     builds_base = builds_dir(edition)
     builds_base.mkdir(parents=True, exist_ok=True)
 
@@ -636,13 +642,14 @@ def build_print_pdf_for_edition(edition: Edition, variant: str = "print") -> Pat
 
 def run_epubcheck_for_edition(edition: Edition, epubcheck_cmd: str = "epubcheck") -> Path:
     builds_base = builds_dir(edition)
-    epub_path = builds_base / "BOOK.EPUB3"
-    if not epub_path.exists():
-        alt = builds_base / "ebook.epub"
-        if alt.exists():
-            epub_path = alt
-        else:
-            raise FileNotFoundError(f"Nenhum EPUB encontrado em {builds_base}")
+    candidates = [
+        builds_base / "BOOK.epub",
+        builds_base / "BOOK.EPUB3",
+        builds_base / "ebook.epub",
+    ]
+    epub_path = next((path for path in candidates if path.exists()), None)
+    if epub_path is None:
+        raise FileNotFoundError(f"Nenhum EPUB encontrado em {builds_base}")
 
     cmd = [epubcheck_cmd, str(epub_path)]
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)

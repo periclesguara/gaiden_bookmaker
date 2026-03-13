@@ -5,12 +5,14 @@
 
 ## Gate 0 Endpoint
 
+- `GET /` must redirect to `GET /pipeline/editions/edit/` (`book_edition_new`).
 - `GET /pipeline/editions/edit/` (`book_edition_new`) is the canonical opening page for new books.
 - `POST /pipeline/editions/edit/` (`book_edition_new`)
 
 ## Canonical Entry Flow
 
 - New book intake must start at `book_edition_new`.
+- The system home page (`/`) must land users on this cadastro flow, not on a dashboard or alternate entrypoint.
 - This cadastro page is the fixed entrypoint for both TXT and HTML lanes.
 - For `source_format=html`, the next fixed page is the HTML lane dashboard.
 - The HTML conversion stages already behind that dashboard are considered stable project surface and must not be silently reordered, bypassed, or replaced from another entrypoint.

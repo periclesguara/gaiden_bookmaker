@@ -22,6 +22,9 @@ class QAIssue:
         }
 
 
+_IMAGE_REF_RE = re.compile(r"^!\[[^\]]*\]\([^)]+\)$", re.MULTILINE)
+
+
 def _remove_toc_block(lines: List[str]) -> Tuple[List[str], List[QAIssue]]:
     issues: List[QAIssue] = []
     toc_start = None
@@ -118,14 +121,20 @@ def approve_md_final(edition) -> Dict[str, str]:
     qa_path = paths.qa_md_path(edition)
     pre_path = paths.pre_qa_md_path(edition)
     pre_edition_path = paths.pre_edition_md_path(edition)
-    if qa_path.exists():
-        source_path = qa_path
-    elif pre_edition_path.exists():
-        source_path = pre_edition_path
-    elif pre_path.exists():
-        source_path = pre_path
-    else:
+
+    candidates = [path for path in (qa_path, pre_edition_path, pre_path) if path.exists()]
+    if not candidates:
         raise FileNotFoundError("No QA, PRE_EDITION, or PRE_QA file found to approve.")
+
+    def _image_ref_count(path) -> int:
+        return len(_IMAGE_REF_RE.findall(path.read_text(encoding="utf-8")))
+
+    source_path = candidates[0]
+    if pre_edition_path.exists():
+        pre_edition_images = _image_ref_count(pre_edition_path)
+        selected_images = _image_ref_count(source_path)
+        if pre_edition_images > selected_images:
+            source_path = pre_edition_path
 
     final_path = paths.final_md_path(edition)
     final_path.parent.mkdir(parents=True, exist_ok=True)

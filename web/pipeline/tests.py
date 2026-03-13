@@ -3,6 +3,7 @@ import json
 import re
 import shutil
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -32,6 +33,27 @@ class _FakeResponsesAPI:
 class _FakeOpenAIClient:
     def __init__(self, output_text: str):
         self.responses = _FakeResponsesAPI(output_text)
+
+
+class _SlowResponsesAPI:
+    def __init__(self, output_text: str, delay: float):
+        self.output_text = output_text
+        self.delay = delay
+
+    def create(self, **kwargs):
+        time.sleep(self.delay)
+
+        class _Resp:
+            pass
+
+        resp = _Resp()
+        resp.output_text = self.output_text
+        return resp
+
+
+class _SlowOpenAIClient:
+    def __init__(self, output_text: str, delay: float):
+        self.responses = _SlowResponsesAPI(output_text, delay)
 
 
 class CadastroSourceFormatRoutingTests(TestCase):
@@ -79,11 +101,39 @@ class CadastroSourceFormatRoutingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Cadastro")
-        self.assertContains(response, "Cadastrar e Enviar")
+        self.assertContains(response, "Salvar Cadastro")
+        self.assertContains(response, "Enviar Arquivo")
         self.assertContains(response, "Pre-producao HTML")
         self.assertIn('data-contract="pipeline_ingest_v1"', html)
         self.assertIn('data-contract-entrypoint="book_edition_new"', html)
         self.assertIn('data-contract-html-next="pipeline_html_dashboard"', html)
+
+    def test_root_redirects_to_canonical_cadastro_entrypoint(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("book_edition_new"))
+
+    def test_cadastro_shows_continue_selector_for_books_01_to_11(self):
+        work = Work.objects.create(
+            code="book_0001",
+            title="Continue Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        edition = Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="Continue Book",
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Continuar Livro Existente")
+        self.assertContains(response, "01 - book_0001 [en] - Continue Book")
+        self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
@@ -108,6 +158,62 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertTrue(raw_path.exists())
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_can_save_metadata_first_and_upload_file_afterwards(self, mock_frontmatter):
+        save_response = self.client.post(
+            self.cadastro_url,
+            data={
+                "action": "save_metadata",
+                "book_code": self.work.code,
+                "language": "en",
+                "title": "Book Test",
+                "author_name": "Author Test",
+                "publication_year": 2026,
+                "source_format": "html",
+            },
+            follow=False,
+        )
+
+        self.assertEqual(save_response.status_code, 302)
+        self.assertEqual(
+            save_response.url,
+            reverse("book_edition_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+        )
+        template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
+        self.assertEqual(template.text_source_mode, "html")
+        raw_path = self.raw_dir / f"{self.work.code}_en_raw.html"
+        self.assertFalse(raw_path.exists())
+
+        upload_response = self.client.post(
+            reverse("book_edition_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+            data={
+                "action": "upload_source",
+                "book_code": self.work.code,
+                "language": "en",
+                "title": "Book Test",
+                "author_name": "Author Test",
+                "publication_year": 2026,
+                "source_format": "html",
+                "source_file": SimpleUploadedFile(
+                    "source.html",
+                    b"<html><body>Hello</body></html>",
+                    content_type="text/html",
+                ),
+            },
+            follow=False,
+        )
+
+        self.assertEqual(upload_response.status_code, 302)
+        self.assertEqual(
+            upload_response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        self.assertTrue(raw_path.exists())
+        pipeline_state = EditionPipeline.objects.get(edition=self.edition)
+        self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
+        self.assertEqual(EditionText.objects.get(edition=self.edition).raw_path, str(raw_path))
         mock_frontmatter.assert_called_once()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
@@ -794,6 +900,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertFalse((self.edition_core_dir / "refine_input_en").exists())
 
     def test_runtime_refine_contract_is_hardened_into_prompts(self):
+        from gaiden.translate import run_translate_with_contract
         from pipeline.views import _build_runtime_refine_contract
 
         self.client.post(self.heading_url)
@@ -813,6 +920,18 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("Do not summarize", payload["system_prompt"])
         self.assertIn("Return only the refined passage", payload["user_prompt"])
         self.assertIn("Do not omit any sentence", payload["user_prompt"])
+        self.assertEqual(payload["sanitize_failure_fallback"], "keep_source_chunk")
+
+        with patch("gaiden.translate.get_client", return_value=_FakeOpenAIClient("Here is the refined passage:")):
+            run_translate_with_contract(runtime_contract_path)
+
+        refined_chunk = out_dir_path / "0001.txt"
+        self.assertTrue(refined_chunk.exists())
+        self.assertEqual(
+            refined_chunk.read_text(encoding="utf-8"),
+            "Holmes spoke plainly.\n\nWatson listened carefully.",
+        )
+        self.assertTrue((out_dir_path / "merged_return_aldebaran.txt").exists())
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
         self.client.post(self.heading_url)
@@ -940,6 +1059,40 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("2. PROBLEMAS MEDIOS", preflight_md.read_text(encoding="utf-8"))
         self.assertIn("4. O QUE ESTA BOM", preflight_md.read_text(encoding="utf-8"))
         self.assertIn("pronto para MD com pequenos ajustes", preflight_md.read_text(encoding="utf-8"))
+
+    @patch("pipeline.services.preflight.REQUEST_TIMEOUT", 0.01)
+    @patch("pipeline.services.preflight.get_client")
+    def test_preflight_times_out_remote_once_and_falls_back_locally(self, mock_get_client):
+        mock_get_client.return_value = _SlowOpenAIClient('{"critical":[],"medium":[],"light":[],"good":[]}', 0.05)
+
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("chunk 1", encoding="utf-8")
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
+        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
+        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean.parent.mkdir(parents=True, exist_ok=True)
+        translated_clean.write_text(
+            "# Chapter I\n\nA clean merged passage for pre-flight review.\n\n# Chapter II\n\nAnother passage.",
+            encoding="utf-8",
+        )
+
+        response = self.client.post(reverse("pipeline_preflight_run", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 302)
+        preflight_json = self.build_dir / "PRE_FLIGHT.json"
+        preflight_md = self.build_dir / "PRE_FLIGHT.md"
+        self.assertTrue(preflight_json.exists())
+        self.assertTrue(preflight_md.exists())
+        report = json.loads(preflight_json.read_text(encoding="utf-8"))
+        joined_light = "\n".join(report["light"])
+        self.assertIn("Pre-flight AI fallback acionado", joined_light)
 
 
 class EditorialImagePipelineContractTests(TestCase):
@@ -1110,6 +1263,147 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertTrue((self.assets_dir / "ch02_01_02.jpg").exists())
 
 
+class MdTransformSourceHeadingContractTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+    def tearDown(self):
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_txt_to_md_uses_source_md_story_titles_and_ignores_false_chapters(self):
+        from pipeline.services import md_transform
+
+        source_dir = self.temp_root / "data" / "md" / "book_0200"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        source_md = source_dir / "book_0200_en_source.md"
+        source_md.write_text(
+            (
+                "# THE TEST CASEBOOK\n\n"
+                "### I\n\n"
+                "### THE ADVENTURE OF THE FIRST CASE\n\n"
+                "Opening paragraph one. It starts the first case.\n\n"
+                "### II\n\n"
+                "### THE PROBLEM OF THE SECOND CASE\n\n"
+                "Opening paragraph two. It starts the second case.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_refine_clean.txt"
+        txt_path.write_text(
+            (
+                "THE TEST CASEBOOK\n\n"
+                "BY TEST AUTHOR\n\n"
+                "First published 1927\n\n"
+                "CONTENTS\n\n"
+                "Opening paragraph one. It starts the first case.\n\n"
+                "More of the first case.\n\n"
+                "Opening paragraph two. It starts the second case.\n\n"
+                "More of the second case.\n\n"
+                "| Designer of Agricultural Machinery. |\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="The Test Casebook",
+                book_code="book_0200",
+                language="en",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("# Chapter 01 - The Adventure of the First Case", output)
+        self.assertIn("# Chapter 02 - The Problem of the Second Case", output)
+        self.assertNotIn("# Chapter 01 - First published 1927", output)
+        self.assertNotIn("# Chapter 03 - | Designer of Agricultural Machinery. |", output)
+
+    def test_txt_to_md_can_segment_by_split_and_refine_chunks_when_literal_markers_do_not_match(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0201" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("PREFACE\n\nOpening prefatory matter.", encoding="utf-8")
+        (split_dir / "0002.txt").write_text(
+            "### THE ADVENTURE OF THE FIRST CASE\n\nOriginal opening one.",
+            encoding="utf-8",
+        )
+        (split_dir / "0003.txt").write_text("Continuation one.", encoding="utf-8")
+        (split_dir / "0004.txt").write_text(
+            "### THE PROBLEM OF THE SECOND CASE\n\nOriginal opening two.",
+            encoding="utf-8",
+        )
+        (split_dir / "0005.txt").write_text("Continuation two.", encoding="utf-8")
+
+        refined_dir = self.temp_root / "data" / "translated" / "book_0201" / "en_modern_2025" / "return_aldebaran"
+        refined_dir.mkdir(parents=True, exist_ok=True)
+        (refined_dir / "0001.txt").write_text("Preface kept in refined text.", encoding="utf-8")
+        (refined_dir / "0002.txt").write_text("Rewritten opening for case one.", encoding="utf-8")
+        (refined_dir / "0003.txt").write_text("Continuation for case one.", encoding="utf-8")
+        (refined_dir / "0004.txt").write_text("Rewritten opening for case two.", encoding="utf-8")
+        (refined_dir / "0005.txt").write_text("Continuation for case two.", encoding="utf-8")
+
+        source_dir = self.temp_root / "data" / "md" / "book_0201"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        (source_dir / "book_0201_en_source.md").write_text(
+            (
+                "# TEST BOOK\n\n"
+                "### I\n\n"
+                "### THE ADVENTURE OF THE FIRST CASE\n\n"
+                "Original opening one.\n\n"
+                "### II\n\n"
+                "### THE PROBLEM OF THE SECOND CASE\n\n"
+                "Original opening two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_refine.txt"
+        txt_path.write_text(
+            (
+                "Preface kept in refined text.\n\n"
+                "Rewritten opening for case one.\n\n"
+                "Continuation for case one.\n\n"
+                "Rewritten opening for case two.\n\n"
+                "Continuation for case two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="Test Book",
+                book_code="book_0201",
+                language="en",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("Preface kept in refined text.", output)
+        self.assertIn("# Chapter 01 - The Adventure of the First Case", output)
+        self.assertIn("Rewritten opening for case one.", output)
+        self.assertIn("Continuation for case one.", output)
+        self.assertIn("# Chapter 02 - The Problem of the Second Case", output)
+        self.assertIn("Rewritten opening for case two.", output)
+        first_idx = output.index("# Chapter 01 - The Adventure of the First Case")
+        second_idx = output.index("# Chapter 02 - The Problem of the Second Case")
+        self.assertLess(output.index("Rewritten opening for case one."), second_idx)
+        self.assertGreater(output.index("Rewritten opening for case two."), second_idx)
+
+
 class KdpMarkerCleanupContractTests(TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -1191,3 +1485,49 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         with self.assertRaises(RuntimeError):
             kdp_mode.build_merged_kdp_source(self.edition)
+
+
+class MdApproveImagesContractTests(TestCase):
+    def setUp(self):
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Author Approval Contract")
+        self.seal = Seal.objects.create(slug="mantaquest-approve", name="MantaQuest Approve")
+        self.work = Work.objects.create(
+            code="book_0103",
+            title="Approval Contract Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+        self.build_dir = Path("data") / "builds" / self.work.code / "en"
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        shutil.rmtree(Path("data") / "builds" / self.work.code, ignore_errors=True)
+
+    def test_approve_md_prefers_pre_edition_when_it_has_images(self):
+        from pipeline.services import md_quality, paths
+
+        (self.build_dir / "BOOK.QA.md").write_text(
+            "# Chapter 01 - Case One\n\nBody without images.\n",
+            encoding="utf-8",
+        )
+        (self.build_dir / "BOOK.PRE_EDITION.md").write_text(
+            "# Chapter 01 - Case One\n![](assets/images/ch01_01_01.jpg)\n\nBody with image.\n",
+            encoding="utf-8",
+        )
+
+        result = md_quality.approve_md_final(self.edition)
+        final_text = paths.final_md_path(self.edition).read_text(encoding="utf-8")
+
+        self.assertEqual(Path(result["source"]).resolve(), (self.build_dir / "BOOK.PRE_EDITION.md").resolve())
+        self.assertIn("![](assets/images/ch01_01_01.jpg)", final_text)

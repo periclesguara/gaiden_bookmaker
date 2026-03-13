@@ -17,6 +17,7 @@ ROMAN_HEADING_RE = re.compile(r"^([IVXLCDM]+)\s+([A-Z].+)")
 ROMAN_GLUE_RE = re.compile(r"([A-Za-z])([IVXLCDM]+)\.")
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*$")
+ROMAN_ONLY_RE = re.compile(r"^[IVXLCDM]+$", re.IGNORECASE)
 CHAPTER_NUM_RE = re.compile(
     r"^\s*(?:chapter|adventure|cap[ií]tulo)\s+([ivxlcdm]+|\d+)\b",
     re.IGNORECASE,
@@ -180,6 +181,15 @@ def _is_chapter_heading(line: str) -> bool:
     if not line:
         return False
     stripped = line.strip()
+    upper = stripped.upper()
+    if "|" in stripped:
+        return False
+    if upper in {"CONTENTS", "TABLE OF CONTENTS"}:
+        return False
+    if upper.startswith("FIRST PUBLISHED"):
+        return False
+    if upper in {"BY ARTHUR CONAN DOYLE", "ARTHUR CONAN DOYLE"}:
+        return False
     if CHAPTER_PREFIX_RE.match(stripped):
         return True
     if re.match(r"^ADVENTURE\s+[IVXLCDM]+\.\s+.*", stripped, re.IGNORECASE):
@@ -394,6 +404,257 @@ def _markdown_for_title(cfg: PreEditionConfig) -> str:
     return "\n".join(parts)
 
 
+def _source_md_path(cfg: PreEditionConfig) -> Path | None:
+    book_code = (cfg.book_code or "").strip()
+    language = (cfg.language or "").strip().lower()
+    if not book_code or not language:
+        return None
+    path = paths.data_dir() / "md" / book_code / f"{book_code}_{language}_source.md"
+    return path if path.exists() else None
+
+
+def _book_numeric_code(book_code: str | None) -> int | None:
+    if not book_code:
+        return None
+    digits = "".join(ch for ch in str(book_code) if ch.isdigit())
+    if not digits:
+        return None
+    return int(digits)
+
+
+def _normalize_source_heading(text: str) -> str:
+    stripped = " ".join((text or "").replace("\\", "").split()).strip()
+    if not stripped:
+        return stripped
+    if not stripped.isupper():
+        return stripped
+
+    words = re.split(r"(\s+)", stripped.lower())
+    converted: list[str] = []
+    first_word = True
+    for token in words:
+        if not token or token.isspace():
+            converted.append(token)
+            continue
+        if token in TITLE_SMALL_WORDS and not first_word:
+            converted.append(token)
+        else:
+            converted.append(token[:1].upper() + token[1:])
+        first_word = False
+    return "".join(converted)
+
+
+def _looks_like_source_story_heading(text: str, cfg: PreEditionConfig) -> bool:
+    stripped = _normalize_source_heading(text)
+    if not stripped:
+        return False
+    upper = stripped.upper()
+    book_title = (cfg.title or "").strip().upper()
+    if book_title and upper == book_title:
+        return False
+    if upper in {"CONTENTS", "TABLE OF CONTENTS"}:
+        return False
+    if ROMAN_ONLY_RE.fullmatch(stripped):
+        return False
+    if upper.startswith("BY "):
+        return False
+    return upper.startswith("THE ADVENTURE OF ") or upper.startswith("THE PROBLEM OF ")
+
+
+def _extract_source_md_markers(cfg: PreEditionConfig) -> dict[str, list[str]] | None:
+    source_md_path = _source_md_path(cfg)
+    if source_md_path is None:
+        return None
+
+    lines = source_md_path.read_text(encoding="utf-8").splitlines()
+    titles: list[str] = []
+    markers: list[str] = []
+
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx].strip()
+        if not line.startswith("### "):
+            idx += 1
+            continue
+
+        heading = line[4:].strip()
+        if not _looks_like_source_story_heading(heading, cfg):
+            idx += 1
+            continue
+
+        title = _normalize_source_heading(heading)
+        idx += 1
+        paragraph_lines: list[str] = []
+        while idx < len(lines):
+            current = lines[idx].strip()
+            if not current:
+                if paragraph_lines:
+                    break
+                idx += 1
+                continue
+            if current.startswith("#"):
+                break
+            if current.startswith("[") or current.startswith("![]("):
+                idx += 1
+                continue
+            paragraph_lines.append(current)
+            idx += 1
+
+        marker = " ".join(paragraph_lines).strip()
+        if marker:
+            titles.append(title)
+            markers.append(marker)
+
+    if not titles or len(titles) != len(markers):
+        return None
+    return {"titles": titles, "markers": markers}
+
+
+def _markdown_from_source_md_markers(txt: str, cfg: PreEditionConfig) -> str | None:
+    spec = _extract_source_md_markers(cfg)
+    if not spec:
+        return None
+
+    titles = spec["titles"]
+    markers = spec["markers"]
+    starts: list[int] = []
+    search_from = 0
+    for marker in markers:
+        idx = txt.find(marker, search_from)
+        if idx == -1:
+            return None
+        starts.append(idx)
+        search_from = idx + len(marker)
+
+    starts.append(len(txt))
+    out_lines: list[str] = []
+    prefix = txt[:starts[0]].strip()
+    if prefix:
+        out_lines.append(prefix)
+        out_lines.append("")
+
+    for idx, title in enumerate(titles):
+        segment = txt[starts[idx] : starts[idx + 1]].strip()
+        if not segment:
+            continue
+        if cfg.add_pagebreak_before_chapter:
+            out_lines.append(r"\newpage")
+            out_lines.append("")
+        out_lines.append(f"# {_format_chapter_heading(title, idx + 1, cfg.language)}")
+        out_lines.append("")
+        out_lines.append(segment)
+        out_lines.append("")
+
+    while out_lines and not out_lines[-1].strip():
+        out_lines.pop()
+    return "\n".join(out_lines)
+
+
+def _translated_chunk_dir_for_cfg(cfg: PreEditionConfig, txt_path: Path) -> Path | None:
+    book_num = _book_numeric_code(cfg.book_code)
+    if book_num is None:
+        return None
+
+    translated_root = paths.data_dir() / "translated" / f"book_{book_num:04d}"
+    if not translated_root.exists():
+        return None
+
+    chunk_variants = sorted(
+        p for p in translated_root.iterdir()
+        if p.is_dir()
+    )
+    if not chunk_variants:
+        return None
+
+    wants_refine = "refine" in txt_path.name.lower()
+    if wants_refine:
+        for variant in chunk_variants:
+            candidate = variant / "return_aldebaran"
+            if candidate.exists():
+                return candidate
+    for variant in chunk_variants:
+        txt_files = sorted(p for p in variant.glob("*.txt") if not p.name.startswith("merged_"))
+        if txt_files:
+            return variant
+    return None
+
+
+def _extract_split_chapter_map(cfg: PreEditionConfig) -> list[tuple[str, str]]:
+    book_num = _book_numeric_code(cfg.book_code)
+    if book_num is None:
+        return []
+
+    split_dir = paths.data_dir() / "chunks" / f"book_{book_num:04d}" / "split_01"
+    if not split_dir.exists():
+        return []
+
+    chapters: list[tuple[str, str]] = []
+    for chunk_path in sorted(split_dir.glob("*.txt")):
+        for line in chunk_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("### "):
+                continue
+            heading = stripped[4:].strip()
+            if not _looks_like_source_story_heading(heading, cfg):
+                continue
+            chapters.append((chunk_path.name, _normalize_source_heading(heading)))
+            break
+    return chapters
+
+
+def _markdown_from_chunk_boundaries(txt_path: Path, cfg: PreEditionConfig) -> str | None:
+    chapter_map = _extract_split_chapter_map(cfg)
+    if not chapter_map:
+        return None
+
+    chunk_dir = _translated_chunk_dir_for_cfg(cfg, txt_path)
+    if chunk_dir is None or not chunk_dir.exists():
+        return None
+
+    available_chunks = {
+        path.name: path.read_text(encoding="utf-8").strip()
+        for path in sorted(chunk_dir.glob("*.txt"))
+        if not path.name.startswith("merged_")
+    }
+    if not available_chunks:
+        return None
+
+    ordered_names = sorted(available_chunks.keys())
+    chapter_starts = [name for name, _title in chapter_map if name in available_chunks]
+    if len(chapter_starts) != len(chapter_map):
+        return None
+
+    prefix_names = [name for name in ordered_names if name < chapter_starts[0]]
+    out_lines: list[str] = []
+    if prefix_names:
+        prefix_parts = [available_chunks[name] for name in prefix_names if available_chunks[name]]
+        prefix_text = "\n\n".join(prefix_parts).strip()
+        if prefix_text:
+            out_lines.append(prefix_text)
+            out_lines.append("")
+
+    for idx, (start_name, title) in enumerate(chapter_map):
+        start_index = ordered_names.index(start_name)
+        end_name = chapter_map[idx + 1][0] if idx + 1 < len(chapter_map) else None
+        end_index = ordered_names.index(end_name) if end_name else len(ordered_names)
+        chapter_names = ordered_names[start_index:end_index]
+        chapter_parts = [available_chunks[name] for name in chapter_names if available_chunks[name]]
+        chapter_text = "\n\n".join(chapter_parts).strip()
+        if not chapter_text:
+            continue
+        if cfg.add_pagebreak_before_chapter:
+            out_lines.append(r"\newpage")
+            out_lines.append("")
+        out_lines.append(f"# {_format_chapter_heading(title, idx + 1, cfg.language)}")
+        out_lines.append("")
+        out_lines.append(chapter_text)
+        out_lines.append("")
+
+    while out_lines and not out_lines[-1].strip():
+        out_lines.pop()
+    return "\n".join(out_lines) if out_lines else None
+
+
 def _markdown_from_known_chapter_markers(txt: str, cfg: PreEditionConfig) -> str | None:
     book_code = (cfg.book_code or "").strip()
     spec = KNOWN_CHAPTER_MARKERS.get((book_code, (cfg.language or "").lower()))
@@ -476,6 +737,10 @@ def pre_edition_txt_to_md(
         md_parts.append(title_block)
 
     body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
+    if body_md is None:
+        body_md = _markdown_from_source_md_markers(cleaned, cfg)
+    if body_md is None:
+        body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
     if body_md is None:
         lines = cleaned.split("\n")
         blocks = _reflow_to_blocks(lines)
