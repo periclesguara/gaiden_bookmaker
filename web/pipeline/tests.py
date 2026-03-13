@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -342,6 +343,103 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertTrue(Edition.objects.filter(work__code=self.work.code, language__code="en").exists())
         mock_frontmatter.assert_called_once()
 
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_work_integrityerror_fallback_keeps_outer_transaction_usable(self, mock_frontmatter):
+        from pipeline import views as pipeline_views
+
+        self.edition.delete()
+        self.work.delete()
+
+        def fake_insert_work_row_legacy_schema(**kwargs):
+            language = Language.objects.get(id=kwargs["language_id"])
+            author = Contributor.objects.get(id=kwargs["author_id"])
+            work = Work(
+                code=kwargs["book_code"],
+                title=kwargs["title"],
+                original_language=language,
+                author=author,
+                publisher=kwargs["publisher"],
+                year=kwargs["year"],
+                is_public_domain=True,
+            )
+            work.save(force_insert=True)
+
+        upload = SimpleUploadedFile(
+            "source.html",
+            b"<!doctype html><html><body>Fallback Work</body></html>",
+            content_type="text/html",
+        )
+
+        with patch.object(
+            pipeline_views.Work.objects,
+            "get_or_create",
+            side_effect=IntegrityError("legacy work create failed"),
+        ), patch(
+            "pipeline.views._insert_work_row_legacy_schema",
+            side_effect=fake_insert_work_row_legacy_schema,
+        ):
+            response = self.client.post(
+                self.cadastro_url,
+                data=self._payload("html", upload),
+            )
+
+        edition = Edition.objects.get(work__code=self.work.code, language__code="en")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
+        )
+        self.assertTrue(Work.objects.filter(code=self.work.code).exists())
+        mock_frontmatter.assert_called_once()
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    def test_cadastro_edition_integrityerror_fallback_keeps_outer_transaction_usable(self, mock_frontmatter):
+        from pipeline import views as pipeline_views
+
+        self.edition.delete()
+
+        def fake_insert_edition_row_legacy_schema(**kwargs):
+            work = Work.objects.get(id=kwargs["work_id"])
+            language = Language.objects.get(id=kwargs["language_id"])
+            seal = Seal.objects.get(id=kwargs["seal_id"])
+            edition = Edition(
+                work=work,
+                language=language,
+                seal=seal,
+                title="Book Test",
+                author="Author Test",
+                publication_year=2026,
+            )
+            edition.save(force_insert=True)
+
+        upload = SimpleUploadedFile(
+            "source.html",
+            b"<!doctype html><html><body>Fallback Edition</body></html>",
+            content_type="text/html",
+        )
+
+        with patch.object(
+            pipeline_views.EditorialEdition.objects,
+            "create",
+            side_effect=IntegrityError("legacy edition create failed"),
+        ), patch(
+            "pipeline.views._insert_edition_row_legacy_schema",
+            side_effect=fake_insert_edition_row_legacy_schema,
+        ):
+            response = self.client.post(
+                self.cadastro_url,
+                data=self._payload("html", upload),
+            )
+
+        edition = Edition.objects.get(work__code=self.work.code, language__code="en")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
+        )
+        self.assertEqual(edition.title, "Book Test")
+        mock_frontmatter.assert_called_once()
+
 
 class ContractIngestV1Tests(TestCase):
     def setUp(self):
@@ -419,6 +517,9 @@ class ContractIngestV1Tests(TestCase):
         payload.pop("source_file")
         response = self.client.post(self.cadastro_url, data=payload)
         self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "Cadastro", status_code=400)
+        self.assertContains(response, "Nenhum arquivo chegou ao backend nesta submissao", status_code=400)
+        self.assertContains(response, "Campo obrigatorio ausente: source_file.", status_code=400)
 
     def test_extension_mismatch_returns_400(self):
         payload = self._payload("html", self._fixture_upload("minimal.txt", "text/plain"))
@@ -588,21 +689,26 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.raw_dir = self.root / "data" / "raw" / self.work.code
         self.preprod_dir = self.root / "data" / "preprod" / self.work.code
         self.md_dir = self.root / "data" / "md" / self.work.code
+        self.normalized_dir = self.root / "data" / "normalized"
         self.raw_path = self.raw_dir / f"{self.work.code}_en_raw.html"
         self.clean_path = self.preprod_dir / f"{self.work.code}_en_clean.html"
         self.report_path = self.preprod_dir / f"{self.work.code}_en_report.json"
         self.source_md_path = self.md_dir / f"{self.work.code}_en_source.md"
         self.normalized_md_path = self.md_dir / f"{self.work.code}_en_normalized.md"
         self.canonical_md_path = self.md_dir / f"{self.work.code}_en_canonical.md"
+        self.normalized_v2_path = self.normalized_dir / f"{self.work.code}_en_v2.txt"
         self.reupload_url = reverse("pipeline_html_reupload_run", kwargs={"edition_id": self.edition.id})
         self.preprod_url = reverse("pipeline_html_preprod_run", kwargs={"edition_id": self.edition.id})
         self.convert_url = reverse("pipeline_html_convert_run", kwargs={"edition_id": self.edition.id})
         self.dashboard_url = reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id})
+        self.normalize_url = reverse("pipeline_normalize_run", kwargs={"edition_id": self.edition.id})
 
     def tearDown(self):
         shutil.rmtree(self.raw_dir, ignore_errors=True)
         shutil.rmtree(self.preprod_dir, ignore_errors=True)
         shutil.rmtree(self.md_dir, ignore_errors=True)
+        if self.normalized_v2_path.exists():
+            self.normalized_v2_path.unlink()
 
     def _write_raw_html(self):
         self.raw_dir.mkdir(parents=True, exist_ok=True)
@@ -684,6 +790,26 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertGreaterEqual(report["headings_promoted"], 1)
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "HTML_PREPROD_READY")
+
+    def test_normalize_accepts_raw_html_before_preprod(self):
+        self._write_raw_html()
+
+        response = self.client.post(self.normalize_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1",
+        )
+        self.assertTrue(self.normalized_v2_path.exists())
+        normalized_text = self.normalized_v2_path.read_text(encoding="utf-8")
+        self.assertIn("CHAPTER IV", normalized_text)
+        self.assertIn("The quick brown fox.", normalized_text)
+        texts = EditionText.objects.get(edition=self.edition)
+        self.assertIn("The quick brown fox.", texts.raw_text)
+        self.assertEqual(texts.normalized_path, str(self.normalized_v2_path))
+        pipeline_state = EditionPipeline.objects.get(edition=self.edition)
+        self.assertEqual(pipeline_state.current_stage, "NORMALIZED")
 
     def test_convert_blocks_when_report_not_ok(self):
         self.preprod_dir.mkdir(parents=True, exist_ok=True)
@@ -916,8 +1042,12 @@ class HeadingCleanerGateTests(TestCase):
 
         self.assertEqual(refine_input_dir, self.edition_core_dir / "refine_input_en")
         self.assertEqual(out_dir_path, self.translated_dir / "return_aldebaran")
+        self.assertEqual(payload["refine_profile"], "ingles_neutro")
+        self.assertEqual(payload["agent_name"], "Aldebaran")
         self.assertIn("professional literary editor", payload["system_prompt"])
+        self.assertIn("Active refine profile: Ingles neutro via agent Aldebaran.", payload["system_prompt"])
         self.assertIn("Do not summarize", payload["system_prompt"])
+        self.assertIn("Selected profile: Ingles neutro.", payload["user_prompt"])
         self.assertIn("Return only the refined passage", payload["user_prompt"])
         self.assertIn("Do not omit any sentence", payload["user_prompt"])
         self.assertEqual(payload["sanitize_failure_fallback"], "keep_source_chunk")
@@ -932,6 +1062,69 @@ class HeadingCleanerGateTests(TestCase):
             "Holmes spoke plainly.\n\nWatson listened carefully.",
         )
         self.assertTrue((out_dir_path / "merged_return_aldebaran.txt").exists())
+
+    def test_runtime_refine_contract_can_switch_to_ingles_flex_profile(self):
+        from pipeline.views import _build_runtime_refine_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text(
+            "Steel rang in the dark while the sorcerer watched.",
+            encoding="utf-8",
+        )
+
+        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
+            self.edition,
+            "en",
+            refine_profile="ingles_flex",
+        )
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["refine_profile"], "ingles_flex")
+        self.assertEqual(payload["agent_name"], "Alamaguederaz")
+        self.assertIn("flexible adventure English", payload["system_prompt"])
+        self.assertIn("sword-and-sorcery flavor", payload["system_prompt"])
+        self.assertIn("Selected profile: Ingles flex.", payload["user_prompt"])
+
+    def test_runtime_refine_contract_rejects_truncated_chunk_output(self):
+        from gaiden.translate import run_translate_with_contract
+        from pipeline.views import _build_runtime_refine_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text(
+            "The barbarian looked back toward the ruins.\n\nThe stars were already paling for dawn.",
+            encoding="utf-8",
+        )
+
+        runtime_contract_path, _refine_input_dir, out_dir_path = _build_runtime_refine_contract(self.edition, "en")
+
+        with patch("gaiden.translate.get_client", return_value=_FakeOpenAIClient("The barbarian looked back toward the")):
+            with self.assertRaisesRegex(RuntimeError, "appears truncated before the chunk boundary"):
+                run_translate_with_contract(runtime_contract_path)
+
+        self.assertFalse((out_dir_path / "0001.txt").exists())
+
+    def test_runtime_translate_contract_is_generic_and_not_sherlock_specific(self):
+        from pipeline.views import _build_runtime_translate_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+
+        runtime_contract_path, source_label = _build_runtime_translate_contract(self.edition, "en")
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(source_label, "split_01")
+        self.assertEqual(payload["chunk_dir"], str(self.split_dir))
+        self.assertEqual(payload["out_dir"], str(self.translated_dir))
+        self.assertEqual(payload["model"], "gpt-5-chat-latest")
+        self.assertNotIn("Sherlock Holmes", payload["system_prompt"])
+        self.assertNotIn("Sherlock Holmes", payload["user_prompt"])
+        self.assertIn("professional literary editor", payload["system_prompt"])
+        self.assertIn("modern, natural English", payload["user_prompt"])
+        self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
         self.client.post(self.heading_url)
@@ -957,6 +1150,24 @@ class HeadingCleanerGateTests(TestCase):
         self.assertRegex(html, r'<button[^>]*disabled[^>]*>\s*Rodar MergeRefine\s*</button>')
         self.assertIn("refine completo com merge correspondente", html)
 
+    def test_steps_show_refine_profile_selector(self):
+        response = self.client.get(self.steps_url)
+
+        self.assertContains(response, 'name="refine_profile"')
+        self.assertContains(response, "Ingles neutro - Aldebaran")
+        self.assertContains(response, "Ingles flex - Alamaguederaz")
+
+    def test_steps_reflect_saved_refine_profile(self):
+        EditionPipeline.objects.update_or_create(
+            edition=self.edition,
+            defaults={"refine_profile": "ingles_flex"},
+        )
+
+        response = self.client.get(self.steps_url)
+
+        self.assertContains(response, "5) Refine (Ingles flex)")
+        self.assertContains(response, '<option value="ingles_flex" selected>', html=False)
+
     def test_pipeline01_step_order_is_fixed(self):
         response = self.client.get(self.steps_url)
         html = response.content.decode("utf-8")
@@ -966,7 +1177,7 @@ class HeadingCleanerGateTests(TestCase):
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
             "4) Translate (script + JSON)",
-            "5) Refine (Aldebaran)",
+            "5) Refine (Ingles neutro)",
             "6) Merge/Finalize",
             "7) Pre-producao (Pre-flight)",
         ]
@@ -1009,7 +1220,7 @@ class HeadingCleanerGateTests(TestCase):
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
             "4) Translate (script + JSON)",
-            "5) Refine (Aldebaran)",
+            "5) Refine (Ingles neutro)",
             "6) Merge/Finalize",
             "7) Pre-producao (Pre-flight)",
         ]
@@ -1093,6 +1304,64 @@ class HeadingCleanerGateTests(TestCase):
         report = json.loads(preflight_json.read_text(encoding="utf-8"))
         joined_light = "\n".join(report["light"])
         self.assertIn("Pre-flight AI fallback acionado", joined_light)
+
+    def test_preflight_step_marks_warning_reports_as_review(self):
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("chunk 1", encoding="utf-8")
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
+        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
+        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean.parent.mkdir(parents=True, exist_ok=True)
+        translated_clean.write_text("Clean merge for preflight.", encoding="utf-8")
+        (self.build_dir / "PRE_FLIGHT.json").write_text(
+            json.dumps(
+                {
+                    "critical": [],
+                    "medium": [],
+                    "light": ["Pre-flight AI fallback acionado: timeout"],
+                    "good": [],
+                    "verdict_reason": "Leitura geral aproveitavel.",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (self.build_dir / "PRE_FLIGHT.md").write_text("# report", encoding="utf-8")
+
+        response = self.client.get(self.steps_url)
+
+        self.assertContains(response, 'class="pipeline-step"')
+        self.assertContains(response, "revisar")
+        self.assertContains(response, "Relatorio com alertas: 1 leve(s); houve fallback/timeout da IA.")
+        self.assertContains(response, "Nao tratar como aprovacao silenciosa.")
+
+    def test_merge_refine_blocks_truncated_refine_chunk(self):
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("source chunk closes cleanly.", encoding="utf-8")
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("source chunk closes cleanly.", encoding="utf-8")
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text("source chunk closes with The", encoding="utf-8")
+        (refine_dir / "merged_return_aldebaran.txt").write_text("bad merged refine", encoding="utf-8")
+
+        response = self.client.post(
+            reverse("pipeline_merge_refine_run", kwargs={"edition_id": self.edition.id}),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Step merge_refine failed: MergeRefine blocked: suspicious chunk ending(s) detected.")
+        self.assertFalse((self.build_dir / "merge_refine.txt").exists())
+        self.assertFalse((self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt").exists())
 
 
 class EditorialImagePipelineContractTests(TestCase):

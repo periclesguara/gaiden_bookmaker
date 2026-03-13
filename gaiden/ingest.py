@@ -1,14 +1,28 @@
 from __future__ import annotations
 
 import hashlib
+import re
+from html import unescape
 from pathlib import Path
 from typing import Tuple, Optional
 
-from pypdf import PdfReader
-from docx import Document
+try:
+    from pypdf import PdfReader
+except ImportError:  # pragma: no cover - optional dependency
+    PdfReader = None
+
+try:
+    from docx import Document
+except ImportError:  # pragma: no cover - optional dependency
+    Document = None
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:  # pragma: no cover - optional dependency
+    BeautifulSoup = None
 
 UPLOADS_DIR = Path("data/uploads")
-ALLOWED_EXT = {"txt", "md", "pdf", "docx"}
+ALLOWED_EXT = {"txt", "md", "pdf", "docx", "html", "htm"}
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -46,7 +60,12 @@ def extract_text_from_file(path: Path, ext: str) -> Optional[str]:
             text = path.read_text(encoding="utf-8", errors="replace").strip()
             return text or None
 
+        if ext in ("html", "htm"):
+            return extract_text_from_html(path)
+
         if ext == "pdf":
+            if PdfReader is None:
+                return None
             reader = PdfReader(path.as_posix())
             parts = []
             for page in reader.pages:
@@ -55,6 +74,8 @@ def extract_text_from_file(path: Path, ext: str) -> Optional[str]:
             return text or None
 
         if ext == "docx":
+            if Document is None:
+                return None
             doc = Document(path.as_posix())
             parts = [p.text for p in doc.paragraphs if p.text and p.text.strip()]
             text = "\n".join(parts).strip()
@@ -63,3 +84,29 @@ def extract_text_from_file(path: Path, ext: str) -> Optional[str]:
         return None
     except Exception:
         return None
+
+
+def extract_text_from_html(path: Path) -> Optional[str]:
+    raw_html = path.read_text(encoding="utf-8", errors="replace")
+
+    if BeautifulSoup is not None:
+        soup = BeautifulSoup(raw_html, "html.parser")
+        for tag in soup(["script", "style"]):
+            tag.decompose()
+        text = soup.get_text("\n")
+    else:
+        text = re.sub(r"(?is)<script\b[^>]*>.*?</script>", "", raw_html)
+        text = re.sub(r"(?is)<style\b[^>]*>.*?</style>", "", text)
+        text = re.sub(r"(?s)<!--.*?-->", "", text)
+        text = re.sub(r"(?i)<br\s*/?>", "\n", text)
+        text = re.sub(
+            r"(?i)</(p|div|li|h[1-6]|section|article|blockquote|tr|td|th|ul|ol)>",
+            "\n",
+            text,
+        )
+        text = re.sub(r"(?s)<[^>]+>", "", text)
+        text = unescape(text)
+
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
+    cleaned = "\n".join(line for line in lines if line)
+    return cleaned or None

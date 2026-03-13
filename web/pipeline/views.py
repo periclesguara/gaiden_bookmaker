@@ -70,6 +70,28 @@ STAGE_HTML_UPLOADED = "HTML_UPLOADED"
 STAGE_TXT_UPLOADED = "TXT_UPLOADED"
 STAGE_HTML_PREPROD_READY = "HTML_PREPROD_READY"
 STAGE_MD_SOURCE_READY = "MD_SOURCE_READY"
+REFINE_PROFILE_DEFAULT = "ingles_neutro"
+REFINE_PROFILES = {
+    "ingles_neutro": {
+        "label": "Ingles neutro",
+        "agent_name": "Aldebaran",
+        "description": "Leitura neutra, comercial e mais controlada.",
+        "style_directive": (
+            "Target profile: neutral modern English. Prefer lexical restraint, broad trade readability, "
+            "and stable narrative clarity. Avoid ornamental fantasy diction unless the source strongly demands it."
+        ),
+    },
+    "ingles_flex": {
+        "label": "Ingles flex",
+        "agent_name": "Alamaguederaz",
+        "description": "Magia e espada, aventura, ritmo mais elastico.",
+        "style_directive": (
+            "Target profile: flexible adventure English. Preserve facts strictly, but allow stronger rhythm, "
+            "atmosphere, pulp-adventure energy, and sword-and-sorcery flavor when supported by the source."
+        ),
+    },
+}
+REFINE_RETURN_DIRNAME = "return_aldebaran"
 
 _HTML_STAGE_ORDER = {
     PipelineStage.RAW: 10,
@@ -87,6 +109,66 @@ def _normalize_source_format(value: str | None) -> str:
     if normalized not in SOURCE_FORMAT_ALLOWED:
         return SOURCE_FORMAT_TXT
     return normalized
+
+
+def _normalize_refine_profile(value: str | None) -> str:
+    normalized = (value or "").strip().lower()
+    if normalized not in REFINE_PROFILES:
+        return REFINE_PROFILE_DEFAULT
+    return normalized
+
+
+def _refine_profile_config(value: str | None) -> dict[str, str]:
+    return REFINE_PROFILES[_normalize_refine_profile(value)]
+
+
+def _read_json_dict(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _preflight_step_status(preflight_json: Path) -> tuple[str, str, str]:
+    report = _read_json_dict(preflight_json)
+    if not report:
+        return (
+            "warn",
+            "revisar",
+            "Relatorio PRE_FLIGHT.json ilegivel ou vazio; confira manualmente antes do MD final.",
+        )
+
+    critical = [str(item).strip() for item in report.get("critical", []) if str(item).strip()]
+    medium = [str(item).strip() for item in report.get("medium", []) if str(item).strip()]
+    light = [str(item).strip() for item in report.get("light", []) if str(item).strip()]
+    all_issues = critical + medium + light
+    fallback_detected = any(
+        ("fallback" in item.lower()) or ("timeout" in item.lower()) or ("timed out" in item.lower())
+        for item in all_issues
+    )
+
+    if critical or medium or light:
+        parts = []
+        if critical:
+            parts.append(f"{len(critical)} critico(s)")
+        if medium:
+            parts.append(f"{len(medium)} medio(s)")
+        if light:
+            parts.append(f"{len(light)} leve(s)")
+        summary = ", ".join(parts)
+        if fallback_detected:
+            summary = f"{summary}; houve fallback/timeout da IA"
+        return (
+            "warn",
+            "revisar",
+            f"Relatorio com alertas: {summary}. Nao tratar como aprovacao silenciosa.",
+        )
+
+    verdict_reason = str(report.get("verdict_reason") or "").strip()
+    if verdict_reason:
+        return ("ok", "OK", f"Veredito: {verdict_reason}")
+    return ("ok", "OK", "")
 
 
 def _source_format_from_template(template: BookEditionTemplate | None) -> str:
@@ -463,17 +545,20 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
         defaults={"role": "AUTHOR"},
     )
     try:
-        work_obj, _ = Work.objects.get_or_create(
-            code=book_code,
-            defaults={
-                "title": template.title or book_code,
-                "original_language": language_obj,
-                "author": author_obj,
-                "publisher": template.imprint_name or "",
-                "year": template.publication_year or 2026,
-                "is_public_domain": True,
-            },
-        )
+        # Keep a local savepoint so legacy-schema fallbacks can continue inside
+        # the outer cadastro transaction after an IntegrityError.
+        with transaction.atomic():
+            work_obj, _ = Work.objects.get_or_create(
+                code=book_code,
+                defaults={
+                    "title": template.title or book_code,
+                    "original_language": language_obj,
+                    "author": author_obj,
+                    "publisher": template.imprint_name or "",
+                    "year": template.publication_year or 2026,
+                    "is_public_domain": True,
+                },
+            )
     except IntegrityError:
         _insert_work_row_legacy_schema(
             book_code=book_code,
@@ -502,29 +587,31 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
     )
 
     try:
-        edition = EditorialEdition.objects.create(
-            work=work_obj,
-            language=language_obj,
-            seal=seal_obj,
-            publisher=template.imprint_name or "",
-            edition_year=template.edition_year,
-            title=template.title or work_obj.title,
-            subtitle=template.subtitle,
-            author=author_name,
-            adapter=template.adapter_name,
-            translator=template.translator_name,
-            editor=template.editor_name,
-            publication_year=template.publication_year or 2026,
-            city=template.city_name or "Rio de Janeiro",
-            country=template.country_name or "Brasil",
-            imprint_name=template.imprint_name or "RinoBooks",
-            seal_name=seal_name,
-            language_code=language_code,
-            frontispiece_template=template.frontispiece_text,
-            copyright_template=template.copyright_text,
-            about_edition_template=template.about_edition_text,
-            about_contributor_template=template.about_contributor_text,
-        )
+        # Same rationale as Work creation: rollback only this create attempt.
+        with transaction.atomic():
+            edition = EditorialEdition.objects.create(
+                work=work_obj,
+                language=language_obj,
+                seal=seal_obj,
+                publisher=template.imprint_name or "",
+                edition_year=template.edition_year,
+                title=template.title or work_obj.title,
+                subtitle=template.subtitle,
+                author=author_name,
+                adapter=template.adapter_name,
+                translator=template.translator_name,
+                editor=template.editor_name,
+                publication_year=template.publication_year or 2026,
+                city=template.city_name or "Rio de Janeiro",
+                country=template.country_name or "Brasil",
+                imprint_name=template.imprint_name or "RinoBooks",
+                seal_name=seal_name,
+                language_code=language_code,
+                frontispiece_template=template.frontispiece_text,
+                copyright_template=template.copyright_text,
+                about_edition_template=template.about_edition_text,
+                about_contributor_template=template.about_contributor_text,
+            )
     except IntegrityError:
         _insert_edition_row_legacy_schema(
             work_id=work_obj.id,
@@ -958,7 +1045,30 @@ def book_edition_edit(request, book_code=None, language=None):
             else:
                 selected_source_format = _validate_ingest_v1_request(canonical_post_data, request.FILES)
         except ValidationError as exc:
-            return HttpResponseBadRequest(str(exc))
+            form = BookEditionTemplateForm(canonical_post_data, request.FILES, instance=template)
+            messages.error(
+                request,
+                "Nenhum arquivo chegou ao backend nesta submissao. Selecione o arquivo novamente e envie."
+                if action != "save_metadata" and request.FILES.get("source_file") is None
+                else "Corrija os erros do cadastro e tente novamente.",
+            )
+            for error_message in exc.messages:
+                if "source_file" in error_message:
+                    form.add_error("source_file", error_message)
+                else:
+                    form.add_error(None, error_message)
+            return render(
+                request,
+                "pipeline/book_edition_form.html",
+                {
+                    "form": form,
+                    "source_format": _normalize_source_format(
+                        (canonical_post_data.get("source_format") or SOURCE_FORMAT_TXT)
+                    ),
+                    "continue_options": continue_options,
+                },
+                status=400,
+            )
     else:
         action = ""
         selected_source_format = _normalize_source_format(
@@ -1500,6 +1610,46 @@ def _count_non_merged_txt_files(directory: Path | None) -> int:
     )
 
 
+def _iter_non_merged_txt_files(directory: Path | None) -> list[Path]:
+    if not directory or not directory.exists():
+        return []
+    return sorted(
+        p for p in directory.glob("*.txt")
+        if not (p.name == "merged.txt" or p.name.startswith("merged_") or p.name.startswith("merge_"))
+    )
+
+
+def _validate_runtime_chunk_outputs(source_dir: Path | None, candidate_dir: Path | None, stage_label: str) -> None:
+    from gaiden.translate import chunk_truncation_reason
+
+    if not source_dir or not candidate_dir or not source_dir.exists() or not candidate_dir.exists():
+        return
+
+    issues: list[str] = []
+    for candidate_path in _iter_non_merged_txt_files(candidate_dir):
+        source_path = source_dir / candidate_path.name
+        if not source_path.exists():
+            issues.append(f"{candidate_path.name}: source chunk missing in {source_dir}")
+            continue
+
+        source_text = source_path.read_text(encoding="utf-8")
+        candidate_text = candidate_path.read_text(encoding="utf-8")
+        if not candidate_text.strip():
+            issues.append(f"{candidate_path.name}: output chunk is empty.")
+            continue
+
+        reason = chunk_truncation_reason(source_text, candidate_text)
+        if reason:
+            issues.append(f"{candidate_path.name}: {reason}")
+
+    if issues:
+        preview = " | ".join(issues[:3])
+        extra = f" (+{len(issues) - 3} more)" if len(issues) > 3 else ""
+        raise ValueError(
+            f"{stage_label} blocked: suspicious chunk ending(s) detected. {preview}{extra}"
+        )
+
+
 def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: str) -> Path | None:
     if not refine_dir or not refine_dir.exists():
         return None
@@ -1518,6 +1668,10 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     core_edition = _global_core_edition(edition)
     core_book_code, core_lang = _edition_codes(core_edition)
     core_lang = utils.normalize_lang(core_lang)
+    refine_profile = _normalize_refine_profile(
+        getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+    )
+    refine_profile_cfg = _refine_profile_config(refine_profile)
 
     source_md = html_preprod.artifact_paths(core_book_code, core_lang)["md_source"]
     normalized_path = _normalized_v2_path(core_book_code, core_lang)
@@ -1561,7 +1715,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         and translate_merge_path.exists()
     )
 
-    refine_dir = translate_dir / "return_aldebaran" if translate_dir else None
+    refine_dir = translate_dir / REFINE_RETURN_DIRNAME if translate_dir else None
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
     refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
@@ -1666,7 +1820,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         {
             "n": 5,
             "key": "refine",
-            "title": "Refine (Aldebaran)",
+            "title": f"Refine ({refine_profile_cfg['label']})",
             "run_url": reverse("pipeline_refine_run", kwargs={"edition_id": edition.id}),
             "button_label": "Rodar Refine",
             "can_run": translate_done,
@@ -1677,10 +1831,13 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
                 else ""
             ),
             "outputs": [
-                _rel_project_path(refine_dir / "*.txt") if refine_dir else "data/translated/<book>/<lang_variant>/return_aldebaran/*.txt",
+                _rel_project_path(refine_dir / "*.txt") if refine_dir else f"data/translated/<book>/<lang_variant>/{REFINE_RETURN_DIRNAME}/*.txt",
                 _rel_project_path(refine_merge_path),
             ],
-            "notes": f"Agent: Aldebaran | chunks={refine_outputs_count}/{translate_outputs_count}",
+            "notes": (
+                f"Perfil: {refine_profile_cfg['label']} | Agent: {refine_profile_cfg['agent_name']} "
+                f"| chunks={refine_outputs_count}/{translate_outputs_count}"
+            ),
         }
     )
 
@@ -1705,6 +1862,11 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     preflight_json = paths.preflight_json_path(target_edition)
     preflight_md = paths.preflight_md_path(target_edition)
     preflight_done = preflight_json.exists() and preflight_md.exists()
+    preflight_status_tone = "ok"
+    preflight_status_label = "OK"
+    preflight_status_note = ""
+    if preflight_done:
+        preflight_status_tone, preflight_status_label, preflight_status_note = _preflight_step_status(preflight_json)
 
     step_defs.append(
         {
@@ -1715,12 +1877,21 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "button_label": "Rodar Pre-flight",
             "can_run": merge_refine_done,
             "done": preflight_done,
+            "status_tone": preflight_status_tone,
+            "status_label": preflight_status_label,
             "block_reason": "Prerequisito: rode Merge/Finalize e gere merge_refine_clean.txt." if not merge_refine_done else "",
             "outputs": [
                 _rel_project_path(preflight_json),
                 _rel_project_path(preflight_md),
             ],
-            "notes": "Analise editorial/estrutural antes do MD final, headings, figuras e build.",
+            "notes": " ".join(
+                part
+                for part in [
+                    "Analise editorial/estrutural antes do MD final, headings, figuras e build.",
+                    preflight_status_note,
+                ]
+                if part
+            ),
         }
     )
 
@@ -1840,34 +2011,71 @@ def _append_prompt_block(prompt: str, block: str) -> str:
     return f"{prompt}\n\n{block}"
 
 
-def _harden_translate_contract(payload: dict) -> dict:
-    system_prompt = payload.get("system_prompt") or payload.get("system") or ""
-    user_prompt = payload.get("user_prompt") or payload.get("user") or "{text}"
+def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
+    lang = utils.normalize_lang(target_language)
+    target_labels = {
+        "en": "modern, natural English",
+        "es": "modern, natural Spanish",
+        "ptbr": "modern Brazilian Portuguese",
+        "de": "modern, natural German",
+    }
+    target_label = target_labels.get(lang, f"modern {lang}")
 
-    system_rules = (
+    if lang == "en":
+        task_line = (
+            "You are a professional literary editor modernizing English prose for a contemporary reader."
+        )
+        user_prompt = (
+            "Rewrite the following literary passage into modern, natural English.\n\n"
+            "NON-NEGOTIABLE:\n"
+            "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
+            "- Preserve paragraph structure.\n"
+            "- Do not summarize, compress, explain, annotate, or invent content.\n"
+            "- Keep headings/chapter markers if they exist.\n\n"
+            "Return only the final rewritten passage.\n\n"
+            "{text}"
+        )
+    else:
+        task_line = (
+            f"You are a professional literary translator translating prose into {target_label}."
+        )
+        user_prompt = (
+            f"Translate the following literary passage into {target_label}.\n\n"
+            "NON-NEGOTIABLE:\n"
+            "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
+            "- Preserve paragraph structure.\n"
+            "- Do not summarize, compress, explain, annotate, or invent content.\n"
+            "- Keep headings/chapter markers if they exist.\n\n"
+            "Return only the final translated passage.\n\n"
+            "{text}"
+        )
+
+    system_prompt = (
+        f"{task_line}\n\n"
         "CRITICAL OUTPUT RULES:\n"
-        "- Output only the translated literary passage.\n"
+        "- Output only the literary passage.\n"
         "- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n"
-        "- Do not mention the prompt, the source text, copyright, safety policies, or your own translation choices.\n"
+        "- Do not mention the prompt, the source text, copyright, safety policies, or your own editorial choices.\n"
         "- Do not wrap the answer in quotes, code fences, markdown, or labels.\n"
-        "- Preserve the passage as continuous narrative prose."
+        "- Preserve tone, order of events, and paragraph boundaries.\n"
+        "- Preserve the passage as continuous narrative prose and dialogue."
     )
-    user_rules = (
-        "Return only the final translated passage.\n"
-        "No comments.\n"
-        "No explanatory text.\n"
-        "No summaries.\n"
-        "No headings.\n"
-        "No lists.\n"
-        "No notes before or after the passage."
-    )
+    return system_prompt, user_prompt, target_label
 
-    payload["system_prompt"] = _append_prompt_block(system_prompt, system_rules)
-    payload["user_prompt"] = _append_prompt_block(user_prompt, user_rules)
+
+def _harden_translate_contract(payload: dict, target_language: str) -> dict:
+    system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language)
+    payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
+    if str(payload.get("model") or "").strip() in {"", "gpt-5.1"}:
+        payload["model"] = "gpt-5-chat-latest"
+    payload["system_prompt"] = system_prompt
+    payload["user_prompt"] = user_prompt
     return payload
 
 
-def _harden_refine_contract(payload: dict) -> dict:
+def _harden_refine_contract(payload: dict, refine_profile: str | None = None) -> dict:
+    refine_profile = _normalize_refine_profile(refine_profile)
+    refine_profile_cfg = _refine_profile_config(refine_profile)
     instructions = payload.get("instructions") if isinstance(payload.get("instructions"), dict) else {}
     style = instructions.get("style") if isinstance(instructions.get("style"), dict) else {}
     output = instructions.get("output") if isinstance(instructions.get("output"), dict) else {}
@@ -1886,6 +2094,8 @@ def _harden_refine_contract(payload: dict) -> dict:
 
     system_parts = [
         "You are a professional literary editor refining already-translated book text.",
+        f"Active refine profile: {refine_profile_cfg['label']} via agent {refine_profile_cfg['agent_name']}.",
+        refine_profile_cfg["style_directive"],
     ]
     if goal:
         system_parts.append(goal)
@@ -1913,6 +2123,7 @@ def _harden_refine_contract(payload: dict) -> dict:
     user_prompt = (
         "Refine the following passage line by line for fluency and clarity while preserving every fact, "
         "sentence-level meaning, dialogue turn, and paragraph boundary.\n\n"
+        f"Selected profile: {refine_profile_cfg['label']}.\n"
         "Return only the refined passage.\n"
         "Do not summarize.\n"
         "Do not omit any sentence.\n"
@@ -1920,6 +2131,9 @@ def _harden_refine_contract(payload: dict) -> dict:
         "{text}"
     )
 
+    payload["name"] = f"Runtime refine {refine_profile_cfg['label']} -> {refine_profile_cfg['agent_name']}"
+    payload["refine_profile"] = refine_profile
+    payload["agent_name"] = refine_profile_cfg["agent_name"]
     payload["system_prompt"] = _append_prompt_block(
         payload.get("system_prompt") or payload.get("system") or "",
         "\n\n".join(system_parts + ["\n".join(output_rules)]),
@@ -1935,7 +2149,7 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
     book_code, _language = _edition_codes(edition)
     base_contract_path = _select_contract_path(target_language)
     payload = json.loads(base_contract_path.read_text(encoding="utf-8"))
-    payload = _harden_translate_contract(payload)
+    payload = _harden_translate_contract(payload, target_language)
 
     chunk_dir, input_glob, source_label = _translate_source_chunks(book_code)
     out_dir = _runtime_translate_out_dir(book_code, target_language, payload)
@@ -1979,9 +2193,13 @@ def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
     return Path(settings.BASE_DIR).parent / out_dir
 
 
-def _build_runtime_refine_contract(edition, target_language: str) -> tuple[Path, Path, Path]:
+def _build_runtime_refine_contract(
+    edition,
+    target_language: str,
+    refine_profile: str | None = None,
+) -> tuple[Path, Path, Path]:
     payload = json.loads(_select_refine_contract(target_language).read_text(encoding="utf-8"))
-    payload = _harden_refine_contract(payload)
+    payload = _harden_refine_contract(payload, refine_profile=refine_profile)
     source_dir = _runtime_translate_dir_for_edition(edition, target_language)
     if not source_dir.exists():
         raise FileNotFoundError(f"Translate chunks not found for refine: {source_dir}. Run Translate first.")
@@ -2007,7 +2225,7 @@ def _build_runtime_refine_contract(edition, target_language: str) -> tuple[Path,
     for path in source_chunks:
         shutil.copyfile(path, refine_input_dir / path.name)
 
-    out_dir = source_dir / "return_aldebaran"
+    out_dir = source_dir / REFINE_RETURN_DIRNAME
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
@@ -2821,6 +3039,16 @@ def edition_steps(request, edition_id: int):
         or pipeline_state.md_language
         or language
     )
+    refine_profile = _normalize_refine_profile(pipeline_state.refine_profile)
+    refine_profile_options = [
+        {
+            "value": key,
+            "label": cfg["label"],
+            "agent_name": cfg["agent_name"],
+            "description": cfg["description"],
+        }
+        for key, cfg in REFINE_PROFILES.items()
+    ]
     md_source_map = {
         lang: _resolve_md_source_path(lang)
         for lang in ("en", "es", "ptbr", "de")
@@ -2871,6 +3099,8 @@ def edition_steps(request, edition_id: int):
         "raw_path": raw_path,
         "raw_name": raw_name,
         "translate_language": pipeline_state.translation_language or language,
+        "refine_profile": refine_profile,
+        "refine_profile_options": refine_profile_options,
         "chunk_count": chunk_count,
         "sync_log": sync_log,
         "md_status": md_status,
@@ -3146,6 +3376,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 os.environ["GAIDEN_BOOK_ID"] = str(book_id_for_run)
             stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            source_dir_for_validation: Path | None = None
             if target_language == "de":
                 core_edition = _global_core_edition(edition)
                 core_state = EditionPipeline.objects.filter(edition=core_edition).first()
@@ -3171,6 +3402,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     core_path.read_text(encoding="utf-8"),
                     encoding="utf-8",
                 )
+                source_dir_for_validation = core_chunks_dir
                 contract_path = _select_contract_path(target_language)
                 contract_payload = json.loads(contract_path.read_text(encoding="utf-8"))
                 contract_payload["chunk_dir"] = str(core_chunks_dir)
@@ -3204,8 +3436,12 @@ def run_edition_step(request, edition_id: int, step: str):
                 )
                 run_translate_with_contract(runtime_contract_path)
                 out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
+                source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
+                    _edition_codes(target_edition)[0]
+                )
                 messages.info(request, f"Translate source: {source_label}")
 
+            _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
             merged_path = _detect_merged_path(out_dir_path)
             if not merged_path:
                 raise FileNotFoundError(f"Merged translation not found in {out_dir_path}")
@@ -3234,6 +3470,14 @@ def run_edition_step(request, edition_id: int, step: str):
             target_edition = edition
             stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
             target_language = utils.normalize_lang(target_edition.language.code)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            refine_profile = _normalize_refine_profile(
+                request.POST.get("refine_profile") or pipeline_state.refine_profile
+            )
+            refine_profile_cfg = _refine_profile_config(refine_profile)
+            if pipeline_state.refine_profile != refine_profile:
+                pipeline_state.refine_profile = refine_profile
+                pipeline_state.save(update_fields=["refine_profile"])
             source_dir = _runtime_translate_dir_for_edition(target_edition, target_language)
             if not source_dir.exists():
                 raise FileNotFoundError(
@@ -3243,19 +3487,19 @@ def run_edition_step(request, edition_id: int, step: str):
             try:
                 from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-                out_dir_path = source_dir / "return_aldebaran"
+                out_dir_path = source_dir / REFINE_RETURN_DIRNAME
                 result = run_aldebaran_refine_return(
                     chunk_dir=source_dir,
                     out_dir=out_dir_path,
                     merge_name=f"merge_refine_{target_language}.txt",
-                    agent_name="Aldebaran",
+                    agent_name=refine_profile_cfg["agent_name"],
                 )
                 merged_path = Path(result["merge_path"])
             except ModuleNotFoundError:
                 from gaiden.translate import run_translate_with_contract
 
                 runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
-                    target_edition, target_language
+                    target_edition, target_language, refine_profile=refine_profile
                 )
                 run_translate_with_contract(runtime_contract_path)
                 merged_candidates = [
@@ -3269,32 +3513,42 @@ def run_edition_step(request, edition_id: int, step: str):
                 if merged_path is None:
                     raise FileNotFoundError(f"Refine merged output not found in {out_dir_path}")
                 result = {
-                    "agent_name": "Aldebaran (contract-fallback)",
+                    "agent_name": f"{refine_profile_cfg['agent_name']} (contract-fallback)",
                     "source_dir": str(refine_input_dir),
                     "report_path": str(runtime_contract_path),
                     "merge_path": str(merged_path),
                 }
 
+            _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
             build_path = _copy_merge_to_build(
                 target_edition,
                 merged_path,
                 paths.merge_refine_path(target_edition),
             )
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.REFINED
             pipeline_state.refined_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, f"Refine OK ({result['agent_name']})")
+            pipeline_state.last_log = (
+                f"{timezone.now().isoformat()} :: REFINE :: {refine_profile} :: {result['agent_name']}"
+            )
+            pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log", "refine_profile"])
+            messages.success(
+                request,
+                f"Refine OK ({refine_profile_cfg['label']} · {result['agent_name']})",
+            )
             messages.info(request, f"Refine source: {result['source_dir']}")
             messages.info(request, f"Refine report: {result['report_path']}")
 
         elif step == "merge_refine":
             target_edition = edition
             target_language = utils.normalize_lang(target_edition.language.code)
+            refine_profile_cfg = _refine_profile_config(
+                getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+            )
+            translate_dir = _runtime_translate_dir_for_edition(target_edition, target_language)
+            refine_dir = translate_dir / REFINE_RETURN_DIRNAME
+            _validate_runtime_chunk_outputs(translate_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
             if not merge_refine_build.exists():
-                refine_dir = _runtime_translate_dir_for_edition(target_edition, target_language) / "return_aldebaran"
                 candidates = [
                     refine_dir / f"merge_refine_{target_language}.txt",
                     refine_dir / "merge_refine.txt",
@@ -3304,7 +3558,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 merge_source = next((p for p in candidates if p.exists()), None)
                 if not merge_source:
                     raise FileNotFoundError(
-                        f"Refine output not found in {refine_dir}. Run Refine (Aldebaran) first."
+                        f"Refine output not found in {refine_dir}. Run Refine ({refine_profile_cfg['label']} / {refine_profile_cfg['agent_name']}) first."
                     )
                 _copy_merge_to_build(target_edition, merge_source, merge_refine_build)
 

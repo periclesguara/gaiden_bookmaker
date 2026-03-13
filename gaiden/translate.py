@@ -86,6 +86,14 @@ _META_OUTPUT_PATTERNS = [
 ]
 
 
+_CHUNK_COMPLETE_END_PATTERNS = [
+    re.compile(r"^#{1,6}\s+\S"),
+    re.compile(r"^(chapter|book|part)\b", re.IGNORECASE),
+    re.compile(r"^[IVXLC0-9]+[.)]?$"),
+]
+_CHUNK_COMPLETE_END_CHARS = set('.!?…:;"”’\')]}')
+
+
 def _sanitize_translated_output(text: str) -> str:
     cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
     cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\n?", "", cleaned)
@@ -107,6 +115,44 @@ def _sanitize_translated_output(text: str) -> str:
         raise RuntimeError(f"Model output still contains meta/commentary text: {first_line[:120]}")
 
     return cleaned
+
+
+def text_has_complete_chunk_boundary(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+
+    last_line = stripped.splitlines()[-1].strip()
+    if not last_line:
+        return False
+
+    if any(pattern.match(last_line) for pattern in _CHUNK_COMPLETE_END_PATTERNS):
+        return True
+    return stripped[-1] in _CHUNK_COMPLETE_END_CHARS
+
+
+def chunk_truncation_reason(source_text: str, candidate_text: str) -> Optional[str]:
+    source_clean = source_text.strip()
+    candidate_clean = candidate_text.strip()
+    if not source_clean or not candidate_clean:
+        return None
+    if not text_has_complete_chunk_boundary(source_clean):
+        return None
+    if text_has_complete_chunk_boundary(candidate_clean):
+        return None
+
+    source_tail = re.sub(r"\s+", " ", source_clean[-180:]).strip()
+    candidate_tail = re.sub(r"\s+", " ", candidate_clean[-180:]).strip()
+    return (
+        "Model output appears truncated before the chunk boundary. "
+        f"output_tail={candidate_tail!r} source_tail={source_tail!r}"
+    )
+
+
+def assert_chunk_not_truncated(source_text: str, candidate_text: str, chunk_name: str) -> None:
+    reason = chunk_truncation_reason(source_text, candidate_text)
+    if reason:
+        raise RuntimeError(reason)
 
 
 def _sanitize_with_contract_fallback(
@@ -292,12 +338,19 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
             except Exception:
                 translated = ""
 
-        translated = _sanitize_with_contract_fallback(
-            translated,
-            text,
-            contract,
-            chunk_path.name,
-        )
+        try:
+            translated = _sanitize_with_contract_fallback(
+                translated,
+                text,
+                contract,
+                chunk_path.name,
+            )
+            assert_chunk_not_truncated(text, translated, chunk_path.name)
+        except Exception as exc:
+            raw_preview = re.sub(r"\s+", " ", translated).strip()[:200]
+            raise RuntimeError(
+                f"{chunk_path.name}: {exc}. raw_preview={raw_preview!r}"
+            ) from exc
 
         out_path = out_dir_path / chunk_path.name
         out_path.write_text(translated, encoding="utf-8")

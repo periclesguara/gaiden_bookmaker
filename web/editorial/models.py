@@ -265,6 +265,7 @@ class EditionPipeline(models.Model):
         default=PipelineStage.RAW,
     )
     translation_language = models.CharField(max_length=10, blank=True)
+    refine_profile = models.CharField(max_length=30, blank=True, default="ingles_neutro")
     raw_at = models.DateTimeField(null=True, blank=True)
     normalized_at = models.DateTimeField(null=True, blank=True)
     split_at = models.DateTimeField(null=True, blank=True)
