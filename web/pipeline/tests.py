@@ -105,6 +105,10 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "Salvar Cadastro")
         self.assertContains(response, "Enviar Arquivo")
         self.assertContains(response, "Pre-producao HTML")
+        self.assertContains(response, "Inicio / Cadastro")
+        self.assertContains(response, "Pipeline")
+        self.assertContains(response, "Steps")
+        self.assertContains(response, "Frontmatter")
         self.assertIn('data-contract="pipeline_ingest_v1"', html)
         self.assertIn('data-contract-entrypoint="book_edition_new"', html)
         self.assertIn('data-contract-html-next="pipeline_html_dashboard"', html)
@@ -115,7 +119,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("book_edition_new"))
 
-    def test_cadastro_shows_continue_selector_for_books_01_to_11(self):
+    def test_cadastro_shows_continue_selector_for_existing_books(self):
         work = Work.objects.create(
             code="book_0001",
             title="Continue Book",
@@ -135,6 +139,108 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "Continuar Livro Existente")
         self.assertContains(response, "01 - book_0001 [en] - Continue Book")
         self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
+
+    def test_cadastro_shows_book_012_and_uses_stage_specific_continue_url(self):
+        work = Work.objects.create(
+            code="book_012",
+            title="Conan - Shadows in Moonlight",
+            original_language=self.language,
+            author=self.author,
+        )
+        edition = Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="Conan - Shadows in Moonlight",
+        )
+        BookEditionTemplate.objects.create(
+            book_code="book_012",
+            language="en",
+            title="Conan - Shadows in Moonlight",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="html",
+        )
+        EditionPipeline.objects.create(
+            edition=edition,
+            current_stage="HTML_UPLOADED",
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "12 - book_012 [en] - Conan - Shadows in Moonlight")
+        self.assertContains(
+            response,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
+        )
+
+    def test_cadastro_continue_selector_routes_html_books_after_html_lane_to_common_steps(self):
+        work = Work.objects.create(
+            code="book_013",
+            title="Continue Common Steps",
+            original_language=self.language,
+            author=self.author,
+        )
+        edition = Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="Continue Common Steps",
+        )
+        BookEditionTemplate.objects.create(
+            book_code="book_013",
+            language="en",
+            title="Continue Common Steps",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="html",
+        )
+        EditionPipeline.objects.create(
+            edition=edition,
+            current_stage="MERGED",
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "13 - book_013 [en] - Continue Common Steps")
+        self.assertContains(
+            response,
+            reverse("edition_steps", kwargs={"edition_id": edition.id}),
+        )
+
+    def test_frontmatter_page_renders_workspace_nav_for_existing_edition(self):
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "text_source_mode": "html",
+            },
+        )
+
+        response = self.client.get(
+            reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Inicio / Cadastro")
+        self.assertContains(response, "Pipeline")
+        self.assertContains(
+            response,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
+        )
+        self.assertContains(
+            response,
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1",
+        )
+        self.assertContains(
+            response,
+            reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+        )
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
@@ -730,6 +836,10 @@ class HtmlLanePreprodConvertTests(TestCase):
         response = self.client.get(self.dashboard_url)
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Inicio / Cadastro")
+        self.assertContains(response, "Pipeline")
+        self.assertContains(response, "Steps")
+        self.assertContains(response, "Frontmatter")
         self.assertContains(response, "Step 1 - HTML_UPLOADED")
         self.assertContains(response, "RAW HTML")
         self.assertContains(response, f"{self.work.code}_en_raw.html")
@@ -791,6 +901,33 @@ class HtmlLanePreprodConvertTests(TestCase):
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "HTML_PREPROD_READY")
 
+    def test_preprod_rewrites_numeric_html_chapters_before_md_conversion(self):
+        self.raw_dir.mkdir(parents=True, exist_ok=True)
+        self.raw_path.write_text(
+            (
+                "<html><body>"
+                "<p>*** START OF THIS PROJECT GUTENBERG EBOOK ***</p>"
+                "<h1>SHADOWS IN THE MOONLIGHT</h1>"
+                "<h2>By Robert E. Howard</h2>"
+                "<h2>1</h2><p>Opening scene.</p>"
+                "<h2>2</h2><p>Second scene.</p>"
+                "<p>*** END OF THIS PROJECT GUTENBERG EBOOK ***</p>"
+                "</body></html>"
+            ),
+            encoding="utf-8",
+        )
+        self.edition.raw_source_path = str(self.raw_path)
+        self.edition.save(update_fields=["raw_source_path"])
+
+        response = self.client.post(self.preprod_url)
+
+        self.assertEqual(response.status_code, 302)
+        clean_html = self.clean_path.read_text(encoding="utf-8")
+        report = json.loads(self.report_path.read_text(encoding="utf-8"))
+        self.assertIn("<h2>CHAPTER 1</h2>", clean_html)
+        self.assertIn("<h2>CHAPTER 2</h2>", clean_html)
+        self.assertEqual(report["chapters_detected"], 2)
+
     def test_normalize_accepts_raw_html_before_preprod(self):
         self._write_raw_html()
 
@@ -810,6 +947,31 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertEqual(texts.normalized_path, str(self.normalized_v2_path))
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "NORMALIZED")
+
+    def test_normalize_refreshes_html_lane_from_source_md_when_it_exists(self):
+        self.md_dir.mkdir(parents=True, exist_ok=True)
+        self.normalized_dir.mkdir(parents=True, exist_ok=True)
+        self.source_md_path.write_text(
+            "# SHADOWS IN THE MOONLIGHT\n\n## CHAPTER 1\n\nOpening scene.\n",
+            encoding="utf-8",
+        )
+        self.normalized_v2_path.write_text("stale normalized text\n", encoding="utf-8")
+        EditionText.objects.update_or_create(
+            edition=self.edition,
+            defaults={
+                "normalized_text": "stale normalized text\n",
+                "normalized_path": str(self.normalized_v2_path),
+            },
+        )
+
+        response = self.client.post(self.normalize_url)
+
+        self.assertEqual(response.status_code, 302)
+        refreshed_text = self.normalized_v2_path.read_text(encoding="utf-8")
+        self.assertEqual(refreshed_text, self.source_md_path.read_text(encoding="utf-8"))
+        self.assertIn("## CHAPTER 1", refreshed_text)
+        texts = EditionText.objects.get(edition=self.edition)
+        self.assertEqual(texts.normalized_text, refreshed_text)
 
     def test_convert_blocks_when_report_not_ok(self):
         self.preprod_dir.mkdir(parents=True, exist_ok=True)
@@ -863,6 +1025,37 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertIn("Chapter I", md_text)
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "MD_SOURCE_READY")
+
+    def test_convert_preserves_explicit_chapter_markers_from_preprod(self):
+        self.preprod_dir.mkdir(parents=True, exist_ok=True)
+        self.clean_path.write_text(
+            (
+                "<html><body>"
+                "<h1>SHADOWS IN THE MOONLIGHT</h1>"
+                "<h2>By Robert E. Howard</h2>"
+                "<h2>CHAPTER 1</h2><p>Opening scene.</p>"
+                "<h2>CHAPTER 2</h2><p>Second scene.</p>"
+                "</body></html>"
+            ),
+            encoding="utf-8",
+        )
+        self.report_path.write_text(
+            json.dumps(
+                {
+                    "ok_to_convert": True,
+                    "errors": [],
+                    "warnings": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(self.convert_url)
+
+        self.assertEqual(response.status_code, 302)
+        md_text = self.source_md_path.read_text(encoding="utf-8")
+        self.assertIn("## CHAPTER 1", md_text)
+        self.assertIn("## CHAPTER 2", md_text)
 
 
 class HeadingCleanerGateTests(TestCase):
@@ -1046,10 +1239,13 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(payload["agent_name"], "Aldebaran")
         self.assertIn("professional literary editor", payload["system_prompt"])
         self.assertIn("Active refine profile: Ingles neutro via agent Aldebaran.", payload["system_prompt"])
+        self.assertIn("Preserve all information, chronology, speakers, dialogue, paragraph structure, and any existing chapter or section headings.", payload["system_prompt"])
+        self.assertIn("Do not delete, rename, or renumber existing headings or chapter markers.", payload["system_prompt"])
         self.assertIn("Do not summarize", payload["system_prompt"])
         self.assertIn("Selected profile: Ingles neutro.", payload["user_prompt"])
         self.assertIn("Return only the refined passage", payload["user_prompt"])
         self.assertIn("Do not omit any sentence", payload["user_prompt"])
+        self.assertIn("Do not delete or rewrite headings.", payload["user_prompt"])
         self.assertEqual(payload["sanitize_failure_fallback"], "keep_source_chunk")
 
         with patch("gaiden.translate.get_client", return_value=_FakeOpenAIClient("Here is the refined passage:")):
@@ -1086,6 +1282,49 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("flexible adventure English", payload["system_prompt"])
         self.assertIn("sword-and-sorcery flavor", payload["system_prompt"])
         self.assertIn("Selected profile: Ingles flex.", payload["user_prompt"])
+
+    def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
+        from gaiden.translate import sanitize_generated_chunk_text
+
+        cleaned = sanitize_generated_chunk_text(
+            "Please provide the passage from *The People of the Black Circle* that you would like me to modernize.\n\nBody text."
+        )
+
+        self.assertEqual(cleaned, "Body text.")
+
+    def test_runtime_translate_contract_raises_max_output_tokens_for_large_chunks(self):
+        from pipeline.views import _build_runtime_translate_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        large_chunk = self.split_dir / "0003.txt"
+        large_chunk.write_text(("A long translated paragraph. " * 320), encoding="utf-8")
+
+        runtime_contract_path, _source_label = _build_runtime_translate_contract(self.edition, "en")
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertGreater(payload["max_output_tokens"], 1200)
+        self.assertGreaterEqual(payload["max_output_tokens"], 1800)
+
+    def test_runtime_refine_contract_raises_max_output_tokens_for_large_chunks(self):
+        from pipeline.views import _build_runtime_refine_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text(
+            ("A long refined paragraph. " * 320),
+            encoding="utf-8",
+        )
+
+        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
+            self.edition,
+            "en",
+        )
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertGreater(payload["max_output_tokens"], 1200)
+        self.assertGreaterEqual(payload["max_output_tokens"], 1800)
 
     def test_runtime_refine_contract_rejects_truncated_chunk_output(self):
         from gaiden.translate import run_translate_with_contract
@@ -1362,6 +1601,48 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, "Step merge_refine failed: MergeRefine blocked: suspicious chunk ending(s) detected.")
         self.assertFalse((self.build_dir / "merge_refine.txt").exists())
         self.assertFalse((self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt").exists())
+
+    def test_merge_refine_rebuilds_canonical_text_from_chunks(self):
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+
+        source_chunk = (
+            "## 5 The Black Stallion\n\n"
+            "“Watch out!” he said. “I’ve come.”\n"
+        )
+        (self.split_dir / "0001.txt").write_text(source_chunk, encoding="utf-8")
+        (self.translated_dir / "0001.txt").write_text(source_chunk, encoding="utf-8")
+
+        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        (refine_dir / "0001.txt").write_text(
+            'Please provide the passage from *The People of the Black Circle* that you would like me to modernize.\n\n'
+            '# The Black Stallion\n\n'
+            '"Watch out!" he said. "I\'ve come."\n',
+            encoding="utf-8",
+        )
+
+        response = self.client.post(
+            reverse("pipeline_merge_refine_run", kwargs={"edition_id": self.edition.id}),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "MergeRefine OK")
+
+        canonical_text = (self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt").read_text(
+            encoding="utf-8"
+        )
+        self.assertTrue(canonical_text.startswith("## 5 The Black Stallion"))
+        self.assertNotIn("Please provide the passage", canonical_text)
+        self.assertIn("“Watch out!” he said. “I’ve come.”", canonical_text)
+
+        rewritten_chunk = (refine_dir / "0001.txt").read_text(encoding="utf-8")
+        self.assertTrue(rewritten_chunk.startswith("## 5 The Black Stallion"))
+        self.assertNotIn("Please provide the passage", rewritten_chunk)
+        self.assertIn("“Watch out!” he said. “I’ve come.”", rewritten_chunk)
 
 
 class EditorialImagePipelineContractTests(TestCase):
@@ -1732,6 +2013,103 @@ class MdTransformSourceHeadingContractTests(TestCase):
                 "The Problem of the Second Case",
             ],
         )
+
+    def test_heading_contract_maps_numeric_chapters_to_expected_editorial_titles(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0012" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("# TEST BOOK", encoding="utf-8")
+        (split_dir / "0002.txt").write_text("## 1\n\nOpening one.", encoding="utf-8")
+        (split_dir / "0003.txt").write_text("Continuation one.", encoding="utf-8")
+        (split_dir / "0004.txt").write_text("## 2\n\nOpening two.", encoding="utf-8")
+        (split_dir / "0005.txt").write_text("## 3\n\nOpening three.", encoding="utf-8")
+        (split_dir / "0006.txt").write_text("## 4\n\nOpening four.", encoding="utf-8")
+
+        contract = md_transform._resolve_heading_contract(
+            self.temp_root / "merge_refine.txt",
+            md_transform.PreEditionConfig(
+                title="Shadows in the Moonlight",
+                book_code="book_012",
+                language="en",
+            ),
+        )
+
+        self.assertIsNotNone(contract)
+        self.assertEqual(contract.source, "split_01")
+        self.assertEqual(
+            contract.titles,
+            [
+                "Escape from the Black Coast",
+                "The Isle in the Moonlight",
+                "The Statues That Walk",
+                "The Night of the Iron Shadows",
+            ],
+        )
+
+    def test_pre_edition_md_uses_editorial_titles_for_numeric_chapters(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0012" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("# SHADOWS IN THE MOONLIGHT", encoding="utf-8")
+        (split_dir / "0002.txt").write_text("## 1\n\nOpening one.", encoding="utf-8")
+        (split_dir / "0003.txt").write_text("Body one.", encoding="utf-8")
+        (split_dir / "0004.txt").write_text("## 2\n\nOpening two.", encoding="utf-8")
+        (split_dir / "0005.txt").write_text("## 3\n\nOpening three.", encoding="utf-8")
+        (split_dir / "0006.txt").write_text("## 4\n\nOpening four.", encoding="utf-8")
+
+        refined_dir = self.temp_root / "data" / "translated" / "book_0012" / "en_modern_2025" / "return_aldebaran"
+        refined_dir.mkdir(parents=True, exist_ok=True)
+        (refined_dir / "0001.txt").write_text("Front matter.", encoding="utf-8")
+        (refined_dir / "0002.txt").write_text("Rewritten opening one.", encoding="utf-8")
+        (refined_dir / "0003.txt").write_text("Continuation one.", encoding="utf-8")
+        (refined_dir / "0004.txt").write_text("Rewritten opening two.", encoding="utf-8")
+        (refined_dir / "0005.txt").write_text("Rewritten opening three.", encoding="utf-8")
+        (refined_dir / "0006.txt").write_text("Rewritten opening four.", encoding="utf-8")
+
+        source_dir = self.temp_root / "data" / "md" / "book_012"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        (source_dir / "book_012_en_source.md").write_text(
+            (
+                "# SHADOWS IN THE MOONLIGHT\n\n"
+                "## CHAPTER 1\n\nOpening one.\n\n"
+                "## CHAPTER 2\n\nOpening two.\n\n"
+                "## CHAPTER 3\n\nOpening three.\n\n"
+                "## CHAPTER 4\n\nOpening four.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_refine.txt"
+        txt_path.write_text(
+            (
+                "Front matter.\n\n"
+                "Rewritten opening one.\n\n"
+                "Continuation one.\n\n"
+                "Rewritten opening two.\n\n"
+                "Rewritten opening three.\n\n"
+                "Rewritten opening four.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="Shadows in the Moonlight",
+                book_code="book_012",
+                language="en",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("# Chapter 01 - Escape from the Black Coast", output)
+        self.assertIn("# Chapter 02 - The Isle in the Moonlight", output)
+        self.assertIn("# Chapter 03 - The Statues That Walk", output)
+        self.assertIn("# Chapter 04 - The Night of the Iron Shadows", output)
 
     def test_heading_contract_fails_when_expected_titles_do_not_match(self):
         from pipeline.services import md_transform

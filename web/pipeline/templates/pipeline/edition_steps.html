@@ -175,6 +175,14 @@
 </head>
 <body>
   <header>
+    {% url 'book_edition_new' as nav_home_url %}
+    {% if source_format == 'html' %}
+      {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+    {% else %}
+      {% url 'pipeline_dashboard' as nav_pipeline_url %}
+    {% endif %}
+    {% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang as nav_frontmatter_url %}
+    {% include "pipeline/_workspace_nav.html" with nav_active="steps" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=edition_steps_action_url nav_frontmatter_url=nav_frontmatter_url %}
     <h1>Pipeline Steps — {{ book_code }} ({{ language }})</h1>
     <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
     <div class="actions">

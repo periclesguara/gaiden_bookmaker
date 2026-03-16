@@ -26,6 +26,7 @@ CHAPTER_RE = re.compile(
     r"^\s*(chapter|part|cap[ií]tulo|teil)\b[\s\.:_-]*([ivxlcdm]+|\d+)?",
     re.IGNORECASE,
 )
+PURE_CHAPTER_NUMBER_RE = re.compile(r"^\s*([ivxlcdm]+|\d+)\s*$", re.IGNORECASE)
 TOC_TITLE_RE = re.compile(r"^(contents|table of contents)\s*$", re.IGNORECASE)
 
 
@@ -297,11 +298,16 @@ def _normalize_heading_nodes(soup: BeautifulSoup) -> None:
 
 
 def _looks_like_chapter_heading(text: str) -> bool:
-    return bool(CHAPTER_RE.search(_collapse_spaces(text)))
+    clean = _collapse_spaces(text)
+    return bool(CHAPTER_RE.search(clean) or PURE_CHAPTER_NUMBER_RE.match(clean))
 
 
 def _normalize_heading_text(text: str) -> str:
     clean = _collapse_spaces(text)
+    chapter_number = _chapter_number_from_heading(clean)
+    if chapter_number is not None:
+        return f"CHAPTER {chapter_number}"
+
     match = CHAPTER_RE.search(clean)
     if not match:
         return clean
@@ -317,6 +323,19 @@ def _normalize_heading_text(text: str) -> str:
 
 def _collapse_spaces(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
+
+
+def _chapter_number_from_heading(text: str) -> int | None:
+    match = PURE_CHAPTER_NUMBER_RE.match(_collapse_spaces(text))
+    if not match:
+        return None
+    raw_value = match.group(1)
+    if raw_value.isdigit():
+        try:
+            return int(raw_value)
+        except ValueError:
+            return None
+    return _roman_to_int(raw_value.upper())
 
 
 def _roman_to_int(value: str) -> int | None:

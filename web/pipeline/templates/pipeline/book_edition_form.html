@@ -71,6 +71,9 @@
 <body>
   <div class="container">
     <div class="card">
+      {% url 'book_edition_new' as nav_home_url %}
+      {% url 'pipeline_dashboard' as nav_pipeline_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="home" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url %}
       <h1>Cadastro</h1>
         <p>Primeira etapa obrigatoria. Salve os metadados do livro e, em seguida, envie o arquivo de entrada.</p>
 
@@ -103,7 +106,7 @@
       {% if continue_options %}
         <fieldset>
           <legend><strong>Continuar Livro Existente</strong></legend>
-          <p>Selecione um dos livros de 01 a 11 para retomar o trabalho do ponto onde parou.</p>
+          <p>Selecione um livro ja cadastrado para retomar o trabalho exatamente na etapa em que ele parou.</p>
           <div class="actions">
             <select id="continue_book_select" style="min-width: 420px;">
               <option value="">Selecione um livro...</option>

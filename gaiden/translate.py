@@ -58,6 +58,14 @@ def _build_messages(chunk_text: str, contract: Dict[str, Any]) -> List[Dict[str,
 
 _META_OUTPUT_PATTERNS = [
     re.compile(
+        r"^please\s+(provide|paste|share|send)\s+(the\s+)?(passage|text|excerpt|chapter|content)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(what|which)\s+(passage|text|excerpt|chapter|content)\b.*\b(would you like|do you want)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"^(here is|here's|output:|translated text:|translation:|rewrite:|rewritten text:|summary:|analysis:|note:)\b",
         re.IGNORECASE,
     ),
@@ -115,6 +123,10 @@ def _sanitize_translated_output(text: str) -> str:
         raise RuntimeError(f"Model output still contains meta/commentary text: {first_line[:120]}")
 
     return cleaned
+
+
+def sanitize_generated_chunk_text(text: str) -> str:
+    return _sanitize_translated_output(text)
 
 
 def text_has_complete_chunk_boundary(text: str) -> bool:

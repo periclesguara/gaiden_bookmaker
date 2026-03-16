@@ -93,6 +93,11 @@
 <body>
   <main class="wrap">
     <section class="card">
+      {% url 'book_edition_new' as nav_home_url %}
+      {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_base_url %}
+      {% url 'frontmatter_template_edit' book_code=book_code language=lang as nav_frontmatter_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="pipeline" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_base_url|add:'?allow_html_to_common=1' nav_frontmatter_url=nav_frontmatter_url %}
       <h1>Linha HTML - {{ book_code }} ({{ language }})</h1>
       <p class="muted">Etapa atual do pipeline: <strong>{{ current_stage }}</strong></p>
       <p class="muted">Formato registrado no cadastro: <strong>{{ source_format }}</strong></p>

@@ -48,6 +48,7 @@ from .services import (
     book_manifest,
     build_book,
     chapter_chunks,
+    canonical_merge,
     editorial_split,
     export_book,
     html_preprod,
@@ -1333,7 +1334,7 @@ def _continue_book_options() -> list[dict[str, str]]:
     for edition in editions:
         book_code = edition.work.code
         parsed = _parse_book_id(book_code)
-        if parsed is None or not (1 <= parsed <= 11):
+        if parsed is None:
             continue
         lang = utils.normalize_lang(edition.language.code)
         template = template_map.get((book_code, lang))
@@ -1462,6 +1463,18 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     texts, _ = EditionText.objects.get_or_create(edition=core_edition)
+    source_md_path = html_preprod.artifact_paths(book_code, language)["md_source"]
+    if source_md_path.exists():
+        normalized_text = source_md_path.read_text(encoding="utf-8")
+        current_text = out_path.read_text(encoding="utf-8") if out_path.exists() else ""
+        if current_text != normalized_text:
+            out_path.write_text(normalized_text, encoding="utf-8")
+        if texts.normalized_text != normalized_text or texts.normalized_path != str(out_path):
+            texts.normalized_text = normalized_text
+            texts.normalized_path = str(out_path)
+            texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
+        return out_path, "html_source_md"
+
     if out_path.exists():
         if texts.normalized_path != str(out_path):
             texts.normalized_path = str(out_path)
@@ -1481,15 +1494,6 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
             texts.normalized_path = str(out_path)
             texts.save(update_fields=["normalized_path", "updated_at"])
             return out_path, "edition_text.normalized_path"
-
-    source_md_path = html_preprod.artifact_paths(book_code, language)["md_source"]
-    if source_md_path.exists():
-        normalized_text = source_md_path.read_text(encoding="utf-8")
-        out_path.write_text(normalized_text, encoding="utf-8")
-        texts.normalized_text = normalized_text
-        texts.normalized_path = str(out_path)
-        texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
-        return out_path, "html_source_md"
 
     from gaiden import ingest, normalize as gaiden_normalize
 
@@ -2073,6 +2077,36 @@ def _harden_translate_contract(payload: dict, target_language: str) -> dict:
     return payload
 
 
+def _recommended_translate_max_output_tokens(
+    chunk_dir: Path,
+    input_glob: str,
+    target_language: str,
+    current_limit: int | None = None,
+) -> int:
+    txt_files = sorted(chunk_dir.glob(input_glob or "*.txt"))
+    if not txt_files:
+        return max(int(current_limit or 0), 1800)
+
+    max_chars = 0
+    for path in txt_files:
+        try:
+            char_count = len(path.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+        if char_count > max_chars:
+            max_chars = char_count
+
+    if max_chars <= 0:
+        return max(int(current_limit or 0), 1800)
+
+    normalized_lang = utils.normalize_lang(target_language)
+    chars_per_token = 4.0 if normalized_lang == "en" else 3.6
+    estimated_tokens = int(max_chars / chars_per_token)
+    recommended = max(1800, int(estimated_tokens * 1.45) + 320)
+    recommended = min(recommended, 6000)
+    return max(int(current_limit or 0), recommended)
+
+
 def _harden_refine_contract(payload: dict, refine_profile: str | None = None) -> dict:
     refine_profile = _normalize_refine_profile(refine_profile)
     refine_profile_cfg = _refine_profile_config(refine_profile)
@@ -2107,9 +2141,10 @@ def _harden_refine_contract(payload: dict, refine_profile: str | None = None) ->
     output_rules = [
         "CRITICAL OUTPUT RULES:",
         "- Output only the refined literary passage.",
-        "- Preserve all information, chronology, speakers, dialogue, and paragraph structure.",
+        "- Preserve all information, chronology, speakers, dialogue, paragraph structure, and any existing chapter or section headings.",
         "- Do not summarize, compress, paraphrase away details, or skip any sentence.",
-        "- Do not add titles, headings, notes, labels, commentary, explanations, or metadata.",
+        "- Do not delete, rename, or renumber existing headings or chapter markers.",
+        "- Do not add new titles, headings, notes, labels, commentary, explanations, or metadata.",
         "- Do not mention the prompt, the source text, or your editing choices.",
         "- Return only the refined passage as continuous prose and dialogue.",
     ]
@@ -2122,11 +2157,12 @@ def _harden_refine_contract(payload: dict, refine_profile: str | None = None) ->
 
     user_prompt = (
         "Refine the following passage line by line for fluency and clarity while preserving every fact, "
-        "sentence-level meaning, dialogue turn, and paragraph boundary.\n\n"
+        "sentence-level meaning, dialogue turn, paragraph boundary, and any chapter/section heading already present.\n\n"
         f"Selected profile: {refine_profile_cfg['label']}.\n"
         "Return only the refined passage.\n"
         "Do not summarize.\n"
         "Do not omit any sentence.\n"
+        "Do not delete or rewrite headings.\n"
         "Do not add commentary.\n\n"
         "{text}"
     )
@@ -2160,6 +2196,12 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
     payload["input_glob"] = input_glob
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
+    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
+        chunk_dir,
+        input_glob,
+        target_language,
+        current_limit=payload.get("max_output_tokens"),
+    )
 
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
@@ -2229,6 +2271,12 @@ def _build_runtime_refine_contract(
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
+    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
+        refine_input_dir,
+        "*.txt",
+        target_language,
+        current_limit=payload.get("max_output_tokens"),
+    )
     payload["sanitize_failure_fallback"] = "keep_source_chunk"
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
@@ -3443,8 +3491,13 @@ def run_edition_step(request, edition_id: int, step: str):
 
             _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
             merged_path = _detect_merged_path(out_dir_path)
-            if not merged_path:
-                raise FileNotFoundError(f"Merged translation not found in {out_dir_path}")
+            if merged_path is None:
+                merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
+            merged_path, _merge_stats = canonical_merge.write_canonical_merge(
+                source_dir_for_validation,
+                out_dir_path,
+                merged_path,
+            )
             build_path = _copy_merge_to_build(
                 target_edition,
                 merged_path,
@@ -3510,16 +3563,21 @@ def run_edition_step(request, edition_id: int, step: str):
                 ]
                 merged_candidates.extend(sorted(out_dir_path.glob("merged_*.txt")))
                 merged_path = next((p for p in merged_candidates if p.exists()), None)
-                if merged_path is None:
-                    raise FileNotFoundError(f"Refine merged output not found in {out_dir_path}")
                 result = {
                     "agent_name": f"{refine_profile_cfg['agent_name']} (contract-fallback)",
                     "source_dir": str(refine_input_dir),
                     "report_path": str(runtime_contract_path),
-                    "merge_path": str(merged_path),
+                    "merge_path": str(merged_path or (out_dir_path / f"merged_{out_dir_path.name}.txt")),
                 }
 
             _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
+            if merged_path is None:
+                merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
+            merged_path, _merge_stats = canonical_merge.write_canonical_merge(
+                source_dir,
+                out_dir_path,
+                merged_path,
+            )
             build_path = _copy_merge_to_build(
                 target_edition,
                 merged_path,
@@ -3548,20 +3606,6 @@ def run_edition_step(request, edition_id: int, step: str):
             refine_dir = translate_dir / REFINE_RETURN_DIRNAME
             _validate_runtime_chunk_outputs(translate_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
-            if not merge_refine_build.exists():
-                candidates = [
-                    refine_dir / f"merge_refine_{target_language}.txt",
-                    refine_dir / "merge_refine.txt",
-                    refine_dir / f"merged_refined_{target_language}_2025.txt",
-                    refine_dir / f"merged_refined_{target_language}.txt",
-                ]
-                merge_source = next((p for p in candidates if p.exists()), None)
-                if not merge_source:
-                    raise FileNotFoundError(
-                        f"Refine output not found in {refine_dir}. Run Refine ({refine_profile_cfg['label']} / {refine_profile_cfg['agent_name']}) first."
-                    )
-                _copy_merge_to_build(target_edition, merge_source, merge_refine_build)
-
             merge_refine_clean = (
                 Path(settings.BASE_DIR).parent
                 / "data"
@@ -3569,8 +3613,16 @@ def run_edition_step(request, edition_id: int, step: str):
                 / target_edition.work.code
                 / "merge_refine_clean.txt"
             )
-            merge_refine_clean.parent.mkdir(parents=True, exist_ok=True)
-            merge_refine_clean.write_text(merge_refine_build.read_text(encoding="utf-8"), encoding="utf-8")
+            canonical_merge.write_canonical_merge(
+                translate_dir,
+                refine_dir,
+                merge_refine_build,
+            )
+            canonical_merge.write_canonical_merge(
+                translate_dir,
+                refine_dir,
+                merge_refine_clean,
+            )
 
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.MERGED

@@ -27,6 +27,7 @@ CHAPTER_PREFIX_RE = re.compile(
     re.IGNORECASE,
 )
 LEADING_NUMERIC_CHAPTER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\s*[\.\-:]\s*(.+)$", re.IGNORECASE)
+BARE_NUMERIC_CHAPTER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\s*$", re.IGNORECASE)
 TITLE_SMALL_WORDS = {
     "a",
     "an",
@@ -176,6 +177,15 @@ EXPECTED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
         "The Adventure of the Abbey Grange",
         "The Adventure of the Second Stain",
     ],
+    (
+        "book_012",
+        "en",
+    ): [
+        "Escape from the Black Coast",
+        "The Isle in the Moonlight",
+        "The Statues That Walk",
+        "The Night of the Iron Shadows",
+    ],
 }
 
 
@@ -294,16 +304,21 @@ def _roman_to_int(value: str) -> int | None:
 
 
 def _extract_chapter_number(heading_text: str) -> int | None:
-    match = CHAPTER_NUM_RE.match((heading_text or "").strip())
+    stripped = (heading_text or "").strip()
+    match = CHAPTER_NUM_RE.match(stripped)
     if not match:
-        prefixed = CHAPTER_PREFIX_RE.match((heading_text or "").strip())
+        prefixed = CHAPTER_PREFIX_RE.match(stripped)
         if prefixed:
             token = prefixed.group(1)
         else:
-            numeric = LEADING_NUMERIC_CHAPTER_RE.match((heading_text or "").strip())
-            if not numeric:
-                return None
-            token = numeric.group(1)
+            numeric = LEADING_NUMERIC_CHAPTER_RE.match(stripped)
+            if numeric:
+                token = numeric.group(1)
+            else:
+                bare = BARE_NUMERIC_CHAPTER_RE.match(stripped)
+                if not bare:
+                    return None
+                token = bare.group(1)
     else:
         token = match.group(1)
     if token.isdigit():
@@ -524,6 +539,15 @@ def _expected_titles_for_cfg(cfg: PreEditionConfig) -> list[str] | None:
     return EXPECTED_CHAPTER_TITLES.get((book_code, language))
 
 
+def _expected_title_for_chapter_number(cfg: PreEditionConfig, chapter_no: int | None) -> str | None:
+    if chapter_no is None or chapter_no < 1:
+        return None
+    expected_titles = _expected_titles_for_cfg(cfg) or []
+    if chapter_no > len(expected_titles):
+        return None
+    return expected_titles[chapter_no - 1]
+
+
 def _validate_heading_contract(cfg: PreEditionConfig, contract: HeadingContract | None) -> None:
     expected_titles = _expected_titles_for_cfg(cfg)
     if not expected_titles:
@@ -558,6 +582,8 @@ def _validate_heading_contract(cfg: PreEditionConfig, contract: HeadingContract 
 
 
 def _looks_like_source_story_heading(text: str, cfg: PreEditionConfig) -> bool:
+    if _resolve_contract_title_from_heading(text, cfg) is not None:
+        return True
     stripped = _normalize_source_heading(text)
     if not stripped:
         return False
@@ -574,6 +600,34 @@ def _looks_like_source_story_heading(text: str, cfg: PreEditionConfig) -> bool:
     return upper.startswith("THE ADVENTURE OF ") or upper.startswith("THE PROBLEM OF ")
 
 
+def _resolve_contract_title_from_heading(text: str, cfg: PreEditionConfig) -> str | None:
+    stripped = _normalize_source_heading(text)
+    if not stripped:
+        return None
+    upper = stripped.upper()
+    book_title = (cfg.title or "").strip().upper()
+    if book_title and upper == book_title:
+        return None
+    if upper in {"CONTENTS", "TABLE OF CONTENTS"}:
+        return None
+    if ROMAN_ONLY_RE.fullmatch(stripped):
+        return None
+    if upper.startswith("BY "):
+        return None
+    if upper.startswith("THE ADVENTURE OF ") or upper.startswith("THE PROBLEM OF "):
+        return stripped
+
+    chapter_no = _extract_chapter_number(stripped)
+    expected_title = _expected_title_for_chapter_number(cfg, chapter_no)
+    if expected_title:
+        return expected_title
+
+    title_only = _chapter_title_only(stripped)
+    if title_only and title_only != stripped:
+        return title_only
+    return None
+
+
 def _extract_source_md_markers(cfg: PreEditionConfig) -> dict[str, list[str]] | None:
     source_md_path = _source_md_path(cfg)
     if source_md_path is None:
@@ -586,16 +640,17 @@ def _extract_source_md_markers(cfg: PreEditionConfig) -> dict[str, list[str]] | 
     idx = 0
     while idx < len(lines):
         line = lines[idx].strip()
-        if not line.startswith("### "):
+        heading_match = MD_HEADING_RE.match(line)
+        if not heading_match:
             idx += 1
             continue
 
-        heading = line[4:].strip()
-        if not _looks_like_source_story_heading(heading, cfg):
+        heading = heading_match.group(1).strip()
+        title = _resolve_contract_title_from_heading(heading, cfg)
+        if not title:
             idx += 1
             continue
 
-        title = _normalize_source_heading(heading)
         idx += 1
         paragraph_lines: list[str] = []
         while idx < len(lines):
@@ -739,13 +794,14 @@ def _extract_split_chapter_map(cfg: PreEditionConfig) -> list[tuple[str, str]]:
     chapters: list[tuple[str, str]] = []
     for chunk_path in sorted(split_dir.glob("*.txt")):
         for line in chunk_path.read_text(encoding="utf-8").splitlines():
-            stripped = line.strip()
-            if not stripped.startswith("### "):
+            heading_match = MD_HEADING_RE.match(line.strip())
+            if not heading_match:
                 continue
-            heading = stripped[4:].strip()
-            if not _looks_like_source_story_heading(heading, cfg):
+            heading = heading_match.group(1).strip()
+            title = _resolve_contract_title_from_heading(heading, cfg)
+            if not title:
                 continue
-            chapters.append((chunk_path.name, _normalize_source_heading(heading)))
+            chapters.append((chunk_path.name, title))
             break
     return chapters
 

@@ -42,6 +42,26 @@
   </style>
 </head>
 <body>
+  {% url 'book_edition_new' as nav_home_url %}
+  {% if edition %}
+    {% if source_format == 'html' %}
+      {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_base_url %}
+      {% with nav_steps_url=nav_steps_base_url|add:'?allow_html_to_common=1' %}
+        {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+        {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_url nav_frontmatter_url=nav_frontmatter_url %}
+      {% endwith %}
+    {% else %}
+      {% url 'pipeline_dashboard' as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_url %}
+      {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_url nav_frontmatter_url=nav_frontmatter_url %}
+    {% endif %}
+  {% else %}
+    {% url 'pipeline_dashboard' as nav_pipeline_url %}
+    {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+    {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_frontmatter_url=nav_frontmatter_url %}
+  {% endif %}
   <h1>Editorial · Frontmatter</h1>
   {% if is_generic %}
   <div class="preview">

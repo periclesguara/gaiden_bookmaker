@@ -285,6 +285,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "edition": edition,
         "is_generic": is_generic,
         "form": form,
+        "source_format": template.text_source_mode or "txt",
         "frontmatter_preview": preview_sections.get("frontispiece", ""),
         "copyright_preview": preview_sections.get("copyright", ""),
         "about_edition_preview": preview_sections.get("about_edition", ""),
