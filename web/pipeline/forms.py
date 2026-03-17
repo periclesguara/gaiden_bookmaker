@@ -1,6 +1,23 @@
+import re
+
 from django import forms
 
 from .models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES
+
+
+_BOOK_CODE_INPUT_RE = re.compile(r"^\s*(?:book[_-]?)?(\d+)\s*$", re.IGNORECASE)
+
+
+def normalize_book_code_input(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    match = _BOOK_CODE_INPUT_RE.match(raw)
+    if not match:
+        return raw.lower()
+    digits = match.group(1).lstrip("0") or "0"
+    width = max(3, len(digits))
+    return f"book_{digits.zfill(width)}"
 
 
 class BookEditionTemplateForm(forms.ModelForm):
@@ -79,6 +96,9 @@ class BookEditionTemplateForm(forms.ModelForm):
     def clean_collaborator_roles(self):
         roles = self.cleaned_data.get("collaborator_roles") or []
         return ",".join(roles)
+
+    def clean_book_code(self):
+        return normalize_book_code_input(self.cleaned_data.get("book_code", ""))
 
     def save(self, commit=True):
         instance = super().save(commit=False)

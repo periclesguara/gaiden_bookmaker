@@ -15,6 +15,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 
 from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, Seal, Work
+from pipeline.forms import normalize_book_code_input
 from pipeline.models import BookEditionTemplate
 
 
@@ -760,6 +761,16 @@ class MergeTranslatePreviewTests(TestCase):
         saved_path = self.temp_root / "data" / "builds" / self.work.code / "en" / "merge_translate_en.txt"
         self.assertTrue(saved_path.exists())
         self.assertEqual(saved_path.read_text(encoding="utf-8"), "Merged preview content.\n")
+
+
+class BookCodeNormalizationTests(TestCase):
+    def test_normalize_book_code_input_pads_short_numeric_codes(self):
+        self.assertEqual(normalize_book_code_input("book_13"), "book_013")
+        self.assertEqual(normalize_book_code_input("13"), "book_013")
+
+    def test_normalize_book_code_input_preserves_existing_width_for_longer_codes(self):
+        self.assertEqual(normalize_book_code_input("book_013"), "book_013")
+        self.assertEqual(normalize_book_code_input("book_9001"), "book_9001")
 
 
 class HtmlLanePreprodConvertTests(TestCase):

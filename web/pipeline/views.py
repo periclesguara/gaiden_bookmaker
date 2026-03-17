@@ -43,7 +43,7 @@ try:
 except ImportError:
     PipelineRun = None
     PipelineRunItem = None
-from .forms import BookEditionTemplateForm
+from .forms import BookEditionTemplateForm, normalize_book_code_input
 from .services import (
     book_manifest,
     build_book,
@@ -215,6 +215,9 @@ def _canonicalize_ingest_post_data(post_data):
         normalized["author_name"] = _post_field(post_data, "author")
     if not normalized.get("publication_year"):
         normalized["publication_year"] = "2026"
+    posted_book_code = (normalized.get("book_code") or "").strip()
+    if posted_book_code:
+        normalized["book_code"] = normalize_book_code_input(posted_book_code)
     posted_language = (normalized.get("language") or "").strip()
     normalized["language"] = utils.normalize_lang(posted_language) if posted_language else ""
     return normalized
