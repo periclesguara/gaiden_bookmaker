@@ -30,12 +30,20 @@ _CHAPTER_HEADING_RE = re.compile(
     r"^(#{1,6})\s*(chapter|adventure|cap[ií]tulo|kapitel)\b",
     re.IGNORECASE,
 )
+_NUMERIC_CHAPTER_HEADING_RE = re.compile(
+    r"^(#{1,6})\s*([ivxlcdm]+|\d+)\s+(.+)$",
+    re.IGNORECASE,
+)
 _MANUAL_TOC_HEADING_RE = re.compile(
     r"^\s*#{1,6}\s*(contents|table of contents|indice|índice)\s*$",
     re.IGNORECASE,
 )
 _PLAIN_CHAPTER_LINE_RE = re.compile(
     r"^\s*(chapter|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    re.IGNORECASE,
+)
+_PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
+    r"^\s*([ivxlcdm]+|\d+)\s+(.+)$",
     re.IGNORECASE,
 )
 _CHAPTER_MD_LINE_RE = re.compile(
@@ -59,6 +67,7 @@ _TECH_IMAGE_ALT_RE = re.compile(
     rf"!\[(?P<token>{_LEAKED_MARKER_TOKEN})\]\((?P<path>assets/images/[^)]+)\)"
 )
 _PLAIN_TOC_LINE_RE = re.compile(r"^\s*(?:[IVXLCDM]+|\d+)\s+[A-Z].+$", re.IGNORECASE)
+_VISUAL_CHAPTER_TITLE_RE = re.compile(r"^\s*\*\*.+\*\*\s*$", re.IGNORECASE)
 
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
@@ -407,10 +416,15 @@ def _normalize_chapter_headings(md_text: str) -> str:
 
     def _chapter_key(text: str) -> tuple[str, str | int] | None:
         m = _PLAIN_CHAPTER_LINE_RE.match(text.strip())
-        if not m:
-            return None
-        prefix = m.group(1).strip().lower()
-        num = m.group(2).strip()
+        if m:
+            prefix = m.group(1).strip().lower()
+            num = m.group(2).strip()
+        else:
+            n = _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(text.strip())
+            if not n:
+                return None
+            prefix = "chapter"
+            num = n.group(1).strip()
         if num.isdigit():
             key_num: str | int = int(num)
         else:
@@ -420,11 +434,17 @@ def _normalize_chapter_headings(md_text: str) -> str:
 
     def _chapter_text_with_subtitle(chapter_text: str, lines: list[str], idx: int) -> tuple[str, set[int]]:
         m = _PLAIN_CHAPTER_LINE_RE.match(chapter_text.strip())
-        if not m:
-            return chapter_text.strip(), set()
-        prefix = m.group(1).capitalize()
-        num = m.group(2).strip()
-        tail = (m.group(3) or "").strip().lstrip(" .:-–—")
+        if m:
+            prefix = m.group(1).capitalize()
+            num = m.group(2).strip()
+            tail = (m.group(3) or "").strip().lstrip(" .:-–—")
+        else:
+            n = _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(chapter_text.strip())
+            if not n:
+                return chapter_text.strip(), set()
+            prefix = "Chapter"
+            num = n.group(1).strip()
+            tail = (n.group(2) or "").strip().lstrip(" .:-–—")
         consumed: set[int] = set()
 
         if not tail:
@@ -447,7 +467,17 @@ def _normalize_chapter_headings(md_text: str) -> str:
                 break
 
         if tail:
+            if num.isdigit():
+                return f"{prefix} {int(num):02d} - {tail}", consumed
+            parsed = _roman_to_int(num)
+            if parsed is not None:
+                return f"{prefix} {parsed:02d} - {tail}", consumed
             return f"{prefix} {num} - {tail}", consumed
+        if num.isdigit():
+            return f"{prefix} {int(num):02d}", consumed
+        parsed = _roman_to_int(num)
+        if parsed is not None:
+            return f"{prefix} {parsed:02d}", consumed
         return f"{prefix} {num}", consumed
 
     src_lines = md_text.splitlines()
@@ -471,11 +501,16 @@ def _normalize_chapter_headings(md_text: str) -> str:
         m_h = _CHAPTER_HEADING_RE.match(stripped)
         if m_h:
             chapter_text = stripped.lstrip("#").strip()
+        elif _NUMERIC_CHAPTER_HEADING_RE.match(stripped):
+            chapter_text = stripped.lstrip("#").strip()
         else:
             m_bold = _BOLD_LINE_RE.match(stripped)
-            if m_bold and _PLAIN_CHAPTER_LINE_RE.match(m_bold.group(1).strip()):
+            if m_bold and (
+                _PLAIN_CHAPTER_LINE_RE.match(m_bold.group(1).strip())
+                or _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(m_bold.group(1).strip())
+            ):
                 chapter_text = m_bold.group(1).strip()
-            elif _PLAIN_CHAPTER_LINE_RE.match(stripped):
+            elif _PLAIN_CHAPTER_LINE_RE.match(stripped) or _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(stripped):
                 chapter_text = stripped
 
         if chapter_text is not None:
@@ -483,7 +518,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
             consumed_lines.update(consumed)
             if out and out[-1].strip():
                 out.append("")
-            out.append(f"# {normalized_chapter}")
+            out.append(f"## {normalized_chapter}")
             i += 1
             continue
 
@@ -516,6 +551,43 @@ def _normalize_chapter_headings(md_text: str) -> str:
         deduped.append(line)
 
     return "\n".join(deduped).strip() + "\n"
+
+
+def _insert_visual_chapter_titles(md_text: str) -> str:
+    lines = [
+        line
+        for line in md_text.splitlines()
+        if not _VISUAL_CHAPTER_TITLE_RE.match(line.strip())
+    ]
+
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        out.append(line)
+        if not _CHAPTER_MD_LINE_RE.match(stripped):
+            i += 1
+            continue
+
+        chapter_title = stripped.lstrip("#").strip()
+        i += 1
+        while i < len(lines) and not lines[i].strip():
+            out.append(lines[i])
+            i += 1
+
+        if i < len(lines) and _IMAGE_LINE_RE.match(lines[i].strip()):
+            out.append(lines[i])
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+
+        if out and out[-1].strip():
+            out.append("")
+        out.append(f"**{chapter_title}**")
+        out.append("")
+
+    return "\n".join(out).strip() + "\n"
 
 
 def _demote_pre_chapter_headings(md_text: str) -> str:
@@ -666,6 +738,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     miolo_txt = _normalize_chapter_headings(miolo_txt).strip()
     miolo_txt = _demote_pre_chapter_headings(miolo_txt).strip()
     miolo_txt = _normalize_pre_chapter_prelude(miolo_txt, edition).strip()
+    miolo_txt = _insert_visual_chapter_titles(miolo_txt).strip()
     miolo_txt = _remove_unwanted_taglines(miolo_txt).strip()
     miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)

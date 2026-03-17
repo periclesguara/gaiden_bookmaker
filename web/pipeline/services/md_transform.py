@@ -1089,7 +1089,7 @@ def insert_image_placeholders(md_path: Path) -> None:
     # Rebuild placeholders from scratch so old misplaced placeholders
     # do not accumulate across repeated runs.
     text = IMAGE_PLACEHOLDER_RE.sub("", text)
-    text = IMAGE_MARKDOWN_RE.sub("", text)
+    text = IMAGE_MARKDOWN_ANY_RE.sub("", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
 
     inside_center_block = False

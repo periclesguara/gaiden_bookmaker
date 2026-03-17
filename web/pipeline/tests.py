@@ -1812,6 +1812,31 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertTrue((self.assets_dir / "ch01_01_01.jpg").exists())
         self.assertTrue((self.assets_dir / "ch02_01_02.jpg").exists())
 
+    def test_insert_images_resets_existing_asset_refs_before_rebuilding_placeholders(self):
+        self.pre_edition_path.write_text(
+            (
+                "# Chapter 01 - The Adventure of the Empty House\n\n"
+                "![](assets/images/ch01_01_01.jpg)\n\n"
+                "Body of chapter one.\n\n"
+                "# Chapter 02 - The Adventure of the Norwood Builder\n\n"
+                "![CH02:01](assets/images/ch02_01_02.jpg)\n\n"
+                "Body of chapter two.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(
+            self.steps_url,
+            data={"action": "insert_images"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        updated_md = self.pre_edition_path.read_text(encoding="utf-8")
+        self.assertNotIn("assets/images/ch01_01_01.jpg", updated_md)
+        self.assertNotIn("assets/images/ch02_01_02.jpg", updated_md)
+        self.assertIn("{{IMAGE:CH01:01}}", updated_md)
+        self.assertIn("{{IMAGE:CH02:01}}", updated_md)
+
 
 class MdTransformSourceHeadingContractTests(TestCase):
     def setUp(self):
@@ -2256,10 +2281,53 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         self.assertIn("# Adapted Preface", merged_text)
         self.assertIn("This is the real prefatory paragraph", merged_text)
-        self.assertIn("# Chapter 01 - First Case", merged_text)
+        self.assertIn("## Chapter 01 - First Case", merged_text)
         self.assertNotIn("MARKER CONTRACT BOOK", merged_text)
         self.assertNotIn("First published 1927", merged_text)
         self.assertNotIn("\nCONTENTS\n", merged_text)
+
+    def test_build_kdp_keeps_numeric_chapter_heading_and_moves_visual_title_below_image(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "## 1 Death Strikes a King\n"
+                "![](assets/images/ch01_01.jpg)\n\n"
+                "The king of Vendhya was dying.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_path = kdp_mode.build_merged_kdp_source(self.edition)
+        merged_text = merged_path.read_text(encoding="utf-8")
+
+        self.assertIn("## Chapter 01 - Death Strikes a King", merged_text)
+        self.assertIn("**Chapter 01 - Death Strikes a King**", merged_text)
+        chapter_idx = merged_text.index("## Chapter 01 - Death Strikes a King")
+        image_idx = merged_text.index("![](assets/images/ch01_01.jpg)")
+        visual_idx = merged_text.index("**Chapter 01 - Death Strikes a King**")
+        body_idx = merged_text.index("The king of Vendhya was dying.")
+        self.assertLess(chapter_idx, image_idx)
+        self.assertLess(image_idx, visual_idx)
+        self.assertLess(visual_idx, body_idx)
+
+    def test_build_kdp_does_not_duplicate_markdown_visual_chapter_title_on_rebuild(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "## 1 Death Strikes a King\n"
+                "![](assets/images/ch01_01.jpg)\n\n"
+                "The king of Vendhya was dying.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        first = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+        second = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        self.assertEqual(first.count("**Chapter 01 - Death Strikes a King**"), 1)
+        self.assertEqual(second.count("**Chapter 01 - Death Strikes a King**"), 1)
 
 
 class MdApproveImagesContractTests(TestCase):
