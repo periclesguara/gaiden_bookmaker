@@ -1394,6 +1394,10 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("lightly modernized, natural English", payload["user_prompt"])
         self.assertIn("Make only the minimum changes needed for clarity and flow.", payload["user_prompt"])
         self.assertIn("Do not flatten the prose into generic contemporary fantasy", payload["user_prompt"])
+        self.assertIn("Preserve maximum semantic fidelity to the original text at all times.", payload["user_prompt"])
+        self.assertIn("Reduce archaic or overly formal wording aggressively when it slows reading.", payload["user_prompt"])
+        self.assertIn("Break long sentences into shorter, clearer units whenever that improves flow.", payload["user_prompt"])
+        self.assertIn("Prefer active voice and direct verbs.", payload["user_prompt"])
         self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
@@ -2432,6 +2436,27 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertNotIn("MARKER CONTRACT BOOK", merged_text)
         self.assertNotIn("First published 1927", merged_text)
         self.assertNotIn("\nCONTENTS\n", merged_text)
+
+    def test_build_kdp_does_not_label_empty_preface(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "::: center\n"
+                "# Marker Contract Book\n\n"
+                "## Illustrated Edition\n"
+                ":::\n\n"
+                "# Chapter 01 - First Case\n\n"
+                "Body text.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_path = kdp_mode.build_merged_kdp_source(self.edition)
+        merged_text = merged_path.read_text(encoding="utf-8")
+
+        self.assertNotIn("# Adapted Preface", merged_text)
+        self.assertIn("## Chapter 01 - First Case", merged_text)
 
     def test_build_kdp_keeps_numeric_chapter_heading_and_moves_visual_title_below_image(self):
         from editorial import kdp_mode

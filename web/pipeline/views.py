@@ -2018,7 +2018,91 @@ def _append_prompt_block(prompt: str, block: str) -> str:
     return f"{prompt}\n\n{block}"
 
 
-def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
+def _english_translate_contract_block(payload: dict) -> str:
+    fluency = payload.get("fluency_policy") if isinstance(payload.get("fluency_policy"), dict) else {}
+    stage_rules = payload.get("translate_stage_rules") if isinstance(payload.get("translate_stage_rules"), dict) else {}
+    if not stage_rules:
+        stage_rules = payload.get("refine_stage_rules") if isinstance(payload.get("refine_stage_rules"), dict) else {}
+    micro = payload.get("micro_polish_rules") if isinstance(payload.get("micro_polish_rules"), dict) else {}
+    validation = payload.get("validation") if isinstance(payload.get("validation"), dict) else {}
+
+    lines: list[str] = []
+
+    if fluency:
+        lines.append("ENGLISH FLUENCY POLICY:")
+        if fluency.get("priority") == "high":
+            lines.append("- Prioritize readability and flow whenever meaning can be preserved exactly.")
+        if str(fluency.get("semantic_fidelity_priority") or "").strip().lower() == "maximum":
+            lines.append("- Preserve maximum semantic fidelity to the original text at all times.")
+        if fluency.get("preserve_meaning_over_structure"):
+            lines.append("- Preserve meaning over old sentence shape when the two conflict.")
+        if fluency.get("allow_archaic_replacement"):
+            aggressiveness = str(fluency.get("archaic_replacement_aggressiveness") or "").strip().lower()
+            if aggressiveness == "high":
+                lines.append("- Reduce archaic or overly formal wording aggressively when it slows reading.")
+            else:
+                lines.append("- Reduce archaic or overly formal wording when it slows reading.")
+        if fluency.get("allow_sentence_splitting"):
+            lines.append("- Break long sentences into shorter, clearer units whenever that improves flow.")
+        if fluency.get("allow_syntax_simplification"):
+            lines.append("- Simplify clause-heavy syntax when the simpler form keeps the same meaning.")
+        reading_level = str(fluency.get("target_reading_level") or "").strip()
+        if reading_level:
+            lines.append(f"- Target readability: {reading_level}.")
+        preferred_range = fluency.get("preferred_sentence_length_range")
+        max_sentence_length = fluency.get("max_sentence_length")
+        if isinstance(preferred_range, list) and len(preferred_range) == 2:
+            lines.append(
+                f"- Prefer roughly {preferred_range[0]}-{preferred_range[1]} words per sentence when natural."
+            )
+        if max_sentence_length:
+            lines.append(f"- Treat {max_sentence_length} words as the soft ceiling for sentence length unless meaning would suffer.")
+
+    if stage_rules:
+        lines.append("TRANSLATE STAGE FLOW RULES:")
+        if stage_rules.get("optimize_for_readability"):
+            lines.append("- Optimize for readability.")
+        if stage_rules.get("optimize_for_flow"):
+            lines.append("- Optimize for flow and binge-reading momentum.")
+        if stage_rules.get("enforce_short_sentences"):
+            lines.append("- Prefer shorter sentences over long clause-heavy ones.")
+        if stage_rules.get("remove_complex_clauses"):
+            lines.append("- Reduce nested clauses where possible.")
+        if stage_rules.get("reduce_adjective_density"):
+            lines.append("- Reduce adjective stacking and keep description lean.")
+        if stage_rules.get("prefer_active_voice"):
+            lines.append("- Prefer active voice and direct verbs.")
+
+    if micro:
+        lines.append("MICRO-POLISH RULES:")
+        if micro.get("allow_micro_rewrites"):
+            lines.append("- Small rewrites are allowed when they improve readability without changing meaning.")
+        if micro.get("allow_word_order_adjustment"):
+            lines.append("- Adjust word order when it produces a cleaner, more natural sentence.")
+        if micro.get("remove_filler_words"):
+            lines.append("- Cut filler words when they do not carry meaning or tone.")
+        if micro.get("improve_reading_cadence"):
+            lines.append("- Improve cadence by alternating short and medium sentences where it helps rhythm.")
+        if micro.get("enforce_sound_test"):
+            lines.append("- Make each paragraph read smoothly out loud.")
+
+    if validation:
+        lines.append("VALIDATION TARGETS:")
+        if validation.get("reject_if_too_complex"):
+            lines.append("- Do not leave the prose needlessly dense or clause-heavy.")
+        if validation.get("max_clause_depth") is not None:
+            lines.append(f"- Keep clause depth at or below {validation['max_clause_depth']} where possible.")
+        if validation.get("max_passive_voice_ratio") is not None:
+            lines.append(f"- Keep passive voice low (target <= {validation['max_passive_voice_ratio']}).")
+        readability = str(validation.get("min_readability_score") or "").strip()
+        if readability:
+            lines.append(f"- Minimum readability target: {readability}.")
+
+    return "\n".join(lines)
+
+
+def _generic_translate_prompts(target_language: str, payload: dict | None = None) -> tuple[str, str, str]:
+    payload = payload or {}
     lang = utils.normalize_lang(target_language)
     target_labels = {
         "en": "modern, natural English",
@@ -2032,6 +2116,7 @@ def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
         task_line = (
             "You are a professional literary editor producing a lightly modernized English rendering for a contemporary reader."
         )
+        english_contract_block = _english_translate_contract_block(payload)
         user_prompt = (
             "Rewrite the following literary passage into lightly modernized, natural English.\n\n"
             "NON-NEGOTIABLE:\n"
@@ -2049,7 +2134,8 @@ def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
             "- Keep ritual or high-drama speech elevated.\n"
             "- Split long sentences only when they slow action or obscure meaning.\n"
             "- Reduce over-formal or bureaucratic phrasing only when it creates friction.\n"
-            "- Replace heavy diction only when a simpler choice preserves tone, force, and atmosphere.\n\n"
+            "- Replace heavy diction only when a simpler choice preserves tone, force, and atmosphere.\n"
+            f"{english_contract_block}\n\n"
             "Return only the final rewritten passage.\n\n"
             "{text}"
         )
@@ -2082,7 +2168,7 @@ def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
 
 
 def _harden_translate_contract(payload: dict, target_language: str) -> dict:
-    system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language)
+    system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language, payload)
     payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
     if str(payload.get("model") or "").strip() in {"", "gpt-5.1"}:
         payload["model"] = "gpt-5-chat-latest"

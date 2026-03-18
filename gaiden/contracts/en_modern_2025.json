@@ -11,6 +11,43 @@
     "language": "en"
   },
 
-  "system_prompt": "You are a professional literary editor in 2025. Your job is to modernize the English of Sherlock Holmes stories while preserving meaning, tone, and rhythm. Keep the text fluent, cinematic, and faithful. Do NOT summarize, do NOT comment. Return only the rewritten text.\n\nCRITICAL OUTPUT RULES:\n- Output only the rewritten literary passage.\n- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n- Do not mention the prompt, the source text, copyright, safety policies, or your own editorial choices.\n- Do not wrap the answer in quotes, markdown, or code fences.\n- Preserve the passage as continuous narrative prose.",
-  "user_prompt": "Rewrite the following Sherlock Holmes passage in modern, fluent English, preserving all information, tension, and atmosphere. Do NOT summarize. Do NOT add explanations.\n\nReturn only the rewritten passage.\nNo comments.\nNo explanatory text.\nNo headings.\nNo lists.\nNo notes before or after the passage.\n\n{text}"
+  "fluency_policy": {
+    "priority": "high",
+    "semantic_fidelity_priority": "maximum",
+    "preserve_meaning_over_structure": true,
+    "allow_sentence_splitting": true,
+    "allow_syntax_simplification": true,
+    "target_reading_level": "grade_6_8",
+    "max_sentence_length": 22,
+    "preferred_sentence_length_range": [8, 16],
+    "allow_archaic_replacement": true,
+    "archaic_replacement_aggressiveness": "high"
+  },
+
+  "translate_stage_rules": {
+    "optimize_for_readability": true,
+    "optimize_for_flow": true,
+    "enforce_short_sentences": true,
+    "remove_complex_clauses": true,
+    "reduce_adjective_density": true,
+    "prefer_active_voice": true
+  },
+
+  "micro_polish_rules": {
+    "allow_micro_rewrites": true,
+    "allow_word_order_adjustment": true,
+    "remove_filler_words": true,
+    "improve_reading_cadence": true,
+    "enforce_sound_test": true
+  },
+
+  "validation": {
+    "reject_if_too_complex": true,
+    "max_clause_depth": 2,
+    "max_passive_voice_ratio": 0.25,
+    "min_readability_score": "medium_easy"
+  },
+
+  "system_prompt": "You are a professional literary editor in 2025. Rewrite classic English into modern, fluent, highly readable English while preserving meaning, tone, narrative structure, and atmosphere. Prioritize clarity over archaic syntax when meaning is preserved. Reduce archaic phrasing aggressively when it creates friction. Shorten long sentences when needed for flow and readability, but do not cut content.\n\nCRITICAL OUTPUT RULES:\n- Output only the rewritten literary passage.\n- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n- Do not mention the prompt, the source text, copyright, safety policies, or your own editorial choices.\n- Do not wrap the answer in quotes, markdown, or code fences.\n- Preserve the passage as continuous narrative prose.",
+  "user_prompt": "Rewrite the following literary passage in modern, fluent English with higher readability and smoother flow.\n\nNON-NEGOTIABLE:\n- Preserve all meaning, chronology, names, places, dates, numbers, and dialogue.\n- Preserve maximum semantic fidelity to the original text at all times.\n- Preserve paragraph structure.\n- Do not summarize, compress, explain, annotate, or invent content.\n- Keep headings/chapter markers if they exist.\n\nPRIORITIES:\n- Reduce archaic or overly formal wording when it slows reading.\n- Split long sentences when needed for clarity.\n- Simplify clause-heavy syntax without losing meaning.\n- Prefer active voice, direct verbs, and cleaner cadence.\n- Aim for shorter, clearer sentences when natural.\n\nReturn only the final rewritten passage.\n\n{text}"
 }

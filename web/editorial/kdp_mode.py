@@ -308,7 +308,7 @@ def _normalize_pre_chapter_prelude(md_text: str, edition: Edition) -> str:
     if not prelude:
         return "\n".join(chapters).strip() + "\n"
 
-    if not any(line.strip().startswith("#") for line in prelude):
+    if prelude and any(_looks_like_paragraph(line) for line in prelude) and not any(line.strip().startswith("#") for line in prelude):
         prelude = ["# Adapted Preface", ""] + prelude
 
     merged = prelude + [""] + chapters
