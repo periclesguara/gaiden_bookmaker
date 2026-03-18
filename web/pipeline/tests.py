@@ -762,6 +762,19 @@ class MergeTranslatePreviewTests(TestCase):
         self.assertTrue(saved_path.exists())
         self.assertEqual(saved_path.read_text(encoding="utf-8"), "Merged preview content.\n")
 
+    def test_preview_merge_translate_falls_back_to_build_merge_when_runtime_is_missing(self):
+        self.merged_runtime_path.unlink()
+        build_dir = self.temp_root / "data" / "builds" / self.work.code / "en"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        build_merge = build_dir / "merge_translate.txt"
+        build_merge.write_text("Build merge preview content.\n", encoding="utf-8")
+
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Build merge preview content.")
+        self.assertEqual(response.context["md_path"], str(build_merge))
+
 
 class BookCodeNormalizationTests(TestCase):
     def test_normalize_book_code_input_pads_short_numeric_codes(self):
@@ -1250,10 +1263,14 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(payload["agent_name"], "Aldebaran")
         self.assertIn("professional literary editor", payload["system_prompt"])
         self.assertIn("Active refine profile: Ingles neutro via agent Aldebaran.", payload["system_prompt"])
+        self.assertIn("SURGICAL MICRO-POLISH ONLY", payload["system_prompt"])
+        self.assertIn("Do not globally modernize the book.", payload["system_prompt"])
         self.assertIn("Preserve all information, chronology, speakers, dialogue, paragraph structure, and any existing chapter or section headings.", payload["system_prompt"])
         self.assertIn("Do not delete, rename, or renumber existing headings or chapter markers.", payload["system_prompt"])
         self.assertIn("Do not summarize", payload["system_prompt"])
         self.assertIn("Selected profile: Ingles neutro.", payload["user_prompt"])
+        self.assertIn("Editing mode: surgical micro-polish only.", payload["user_prompt"])
+        self.assertIn("If a line is already strong, leave it unchanged.", payload["user_prompt"])
         self.assertIn("Return only the refined passage", payload["user_prompt"])
         self.assertIn("Do not omit any sentence", payload["user_prompt"])
         self.assertIn("Do not delete or rewrite headings.", payload["user_prompt"])
@@ -1292,6 +1309,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(payload["agent_name"], "Alamaguederaz")
         self.assertIn("flexible adventure English", payload["system_prompt"])
         self.assertIn("sword-and-sorcery flavor", payload["system_prompt"])
+        self.assertIn("SURGICAL MICRO-POLISH ONLY", payload["system_prompt"])
         self.assertIn("Selected profile: Ingles flex.", payload["user_prompt"])
 
     def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
@@ -1373,7 +1391,9 @@ class HeadingCleanerGateTests(TestCase):
         self.assertNotIn("Sherlock Holmes", payload["system_prompt"])
         self.assertNotIn("Sherlock Holmes", payload["user_prompt"])
         self.assertIn("professional literary editor", payload["system_prompt"])
-        self.assertIn("modern, natural English", payload["user_prompt"])
+        self.assertIn("lightly modernized, natural English", payload["user_prompt"])
+        self.assertIn("Make only the minimum changes needed for clarity and flow.", payload["user_prompt"])
+        self.assertIn("Do not flatten the prose into generic contemporary fantasy", payload["user_prompt"])
         self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
@@ -2146,6 +2166,122 @@ class MdTransformSourceHeadingContractTests(TestCase):
         self.assertIn("# Chapter 02 - The Isle in the Moonlight", output)
         self.assertIn("# Chapter 03 - The Statues That Walk", output)
         self.assertIn("# Chapter 04 - The Night of the Iron Shadows", output)
+
+    def test_pre_edition_md_uses_editorial_titles_for_book_014(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0014" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("# JEWELS OF GWAHLUR", encoding="utf-8")
+        (split_dir / "0002.txt").write_text("## By Robert E. Howard", encoding="utf-8")
+        (split_dir / "0003.txt").write_text("## 1\n\nOpening one.", encoding="utf-8")
+        (split_dir / "0004.txt").write_text("Body one.", encoding="utf-8")
+        (split_dir / "0005.txt").write_text("## 2\n\nOpening two.", encoding="utf-8")
+        (split_dir / "0006.txt").write_text("Body two.", encoding="utf-8")
+        (split_dir / "0007.txt").write_text("## 3\n\nOpening three.", encoding="utf-8")
+        (split_dir / "0008.txt").write_text("Body three.", encoding="utf-8")
+        (split_dir / "0009.txt").write_text("## 4\n\nOpening four.", encoding="utf-8")
+        (split_dir / "0010.txt").write_text("Body four.", encoding="utf-8")
+        (split_dir / "0011.txt").write_text("## 5\n\nOpening five.", encoding="utf-8")
+        (split_dir / "0012.txt").write_text("Body five.", encoding="utf-8")
+
+        source_dir = self.temp_root / "data" / "md" / "book_014"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        (source_dir / "book_014_en_source.md").write_text(
+            (
+                "# JEWELS OF GWAHLUR\n\n"
+                "## 1\n\nOpening one.\n\n"
+                "## 2\n\nOpening two.\n\n"
+                "## 3\n\nOpening three.\n\n"
+                "## 4\n\nOpening four.\n\n"
+                "## 5\n\nOpening five.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_refine.txt"
+        txt_path.write_text(
+            (
+                "Opening one.\n\n"
+                "Body one.\n\n"
+                "Opening two.\n\n"
+                "Body two.\n\n"
+                "Opening three.\n\n"
+                "Body three.\n\n"
+                "Opening four.\n\n"
+                "Body four.\n\n"
+                "Opening five.\n\n"
+                "Body five.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="Jewels of Gwahlur",
+                book_code="book_014",
+                language="en",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("# Chapter 01 - The Shrine of Gwahlur", output)
+        self.assertIn("# Chapter 02 - Muriela the Queen", output)
+        self.assertIn("# Chapter 03 - The Hidden Temple", output)
+        self.assertIn("# Chapter 04 - The God That Walks", output)
+        self.assertIn("# Chapter 05 - The Jewels of Gwahlur", output)
+
+    def test_pre_edition_md_rewrites_existing_md_headings_for_book_014(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0014" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("# JEWELS OF GWAHLUR", encoding="utf-8")
+        (split_dir / "0002.txt").write_text("## By Robert E. Howard", encoding="utf-8")
+        (split_dir / "0003.txt").write_text("## 1 The Shrine of Gwahlur", encoding="utf-8")
+        (split_dir / "0004.txt").write_text("## 2 Muriela the Queen", encoding="utf-8")
+        (split_dir / "0005.txt").write_text("## 3 The Hidden Temple", encoding="utf-8")
+        (split_dir / "0006.txt").write_text("## 4 The God That Walks", encoding="utf-8")
+        (split_dir / "0007.txt").write_text("## 5 The Jewels of Gwahlur", encoding="utf-8")
+
+        txt_path = self.temp_root / "merge_refine.txt"
+        txt_path.write_text(
+            (
+                "# JEWELS OF GWAHLUR\n\n"
+                "## By Robert E. Howard\n\n"
+                "## 1 The Shrine of Gwahlur\n\n"
+                "Opening one.\n\n"
+                "## 2 Muriela the Queen\n\n"
+                "Opening two.\n\n"
+                "## 3 The Hidden Temple\n\n"
+                "Opening three.\n\n"
+                "## 4 The God That Walks\n\n"
+                "Opening four.\n\n"
+                "## 5 The Jewels of Gwahlur\n\n"
+                "Opening five.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="Jewels of Gwahlur",
+                book_code="book_014",
+                language="en",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("# Chapter 01 - The Shrine of Gwahlur", output)
+        self.assertIn("# Chapter 05 - The Jewels of Gwahlur", output)
+        self.assertNotIn("## 1 The Shrine of Gwahlur", output)
+        self.assertNotIn("## 5 The Jewels of Gwahlur", output)
 
     def test_heading_contract_fails_when_expected_titles_do_not_match(self):
         from pipeline.services import md_transform

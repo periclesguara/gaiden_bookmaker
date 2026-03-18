@@ -2030,15 +2030,26 @@ def _generic_translate_prompts(target_language: str) -> tuple[str, str, str]:
 
     if lang == "en":
         task_line = (
-            "You are a professional literary editor modernizing English prose for a contemporary reader."
+            "You are a professional literary editor producing a lightly modernized English rendering for a contemporary reader."
         )
         user_prompt = (
-            "Rewrite the following literary passage into modern, natural English.\n\n"
+            "Rewrite the following literary passage into lightly modernized, natural English.\n\n"
             "NON-NEGOTIABLE:\n"
             "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
             "- Preserve paragraph structure.\n"
             "- Do not summarize, compress, explain, annotate, or invent content.\n"
             "- Keep headings/chapter markers if they exist.\n\n"
+            "ENGLISH MODERNIZATION MODE:\n"
+            "- Make only the minimum changes needed for clarity and flow.\n"
+            "- If a sentence is already vivid, clear, and readable, keep it close to the source.\n"
+            "- Preserve classical, ceremonial, royal, priestly, mystical, and epic diction when it is intentional and readable.\n"
+            "- Do not flatten the prose into generic contemporary fantasy or plain commercial English.\n"
+            "- Prefer stronger edits in stiff exposition and lighter edits in dialogue.\n"
+            "- Keep Conan blunt, physical, and direct.\n"
+            "- Keep ritual or high-drama speech elevated.\n"
+            "- Split long sentences only when they slow action or obscure meaning.\n"
+            "- Reduce over-formal or bureaucratic phrasing only when it creates friction.\n"
+            "- Replace heavy diction only when a simpler choice preserves tone, force, and atmosphere.\n\n"
             "Return only the final rewritten passage.\n\n"
             "{text}"
         )
@@ -2110,9 +2121,35 @@ def _recommended_translate_max_output_tokens(
     return max(int(current_limit or 0), recommended)
 
 
-def _harden_refine_contract(payload: dict, refine_profile: str | None = None) -> dict:
+def _english_refine_micro_polish_block(refine_profile_cfg: dict[str, str]) -> str:
+    return (
+        "ENGLISH REFINE MODE: SURGICAL MICRO-POLISH ONLY.\n"
+        "- Make only surgical edits where real reading friction exists.\n"
+        "- If a sentence is already clear, atmospheric, and readable, leave it unchanged.\n"
+        "- Preserve Robert E. Howard-style pulp force, physicality, and mythic atmosphere when present.\n"
+        f"- Preserve the active profile target: {refine_profile_cfg['label']} via {refine_profile_cfg['agent_name']}.\n"
+        "- Do not flatten elevated narration into generic modern fantasy prose.\n"
+        "- Preserve ceremonial, royal, priestly, mystical, and epic diction when it sounds intentional and strong.\n"
+        "- Prefer lighter edits in dialogue and stronger edits in stiff exposition.\n"
+        "- Keep Conan blunt, direct, physical, and dangerous; do not make him contemporary, casual, or sarcastic.\n"
+        "- Reduce over-formal or bureaucratic phrasing only when it feels heavier than the surrounding prose.\n"
+        "- Replace heavy diction only when a simpler alternative preserves tone and force.\n"
+        "- Split long sentences only when the split improves momentum or clarity without killing rhythm.\n"
+        "- Do not globally modernize the book. Refine only the lines that truly need help."
+    )
+
+
+def _harden_refine_contract(
+    payload: dict,
+    refine_profile: str | None = None,
+    target_language: str | None = None,
+) -> dict:
     refine_profile = _normalize_refine_profile(refine_profile)
     refine_profile_cfg = _refine_profile_config(refine_profile)
+    normalized_lang = utils.normalize_lang(
+        target_language
+        or str(payload.get("target_language") or payload.get("language") or "")
+    )
     instructions = payload.get("instructions") if isinstance(payload.get("instructions"), dict) else {}
     style = instructions.get("style") if isinstance(instructions.get("style"), dict) else {}
     output = instructions.get("output") if isinstance(instructions.get("output"), dict) else {}
@@ -2140,6 +2177,8 @@ def _harden_refine_contract(payload: dict, refine_profile: str | None = None) ->
         system_parts.append(f"Refine rules:\n{rules_block}")
     if style_block:
         system_parts.append(f"Style target:\n{style_block}")
+    if normalized_lang == "en":
+        system_parts.append(_english_refine_micro_polish_block(refine_profile_cfg))
 
     output_rules = [
         "CRITICAL OUTPUT RULES:",
@@ -2158,10 +2197,19 @@ def _harden_refine_contract(payload: dict, refine_profile: str | None = None) ->
     if output.get("no_metadata"):
         output_rules.append("- No metadata.")
 
+    english_user_block = ""
+    if normalized_lang == "en":
+        english_user_block = (
+            "Editing mode: surgical micro-polish only.\n"
+            "If a line is already strong, leave it unchanged.\n"
+            "Preserve elevated diction where it is intentional.\n"
+        )
+
     user_prompt = (
         "Refine the following passage line by line for fluency and clarity while preserving every fact, "
         "sentence-level meaning, dialogue turn, paragraph boundary, and any chapter/section heading already present.\n\n"
         f"Selected profile: {refine_profile_cfg['label']}.\n"
+        f"{english_user_block}"
         "Return only the refined passage.\n"
         "Do not summarize.\n"
         "Do not omit any sentence.\n"
@@ -2244,7 +2292,11 @@ def _build_runtime_refine_contract(
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
     payload = json.loads(_select_refine_contract(target_language).read_text(encoding="utf-8"))
-    payload = _harden_refine_contract(payload, refine_profile=refine_profile)
+    payload = _harden_refine_contract(
+        payload,
+        refine_profile=refine_profile,
+        target_language=target_language,
+    )
     source_dir = _runtime_translate_dir_for_edition(edition, target_language)
     if not source_dir.exists():
         raise FileNotFoundError(f"Translate chunks not found for refine: {source_dir}. Run Translate first.")
@@ -3938,6 +3990,12 @@ def preview_merge_translate(request, edition_id: int):
     out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
+        build_candidates = [
+            paths.edition_build_dir_for_language(book_code, target_language) / f"merge_translate_{target_language}.txt",
+            paths.edition_build_dir_for_language(book_code, target_language) / "merge_translate.txt",
+        ]
+        merged_path = next((path for path in build_candidates if path.exists()), None)
+    if not merged_path:
         raise Http404("Merged translation file not found.")
 
     content = merged_path.read_text(encoding="utf-8")
@@ -3963,6 +4021,12 @@ def save_merge_translate_preview(request, edition_id: int):
     )
     out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
+    if not merged_path:
+        build_candidates = [
+            paths.edition_build_dir_for_language(book_code, target_language) / f"merge_translate_{target_language}.txt",
+            paths.edition_build_dir_for_language(book_code, target_language) / "merge_translate.txt",
+        ]
+        merged_path = next((path for path in build_candidates if path.exists()), None)
     if not merged_path:
         messages.error(request, "Merged translation file not found.")
         return redirect("edition_steps", edition_id=edition_id)

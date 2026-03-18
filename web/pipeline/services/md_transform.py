@@ -26,7 +26,10 @@ CHAPTER_PREFIX_RE = re.compile(
     r"^\s*(?:chapter|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\s*[-.:]?\s*(.*)$",
     re.IGNORECASE,
 )
-LEADING_NUMERIC_CHAPTER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\s*[\.\-:]\s*(.+)$", re.IGNORECASE)
+LEADING_NUMERIC_CHAPTER_RE = re.compile(
+    r"^\s*([IVXLCDM]+|\d+)(?:\s*[\.\-:]\s*|\s+)(.+)$",
+    re.IGNORECASE,
+)
 BARE_NUMERIC_CHAPTER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\s*$", re.IGNORECASE)
 TITLE_SMALL_WORDS = {
     "a",
@@ -121,6 +124,25 @@ KNOWN_CHAPTER_MARKERS: dict[tuple[str, str], dict[str, list[str]]] = {
             "The July following my marriage stands out in my memory due to three particularly interesting cases where I had the privilege of working with Sherlock Holmes and observing his methods.",
             "With a heavy heart, I pick up my pen to write these final words about the remarkable gifts that distinguished my friend, Mr. Sherlock Holmes.",
         ],
+    },
+    (
+        "book_014",
+        "en",
+    ): {
+        "titles": [
+            "The Shrine of Gwahlur",
+            "Muriela the Queen",
+            "The Hidden Temple",
+            "The God That Walks",
+            "The Jewels of Gwahlur",
+        ],
+        "markers": [
+            "The cliffs rose straight out of the jungle, towering walls of stone shimmering jade-blue and dull crimson in the rising sun, curving endlessly east and west above the emerald sea of leaves below. That massive barrier looked impossible to climb, its sheer rock faces glinting with flecks of quartz that flashed in the sunlight. Yet the man climbing it was already halfway to the top.",
+            "At first, the Cimmerian didn’t fight the current that swept him through the pitch-black night. He kept afloat, his sword clenched between his teeth—he hadn’t let go even in his fall—and he didn’t try to guess what fate awaited him. Suddenly, a beam of light pierced the darkness ahead. He saw the churning black water, as if some monster of the deep were stirring it, and the sheer stone walls of the channel curving up into a vaulted roof. On each side ran a narrow ledge just below the arching ceiling, but they were far out of reach. At one point, the roof had collapsed, and light streamed through the opening. Beyond that shaft of light was total blackness, and panic gripped him as he realized he would be swept past that one bright spot and back into the unknown dark.",
+            "Conan spun around smoothly, sweeping the shadows with a fierce, searching gaze. There was no sign of the murdered man’s body—only the tall, lush grass trampled and broken, and the turf dark and wet with blood. Conan stood still, barely breathing, straining his ears into the silence. The trees and bushes, heavy with pale blossoms, loomed dark and sinister against the deepening dusk.",
+            "Conan the Cimmerian’s mind burned with frustrated fury. He had no clearer idea how to find Muriela than he’d had about finding the Teeth of Gwahlur. Only one thought came to him—to follow the priests. Maybe at the treasure’s hiding place he’d find some clue. It was a slim chance, but better than wandering aimlessly.",
+            "Muriela was on her knees, clutching Conan’s legs, her face pressed against his knee, eyes squeezed shut. She trembled with pure terror. But Conan was electrified into action. One quick glance at the opening where the stars shone, another at the chest blazing open on the blood-smeared altar, and he saw his desperate chance.",
+        ],
     }
 }
 
@@ -185,6 +207,16 @@ EXPECTED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
         "The Isle in the Moonlight",
         "The Statues That Walk",
         "The Night of the Iron Shadows",
+    ],
+    (
+        "book_014",
+        "en",
+    ): [
+        "The Shrine of Gwahlur",
+        "Muriela the Queen",
+        "The Hidden Temple",
+        "The God That Walks",
+        "The Jewels of Gwahlur",
     ],
 }
 
@@ -859,6 +891,48 @@ def _markdown_from_chunk_boundaries(txt_path: Path, cfg: PreEditionConfig) -> st
     return "\n".join(out_lines) if out_lines else None
 
 
+def _markdown_from_existing_md_headings(txt: str, cfg: PreEditionConfig) -> str | None:
+    lines = txt.split("\n")
+    chapter_starts: list[tuple[int, str]] = []
+    for idx, line in enumerate(lines):
+        heading = _md_heading_text(line)
+        if not heading:
+            continue
+        title = _resolve_contract_title_from_heading(heading, cfg)
+        if not title:
+            continue
+        chapter_starts.append((idx, title))
+
+    if not chapter_starts:
+        return None
+
+    out_lines: list[str] = []
+    prefix = "\n".join(lines[:chapter_starts[0][0]]).strip()
+    if prefix:
+        out_lines.append(prefix)
+        out_lines.append("")
+
+    for idx, (start_line, title) in enumerate(chapter_starts):
+        end_line = chapter_starts[idx + 1][0] if idx + 1 < len(chapter_starts) else len(lines)
+        chapter_lines = lines[start_line + 1 : end_line]
+        while chapter_lines and not chapter_lines[0].strip():
+            chapter_lines.pop(0)
+        chapter_text = "\n".join(chapter_lines).strip()
+        if not chapter_text:
+            continue
+        if cfg.add_pagebreak_before_chapter:
+            out_lines.append(r"\newpage")
+            out_lines.append("")
+        out_lines.append(f"# {_format_chapter_heading(title, idx + 1, cfg.language)}")
+        out_lines.append("")
+        out_lines.append(chapter_text)
+        out_lines.append("")
+
+    while out_lines and not out_lines[-1].strip():
+        out_lines.pop()
+    return "\n".join(out_lines) if out_lines else None
+
+
 def _markdown_from_known_chapter_markers(txt: str, cfg: PreEditionConfig) -> str | None:
     book_code = (cfg.book_code or "").strip()
     spec = KNOWN_CHAPTER_MARKERS.get((book_code, (cfg.language or "").lower()))
@@ -953,6 +1027,8 @@ def pre_edition_txt_to_md(
         body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
     if body_md is None:
         body_md = _markdown_from_source_md_markers(cleaned, cfg)
+    if body_md is None:
+        body_md = _markdown_from_existing_md_headings(cleaned, cfg)
     if body_md is None:
         body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
     if body_md is None:
