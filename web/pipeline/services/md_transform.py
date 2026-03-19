@@ -293,6 +293,8 @@ def _is_chapter_heading(line: str) -> bool:
         return False
     if upper.startswith("FIRST PUBLISHED"):
         return False
+    if upper.startswith("BY "):
+        return False
     if upper in {"BY ARTHUR CONAN DOYLE", "ARTHUR CONAN DOYLE"}:
         return False
     if CHAPTER_PREFIX_RE.match(stripped):
@@ -785,6 +787,36 @@ def _markdown_from_source_md_markers(txt: str, cfg: PreEditionConfig) -> str | N
     return "\n".join(out_lines)
 
 
+def _strip_leading_chapter_artifacts(chapter_text: str, title: str, cfg: PreEditionConfig) -> str:
+    lines = chapter_text.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+
+    if lines:
+        heading = _md_heading_text(lines[0])
+        resolved = _resolve_contract_title_from_heading(heading or "", cfg) if heading else None
+        if resolved and _normalize_chapter_title_for_compare(resolved) == _normalize_chapter_title_for_compare(title):
+            lines.pop(0)
+            while lines and not lines[0].strip():
+                lines.pop(0)
+
+    if lines:
+        raw_first = lines[0].strip()
+        if _normalize_chapter_title_for_compare(raw_first) == _normalize_chapter_title_for_compare(title):
+            lines.pop(0)
+            while lines and not lines[0].strip():
+                lines.pop(0)
+        else:
+            chapter_no = _extract_chapter_number(raw_first)
+            resolved = _resolve_contract_title_from_heading(raw_first, cfg)
+            if chapter_no is not None and resolved and _normalize_chapter_title_for_compare(resolved) == _normalize_chapter_title_for_compare(title):
+                lines.pop(0)
+                while lines and not lines[0].strip():
+                    lines.pop(0)
+
+    return "\n".join(lines).strip()
+
+
 def _translated_chunk_dir_for_cfg(cfg: PreEditionConfig, txt_path: Path) -> Path | None:
     book_num = _book_numeric_code(cfg.book_code)
     if book_num is None:
@@ -876,6 +908,7 @@ def _markdown_from_chunk_boundaries(txt_path: Path, cfg: PreEditionConfig) -> st
         chapter_names = ordered_names[start_index:end_index]
         chapter_parts = [available_chunks[name] for name in chapter_names if available_chunks[name]]
         chapter_text = "\n\n".join(chapter_parts).strip()
+        chapter_text = _strip_leading_chapter_artifacts(chapter_text, title, cfg)
         if not chapter_text:
             continue
         if cfg.add_pagebreak_before_chapter:

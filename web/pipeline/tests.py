@@ -1872,6 +1872,27 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertIn("{{IMAGE:CH01:01}}", updated_md)
         self.assertIn("{{IMAGE:CH02:01}}", updated_md)
 
+    def test_insert_images_does_not_treat_author_heading_as_chapter(self):
+        self.pre_edition_path.write_text(
+            (
+                "# Title\n\n"
+                "## By Robert E. Howard\n\n"
+                "# Chapter 01 - The Adventure of the Empty House\n\n"
+                "Body of chapter one.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(
+            self.steps_url,
+            data={"action": "insert_images"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        updated_md = self.pre_edition_path.read_text(encoding="utf-8")
+        self.assertNotIn("## By Robert E. Howard\n{{IMAGE:CH01:01}}", updated_md)
+        self.assertIn("# Chapter 01 - The Adventure of the Empty House\n{{IMAGE:CH01:01}}", updated_md)
+
 
 class MdTransformSourceHeadingContractTests(TestCase):
     def setUp(self):
@@ -2286,6 +2307,47 @@ class MdTransformSourceHeadingContractTests(TestCase):
         self.assertIn("# Chapter 05 - The Jewels of Gwahlur", output)
         self.assertNotIn("## 1 The Shrine of Gwahlur", output)
         self.assertNotIn("## 5 The Jewels of Gwahlur", output)
+
+    def test_chunk_boundary_contract_strips_raw_heading_artifacts_from_translated_chunks(self):
+        from pipeline.services import md_transform
+
+        split_dir = self.temp_root / "data" / "chunks" / "book_0015" / "split_01"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "0001.txt").write_text("# SHADOWS IN ZAMBOULA", encoding="utf-8")
+        (split_dir / "0002.txt").write_text("## By Robert E. Howard", encoding="utf-8")
+        (split_dir / "0003.txt").write_text("## 1 A Drum Begins", encoding="utf-8")
+        (split_dir / "0004.txt").write_text("## 2 The Night Skulkers", encoding="utf-8")
+
+        translated_dir = self.temp_root / "data" / "translated" / "book_0015" / "en_modern_2025"
+        translated_dir.mkdir(parents=True, exist_ok=True)
+        (translated_dir / "0001.txt").write_text("Front matter.", encoding="utf-8")
+        (translated_dir / "0002.txt").write_text("By Robert E. Howard", encoding="utf-8")
+        (translated_dir / "0003.txt").write_text(
+            "## 1 A Drum Begins\n\n1 A Drum Begins\n\nOpening one.",
+            encoding="utf-8",
+        )
+        (translated_dir / "0004.txt").write_text(
+            "## 2 The Night Skulkers\n\nOpening two.",
+            encoding="utf-8",
+        )
+
+        txt_path = self.temp_root / "merge_polish.txt"
+        txt_path.write_text("placeholder", encoding="utf-8")
+
+        output = md_transform._markdown_from_chunk_boundaries(
+            txt_path,
+            md_transform.PreEditionConfig(
+                title="Conan - Shadows in Zambula",
+                book_code="book_015",
+                language="en",
+            ),
+        )
+
+        self.assertIn("# Chapter 01 - A Drum Begins", output)
+        self.assertIn("# Chapter 02 - The Night Skulkers", output)
+        self.assertNotIn("## 1 A Drum Begins", output)
+        self.assertNotIn("## 2 The Night Skulkers", output)
+        self.assertNotIn("\n1 A Drum Begins\n", output)
 
     def test_heading_contract_fails_when_expected_titles_do_not_match(self):
         from pipeline.services import md_transform
