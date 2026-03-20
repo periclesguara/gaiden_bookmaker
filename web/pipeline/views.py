@@ -1468,7 +1468,12 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
     texts, _ = EditionText.objects.get_or_create(edition=core_edition)
     source_md_path = html_preprod.artifact_paths(book_code, language)["md_source"]
     if source_md_path.exists():
-        normalized_text = source_md_path.read_text(encoding="utf-8")
+        from gaiden import normalize as gaiden_normalize
+
+        source_md_text = source_md_path.read_text(encoding="utf-8")
+        normalized_text = gaiden_normalize.normalize_text_v2(source_md_text)
+        if source_md_text.endswith("\n") and normalized_text and not normalized_text.endswith("\n"):
+            normalized_text += "\n"
         current_text = out_path.read_text(encoding="utf-8") if out_path.exists() else ""
         if current_text != normalized_text:
             out_path.write_text(normalized_text, encoding="utf-8")
@@ -2018,87 +2023,138 @@ def _append_prompt_block(prompt: str, block: str) -> str:
     return f"{prompt}\n\n{block}"
 
 
+def _english_controlled_translation_defaults() -> dict:
+    return {
+        "contract_name": "stage01_modern_translation_controlled_v2",
+        "role": "translator_modernizer",
+        "purpose": (
+            "Produce a modern English version of the source text while strictly preserving meaning, "
+            "narrative continuity, and full grammatical structure."
+        ),
+        "core_objectives": [
+            "Preserve the full meaning of the source text.",
+            "Modernize archaic English into natural contemporary English.",
+            "Maintain complete grammatical structure in every sentence.",
+            "Ensure fluency without compressing or summarizing.",
+            "Deliver readable, natural, high-level English.",
+        ],
+        "modernization_rules": [
+            "Replace archaic words and constructions with modern equivalents when meaning is unchanged.",
+            "Modernize auxiliary verbs (e.g., 'shall' -> 'will', 'hath' -> 'has').",
+            "Modernize connectors and prepositions (e.g., 'upon' -> 'on', 'whilst' -> 'while').",
+            "Remove unnecessary archaic phrasing while preserving tone and intent.",
+            "Keep the atmosphere and narrative weight of the original text.",
+        ],
+        "strict_structure_rules": [
+            "Do not remove explicit subjects.",
+            "Do not remove pronouns.",
+            "Do not compress clauses.",
+            "Do not merge sentences.",
+            "Do not convert full sentences into fragments.",
+            "Do not rewrite sentences into summaries.",
+            "Preserve sentence-level meaning exactly.",
+            "Preserve paragraph order and narrative flow.",
+        ],
+        "sentence_handling": {
+            "allow_sentence_splitting": True,
+            "conditions": [
+                "Split only when the original sentence is excessively long and harms readability.",
+                "Preserve full meaning when splitting.",
+                "Ensure each resulting sentence remains complete and grammatically correct.",
+            ],
+            "forbidden": [
+                "Dropping subjects during splitting.",
+                "Creating incomplete clauses.",
+                "Flattening complex sentences unnecessarily.",
+            ],
+        },
+        "grammar_rules": [
+            "Every sentence must contain an explicit subject.",
+            "Every clause must be grammatically complete.",
+            "Maintain subject-verb agreement.",
+            "Maintain correct tense.",
+            "Use standard modern punctuation.",
+        ],
+        "style_constraints": [
+            "Use natural modern English.",
+            "Avoid pseudo-archaic language.",
+            "Avoid overly simplified or generic phrasing.",
+            "Do not inject modern slang.",
+            "Do not change narrative voice.",
+            "Do not alter tone beyond modernization.",
+            "Preserve character voice distinctions and genre-specific atmosphere.",
+        ],
+        "forbidden_behaviors": [
+            "Summarizing content.",
+            "Omitting narrative details.",
+            "Dropping grammatical subjects.",
+            "Creating sentence fragments.",
+            "Changing narrative perspective.",
+            "Rewriting openings as summaries.",
+            "Injecting explanatory commentary.",
+        ],
+        "qa_requirements": [
+            "Reject output if any sentence lacks a subject where the original sentence was grammatically complete.",
+            "Reject output if a sentence becomes a fragment.",
+            "Reject output if meaning is reduced.",
+            "Reject output if modernization alters intent.",
+            "Reject output if a paragraph reads like a summary.",
+            "Reject output if narrative continuity is broken.",
+        ],
+        "output_standard": [
+            "The result must read as natural modern English.",
+            "The text must be structurally complete.",
+            "The text must preserve full meaning and narrative flow.",
+            "The text must not feel archaic, fragmented, or compressed.",
+        ],
+    }
+
+
+def _merge_translate_contract_defaults(payload: dict) -> dict:
+    merged = dict(payload)
+    for key, value in _english_controlled_translation_defaults().items():
+        merged.setdefault(key, value)
+    return merged
+
+
 def _english_translate_contract_block(payload: dict) -> str:
-    fluency = payload.get("fluency_policy") if isinstance(payload.get("fluency_policy"), dict) else {}
-    stage_rules = payload.get("translate_stage_rules") if isinstance(payload.get("translate_stage_rules"), dict) else {}
-    if not stage_rules:
-        stage_rules = payload.get("refine_stage_rules") if isinstance(payload.get("refine_stage_rules"), dict) else {}
-    micro = payload.get("micro_polish_rules") if isinstance(payload.get("micro_polish_rules"), dict) else {}
-    validation = payload.get("validation") if isinstance(payload.get("validation"), dict) else {}
+    payload = _merge_translate_contract_defaults(payload)
+    sentence_handling = payload.get("sentence_handling") if isinstance(payload.get("sentence_handling"), dict) else {}
 
-    lines: list[str] = []
+    sections: list[str] = []
+    for title, key in [
+        ("CORE OBJECTIVES", "core_objectives"),
+        ("MODERNIZATION RULES", "modernization_rules"),
+        ("STRICT STRUCTURE RULES", "strict_structure_rules"),
+        ("GRAMMAR RULES", "grammar_rules"),
+        ("STYLE CONSTRAINTS", "style_constraints"),
+        ("FORBIDDEN BEHAVIORS", "forbidden_behaviors"),
+        ("QA REQUIREMENTS", "qa_requirements"),
+        ("OUTPUT STANDARD", "output_standard"),
+    ]:
+        items = payload.get(key)
+        if isinstance(items, list) and items:
+            sections.append(title + ":\n" + "\n".join(f"- {item}" for item in items if str(item).strip()))
 
-    if fluency:
-        lines.append("ENGLISH FLUENCY POLICY:")
-        if fluency.get("priority") == "high":
-            lines.append("- Prioritize readability and flow whenever meaning can be preserved exactly.")
-        if str(fluency.get("semantic_fidelity_priority") or "").strip().lower() == "maximum":
-            lines.append("- Preserve maximum semantic fidelity to the original text at all times.")
-        if fluency.get("preserve_meaning_over_structure"):
-            lines.append("- Preserve meaning over old sentence shape when the two conflict.")
-        if fluency.get("allow_archaic_replacement"):
-            aggressiveness = str(fluency.get("archaic_replacement_aggressiveness") or "").strip().lower()
-            if aggressiveness == "high":
-                lines.append("- Reduce archaic or overly formal wording aggressively when it slows reading.")
-            else:
-                lines.append("- Reduce archaic or overly formal wording when it slows reading.")
-        if fluency.get("allow_sentence_splitting"):
-            lines.append("- Break long sentences into shorter, clearer units whenever that improves flow.")
-        if fluency.get("allow_syntax_simplification"):
-            lines.append("- Simplify clause-heavy syntax when the simpler form keeps the same meaning.")
-        reading_level = str(fluency.get("target_reading_level") or "").strip()
-        if reading_level:
-            lines.append(f"- Target readability: {reading_level}.")
-        preferred_range = fluency.get("preferred_sentence_length_range")
-        max_sentence_length = fluency.get("max_sentence_length")
-        if isinstance(preferred_range, list) and len(preferred_range) == 2:
-            lines.append(
-                f"- Prefer roughly {preferred_range[0]}-{preferred_range[1]} words per sentence when natural."
-            )
-        if max_sentence_length:
-            lines.append(f"- Treat {max_sentence_length} words as the soft ceiling for sentence length unless meaning would suffer.")
+    if sentence_handling:
+        sentence_lines = []
+        if sentence_handling.get("allow_sentence_splitting"):
+            sentence_lines.append("- Sentence splitting is allowed only under the contract conditions below.")
+        conditions = sentence_handling.get("conditions")
+        if isinstance(conditions, list):
+            sentence_lines.extend(f"- {item}" for item in conditions if str(item).strip())
+        forbidden = sentence_handling.get("forbidden")
+        if isinstance(forbidden, list) and forbidden:
+            sentence_lines.append("FORBIDDEN DURING SPLITTING:")
+            sentence_lines.extend(f"- {item}" for item in forbidden if str(item).strip())
+        if sentence_lines:
+            sections.append("SENTENCE HANDLING:\n" + "\n".join(sentence_lines))
 
-    if stage_rules:
-        lines.append("TRANSLATE STAGE FLOW RULES:")
-        if stage_rules.get("optimize_for_readability"):
-            lines.append("- Optimize for readability.")
-        if stage_rules.get("optimize_for_flow"):
-            lines.append("- Optimize for flow and binge-reading momentum.")
-        if stage_rules.get("enforce_short_sentences"):
-            lines.append("- Prefer shorter sentences over long clause-heavy ones.")
-        if stage_rules.get("remove_complex_clauses"):
-            lines.append("- Reduce nested clauses where possible.")
-        if stage_rules.get("reduce_adjective_density"):
-            lines.append("- Reduce adjective stacking and keep description lean.")
-        if stage_rules.get("prefer_active_voice"):
-            lines.append("- Prefer active voice and direct verbs.")
+    purpose = str(payload.get("purpose") or "").strip()
+    if purpose:
+        sections.insert(0, f"PURPOSE:\n- {purpose}")
 
-    if micro:
-        lines.append("MICRO-POLISH RULES:")
-        if micro.get("allow_micro_rewrites"):
-            lines.append("- Small rewrites are allowed when they improve readability without changing meaning.")
-        if micro.get("allow_word_order_adjustment"):
-            lines.append("- Adjust word order when it produces a cleaner, more natural sentence.")
-        if micro.get("remove_filler_words"):
-            lines.append("- Cut filler words when they do not carry meaning or tone.")
-        if micro.get("improve_reading_cadence"):
-            lines.append("- Improve cadence by alternating short and medium sentences where it helps rhythm.")
-        if micro.get("enforce_sound_test"):
-            lines.append("- Make each paragraph read smoothly out loud.")
-
-    if validation:
-        lines.append("VALIDATION TARGETS:")
-        if validation.get("reject_if_too_complex"):
-            lines.append("- Do not leave the prose needlessly dense or clause-heavy.")
-        if validation.get("max_clause_depth") is not None:
-            lines.append(f"- Keep clause depth at or below {validation['max_clause_depth']} where possible.")
-        if validation.get("max_passive_voice_ratio") is not None:
-            lines.append(f"- Keep passive voice low (target <= {validation['max_passive_voice_ratio']}).")
-        readability = str(validation.get("min_readability_score") or "").strip()
-        if readability:
-            lines.append(f"- Minimum readability target: {readability}.")
-
-    return "\n".join(lines)
+    return "\n\n".join(sections)
 
 
 def _generic_translate_prompts(target_language: str, payload: dict | None = None) -> tuple[str, str, str]:
@@ -2113,29 +2169,30 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
     target_label = target_labels.get(lang, f"modern {lang}")
 
     if lang == "en":
+        payload = _merge_translate_contract_defaults(payload)
         task_line = (
-            "You are a professional literary editor producing a lightly modernized English rendering for a contemporary reader."
+            "You are a literary translator-editor producing a controlled modern English rendering."
         )
         english_contract_block = _english_translate_contract_block(payload)
         user_prompt = (
-            "Rewrite the following literary passage into lightly modernized, natural English.\n\n"
+            "Rewrite the following literary passage into controlled modern English.\n\n"
             "NON-NEGOTIABLE:\n"
             "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
             "- Preserve paragraph structure.\n"
             "- Do not summarize, compress, explain, annotate, or invent content.\n"
             "- Keep headings/chapter markers if they exist.\n\n"
-            "ENGLISH MODERNIZATION MODE:\n"
-            "- Make only the minimum changes needed for clarity and flow.\n"
-            "- If a sentence is already vivid, clear, and readable, keep it close to the source.\n"
-            "- Preserve classical, ceremonial, royal, priestly, mystical, and epic diction when it is intentional and readable.\n"
-            "- Do not flatten the prose into generic contemporary fantasy or plain commercial English.\n"
-            "- Prefer stronger edits in stiff exposition and lighter edits in dialogue.\n"
-            "- Keep Conan blunt, physical, and direct.\n"
-            "- Keep ritual or high-drama speech elevated.\n"
-            "- Split long sentences only when they slow action or obscure meaning.\n"
-            "- Reduce over-formal or bureaucratic phrasing only when it creates friction.\n"
-            "- Replace heavy diction only when a simpler choice preserves tone, force, and atmosphere.\n"
-            f"{english_contract_block}\n\n"
+            "CONTROLLED ENGLISH MODERNIZATION MODE:\n"
+            "- Modernize only where real friction exists.\n"
+            "- Preserve complete grammatical structure and full sentence-level meaning.\n"
+            "- Do not delete explicit subjects, pronouns, or narrative detail.\n"
+            "- Do not compress clauses or turn full sentences into fragments.\n"
+            "- Do not merge sentences.\n"
+            "- Keep elevated, ceremonial, mystical, or author-specific diction when it is intentional and readable.\n"
+            "- Prefer conservative edits over aggressive rewriting.\n"
+            "- Split sentences only when the original is excessively long and readability clearly improves.\n"
+            "- When splitting, keep every resulting sentence complete and grammatically correct.\n"
+            "- Preserve character voice distinctions and genre-specific atmosphere.\n"
+            f"\n\n{english_contract_block}\n\n"
             "Return only the final rewritten passage.\n\n"
             "{text}"
         )
@@ -2156,7 +2213,12 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
 
     system_prompt = (
         f"{task_line}\n\n"
-        "CRITICAL OUTPUT RULES:\n"
+        + (
+            f"Contract: {payload.get('contract_name')} ({payload.get('role')}).\n\n"
+            if lang == "en" and payload.get("contract_name") and payload.get("role")
+            else ""
+        )
+        + "CRITICAL OUTPUT RULES:\n"
         "- Output only the literary passage.\n"
         "- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n"
         "- Do not mention the prompt, the source text, copyright, safety policies, or your own editorial choices.\n"
@@ -2168,6 +2230,8 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
 
 
 def _harden_translate_contract(payload: dict, target_language: str) -> dict:
+    if utils.normalize_lang(target_language) == "en":
+        payload = _merge_translate_contract_defaults(payload)
     system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language, payload)
     payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
     if str(payload.get("model") or "").strip() in {"", "gpt-5.1"}:
@@ -2212,12 +2276,12 @@ def _english_refine_micro_polish_block(refine_profile_cfg: dict[str, str]) -> st
         "ENGLISH REFINE MODE: SURGICAL MICRO-POLISH ONLY.\n"
         "- Make only surgical edits where real reading friction exists.\n"
         "- If a sentence is already clear, atmospheric, and readable, leave it unchanged.\n"
-        "- Preserve Robert E. Howard-style pulp force, physicality, and mythic atmosphere when present.\n"
+        "- Preserve the source author's voice, cadence, and genre-specific atmosphere.\n"
         f"- Preserve the active profile target: {refine_profile_cfg['label']} via {refine_profile_cfg['agent_name']}.\n"
-        "- Do not flatten elevated narration into generic modern fantasy prose.\n"
+        "- Do not flatten elevated narration into generic modern prose.\n"
         "- Preserve ceremonial, royal, priestly, mystical, and epic diction when it sounds intentional and strong.\n"
         "- Prefer lighter edits in dialogue and stronger edits in stiff exposition.\n"
-        "- Keep Conan blunt, direct, physical, and dangerous; do not make him contemporary, casual, or sarcastic.\n"
+        "- Preserve character voice distinctions; keep forceful characters forceful and restrained characters restrained.\n"
         "- Reduce over-formal or bureaucratic phrasing only when it feels heavier than the surrounding prose.\n"
         "- Replace heavy diction only when a simpler alternative preserves tone and force.\n"
         "- Split long sentences only when the split improves momentum or clarity without killing rhythm.\n"

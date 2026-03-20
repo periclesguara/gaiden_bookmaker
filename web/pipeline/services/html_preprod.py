@@ -26,7 +26,7 @@ CHAPTER_RE = re.compile(
     r"^\s*(chapter|part|cap[ií]tulo|teil)\b[\s\.:_-]*([ivxlcdm]+|\d+)?",
     re.IGNORECASE,
 )
-PURE_CHAPTER_NUMBER_RE = re.compile(r"^\s*([ivxlcdm]+|\d+)\s*$", re.IGNORECASE)
+PURE_CHAPTER_NUMBER_RE = re.compile(r"^\s*([ivxlcdm]+|\d+)\.?\s*$", re.IGNORECASE)
 TOC_TITLE_RE = re.compile(r"^(contents|table of contents)\s*$", re.IGNORECASE)
 
 
@@ -162,11 +162,9 @@ def _sanitize_and_structure(html: str, warnings: list[str]) -> tuple[str, dict[s
     _normalize_whitespace_nodes(soup)
 
     headings_before = soup.find_all(["h1", "h2", "h3", "h4"])
-    headings_promoted = 0
-    if not headings_before:
-        headings_promoted = _promote_chapter_paragraphs(soup)
-        if headings_promoted == 0:
-            warnings.append("Nenhum heading encontrado ou promovido no HTML.")
+    headings_promoted = _promote_chapter_paragraphs(soup)
+    if not headings_before and headings_promoted == 0:
+        warnings.append("Nenhum heading encontrado ou promovido no HTML.")
 
     toc_removed = _remove_toc_block(soup)
     _normalize_heading_nodes(soup)
@@ -193,21 +191,30 @@ def _sanitize_with_regex_fallback(html: str, warnings: list[str]) -> tuple[str, 
     headings_promoted = 0
     toc_removed = False
 
-    headings_before = len(re.findall(r"(?is)<h[1-4]\b", cleaned))
-    if headings_before == 0:
-        def _promote(match):
-            nonlocal headings_promoted
-            text = _normalize_heading_text(_strip_tags(match.group(1)))
-            if _looks_like_chapter_heading(text):
-                headings_promoted += 1
-                return f"<h2>{text}</h2>"
+    def _promote_paragraph(match):
+        nonlocal headings_promoted
+        attrs = match.group(1) or ""
+        inner = match.group(2) or ""
+        if re.search(r"(?is)<(?:a|img|table)\b", inner):
             return match.group(0)
 
-        cleaned = re.sub(
-            r"(?is)<p>\s*<(?:b|strong)>(.*?)</(?:b|strong)>\s*</p>",
-            _promote,
-            cleaned,
-        )
+        full_text = _collapse_spaces(_strip_tags(inner))
+        if not _looks_like_chapter_heading(full_text):
+            return match.group(0)
+
+        only_bold = bool(re.fullmatch(r"(?is)\s*<(?:b|strong)[^>]*>.*?</(?:b|strong)>\s*", inner))
+        has_ph_class = bool(re.search(r'(?i)\bclass\s*=\s*["\'][^"\']*\bph[12]\b', attrs))
+        if not (only_bold or has_ph_class or PURE_CHAPTER_NUMBER_RE.match(full_text)):
+            return match.group(0)
+
+        headings_promoted += 1
+        return f"<h2>{_normalize_heading_text(full_text)}</h2>"
+
+    cleaned = re.sub(
+        r"(?is)<p([^>]*)>(.*?)</p>",
+        _promote_paragraph,
+        cleaned,
+    )
 
     def _normalize_heading_match(match):
         tag = match.group(1)
@@ -254,15 +261,26 @@ def _promote_chapter_paragraphs(soup: BeautifulSoup) -> int:
     for p in list(soup.find_all("p")):
         if not p:
             continue
-        bold = p.find(["b", "strong"])
-        if not bold:
-            continue
-        bold_text = _collapse_spaces(bold.get_text(" ", strip=True))
         full_text = _collapse_spaces(p.get_text(" ", strip=True))
-        if full_text != bold_text:
+        if not full_text or not _looks_like_chapter_heading(full_text):
             continue
-        if not _looks_like_chapter_heading(full_text):
+        if p.find(["a", "img", "table"]):
             continue
+
+        bold = p.find(["b", "strong"])
+        should_promote = False
+        if bold:
+            bold_text = _collapse_spaces(bold.get_text(" ", strip=True))
+            should_promote = full_text == bold_text
+        if not should_promote:
+            classes = {str(value).lower() for value in (p.get("class") or [])}
+            if classes.intersection({"ph1", "ph2", "chapter", "chap", "center"}):
+                should_promote = True
+        if not should_promote and PURE_CHAPTER_NUMBER_RE.match(full_text):
+            should_promote = True
+        if not should_promote:
+            continue
+
         h2 = soup.new_tag("h2")
         h2.string = _normalize_heading_text(full_text)
         p.replace_with(h2)

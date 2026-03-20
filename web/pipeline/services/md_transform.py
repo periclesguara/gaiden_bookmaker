@@ -218,6 +218,23 @@ EXPECTED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
         "The God That Walks",
         "The Jewels of Gwahlur",
     ],
+    (
+        "book_016",
+        "en",
+    ): [
+        "The Warning from Miskatonic",
+        "Lake's Astonishing Find",
+        "The Wind and the Silence",
+        "The Horror at the Camp",
+        "The City Beyond the Pass",
+        "The Chronicle in Stone",
+        "The Coming of the Old Ones",
+        "The Doom of the Elder City",
+        "Toward the Black Abyss",
+        "The Tracks on the Polished Floor",
+        "The Shoggoth",
+        "The Last Glimpse",
+    ],
 }
 
 

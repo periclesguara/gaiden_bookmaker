@@ -8,6 +8,15 @@ from typing import Tuple
 NORMALIZED_DIR = Path("data/normalized")
 
 ROMAN_MAP = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+STANDALONE_CHAPTER_MARKER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\.?\s*$", re.IGNORECASE)
+EXPLICIT_CHAPTER_RE = re.compile(
+    r"^\s*(?:#{1,6}\s+)?(?:chapter|part|section|adventure)\s+([IVXLCDM]+|\d+)\b",
+    re.IGNORECASE,
+)
+RULE_LINE_RE = re.compile(r"^\s*[-=]{5,}\s*$")
+DIV_MARKER_RE = re.compile(r"^\s*:::(?:\s+.*)?\s*$")
+IMAGE_LINE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]+\)")
+MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
 
 def roman_to_int(s: str) -> int | None:
     s = s.upper().strip()
@@ -92,6 +101,104 @@ def _collapse_blank(lines: list[str]) -> list[str]:
         out.append(line)
     return out
 
+
+def _standalone_chapter_token(line: str) -> str | None:
+    match = STANDALONE_CHAPTER_MARKER_RE.match((line or "").strip())
+    if not match:
+        return None
+    return match.group(1)
+
+
+def _chapter_number(token: str) -> int | None:
+    token = (token or "").strip()
+    if not token:
+        return None
+    if token.isdigit():
+        return int(token)
+    return roman_to_int(token)
+
+
+def _looks_like_body_line(line: str) -> bool:
+    stripped = (line or "").strip()
+    if not stripped:
+        return False
+    if RULE_LINE_RE.match(stripped) or DIV_MARKER_RE.match(stripped):
+        return False
+    if IMAGE_LINE_RE.match(stripped) or MD_HEADING_RE.match(stripped):
+        return False
+    if stripped.startswith("[") and stripped.endswith("]"):
+        return False
+    if stripped.startswith("\\[") and stripped.endswith("\\]"):
+        return False
+    words = re.findall(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]*", stripped)
+    if len(words) < 4:
+        return False
+    return any(word[:1].islower() for word in words[1:])
+
+
+def _should_promote_standalone_marker(lines: list[str], idx: int) -> bool:
+    token = _standalone_chapter_token(lines[idx])
+    if token is None or _chapter_number(token) is None:
+        return False
+
+    next_nonblank = ""
+    for probe in lines[idx + 1 :]:
+        stripped = probe.strip()
+        if stripped:
+            next_nonblank = stripped
+            break
+    if not next_nonblank:
+        return False
+    if _standalone_chapter_token(next_nonblank) is not None:
+        return False
+    if EXPLICIT_CHAPTER_RE.match(next_nonblank):
+        return False
+    return _looks_like_body_line(next_nonblank)
+
+
+def _find_first_body_index(lines: list[str], before_index: int) -> int | None:
+    for idx, line in enumerate(lines[:before_index]):
+        if _looks_like_body_line(line):
+            return idx
+    return None
+
+
+def _promote_standalone_chapter_markers(lines: list[str]) -> list[str]:
+    out: list[str] = []
+    promoted: list[tuple[int, int]] = []
+    in_contents = False
+
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+
+        if stripped.lower() in {"contents", "table of contents"}:
+            in_contents = True
+        elif in_contents and _looks_like_body_line(stripped):
+            in_contents = False
+
+        if not in_contents and _should_promote_standalone_marker(lines, idx):
+            token = _standalone_chapter_token(line)
+            if token is not None:
+                out.append(f"CHAPTER {token.upper() if not token.isdigit() else int(token)}")
+                chapter_no = _chapter_number(token)
+                if chapter_no is not None:
+                    promoted.append((len(out) - 1, chapter_no))
+                continue
+
+        out.append(line)
+
+    if promoted and promoted[0][1] == 2 and all(number != 1 for _idx, number in promoted):
+        first_body_idx = _find_first_body_index(out, promoted[0][0])
+        if first_body_idx is not None:
+            prefix: list[str] = []
+            if first_body_idx > 0 and out[first_body_idx - 1].strip():
+                prefix.append("")
+            prefix.append("CHAPTER I")
+            prefix.append("")
+            out[first_body_idx:first_body_idx] = prefix
+
+    return out
+
 def normalize_text_v1(raw: str) -> str:
     lines = raw.splitlines()
     lines = _slice_gutenberg_main(lines)
@@ -104,10 +211,11 @@ def normalize_text_v2(raw: str) -> str:
     v2 editorial:
     - v1
     - convert roman numerals in STORY headers like 'I. A SCANDAL...' → '1. ...'
+    - promote standalone chapter markers like 'II.' / 'V' → 'CHAPTER II' / 'CHAPTER V'
     - avoid converting roman numerals in Contents list
     """
     text = normalize_text_v1(raw)
-    lines = text.splitlines()
+    lines = _promote_standalone_chapter_markers(text.splitlines())
 
     out = []
     in_contents = False

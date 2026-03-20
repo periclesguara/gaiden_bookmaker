@@ -952,6 +952,32 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertIn("<h2>CHAPTER 2</h2>", clean_html)
         self.assertEqual(report["chapters_detected"], 2)
 
+    def test_preprod_promotes_roman_paragraph_chapters_even_with_title_headings(self):
+        self.raw_dir.mkdir(parents=True, exist_ok=True)
+        self.raw_path.write_text(
+            (
+                "<html><body>"
+                "<p>*** START OF THIS PROJECT GUTENBERG EBOOK ***</p>"
+                "<h1>AT THE MOUNTAINS OF MADNESS</h1>"
+                "<h2>By H. P. Lovecraft</h2>"
+                "<p>Opening section.</p>"
+                "<p class=\"ph1\">II.</p><p>Second section.</p>"
+                "<p class=\"ph1\">III.</p><p>Third section.</p>"
+                "<p>*** END OF THIS PROJECT GUTENBERG EBOOK ***</p>"
+                "</body></html>"
+            ),
+            encoding="utf-8",
+        )
+        self.edition.raw_source_path = str(self.raw_path)
+        self.edition.save(update_fields=["raw_source_path"])
+
+        response = self.client.post(self.preprod_url)
+
+        self.assertEqual(response.status_code, 302)
+        clean_html = self.clean_path.read_text(encoding="utf-8")
+        self.assertIn("<h2>CHAPTER 2</h2>", clean_html)
+        self.assertIn("<h2>CHAPTER 3</h2>", clean_html)
+
     def test_normalize_accepts_raw_html_before_preprod(self):
         self._write_raw_html()
 
@@ -996,6 +1022,34 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertIn("## CHAPTER 1", refreshed_text)
         texts = EditionText.objects.get(edition=self.edition)
         self.assertEqual(texts.normalized_text, refreshed_text)
+
+    def test_normalize_promotes_standalone_roman_chapters_from_source_md(self):
+        self.md_dir.mkdir(parents=True, exist_ok=True)
+        self.source_md_path.write_text(
+            (
+                "# At the MOUNTAINS of MADNESS\n\n"
+                "## By H. P. LOVECRAFT\n\n"
+                "I am forced into speech because men of science have refused to follow my advice.\n\n"
+                "------------------------------------------------------------------------\n\n"
+                "II.\n\n"
+                "The public knows of the Miskatonic Expedition through our frequent reports.\n\n"
+                "III.\n\n"
+                "It was natural that we should make our camp near the edge of the barrier.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(self.normalize_url)
+
+        self.assertEqual(response.status_code, 302)
+        normalized_text = self.normalized_v2_path.read_text(encoding="utf-8")
+        self.assertIn("CHAPTER I", normalized_text)
+        self.assertIn("CHAPTER II", normalized_text)
+        self.assertIn("CHAPTER III", normalized_text)
+        self.assertNotIn("\nII.\n", normalized_text)
+        self.assertNotIn("\nIII.\n", normalized_text)
+        texts = EditionText.objects.get(edition=self.edition)
+        self.assertEqual(texts.normalized_text, normalized_text)
 
     def test_convert_blocks_when_report_not_ok(self):
         self.preprod_dir.mkdir(parents=True, exist_ok=True)
@@ -1388,16 +1442,22 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(payload["chunk_dir"], str(self.split_dir))
         self.assertEqual(payload["out_dir"], str(self.translated_dir))
         self.assertEqual(payload["model"], "gpt-5-chat-latest")
+        self.assertEqual(payload["contract_name"], "stage01_modern_translation_controlled_v2")
+        self.assertEqual(payload["role"], "translator_modernizer")
+        self.assertIn("strictly preserving meaning, narrative continuity, and full grammatical structure", payload["purpose"])
         self.assertNotIn("Sherlock Holmes", payload["system_prompt"])
         self.assertNotIn("Sherlock Holmes", payload["user_prompt"])
-        self.assertIn("professional literary editor", payload["system_prompt"])
-        self.assertIn("lightly modernized, natural English", payload["user_prompt"])
-        self.assertIn("Make only the minimum changes needed for clarity and flow.", payload["user_prompt"])
-        self.assertIn("Do not flatten the prose into generic contemporary fantasy", payload["user_prompt"])
-        self.assertIn("Preserve maximum semantic fidelity to the original text at all times.", payload["user_prompt"])
-        self.assertIn("Reduce archaic or overly formal wording aggressively when it slows reading.", payload["user_prompt"])
-        self.assertIn("Break long sentences into shorter, clearer units whenever that improves flow.", payload["user_prompt"])
-        self.assertIn("Prefer active voice and direct verbs.", payload["user_prompt"])
+        self.assertNotIn("Conan", payload["system_prompt"])
+        self.assertNotIn("Conan", payload["user_prompt"])
+        self.assertIn("controlled modern English rendering", payload["system_prompt"])
+        self.assertIn("Contract: stage01_modern_translation_controlled_v2 (translator_modernizer).", payload["system_prompt"])
+        self.assertIn("Rewrite the following literary passage into controlled modern English.", payload["user_prompt"])
+        self.assertIn("Preserve complete grammatical structure and full sentence-level meaning.", payload["user_prompt"])
+        self.assertIn("Do not delete explicit subjects, pronouns, or narrative detail.", payload["user_prompt"])
+        self.assertIn("Do not compress clauses or turn full sentences into fragments.", payload["user_prompt"])
+        self.assertIn("Do not merge sentences.", payload["user_prompt"])
+        self.assertIn("Split sentences only when the original is excessively long and readability clearly improves.", payload["user_prompt"])
+        self.assertIn("Every sentence must contain an explicit subject.", payload["user_prompt"])
         self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
@@ -2381,6 +2441,28 @@ class MdTransformSourceHeadingContractTests(TestCase):
         self.assertIn("Chapter title contract failed", str(exc.exception))
         self.assertIn("expected='The Adventure of the First Case'", str(exc.exception))
         self.assertIn("actual='The Adventure of the Wrong Case'", str(exc.exception))
+
+    def test_book_016_expected_titles_resolve_from_numeric_chapters(self):
+        from pipeline.services import md_transform
+
+        cfg = md_transform.PreEditionConfig(
+            title="At the Mountains of Madness",
+            book_code="book_016",
+            language="en",
+        )
+
+        self.assertEqual(
+            md_transform._resolve_contract_title_from_heading("CHAPTER 1", cfg),
+            "The Warning from Miskatonic",
+        )
+        self.assertEqual(
+            md_transform._resolve_contract_title_from_heading("CHAPTER 8", cfg),
+            "The Doom of the Elder City",
+        )
+        self.assertEqual(
+            md_transform._resolve_contract_title_from_heading("CHAPTER XII", cfg),
+            "The Last Glimpse",
+        )
 
 
 class KdpMarkerCleanupContractTests(TestCase):
