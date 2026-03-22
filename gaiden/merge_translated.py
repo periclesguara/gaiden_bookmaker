@@ -18,7 +18,7 @@ def _book_dir(book_id: int) -> Path:
 def list_languages_for_book(book_id: int) -> List[str]:
     """
     Lista os diretórios de idiomas existentes para um book_id.
-    Ex.: ["en_modern_2025", "ptbr_2025", "es_2025", "de_krimi_2025"]
+    Ex.: ["en_modern_2026", "ptbr_2025", "es_2025", "de_krimi_2025"]
     """
     book_dir = _book_dir(book_id)
     if not book_dir.is_dir():
@@ -36,7 +36,7 @@ def merge_language(book_id: int, lang_key: str, *, suffix: str | None = None) ->
 
     Entrada:
       - book_id: ex. 1 -> book_0001
-      - lang_key: ex. "en_modern_2025", "ptbr_2025", "es_2025"
+      - lang_key: ex. "en_modern_2026", "ptbr_2025", "es_2025"
       - suffix (opcional): sufixo do arquivo de saída; se None, usa f"merged_{lang_key}.txt"
 
     Saída:
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         print("")
         print("Exemplos:")
         print("  python -m gaiden.merge_translated 1")
-        print("  python -m gaiden.merge_translated 1 en_modern_2025")
+        print("  python -m gaiden.merge_translated 1 en_modern_2026")
         raise SystemExit(1)
 
     book_id = int(sys.argv[1])

@@ -122,7 +122,7 @@ def _assert_translate_contract(contract: Dict) -> str:
     stage = str(contract.get("stage", "")).strip()
     model = str(contract.get("model", "")).strip()
     model_lock = contract.get("model_lock", None)
-    allowed_models = {"gpt-5.2", "gpt-5-chat-latest"}
+    allowed_models = {"gpt-5.4"}
     if stage != "translate":
         raise RuntimeError(
             f"TRANSLATE MODEL VIOLATION: stage=translate requires model in {sorted(allowed_models)} (contract says stage={stage})"
@@ -134,6 +134,11 @@ def _assert_translate_contract(contract: Dict) -> str:
     if model not in allowed_models:
         raise RuntimeError(
             f"TRANSLATE MODEL VIOLATION: stage=translate requires model in {sorted(allowed_models)} (contract says {model})"
+        )
+    fallback_model = str(contract.get("fallback_model", "")).strip()
+    if fallback_model and fallback_model != "gpt-5.2":
+        raise RuntimeError(
+            "TRANSLATE MODEL VIOLATION: stage=translate fallback_model must be gpt-5.2 when configured"
         )
     return model
 
@@ -182,6 +187,53 @@ def call_openai_gpt52_translate(
 
     return response.choices[0].message.content, usage, finish_reason
 
+
+def _call_translate_with_fallback(
+    text: str,
+    system_prompt: str,
+    *,
+    primary_model: str,
+    fallback_model: str | None,
+    temperature: float,
+    max_output_tokens: int,
+    chunk_name: str,
+) -> tuple[str, Dict | None, str | None, str]:
+    models_to_try = [primary_model]
+    fallback_model = (fallback_model or "").strip()
+    if fallback_model and fallback_model != primary_model:
+        models_to_try.append(fallback_model)
+
+    last_error: Exception | None = None
+    for idx, model_name in enumerate(models_to_try):
+        is_fallback = idx > 0
+        try:
+            out, usage, finish_reason = call_openai_gpt52_translate(
+                text,
+                system_prompt=system_prompt,
+                model=model_name,
+                temperature=temperature,
+                max_output_tokens=max_output_tokens,
+            )
+        except Exception as exc:
+            last_error = RuntimeError(
+                f"{chunk_name}: model {model_name} failed to respond: {exc}"
+            )
+            if is_fallback:
+                raise last_error from exc
+            continue
+
+        if str(out or "").strip():
+            return out, usage, finish_reason, model_name
+
+        last_error = RuntimeError(
+            f"{chunk_name}: model {model_name} returned no response text"
+        )
+        if is_fallback:
+            raise last_error
+
+    assert last_error is not None
+    raise last_error
+
 def translate_book_chunks(
     book: str,
     source_lang: str,
@@ -210,6 +262,10 @@ def translate_book_chunks(
 
     resolved_model = _assert_translate_contract(contract)
     model_effective = choose_model(stage="translate", contract_model=resolved_model, env_default=None)
+    fallback_model_raw = contract.get("fallback_model")
+    fallback_model = str(fallback_model_raw).strip() if fallback_model_raw is not None else ""
+    if not fallback_model and model_effective == "gpt-5.4":
+        fallback_model = "gpt-5.2"
     system_prompt = str(contract.get("system_prompt", "")).strip()
     user_template = str(contract.get("user_prompt", "")).strip()
     temperature = float(contract.get("temperature", 0.3))
@@ -287,13 +343,16 @@ def translate_book_chunks(
                 truncated = False
                 ok_ratio = True
                 ratio = None
+                model_used = model_effective
             else:
-                out, usage, finish_reason = call_openai_gpt52_translate(
+                out, usage, finish_reason, model_used = _call_translate_with_fallback(
                     user_text,
                     system_prompt=system_prompt,
-                    model=model_effective,
+                    primary_model=model_effective,
+                    fallback_model=fallback_model,
                     temperature=temperature,
                     max_output_tokens=max_output_tokens,
+                    chunk_name=fp.name,
                 )
                 status = "translated"
                 len_out = len(out)
@@ -334,6 +393,7 @@ def translate_book_chunks(
             "user_prompt_sha256": _sha256_text(user_template),
             "rendered_prompt_sha256": _sha256_text(user_text),
             "model": model_effective,
+            "model_used": model_used,
             "temperature": temperature,
             "max_output_tokens": max_output_tokens,
             "len_in_chars": len_in,
@@ -368,6 +428,7 @@ def translate_book_chunks(
                 "finish_reason": finish_reason,
                 "truncated": bool(truncated),
                 "attempts": attempt,
+                "model_used": model_used,
             }
         )
 

@@ -118,6 +118,26 @@ def _chapter_number(token: str) -> int | None:
     return roman_to_int(token)
 
 
+def _normalize_explicit_chapter_heading(line: str) -> str:
+    match = re.match(
+        r"^(?P<prefix>\s*(?:#{1,6}\s+)?)"
+        r"(?P<label>chapter|part|section|adventure)\s+"
+        r"(?P<number>[IVXLCDM]+|\d+)"
+        r"(?P<suffix>\b.*)$",
+        line,
+        re.IGNORECASE,
+    )
+    if not match:
+        return line
+    chapter_no = _chapter_number(match.group("number"))
+    if chapter_no is None:
+        return line
+    prefix = match.group("prefix") or ""
+    label = match.group("label").upper()
+    suffix = match.group("suffix") or ""
+    return f"{prefix}{label} {chapter_no}{suffix}"
+
+
 def _looks_like_body_line(line: str) -> bool:
     stripped = (line or "").strip()
     if not stripped:
@@ -179,7 +199,11 @@ def _promote_standalone_chapter_markers(lines: list[str]) -> list[str]:
         if not in_contents and _should_promote_standalone_marker(lines, idx):
             token = _standalone_chapter_token(line)
             if token is not None:
-                out.append(f"CHAPTER {token.upper() if not token.isdigit() else int(token)}")
+                chapter_no = _chapter_number(token)
+                if chapter_no is not None:
+                    out.append(f"CHAPTER {chapter_no}")
+                else:
+                    out.append(f"CHAPTER {token}")
                 chapter_no = _chapter_number(token)
                 if chapter_no is not None:
                     promoted.append((len(out) - 1, chapter_no))
@@ -193,7 +217,7 @@ def _promote_standalone_chapter_markers(lines: list[str]) -> list[str]:
             prefix: list[str] = []
             if first_body_idx > 0 and out[first_body_idx - 1].strip():
                 prefix.append("")
-            prefix.append("CHAPTER I")
+            prefix.append("CHAPTER 1")
             prefix.append("")
             out[first_body_idx:first_body_idx] = prefix
 
@@ -211,7 +235,8 @@ def normalize_text_v2(raw: str) -> str:
     v2 editorial:
     - v1
     - convert roman numerals in STORY headers like 'I. A SCANDAL...' → '1. ...'
-    - promote standalone chapter markers like 'II.' / 'V' → 'CHAPTER II' / 'CHAPTER V'
+    - promote standalone chapter markers like 'II.' / 'V' → 'CHAPTER 2' / 'CHAPTER 5'
+    - normalize explicit chapter headings from roman to arabic
     - avoid converting roman numerals in Contents list
     """
     text = normalize_text_v1(raw)
@@ -236,6 +261,8 @@ def normalize_text_v2(raw: str) -> str:
                 n = roman_to_int(m.group(1))
                 if n:
                     line = f"{n}. {m.group(2)}"
+            else:
+                line = _normalize_explicit_chapter_heading(line)
 
         out.append(line)
 

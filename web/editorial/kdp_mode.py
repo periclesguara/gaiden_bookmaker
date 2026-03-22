@@ -68,6 +68,9 @@ _TECH_IMAGE_ALT_RE = re.compile(
 )
 _PLAIN_TOC_LINE_RE = re.compile(r"^\s*(?:[IVXLCDM]+|\d+)\s+[A-Z].+$", re.IGNORECASE)
 _VISUAL_CHAPTER_TITLE_RE = re.compile(r"^\s*\*\*.+\*\*\s*$", re.IGNORECASE)
+_EXPLICIT_PRELUDE_HEADINGS = {
+    "preface": "Preface",
+}
 
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
@@ -269,6 +272,55 @@ def _looks_like_paragraph(line: str) -> bool:
     return any(ch in stripped for ch in {".", ",", ";", ":", "?", "!"})
 
 
+def _match_plain_numeric_heading(line: str) -> re.Match[str] | None:
+    stripped = line.strip()
+    match = _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(stripped)
+    if not match:
+        return None
+
+    title = (match.group(2) or "").strip()
+    if not title:
+        return None
+    if _looks_like_paragraph(title):
+        return None
+    if len(title) > 120 or len(title.split()) > 16:
+        return None
+    if any(ch in title for ch in ".?!"):
+        return None
+
+    first_alpha = next((ch for ch in title if ch.isalpha()), "")
+    if first_alpha and not first_alpha.isupper():
+        return None
+    return match
+
+
+def _prune_prelude_boilerplate(lines: list[str], edition: Edition) -> list[str]:
+    pruned: list[str] = []
+    for raw in lines:
+        stripped = raw.strip()
+        if stripped == r"\newpage":
+            continue
+        if stripped and not _looks_like_paragraph(raw) and _looks_like_legacy_boilerplate(raw, edition):
+            continue
+        pruned.append(raw)
+    return pruned
+
+
+def _extract_explicit_prelude_heading(lines: list[str]) -> tuple[str | None, list[str]]:
+    if not lines:
+        return None, lines
+
+    first = re.sub(r"^\s*#{1,6}\s*", "", lines[0].strip()).rstrip(":").strip()
+    heading = _EXPLICIT_PRELUDE_HEADINGS.get(first.casefold())
+    if not heading:
+        return None, lines
+
+    remainder = lines[1:]
+    while remainder and not remainder[0].strip():
+        remainder.pop(0)
+    return heading, remainder
+
+
 def _normalize_pre_chapter_prelude(md_text: str, edition: Edition) -> str:
     lines = md_text.splitlines()
     first_chapter = None
@@ -299,17 +351,20 @@ def _normalize_pre_chapter_prelude(md_text: str, edition: Edition) -> str:
         break
     prelude = prelude[cutoff:]
     prelude = _strip_legacy_contents_block(prelude)
+    prelude = _prune_prelude_boilerplate(prelude, edition)
 
     while prelude and not prelude[0].strip():
         prelude.pop(0)
     while prelude and not prelude[-1].strip():
         prelude.pop()
 
+    explicit_heading, prelude = _extract_explicit_prelude_heading(prelude)
+
     if not prelude:
         return "\n".join(chapters).strip() + "\n"
 
     if prelude and any(_looks_like_paragraph(line) for line in prelude) and not any(line.strip().startswith("#") for line in prelude):
-        prelude = ["# Adapted Preface", ""] + prelude
+        prelude = [f"# {explicit_heading or 'Adapted Preface'}", ""] + prelude
 
     merged = prelude + [""] + chapters
     return "\n".join(merged).strip() + "\n"
@@ -420,7 +475,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
             prefix = m.group(1).strip().lower()
             num = m.group(2).strip()
         else:
-            n = _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(text.strip())
+            n = _match_plain_numeric_heading(text)
             if not n:
                 return None
             prefix = "chapter"
@@ -439,7 +494,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
             num = m.group(2).strip()
             tail = (m.group(3) or "").strip().lstrip(" .:-–—")
         else:
-            n = _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(chapter_text.strip())
+            n = _match_plain_numeric_heading(chapter_text)
             if not n:
                 return chapter_text.strip(), set()
             prefix = "Chapter"
@@ -507,10 +562,10 @@ def _normalize_chapter_headings(md_text: str) -> str:
             m_bold = _BOLD_LINE_RE.match(stripped)
             if m_bold and (
                 _PLAIN_CHAPTER_LINE_RE.match(m_bold.group(1).strip())
-                or _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(m_bold.group(1).strip())
+                or _match_plain_numeric_heading(m_bold.group(1).strip())
             ):
                 chapter_text = m_bold.group(1).strip()
-            elif _PLAIN_CHAPTER_LINE_RE.match(stripped) or _PLAIN_NUMERIC_CHAPTER_LINE_RE.match(stripped):
+            elif _PLAIN_CHAPTER_LINE_RE.match(stripped) or _match_plain_numeric_heading(stripped):
                 chapter_text = stripped
 
         if chapter_text is not None:
@@ -554,38 +609,40 @@ def _normalize_chapter_headings(md_text: str) -> str:
 
 
 def _insert_visual_chapter_titles(md_text: str) -> str:
-    lines = [
-        line
-        for line in md_text.splitlines()
-        if not _VISUAL_CHAPTER_TITLE_RE.match(line.strip())
-    ]
-
+    # Keep chapter headings authoritative and strip immediate duplicate
+    # visual-title lines that may appear below a heading or chapter image.
+    lines = md_text.splitlines()
     out: list[str] = []
     i = 0
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
         out.append(line)
+        i += 1
         if not _CHAPTER_MD_LINE_RE.match(stripped):
-            i += 1
             continue
 
         chapter_title = stripped.lstrip("#").strip()
-        i += 1
-        while i < len(lines) and not lines[i].strip():
-            out.append(lines[i])
-            i += 1
+        chapter_token = _normalize_title_token(chapter_title)
 
-        if i < len(lines) and _IMAGE_LINE_RE.match(lines[i].strip()):
-            out.append(lines[i])
-            i += 1
-            while i < len(lines) and not lines[i].strip():
+        while i < len(lines):
+            probe = lines[i]
+            probe_stripped = probe.strip()
+            if not probe_stripped:
+                out.append(probe)
                 i += 1
+                continue
+            if _IMAGE_LINE_RE.match(probe_stripped):
+                out.append(probe)
+                i += 1
+                continue
 
-        if out and out[-1].strip():
-            out.append("")
-        out.append(f"**{chapter_title}**")
-        out.append("")
+            bold = _BOLD_LINE_RE.match(probe_stripped)
+            if bold and _normalize_title_token(bold.group(1).strip()) == chapter_token:
+                i += 1
+                if i < len(lines) and not lines[i].strip():
+                    i += 1
+            break
 
     return "\n".join(out).strip() + "\n"
 

@@ -83,10 +83,12 @@ class Edition(models.Model):
 
     IMPRINT_CHOICES = [
         ("RinoBooks", "RinoBooks"),
+        ("Wrecked Alien Machine", "Wrecked Alien Machine"),
     ]
 
     SEAL_CHOICES = [
         ("MantaQuest", "MantaQuest"),
+        ("Wrecked Alien Machine", "Wrecked Alien Machine"),
     ]
 
     COUNTRY_CHOICES = [

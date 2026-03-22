@@ -85,6 +85,10 @@ def merge_translate_path(edition) -> Path:
     return edition_build_dir(edition) / "merge_translate.txt"
 
 
+def split_by_chapter_dir(edition) -> Path:
+    return edition_build_dir(edition) / "split_by_chapter"
+
+
 def merge_refine_path(edition) -> Path:
     return edition_build_dir(edition) / "merge_refine.txt"
 

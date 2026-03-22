@@ -44,6 +44,8 @@ Pipeline 01 (Steps comuns) has a fixed 6-step orchestration for both TXT and HTM
   - `gaiden/contracts/en_es_2025.json`
   - `gaiden/contracts/en_ptbr_2025.json`
   - `gaiden/contracts/en_de_krimi_2025.json`
+- For controlled modern English literary translation in Stage 01, the only active canonical contract is `stage01_modern_translation_controlled_v3` via `gaiden/contracts/en_modern_2025.json`.
+- `stage01_modern_translation_controlled_v2` is inactive, archive-only, and must not be used for new runs, reruns, or recovery flows.
 - Refine always runs with Aldebaran runner (`run_aldebaran_refine_return`).
 
 ## Definition of Done

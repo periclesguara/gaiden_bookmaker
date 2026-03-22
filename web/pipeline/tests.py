@@ -37,6 +37,30 @@ class _FakeOpenAIClient:
         self.responses = _FakeResponsesAPI(output_text)
 
 
+class _SequentialResponsesAPI:
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        item = self._responses.pop(0)
+        if isinstance(item, Exception):
+            raise item
+
+        class _Resp:
+            pass
+
+        resp = _Resp()
+        resp.output_text = item
+        return resp
+
+
+class _SequentialOpenAIClient:
+    def __init__(self, responses):
+        self.responses = _SequentialResponsesAPI(responses)
+
+
 class _SlowResponsesAPI:
     def __init__(self, output_text: str, delay: float):
         self.output_text = output_text
@@ -733,12 +757,12 @@ class MergeTranslatePreviewTests(TestCase):
         contract_dir = self.temp_root / "gaiden" / "contracts"
         contract_dir.mkdir(parents=True, exist_ok=True)
         (contract_dir / "en_modern_2025.json").write_text(
-            json.dumps({"out_dir": "data/translated/book_0001/en_modern_2025"}),
+            json.dumps({"out_dir": "data/translated/book_0001/en_modern_2026"}),
             encoding="utf-8",
         )
-        self.runtime_dir = self.temp_root / "data" / "translated" / "book_0103" / "en_modern_2025"
+        self.runtime_dir = self.temp_root / "data" / "translated" / "book_0103" / "en_modern_2026"
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
-        self.merged_runtime_path = self.runtime_dir / "merged_en_modern_2025.txt"
+        self.merged_runtime_path = self.runtime_dir / "merged_en_modern_2026.txt"
         self.merged_runtime_path.write_text("Merged preview content.\n", encoding="utf-8")
         self.preview_url = reverse("preview_merge_translate", kwargs={"edition_id": self.edition.id})
         self.save_url = reverse("save_merge_translate_preview", kwargs={"edition_id": self.edition.id})
@@ -990,7 +1014,7 @@ class HtmlLanePreprodConvertTests(TestCase):
         )
         self.assertTrue(self.normalized_v2_path.exists())
         normalized_text = self.normalized_v2_path.read_text(encoding="utf-8")
-        self.assertIn("CHAPTER IV", normalized_text)
+        self.assertIn("CHAPTER 4", normalized_text)
         self.assertIn("The quick brown fox.", normalized_text)
         texts = EditionText.objects.get(edition=self.edition)
         self.assertIn("The quick brown fox.", texts.raw_text)
@@ -1043,9 +1067,9 @@ class HtmlLanePreprodConvertTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         normalized_text = self.normalized_v2_path.read_text(encoding="utf-8")
-        self.assertIn("CHAPTER I", normalized_text)
-        self.assertIn("CHAPTER II", normalized_text)
-        self.assertIn("CHAPTER III", normalized_text)
+        self.assertIn("CHAPTER 1", normalized_text)
+        self.assertIn("CHAPTER 2", normalized_text)
+        self.assertIn("CHAPTER 3", normalized_text)
         self.assertNotIn("\nII.\n", normalized_text)
         self.assertNotIn("\nIII.\n", normalized_text)
         texts = EditionText.objects.get(edition=self.edition)
@@ -1173,7 +1197,7 @@ class HeadingCleanerGateTests(TestCase):
         self.normalized_path = self.root / "data" / "normalized" / f"{self.book_code}_en_v2.txt"
         self.split_dir = self.root / "data" / "chunks" / "book_9001" / "split_01"
         self.cleaner_dir = self.root / "data" / "chunks" / "book_9001" / "heading_cleaner"
-        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_modern_2025"
+        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_modern_2026"
         self.build_dir = self.root / "data" / "builds" / self.book_code / "en"
         self.edition_core_dir = self.root / "data" / "editions" / str(self.edition.id) / "core"
 
@@ -1271,7 +1295,7 @@ class HeadingCleanerGateTests(TestCase):
         self.client.post(self.heading_url)
         self.translated_dir.mkdir(parents=True, exist_ok=True)
         (self.translated_dir / "0001.txt").write_text("stale translate", encoding="utf-8")
-        (self.translated_dir / "merged_en_modern_2025.txt").write_text("stale merged", encoding="utf-8")
+        (self.translated_dir / "merged_en_modern_2026.txt").write_text("stale merged", encoding="utf-8")
         (self.translated_dir / "return_aldebaran").mkdir(parents=True, exist_ok=True)
         ((self.translated_dir / "return_aldebaran") / "0001.txt").write_text("stale refine", encoding="utf-8")
         self.build_dir.mkdir(parents=True, exist_ok=True)
@@ -1441,24 +1465,60 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(source_label, "split_01")
         self.assertEqual(payload["chunk_dir"], str(self.split_dir))
         self.assertEqual(payload["out_dir"], str(self.translated_dir))
-        self.assertEqual(payload["model"], "gpt-5-chat-latest")
-        self.assertEqual(payload["contract_name"], "stage01_modern_translation_controlled_v2")
+        self.assertEqual(payload["model"], "gpt-5.4")
+        self.assertEqual(payload["fallback_model"], "gpt-5.2")
+        self.assertEqual(payload["contract_name"], "stage01_modern_translation_controlled_v3")
         self.assertEqual(payload["role"], "translator_modernizer")
-        self.assertIn("strictly preserving meaning, narrative continuity, and full grammatical structure", payload["purpose"])
+        self.assertIn("strictly preserving meaning, narrative continuity, paragraph structure, and literary intent", payload["purpose"])
         self.assertNotIn("Sherlock Holmes", payload["system_prompt"])
         self.assertNotIn("Sherlock Holmes", payload["user_prompt"])
         self.assertNotIn("Conan", payload["system_prompt"])
         self.assertNotIn("Conan", payload["user_prompt"])
-        self.assertIn("controlled modern English rendering", payload["system_prompt"])
-        self.assertIn("Contract: stage01_modern_translation_controlled_v2 (translator_modernizer).", payload["system_prompt"])
+        self.assertIn("Rewrite the passage into controlled modern English", payload["system_prompt"])
+        self.assertIn("preserving meaning, chronology, paragraph structure", payload["system_prompt"])
         self.assertIn("Rewrite the following literary passage into controlled modern English.", payload["user_prompt"])
-        self.assertIn("Preserve complete grammatical structure and full sentence-level meaning.", payload["user_prompt"])
-        self.assertIn("Do not delete explicit subjects, pronouns, or narrative detail.", payload["user_prompt"])
-        self.assertIn("Do not compress clauses or turn full sentences into fragments.", payload["user_prompt"])
-        self.assertIn("Do not merge sentences.", payload["user_prompt"])
-        self.assertIn("Split sentences only when the original is excessively long and readability clearly improves.", payload["user_prompt"])
-        self.assertIn("Every sentence must contain an explicit subject.", payload["user_prompt"])
+        self.assertIn("Preserve continuity with adjacent chunks.", payload["user_prompt"])
+        self.assertIn("Modernize archaic wording only where it creates real readability friction.", payload["user_prompt"])
+        self.assertIn("Preserve tone, narrative voice, literary register, and genre atmosphere.", payload["user_prompt"])
+        self.assertIn("Split sentences only if readability clearly improves and no meaning, tone, or nuance is lost.", payload["user_prompt"])
         self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
+
+    def test_translate_falls_back_to_gpt52_when_gpt54_returns_no_response(self):
+        from gaiden.translate import run_translate_with_contract
+
+        temp_root = Path(tempfile.mkdtemp(prefix="translate_fallback_"))
+        self.addCleanup(lambda: shutil.rmtree(temp_root, ignore_errors=True))
+
+        chunk_dir = temp_root / "chunks"
+        out_dir = temp_root / "translated" / "en_modern_2026"
+        chunk_dir.mkdir(parents=True, exist_ok=True)
+        (chunk_dir / "0001.txt").write_text("Source chunk.", encoding="utf-8")
+
+        contract_path = temp_root / "contract_translate_en.json"
+        contract_path.write_text(
+            json.dumps(
+                {
+                    "chunk_dir": str(chunk_dir),
+                    "out_dir": str(out_dir),
+                    "model": "gpt-5.4",
+                    "fallback_model": "gpt-5.2",
+                    "system_prompt": "Rewrite carefully.",
+                    "user_prompt": "{text}",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        fake_client = _SequentialOpenAIClient(["", "Fallback translated chunk."])
+        with patch("gaiden.translate.get_client", return_value=fake_client):
+            run_translate_with_contract(contract_path)
+
+        self.assertEqual(
+            (out_dir / "0001.txt").read_text(encoding="utf-8"),
+            "Fallback translated chunk.",
+        )
+        self.assertEqual(fake_client.responses.calls[0]["model"], "gpt-5.4")
+        self.assertEqual(fake_client.responses.calls[1]["model"], "gpt-5.2")
 
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
         self.client.post(self.heading_url)
@@ -2036,7 +2096,7 @@ class MdTransformSourceHeadingContractTests(TestCase):
         )
         (split_dir / "0005.txt").write_text("Continuation two.", encoding="utf-8")
 
-        refined_dir = self.temp_root / "data" / "translated" / "book_0201" / "en_modern_2025" / "return_aldebaran"
+        refined_dir = self.temp_root / "data" / "translated" / "book_0201" / "en_modern_2026" / "return_aldebaran"
         refined_dir.mkdir(parents=True, exist_ok=True)
         (refined_dir / "0001.txt").write_text("Preface kept in refined text.", encoding="utf-8")
         (refined_dir / "0002.txt").write_text("Rewritten opening for case one.", encoding="utf-8")
@@ -2200,7 +2260,7 @@ class MdTransformSourceHeadingContractTests(TestCase):
         (split_dir / "0005.txt").write_text("## 3\n\nOpening three.", encoding="utf-8")
         (split_dir / "0006.txt").write_text("## 4\n\nOpening four.", encoding="utf-8")
 
-        refined_dir = self.temp_root / "data" / "translated" / "book_0012" / "en_modern_2025" / "return_aldebaran"
+        refined_dir = self.temp_root / "data" / "translated" / "book_0012" / "en_modern_2026" / "return_aldebaran"
         refined_dir.mkdir(parents=True, exist_ok=True)
         (refined_dir / "0001.txt").write_text("Front matter.", encoding="utf-8")
         (refined_dir / "0002.txt").write_text("Rewritten opening one.", encoding="utf-8")
@@ -2378,7 +2438,7 @@ class MdTransformSourceHeadingContractTests(TestCase):
         (split_dir / "0003.txt").write_text("## 1 A Drum Begins", encoding="utf-8")
         (split_dir / "0004.txt").write_text("## 2 The Night Skulkers", encoding="utf-8")
 
-        translated_dir = self.temp_root / "data" / "translated" / "book_0015" / "en_modern_2025"
+        translated_dir = self.temp_root / "data" / "translated" / "book_0015" / "en_modern_2026"
         translated_dir.mkdir(parents=True, exist_ok=True)
         (translated_dir / "0001.txt").write_text("Front matter.", encoding="utf-8")
         (translated_dir / "0002.txt").write_text("By Robert E. Howard", encoding="utf-8")
@@ -2602,7 +2662,27 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertNotIn("# Adapted Preface", merged_text)
         self.assertIn("## Chapter 01 - First Case", merged_text)
 
-    def test_build_kdp_keeps_numeric_chapter_heading_and_moves_visual_title_below_image(self):
+    def test_build_kdp_respects_explicit_preface_heading_before_first_chapter(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "Preface\n\n"
+                "[Author preface to be inserted in final editorial pass.]\n\n"
+                "# Chapter 01 - First Case\n\n"
+                "Body text.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        self.assertIn("# Preface", merged_text)
+        self.assertIn("[Author preface to be inserted in final editorial pass.]", merged_text)
+        self.assertNotIn("# Adapted Preface", merged_text)
+        self.assertIn("## Chapter 01 - First Case", merged_text)
+
+    def test_build_kdp_keeps_numeric_chapter_heading_without_visual_title_duplication(self):
         from editorial import kdp_mode
 
         self.pre_edition_path.write_text(
@@ -2618,14 +2698,12 @@ class KdpMarkerCleanupContractTests(TestCase):
         merged_text = merged_path.read_text(encoding="utf-8")
 
         self.assertIn("## Chapter 01 - Death Strikes a King", merged_text)
-        self.assertIn("**Chapter 01 - Death Strikes a King**", merged_text)
         chapter_idx = merged_text.index("## Chapter 01 - Death Strikes a King")
         image_idx = merged_text.index("![](assets/images/ch01_01.jpg)")
-        visual_idx = merged_text.index("**Chapter 01 - Death Strikes a King**")
         body_idx = merged_text.index("The king of Vendhya was dying.")
         self.assertLess(chapter_idx, image_idx)
-        self.assertLess(image_idx, visual_idx)
-        self.assertLess(visual_idx, body_idx)
+        self.assertLess(image_idx, body_idx)
+        self.assertNotIn("**Chapter 01 - Death Strikes a King**", merged_text)
 
     def test_build_kdp_does_not_duplicate_markdown_visual_chapter_title_on_rebuild(self):
         from editorial import kdp_mode
@@ -2642,8 +2720,72 @@ class KdpMarkerCleanupContractTests(TestCase):
         first = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
         second = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
 
-        self.assertEqual(first.count("**Chapter 01 - Death Strikes a King**"), 1)
-        self.assertEqual(second.count("**Chapter 01 - Death Strikes a King**"), 1)
+        self.assertEqual(first.count("**Chapter 01 - Death Strikes a King**"), 0)
+        self.assertEqual(second.count("**Chapter 01 - Death Strikes a King**"), 0)
+
+    def test_build_kdp_removes_duplicate_visual_title_after_heading_and_image(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "# Chapter 04 - The Horror at the Camp\n\n"
+                "![](assets/images/ch04_01.jpg)\n\n"
+                "**Chapter 04 - The Horror at the Camp**\n\n"
+                "The camp was no longer as we had left it.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        self.assertIn("## Chapter 04 - The Horror at the Camp", merged_text)
+        self.assertIn("![](assets/images/ch04_01.jpg)", merged_text)
+        self.assertIn("The camp was no longer as we had left it.", merged_text)
+        self.assertNotIn("**Chapter 04 - The Horror at the Camp**", merged_text)
+
+    def test_build_kdp_does_not_promote_roman_sentence_to_chapter_heading(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "# Chapter 01 - The Warning from Miskatonic\n\n"
+                "Opening body.\n\n"
+                "## By Author Marker Contract\n\n"
+                "\\newpage\n\n"
+                "# Chapter 04 - The Horror at the Camp\n\n"
+                "I have already told of the ruined camp and the missing dog.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        self.assertIn("## Chapter 01 - The Warning from Miskatonic", merged_text)
+        self.assertIn("## Chapter 04 - The Horror at the Camp", merged_text)
+        self.assertNotIn("## chapter 01 - have already told", merged_text.casefold())
+        self.assertNotIn("**chapter 01 - have already told", merged_text.casefold())
+
+    def test_build_kdp_strips_trailing_author_byline_from_preface(self):
+        from editorial import kdp_mode
+
+        self.pre_edition_path.write_text(
+            (
+                "# Marker Contract Book\n\n"
+                "This is the real prefatory paragraph that should remain.\n\n"
+                "## By Author Marker Contract\n\n"
+                "\\newpage\n\n"
+                "# Chapter 01 - First Case\n\n"
+                "Body text.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        self.assertIn("# Adapted Preface", merged_text)
+        self.assertIn("This is the real prefatory paragraph that should remain.", merged_text)
+        self.assertNotIn("By Author Marker Contract", merged_text)
+        self.assertIn("## Chapter 01 - First Case", merged_text)
 
 
 class MdApproveImagesContractTests(TestCase):

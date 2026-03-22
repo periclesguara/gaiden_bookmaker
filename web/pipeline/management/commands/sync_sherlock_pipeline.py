@@ -37,7 +37,7 @@ class Command(BaseCommand):
         )
 
         translate_files = {
-            "en": data_dir / "chunks" / book_code / "refine_en_01" / "merged_en_modern_2025.txt",
+            "en": data_dir / "chunks" / book_code / "refine_en_01" / "merged_en_modern_2026.txt",
             "es": data_dir / "chunks" / book_code / "refine_es_01" / "merged_es_2025.txt",
             "ptbr": data_dir / "chunks" / book_code / "refine_ptbr_01" / "merged_ptbr_2025.txt",
         }

@@ -56,6 +56,86 @@ def _build_messages(chunk_text: str, contract: Dict[str, Any]) -> List[Dict[str,
     return messages
 
 
+def _extract_response_text(resp: Any) -> str:
+    translated = ""
+    try:
+        translated = getattr(resp, "output_text", "").strip()
+    except Exception:
+        translated = ""
+
+    if not translated:
+        try:
+            translated = resp.output[0].content[0].text.strip()
+        except Exception:
+            translated = ""
+    return translated
+
+
+def _call_translate_with_fallback(
+    *,
+    client: Any,
+    messages: List[Dict[str, str]],
+    primary_model: str,
+    fallback_model: str | None,
+    temperature: float,
+    max_output_tokens: int,
+    chunk_name: str,
+) -> tuple[str, str]:
+    models_to_try = [primary_model]
+    fallback_model = (fallback_model or "").strip()
+    if fallback_model and fallback_model != primary_model:
+        models_to_try.append(fallback_model)
+
+    last_error: Exception | None = None
+    for idx, model_name in enumerate(models_to_try):
+        is_fallback = idx > 0
+        try:
+            resp = client.responses.create(
+                model=model_name,
+                input=messages,
+                temperature=temperature,
+                max_output_tokens=max_output_tokens,
+            )
+        except Exception as exc:
+            last_error = RuntimeError(
+                f"{chunk_name}: model {model_name} failed to respond: {exc}"
+            )
+            if is_fallback:
+                raise last_error from exc
+            if len(models_to_try) > 1:
+                print(
+                    f"[WARN] {chunk_name}: primary model {model_name} failed to respond; "
+                    f"retrying with fallback {models_to_try[1]}."
+                )
+                continue
+            raise last_error from exc
+
+        translated = _extract_response_text(resp)
+        if translated:
+            if is_fallback:
+                print(
+                    f"[WARN] {chunk_name}: primary model {primary_model} returned no response; "
+                    f"fallback {model_name} used."
+                )
+            return translated, model_name
+
+        last_error = RuntimeError(
+            f"{chunk_name}: model {model_name} returned no response text"
+        )
+        if is_fallback:
+            raise last_error
+        if len(models_to_try) > 1:
+            print(
+                f"[WARN] {chunk_name}: primary model {model_name} returned no response text; "
+                f"retrying with fallback {models_to_try[1]}."
+            )
+            continue
+        raise last_error
+
+    assert last_error is not None
+    raise last_error
+
+
 _META_OUTPUT_PATTERNS = [
     re.compile(
         r"^please\s+(provide|paste|share|send)\s+(the\s+)?(passage|text|excerpt|chapter|content)\b",
@@ -275,7 +355,8 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
       - "out_dir":   diretório de saída para NNNN.txt traduzidos
 
     Opcional:
-      - "model": ex. "gpt-5.1" ou "gpt-5.2"
+      - "model": ex. "gpt-5.4"
+      - "fallback_model": ex. "gpt-5.2" (somente se o principal não responder)
       - "temperature": float
       - "max_output_tokens": int
       - "system_prompt" / "system"
@@ -298,7 +379,10 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
 
     out_dir_path.mkdir(parents=True, exist_ok=True)
 
-    model = contract.get("model", "gpt-5.1")
+    model = contract.get("model", "gpt-5.4")
+    fallback_model = contract.get("fallback_model")
+    if fallback_model is None and str(model).strip() == "gpt-5.4":
+        fallback_model = "gpt-5.2"
     temperature = float(contract.get("temperature", 0.4))
     max_output_tokens = int(contract.get("max_output_tokens", 1200))
 
@@ -316,7 +400,9 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
     print("[INFO] Tradução file-based iniciada")
     print(f"  Contrato: {contract_path}")
     print(f"  Língua alvo: {target_lang}")
-    print(f"  Modelo: {model}")
+    print(f"  Modelo principal: {model}")
+    if fallback_model:
+        print(f"  Modelo fallback: {fallback_model}")
     print(f"  Origem chunks: {chunk_dir_path}")
     print(f"  Destino chunks: {out_dir_path}")
     print(f"  Total de chunks: {len(txt_files)}")
@@ -328,27 +414,15 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
 
         messages = _build_messages(text, contract)
 
-        resp = client.responses.create(
-            model=model,
-            input=messages,
+        translated, model_used = _call_translate_with_fallback(
+            client=client,
+            messages=messages,
+            primary_model=str(model),
+            fallback_model=str(fallback_model),
             temperature=temperature,
             max_output_tokens=max_output_tokens,
+            chunk_name=chunk_path.name,
         )
-
-        # tenta pegar o texto da forma mais genérica possível
-        translated = ""
-        try:
-            # algumas versões têm output_text
-            translated = getattr(resp, "output_text", "").strip()
-        except Exception:
-            translated = ""
-
-        if not translated:
-            # fallback para estrutura output[0].content[0].text
-            try:
-                translated = resp.output[0].content[0].text.strip()
-            except Exception:
-                translated = ""
 
         try:
             translated = _sanitize_with_contract_fallback(
@@ -367,7 +441,7 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         out_path = out_dir_path / chunk_path.name
         out_path.write_text(translated, encoding="utf-8")
 
-        print(f"[OK] {idx:04d}/{len(txt_files):04d} -> {out_path}")
+        print(f"[OK] {idx:04d}/{len(txt_files):04d} -> {out_path} (model={model_used})")
 
     print("[INFO] Tradução concluída.")
     merged_path = _merge_translated_chunks(out_dir_path, lang_key, book_id)

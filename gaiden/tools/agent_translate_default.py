@@ -2,7 +2,7 @@
 """
 Force-translate chunks via an OpenAI Agent.
 
-This bypasses any gpt-5.2 translate path and sends each chunk directly to the agent.
+This bypasses the translate step entirely and sends each chunk directly to the agent.
 Outputs are written into out_dir, preserving per-chunk filenames, plus a run report.
 
 Example:

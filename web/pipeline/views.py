@@ -47,7 +47,7 @@ from .forms import BookEditionTemplateForm, normalize_book_code_input
 from .services import (
     book_manifest,
     build_book,
-    chapter_chunks,
+    chapter_agent,
     canonical_merge,
     editorial_split,
     export_book,
@@ -199,7 +199,8 @@ def _require_postgres_ingest_runtime():
         (
             "Cadastro bloqueado: o runtime web oficial deve usar PostgreSQL. "
             "Suba o Django com PGHOST/PGDATABASE/PGUSER/PGPASSWORD exportados "
-            "ou use gaiden_portal.settings apenas com Postgres."
+            "ou use gaiden_portal.settings apenas com Postgres. "
+            "Atalho local: ./run_gaiden.sh"
         ),
         status=503,
     )
@@ -1726,14 +1727,24 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         and translate_outputs_count >= expected_translate_chunks
         and translate_merge_path.exists()
     )
+    split_by_chapter_dir = paths.split_by_chapter_dir(target_edition)
+    split_by_chapter_manifest_path = split_by_chapter_dir / "manifest.json"
+    split_by_chapter_done = split_by_chapter_manifest_path.exists()
 
-    refine_dir = translate_dir / REFINE_RETURN_DIRNAME if translate_dir else None
+    refine_source_dir: Path | None = None
+    refine_source_label = "translate_chunks"
+    try:
+        refine_source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_lang)
+    except Exception:
+        refine_source_dir = None
+    refine_dir = refine_source_dir.parent / REFINE_RETURN_DIRNAME if refine_source_dir else None
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
     refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
     refine_done = bool(
         translate_done
-        and refine_outputs_count >= translate_outputs_count
+        and refine_source_dir
+        and refine_outputs_count >= _count_non_merged_txt_files(refine_source_dir)
         and (refine_merge_path.exists() or refine_runtime_merge)
     )
 
@@ -1831,6 +1842,28 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     step_defs.append(
         {
             "n": 5,
+            "key": "split_by_chapter",
+            "title": "Split by Chapter (merge_translate)",
+            "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "split_by_chapter"}),
+            "button_label": "Rodar Split by Chapter",
+            "can_run": translate_done and translate_merge_path.exists(),
+            "done": split_by_chapter_done,
+            "block_reason": (
+                "Prerequisito: merge_translate.txt canonico no build."
+                if not (translate_done and translate_merge_path.exists())
+                else ""
+            ),
+            "outputs": [
+                _rel_project_path(split_by_chapter_dir / "parts" / "*.txt"),
+                _rel_project_path(split_by_chapter_manifest_path),
+            ],
+            "notes": "Usa merge_translate.txt, detecta capitulos e salva 4 partes por capitulo. Nao envia nada para OpenAI.",
+        }
+    )
+
+    step_defs.append(
+        {
+            "n": 6,
             "key": "refine",
             "title": f"Refine ({refine_profile_cfg['label']})",
             "run_url": reverse("pipeline_refine_run", kwargs={"edition_id": edition.id}),
@@ -1848,14 +1881,14 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             ],
             "notes": (
                 f"Perfil: {refine_profile_cfg['label']} | Agent: {refine_profile_cfg['agent_name']} "
-                f"| chunks={refine_outputs_count}/{translate_outputs_count}"
+                f"| source={refine_source_label} | chunks={refine_outputs_count}/{_count_non_merged_txt_files(refine_source_dir)}"
             ),
         }
     )
 
     step_defs.append(
         {
-            "n": 6,
+            "n": 7,
             "key": "merge_refine",
             "title": "Merge/Finalize",
             "run_url": reverse("pipeline_merge_refine_run", kwargs={"edition_id": edition.id}),
@@ -1882,7 +1915,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 
     step_defs.append(
         {
-            "n": 7,
+            "n": 8,
             "key": "preflight",
             "title": "Pre-producao (Pre-flight)",
             "run_url": reverse("pipeline_preflight_run", kwargs={"edition_id": edition.id}),
@@ -2025,88 +2058,150 @@ def _append_prompt_block(prompt: str, block: str) -> str:
 
 def _english_controlled_translation_defaults() -> dict:
     return {
-        "contract_name": "stage01_modern_translation_controlled_v2",
+        "name": "Controlled Modern English Translation (2026)",
+        "contract_name": "stage01_modern_translation_controlled_v3",
+        "status": "active",
+        "supersedes": ["stage01_modern_translation_controlled_v2"],
         "role": "translator_modernizer",
         "purpose": (
-            "Produce a modern English version of the source text while strictly preserving meaning, "
-            "narrative continuity, and full grammatical structure."
+            "Produce a controlled modern English version of the source text while strictly preserving meaning, "
+            "narrative continuity, paragraph structure, and literary intent."
         ),
+        "stage": "translate",
+        "model": "gpt-5.4",
+        "model_lock": True,
+        "fallback_model": "gpt-5.2",
+        "fallback_policy": "on_no_response",
+        "temperature": 0.2,
+        "max_output_tokens": 1800,
+        "chunk_dir": "data/chunks/book_0001/split_01",
+        "out_dir": "data/translated/book_0001/en_modern_2026",
+        "output": {"language": "en"},
+        "contract_policy": {
+            "mode": "controlled_modernization",
+            "priority_order": [
+                "semantic_fidelity",
+                "narrative_continuity",
+                "paragraph_integrity",
+                "literary_register_preservation",
+                "conservative_modernization",
+                "fluency_and_readability",
+            ],
+        },
         "core_objectives": [
             "Preserve the full meaning of the source text.",
-            "Modernize archaic English into natural contemporary English.",
-            "Maintain complete grammatical structure in every sentence.",
-            "Ensure fluency without compressing or summarizing.",
-            "Deliver readable, natural, high-level English.",
+            "Preserve chronology, causality, paragraph order, and narrative flow.",
+            "Modernize archaic English only where genuine readability friction exists.",
+            "Maintain natural, fluent, literate modern English.",
+            "Preserve tone, atmosphere, and character voice distinctions.",
+        ],
+        "editorial_rules": [
+            "Do not summarize, compress, explain, annotate, embellish, expand, or invent content.",
+            "Do not alter names, places, dates, numbers, or narrative facts.",
+            "Do not change narrative perspective.",
+            "Do not neutralize genre-specific atmosphere.",
+            "Do not flatten elevated, ceremonial, mystical, or intentionally literary diction when it remains readable.",
+            "Prefer conservative edits over aggressive rewriting.",
+            "Preserve recurring lexical choices when they are clearly intentional.",
         ],
         "modernization_rules": [
-            "Replace archaic words and constructions with modern equivalents when meaning is unchanged.",
-            "Modernize auxiliary verbs (e.g., 'shall' -> 'will', 'hath' -> 'has').",
-            "Modernize connectors and prepositions (e.g., 'upon' -> 'on', 'whilst' -> 'while').",
-            "Remove unnecessary archaic phrasing while preserving tone and intent.",
-            "Keep the atmosphere and narrative weight of the original text.",
+            "Replace archaic words and constructions with modern equivalents only when meaning is unchanged.",
+            "Modernize obsolete auxiliaries and connectors when readability improves and tone is preserved.",
+            "Remove unnecessary archaism, but do not sterilize the prose.",
+            "Keep author-specific narrative weight, tension, and atmosphere intact.",
+            "Preserve intentional literary register whenever it remains readable to a contemporary audience.",
         ],
-        "strict_structure_rules": [
-            "Do not remove explicit subjects.",
-            "Do not remove pronouns.",
-            "Do not compress clauses.",
-            "Do not merge sentences.",
-            "Do not convert full sentences into fragments.",
-            "Do not rewrite sentences into summaries.",
-            "Preserve sentence-level meaning exactly.",
-            "Preserve paragraph order and narrative flow.",
+        "structure_rules": [
+            "Preserve paragraph boundaries.",
+            "Preserve heading and chapter markers if they exist.",
+            "Preserve dialogue structure and speaker distinctions.",
+            "Do not reorder events, sentences, or paragraphs.",
+            "Do not convert narration into exposition or summary.",
+            "Do not collapse descriptive buildup into shorter generic phrasing.",
         ],
         "sentence_handling": {
             "allow_sentence_splitting": True,
             "conditions": [
-                "Split only when the original sentence is excessively long and harms readability.",
-                "Preserve full meaning when splitting.",
-                "Ensure each resulting sentence remains complete and grammatically correct.",
+                "Split only when the original sentence is excessively long and readability clearly improves.",
+                "Preserve full meaning, tone, and logical relation when splitting.",
+                "Ensure each resulting sentence is grammatically complete.",
             ],
             "forbidden": [
                 "Dropping subjects during splitting.",
-                "Creating incomplete clauses.",
-                "Flattening complex sentences unnecessarily.",
+                "Creating fragments from complete source sentences.",
+                "Flattening complex syntax unnecessarily.",
+                "Using splitting as a way to simplify away nuance.",
             ],
         },
-        "grammar_rules": [
-            "Every sentence must contain an explicit subject.",
-            "Every clause must be grammatically complete.",
-            "Maintain subject-verb agreement.",
-            "Maintain correct tense.",
-            "Use standard modern punctuation.",
+        "dialogue_rules": [
+            "Preserve character voice distinctions.",
+            "Preserve dialogue meaning exactly.",
+            "Modernize archaic dialogue only where real friction exists.",
+            "Do not make dialogue sound slangy, casual, or contemporary beyond the contract.",
+            "Preserve intentional brevity, tension, and subtext in spoken exchanges.",
+        ],
+        "continuity_rules": [
+            "Maintain continuity with adjacent chunks.",
+            "Do not introduce contradictions with previous or subsequent text.",
+            "Preserve recurring terms, motifs, and narrative references whenever clearly intentional.",
+            "When local ambiguity exists, prefer interpretations that preserve continuity rather than simplify.",
         ],
         "style_constraints": [
-            "Use natural modern English.",
+            "Use natural, fluent, literate modern English.",
             "Avoid pseudo-archaic language.",
-            "Avoid overly simplified or generic phrasing.",
-            "Do not inject modern slang.",
-            "Do not change narrative voice.",
-            "Do not alter tone beyond modernization.",
-            "Preserve character voice distinctions and genre-specific atmosphere.",
+            "Avoid generic filler phrasing.",
+            "Avoid modern slang.",
+            "Avoid over-smoothing distinctive prose.",
+            "Do not rewrite the passage into a different stylistic register.",
         ],
         "forbidden_behaviors": [
             "Summarizing content.",
             "Omitting narrative details.",
-            "Dropping grammatical subjects.",
-            "Creating sentence fragments.",
-            "Changing narrative perspective.",
-            "Rewriting openings as summaries.",
-            "Injecting explanatory commentary.",
+            "Expanding content beyond the source.",
+            "Injecting commentary or explanation.",
+            "Changing chronology or causality.",
+            "Changing paragraph structure.",
+            "Changing narrative voice.",
+            "Replacing specific imagery with generic modern wording.",
+            "Over-modernizing intentionally literary prose.",
         ],
         "qa_requirements": [
-            "Reject output if any sentence lacks a subject where the original sentence was grammatically complete.",
-            "Reject output if a sentence becomes a fragment.",
             "Reject output if meaning is reduced.",
-            "Reject output if modernization alters intent.",
-            "Reject output if a paragraph reads like a summary.",
-            "Reject output if narrative continuity is broken.",
+            "Reject output if any paragraph functions like a summary of the source paragraph.",
+            "Reject output if tone or atmosphere is substantially flattened.",
+            "Reject output if paragraph boundaries are altered without necessity.",
+            "Reject output if character voice distinctions are lost.",
+            "Reject output if continuity with adjacent chunks is broken.",
+            "Reject output if names, places, dates, or numbers are altered.",
+            "Reject output if the text becomes generically modern instead of controlled modern literary English.",
         ],
         "output_standard": [
-            "The result must read as natural modern English.",
-            "The text must be structurally complete.",
-            "The text must preserve full meaning and narrative flow.",
-            "The text must not feel archaic, fragmented, or compressed.",
+            "The result must read as natural, fluent, literate modern English.",
+            "The result must preserve full meaning, narrative flow, and literary intent.",
+            "The result must remain structurally faithful to the source.",
+            "The result must not feel summarized, flattened, slangy, or artificially rewritten.",
         ],
+        "system_prompt": (
+            "You are a literary translator-editor. Rewrite the passage into controlled modern English while preserving "
+            "meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
+            "Output only the rewritten passage. Do not summarize, explain, annotate, add headings, add notes, or "
+            "mention the task. Preserve dialogue, names, places, dates, numbers, and chapter markers exactly unless "
+            "only surface-level linguistic modernization is required."
+        ),
+        "user_prompt": (
+            "Rewrite the following literary passage into controlled modern English.\n\n"
+            "Requirements:\n"
+            "- Preserve meaning, chronology, paragraph structure, dialogue, names, places, dates, and numbers.\n"
+            "- Do not summarize, compress, expand, explain, annotate, or invent content.\n"
+            "- Modernize archaic wording only where it creates real readability friction.\n"
+            "- Preserve tone, narrative voice, literary register, and genre atmosphere.\n"
+            "- Keep complete grammatical sentences and clauses unless the source intentionally uses fragmentary dialogue effects worth preserving.\n"
+            "- Split sentences only if readability clearly improves and no meaning, tone, or nuance is lost.\n"
+            "- Keep headings or chapter markers if present.\n"
+            "- Preserve continuity with adjacent chunks.\n\n"
+            "Return only the final rewritten passage.\n\n"
+            "{text}"
+        ),
     }
 
 
@@ -2122,11 +2217,24 @@ def _english_translate_contract_block(payload: dict) -> str:
     sentence_handling = payload.get("sentence_handling") if isinstance(payload.get("sentence_handling"), dict) else {}
 
     sections: list[str] = []
+    contract_policy = payload.get("contract_policy") if isinstance(payload.get("contract_policy"), dict) else {}
+    if contract_policy:
+        policy_lines = []
+        if contract_policy.get("mode"):
+            policy_lines.append(f"- Mode: {contract_policy['mode']}")
+        priority_order = contract_policy.get("priority_order")
+        if isinstance(priority_order, list):
+            policy_lines.extend(f"- {item}" for item in priority_order if str(item).strip())
+        if policy_lines:
+            sections.append("CONTRACT POLICY:\n" + "\n".join(policy_lines))
+
     for title, key in [
         ("CORE OBJECTIVES", "core_objectives"),
+        ("EDITORIAL RULES", "editorial_rules"),
         ("MODERNIZATION RULES", "modernization_rules"),
-        ("STRICT STRUCTURE RULES", "strict_structure_rules"),
-        ("GRAMMAR RULES", "grammar_rules"),
+        ("STRUCTURE RULES", "structure_rules"),
+        ("DIALOGUE RULES", "dialogue_rules"),
+        ("CONTINUITY RULES", "continuity_rules"),
         ("STYLE CONSTRAINTS", "style_constraints"),
         ("FORBIDDEN BEHAVIORS", "forbidden_behaviors"),
         ("QA REQUIREMENTS", "qa_requirements"),
@@ -2170,32 +2278,22 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
 
     if lang == "en":
         payload = _merge_translate_contract_defaults(payload)
-        task_line = (
-            "You are a literary translator-editor producing a controlled modern English rendering."
-        )
-        english_contract_block = _english_translate_contract_block(payload)
-        user_prompt = (
-            "Rewrite the following literary passage into controlled modern English.\n\n"
-            "NON-NEGOTIABLE:\n"
-            "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
-            "- Preserve paragraph structure.\n"
-            "- Do not summarize, compress, explain, annotate, or invent content.\n"
-            "- Keep headings/chapter markers if they exist.\n\n"
-            "CONTROLLED ENGLISH MODERNIZATION MODE:\n"
-            "- Modernize only where real friction exists.\n"
-            "- Preserve complete grammatical structure and full sentence-level meaning.\n"
-            "- Do not delete explicit subjects, pronouns, or narrative detail.\n"
-            "- Do not compress clauses or turn full sentences into fragments.\n"
-            "- Do not merge sentences.\n"
-            "- Keep elevated, ceremonial, mystical, or author-specific diction when it is intentional and readable.\n"
-            "- Prefer conservative edits over aggressive rewriting.\n"
-            "- Split sentences only when the original is excessively long and readability clearly improves.\n"
-            "- When splitting, keep every resulting sentence complete and grammatically correct.\n"
-            "- Preserve character voice distinctions and genre-specific atmosphere.\n"
-            f"\n\n{english_contract_block}\n\n"
-            "Return only the final rewritten passage.\n\n"
-            "{text}"
-        )
+        system_prompt = str(payload.get("system_prompt") or "").strip()
+        user_prompt = str(payload.get("user_prompt") or "").strip()
+        if not system_prompt or not user_prompt:
+            english_contract_block = _english_translate_contract_block(payload)
+            system_prompt = (
+                "You are a literary translator-editor. Rewrite the passage into controlled modern English while preserving "
+                "meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
+                "Output only the rewritten passage."
+            )
+            user_prompt = (
+                "Rewrite the following literary passage into controlled modern English.\n\n"
+                f"{english_contract_block}\n\n"
+                "Return only the final rewritten passage.\n\n"
+                "{text}"
+            )
+        return system_prompt, user_prompt, target_label
     else:
         task_line = (
             f"You are a professional literary translator translating prose into {target_label}."
@@ -2234,8 +2332,8 @@ def _harden_translate_contract(payload: dict, target_language: str) -> dict:
         payload = _merge_translate_contract_defaults(payload)
     system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language, payload)
     payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
-    if str(payload.get("model") or "").strip() in {"", "gpt-5.1"}:
-        payload["model"] = "gpt-5-chat-latest"
+    if str(payload.get("model") or "").strip() in {"", "gpt-5.1", "gpt-5-chat-latest"}:
+        payload["model"] = "gpt-5.4"
     payload["system_prompt"] = system_prompt
     payload["user_prompt"] = user_prompt
     return payload
@@ -2267,7 +2365,9 @@ def _recommended_translate_max_output_tokens(
     chars_per_token = 4.0 if normalized_lang == "en" else 3.6
     estimated_tokens = int(max_chars / chars_per_token)
     recommended = max(1800, int(estimated_tokens * 1.45) + 320)
-    recommended = min(recommended, 6000)
+    # Large Holmes/Lovecraft chunks can legitimately exceed 6k output tokens
+    # when we preserve paragraph structure and avoid summarization.
+    recommended = min(recommended, 12000)
     return max(int(current_limit or 0), recommended)
 
 
@@ -2436,6 +2536,15 @@ def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
     return Path(settings.BASE_DIR).parent / out_dir
 
 
+def _resolve_refine_source_dir(edition, target_language: str) -> tuple[Path, str]:
+    split_root = paths.split_by_chapter_dir(edition)
+    split_manifest = split_root / "manifest.json"
+    split_parts_dir = split_root / "parts"
+    if split_manifest.exists() and split_parts_dir.exists():
+        return split_parts_dir, "split_by_chapter/parts"
+    return _runtime_translate_dir_for_edition(edition, target_language), "translate_chunks"
+
+
 def _build_runtime_refine_contract(
     edition,
     target_language: str,
@@ -2447,9 +2556,9 @@ def _build_runtime_refine_contract(
         refine_profile=refine_profile,
         target_language=target_language,
     )
-    source_dir = _runtime_translate_dir_for_edition(edition, target_language)
+    source_dir, _source_label = _resolve_refine_source_dir(edition, target_language)
     if not source_dir.exists():
-        raise FileNotFoundError(f"Translate chunks not found for refine: {source_dir}. Run Translate first.")
+        raise FileNotFoundError(f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first.")
 
     refine_input_dir = (
         Path(settings.BASE_DIR).parent
@@ -2472,7 +2581,7 @@ def _build_runtime_refine_contract(
     for path in source_chunks:
         shutil.copyfile(path, refine_input_dir / path.name)
 
-    out_dir = source_dir / REFINE_RETURN_DIRNAME
+    out_dir = source_dir.parent / REFINE_RETURN_DIRNAME
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
@@ -2539,6 +2648,7 @@ def _legacy_gaiden_merge_path(book_id: int, language: str, stage: str) -> Path |
         ]
         if lang == "en":
             candidates.insert(0, base_dir / "merged_en_modern_2025.txt")
+            candidates.insert(0, base_dir / "merged_en_modern_2026.txt")
 
     for path in candidates:
         if path.exists():
@@ -3146,16 +3256,8 @@ def edition_steps(request, edition_id: int):
     def _status(flag: bool) -> str:
         return "OK" if flag else "falta"
 
-    book_id = _parse_book_id(book_code)
-    split_by_chapter_dir = None
-    if book_id is not None:
-        split_by_chapter_dir = (
-            Path(settings.BASE_DIR).parent
-            / "data"
-            / "chunks"
-            / f"book_{book_id:04d}"
-            / "split_01_by_chapter"
-        )
+    split_by_chapter_dir = paths.split_by_chapter_dir(edition)
+    split_by_chapter_manifest_path = split_by_chapter_dir / "manifest.json"
 
     chunk_count = _count_split_chunks(book_code)
     pipeline_prereqs = _pipeline01_prereq_state(edition)
@@ -3343,7 +3445,7 @@ def edition_steps(request, edition_id: int):
             "normalize": _status(bool(pipeline_state.normalized_at)),
             "heading_cleaner": _status(heading_cleaner_done),
             "split": _status(bool(pipeline_state.split_at)),
-            "split_by_chapter": _status(bool(split_by_chapter_dir and split_by_chapter_dir.exists())),
+            "split_by_chapter": _status(split_by_chapter_manifest_path.exists()),
             "translate": _status(bool(pipeline_state.translated_at)),
             "refine": _status(bool(pipeline_state.refined_at)),
             "qa_refine": refine_qa_status,
@@ -3599,13 +3701,35 @@ def run_edition_step(request, edition_id: int, step: str):
                 )
 
         elif step == "split_by_chapter":
-            result = chapter_chunks.run_split_by_chapter(edition)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-            pipeline_state.current_stage = PipelineStage.SPLIT
-            pipeline_state.split_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, f"Split by chapter OK: {result['path']}")
+            split_step = next(
+                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "split_by_chapter"),
+                None,
+            )
+            if not (split_step and bool(split_step.get("can_run"))):
+                raise ValueError(
+                    (split_step or {}).get("block_reason")
+                    or "Prerequisito para Split by Chapter: merge_translate.txt canônico."
+                )
+
+            target_edition = _edition_for_language(
+                edition,
+                utils.normalize_lang(
+                    (pipeline_state.translation_language if pipeline_state else None) or edition.language.code
+                ),
+            )
+            result = chapter_agent.run_split_by_chapter(target_edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            pipeline_state.last_log = (
+                f"{timezone.now().isoformat()} :: SPLIT_BY_CHAPTER :: "
+                f"chapters={result['chapter_count']} parts={result['part_count']}"
+            )
+            pipeline_state.save(update_fields=["last_log"])
+            messages.success(
+                request,
+                f"Split by chapter OK: {result['chapter_count']} capitulos / {result['part_count']} partes",
+            )
+            messages.info(request, f"Merge base: {result['merge_translate_path']}")
+            messages.info(request, f"Manifest: {result['manifest_path']}")
 
         elif step == "translate":
             from gaiden.translate import run_translate_with_contract
@@ -3736,16 +3860,16 @@ def run_edition_step(request, edition_id: int, step: str):
             if pipeline_state.refine_profile != refine_profile:
                 pipeline_state.refine_profile = refine_profile
                 pipeline_state.save(update_fields=["refine_profile"])
-            source_dir = _runtime_translate_dir_for_edition(target_edition, target_language)
+            source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
             if not source_dir.exists():
                 raise FileNotFoundError(
-                    f"Translate chunks not found for refine: {source_dir}. Run Translate first."
+                    f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first."
                 )
 
             try:
                 from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-                out_dir_path = source_dir / REFINE_RETURN_DIRNAME
+                out_dir_path = source_dir.parent / REFINE_RETURN_DIRNAME
                 result = run_aldebaran_refine_return(
                     chunk_dir=source_dir,
                     out_dir=out_dir_path,
@@ -3798,7 +3922,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 request,
                 f"Refine OK ({refine_profile_cfg['label']} · {result['agent_name']})",
             )
-            messages.info(request, f"Refine source: {result['source_dir']}")
+            messages.info(request, f"Refine source ({refine_source_label}): {result['source_dir']}")
             messages.info(request, f"Refine report: {result['report_path']}")
 
         elif step == "merge_refine":
@@ -3807,9 +3931,9 @@ def run_edition_step(request, edition_id: int, step: str):
             refine_profile_cfg = _refine_profile_config(
                 getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
             )
-            translate_dir = _runtime_translate_dir_for_edition(target_edition, target_language)
-            refine_dir = translate_dir / REFINE_RETURN_DIRNAME
-            _validate_runtime_chunk_outputs(translate_dir, refine_dir, "MergeRefine")
+            refine_source_dir, _refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
+            refine_dir = refine_source_dir.parent / REFINE_RETURN_DIRNAME
+            _validate_runtime_chunk_outputs(refine_source_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
             merge_refine_clean = (
                 Path(settings.BASE_DIR).parent
@@ -3819,12 +3943,12 @@ def run_edition_step(request, edition_id: int, step: str):
                 / "merge_refine_clean.txt"
             )
             canonical_merge.write_canonical_merge(
-                translate_dir,
+                refine_source_dir,
                 refine_dir,
                 merge_refine_build,
             )
             canonical_merge.write_canonical_merge(
-                translate_dir,
+                refine_source_dir,
                 refine_dir,
                 merge_refine_clean,
             )
@@ -3894,7 +4018,7 @@ def run_edition_step(request, edition_id: int, step: str):
             if utils.normalize_lang(target_edition.language.code) != "en":
                 raise ValueError("Polish is only available for English.")
 
-            run_polish_en_2025(book_id=book_id, lang_key="en_modern_2025")
+            run_polish_en_2025(book_id=book_id, lang_key="en_modern_2026")
             out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
             build_path = _copy_merge_to_build(
                 target_edition,

@@ -46,7 +46,7 @@ def _extract_output_text(resp) -> str:
     raise RuntimeError("Não foi possível extrair o texto do objeto de resposta do modelo.")
 
 
-def run_polish_en_2025(book_id: int, lang_key: str = "en_modern_2025") -> None:
+def run_polish_en_2025(book_id: int, lang_key: str = "en_modern_2026") -> None:
     contract = _load_contract()
     model = contract.get("model", "gpt-4o")
     system_prompt = contract.get(
@@ -63,7 +63,7 @@ def run_polish_en_2025(book_id: int, lang_key: str = "en_modern_2025") -> None:
     )
     variant = contract.get("variant", "polish_2025")
 
-    print(f"[INFO] Polish EN 2025 — book_id={book_id}, lang_key={lang_key}, model={model}")
+    print(f"[INFO] Polish EN — book_id={book_id}, lang_key={lang_key}, model={model}")
 
     # Busca o texto traduzido/merged no DB
     row = db_mod.get_translated_merged(book_id, lang_key)
@@ -139,7 +139,7 @@ def run_polish_en_2025(book_id: int, lang_key: str = "en_modern_2025") -> None:
     # Registra no DB
     db_mod.insert_polished_merged(
         book_id=book_id,
-        lang="en_modern_2025",
+        lang="en_modern_2026",
         variant=variant,
         source_kind="translated_merged",
         source_path=source_path,
@@ -151,7 +151,7 @@ def run_polish_en_2025(book_id: int, lang_key: str = "en_modern_2025") -> None:
 
 
 def main() -> None:
-    run_polish_en_2025(book_id=1, lang_key="en_modern_2025")
+    run_polish_en_2025(book_id=1, lang_key="en_modern_2026")
 
 
 if __name__ == "__main__":

@@ -57,6 +57,13 @@ def split_into_paragraphs(lines: List[str]) -> List[Tuple[int, int]]:
     return spans
 
 def make_chunks_from_text(text: str, language: str, min_tokens: int, target_tokens: int, max_tokens: int) -> List[Chunk]:
+    normalized_lang = (language or "").strip().lower()
+    # English literary modernization is more sensitive to overlong chunks because
+    # the runtime preserves paragraph structure and cannot safely summarize.
+    if normalized_lang in {"en", "eng", "english"}:
+        target_tokens = min(target_tokens, 1400)
+        max_tokens = min(max_tokens, 1700)
+
     lines = text.splitlines()
     units = detect_units(lines)
 
@@ -97,10 +104,58 @@ def make_chunks_from_text(text: str, language: str, min_tokens: int, target_toke
             buf_start_abs = None
             buf_end_abs = None
 
+        def split_huge_paragraph(para_text: str, start_line: int, end_line: int) -> None:
+            nonlocal chunk_idx
+            sentences = re.split(r"(?<=[.!?])\s+", para_text.strip())
+            acc: List[str] = []
+            for s in sentences:
+                if not s.strip():
+                    continue
+                cand = (" ".join(acc + [s])).strip()
+                if estimate_tokens(cand, language) > max_tokens and acc:
+                    chunk_text = (" ".join(acc)).strip() + "\n"
+                    sha = _sha256(chunk_text)
+                    out.append(Chunk(
+                        idx=chunk_idx,
+                        unit_type=u.unit_type,
+                        unit_title=u.title,
+                        start_line=start_line,
+                        end_line=end_line,
+                        text=chunk_text,
+                        est_tokens=estimate_tokens(chunk_text, language),
+                        sha256=sha,
+                        out_path=str(CHUNKS_DIR / "TMP"),
+                        char_count=len(chunk_text),
+                    ))
+                    chunk_idx += 1
+                    acc = [s]
+                else:
+                    acc.append(s)
+            if acc:
+                chunk_text = (" ".join(acc)).strip() + "\n"
+                sha = _sha256(chunk_text)
+                out.append(Chunk(
+                    idx=chunk_idx,
+                    unit_type=u.unit_type,
+                    unit_title=u.title,
+                    start_line=start_line,
+                    end_line=end_line,
+                    text=chunk_text,
+                    est_tokens=estimate_tokens(chunk_text, language),
+                    sha256=sha,
+                    out_path=str(CHUNKS_DIR / "TMP"),
+                    char_count=len(chunk_text),
+                ))
+                chunk_idx += 1
+
         for (ps, pe) in para_spans:
             para_lines = unit_lines[ps:pe + 1]
             para_text = "\n".join(para_lines).strip() + "\n"
             if not para_text.strip():
+                continue
+
+            if not buf_lines and estimate_tokens(para_text, language) > max_tokens:
+                split_huge_paragraph(para_text, u.start_line + ps, u.start_line + pe)
                 continue
 
             candidate_lines = (buf_lines + [""] + para_lines) if buf_lines else para_lines
@@ -112,51 +167,7 @@ def make_chunks_from_text(text: str, language: str, min_tokens: int, target_toke
                 flush()
                 # If paragraph itself exceeds max_tokens, we have to split inside it (rare, huge paragraph).
                 if estimate_tokens(para_text, language) > max_tokens:
-                    # Split paragraph by sentences as last resort
-                    sentences = re.split(r"(?<=[.!?])\s+", para_text.strip())
-                    acc = []
-                    for s in sentences:
-                        if not s.strip():
-                            continue
-                        cand = (" ".join(acc + [s])).strip()
-                        if estimate_tokens(cand, language) > max_tokens and acc:
-                            # flush sentence chunk
-                            st = cand.replace(" ".join([s]), "").strip()
-                            # simpler: flush acc
-                            chunk_text = (" ".join(acc)).strip() + "\n"
-                            sha = _sha256(chunk_text)
-                            out.append(Chunk(
-                                idx=chunk_idx,
-                                unit_type=u.unit_type,
-                                unit_title=u.title,
-                                start_line=u.start_line + ps,
-                                end_line=u.start_line + pe,
-                                text=chunk_text,
-                                est_tokens=estimate_tokens(chunk_text, language),
-                                sha256=sha,
-                                out_path=str(CHUNKS_DIR / "TMP"),
-                                char_count=len(chunk_text),
-                            ))
-                            chunk_idx += 1
-                            acc = [s]
-                        else:
-                            acc.append(s)
-                    if acc:
-                        chunk_text = (" ".join(acc)).strip() + "\n"
-                        sha = _sha256(chunk_text)
-                        out.append(Chunk(
-                            idx=chunk_idx,
-                            unit_type=u.unit_type,
-                            unit_title=u.title,
-                            start_line=u.start_line + ps,
-                            end_line=u.start_line + pe,
-                            text=chunk_text,
-                            est_tokens=estimate_tokens(chunk_text, language),
-                            sha256=sha,
-                            out_path=str(CHUNKS_DIR / "TMP"),
-                            char_count=len(chunk_text),
-                        ))
-                        chunk_idx += 1
+                    split_huge_paragraph(para_text, u.start_line + ps, u.start_line + pe)
                     continue
 
                 # start new buffer with this paragraph

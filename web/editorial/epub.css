@@ -59,6 +59,12 @@ section#epilogue {
   line-height: 1.6;
 }
 
+section#frontispiece > h1,
+section#copyright > h1,
+section#about-this-edition > h1 {
+  text-align: center;
+}
+
 .chapter-start + h1,
 .chapter-start + h2 {
   margin-top: 0;
