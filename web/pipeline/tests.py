@@ -2013,6 +2013,35 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertNotIn("## By Robert E. Howard\n{{IMAGE:CH01:01}}", updated_md)
         self.assertIn("# Chapter 01 - The Adventure of the Empty House\n{{IMAGE:CH01:01}}", updated_md)
 
+    def test_insert_images_keeps_sequential_placeholders_when_part_two_restarts_chapters(self):
+        self.pre_edition_path.write_text(
+            (
+                "## Part I - The Tragedy of Birlstone\n\n"
+                "# Chapter 01 - The Warning\n\n"
+                "Body 1.\n\n"
+                "# Chapter 02 - Sherlock Holmes Discourses\n\n"
+                "Body 2.\n\n"
+                "## Part II - The Scowrers\n\n"
+                "# Chapter 01 - The Man\n\n"
+                "Body 3.\n\n"
+                "# Chapter 02 - The Bodymaster\n\n"
+                "Body 4.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(
+            self.steps_url,
+            data={"action": "insert_images"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        updated_md = self.pre_edition_path.read_text(encoding="utf-8")
+        self.assertIn("# Chapter 01 - The Warning\n{{IMAGE:CH01:01}}", updated_md)
+        self.assertIn("# Chapter 02 - Sherlock Holmes Discourses\n{{IMAGE:CH02:01}}", updated_md)
+        self.assertIn("# Chapter 01 - The Man\n{{IMAGE:CH03:01}}", updated_md)
+        self.assertIn("# Chapter 02 - The Bodymaster\n{{IMAGE:CH04:01}}", updated_md)
+
 
 class MdTransformSourceHeadingContractTests(TestCase):
     def setUp(self):

@@ -1230,7 +1230,8 @@ def insert_image_placeholders(md_path: Path) -> None:
             continue
         if inside_center_block:
             continue
-        if _is_md_chapter_heading(line):
+        heading_text = _md_heading_text(line) or ""
+        if _is_md_chapter_heading(line) and not re.match(r"^\s*part\b", heading_text, re.IGNORECASE):
             has_chapter = True
             break
 
@@ -1244,7 +1245,6 @@ def insert_image_placeholders(md_path: Path) -> None:
     lines = text.splitlines()
     out_lines: list[str] = []
     chapter_idx = 0
-    seen_chapters: set[int] = set()
     inside_center_block = False
     i = 0
     while i < len(lines):
@@ -1262,19 +1262,14 @@ def insert_image_placeholders(md_path: Path) -> None:
         if inside_center_block:
             i += 1
             continue
-        is_chapter = _is_md_chapter_heading(line)
+        heading_text = _md_heading_text(line) or ""
+        is_chapter = _is_md_chapter_heading(line) and not re.match(
+            r"^\s*part\b", heading_text, re.IGNORECASE
+        )
 
         if is_chapter:
-            chapter_text = _md_heading_text(line) or ""
-            chapter_no = _extract_chapter_number(chapter_text)
-            if chapter_no is None:
-                chapter_idx += 1
-                chapter_no = chapter_idx
-            if chapter_no in seen_chapters:
-                i += 1
-                continue
-            seen_chapters.add(chapter_no)
-            idx_str = f"{chapter_no:02d}"
+            chapter_idx += 1
+            idx_str = f"{chapter_idx:02d}"
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1

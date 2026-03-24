@@ -17,6 +17,8 @@ RULE_LINE_RE = re.compile(r"^\s*[-=]{5,}\s*$")
 DIV_MARKER_RE = re.compile(r"^\s*:::(?:\s+.*)?\s*$")
 IMAGE_LINE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]+\)")
 MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
+NORMALIZED_PART_RE = re.compile(r"^\s*PART\s+(\d+)\b", re.IGNORECASE)
+NORMALIZED_CHAPTER_RE = re.compile(r"^\s*CHAPTER\s+(\d+)\b", re.IGNORECASE)
 
 def roman_to_int(s: str) -> int | None:
     s = s.upper().strip()
@@ -223,6 +225,65 @@ def _promote_standalone_chapter_markers(lines: list[str]) -> list[str]:
 
     return out
 
+
+def _insert_part_markers_for_chapter_resets(lines: list[str]) -> list[str]:
+    chapter_positions: list[tuple[int, int]] = []
+    for idx, line in enumerate(lines):
+        match = NORMALIZED_CHAPTER_RE.match((line or "").strip())
+        if not match:
+            continue
+        chapter_positions.append((idx, int(match.group(1))))
+
+    if not chapter_positions:
+        return lines
+
+    part_insertions: list[tuple[int, str]] = []
+    part_count = 0
+
+    first_idx, _first_no = chapter_positions[0]
+    has_part_before_first = any(
+        NORMALIZED_PART_RE.match((lines[idx] or "").strip())
+        for idx in range(max(0, first_idx - 3), first_idx)
+    )
+
+    resets = []
+    previous_no = chapter_positions[0][1]
+    for idx, chapter_no in chapter_positions[1:]:
+        if chapter_no == 1 and previous_no > 1:
+            resets.append(idx)
+        previous_no = chapter_no
+
+    if resets and not has_part_before_first:
+        part_count = 1
+        part_insertions.append((first_idx, "PART 1"))
+
+    for chapter_idx in resets:
+        existing_part_before = any(
+            NORMALIZED_PART_RE.match((lines[idx] or "").strip())
+            for idx in range(max(0, chapter_idx - 3), chapter_idx)
+        )
+        if existing_part_before:
+            continue
+        part_count += 1
+        if part_count == 0:
+            part_count = 2
+        part_insertions.append((chapter_idx, f"PART {part_count}"))
+
+    if not part_insertions:
+        return lines
+
+    out: list[str] = []
+    insertion_map = {idx: label for idx, label in part_insertions}
+    for idx, line in enumerate(lines):
+        label = insertion_map.get(idx)
+        if label is not None:
+            if out and out[-1].strip():
+                out.append("")
+            out.append(label)
+            out.append("")
+        out.append(line)
+    return out
+
 def normalize_text_v1(raw: str) -> str:
     lines = raw.splitlines()
     lines = _slice_gutenberg_main(lines)
@@ -266,6 +327,7 @@ def normalize_text_v2(raw: str) -> str:
 
         out.append(line)
 
+    out = _insert_part_markers_for_chapter_resets(out)
     out = _collapse_blank(out)
     return "\n".join(out).strip()
 

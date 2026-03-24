@@ -1,4 +1,6 @@
-Chapter I
+Part I
+
+Chapter 1
 
 The Warning
 
@@ -142,7 +144,7 @@ The inspector broke off suddenly, staring in utter amazement at a paper on the t
 
 The inspector looked from one to the other of us in dazed astonishment. “Just this,” he said, “that Mr. Douglas of Birlstone Manor House was horribly murdered last night!”
 
-Chapter II
+Chapter 2
 
 Sherlock Holmes Discourses
 
@@ -312,7 +314,7 @@ Inspector MacDonald had grown increasingly impressed as the conversation progres
 
 “Then, with your permission, we will leave it there, Mr. Mac. The temptation to form premature theories on insufficient data is the bane of our profession. At present I can see only two things for certain: a great brain in London, and a dead man in Sussex. It is the chain between them that we must trace.”
 
-Chapter III
+Chapter 3
 
 The Tragedy of Birlstone
 
@@ -446,7 +448,7 @@ The butler had given an exclamation of astonishment and was pointing at the dead
 
 The country policeman shook his head. “Seems to me the sooner we get London on this case the better,” he said. “White Mason is a smart man. No local job has ever been too much for White Mason. It won’t be long now before he is here to help us. But I expect we’ll have to look to London before we are through. Anyhow, I’m not ashamed to say that it is a deal too thick for the likes of me.”
 
-Chapter IV
+Chapter 4
 
 Darkness
 
@@ -652,7 +654,7 @@ We found three or four grooms and idlers standing in the drive, inspecting a bic
 
 “Don’t we?” my friend answered thoughtfully. “I wonder!”
 
-Chapter V
+Chapter 5
 
 The People of the Drama
 
@@ -920,7 +922,7 @@ White Mason chuckled and rubbed his fat hands together in professional satisfact
 
 “I said it was a snorter!” he cried. “And a real snorter it is!”
 
-Chapter VI
+Chapter 6
 
 A Dawning Light
 
@@ -1114,7 +1116,7 @@ He stood beside me in silence, his candle in his hand. Then the tall, lean figur
 
 “Ah, that’s lucky,” he said, and not another word would he utter that night.
 
-Chapter VII
+Chapter 7
 
 The Solution
 
@@ -1346,7 +1348,9 @@ Now, dear readers, I ask you to journey with me away from the Sussex Manor House
 
 Do not imagine that I break off one story before another is finished. As you read on, you will see that this is not so. When I have set out those distant events, and you have solved this mystery of the past, we shall meet again in those rooms in Baker Street, where this, like many another remarkable happening, will find its end.
 
-Chapter I
+Part II
+
+Chapter 1
 
 The Man
 
@@ -1526,7 +1530,7 @@ A heavy, elderly man came plodding up the path. In a few words McMurdo explained
 
 So it was that McMurdo, the self-confessed fugitive from justice, took up his abode under the roof of the Shafters, the first step in what was to lead to a long and dark series of events, ending in a far distant land.
 
-Chapter II
+Chapter 2
 
 The Bodymaster
 
@@ -1912,7 +1916,7 @@ McGinty clapped them both on the shoulders.
 
 "Tch! These girls! These girls!" he cried. "To think the same petticoats should come between two of my boys! It's the devil's own luck! Well, it's the colleen inside them that must settle the question, for it's outside the jurisdiction of a Bodymaster—and the Lord be praised for that! We have enough on our hands without the women as well. You'll have to be affiliated to Lodge 341, Brother McMurdo. We have our own ways and methods, different from Chicago. Saturday night is our meeting, and if you come then, we'll make you free forever of the Vermissa Valley."
 
-Chapter III
+Chapter 3
 
 Lodge 341, Vermissa
 
@@ -2172,7 +2176,7 @@ He raised his stick, but McMurdo had whipped his pistol out of his pocket.
 
 There was indeed the sound of shouting in the street, and a little group of compositors and pressmen was forming in the hall below, bracing itself for action. Leaving the limp and motionless body of the editor at the head of the stairs, the criminals rushed down and made their way swiftly along the street. Having reached the Union House, some of them mixed with the crowd in McGinty’s saloon, whispering across the bar to the Boss that the job had been well carried through. Others, and among them McMurdo, broke away into side streets, and so by devious paths to their own homes.
 
-Chapter IV
+Chapter 4
 
 The Valley of Fear
 
@@ -2370,7 +2374,7 @@ The verdict was met with loud applause in a court where McMurdo saw many familia
 
 “You damned murderers!” he said. “We’ll fix you yet!”
 
-Chapter V
+Chapter 5
 
 ## The Darkest Hour
 
@@ -2558,7 +2562,7 @@ These deeds are recorded in history, where one may learn of the shooting of Poli
 
 Darkly the shadow lay upon the Valley of Fear. Spring came with running brooks and blossoming trees. There was hope for all Nature, bound so long in an iron grip, but none for the men and women living under terror’s yoke. Never had the cloud been so dark and hopeless as in the early summer of 1875.
 
-Chapter VI
+Chapter 6
 
 Danger
 
@@ -2758,7 +2762,7 @@ The proposal was adopted at once, and the committee was formed. Besides the chai
 
 “There’s going to be a vacancy at Pinkerton’s, or I’m much mistaken. Leave it at that, McMurdo. At nine tomorrow we’ll be with you. Once you get the door shut behind him, you can leave the rest to us.”
 
-Chapter VII
+Chapter 7
 
 The Trapping of Birdy Edwards
 

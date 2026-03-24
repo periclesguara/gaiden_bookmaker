@@ -829,6 +829,17 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "BOOK.epub") -
     title = (edition.title or "").strip() or "Die Abenteuer des Sherlock Holmes"
     lang = edition.language.code
     subtitle = (getattr(edition, "subtitle", "") or "").strip()
+    creator = (
+        (edition.author or "").strip()
+        or (
+            getattr(getattr(edition, "work", None), "author", None).name
+            if getattr(getattr(edition, "work", None), "author", None)
+            else ""
+        )
+    )
+    publisher = (edition.publisher or "").strip() or "RinoBooks"
+    editor = (edition.editor or "").strip()
+    adapter = (edition.adapter or "").strip()
     css_path = _ensure_epub_css(builds_base)
 
     cmd = [
@@ -843,6 +854,14 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "BOOK.epub") -
         f"--metadata=lang:{lang}",
         f"--metadata=language:{lang}",
     ]
+    if creator:
+        cmd.append(f"--metadata=author:{creator}")
+    if publisher:
+        cmd.append(f"--metadata=publisher:{publisher}")
+    if editor:
+        cmd.append(f"--metadata=editor:{editor}")
+    if adapter:
+        cmd.append(f"--metadata=contributor:{adapter}")
     cover_path = _resolve_cover_path(edition)
     if cover_path:
         cmd.append(f"--epub-cover-image={cover_path}")

@@ -43,3 +43,44 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
         self.assertNotIn("CHAPTER I", normalized)
         self.assertNotIn("CHAPTER II", normalized)
         self.assertNotIn("CHAPTER III", normalized)
+
+    def test_normalize_converts_part_headings_and_preserves_chapter_restart(self):
+        raw = (
+            "Part I\n\n"
+            "Chapter I\n\n"
+            "The Warning\n\n"
+            "Body.\n\n"
+            "Chapter II\n\n"
+            "More body.\n\n"
+            "Part II\n\n"
+            "Chapter I\n\n"
+            "The Man\n\n"
+            "More body.\n"
+        )
+
+        normalized = normalize_text_v2(raw)
+
+        self.assertIn("PART 1", normalized)
+        self.assertIn("PART 2", normalized)
+        self.assertIn("CHAPTER 1", normalized)
+        self.assertIn("CHAPTER 2", normalized)
+        self.assertNotIn("Part I", normalized)
+        self.assertNotIn("Part II", normalized)
+        self.assertNotIn("Chapter I", normalized)
+
+    def test_normalize_inserts_part_markers_when_chapters_restart_without_part_heading(self):
+        raw = (
+            "Chapter I\n\n"
+            "The Warning\n\n"
+            "Body.\n\n"
+            "Chapter II\n\n"
+            "More body.\n\n"
+            "Chapter I\n\n"
+            "The Man\n\n"
+            "More body.\n"
+        )
+
+        normalized = normalize_text_v2(raw)
+
+        self.assertIn("PART 1\n\nCHAPTER 1", normalized)
+        self.assertIn("PART 2\n\nCHAPTER 1", normalized)
