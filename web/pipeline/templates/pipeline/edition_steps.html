@@ -254,7 +254,9 @@
               <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
               <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
               <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-              <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+              <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE</option>
+              <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
+              <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
             </select>
             <span class="status">Contrato: <strong id="translate_contract_path"></strong></span>
             {% endif %}
@@ -328,7 +330,9 @@
             <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
             <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE (Krimi)</option>
+            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE</option>
+            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
+            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
           </select>
           <button class="btn secondary" type="submit">Next step</button>
         </form>
@@ -462,7 +466,9 @@
             <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
             <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
             <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE (Krimi)</option>
+            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE</option>
+            <option value="fr" {% if md_language_default == "fr" %}selected{% endif %}>FR</option>
+            <option value="it" {% if md_language_default == "it" %}selected{% endif %}>IT</option>
           </select>
           <button class="btn" type="submit">Convert TXT to MD</button>
         </form>

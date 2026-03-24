@@ -1946,9 +1946,11 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 def _select_contract_path(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/en_modern_2025.json",
-        "es": "gaiden/contracts/en_es_2025.json",
-        "ptbr": "gaiden/contracts/en_ptbr_2025.json",
-        "de": "gaiden/contracts/en_de_krimi_2025.json",
+        "es": "gaiden/contracts/en_modern_2025.json",
+        "ptbr": "gaiden/contracts/en_modern_2025.json",
+        "de": "gaiden/contracts/en_modern_2025.json",
+        "fr": "gaiden/contracts/en_fr_2025.json",
+        "it": "gaiden/contracts/en_it_2025.json",
     }
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
@@ -2273,6 +2275,8 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
         "es": "modern, natural Spanish",
         "ptbr": "modern Brazilian Portuguese",
         "de": "modern, natural German",
+        "fr": "modern, natural French",
+        "it": "modern, natural Italian",
     }
     target_label = target_labels.get(lang, f"modern {lang}")
 
@@ -2294,35 +2298,35 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
                 "{text}"
             )
         return system_prompt, user_prompt, target_label
-    else:
-        task_line = (
-            f"You are a professional literary translator translating prose into {target_label}."
+    english_payload = _merge_translate_contract_defaults(payload)
+    english_system = str(english_payload.get("system_prompt") or "").strip()
+    english_user = str(english_payload.get("user_prompt") or "").strip()
+    if not english_system or not english_user:
+        english_contract_block = _english_translate_contract_block(english_payload)
+        english_system = (
+            "You are a literary translator-editor. Translate the passage into the requested target language while preserving "
+            "meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
+            "Output only the translated passage."
         )
-        user_prompt = (
-            f"Translate the following literary passage into {target_label}.\n\n"
-            "NON-NEGOTIABLE:\n"
-            "- Preserve meaning, chronology, names, places, dates, numbers, and dialogue.\n"
-            "- Preserve paragraph structure.\n"
-            "- Do not summarize, compress, explain, annotate, or invent content.\n"
-            "- Keep headings/chapter markers if they exist.\n\n"
+        english_user = (
+            "Translate the following literary passage into the requested target language.\n\n"
+            f"{english_contract_block}\n\n"
             "Return only the final translated passage.\n\n"
             "{text}"
         )
 
     system_prompt = (
-        f"{task_line}\n\n"
-        + (
-            f"Contract: {payload.get('contract_name')} ({payload.get('role')}).\n\n"
-            if lang == "en" and payload.get("contract_name") and payload.get("role")
-            else ""
-        )
-        + "CRITICAL OUTPUT RULES:\n"
-        "- Output only the literary passage.\n"
-        "- Do not add titles, headings, introductions, notes, summaries, bullet lists, numbered lists, analysis, commentary, or explanations.\n"
-        "- Do not mention the prompt, the source text, copyright, safety policies, or your own editorial choices.\n"
-        "- Do not wrap the answer in quotes, code fences, markdown, or labels.\n"
-        "- Preserve tone, order of events, and paragraph boundaries.\n"
-        "- Preserve the passage as continuous narrative prose and dialogue."
+        f"You are a literary translator-editor working into {target_label}. "
+        "Preserve meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
+        "Output only the translated passage."
+    )
+    user_prompt = (
+        english_user
+        .replace("controlled modern English", target_label)
+        .replace("modern English", target_label)
+        .replace("rewritten passage", "translated passage")
+        .replace("Rewrite the following literary passage into", "Translate the following literary passage into")
+        .replace("Rewrite the passage into", "Translate the passage into")
     )
     return system_prompt, user_prompt, target_label
 
@@ -3406,12 +3410,12 @@ def edition_steps(request, edition_id: int):
     ]
     md_source_map = {
         lang: _resolve_md_source_path(lang)
-        for lang in ("en", "es", "ptbr", "de")
+        for lang in ("en", "es", "ptbr", "de", "fr", "it")
     }
     md_source_map_json = json.dumps(md_source_map)
     translate_contract_map: dict[str, str] = {}
     project_root = Path(settings.BASE_DIR).parent
-    for lang in ("en", "es", "ptbr", "de"):
+    for lang in ("en", "es", "ptbr", "de", "fr", "it"):
         try:
             contract_path = _select_contract_path(lang)
             try:
@@ -3754,69 +3758,16 @@ def run_edition_step(request, edition_id: int, step: str):
             stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             source_dir_for_validation: Path | None = None
-            if target_language == "de":
-                core_edition = _global_core_edition(edition)
-                core_state = EditionPipeline.objects.filter(edition=core_edition).first()
-                core_path_value = (core_state.core_last_txt_path if core_state else "") or ""
-                if not core_path_value:
-                    messages.error(request, "Salve o Core antes de traduzir.")
-                    return redirect("edition_steps", edition_id=edition.id)
-                core_path = _resolve_core_path(core_path_value)
-                if not core_path.exists():
-                    messages.error(request, "Core salvo nao encontrado. Re-salve o Core.")
-                    return redirect("edition_steps", edition_id=edition.id)
-
-                core_chunks_dir = (
-                    Path(settings.BASE_DIR).parent
-                    / "data"
-                    / "editions"
-                    / str(target_edition.id)
-                    / "core"
-                    / "chunks_de"
-                )
-                core_chunks_dir.mkdir(parents=True, exist_ok=True)
-                (core_chunks_dir / "0001.txt").write_text(
-                    core_path.read_text(encoding="utf-8"),
-                    encoding="utf-8",
-                )
-                source_dir_for_validation = core_chunks_dir
-                contract_path = _select_contract_path(target_language)
-                contract_payload = json.loads(contract_path.read_text(encoding="utf-8"))
-                contract_payload["chunk_dir"] = str(core_chunks_dir)
-                contract_payload["out_dir"] = str(
-                    Path(settings.BASE_DIR).parent
-                    / "data"
-                    / "editions"
-                    / str(target_edition.id)
-                    / "translate"
-                    / "de_krimi"
-                )
-                core_contract_path = (
-                    Path(settings.BASE_DIR).parent
-                    / "data"
-                    / "editions"
-                    / str(target_edition.id)
-                    / "core"
-                    / "contract_de.json"
-                )
-                core_contract_path.parent.mkdir(parents=True, exist_ok=True)
-                core_contract_path.write_text(
-                    json.dumps(contract_payload, ensure_ascii=False, indent=2),
-                    encoding="utf-8",
-                )
-                run_translate_with_contract(core_contract_path)
-                out_dir_path = _resolve_contract_out_dir(core_contract_path, target_edition)
-            else:
-                runtime_contract_path, source_label = _build_runtime_translate_contract(
-                    target_edition,
-                    target_language,
-                )
-                run_translate_with_contract(runtime_contract_path)
-                out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
-                source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
-                    _edition_codes(target_edition)[0]
-                )
-                messages.info(request, f"Translate source: {source_label}")
+            runtime_contract_path, source_label = _build_runtime_translate_contract(
+                target_edition,
+                target_language,
+            )
+            run_translate_with_contract(runtime_contract_path)
+            out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
+            source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
+                _edition_codes(target_edition)[0]
+            )
+            messages.info(request, f"Translate source: {source_label}")
 
             _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
             merged_path = _detect_merged_path(out_dir_path)
@@ -4101,6 +4052,11 @@ def run_edition_step(request, edition_id: int, step: str):
                 result = {"path": str(final_path), "source": str(source_path)}
             else:
                 result = md_quality.approve_md_final(edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+            pipeline_state.current_stage = PipelineStage.FINAL_MD
+            pipeline_state.final_md_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save(update_fields=["current_stage", "final_md_at", "last_log"])
             messages.success(
                 request,
                 f"MD final saved: {result['path']}",
@@ -4110,12 +4066,25 @@ def run_edition_step(request, edition_id: int, step: str):
             target_edition = _target_edition()
             kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
             merged_path = kdp_mode.build_merged_kdp_source(target_edition)
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            pipeline_state.miolo_md_at = timezone.now()
+            if not pipeline_state.final_md_at and pipeline_state.current_stage != PipelineStage.DONE:
+                pipeline_state.current_stage = PipelineStage.MIOLO_MD
+            pipeline_state.last_log = ""
+            pipeline_state.save(update_fields=["miolo_md_at", "current_stage", "last_log"])
             result = {"path": str(kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"), "merged": str(merged_path)}
             messages.success(request, f"Build OK: {result['path']}")
 
         elif step == "export_epub":
             target_edition = _target_edition()
             result = {"path": str(kdp_mode.build_epub_for_edition(target_edition))}
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            if pipeline_state.miolo_md_at is None:
+                pipeline_state.miolo_md_at = timezone.now()
+            if pipeline_state.final_md_at:
+                pipeline_state.current_stage = PipelineStage.DONE
+            pipeline_state.last_log = ""
+            pipeline_state.save(update_fields=["miolo_md_at", "current_stage", "last_log"])
             messages.success(request, f"EPUB OK: {result['path']}")
 
         elif step == "export_pdf":

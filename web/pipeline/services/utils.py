@@ -13,6 +13,12 @@ LANG_MAP = {
     "de-de": "de",
     "de_de": "de",
     "de": "de",
+    "fr-fr": "fr",
+    "fr_fr": "fr",
+    "fr": "fr",
+    "it-it": "it",
+    "it_it": "it",
+    "it": "it",
 }
 
 
