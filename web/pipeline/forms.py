@@ -16,8 +16,9 @@ def normalize_book_code_input(value: str) -> str:
     match = _BOOK_CODE_INPUT_RE.match(raw)
     if not match:
         return raw.lower()
-    digits = match.group(1).lstrip("0") or "0"
-    width = max(3, len(digits))
+    raw_digits = match.group(1)
+    digits = raw_digits.lstrip("0") or "0"
+    width = max(3, len(raw_digits))
     return f"book_{digits.zfill(width)}"
 
 

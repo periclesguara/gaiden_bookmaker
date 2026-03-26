@@ -599,7 +599,12 @@ class ContractIngestV1Tests(TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_root = Path(self.temp_dir.name)
         self.temp_web = self.temp_root / "web"
+        self.repo_root = Path(__file__).resolve().parents[2]
         self.temp_web.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(
+            self.repo_root / "gaiden" / "contracts",
+            self.temp_root / "gaiden" / "contracts",
+        )
         self.settings_override = override_settings(BASE_DIR=self.temp_web)
         self.settings_override.enable()
 
@@ -829,6 +834,7 @@ class BookCodeNormalizationTests(TestCase):
 
     def test_normalize_book_code_input_preserves_existing_width_for_longer_codes(self):
         self.assertEqual(normalize_book_code_input("book_013"), "book_013")
+        self.assertEqual(normalize_book_code_input("book_0006"), "book_0006")
         self.assertEqual(normalize_book_code_input("book_9001"), "book_9001")
 
 
@@ -1358,7 +1364,7 @@ class HeadingCleanerGateTests(TestCase):
         payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
 
         self.assertEqual(refine_input_dir, self.edition_core_dir / "refine_input_en")
-        self.assertEqual(out_dir_path, self.translated_dir / "return_aldebaran")
+        self.assertEqual(out_dir_path, self.translated_dir.parent / "return_aldebaran")
         self.assertEqual(payload["refine_profile"], "ingles_neutro")
         self.assertEqual(payload["agent_name"], "Aldebaran")
         self.assertIn("professional literary editor", payload["system_prompt"])
@@ -1581,7 +1587,7 @@ class HeadingCleanerGateTests(TestCase):
 
         response = self.client.get(self.steps_url)
 
-        self.assertContains(response, "5) Refine (Ingles flex)")
+        self.assertContains(response, "6) Refine (Ingles flex)")
         self.assertContains(response, '<option value="ingles_flex" selected>', html=False)
 
     def test_pipeline01_step_order_is_fixed(self):
@@ -1593,9 +1599,10 @@ class HeadingCleanerGateTests(TestCase):
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
             "4) Translate (script + JSON)",
-            "5) Refine (Ingles neutro)",
-            "6) Merge/Finalize",
-            "7) Pre-producao (Pre-flight)",
+            "5) Split by Chapter (merge_translate)",
+            "6) Refine (Ingles neutro)",
+            "7) Merge/Finalize",
+            "8) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
@@ -1608,6 +1615,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertRegex(html, r'id="btn_translate"[^>]*disabled')
 
     def test_chunk_post_is_blocked_without_heading_cleaner(self):
+        shutil.rmtree(self.split_dir, ignore_errors=True)
         response = self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
 
         self.assertEqual(response.status_code, 302)
@@ -1636,9 +1644,10 @@ class HeadingCleanerGateTests(TestCase):
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
             "4) Translate (script + JSON)",
-            "5) Refine (Ingles neutro)",
-            "6) Merge/Finalize",
-            "7) Pre-producao (Pre-flight)",
+            "5) Split by Chapter (merge_translate)",
+            "6) Refine (Ingles neutro)",
+            "7) Merge/Finalize",
+            "8) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))

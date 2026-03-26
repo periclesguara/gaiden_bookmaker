@@ -566,16 +566,18 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
                 },
             )
     except IntegrityError:
-        _insert_work_row_legacy_schema(
-            book_code=book_code,
-            title=template.title or book_code,
-            language_id=language_obj.id,
-            language_code=language_code,
-            author_id=author_obj.id,
-            publisher=template.imprint_name or "",
-            year=template.publication_year or 2026,
-        )
-        work_obj = Work.objects.get(code=book_code)
+        work_obj = Work.objects.filter(code=book_code).first()
+        if work_obj is None:
+            _insert_work_row_legacy_schema(
+                book_code=book_code,
+                title=template.title or book_code,
+                language_id=language_obj.id,
+                language_code=language_code,
+                author_id=author_obj.id,
+                publisher=template.imprint_name or "",
+                year=template.publication_year or 2026,
+            )
+            work_obj = Work.objects.get(code=book_code)
 
     existing_edition = (
         EditorialEdition.objects.select_related("work", "language", "seal")
@@ -619,15 +621,6 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
                 about_contributor_template=template.about_contributor_text,
             )
     except IntegrityError:
-        _insert_edition_row_legacy_schema(
-            work_id=work_obj.id,
-            language_id=language_obj.id,
-            seal_id=seal_obj.id,
-            language_code=language_code,
-            seal_name=seal_name,
-            template=template,
-            author_name=author_name,
-        )
         edition = (
             EditorialEdition.objects.select_related("work", "language", "seal")
             .filter(work=work_obj, language=language_obj, seal=seal_obj)
@@ -635,7 +628,23 @@ def _ensure_editorial_edition(template: BookEditionTemplate) -> tuple[EditorialE
             .first()
         )
         if edition is None:
-            raise
+            _insert_edition_row_legacy_schema(
+                work_id=work_obj.id,
+                language_id=language_obj.id,
+                seal_id=seal_obj.id,
+                language_code=language_code,
+                seal_name=seal_name,
+                template=template,
+                author_name=author_name,
+            )
+            edition = (
+                EditorialEdition.objects.select_related("work", "language", "seal")
+                .filter(work=work_obj, language=language_obj, seal=seal_obj)
+                .order_by("-id")
+                .first()
+            )
+            if edition is None:
+                raise
     return edition, True
 
 
@@ -849,12 +858,20 @@ def _save_template_and_edition_metadata(template: BookEditionTemplate) -> tuple[
     return edition, edition_created
 
 
-def _handle_source_upload(request, template: BookEditionTemplate, upload_form: BookSourceUploadForm):
+def _handle_source_upload(
+    request,
+    template: BookEditionTemplate,
+    upload_form: BookSourceUploadForm,
+    *,
+    edition: EditorialEdition | None = None,
+):
     selected_source_format = _normalize_source_format(upload_form.cleaned_data["source_format"])
     source_file = upload_form.cleaned_data["source_file"]
     replace_existing = bool(upload_form.cleaned_data.get("replace_existing"))
     root = Path(settings.BASE_DIR).parent
-    edition, edition_created = _ensure_editorial_edition(template)
+    edition_created = False
+    if edition is None:
+        edition, edition_created = _ensure_editorial_edition(template)
     language = utils.normalize_lang(template.language)
     ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
     raw_path = root / "data" / "raw" / template.book_code / f"{template.book_code}_{language}_raw{ext}"
@@ -928,6 +945,16 @@ def _handle_source_upload(request, template: BookEditionTemplate, upload_form: B
     if selected_source_format == SOURCE_FORMAT_HTML:
         return redirect("pipeline_html_dashboard", edition_id=edition.id)
     return redirect("edition_steps", edition_id=edition.id)
+
+
+def _resolve_refine_output_dir(source_dir: Path | None) -> Path | None:
+    if source_dir is None:
+        return None
+    candidates = [
+        source_dir.parent / REFINE_RETURN_DIRNAME,
+        source_dir / REFINE_RETURN_DIRNAME,
+    ]
+    return next((path for path in candidates if path.exists()), candidates[0])
 
 
 def book_edition_list(request):
@@ -1332,7 +1359,7 @@ def book_edition_edit(request, book_code=None, language=None):
                     allowed_extensions_getter=_allowed_upload_exts,
                 )
                 if upload_form.is_valid():
-                    return _handle_source_upload(request, template, upload_form)
+                    return _handle_source_upload(request, template, upload_form, edition=edition)
                 messages.error(request, "Corrija os erros do upload e tente novamente.")
                 return render(
                     request,
@@ -1413,7 +1440,7 @@ def book_edition_upload(request, book_code: str, language: str):
             initial={"source_format": initial_source_format},
         )
         if upload_form.is_valid():
-            return _handle_source_upload(request, template, upload_form)
+            return _handle_source_upload(request, template, upload_form, edition=edition)
         messages.error(request, "Corrija os erros do upload e tente novamente.")
     else:
         upload_form = BookSourceUploadForm(
@@ -1879,7 +1906,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         refine_source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_lang)
     except Exception:
         refine_source_dir = None
-    refine_dir = refine_source_dir.parent / REFINE_RETURN_DIRNAME if refine_source_dir else None
+    refine_dir = _resolve_refine_output_dir(refine_source_dir)
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
     refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
@@ -2097,7 +2124,10 @@ def _select_contract_path(language: str) -> Path:
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
         raise ValueError(f"No translate contract for language={language}")
-    return Path(settings.BASE_DIR).parent / rel
+    preferred = Path(settings.BASE_DIR).parent / rel
+    if preferred.exists():
+        return preferred
+    return Path(__file__).resolve().parents[2] / rel
 
 
 def _select_refine_contract(language: str) -> Path:
@@ -2109,7 +2139,10 @@ def _select_refine_contract(language: str) -> Path:
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
         raise ValueError(f"No refine contract for language={language}")
-    return Path(settings.BASE_DIR).parent / rel
+    preferred = Path(settings.BASE_DIR).parent / rel
+    if preferred.exists():
+        return preferred
+    return Path(__file__).resolve().parents[2] / rel
 
 
 def _contract_target_lang(payload: dict) -> str:
@@ -3966,7 +3999,7 @@ def run_edition_step(request, edition_id: int, step: str):
             try:
                 from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-                out_dir_path = source_dir.parent / REFINE_RETURN_DIRNAME
+                out_dir_path = _resolve_refine_output_dir(source_dir)
                 result = run_aldebaran_refine_return(
                     chunk_dir=source_dir,
                     out_dir=out_dir_path,
@@ -4029,7 +4062,7 @@ def run_edition_step(request, edition_id: int, step: str):
                 getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
             )
             refine_source_dir, _refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
-            refine_dir = refine_source_dir.parent / REFINE_RETURN_DIRNAME
+            refine_dir = _resolve_refine_output_dir(refine_source_dir)
             _validate_runtime_chunk_outputs(refine_source_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
             merge_refine_clean = (
