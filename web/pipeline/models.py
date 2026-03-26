@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from django.db import models
+from django.db import connection, models
+from django.db.utils import OperationalError
 
 from editorial.models import Edition as EditorialEdition
 
@@ -279,7 +280,29 @@ def get_book_md_path(book_code: str, language: str) -> Path:
     )
 
 
+class BookEditionTemplateManager(models.Manager):
+    def get_queryset(self):
+        ensure_bookeditiontemplate_runtime_columns()
+        return super().get_queryset()
+
+
 class BookEditionTemplate(models.Model):
+    WORK_KIND_AUTHORIAL = "AUTHORIAL"
+    WORK_KIND_PUBLIC_DOMAIN = "PUBLIC_DOMAIN"
+    WORK_KIND_CHOICES = [
+        (WORK_KIND_AUTHORIAL, "Obra autoral"),
+        (WORK_KIND_PUBLIC_DOMAIN, "Obra de dominio publico"),
+    ]
+
+    STATUS_DRAFT = "DRAFT"
+    STATUS_REGISTERED = "REGISTERED"
+    STATUS_READY_FOR_BLOCK_02 = "READY_FOR_BLOCK_02"
+    REGISTRATION_STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_REGISTERED, "Registered"),
+        (STATUS_READY_FOR_BLOCK_02, "Ready for Block 02"),
+    ]
+
     LANG_EN = "en"
     LANG_PTBR = "ptbr"
     LANG_ES = "es"
@@ -326,6 +349,13 @@ class BookEditionTemplate(models.Model):
     subtitle = models.CharField(max_length=255, blank=True)
     author_name = models.CharField(max_length=255)
     publication_year = models.IntegerField()
+    original_publication_date = models.DateField(null=True, blank=True)
+    original_author_death_date = models.DateField(null=True, blank=True)
+    work_kind = models.CharField(
+        max_length=20,
+        choices=WORK_KIND_CHOICES,
+        default=WORK_KIND_AUTHORIAL,
+    )
     imprint_name = models.CharField(max_length=255, blank=True)
     collection_name = models.CharField(max_length=255, blank=True)
     collaborator_name = models.CharField(max_length=255, blank=True)
@@ -364,8 +394,22 @@ class BookEditionTemplate(models.Model):
     about_edition_text = models.TextField(blank=True)
     about_contributor_text = models.TextField(blank=True)
     text_source_mode = models.CharField(max_length=100, default="auto")
+    registration_status = models.CharField(
+        max_length=30,
+        choices=REGISTRATION_STATUS_CHOICES,
+        default=STATUS_DRAFT,
+    )
+    source_file_type = models.CharField(max_length=10, blank=True, default="")
+    source_original_name = models.CharField(max_length=255, blank=True, default="")
+    source_saved_path = models.CharField(max_length=500, blank=True, default="")
+    source_file_size = models.BigIntegerField(null=True, blank=True)
+    source_uploaded_at = models.DateTimeField(null=True, blank=True)
+    source_file_sha256 = models.CharField(max_length=64, blank=True, default="")
+    source_uploaded_by = models.CharField(max_length=150, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = BookEditionTemplateManager()
 
     class Meta:
         unique_together = ("book_code", "language")
@@ -480,4 +524,33 @@ class BookEditionTemplate(models.Model):
             update_fields = set(kwargs["update_fields"])
             update_fields.update(updated_fields)
             kwargs["update_fields"] = update_fields
+        ensure_bookeditiontemplate_runtime_columns()
         super().save(*args, **kwargs)
+
+
+def ensure_bookeditiontemplate_runtime_columns() -> None:
+    table_name = BookEditionTemplate._meta.db_table
+    columns_sql = {
+        "original_publication_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_publication_date date NULL",
+        "original_author_death_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_author_death_date date NULL",
+        "work_kind": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN work_kind varchar(20) NOT NULL DEFAULT 'AUTHORIAL'",
+        "registration_status": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN registration_status varchar(30) NOT NULL DEFAULT 'DRAFT'",
+        "source_file_type": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_type varchar(10) NOT NULL DEFAULT ''",
+        "source_original_name": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_original_name varchar(255) NOT NULL DEFAULT ''",
+        "source_saved_path": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_saved_path varchar(500) NOT NULL DEFAULT ''",
+        "source_file_size": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_size bigint NULL",
+        "source_uploaded_at": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_at datetime NULL",
+        "source_file_sha256": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_sha256 varchar(64) NOT NULL DEFAULT ''",
+        "source_uploaded_by": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_by varchar(150) NOT NULL DEFAULT ''",
+    }
+
+    with connection.cursor() as cursor:
+        table_names = set(connection.introspection.table_names(cursor))
+        if table_name not in table_names:
+            return
+        description = connection.introspection.get_table_description(cursor, table_name)
+        existing_columns = {getattr(col, "name", col[0]) for col in description}
+        for column_name, sql in columns_sql.items():
+            if column_name in existing_columns:
+                continue
+            cursor.execute(sql)

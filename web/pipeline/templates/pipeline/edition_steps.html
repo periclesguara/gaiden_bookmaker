@@ -216,11 +216,16 @@
     <article class="card">
       <h2>Texto / Pipeline Core</h2>
       <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'raw' %}" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="file" name="raw_file" required />
-          <button class="btn secondary" type="submit">Salvar RAW (upload)</button>
-        </form>
+        {% if raw_path %}
+        <div class="status">
+          <strong>Arquivo-fonte atual:</strong> {{ raw_name }}
+        </div>
+        {% else %}
+        <div class="status">
+          <strong>Arquivo-fonte ausente.</strong> O upload inicial fica centralizado na Pagina 02.
+        </div>
+        {% endif %}
+        <a class="btn secondary" href="{{ source_upload_url }}">Ir para Upload</a>
         {% for s in pipeline01_steps %}
         <section class="pipeline-step">
           <div class="status">

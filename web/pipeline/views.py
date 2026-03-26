@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import tempfile
 from datetime import datetime
+import hashlib
 import re
 import zipfile
 
@@ -36,6 +37,7 @@ from .models import (
     BookEditionTemplate,
     PipelineJob,
     TextSnapshot,
+    ensure_bookeditiontemplate_runtime_columns,
     get_book_md_path,
 )
 try:
@@ -43,7 +45,7 @@ try:
 except ImportError:
     PipelineRun = None
     PipelineRunItem = None
-from .forms import BookEditionTemplateForm, normalize_book_code_input
+from .forms import BookEditionTemplateForm, BookSourceUploadForm, normalize_book_code_input
 from .services import (
     book_manifest,
     build_book,
@@ -258,31 +260,30 @@ def _validate_ingest_v1_request(post_data, files) -> str:
     return source_format
 
 
-def _validate_ingest_metadata_request(post_data) -> str:
-    source_format = (post_data.get("source_format") or "").strip().lower()
-    if source_format not in SOURCE_FORMAT_ALLOWED:
-        raise ValidationError("source_format invalido. Use 'html' ou 'txt'.")
-
+def _validate_registration_request(post_data) -> None:
     required_fields = ("book_code", "language", "title", "author_name")
     for field in required_fields:
         if not (post_data.get(field) or "").strip():
             raise ValidationError(f"Campo obrigatorio ausente: {field}.")
 
-    return source_format
 
-
-def _write_uploaded_file_atomic(dest_path: Path, uploaded_file) -> None:
+def _write_uploaded_file_atomic(dest_path: Path, uploaded_file) -> dict[str, object]:
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=".upload_", dir=str(dest_path.parent))
     temp_path = Path(temp_name)
+    sha256 = hashlib.sha256()
+    total_size = 0
     try:
         with os.fdopen(fd, "wb") as temp_fp:
             for chunk in uploaded_file.chunks():
                 temp_fp.write(chunk)
+                sha256.update(chunk)
+                total_size += len(chunk)
         os.replace(temp_path, dest_path)
     finally:
         if temp_path.exists():
             temp_path.unlink()
+    return {"sha256": sha256.hexdigest(), "size": total_size}
 
 
 def _language_defaults(language_code: str) -> dict[str, str]:
@@ -719,12 +720,218 @@ def pipeline_jobs(request):
     return render(request, "pipeline/jobs.html", {"pipelines": pipelines})
 
 
-def book_edition_list(request):
-    editions = (
+def _template_upload_url(template: BookEditionTemplate | None) -> str:
+    if template is None:
+        return ""
+    return reverse(
+        "book_edition_upload",
+        kwargs={"book_code": template.book_code, "language": utils.normalize_lang(template.language)},
+    )
+
+
+def _existing_source_info(template: BookEditionTemplate | None, edition: EditorialEdition | None = None) -> dict[str, object]:
+    path_value = ""
+    if template and (template.source_saved_path or "").strip():
+        path_value = template.source_saved_path.strip()
+    elif edition and (edition.raw_source_path or "").strip():
+        path_value = edition.raw_source_path.strip()
+
+    resolved_path = _resolve_project_path(path_value) if path_value else None
+    return {
+        "path": path_value,
+        "exists": bool(resolved_path and resolved_path.exists()),
+        "name": (template.source_original_name if template else "") or (resolved_path.name if resolved_path else ""),
+        "uploaded_at": template.source_uploaded_at if template else None,
+        "sha256": (template.source_file_sha256 if template else "") or "",
+        "size": template.source_file_size if template else None,
+    }
+
+
+def _registration_status_label(template: BookEditionTemplate | None) -> str:
+    if template is None:
+        return "Nao cadastrado"
+    return dict(BookEditionTemplate.REGISTRATION_STATUS_CHOICES).get(template.registration_status, template.registration_status)
+
+
+def _book_registration_rows() -> list[dict[str, object]]:
+    ensure_bookeditiontemplate_runtime_columns()
+    editions = list(
         EditorialEdition.objects.select_related("work", "language", "seal")
         .order_by("work__code", "language__code")
     )
-    return render(request, "pipeline/book_edition_list.html", {"editions": editions})
+    pipeline_map = {
+        row.edition_id: row
+        for row in EditionPipeline.objects.select_related("edition").filter(
+            edition_id__in=[ed.id for ed in editions]
+        )
+    }
+    template_map = {
+        (row.book_code, utils.normalize_lang(row.language)): row
+        for row in BookEditionTemplate.objects.all()
+    }
+
+    rows: list[dict[str, object]] = []
+    for edition in editions:
+        book_code = edition.work.code
+        language = utils.normalize_lang(edition.language.code)
+        template = template_map.get((book_code, language))
+        pipeline_state = pipeline_map.get(edition.id)
+        source_format = _source_format_from_template(template)
+        current_stage = (pipeline_state.current_stage if pipeline_state else "") or ""
+        if (
+            source_format == SOURCE_FORMAT_HTML
+            and current_stage
+            and _html_stage_rank(current_stage) > 0
+        ):
+            steps_url = reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
+        else:
+            steps_url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+        rows.append(
+            {
+                "edition": edition,
+                "template": template,
+                "status_label": _registration_status_label(template),
+                "source_info": _existing_source_info(template, edition),
+                "edit_url": reverse(
+                    "book_edition_edit",
+                    kwargs={"book_code": book_code, "language": language},
+                ),
+                "upload_url": _template_upload_url(template),
+                "steps_url": steps_url,
+            }
+        )
+    return rows
+
+
+def _render_registration_page(request, form, *, template=None, status=200):
+    selected_source_format = _normalize_source_format(
+        template.text_source_mode if template else SOURCE_FORMAT_TXT
+    )
+    return render(
+        request,
+        "pipeline/book_edition_form.html",
+        {
+            "form": form,
+            "source_format": selected_source_format,
+            "continue_options": _continue_book_options(),
+            "edition_rows": _book_registration_rows(),
+            "current_template": template,
+            "upload_url": _template_upload_url(template),
+            "status_label": _registration_status_label(template),
+            "source_info": _existing_source_info(template),
+        },
+        status=status,
+    )
+
+
+def _save_template_and_edition_metadata(template: BookEditionTemplate) -> tuple[EditorialEdition, bool]:
+    template.save()
+    edition, edition_created = _ensure_editorial_edition(template)
+
+    edition.title = template.title
+    edition.subtitle = template.subtitle
+    edition.author = template.author_name
+    edition.adapter = template.adapter_name
+    edition.translator = template.translator_name
+    edition.editor = template.editor_name
+    edition.publication_year = template.publication_year
+    edition.city = template.city_name or edition.city
+    edition.country = template.country_name or edition.country
+    edition.imprint_name = template.imprint_name or edition.imprint_name
+    edition.seal_name = template.seal_name or edition.seal_name
+    if template.imprint_name:
+        edition.publisher = template.imprint_name
+    edition.frontispiece_template = template.frontispiece_text
+    edition.copyright_template = template.copyright_text
+    edition.about_edition_template = template.about_edition_text
+    edition.about_contributor_template = template.about_contributor_text
+    edition.save()
+    return edition, edition_created
+
+
+def _handle_source_upload(request, template: BookEditionTemplate, upload_form: BookSourceUploadForm):
+    selected_source_format = _normalize_source_format(upload_form.cleaned_data["source_format"])
+    source_file = upload_form.cleaned_data["source_file"]
+    replace_existing = bool(upload_form.cleaned_data.get("replace_existing"))
+    root = Path(settings.BASE_DIR).parent
+    edition, edition_created = _ensure_editorial_edition(template)
+    language = utils.normalize_lang(template.language)
+    ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
+    raw_path = root / "data" / "raw" / template.book_code / f"{template.book_code}_{language}_raw{ext}"
+    previous_source = _existing_source_info(template, edition)
+    upload_meta = _write_uploaded_file_atomic(raw_path, source_file)
+
+    with transaction.atomic():
+        template.text_source_mode = selected_source_format
+        template.registration_status = BookEditionTemplate.STATUS_READY_FOR_BLOCK_02
+        template.source_file_type = selected_source_format
+        template.source_original_name = source_file.name
+        template.source_saved_path = str(raw_path)
+        template.source_file_size = int(upload_meta["size"])
+        template.source_uploaded_at = timezone.now()
+        template.source_file_sha256 = str(upload_meta["sha256"])
+        if getattr(request, "user", None) is not None and request.user.is_authenticated:
+            template.source_uploaded_by = request.user.get_username()
+        template.save()
+
+        edition.title = template.title
+        edition.subtitle = template.subtitle
+        edition.author = template.author_name
+        edition.adapter = template.adapter_name
+        edition.translator = template.translator_name
+        edition.editor = template.editor_name
+        edition.publication_year = template.publication_year
+        edition.city = template.city_name or edition.city
+        edition.country = template.country_name or edition.country
+        edition.imprint_name = template.imprint_name or edition.imprint_name
+        edition.seal_name = template.seal_name or edition.seal_name
+        edition.raw_source_path = str(raw_path)
+        edition.save()
+
+        texts, _ = EditionText.objects.get_or_create(edition=edition)
+        texts.raw_path = str(raw_path)
+        texts.save(update_fields=["raw_path", "updated_at"])
+
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+        pipeline_state.raw_at = timezone.now()
+        pipeline_state.current_stage = (
+            STAGE_HTML_UPLOADED if selected_source_format == SOURCE_FORMAT_HTML else STAGE_TXT_UPLOADED
+        )
+        replacement_note = ""
+        if previous_source["path"] and replace_existing:
+            replacement_note = f" :: replaced={previous_source['path']}"
+        pipeline_state.last_log = (
+            f"{timezone.now().isoformat()} :: {pipeline_state.current_stage} :: source_upload :: {raw_path}"
+            f"{replacement_note}"
+        )
+        pipeline_state.save(update_fields=["raw_at", "current_stage", "last_log"])
+
+        kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
+
+    logger.info(
+        "pipeline_ingest_v1",
+        extra={
+            "book_code": template.book_code,
+            "language": language,
+            "source_format": selected_source_format,
+            "stage": pipeline_state.current_stage,
+            "raw_path": str(raw_path),
+            "replaced": bool(previous_source["path"] and replace_existing),
+            "result": "ok",
+        },
+    )
+    messages.success(request, f"Arquivo-fonte salvo para {template.book_code} [{language}].")
+    if previous_source["path"] and replace_existing:
+        messages.info(request, f"Substituicao registrada. Arquivo anterior: {previous_source['path']}")
+    if edition_created:
+        messages.info(request, f"Edicao editorial criada automaticamente para {template.book_code} [{language}].")
+    if selected_source_format == SOURCE_FORMAT_HTML:
+        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+    return redirect("edition_steps", edition_id=edition.id)
+
+
+def book_edition_list(request):
+    return book_edition_edit(request)
 
 
 def pipeline_html_dashboard(request, edition_id: int):
@@ -1014,6 +1221,7 @@ def book_edition_edit(request, book_code=None, language=None):
     postgres_guard = _require_postgres_ingest_runtime()
     if postgres_guard is not None:
         return postgres_guard
+    ensure_bookeditiontemplate_runtime_columns()
 
     initial_book_code = (book_code or request.GET.get("book_code") or "").strip()
     initial_language = utils.normalize_lang((language or request.GET.get("language") or "en").strip())
@@ -1027,7 +1235,6 @@ def book_edition_edit(request, book_code=None, language=None):
                 language=initial_language,
             ).first()
         )
-    continue_options = _continue_book_options()
 
     # When posting from the generic cadastro URL, load the existing template
     # by the submitted pair to avoid duplicate (book_code, language) creation.
@@ -1043,190 +1250,53 @@ def book_edition_edit(request, book_code=None, language=None):
             )
 
     if request.method == "POST":
-        action = (request.POST.get("action") or "upload_source").strip()
-        try:
-            if action == "save_metadata":
-                selected_source_format = _validate_ingest_metadata_request(canonical_post_data)
-            else:
-                selected_source_format = _validate_ingest_v1_request(canonical_post_data, request.FILES)
-        except ValidationError as exc:
-            form = BookEditionTemplateForm(canonical_post_data, request.FILES, instance=template)
-            messages.error(
-                request,
-                "Nenhum arquivo chegou ao backend nesta submissao. Selecione o arquivo novamente e envie."
-                if action != "save_metadata" and request.FILES.get("source_file") is None
-                else "Corrija os erros do cadastro e tente novamente.",
-            )
-            for error_message in exc.messages:
-                if "source_file" in error_message:
-                    form.add_error("source_file", error_message)
-                else:
-                    form.add_error(None, error_message)
-            return render(
-                request,
-                "pipeline/book_edition_form.html",
-                {
-                    "form": form,
-                    "source_format": _normalize_source_format(
-                        (canonical_post_data.get("source_format") or SOURCE_FORMAT_TXT)
-                    ),
-                    "continue_options": continue_options,
-                },
-                status=400,
-            )
-    else:
-        action = ""
-        selected_source_format = _normalize_source_format(
-            template.text_source_mode if template else SOURCE_FORMAT_TXT
+        action = (request.POST.get("action") or "save_metadata").strip()
+        legacy_upload_requested = bool(request.FILES.get("source_file"))
+        legacy_contract_submission = bool(
+            "source_format" in canonical_post_data and request.POST.get("action") != "save_metadata"
         )
+        if action == "upload_source" and not legacy_upload_requested:
+            if template is None:
+                messages.error(request, "Cadastre o livro antes de enviar o arquivo-fonte.")
+                form = BookEditionTemplateForm(canonical_post_data, instance=template)
+                return _render_registration_page(request, form, template=template, status=400)
+            return redirect(
+                "book_edition_upload",
+                book_code=template.book_code,
+                language=utils.normalize_lang(template.language),
+            )
+        try:
+            if legacy_upload_requested or legacy_contract_submission:
+                _validate_ingest_v1_request(canonical_post_data, request.FILES)
+            _validate_registration_request(canonical_post_data)
+        except ValidationError as exc:
+            form = BookEditionTemplateForm(canonical_post_data, instance=template)
+            messages.error(request, "Corrija os erros do cadastro e tente novamente.")
+            for error_message in exc.messages:
+                form.add_error(None, error_message)
+            return _render_registration_page(request, form, template=template, status=400)
 
     if request.method == "POST":
-        form = BookEditionTemplateForm(canonical_post_data, request.FILES, instance=template)
+        form = BookEditionTemplateForm(canonical_post_data, instance=template)
         if form.is_valid():
             try:
                 with transaction.atomic():
                     template = form.save(commit=False)
-                    template.text_source_mode = selected_source_format
-                    template.save()
-                    book_code = template.book_code
-                    language = utils.normalize_lang(template.language)
-                    root = Path(settings.BASE_DIR).parent
-                    saved_paths: dict[str, str] = {}
-
-                    try:
-                        edition, edition_created = _ensure_editorial_edition(template)
-                    except ValidationError as exc:
-                        form.add_error(None, str(exc))
-                        raise
-
-                    if action == "save_metadata":
-                        logger.info(
-                            "pipeline_ingest_v1_metadata_saved",
-                            extra={
-                                "book_code": book_code,
-                                "language": language,
-                                "source_format": template.text_source_mode,
-                                "result": "ok",
-                            },
-                        )
+                    if not template.text_source_mode or template.text_source_mode == "auto":
+                        template.text_source_mode = SOURCE_FORMAT_TXT
+                    if template.source_saved_path:
+                        template.registration_status = BookEditionTemplate.STATUS_READY_FOR_BLOCK_02
                     else:
-                        source_file = form.cleaned_data["source_file"]
-                        ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
-                        raw_path = root / "data" / "raw" / book_code / f"{book_code}_{language}_raw{ext}"
-                        _write_uploaded_file_atomic(raw_path, source_file)
-                        saved_paths["raw_path"] = str(raw_path)
-
-                    cover_file = form.cleaned_data.get("cover_file")
-                    if cover_file:
-                        cover_dir = root / "data" / "covers" / book_code / language
-                        cover_dir.mkdir(parents=True, exist_ok=True)
-                        ext = (Path(cover_file.name).suffix or ".jpg").lower()
-                        cover_path = cover_dir / f"cover{ext}"
-                        _write_uploaded_file_atomic(cover_path, cover_file)
-                        try:
-                            template.cover_filepath = str(cover_path.relative_to(root))
-                        except ValueError:
-                            template.cover_filepath = str(cover_path)
-                        template.save(update_fields=["cover_filepath"])
-                        saved_paths["cover_path"] = template.cover_filepath
-
-                    images_zip = form.cleaned_data.get("images_zip")
-                    if images_zip:
-                        images_dir = root / "data" / "images" / book_code / language
-                        if images_dir.exists():
-                            shutil.rmtree(images_dir)
-                        images_dir.mkdir(parents=True, exist_ok=True)
-                        with zipfile.ZipFile(images_zip) as archive:
-                            archive.extractall(images_dir)
-                        try:
-                            template.images_dir = str(images_dir.relative_to(root))
-                        except ValueError:
-                            template.images_dir = str(images_dir)
-                        template.save(update_fields=["images_dir"])
-                        saved_paths["images_dir"] = template.images_dir
-
-                    edition.title = template.title
-                    edition.subtitle = template.subtitle
-                    edition.author = template.author_name
-                    edition.adapter = template.adapter_name
-                    edition.translator = template.translator_name
-                    edition.editor = template.editor_name
-                    edition.publication_year = template.publication_year
-                    edition.city = template.city_name or edition.city
-                    edition.country = template.country_name or edition.country
-                    edition.imprint_name = template.imprint_name or edition.imprint_name
-                    edition.seal_name = template.seal_name or edition.seal_name
-                    if template.imprint_name:
-                        edition.publisher = template.imprint_name
-                    edition.frontispiece_template = template.frontispiece_text
-                    edition.copyright_template = template.copyright_text
-                    edition.about_edition_template = template.about_edition_text
-                    edition.about_contributor_template = template.about_contributor_text
-                    if "raw_path" in saved_paths:
-                        edition.raw_source_path = saved_paths["raw_path"]
-                    if "cover_path" in saved_paths:
-                        edition.cover_filepath = saved_paths["cover_path"]
-                    edition.save()
-
-                    if action != "save_metadata":
-                        texts, _ = EditionText.objects.get_or_create(edition=edition)
-                        texts.raw_path = saved_paths["raw_path"]
-                        texts.save(update_fields=["raw_path", "updated_at"])
-
-                        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-                        pipeline_state.raw_at = timezone.now()
-                        pipeline_state.current_stage = (
-                            STAGE_HTML_UPLOADED
-                            if template.text_source_mode == SOURCE_FORMAT_HTML
-                            else STAGE_TXT_UPLOADED
-                        )
-                        pipeline_state.save(update_fields=["raw_at", "current_stage"])
-
-                        kdp_mode.build_frontmatter_files(edition, Path("data") / "frontmatter")
-
-                if action != "save_metadata":
-                    logger.info(
-                        "pipeline_ingest_v1",
-                        extra={
-                            "book_code": book_code,
-                            "language": language,
-                            "source_format": template.text_source_mode,
-                            "stage": pipeline_state.current_stage,
-                            "redirect": (
-                                reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
-                                if template.text_source_mode == SOURCE_FORMAT_HTML
-                                else reverse("edition_steps", kwargs={"edition_id": edition.id})
-                            ),
-                            "raw_path": saved_paths["raw_path"],
-                            "result": "ok",
-                        },
-                    )
+                        template.registration_status = BookEditionTemplate.STATUS_REGISTERED
+                    edition, edition_created = _save_template_and_edition_metadata(template)
             except ValidationError:
-                incoming_file = request.FILES.get("source_file")
-                if incoming_file:
-                    messages.warning(
-                        request,
-                        (
-                            f"Arquivo recebido ({incoming_file.name}), mas houve erro ao criar a edicao no DB. "
-                            "Corrija os erros e tente novamente."
-                        ),
-                    )
-                return render(
-                    request,
-                    "pipeline/book_edition_form.html",
-                    {
-                        "form": form,
-                        "source_format": selected_source_format,
-                        "continue_options": continue_options,
-                    },
-                )
+                return _render_registration_page(request, form, template=template)
             except Exception as exc:
                 logger.exception(
-                    "pipeline_ingest_v1_failed",
+                    "pipeline_registration_failed",
                     extra={
                         "book_code": canonical_post_data.get("book_code"),
                         "language": canonical_post_data.get("language"),
-                        "source_format": selected_source_format,
                         "result": "error",
                     },
                 )
@@ -1244,41 +1314,53 @@ def book_edition_edit(request, book_code=None, language=None):
                             "Corrija os erros e tente novamente."
                         ),
                     )
-                return render(
-                    request,
-                    "pipeline/book_edition_form.html",
-                    {
-                        "form": form,
-                        "source_format": selected_source_format,
-                        "continue_options": continue_options,
-                    },
-                )
+                return _render_registration_page(request, form, template=template)
 
             if edition_created:
-                messages.info(request, f"Edicao editorial criada automaticamente para {book_code} [{language}].")
-            if action == "save_metadata":
-                messages.success(
+                messages.info(
                     request,
-                    f"Cadastro salvo para {book_code} [{language}]. Agora envie o arquivo para iniciar o pipeline.",
+                    f"Edicao editorial criada automaticamente para {template.book_code} [{utils.normalize_lang(template.language)}].",
                 )
-                return redirect("book_edition_edit", book_code=book_code, language=language)
-            messages.success(request, f"Cadastro salvo e arquivos prontos para {book_code} [{language}].")
-            if template.text_source_mode == SOURCE_FORMAT_HTML:
-                return redirect("pipeline_html_dashboard", edition_id=edition.id)
-            return redirect("edition_steps", edition_id=edition.id)
-        incoming_file = request.FILES.get("source_file")
-        if incoming_file:
-            messages.warning(
+            if legacy_upload_requested:
+                upload_form = BookSourceUploadForm(
+                    data={
+                        "source_format": canonical_post_data.get("source_format") or template.text_source_mode,
+                        "replace_existing": request.POST.get("replace_existing"),
+                    },
+                    files=request.FILES,
+                    has_existing_source=bool(_existing_source_info(template, edition)["path"]),
+                    allowed_extensions_getter=_allowed_upload_exts,
+                )
+                if upload_form.is_valid():
+                    return _handle_source_upload(request, template, upload_form)
+                messages.error(request, "Corrija os erros do upload e tente novamente.")
+                return render(
+                    request,
+                    "pipeline/book_edition_upload.html",
+                    {
+                        "template": template,
+                        "edition": edition,
+                        "upload_form": upload_form,
+                        "source_info": _existing_source_info(template, edition),
+                        "registration_edit_url": reverse(
+                            "book_edition_edit",
+                            kwargs={
+                                "book_code": template.book_code,
+                                "language": utils.normalize_lang(template.language),
+                            },
+                        ),
+                        "steps_url": reverse("edition_steps", kwargs={"edition_id": edition.id}),
+                    },
+                    status=400,
+                )
+            messages.success(
                 request,
-                (
-                    f"Arquivo recebido ({incoming_file.name}), mas o cadastro teve erro em outros campos. "
-                    "Veja os erros abaixo."
-                ),
+                f"Cadastro salvo para {template.book_code} [{utils.normalize_lang(template.language)}].",
             )
-        elif template is None:
-            messages.error(
-                request,
-                "Nenhum arquivo chegou ao backend nesta submissao. Selecione o arquivo novamente e envie.",
+            return redirect(
+                "book_edition_upload",
+                book_code=template.book_code,
+                language=utils.normalize_lang(template.language),
             )
     else:
         if template:
@@ -1291,13 +1373,72 @@ def book_edition_edit(request, book_code=None, language=None):
                 }
             )
 
+    return _render_registration_page(request, form, template=template)
+
+
+def book_edition_upload(request, book_code: str, language: str):
+    postgres_guard = _require_postgres_ingest_runtime()
+    if postgres_guard is not None:
+        return postgres_guard
+    ensure_bookeditiontemplate_runtime_columns()
+
+    normalized_book_code = (book_code or "").strip()
+    normalized_language = utils.normalize_lang((language or "").strip())
+    template = (
+        BookEditionTemplate.objects.filter(
+            book_code=normalized_book_code,
+            language=normalized_language,
+        ).first()
+    )
+    if template is None:
+        messages.error(request, "Nao e possivel acessar o upload sem cadastro salvo.")
+        return redirect("book_edition_new")
+
+    edition = (
+        EditorialEdition.objects.select_related("work", "language", "seal")
+        .filter(work__code=normalized_book_code, language__code=normalized_language)
+        .first()
+    )
+    if edition is None:
+        edition, _ = _save_template_and_edition_metadata(template)
+
+    source_info = _existing_source_info(template, edition)
+    initial_source_format = _source_format_from_template(template)
+    if request.method == "POST":
+        upload_form = BookSourceUploadForm(
+            request.POST,
+            request.FILES,
+            has_existing_source=bool(source_info["path"]),
+            allowed_extensions_getter=_allowed_upload_exts,
+            initial={"source_format": initial_source_format},
+        )
+        if upload_form.is_valid():
+            return _handle_source_upload(request, template, upload_form)
+        messages.error(request, "Corrija os erros do upload e tente novamente.")
+    else:
+        upload_form = BookSourceUploadForm(
+            initial={"source_format": initial_source_format},
+            has_existing_source=bool(source_info["path"]),
+            allowed_extensions_getter=_allowed_upload_exts,
+        )
+
     return render(
         request,
-        "pipeline/book_edition_form.html",
+        "pipeline/book_edition_upload.html",
         {
-            "form": form,
-            "source_format": selected_source_format,
-            "continue_options": continue_options,
+            "template": template,
+            "edition": edition,
+            "upload_form": upload_form,
+            "source_info": source_info,
+            "registration_edit_url": reverse(
+                "book_edition_edit",
+                kwargs={"book_code": normalized_book_code, "language": normalized_language},
+            ),
+            "steps_url": (
+                reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id})
+                if initial_source_format == SOURCE_FORMAT_HTML and source_info["path"]
+                else reverse("edition_steps", kwargs={"edition_id": edition.id})
+            ),
         },
     )
 
@@ -1319,6 +1460,7 @@ def _parse_book_id(book_code: str) -> int | None:
 
 
 def _continue_book_options() -> list[dict[str, str]]:
+    ensure_bookeditiontemplate_runtime_columns()
     editions = (
         EditorialEdition.objects.select_related("work", "language")
         .order_by("work__code", "language__code")
@@ -3444,6 +3586,10 @@ def edition_steps(request, edition_id: int):
         "edition": edition,
         "edition_steps_action_url": _edition_steps_redirect_url(edition),
         "source_format": source_format,
+        "source_upload_url": reverse(
+            "book_edition_upload",
+            kwargs={"book_code": book_code, "language": normalized_language},
+        ),
         "status": {
             "raw": _status(bool(raw_path)),
             "normalize": _status(bool(pipeline_state.normalized_at)),

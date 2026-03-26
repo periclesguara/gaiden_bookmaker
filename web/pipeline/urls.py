@@ -28,6 +28,11 @@ urlpatterns = [
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/edit/", views.book_edition_edit, name="book_edition_new"),
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),
+    path(
+        "editions/upload/<str:book_code>/<str:language>/",
+        views.book_edition_upload,
+        name="book_edition_upload",
+    ),
     path("editions/<int:edition_id>/steps/", views.edition_steps, name="edition_steps"),
     path(
         "editions/<int:edition_id>/normalize/run/",

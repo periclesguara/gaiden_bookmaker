@@ -123,20 +123,19 @@ class CadastroSourceFormatRoutingTests(TestCase):
 
     def test_cadastro_get_is_canonical_entrypoint_for_new_html_books(self):
         response = self.client.get(self.cadastro_url)
-        html = response.content.decode("utf-8")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Cadastro")
-        self.assertContains(response, "Salvar Cadastro")
-        self.assertContains(response, "Enviar Arquivo")
-        self.assertContains(response, "Pre-producao HTML")
+        self.assertContains(response, "Pagina 01")
+        self.assertContains(response, "Cadastro do livro")
+        self.assertContains(response, "Livros existentes")
+        self.assertContains(response, "Salvar")
+        self.assertNotContains(response, "Enviar arquivo")
         self.assertContains(response, "Inicio / Cadastro")
         self.assertContains(response, "Pipeline")
         self.assertContains(response, "Steps")
         self.assertContains(response, "Frontmatter")
-        self.assertIn('data-contract="pipeline_ingest_v1"', html)
-        self.assertIn('data-contract-entrypoint="book_edition_new"', html)
-        self.assertIn('data-contract-html-next="pipeline_html_dashboard"', html)
+        self.assertContains(response, "Obra autoral")
+        self.assertContains(response, "Obra de dominio publico")
 
     def test_root_redirects_to_canonical_cadastro_entrypoint(self):
         response = self.client.get("/")
@@ -161,7 +160,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
         response = self.client.get(self.cadastro_url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Continuar Livro Existente")
+        self.assertContains(response, "Livros existentes")
         self.assertContains(response, "01 - book_0001 [en] - Continue Book")
         self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
 
@@ -311,22 +310,16 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertEqual(save_response.status_code, 302)
         self.assertEqual(
             save_response.url,
-            reverse("book_edition_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+            reverse("book_edition_upload", kwargs={"book_code": self.work.code, "language": "en"}),
         )
         template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
-        self.assertEqual(template.text_source_mode, "html")
+        self.assertEqual(template.registration_status, BookEditionTemplate.STATUS_REGISTERED)
         raw_path = self.raw_dir / f"{self.work.code}_en_raw.html"
         self.assertFalse(raw_path.exists())
 
         upload_response = self.client.post(
-            reverse("book_edition_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+            reverse("book_edition_upload", kwargs={"book_code": self.work.code, "language": "en"}),
             data={
-                "action": "upload_source",
-                "book_code": self.work.code,
-                "language": "en",
-                "title": "Book Test",
-                "author_name": "Author Test",
-                "publication_year": 2026,
                 "source_format": "html",
                 "source_file": SimpleUploadedFile(
                     "source.html",
@@ -346,7 +339,36 @@ class CadastroSourceFormatRoutingTests(TestCase):
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
         self.assertEqual(EditionText.objects.get(edition=self.edition).raw_path, str(raw_path))
+        template.refresh_from_db()
+        self.assertEqual(template.registration_status, BookEditionTemplate.STATUS_READY_FOR_BLOCK_02)
         mock_frontmatter.assert_called_once()
+
+    def test_upload_page_requires_saved_registration(self):
+        response = self.client.get(
+            reverse("book_edition_upload", kwargs={"book_code": "book_1234", "language": "en"}),
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("book_edition_new"))
+
+    def test_public_domain_requires_original_dates(self):
+        response = self.client.post(
+            self.cadastro_url,
+            data={
+                "action": "save_metadata",
+                "book_code": self.work.code,
+                "language": "en",
+                "title": "Book Test",
+                "author_name": "Author Test",
+                "publication_year": 2026,
+                "work_kind": "PUBLIC_DOMAIN",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Data da publicacao original e obrigatoria")
+        self.assertContains(response, "Data de falecimento do autor original e obrigatoria")
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_common_pipeline_when_source_format_is_txt(self, mock_frontmatter):
@@ -648,8 +670,8 @@ class ContractIngestV1Tests(TestCase):
         payload.pop("source_file")
         response = self.client.post(self.cadastro_url, data=payload)
         self.assertEqual(response.status_code, 400)
-        self.assertContains(response, "Cadastro", status_code=400)
-        self.assertContains(response, "Nenhum arquivo chegou ao backend nesta submissao", status_code=400)
+        self.assertContains(response, "Pagina 01", status_code=400)
+        self.assertContains(response, "Corrija os erros do cadastro e tente novamente.", status_code=400)
         self.assertContains(response, "Campo obrigatorio ausente: source_file.", status_code=400)
 
     def test_extension_mismatch_returns_400(self):

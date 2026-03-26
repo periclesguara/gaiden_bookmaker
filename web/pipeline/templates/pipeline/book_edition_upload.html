@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload do Arquivo-Fonte - Pipeline</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f7f7f8;
+      color: #111;
+    }
+    .container {
+      max-width: 920px;
+      margin: 28px auto;
+      padding: 0 16px 32px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 10px 12px;
+      font-size: 14px;
+    }
+    .summary strong {
+      font-weight: 700;
+    }
+    .alert {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #dfdfdf;
+      background: #f9f9f9;
+    }
+    .error {
+      color: #a00000;
+      margin-top: 4px;
+    }
+    .muted {
+      color: #666;
+      font-size: 0.95em;
+    }
+    .inline-radio {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .inline-radio label {
+      font-weight: 600;
+    }
+    input[type="file"], select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #cfcfcf;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn, button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #111;
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn.secondary, button.secondary {
+      background: #fff;
+      color: #111;
+    }
+    @media (max-width: 760px) {
+      .grid, .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      {% url 'book_edition_new' as nav_home_url %}
+      {% if template.text_source_mode == 'html' and source_info.path %}
+        {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+      {% else %}
+        {% url 'pipeline_dashboard' as nav_pipeline_url %}
+      {% endif %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="home" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url %}
+      <h1>Pagina 02 · Upload do arquivo-fonte</h1>
+      <p>Esta etapa recebe o arquivo-fonte do livro e prepara a entrada para o bloco 02 sem alterar a logica interna do pipeline.</p>
+
+      {% if messages %}
+        <div>
+          {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Resumo do cadastro salvo</h2>
+      <div class="summary">
+        <strong>Book code</strong><span>{{ template.book_code }}</span>
+        <strong>Idioma</strong><span>{{ template.language }}</span>
+        <strong>Titulo</strong><span>{{ template.title }}</span>
+        <strong>Autor original</strong><span>{{ template.author_name }}</span>
+        <strong>Tipo da obra</strong><span>{{ template.get_work_kind_display }}</span>
+        <strong>Publicacao original</strong><span>{{ template.original_publication_date|default:"-" }}</span>
+        <strong>Falecimento do autor</strong><span>{{ template.original_author_death_date|default:"-" }}</span>
+      </div>
+      <div class="actions" style="margin-top: 14px;">
+        <a class="btn secondary" href="{{ registration_edit_url }}">Voltar ao cadastro</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Upload do arquivo</h2>
+
+      {% if source_info.path %}
+        <div class="alert">
+          <strong>Arquivo-fonte ativo:</strong> {{ source_info.name|default:source_info.path }}<br />
+          <span class="muted">
+            Caminho: {{ source_info.path }}
+            {% if source_info.size %} · Tamanho: {{ source_info.size }} bytes{% endif %}
+            {% if source_info.uploaded_at %} · Upload: {{ source_info.uploaded_at }}{% endif %}
+          </span>
+        </div>
+      {% endif %}
+
+      {% if upload_form.non_field_errors %}
+        <div class="alert">
+          {% for error in upload_form.non_field_errors %}
+            <div class="error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid">
+          <div>
+            <label>Tipo do arquivo-fonte</label>
+            <div class="inline-radio">
+              {% for radio in upload_form.source_format %}
+                <label>{{ radio.tag }} {{ radio.choice_label }}</label>
+              {% endfor %}
+            </div>
+            {% if upload_form.source_format.errors %}<div class="error">{{ upload_form.source_format.errors|join:", " }}</div>{% endif %}
+            <div class="muted" id="upload_hint">TXT aceita .txt. HTML aceita .html e .htm.</div>
+          </div>
+          <div>
+            <label for="{{ upload_form.source_file.id_for_label }}">Arquivo-fonte</label>
+            {{ upload_form.source_file }}
+            {% if upload_form.source_file.errors %}<div class="error">{{ upload_form.source_file.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        {% if source_info.path %}
+          <div style="margin-top: 14px;">
+            <label>{{ upload_form.replace_existing }} Substituir arquivo-fonte atual</label>
+            {% if upload_form.replace_existing.errors %}<div class="error">{{ upload_form.replace_existing.errors|join:", " }}</div>{% endif %}
+          </div>
+        {% endif %}
+
+        <div class="actions" style="margin-top: 18px;">
+          <button type="submit">Enviar arquivo</button>
+          {% if source_info.path %}
+            <a class="btn secondary" href="{{ steps_url }}">Seguir</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const uploadHint = document.getElementById('upload_hint');
+    const sourceFormatInputs = document.querySelectorAll('input[name="source_format"]');
+
+    function updateHint() {
+      const selected = document.querySelector('input[name="source_format"]:checked');
+      const value = selected ? selected.value : 'txt';
+      uploadHint.textContent = value === 'html'
+        ? 'HTML aceita .html e .htm.'
+        : 'TXT aceita apenas .txt.';
+    }
+
+    sourceFormatInputs.forEach((input) => input.addEventListener('change', updateHint));
+    updateHint();
+  </script>
+</body>
+</html>
