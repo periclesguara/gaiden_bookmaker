@@ -1,0 +1,143 @@
+GAIDEN RELEASE / PR SUMMARY
+Date: 2026-03-27
+Branch: pr/gaiden-refine-split-v1
+Commit: 749d11b6
+Title: Reorganize Gaiden into four system blocks
+
+OVERVIEW
+This update officially reorganizes Gaiden into 4 functional blocks, with Block 02 defined as the system core and Block 03 isolated as the editorial/assets layer.
+
+OFFICIAL SYSTEM BLOCKS
+1. Block 01 - Entry
+   - registration
+   - source upload
+   - input preparation
+
+2. Block 02 - Core
+   - normalize
+   - fix / heading cleaner path
+   - chunks
+   - translate
+   - split by chapter
+   - refine
+   - polish
+
+3. Block 03 - Editorial and Assets
+   - frontispiece
+   - copyright
+   - about this book
+   - preface
+   - introduction
+   - epilogue
+   - images
+   - cover
+
+4. Block 04 - Finalization
+   - final assembly
+   - EPUB export
+   - PDF export
+
+MAIN DELIVERY
+- Block 02 is now explicitly declared as the textual core.
+- The UI now reflects the 4-block architecture.
+- Editorial content is separated from the textual core.
+- Finalization is gated by editorial readiness and final MD availability.
+- Editorial structure is prepared across 6 languages.
+
+SUPPORTED EDITORIAL LANGUAGES
+- EN
+- PT-BR
+- ES
+- DE
+- IT
+- FR
+
+EDITORIAL RULES IMPLEMENTED
+Mandatory per language:
+- frontispiece
+- copyright
+- about_this_book
+
+Optional per language:
+- preface
+- introduction
+- epilogue
+
+Optional behavior:
+- if enabled and filled, include in final build
+- if enabled and empty, skip with friendly warning
+- if disabled, ignore silently
+
+CORE ISOLATION
+Block 02 now carries explicit language isolation metadata for:
+- EN
+- PTBR
+- ES
+- DE
+- IT
+- FR
+
+This supports the official direction of isolated execution by language and avoids cross-language context leakage at the orchestration level.
+
+UI / UX CHANGES
+- Navigation renamed to the 4 official blocks.
+- Edition steps page now exposes block status clearly.
+- Block 02 is highlighted as the official core.
+- Block 03 shows editorial readiness by language.
+- Frontmatter editing now clearly separates:
+  - frontmatter
+  - preface
+  - introduction
+  - epilogue
+- HTML lane now clearly routes from Block 01 into Blocks 02-04.
+
+BUILD / FLOW CHANGES
+- Block 04 is blocked until:
+  - Block 03 mandatory editorial content is ready for the selected language
+  - BOOK.MD_FINAL exists
+- This applies to:
+  - build
+  - export_epub
+  - export_pdf
+  - epubcheck
+  - gaiden final assembly
+
+FILES CHANGED
+- web/pipeline/models.py
+- web/pipeline/views.py
+- web/pipeline/tests.py
+- web/pipeline/templates/pipeline/_workspace_nav.html
+- web/pipeline/templates/pipeline/edition_steps.html
+- web/pipeline/templates/pipeline/html_pipeline_dashboard.html
+- web/pipeline/templates/pipeline/book_edition_form.html
+- web/pipeline/templates/pipeline/book_edition_list.html
+- web/pipeline/templates/pipeline/book_edition_upload.html
+- web/pipeline/templates/pipeline/dashboard.html
+- web/pipeline/templates/pipeline/jobs.html
+- web/pipeline/management/commands/build_book_text.py
+- web/pipeline/management/commands/export_frontmatter.py
+- web/editorial/models.py
+- web/editorial/forms.py
+- web/editorial/views.py
+- web/editorial/frontmatter.py
+- web/editorial/kdp_mode.py
+- web/editorial/services/artifact_index.py
+- web/editorial/management/commands/bridge_frontmatter.py
+- web/editorial/templates/editorial/frontmatter_form.html
+- web/editorial/templates/gaiden/edition_form.html
+- docs/system_blocks_reorg_2026-03-27.txt
+
+VALIDATION
+Command:
+source .venv/bin/activate
+python web/manage.py test pipeline.tests.CadastroSourceFormatRoutingTests pipeline.tests.PipelineBlockContractTests pipeline.tests.HtmlLanePreprodConvertTests pipeline.tests.KdpMarkerCleanupContractTests --settings=gaiden_portal.settings_sqlite
+
+Result:
+Ran 55 tests ... OK
+
+GIT
+- Commit created:
+  749d11b6 Reorganize Gaiden into four system blocks
+
+- Branch pushed:
+  origin/pr/gaiden-refine-split-v1
