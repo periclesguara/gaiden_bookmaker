@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
-from editorial.models import Edition as EditorialEdition
+from editorial.models import Edition as EditorialEdition, EditionBuild, EditionPipeline
 from gaiden_portal.forms import EditionForm
 from gaiden_portal.utils import (
     country_for_language,
@@ -135,6 +135,82 @@ def _write_frontmatter_files(edition: EditorialEdition) -> None:
     build_frontmatter_files(edition, base_dir)
 
 
+def _mark_editorial_changed(edition: EditorialEdition) -> None:
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.editorial_changed = True
+    pipeline_state.build_outdated = True
+    pipeline_state.last_editorial_update_at = timezone.now()
+    pipeline_state.save(
+        update_fields=[
+            "editorial_changed",
+            "build_outdated",
+            "last_editorial_update_at",
+        ]
+    )
+
+
+def _next_build_version(edition: EditorialEdition, language_code: str) -> int:
+    latest = (
+        EditionBuild.objects.filter(edition=edition, language_code=language_code)
+        .order_by("-build_version")
+        .first()
+    )
+    return 1 if latest is None else latest.build_version + 1
+
+
+def _archive_build_file(path: Path, version: int, suffix_label: str) -> str:
+    if not path.exists():
+        return ""
+    archive_dir = path.parent / "history"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = archive_dir / f"{path.stem}.v{version}.{suffix_label}{path.suffix}"
+    archive_path.write_bytes(path.read_bytes())
+    return str(archive_path)
+
+
+def record_edition_build(
+    edition: EditorialEdition,
+    *,
+    language_code: str,
+    build_path: Path | None = None,
+    epub_path: Path | None = None,
+    pdf_path: Path | None = None,
+    notes: str = "",
+) -> EditionBuild:
+    latest = (
+        EditionBuild.objects.filter(edition=edition, language_code=language_code)
+        .order_by("-build_version")
+        .first()
+    )
+    if latest and latest.build_path and latest.epub_path == "" and latest.pdf_path == "":
+        record = latest
+    else:
+        version = _next_build_version(edition, language_code)
+        record = EditionBuild.objects.create(
+            edition=edition,
+            language_code=language_code,
+            build_version=version,
+            build_type=EditionBuild.BUILD_TYPE_INITIAL if version == 1 else EditionBuild.BUILD_TYPE_REBUILD,
+        )
+
+    if build_path is not None:
+        record.build_path = _archive_build_file(build_path, record.build_version, "build")
+    if epub_path is not None:
+        record.epub_path = _archive_build_file(epub_path, record.build_version, "epub")
+    if pdf_path is not None:
+        record.pdf_path = _archive_build_file(pdf_path, record.build_version, "pdf")
+    if notes:
+        record.notes = notes
+    record.save()
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state.editorial_changed = False
+    pipeline_state.build_outdated = False
+    pipeline_state.last_built_at = timezone.now()
+    pipeline_state.save(update_fields=["editorial_changed", "build_outdated", "last_built_at"])
+    return record
+
+
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
     return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_this_book.md"))
@@ -262,13 +338,46 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         form = FrontmatterTemplateForm(request.POST, instance=template)
         if form.is_valid():
             confirm_overwrite = request.POST.get("confirm_overwrite") == "1"
+            save_block = (request.POST.get("save_block") or "all").strip()
             if files_exist and not confirm_overwrite:
                 warning = "Substituir arquivos atuais do frontmatter?"
             else:
-                form.save()
+                instance = form.save(commit=False)
+                block_fields_map = {
+                    "frontmatter": ["frontispiece_text", "copyright_text", "about_edition_text"],
+                    "preface": ["has_preface", "preface_text"],
+                    "introduction": ["has_introduction", "introduction_text"],
+                    "epilogue": ["has_epilogue", "epilogue_text"],
+                    "all": [
+                        "seal_name",
+                        "title",
+                        "subtitle",
+                        "author_name",
+                        "publication_year",
+                        "imprint_name",
+                        "city_name",
+                        "country_name",
+                        "editor_name",
+                        "translator_name",
+                        "adapter_name",
+                        "frontispiece_text",
+                        "copyright_text",
+                        "about_edition_text",
+                        "has_preface",
+                        "preface_text",
+                        "has_introduction",
+                        "introduction_text",
+                        "has_epilogue",
+                        "epilogue_text",
+                        "about_contributor_text",
+                    ],
+                }
+                update_fields = block_fields_map.get(save_block, block_fields_map["all"])
+                instance.save(apply_defaults=False, update_fields=update_fields)
                 if edition:
                     _sync_template_to_edition(template, edition)
                     _write_frontmatter_files(edition)
+                    _mark_editorial_changed(edition)
                 return redirect("frontmatter_template_edit", book_code=book_code, language=language)
     else:
         form = FrontmatterTemplateForm(instance=template)

@@ -23,6 +23,7 @@ from django.utils.text import slugify
 
 from editorial.models import (
     Contributor,
+    EditionBuild,
     Edition as EditorialEdition,
     EditionPipeline,
     EditionText,
@@ -1671,6 +1672,62 @@ def _block_status_map(*, pipeline_state, raw_path: str | None, frontmatter_templ
         "bloco_04_done": block_04_done,
         "block_04_ready": bool(block_03_done and md_final_exists),
     }
+
+
+def _next_build_version(edition, language_code: str) -> int:
+    latest = (
+        EditionBuild.objects.filter(edition=edition, language_code=language_code)
+        .order_by("-build_version")
+        .first()
+    )
+    return 1 if latest is None else latest.build_version + 1
+
+
+def _archive_build_artifact(path: Path, version: int, suffix_label: str) -> str:
+    if not path.exists():
+        return ""
+    archive_dir = path.parent / "history"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = archive_dir / f"{path.stem}.v{version}.{suffix_label}{path.suffix}"
+    archive_path.write_bytes(path.read_bytes())
+    return str(archive_path)
+
+
+def _record_build_history(edition, *, language_code: str, build_path: Path | None = None, epub_path: Path | None = None, pdf_path: Path | None = None, notes: str = "") -> EditionBuild:
+    if build_path is not None:
+        version = _next_build_version(edition, language_code)
+        record = EditionBuild.objects.create(
+            edition=edition,
+            language_code=language_code,
+            build_version=version,
+            build_type=EditionBuild.BUILD_TYPE_INITIAL if version == 1 else EditionBuild.BUILD_TYPE_REBUILD,
+        )
+    else:
+        latest = (
+            EditionBuild.objects.filter(edition=edition, language_code=language_code)
+            .order_by("-build_version")
+            .first()
+        )
+        if latest is None:
+            version = _next_build_version(edition, language_code)
+            record = EditionBuild.objects.create(
+                edition=edition,
+                language_code=language_code,
+                build_version=version,
+                build_type=EditionBuild.BUILD_TYPE_INITIAL if version == 1 else EditionBuild.BUILD_TYPE_REBUILD,
+            )
+        else:
+            record = latest
+    if build_path is not None:
+        record.build_path = _archive_build_artifact(build_path, record.build_version, "build")
+    if epub_path is not None:
+        record.epub_path = _archive_build_artifact(epub_path, record.build_version, "epub")
+    if pdf_path is not None:
+        record.pdf_path = _archive_build_artifact(pdf_path, record.build_version, "pdf")
+    if notes:
+        record.notes = notes
+    record.save()
+    return record
 
 
 
@@ -3751,6 +3808,9 @@ def edition_steps(request, edition_id: int):
     consolidated_images_dir = _consolidated_images_dir_for_edition(edition)
     consolidated_images_count = len(md_transform.list_available_images(consolidated_images_dir))
     consolidated_images_map = consolidated_images_dir / "images_map.json"
+    build_history = list(
+        EditionBuild.objects.filter(edition=edition, language_code=frontmatter_lang).order_by("-build_version", "-created_at")
+    )
 
     context = {
         "edition": edition,
@@ -3790,6 +3850,11 @@ def edition_steps(request, edition_id: int):
         "build_path": str(build_md_path) if build_md_path.exists() else None,
         "epub_path": str(epub_path) if epub_path.exists() else None,
         "pdf_path": str(pdf_path) if pdf_path.exists() else None,
+        "editorial_changed": bool(getattr(pipeline_state, "editorial_changed", False)),
+        "build_outdated": bool(getattr(pipeline_state, "build_outdated", False)),
+        "last_editorial_update_at": getattr(pipeline_state, "last_editorial_update_at", None),
+        "last_built_at": getattr(pipeline_state, "last_built_at", None),
+        "build_history": build_history,
         "book_code": book_code,
         "language": language,
         "frontmatter_lang": frontmatter_lang,
@@ -4408,30 +4473,63 @@ def run_edition_step(request, edition_id: int, step: str):
             merged_path = kdp_mode.build_merged_kdp_source(target_edition)
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.miolo_md_at = timezone.now()
+            pipeline_state.editorial_changed = False
+            pipeline_state.build_outdated = False
+            pipeline_state.last_built_at = timezone.now()
             if not pipeline_state.final_md_at and pipeline_state.current_stage != PipelineStage.DONE:
                 pipeline_state.current_stage = PipelineStage.MIOLO_MD
             pipeline_state.last_log = ""
-            pipeline_state.save(update_fields=["miolo_md_at", "current_stage", "last_log"])
-            result = {"path": str(kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"), "merged": str(merged_path)}
+            pipeline_state.save(update_fields=["miolo_md_at", "editorial_changed", "build_outdated", "last_built_at", "current_stage", "last_log"])
+            build_path = kdp_mode.builds_dir(target_edition) / "BOOK.BUILD.MD"
+            history = _record_build_history(
+                target_edition,
+                language_code=utils.normalize_lang(_target_lang()),
+                build_path=build_path,
+                notes="Build final gerado a partir do bloco 04.",
+            )
+            result = {"path": str(build_path), "merged": str(merged_path), "build_version": history.build_version}
             messages.success(request, f"Build OK: {result['path']}")
 
         elif step == "export_epub":
             target_edition = _target_edition()
             _assert_block_04_ready(target_edition)
-            result = {"path": str(kdp_mode.build_epub_for_edition(target_edition))}
+            epub_output = kdp_mode.build_epub_for_edition(target_edition)
+            result = {"path": str(epub_output)}
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             if pipeline_state.miolo_md_at is None:
                 pipeline_state.miolo_md_at = timezone.now()
             if pipeline_state.final_md_at:
                 pipeline_state.current_stage = PipelineStage.DONE
+            pipeline_state.editorial_changed = False
+            pipeline_state.build_outdated = False
+            pipeline_state.last_built_at = timezone.now()
             pipeline_state.last_log = ""
-            pipeline_state.save(update_fields=["miolo_md_at", "current_stage", "last_log"])
+            pipeline_state.save(update_fields=["miolo_md_at", "editorial_changed", "build_outdated", "last_built_at", "current_stage", "last_log"])
+            _record_build_history(
+                target_edition,
+                language_code=utils.normalize_lang(_target_lang()),
+                epub_path=epub_output,
+                notes="EPUB gerado a partir do bloco 04.",
+            )
             messages.success(request, f"EPUB OK: {result['path']}")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
             _assert_block_04_ready(target_edition)
-            result = {"path": str(kdp_mode.build_print_pdf_for_edition(target_edition))}
+            pdf_output = kdp_mode.build_print_pdf_for_edition(target_edition)
+            result = {"path": str(pdf_output)}
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            pipeline_state.editorial_changed = False
+            pipeline_state.build_outdated = False
+            pipeline_state.last_built_at = timezone.now()
+            pipeline_state.last_log = ""
+            pipeline_state.save(update_fields=["editorial_changed", "build_outdated", "last_built_at", "last_log"])
+            _record_build_history(
+                target_edition,
+                language_code=utils.normalize_lang(_target_lang()),
+                pdf_path=pdf_output,
+                notes="PDF gerado a partir do bloco 04.",
+            )
             messages.success(request, f"PDF OK: {result['path']}")
 
         elif step == "epubcheck":

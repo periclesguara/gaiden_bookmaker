@@ -274,6 +274,10 @@ class EditionPipeline(models.Model):
     polished_at = models.DateTimeField(null=True, blank=True)
     miolo_md_at = models.DateTimeField(null=True, blank=True)
     final_md_at = models.DateTimeField(null=True, blank=True)
+    editorial_changed = models.BooleanField(default=False)
+    build_outdated = models.BooleanField(default=False)
+    last_editorial_update_at = models.DateTimeField(null=True, blank=True)
+    last_built_at = models.DateTimeField(null=True, blank=True)
     last_log = models.TextField(blank=True)
 
     class Meta:
@@ -281,6 +285,37 @@ class EditionPipeline(models.Model):
 
     def __str__(self) -> str:
         return f"Pipeline({self.edition}) - {self.current_stage}"
+
+
+class EditionBuild(models.Model):
+    BUILD_TYPE_INITIAL = "initial"
+    BUILD_TYPE_REBUILD = "rebuild"
+    BUILD_TYPE_CHOICES = [
+        (BUILD_TYPE_INITIAL, "Initial"),
+        (BUILD_TYPE_REBUILD, "Rebuild"),
+    ]
+
+    edition = models.ForeignKey(
+        Edition,
+        on_delete=models.CASCADE,
+        related_name="build_history",
+    )
+    language_code = models.CharField(max_length=10, db_index=True)
+    build_version = models.IntegerField()
+    build_type = models.CharField(max_length=20, choices=BUILD_TYPE_CHOICES, default=BUILD_TYPE_INITIAL)
+    build_path = models.CharField(max_length=500, blank=True, default="")
+    epub_path = models.CharField(max_length=500, blank=True, default="")
+    pdf_path = models.CharField(max_length=500, blank=True, default="")
+    notes = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "edition_build"
+        unique_together = [("edition", "language_code", "build_version")]
+        ordering = ["-build_version", "-created_at"]
+
+    def __str__(self) -> str:
+        return f"Build({self.edition} [{self.language_code}] v{self.build_version})"
 
 
 class EditionText(models.Model):

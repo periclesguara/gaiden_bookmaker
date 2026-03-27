@@ -550,6 +550,13 @@
         Avisos do idioma atual: {{ editorial_optional_warnings|join:" | " }}
       </div>
       {% endif %}
+      <div class="status">
+        Editorial changed: <strong>{% if editorial_changed %}true{% else %}false{% endif %}</strong>
+        · Build outdated: <strong>{% if build_outdated %}true{% else %}false{% endif %}</strong>
+      </div>
+      {% if last_editorial_update_at %}
+      <div class="status">Ultima atualizacao editorial: <strong>{{ last_editorial_update_at }}</strong></div>
+      {% endif %}
       {% if not block_statuses.bloco_03_ready %}
       <div class="status">
         Bloco 03 aguardando a conclusao textual do bloco 02.
@@ -764,6 +771,9 @@
       {% if not block_statuses.block_04_ready %}
       <div class="status">Bloco 04 bloqueado ate o bloco 03 ficar pronto no idioma selecionado e o MD final existir.</div>
       {% endif %}
+      {% if last_built_at %}
+      <div class="status">Ultimo build registrado: <strong>{{ last_built_at }}</strong></div>
+      {% endif %}
       <div class="status">
         Build status: <strong>{{ build_status }}</strong>
       </div>
@@ -784,6 +794,18 @@
         <span class="badge">BOOK.PRINT.PDF</span>
         {% endif %}
       </div>
+      {% if build_history %}
+      <div class="links" style="margin-top: 12px;">
+        {% for item in build_history %}
+        <div class="status">
+          Build v{{ item.build_version }} · {{ item.build_type }}
+          {% if item.build_path %}<code>{{ item.build_path }}</code>{% endif %}
+          {% if item.epub_path %}<code>{{ item.epub_path }}</code>{% endif %}
+          {% if item.pdf_path %}<code>{{ item.pdf_path }}</code>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
     </article>
   </section>
   <script>

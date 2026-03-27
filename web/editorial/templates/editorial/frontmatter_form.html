@@ -188,6 +188,9 @@
       {{ form.about_edition_text }}
       <div class="preview-title">Preview</div>
       <div class="preview">{{ about_edition_preview }}</div>
+      <div class="actions">
+        <button type="submit" name="save_block" value="frontmatter">Salvar Frontmatter</button>
+      </div>
     </div>
 
     <div class="field-group" id="tab-preface">
@@ -200,6 +203,9 @@
         {{ form.preface_text }}
         <div class="preview-title">Preview</div>
         <div class="preview">{{ preface_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="preface">Salvar Prefacio</button>
+        </div>
       </div>
     </div>
 
@@ -213,6 +219,9 @@
         {{ form.introduction_text }}
         <div class="preview-title">Preview</div>
         <div class="preview">{{ introduction_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="introduction">Salvar Introducao</button>
+        </div>
       </div>
     </div>
 
@@ -226,6 +235,9 @@
         {{ form.epilogue_text }}
         <div class="preview-title">Preview</div>
         <div class="preview">{{ epilogue_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="epilogue">Salvar Epilogo</button>
+        </div>
       </div>
     </div>
 
@@ -238,7 +250,7 @@
     </div>
 
     <div class="actions">
-      <button type="submit">Salvar</button>
+      <button type="submit" name="save_block" value="all">Salvar tudo</button>
       <a href="{% url 'book_edition_list' %}">Voltar</a>
     </div>
   </form>

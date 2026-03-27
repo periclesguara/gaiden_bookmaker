@@ -13,8 +13,9 @@ from django.db import IntegrityError
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
-from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, Seal, Work
+from editorial.models import Contributor, Edition, EditionBuild, EditionPipeline, EditionText, Language, Seal, Work
 from pipeline.forms import normalize_book_code_input
 from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, SYSTEM_BLOCKS
 
@@ -322,6 +323,109 @@ class CadastroSourceFormatRoutingTests(TestCase):
             response,
             reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
         )
+
+    def test_saving_editorial_block_marks_pipeline_as_outdated(self):
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "frontispiece_text": "Front",
+                "copyright_text": "Rights",
+                "about_edition_text": "About",
+            },
+        )
+
+        response = self.client.post(
+            reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
+            data={
+                "book_code": self.work.code,
+                "language": "en",
+                "seal_name": self.seal.name,
+                "title": self.work.title,
+                "subtitle": "",
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "imprint_name": self.seal.name,
+                "city_name": "Rio de Janeiro",
+                "country_name": "Brazil",
+                "editor_name": "",
+                "translator_name": "",
+                "adapter_name": "",
+                "frontispiece_text": "Front",
+                "copyright_text": "Rights",
+                "about_edition_text": "About",
+                "has_preface": "on",
+                "preface_text": "Updated preface",
+                "has_introduction": "",
+                "introduction_text": "",
+                "has_epilogue": "",
+                "epilogue_text": "",
+                "about_contributor_text": "",
+                "save_block": "preface",
+                "confirm_overwrite": "1",
+            },
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
+        pipeline_state = EditionPipeline.objects.get(edition=self.edition)
+        self.assertEqual(template.preface_text, "Updated preface")
+        self.assertTrue(pipeline_state.editorial_changed)
+        self.assertTrue(pipeline_state.build_outdated)
+        self.assertIsNotNone(pipeline_state.last_editorial_update_at)
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    @patch("pipeline.views.kdp_mode.build_merged_kdp_source")
+    def test_build_creates_history_and_preserves_previous_versions(self, mock_build_merged, mock_frontmatter):
+        build_dir = Path("data") / "builds" / self.work.code / "en"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        (build_dir / "BOOK.MD_FINAL").write_text("final md", encoding="utf-8")
+        build_output = build_dir / "BOOK.BUILD.MD"
+
+        def _fake_build(_edition):
+            build_output.write_text("build md", encoding="utf-8")
+            return build_output
+
+        mock_build_merged.side_effect = _fake_build
+
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "frontispiece_text": "Front",
+                "copyright_text": "Rights",
+                "about_edition_text": "About",
+            },
+        )
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=self.edition)
+        pipeline_state.refined_at = timezone.now()
+        pipeline_state.final_md_at = timezone.now()
+        pipeline_state.save(update_fields=["refined_at", "final_md_at"])
+
+        first = self.client.post(
+            reverse("pipeline_run_edition_step", kwargs={"edition_id": self.edition.id, "step": "build"}),
+            follow=False,
+        )
+        second = self.client.post(
+            reverse("pipeline_run_edition_step", kwargs={"edition_id": self.edition.id, "step": "build"}),
+            follow=False,
+        )
+
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+        history = list(EditionBuild.objects.filter(edition=self.edition, language_code="en").order_by("build_version"))
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[0].build_version, 1)
+        self.assertEqual(history[1].build_version, 2)
+        self.assertTrue(history[0].build_path)
+        self.assertTrue(history[1].build_path)
 
     def test_edition_steps_exposes_four_blocks_and_editorial_languages(self):
         BookEditionTemplate.objects.update_or_create(
