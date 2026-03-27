@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Editorial - Frontmatter</title>
+  <title>Bloco 03 - Editorial e Assets</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 20px; max-width: 980px; }
     h1 { margin-bottom: 16px; }
@@ -19,6 +19,11 @@
     .preview-title { font-weight: 600; margin: 6px 0 4px; }
     .actions { margin-top: 20px; display: flex; gap: 12px; }
     button { padding: 6px 12px; font-size: 14px; }
+    .field-group { border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+    .muted { color: #666; font-size: 13px; }
+    .warning-list { background: #fff7e8; border: 1px solid #e5c98a; padding: 10px 12px; border-radius: 8px; margin: 12px 0; }
+    .tab-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+    .tab-link { display: inline-flex; padding: 8px 10px; border-radius: 999px; border: 1px solid #ddd; text-decoration: none; color: #222; background: #fafafa; }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -63,9 +68,17 @@
     {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_frontmatter_url=nav_frontmatter_url %}
   {% endif %}
   <h1>Editorial · Frontmatter</h1>
+  <div class="muted">Bloco 03 · Editorial e Assets. Frontmatter obrigatorio separado de Prefacio, Introducao e Epilogo.</div>
   {% if is_generic %}
   <div class="preview">
     Modo generico: nenhum Edition cadastrado para este livro/idioma.
+  </div>
+  {% endif %}
+  {% if optional_section_warnings %}
+  <div class="warning-list">
+    {% for item in optional_section_warnings %}
+      <div>{{ item }}</div>
+    {% endfor %}
   </div>
   {% endif %}
 
@@ -76,6 +89,12 @@
         <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
+  </div>
+  <div class="tab-nav">
+    <a class="tab-link" href="#tab-frontmatter">Frontmatter</a>
+    <a class="tab-link" href="#tab-preface">Prefacio</a>
+    <a class="tab-link" href="#tab-introduction">Introducao</a>
+    <a class="tab-link" href="#tab-epilogue">Epilogo</a>
   </div>
 
   <form method="post" id="frontmatter_form">
@@ -147,29 +166,72 @@
       {{ form.adapter_name }}
     </div>
 
-    <div>
+    <div class="field-group" id="tab-frontmatter">
       <label for="{{ form.frontispiece_text.id_for_label }}">Frontispicio (template)</label>
+      <div class="muted">Obrigatorio. Sempre entra no livro final.</div>
       {{ form.frontispiece_text }}
       <div class="preview-title">Preview</div>
       <div class="preview">{{ frontmatter_preview }}</div>
     </div>
 
-    <div>
+    <div class="field-group">
       <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
+      <div class="muted">Obrigatorio. Sempre entra no livro final.</div>
       {{ form.copyright_text }}
       <div class="preview-title">Preview</div>
       <div class="preview">{{ copyright_preview }}</div>
     </div>
 
-    <div>
-      <label for="{{ form.about_edition_text.id_for_label }}">About edition</label>
+    <div class="field-group">
+      <label for="{{ form.about_edition_text.id_for_label }}">About This Book</label>
+      <div class="muted">Obrigatorio. Entra logo apos o frontmatter fixo.</div>
       {{ form.about_edition_text }}
       <div class="preview-title">Preview</div>
       <div class="preview">{{ about_edition_preview }}</div>
     </div>
 
-    <div>
+    <div class="field-group" id="tab-preface">
+      <label for="{{ form.has_preface.id_for_label }}">
+        {{ form.has_preface }} Livro tera Prefacio
+      </label>
+      <div class="muted">Opcional. So entra se marcado e com conteudo.</div>
+      <div data-optional-block="has_preface">
+        <label for="{{ form.preface_text.id_for_label }}">Prefacio</label>
+        {{ form.preface_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ preface_preview }}</div>
+      </div>
+    </div>
+
+    <div class="field-group" id="tab-introduction">
+      <label for="{{ form.has_introduction.id_for_label }}">
+        {{ form.has_introduction }} Livro tera Introducao
+      </label>
+      <div class="muted">Opcional. So entra se marcado e com conteudo.</div>
+      <div data-optional-block="has_introduction">
+        <label for="{{ form.introduction_text.id_for_label }}">Introducao</label>
+        {{ form.introduction_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ introduction_preview }}</div>
+      </div>
+    </div>
+
+    <div class="field-group" id="tab-epilogue">
+      <label for="{{ form.has_epilogue.id_for_label }}">
+        {{ form.has_epilogue }} Livro tera Epilogo
+      </label>
+      <div class="muted">Opcional. Entra depois do texto principal.</div>
+      <div data-optional-block="has_epilogue">
+        <label for="{{ form.epilogue_text.id_for_label }}">Epilogo</label>
+        {{ form.epilogue_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ epilogue_preview }}</div>
+      </div>
+    </div>
+
+    <div class="field-group">
       <label for="{{ form.about_contributor_text.id_for_label }}">About contributor</label>
+      <div class="muted">Mantido para compatibilidade, mas fora da ordem editorial padrao.</div>
       {{ form.about_contributor_text }}
       <div class="preview-title">Preview</div>
       <div class="preview">{{ about_contributor_preview }}</div>
@@ -210,6 +272,20 @@
     const modal = document.getElementById("overwrite_modal");
     const cancelBtn = document.getElementById("cancel_overwrite");
     const confirmBtn = document.getElementById("confirm_overwrite_btn");
+    function syncOptionalBlocks() {
+      document.querySelectorAll("[data-optional-block]").forEach((block) => {
+        const fieldName = block.getAttribute("data-optional-block");
+        const checkbox = document.getElementById(`id_${fieldName}`);
+        if (!checkbox) {
+          return;
+        }
+        block.style.display = checkbox.checked ? "block" : "none";
+      });
+    }
+    document.querySelectorAll('input[type="checkbox"][id^="id_has_"]').forEach((checkbox) => {
+      checkbox.addEventListener("change", syncOptionalBlocks);
+    });
+    syncOptionalBlocks();
     if (form && confirmInput && modal && cancelBtn && confirmBtn) {
       form.addEventListener("submit", (event) => {
         const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};

@@ -101,7 +101,16 @@ def _scan_frontmatter(work_code: str, lang: str) -> None:
     fdir = ROOT / "data" / "frontmatter" / work_code / lang
     if not fdir.exists():
         return
-    for name in ["frontispiece.md", "copyright.md", "about_edition.md", "about_contributor.md"]:
+    for name in [
+        "frontispiece.md",
+        "copyright.md",
+        "about_this_book.md",
+        "about_edition.md",
+        "preface.md",
+        "introduction.md",
+        "epilogue.md",
+        "about_contributor.md",
+    ]:
         path = fdir / name
         if path.exists():
             _upsert(work_code, lang, "frontmatter", path, is_candidate=True)

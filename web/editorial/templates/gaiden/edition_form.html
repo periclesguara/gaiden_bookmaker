@@ -68,7 +68,7 @@
       {{ form.seal_name }}
     </div>
     <div>
-      <label for="{{ form.about_edition_text.id_for_label }}">About this edition</label>
+      <label for="{{ form.about_edition_text.id_for_label }}">About This Book</label>
       {{ form.about_edition_text }}
     </div>
 
@@ -85,7 +85,7 @@
   <h2>Preview Copyright</h2>
   <pre>{{ copyright_preview }}</pre>
 
-  <h2>Preview About this edition</h2>
+  <h2>Preview About This Book</h2>
   <pre>{{ about_edition_preview }}</pre>
   <script>
     const langSelect = document.getElementById("{{ form.language_code.id_for_label }}");

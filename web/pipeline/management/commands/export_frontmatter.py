@@ -7,7 +7,10 @@ from editorial.frontmatter import build_frontmatter_files
 
 
 class Command(BaseCommand):
-    help = "Exporta frontispicio/copyright/about* para .md a partir de Edition."
+    help = (
+        "Exporta os blocos editoriais finais "
+        "(frontispiece, copyright, about_this_book e opcionais) para .md a partir de Edition."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(

@@ -66,14 +66,10 @@ class Command(BaseCommand):
         )
 
         front_dir = frontmatter_base / book_code / language
-        front_files = {
-            "frontispiece.md",
-            "copyright.md",
-            "about_edition.md",
-            "about_contributor.md",
-        }
+        required_front_files = ("frontispiece.md", "copyright.md")
+        has_about_file = (front_dir / "about_this_book.md").exists() or (front_dir / "about_edition.md").exists()
 
-        if not front_dir.exists() or not all((front_dir / f).exists() for f in front_files):
+        if not front_dir.exists() or not all((front_dir / f).exists() for f in required_front_files) or not has_about_file:
             self.stdout.write(
                 self.style.WARNING(
                     "Frontmatter nao encontrado completo. Rodando export_frontmatter..."
@@ -85,7 +81,8 @@ class Command(BaseCommand):
                 f"--language={language}",
             )
 
-        if not front_dir.exists() or not all((front_dir / f).exists() for f in front_files):
+        has_about_file = (front_dir / "about_this_book.md").exists() or (front_dir / "about_edition.md").exists()
+        if not front_dir.exists() or not all((front_dir / f).exists() for f in required_front_files) or not has_about_file:
             raise CommandError(
                 f"Mesmo apos export_frontmatter, frontmatter esta incompleto em {front_dir}"
             )
@@ -104,8 +101,13 @@ class Command(BaseCommand):
 
         frontispiece = read_file(front_dir / "frontispiece.md")
         copyright_text = read_file(front_dir / "copyright.md")
-        about_edition = read_file(front_dir / "about_edition.md")
-        about_contributor = read_file(front_dir / "about_contributor.md")
+        about_path = front_dir / "about_this_book.md"
+        if not about_path.exists():
+            about_path = front_dir / "about_edition.md"
+        about_edition = read_file(about_path)
+        preface = read_file(front_dir / "preface.md") if (front_dir / "preface.md").exists() else ""
+        introduction = read_file(front_dir / "introduction.md") if (front_dir / "introduction.md").exists() else ""
+        epilogue = read_file(front_dir / "epilogue.md") if (front_dir / "epilogue.md").exists() else ""
         content = read_file(content_path)
 
         sections = []
@@ -114,10 +116,14 @@ class Command(BaseCommand):
 
         if about_edition.strip():
             sections.append(about_edition.strip() + "\n\n---\n\n")
-        if about_contributor.strip():
-            sections.append(about_contributor.strip() + "\n\n---\n\n")
+        if preface.strip():
+            sections.append(preface.strip() + "\n\n---\n\n")
+        if introduction.strip():
+            sections.append(introduction.strip() + "\n\n---\n\n")
 
         sections.append(content.strip() + "\n")
+        if epilogue.strip():
+            sections.append("\n---\n\n" + epilogue.strip() + "\n")
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text("".join(sections), encoding="utf-8")

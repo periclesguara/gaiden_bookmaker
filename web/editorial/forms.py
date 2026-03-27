@@ -25,12 +25,21 @@ class FrontmatterTemplateForm(forms.ModelForm):
             "frontispiece_text",
             "copyright_text",
             "about_edition_text",
+            "has_preface",
+            "preface_text",
+            "has_introduction",
+            "introduction_text",
+            "has_epilogue",
+            "epilogue_text",
             "about_contributor_text",
         ]
         widgets = {
             "frontispiece_text": forms.Textarea(attrs={"rows": 8}),
             "copyright_text": forms.Textarea(attrs={"rows": 14}),
             "about_edition_text": forms.Textarea(attrs={"rows": 8}),
+            "preface_text": forms.Textarea(attrs={"rows": 8}),
+            "introduction_text": forms.Textarea(attrs={"rows": 8}),
+            "epilogue_text": forms.Textarea(attrs={"rows": 8}),
             "about_contributor_text": forms.Textarea(attrs={"rows": 8}),
         }
 
@@ -52,6 +61,9 @@ class FrontmatterTemplateForm(forms.ModelForm):
             "frontispiece_text",
             "copyright_text",
             "about_edition_text",
+            "preface_text",
+            "introduction_text",
+            "epilogue_text",
             "about_contributor_text",
         ):
             cleaned[field] = self._normalize_blank(cleaned.get(field, ""))

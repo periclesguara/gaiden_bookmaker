@@ -777,13 +777,14 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     builds_base.mkdir(parents=True, exist_ok=True)
 
     sections: list[str] = []
-    for name in ["frontispiece", "copyright", "about_edition", "about_contributor"]:
-        path = fm_base / f"{name}.md"
+    for filename in ["frontispiece.md", "copyright.md", "about_this_book.md", "preface.md", "introduction.md"]:
+        path = fm_base / filename
         if path.exists():
             txt = _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
-            if name == "frontispiece":
+            if filename == "frontispiece.md":
                 txt = _remove_unwanted_taglines(txt).rstrip()
-            sections.append(txt + "\n\n")
+            if txt.strip():
+                sections.append(txt + "\n\n")
 
     miolo_path = resolve_miolo_source_path(edition)
     _publish_legacy_miolo_snapshot(edition, miolo_path)
@@ -801,7 +802,15 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)
     cleanup_matches.extend(image_alt_matches)
     _write_marker_cleanup_report(builds_base, cleanup_matches)
-    merged_txt = "".join(sections) + "\n\n" + miolo_txt + "\n"
+    epilogue_path = fm_base / "epilogue.md"
+    epilogue_txt = ""
+    if epilogue_path.exists():
+        epilogue_txt = _normalize_pagebreaks(epilogue_path.read_text(encoding="utf-8").rstrip()).strip()
+
+    merged_txt = "".join(sections) + "\n\n" + miolo_txt.strip()
+    if epilogue_txt:
+        merged_txt += "\n\n" + epilogue_txt
+    merged_txt += "\n"
     _repair_missing_referenced_assets(edition, builds_base, merged_txt)
 
     kdp_merged_path = builds_base / "kdp_merged.md"

@@ -1,0 +1,101 @@
+GAIDEN SYSTEM REORGANIZATION LOG
+Date: 2026-03-27
+
+Summary
+- Reorganized the product language and UI around 4 official blocks.
+- Declared Block 02 as the textual core of the system.
+- Separated editorial/assets concerns into Block 03.
+- Added multilingual editorial readiness across EN, PT-BR, ES, DE, IT and FR.
+- Added Block 04 gating so final build/export only runs after editorial readiness and BOOK.MD_FINAL.
+
+Official block structure
+1. Block 01 - Entry
+   - registration
+   - upload
+   - HTML/TXT entry preparation
+2. Block 02 - Core
+   - normalize
+   - fix / heading cleaner path
+   - chunks
+   - translate
+   - split by chapter
+   - refine
+   - polish
+3. Block 03 - Editorial and Assets
+   - frontispiece
+   - copyright
+   - about this book
+   - preface
+   - introduction
+   - epilogue
+   - images
+   - cover
+4. Block 04 - Finalization
+   - final assembly
+   - EPUB export
+   - PDF export
+
+Code changes
+- Added official block metadata in web/pipeline/models.py.
+- Added core isolation language list for EN, PTBR, ES, DE, IT, FR.
+- Reworked edition steps UI to display blocks, status and editorial readiness by language.
+- Added editorial template auto-bootstrap for all 6 languages from the steps view.
+- Added Block 04 safety gate in web/pipeline/views.py.
+- Updated workspace navigation labels to the official 4-block terminology.
+- Updated HTML lane text to route explicitly from Block 01 into Blocks 02-04.
+- Expanded editorial language choices in web/editorial/models.py to include IT and FR.
+
+Editorial structure
+- Frontmatter remains mandatory and separated from optional editorial blocks.
+- Mandatory:
+  - frontispiece
+  - copyright
+  - about_this_book
+- Optional by flag:
+  - preface
+  - introduction
+  - epilogue
+- Optional empty content is skipped with friendly warnings.
+
+Build rules
+- Block 03 must be ready for the selected language before Block 04 actions.
+- BOOK.MD_FINAL must exist before:
+  - build
+  - export_epub
+  - export_pdf
+  - epubcheck
+  - gaiden final assembly
+
+Files touched
+- web/pipeline/models.py
+- web/pipeline/views.py
+- web/pipeline/tests.py
+- web/pipeline/templates/pipeline/_workspace_nav.html
+- web/pipeline/templates/pipeline/edition_steps.html
+- web/pipeline/templates/pipeline/html_pipeline_dashboard.html
+- web/pipeline/templates/pipeline/book_edition_form.html
+- web/pipeline/templates/pipeline/book_edition_list.html
+- web/pipeline/templates/pipeline/book_edition_upload.html
+- web/pipeline/templates/pipeline/dashboard.html
+- web/pipeline/templates/pipeline/jobs.html
+- web/pipeline/management/commands/build_book_text.py
+- web/pipeline/management/commands/export_frontmatter.py
+- web/editorial/models.py
+- web/editorial/forms.py
+- web/editorial/views.py
+- web/editorial/frontmatter.py
+- web/editorial/kdp_mode.py
+- web/editorial/services/artifact_index.py
+- web/editorial/management/commands/bridge_frontmatter.py
+- web/editorial/templates/editorial/frontmatter_form.html
+- web/editorial/templates/gaiden/edition_form.html
+
+Tests executed
+1. source .venv/bin/activate && python web/manage.py test pipeline.tests.CadastroSourceFormatRoutingTests pipeline.tests.PipelineBlockContractTests --settings=gaiden_portal.settings_sqlite
+2. source .venv/bin/activate && python web/manage.py test pipeline.tests.HtmlLanePreprodConvertTests pipeline.tests.CadastroSourceFormatRoutingTests pipeline.tests.PipelineBlockContractTests --settings=gaiden_portal.settings_sqlite
+3. source .venv/bin/activate && python web/manage.py test pipeline.tests.CadastroSourceFormatRoutingTests pipeline.tests.PipelineBlockContractTests pipeline.tests.KdpMarkerCleanupContractTests --settings=gaiden_portal.settings_sqlite
+
+Observed results
+- All targeted suites passed.
+- No core textual stage was rewritten.
+- The changes stayed concentrated in orchestration, UI, editorial composition and final build gating.

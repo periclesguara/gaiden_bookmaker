@@ -5,8 +5,12 @@ from typing import Dict
 import re
 
 from editorial.models import Edition
+from pipeline.models import BookEditionTemplate, ensure_bookeditiontemplate_runtime_columns
 
-SECTION_ORDER = ["frontispiece", "copyright", "about_edition", "about_contributor"]
+FIXED_FRONTMATTER_ORDER = ["frontispiece", "copyright"]
+FRONT_BLOCK_ORDER = ["frontispiece", "copyright", "about_edition", "preface", "introduction"]
+BACK_BLOCK_ORDER = ["epilogue"]
+ALL_SECTION_FILES = FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER + ["about_contributor"]
 BLANK_MARKERS = {"blank", "[blank]", "{blank}", "__blank__"}
 
 
@@ -63,37 +67,55 @@ def frontmatter_headings(language: str) -> dict[str, str]:
         "en": {
             "frontispiece": "Frontispiece",
             "copyright": "Copyright",
-            "about_edition": "About this Edition",
+            "about_edition": "About This Book",
+            "preface": "Preface",
+            "introduction": "Introduction",
+            "epilogue": "Epilogue",
             "about_contributor": "About the Contributors",
         },
         "de": {
             "frontispiece": "Frontispiz",
             "copyright": "Copyright",
-            "about_edition": "Über diese Ausgabe",
+            "about_edition": "Über dieses Buch",
+            "preface": "Vorwort",
+            "introduction": "Einführung",
+            "epilogue": "Epilog",
             "about_contributor": "Über die Mitwirkenden",
         },
         "es": {
             "frontispiece": "Frontispicio",
             "copyright": "Copyright",
-            "about_edition": "Sobre esta edición",
+            "about_edition": "Sobre este libro",
+            "preface": "Prefacio",
+            "introduction": "Introducción",
+            "epilogue": "Epílogo",
             "about_contributor": "Sobre los colaboradores",
         },
         "ptbr": {
             "frontispiece": "Frontispício",
             "copyright": "Copyright",
-            "about_edition": "Sobre esta edição",
+            "about_edition": "Sobre este livro",
+            "preface": "Prefácio",
+            "introduction": "Introdução",
+            "epilogue": "Epílogo",
             "about_contributor": "Sobre os colaboradores",
         },
         "pt-br": {
             "frontispiece": "Frontispício",
             "copyright": "Copyright",
-            "about_edition": "Sobre esta edição",
+            "about_edition": "Sobre este livro",
+            "preface": "Prefácio",
+            "introduction": "Introdução",
+            "epilogue": "Epílogo",
             "about_contributor": "Sobre os colaboradores",
         },
     }.get(language, {
         "frontispiece": "Frontispiece",
         "copyright": "Copyright",
-        "about_edition": "About this Edition",
+        "about_edition": "About This Book",
+        "preface": "Preface",
+        "introduction": "Introduction",
+        "epilogue": "Epilogue",
         "about_contributor": "About the Contributors",
     })
 
@@ -145,10 +167,50 @@ def sanitize_section_body(text: str, section_heading: str) -> str:
     return _strip_leading_duplicate_heading(stripped, section_heading).strip()
 
 
+def _section_file_name(section_name: str) -> str:
+    if section_name == "about_edition":
+        return "about_this_book.md"
+    return f"{section_name}.md"
+
+
+def _resolve_template(edition: Edition) -> BookEditionTemplate | None:
+    book_code = getattr(getattr(edition, "work", None), "code", "")
+    language_code = getattr(edition, "language_code", None) or getattr(
+        getattr(edition, "language", None), "code", ""
+    )
+    if not book_code or not language_code:
+        return None
+    ensure_bookeditiontemplate_runtime_columns()
+    return BookEditionTemplate.objects.filter(book_code=book_code, language=language_code).first()
+
+
+def _optional_section_specs(template: BookEditionTemplate | None) -> list[tuple[str, bool, str]]:
+    if template is None:
+        return [
+            ("preface", False, ""),
+            ("introduction", False, ""),
+            ("epilogue", False, ""),
+        ]
+    return [
+        ("preface", bool(template.has_preface), template.preface_rendered),
+        ("introduction", bool(template.has_introduction), template.introduction_rendered),
+        ("epilogue", bool(template.has_epilogue), template.epilogue_rendered),
+    ]
+
+
+def optional_section_warnings(template: BookEditionTemplate | None, language: str) -> list[str]:
+    headings = frontmatter_headings(language)
+    warnings: list[str] = []
+    for key, enabled, body in _optional_section_specs(template):
+        if enabled and not sanitize_section_body(body, headings[key]):
+            warnings.append(f"{headings[key]} marcado, mas sem conteudo. Bloco sera ignorado na montagem final.")
+    return warnings
+
+
 def build_frontmatter_sections(language: str, rendered_sections: dict[str, str]) -> Dict[str, str]:
     headings = frontmatter_headings(language)
     fm: Dict[str, str] = {}
-    for key in SECTION_ORDER:
+    for key in FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER + ["about_contributor"]:
         body = sanitize_section_body(rendered_sections.get(key, ""), headings[key])
         if not body:
             continue
@@ -158,7 +220,7 @@ def build_frontmatter_sections(language: str, rendered_sections: dict[str, str])
 
 def merge_frontmatter_sections(sections: Dict[str, str]) -> str:
     merged = ""
-    for key in SECTION_ORDER:
+    for key in FRONT_BLOCK_ORDER:
         if key in sections:
             merged += sections[key].rstrip() + "\n\n"
     return merged.rstrip() + "\n"
@@ -167,12 +229,15 @@ def merge_frontmatter_sections(sections: Dict[str, str]) -> str:
 def render_frontmatter(edition: Edition) -> Dict[str, str]:
     ctx = build_context(edition)
     language = ctx.get("language") or "en"
+    template = _resolve_template(edition)
     rendered_sections = {
         "frontispiece": render_template(edition.frontispiece_template, ctx),
         "copyright": render_template(edition.copyright_template, ctx),
         "about_edition": render_template(edition.about_edition_template, ctx),
         "about_contributor": render_template(edition.about_contributor_template, ctx),
     }
+    for key, enabled, body in _optional_section_specs(template):
+        rendered_sections[key] = body if enabled else ""
     return build_frontmatter_sections(language, rendered_sections)
 
 
@@ -186,8 +251,10 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
 
     fm = render_frontmatter(edition)
     # Blank-safe save: missing section is persisted as empty file to prevent stale leftovers.
-    for key in SECTION_ORDER:
-        (out_dir / f"{key}.md").write_text(fm.get(key, ""), encoding="utf-8")
+    for key in ALL_SECTION_FILES:
+        (out_dir / _section_file_name(key)).write_text(fm.get(key, ""), encoding="utf-8")
+    # Legacy alias kept to avoid breaking older tooling that still reads about_edition.md.
+    (out_dir / "about_edition.md").write_text(fm.get("about_edition", ""), encoding="utf-8")
 
 
 def build_merged_frontmatter(edition: Edition) -> str:

@@ -18,6 +18,7 @@ from editorial.frontmatter import (
     build_frontmatter_files,
     build_frontmatter_sections,
     merge_frontmatter_sections,
+    optional_section_warnings,
 )
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
@@ -136,7 +137,7 @@ def _write_frontmatter_files(edition: EditorialEdition) -> None:
 
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
-    return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_edition.md"))
+    return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_this_book.md"))
 
 
 def frontmatter_template_edit(request, book_code: str, language: str):
@@ -277,6 +278,9 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "frontispiece": template.frontispiece_rendered,
         "copyright": template.copyright_rendered,
         "about_edition": template.about_edition_rendered,
+        "preface": template.preface_rendered if template.has_preface else "",
+        "introduction": template.introduction_rendered if template.has_introduction else "",
+        "epilogue": template.epilogue_rendered if template.has_epilogue else "",
         "about_contributor": template.about_contributor_rendered,
     }
     preview_sections = build_frontmatter_sections(language, rendered_sections)
@@ -289,8 +293,12 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "frontmatter_preview": preview_sections.get("frontispiece", ""),
         "copyright_preview": preview_sections.get("copyright", ""),
         "about_edition_preview": preview_sections.get("about_edition", ""),
+        "preface_preview": preview_sections.get("preface", ""),
+        "introduction_preview": preview_sections.get("introduction", ""),
+        "epilogue_preview": preview_sections.get("epilogue", ""),
         "about_contributor_preview": preview_sections.get("about_contributor", ""),
         "frontmatter_merged_preview": merge_frontmatter_sections(preview_sections),
+        "optional_section_warnings": optional_section_warnings(template, language),
         "language_options": BookEditionTemplate.LANG_CHOICES,
         "book_code": book_code,
         "language": language,

@@ -267,6 +267,31 @@ LANGUAGE_DEFAULT_TEMPLATES = {
 }
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+EDITORIAL_LANGUAGES = ("en", "ptbr", "es", "de", "it", "fr")
+CORE_BLOCK_KEY = "bloco_02"
+CORE_ISOLATION_LANGUAGES = EDITORIAL_LANGUAGES
+SYSTEM_BLOCKS = (
+    {
+        "key": "bloco_01",
+        "title": "Bloco 01 - Entrada",
+        "description": "Cadastro, upload e preparo de entrada para o processamento.",
+    },
+    {
+        "key": CORE_BLOCK_KEY,
+        "title": "Bloco 02 - Core do Sistema",
+        "description": "Normalize, fix, chunks, translate, split by chapter, refine e polish.",
+    },
+    {
+        "key": "bloco_03",
+        "title": "Bloco 03 - Editorial e Assets",
+        "description": "Frontmatter, prefacio, introducao, epilogo, imagens e capa.",
+    },
+    {
+        "key": "bloco_04",
+        "title": "Bloco 04 - Finalizacao",
+        "description": "Montagem final, build EPUB, build PDF e geracao final da edicao.",
+    },
+)
 
 
 def get_book_md_path(book_code: str, language: str) -> Path:
@@ -392,6 +417,12 @@ class BookEditionTemplate(models.Model):
     frontispiece_text = models.TextField(blank=True)
     copyright_text = models.TextField(blank=True)
     about_edition_text = models.TextField(blank=True)
+    has_preface = models.BooleanField(default=False)
+    preface_text = models.TextField(blank=True)
+    has_introduction = models.BooleanField(default=False)
+    introduction_text = models.TextField(blank=True)
+    has_epilogue = models.BooleanField(default=False)
+    epilogue_text = models.TextField(blank=True)
     about_contributor_text = models.TextField(blank=True)
     text_source_mode = models.CharField(max_length=100, default="auto")
     registration_status = models.CharField(
@@ -492,6 +523,18 @@ class BookEditionTemplate(models.Model):
         return self._render_text(self.about_edition_text)
 
     @property
+    def preface_rendered(self) -> str:
+        return self._render_text(self.preface_text)
+
+    @property
+    def introduction_rendered(self) -> str:
+        return self._render_text(self.introduction_text)
+
+    @property
+    def epilogue_rendered(self) -> str:
+        return self._render_text(self.epilogue_text)
+
+    @property
     def about_contributor_rendered(self) -> str:
         return self._render_text(self.about_contributor_text)
 
@@ -535,6 +578,12 @@ def ensure_bookeditiontemplate_runtime_columns() -> None:
         "original_author_death_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_author_death_date date NULL",
         "work_kind": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN work_kind varchar(20) NOT NULL DEFAULT 'AUTHORIAL'",
         "registration_status": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN registration_status varchar(30) NOT NULL DEFAULT 'DRAFT'",
+        "has_preface": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_preface bool NOT NULL DEFAULT 0",
+        "preface_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN preface_text text NOT NULL DEFAULT ''",
+        "has_introduction": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_introduction bool NOT NULL DEFAULT 0",
+        "introduction_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN introduction_text text NOT NULL DEFAULT ''",
+        "has_epilogue": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_epilogue bool NOT NULL DEFAULT 0",
+        "epilogue_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN epilogue_text text NOT NULL DEFAULT ''",
         "source_file_type": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_type varchar(10) NOT NULL DEFAULT ''",
         "source_original_name": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_original_name varchar(255) NOT NULL DEFAULT ''",
         "source_saved_path": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_saved_path varchar(500) NOT NULL DEFAULT ''",

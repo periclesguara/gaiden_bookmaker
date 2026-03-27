@@ -32,10 +32,15 @@ from editorial.models import (
     Work,
 )
 from editorial import kdp_mode
+from editorial.frontmatter import optional_section_warnings
 
 from .models import (
     BookEditionTemplate,
+    CORE_BLOCK_KEY,
+    CORE_ISOLATION_LANGUAGES,
+    EDITORIAL_LANGUAGES,
     PipelineJob,
+    SYSTEM_BLOCKS,
     TextSnapshot,
     ensure_bookeditiontemplate_runtime_columns,
     get_book_md_path,
@@ -93,6 +98,15 @@ REFINE_PROFILES = {
             "atmosphere, pulp-adventure energy, and sword-and-sorcery flavor when supported by the source."
         ),
     },
+}
+
+BLOCK_STATUS_LABELS = {
+    "bloco_01_ready": "bloco_01_ready",
+    "bloco_02_running": "bloco_02_running",
+    "bloco_02_done": "bloco_02_done",
+    "bloco_03_ready": "bloco_03_ready",
+    "bloco_03_done": "bloco_03_done",
+    "bloco_04_done": "bloco_04_done",
 }
 REFINE_RETURN_DIRNAME = "return_aldebaran"
 
@@ -801,10 +815,7 @@ def _book_registration_rows() -> list[dict[str, object]]:
                 "template": template,
                 "status_label": _registration_status_label(template),
                 "source_info": _existing_source_info(template, edition),
-                "edit_url": reverse(
-                    "book_edition_edit",
-                    kwargs={"book_code": book_code, "language": language},
-                ),
+                "edit_url": reverse("edition_steps", kwargs={"edition_id": edition.id}),
                 "upload_url": _template_upload_url(template),
                 "steps_url": steps_url,
             }
@@ -812,9 +823,42 @@ def _book_registration_rows() -> list[dict[str, object]]:
     return rows
 
 
+def _registration_book_options(rows: list[dict[str, object]]) -> list[dict[str, str]]:
+    options: list[dict[str, str]] = []
+    for row in rows:
+        edition = row["edition"]
+        parsed = _parse_book_id(edition.work.code)
+        book_number = f"{parsed:02d}" if parsed is not None else edition.work.code
+        options.append(
+            {
+                "value": edition.work.code,
+                "label": f"{book_number} - {edition.work.code} [{utils.normalize_lang(edition.language.code)}] - {edition.title or edition.work.title}",
+            }
+        )
+    return options
+
+
+def _filter_registration_rows(
+    rows: list[dict[str, object]],
+    *,
+    book_filter: str,
+) -> tuple[list[dict[str, object]], bool]:
+    book_value = normalize_book_code_input((book_filter or "").strip())
+    if not book_value:
+        return [], False
+    filtered = [row for row in rows if row["edition"].work.code == book_value]
+    return filtered, True
+
+
 def _render_registration_page(request, form, *, template=None, status=200):
     selected_source_format = _normalize_source_format(
         template.text_source_mode if template else SOURCE_FORMAT_TXT
+    )
+    all_rows = _book_registration_rows()
+    book_filter = (request.GET.get("book") or "").strip()
+    filtered_rows, show_rows_table = _filter_registration_rows(
+        all_rows,
+        book_filter=book_filter,
     )
     return render(
         request,
@@ -823,7 +867,10 @@ def _render_registration_page(request, form, *, template=None, status=200):
             "form": form,
             "source_format": selected_source_format,
             "continue_options": _continue_book_options(),
-            "edition_rows": _book_registration_rows(),
+            "registration_book_options": _registration_book_options(all_rows),
+            "edition_rows": filtered_rows,
+            "show_rows_table": show_rows_table,
+            "book_filter_value": book_filter,
             "current_template": template,
             "upload_url": _template_upload_url(template),
             "status_label": _registration_status_label(template),
@@ -1531,6 +1578,99 @@ def _continue_book_options() -> list[dict[str, str]]:
             }
         )
     return options
+
+
+def _frontmatter_template_defaults(edition, language: str) -> dict[str, object]:
+    default_year = edition.edition_year or edition.work.year or datetime.now().year
+    default_collab = (
+        edition.main_contributor.name if edition.main_contributor else edition.work.author.name
+    )
+    return {
+        "title": edition.work.title,
+        "subtitle": "",
+        "author_name": edition.work.author.name,
+        "publication_year": default_year,
+        "imprint_name": edition.seal.name,
+        "collection_name": "",
+        "collaborator_name": default_collab,
+        "collaborator_pseudonym": "",
+        "collaborator_roles": "",
+        "seal_name": edition.seal.name,
+        "editor_name": "",
+        "translator_name": "",
+        "adapter_name": default_collab,
+        "language": language,
+    }
+
+
+def _ensure_editorial_templates_for_all_languages(edition) -> list[BookEditionTemplate]:
+    templates: list[BookEditionTemplate] = []
+    for lang in EDITORIAL_LANGUAGES:
+        template, created = BookEditionTemplate.objects.get_or_create(
+            book_code=edition.work.code,
+            language=lang,
+            defaults=_frontmatter_template_defaults(edition, lang),
+        )
+        if created:
+            template.save()
+        templates.append(template)
+    return templates
+
+
+def _editorial_required_fields_ready(template: BookEditionTemplate | None) -> bool:
+    if template is None:
+        return False
+    return bool(
+        template.frontispiece_rendered.strip()
+        and template.copyright_rendered.strip()
+        and template.about_edition_rendered.strip()
+    )
+
+
+def _editorial_language_rows(templates: list[BookEditionTemplate]) -> list[dict[str, object]]:
+    labels = dict(BookEditionTemplate.LANG_CHOICES)
+    rows: list[dict[str, object]] = []
+    for template in templates:
+        warnings = optional_section_warnings(template, utils.normalize_lang(template.language))
+        rows.append(
+            {
+                "code": template.language,
+                "label": labels.get(template.language, template.language),
+                "required_ready": _editorial_required_fields_ready(template),
+                "has_preface": bool(template.has_preface),
+                "has_introduction": bool(template.has_introduction),
+                "has_epilogue": bool(template.has_epilogue),
+                "warnings": warnings,
+                "url": reverse(
+                    "frontmatter_template_edit",
+                    kwargs={"book_code": template.book_code, "language": template.language},
+                ),
+            }
+        )
+    return rows
+
+
+def _block_status_map(*, pipeline_state, raw_path: str | None, frontmatter_template, md_final_exists: bool, build_exists: bool, epub_exists: bool, pdf_exists: bool) -> dict[str, object]:
+    block_01_ready = bool(raw_path)
+    block_02_done = bool(
+        pipeline_state.refined_at
+        or pipeline_state.polished_at
+        or pipeline_state.merged_at
+        or pipeline_state.final_md_at
+    )
+    block_02_running = bool(block_01_ready and not block_02_done)
+    block_03_ready = block_02_done
+    block_03_done = bool(block_03_ready and _editorial_required_fields_ready(frontmatter_template))
+    block_04_done = bool(build_exists and (epub_exists or pdf_exists))
+    return {
+        "bloco_01_ready": block_01_ready,
+        "bloco_02_running": block_02_running,
+        "bloco_02_done": block_02_done,
+        "bloco_03_ready": block_03_ready,
+        "bloco_03_done": block_03_done,
+        "bloco_04_done": block_04_done,
+        "block_04_ready": bool(block_03_done and md_final_exists),
+    }
 
 
 
@@ -3526,27 +3666,24 @@ def edition_steps(request, edition_id: int):
         frontmatter_lang = pipeline_state.frontmatter_language
         frontmatter_locked = True
 
-    default_year = edition.edition_year or edition.work.year or datetime.now().year
-    default_collab = (
-        edition.main_contributor.name if edition.main_contributor else edition.work.author.name
-    )
+    editorial_templates = _ensure_editorial_templates_for_all_languages(edition)
     frontmatter_template, created = BookEditionTemplate.objects.get_or_create(
         book_code=book_code,
         language=frontmatter_lang,
-        defaults={
-            "title": edition.work.title,
-            "subtitle": "",
-            "author_name": edition.work.author.name,
-            "publication_year": default_year,
-            "imprint_name": edition.seal.name,
-            "collection_name": "",
-            "collaborator_name": default_collab,
-            "collaborator_pseudonym": "",
-            "collaborator_roles": "",
-        },
+        defaults=_frontmatter_template_defaults(edition, frontmatter_lang),
     )
     if created:
         frontmatter_template.save()
+    editorial_language_rows = _editorial_language_rows(editorial_templates)
+    block_statuses = _block_status_map(
+        pipeline_state=pipeline_state,
+        raw_path=raw_path,
+        frontmatter_template=frontmatter_template,
+        md_final_exists=final_md_path.exists(),
+        build_exists=build_md_path.exists(),
+        epub_exists=epub_path.exists(),
+        pdf_exists=pdf_path.exists(),
+    )
 
     def _resolve_md_source_path(lang: str) -> str:
         build_dir = paths.edition_build_dir_for_language(book_code, lang)
@@ -3661,6 +3798,13 @@ def edition_steps(request, edition_id: int):
         "frontmatter_preview": frontmatter_template.frontispiece_rendered,
         "copyright_preview": frontmatter_template.copyright_rendered,
         "frontmatter_locked": frontmatter_locked,
+        "editorial_language_rows": editorial_language_rows,
+        "editorial_optional_warnings": optional_section_warnings(frontmatter_template, frontmatter_lang),
+        "system_blocks": SYSTEM_BLOCKS,
+        "core_block_key": CORE_BLOCK_KEY,
+        "core_isolation_languages": CORE_ISOLATION_LANGUAGES,
+        "block_statuses": block_statuses,
+        "block_status_labels": BLOCK_STATUS_LABELS,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
         "translate_contract_map": translate_contract_map_json,
@@ -3787,6 +3931,22 @@ def run_edition_step(request, edition_id: int, step: str):
         if target_lang == utils.normalize_lang(edition.language.code):
             return edition
         return EditorialEdition.objects.get(work__code=book_code, language__code=target_lang)
+
+    def _assert_block_04_ready(target_edition) -> None:
+        build_dir = paths.edition_build_dir(target_edition)
+        final_md_exists = (build_dir / "BOOK.MD_FINAL").exists()
+        template = BookEditionTemplate.objects.filter(
+            book_code=target_edition.work.code,
+            language=utils.normalize_lang(_target_lang()),
+        ).first()
+        if not _editorial_required_fields_ready(template):
+            raise ValueError(
+                "Bloco 04 bloqueado: o Bloco 03 precisa ter frontmatter obrigatorio pronto para o idioma selecionado."
+            )
+        if not final_md_exists:
+            raise ValueError(
+                "Bloco 04 bloqueado: gere BOOK.MD_FINAL antes da finalizacao."
+            )
 
     try:
         if step == "raw":
@@ -4243,6 +4403,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "build":
             target_edition = _target_edition()
+            _assert_block_04_ready(target_edition)
             kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
             merged_path = kdp_mode.build_merged_kdp_source(target_edition)
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
@@ -4256,6 +4417,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "export_epub":
             target_edition = _target_edition()
+            _assert_block_04_ready(target_edition)
             result = {"path": str(kdp_mode.build_epub_for_edition(target_edition))}
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             if pipeline_state.miolo_md_at is None:
@@ -4268,17 +4430,20 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "export_pdf":
             target_edition = _target_edition()
+            _assert_block_04_ready(target_edition)
             result = {"path": str(kdp_mode.build_print_pdf_for_edition(target_edition))}
             messages.success(request, f"PDF OK: {result['path']}")
 
         elif step == "epubcheck":
             target_edition = _target_edition()
+            _assert_block_04_ready(target_edition)
             result = {"path": str(kdp_mode.run_epubcheck_for_edition(target_edition))}
             messages.success(request, f"epubcheck OK: {result['path']}")
 
         elif step == "gaiden":
             target_lang = _target_lang()
             target_edition = _target_edition()
+            _assert_block_04_ready(target_edition)
 
             build_dir = (
                 paths.edition_build_dir_for_language(book_code, target_lang)

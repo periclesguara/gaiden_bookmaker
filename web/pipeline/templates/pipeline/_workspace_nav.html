@@ -49,27 +49,27 @@
 <nav class="workspace-nav" aria-label="Navegacao do fluxo">
   <div class="workspace-nav-track">
     {% if nav_home_url %}
-      <a class="workspace-nav-btn{% if nav_active == 'home' %} active{% endif %}" href="{{ nav_home_url }}">Inicio / Cadastro</a>
+      <a class="workspace-nav-btn{% if nav_active == 'home' %} active{% endif %}" href="{{ nav_home_url }}">Bloco 01 · Entrada</a>
     {% else %}
-      <span class="workspace-nav-btn disabled">Inicio / Cadastro</span>
+      <span class="workspace-nav-btn disabled">Bloco 01 · Entrada</span>
     {% endif %}
 
     {% if nav_pipeline_url %}
-      <a class="workspace-nav-btn{% if nav_active == 'pipeline' %} active{% endif %}" href="{{ nav_pipeline_url }}">Pipeline</a>
+      <a class="workspace-nav-btn{% if nav_active == 'pipeline' %} active{% endif %}" href="{{ nav_pipeline_url }}">Bloco 02 · Core</a>
     {% else %}
-      <span class="workspace-nav-btn disabled">Pipeline</span>
-    {% endif %}
-
-    {% if nav_steps_url %}
-      <a class="workspace-nav-btn{% if nav_active == 'steps' %} active{% endif %}" href="{{ nav_steps_url }}">Steps</a>
-    {% else %}
-      <span class="workspace-nav-btn disabled">Steps</span>
+      <span class="workspace-nav-btn disabled">Bloco 02 · Core</span>
     {% endif %}
 
     {% if nav_frontmatter_url %}
-      <a class="workspace-nav-btn{% if nav_active == 'frontmatter' %} active{% endif %}" href="{{ nav_frontmatter_url }}">Frontmatter</a>
+      <a class="workspace-nav-btn{% if nav_active == 'frontmatter' %} active{% endif %}" href="{{ nav_frontmatter_url }}">Bloco 03 · Editorial</a>
     {% else %}
-      <span class="workspace-nav-btn disabled">Frontmatter</span>
+      <span class="workspace-nav-btn disabled">Bloco 03 · Editorial</span>
+    {% endif %}
+
+    {% if nav_steps_url %}
+      <a class="workspace-nav-btn{% if nav_active == 'steps' %} active{% endif %}" href="{{ nav_steps_url }}">Bloco 04 · Finalizacao</a>
+    {% else %}
+      <span class="workspace-nav-btn disabled">Bloco 04 · Finalizacao</span>
     {% endif %}
   </div>
 </nav>

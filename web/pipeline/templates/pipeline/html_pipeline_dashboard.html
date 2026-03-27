@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pipeline HTML - {{ book_code }} ({{ language }})</title>
+  <title>Bloco 01 - Entrada HTML - {{ book_code }} ({{ language }})</title>
   <style>
     :root {
       --bg: #f6f7fb;
@@ -98,8 +98,8 @@
       {% url 'edition_steps' edition.id as nav_steps_base_url %}
       {% url 'frontmatter_template_edit' book_code=book_code language=lang as nav_frontmatter_url %}
       {% include "pipeline/_workspace_nav.html" with nav_active="pipeline" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_base_url|add:'?allow_html_to_common=1' nav_frontmatter_url=nav_frontmatter_url %}
-      <h1>Linha HTML - {{ book_code }} ({{ language }})</h1>
-      <p class="muted">Etapa atual do pipeline: <strong>{{ current_stage }}</strong></p>
+      <h1>Bloco 01 - Entrada HTML - {{ book_code }} ({{ language }})</h1>
+      <p class="muted">Etapa atual do Bloco 01: <strong>{{ current_stage }}</strong></p>
       <p class="muted">Formato registrado no cadastro: <strong>{{ source_format }}</strong></p>
       {% if raw_source_path %}
         <p class="muted">Raw registrado: <code>{{ raw_source_path }}</code></p>
@@ -166,14 +166,14 @@
     </section>
 
     <section class="card">
-      <h2>Depois do Pipeline 01</h2>
-      <div class="muted">Depois que voce abrir o Pipeline 01 (Steps comuns), o pipeline comum podera gerar:</div>
+      <h2>Depois do Bloco 01</h2>
+      <div class="muted">Depois que voce concluir a entrada HTML e seguir para o fluxo comum, os blocos 02-04 poderao gerar:</div>
       <ul>
         {% for row in pipeline01_artifact_rows %}
           <li>
             <strong>{{ row.label }}:</strong>
             <code>{{ row.path }}</code>
-            <span class="muted">gerado no Pipeline 01</span>
+            <span class="muted">gerado no fluxo comum dos blocos 02-04</span>
           </li>
         {% endfor %}
       </ul>
@@ -247,21 +247,21 @@
       </div>
 
       <div class="step">
-        <strong>4) Pipeline 01</strong>
+        <strong>4) Abrir Bloco 02</strong>
         <div class="actions">
           <form method="post" action="{% url 'pipeline_html_md_normalize_run' edition.id %}">
             {% csrf_token %}
             <button class="btn" type="submit">Abrir</button>
           </form>
         </div>
-        <div class="muted">Esta etapa apenas direciona para os Steps comuns.</div>
+        <div class="muted">Esta etapa apenas direciona para o fluxo comum dos blocos 02-04.</div>
       </div>
 
       <div class="step">
-        <strong>5) Continuar no pipeline comum</strong>
+        <strong>5) Continuar nos Blocos 02-04</strong>
         <div class="actions">
           <a class="btn secondary" href="{% url 'edition_steps' edition.id %}?allow_html_to_common=1">
-            Abrir Steps comuns
+            Abrir fluxo comum
           </a>
           <a class="btn secondary" href="{% url 'pipeline_dashboard' %}">
             Voltar ao dashboard

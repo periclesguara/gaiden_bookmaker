@@ -169,20 +169,37 @@
 
     <div class="card">
       <h2>Livros existentes</h2>
-      <p class="muted">A tabela permanece como ponto de visualizacao e selecao dos livros ja cadastrados.</p>
+      <p class="muted">Selecione um livro do sistema e clique em Estado do livro para abrir o relatorio.</p>
 
-      {% if continue_options %}
-        <div class="actions" style="margin-bottom: 12px;">
-          <select id="continue_book_select" style="min-width: 420px;">
-            <option value="">Selecione um livro...</option>
-            {% for option in continue_options %}
-              <option value="{{ option.value }}">{{ option.label }}</option>
-            {% endfor %}
-          </select>
-          <button type="button" id="continue_book_button" class="secondary">Abrir</button>
+      <form method="get" id="registration_report_form" class="card" style="padding:16px; margin-top: 12px;">
+        <div class="grid">
+          <div>
+            <label for="book_filter">Selecionar livro</label>
+            <select id="book_filter" name="book">
+              <option value="">Selecione um livro...</option>
+              {% for option in registration_book_options %}
+                <option value="{{ option.value }}" {% if book_filter_value == option.value %}selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <div class="muted">Ao escolher um livro, o filtro fica definido para esse cadastro.</div>
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <div>
+              <label>&nbsp;</label>
+              <div class="actions">
+                <button type="submit">Estado do livro</button>
+                <a class="btn secondary" href="{% url 'book_edition_new' %}">Limpar</a>
+              </div>
+              <div class="muted" style="margin-top: 8px;">O relatorio mostra apenas o livro selecionado.</div>
+            </div>
+          </div>
         </div>
-      {% endif %}
+      </form>
 
+      {% if show_rows_table %}
+      <div class="alert" style="margin-top: 12px;">
+        Relatorio do livro selecionado.
+      </div>
       <table>
         <thead>
           <tr>
@@ -213,21 +230,25 @@
             </td>
             <td>
               <div class="row-actions">
-                <a class="btn secondary" href="{{ row.edit_url }}">Editar cadastro</a>
+                <a class="btn secondary" href="{{ row.edit_url }}">Editar</a>
                 {% if row.upload_url %}
-                  <a class="btn secondary" href="{{ row.upload_url }}">Upload</a>
+                  <a class="btn secondary" href="{{ row.upload_url }}">Upload (sobrescrever com cuidado)</a>
                 {% endif %}
-                <a class="btn secondary" href="{{ row.steps_url }}">Pipeline</a>
               </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7">Nenhum livro cadastrado.</td>
+            <td colspan="7">Nenhum livro encontrado para esse filtro.</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
+      {% else %}
+      <div class="alert" style="margin-top: 12px;">
+        Selecione um livro e clique em <strong>Estado do livro</strong> para exibir o relatorio.
+      </div>
+      {% endif %}
     </div>
 
     <div class="card">
@@ -380,8 +401,8 @@
   </div>
 
   <script>
-    const continueBookSelect = document.getElementById('continue_book_select');
-    const continueBookButton = document.getElementById('continue_book_button');
+    const registrationReportForm = document.getElementById('registration_report_form');
+    const bookFilterSelect = document.getElementById('book_filter');
     const workKindInputs = document.querySelectorAll('input[name="work_kind"]');
     const deathDateWrapper = document.getElementById('death-date-wrapper');
 
@@ -393,15 +414,10 @@
       }
     }
 
-    if (continueBookButton && continueBookSelect) {
-      continueBookButton.addEventListener('click', () => {
-        if (continueBookSelect.value) {
-          window.location.href = continueBookSelect.value;
-        }
-      });
-      continueBookSelect.addEventListener('change', () => {
-        if (continueBookSelect.value) {
-          window.location.href = continueBookSelect.value;
+    if (registrationReportForm && bookFilterSelect) {
+      bookFilterSelect.addEventListener('change', () => {
+        if (bookFilterSelect.value) {
+          registrationReportForm.requestSubmit();
         }
       });
     }

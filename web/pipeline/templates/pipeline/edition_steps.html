@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Pipeline Steps - {{ book_code }} ({{ language }})</title>
+  <title>Bloco 02-04 - {{ book_code }} ({{ language }})</title>
   <style>
     :root {
       --bg: #f7f2ea;
@@ -171,6 +171,41 @@
       gap: 8px;
       margin-top: 8px;
     }
+    .block-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      padding: 0 24px 18px;
+    }
+    .block-card {
+      background: rgba(255, 250, 243, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .block-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .block-card.core {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(200, 79, 42, 0.1);
+    }
+    .lang-matrix {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .lang-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
   </style>
 </head>
 <body>
@@ -183,14 +218,36 @@
     {% endif %}
     {% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang as nav_frontmatter_url %}
     {% include "pipeline/_workspace_nav.html" with nav_active="steps" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=edition_steps_action_url nav_frontmatter_url=nav_frontmatter_url %}
-    <h1>Pipeline Steps — {{ book_code }} ({{ language }})</h1>
+    <h1>Blocos 02-04 — {{ book_code }} ({{ language }})</h1>
     <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
     <div class="actions">
       <a class="btn secondary" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=language %}">
-        Edition (Editorial)
+        Bloco 03 Editorial
       </a>
     </div>
   </header>
+  <section class="block-grid">
+    {% for block in system_blocks %}
+    <article class="block-card {% if block.key == core_block_key %}core{% endif %}">
+      <h3>{{ block.title }}</h3>
+      <div class="status">{{ block.description }}</div>
+      {% if block.key == "bloco_01" %}
+        <div class="status">Status: <strong>{{ block_status_labels.bloco_01_ready }}</strong> = {% if block_statuses.bloco_01_ready %}OK{% else %}pendente{% endif %}</div>
+      {% elif block.key == core_block_key %}
+        <div class="status"><strong>Core oficial do sistema.</strong></div>
+        <div class="status">Status running: {% if block_statuses.bloco_02_running %}<strong>{{ block_status_labels.bloco_02_running }}</strong>{% else %}nao{% endif %}</div>
+        <div class="status">Status done: {% if block_statuses.bloco_02_done %}<strong>{{ block_status_labels.bloco_02_done }}</strong>{% else %}pendente{% endif %}</div>
+        <div class="status">Isolamento por idioma: <strong>{% for code in core_isolation_languages %}{% if not forloop.first %}, {% endif %}{{ code|upper }}{% endfor %}</strong></div>
+      {% elif block.key == "bloco_03" %}
+        <div class="status">Status ready: {% if block_statuses.bloco_03_ready %}<strong>{{ block_status_labels.bloco_03_ready }}</strong>{% else %}aguardando bloco 02{% endif %}</div>
+        <div class="status">Status done: {% if block_statuses.bloco_03_done %}<strong>{{ block_status_labels.bloco_03_done }}</strong>{% else %}pendente{% endif %}</div>
+      {% elif block.key == "bloco_04" %}
+        <div class="status">Status done: {% if block_statuses.bloco_04_done %}<strong>{{ block_status_labels.bloco_04_done }}</strong>{% else %}pendente{% endif %}</div>
+        <div class="status">Prerequisito: bloco 03 pronto + BOOK.MD_FINAL.</div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
   {% if messages %}
   <section class="grid" style="padding-top: 0;">
     <article class="card">
@@ -214,7 +271,8 @@
 
   <section class="grid">
     <article class="card">
-      <h2>Texto / Pipeline Core</h2>
+      <h2>Bloco 02 · Core do Sistema</h2>
+      <div class="status">Este bloco concentra normalize, fix, chunks, translate, split by chapter, refine e polish.</div>
       <div class="actions">
         {% if raw_path %}
         <div class="status">
@@ -429,7 +487,33 @@
     </article>
 
     <article class="card" id="transformacao-editorial">
-      <h2>Transformacao Editorial &amp; Qualidade</h2>
+      <h2>Bloco 03 · Editorial e Assets</h2>
+      <div class="status">Frontmatter obrigatorio e materiais opcionais por idioma vivem aqui, separados do core textual.</div>
+      <h3>Estrutura Editorial nas 6 Linguas</h3>
+      <div class="lang-matrix">
+        {% for row in editorial_language_rows %}
+        <div class="lang-row">
+          <div>
+            <strong>{{ row.label }}</strong> [{{ row.code }}]
+            <div class="status">
+              Obrigatorios: {% if row.required_ready %}<span class="badge ok">frontmatter pronto</span>{% else %}<span class="badge warn">frontmatter pendente</span>{% endif %}
+            </div>
+            <div class="status">
+              Opcionais:
+              Prefacio {% if row.has_preface %}ON{% else %}OFF{% endif %} ·
+              Introducao {% if row.has_introduction %}ON{% else %}OFF{% endif %} ·
+              Epilogo {% if row.has_epilogue %}ON{% else %}OFF{% endif %}
+            </div>
+            {% if row.warnings %}
+            <div class="status">
+              Avisos: {{ row.warnings|join:" | " }}
+            </div>
+            {% endif %}
+          </div>
+          <a class="btn secondary" target="_blank" rel="noopener noreferrer" href="{{ row.url }}">Editar idioma</a>
+        </div>
+        {% endfor %}
+      </div>
       <h3>Frontmatter por Idioma</h3>
       <form method="get" class="actions">
         <label for="frontmatter_lang">Idioma</label>
@@ -453,12 +537,24 @@
         {% csrf_token %}
         <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
         <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
+          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
           Regerar Frontmatter (.md)
         </button>
         <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
+          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
           Frontmatter + BOOK.BUILD.MD
         </button>
       </form>
+      {% if editorial_optional_warnings %}
+      <div class="status">
+        Avisos do idioma atual: {{ editorial_optional_warnings|join:" | " }}
+      </div>
+      {% endif %}
+      {% if not block_statuses.bloco_03_ready %}
+      <div class="status">
+        Bloco 03 aguardando a conclusao textual do bloco 02.
+      </div>
+      {% endif %}
       <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
       <p>
         A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
@@ -490,7 +586,7 @@
         <input type="hidden" name="action" value="upload_cover" />
         <label for="cover_file">Cover</label>
         <input id="cover_file" type="file" name="cover_file" accept="image/*" />
-        <button type="submit" class="btn btn-sm btn-secondary">Salvar capa (JPG)</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>Salvar capa (JPG)</button>
         {% if cover_filepath %}
         <p class="form-text">
           Capa atual: <strong>{{ cover_filepath }}</strong>
@@ -502,7 +598,7 @@
         <input type="hidden" name="action" value="upload_images_files" />
         <label for="images_files">Insert multiple images</label>
         <input id="images_files" type="file" name="images_files" accept="image/*" multiple />
-        <button type="submit" class="btn btn-sm btn-secondary">Salvar e converter imagens</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>Salvar e converter imagens</button>
         <p class="form-text">
           Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
         </p>
@@ -520,12 +616,12 @@
         <input type="hidden" name="action" value="upload_images_zip" />
         <label for="images_zip">ZIP de imagens</label>
         <input id="images_zip" type="file" name="images_zip" accept=".zip,application/zip" />
-        <button type="submit" class="btn btn-sm btn-secondary">Upload ZIP images</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>Upload ZIP images</button>
       </form>
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="consolidate_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="consolidate_images" />
-        <button type="submit" class="btn btn-sm btn-secondary">
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
           Consolidate internal images
         </button>
         <p class="form-text">
@@ -543,7 +639,7 @@
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="insert_headlines">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_headlines" />
-        <button type="submit" class="btn btn-sm btn-secondary">
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
           Insert page headlines
         </button>
         <p class="form-text">
@@ -553,7 +649,7 @@
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="insert_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="insert_images" />
-        <button type="submit" class="btn btn-sm btn-secondary">
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
           Insert image placeholders
         </button>
         <p class="form-text">
@@ -563,7 +659,7 @@
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="apply_images">
         {% csrf_token %}
         <input type="hidden" name="action" value="apply_images" />
-        <button type="submit" class="btn btn-sm btn-secondary">
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
           Apply images to PRE_EDITION
         </button>
         <p class="form-text">
@@ -641,29 +737,33 @@
     </article>
 
     <article class="card">
-      <h2>Build &amp; Export</h2>
+      <h2>Bloco 04 · Finalizacao</h2>
+      <div class="status">Montagem final, EPUB e PDF dependem do bloco 03 pronto e de <strong>BOOK.MD_FINAL</strong>.</div>
       <div class="actions">
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Build (Cover + Edition + Miolo)</button>
+          <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Build (Cover + Edition + Miolo)</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_epub' %}">
           {% csrf_token %}
-          <button class="btn secondary" type="submit">Export EPUB3 (Pandoc)</button>
+          <button class="btn secondary" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Export EPUB3 (Pandoc)</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_pdf' %}">
           {% csrf_token %}
-          <button class="btn secondary" type="submit">Export Print PDF (Pandoc)</button>
+          <button class="btn secondary" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Export Print PDF (Pandoc)</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'epubcheck' %}">
           {% csrf_token %}
-          <button class="btn ghost" type="submit">Run epubcheck</button>
+          <button class="btn ghost" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Run epubcheck</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Gaiden: Montar Livro Completo</button>
+          <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Gaiden: Montar Livro Completo</button>
         </form>
       </div>
+      {% if not block_statuses.block_04_ready %}
+      <div class="status">Bloco 04 bloqueado ate o bloco 03 ficar pronto no idioma selecionado e o MD final existir.</div>
+      {% endif %}
       <div class="status">
         Build status: <strong>{{ build_status }}</strong>
       </div>

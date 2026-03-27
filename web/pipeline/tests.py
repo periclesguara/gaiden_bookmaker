@@ -16,7 +16,7 @@ from django.urls import reverse
 
 from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, Seal, Work
 from pipeline.forms import normalize_book_code_input
-from pipeline.models import BookEditionTemplate
+from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, SYSTEM_BLOCKS
 
 
 class _FakeResponsesAPI:
@@ -130,10 +130,10 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "Livros existentes")
         self.assertContains(response, "Salvar")
         self.assertNotContains(response, "Enviar arquivo")
-        self.assertContains(response, "Inicio / Cadastro")
-        self.assertContains(response, "Pipeline")
-        self.assertContains(response, "Steps")
-        self.assertContains(response, "Frontmatter")
+        self.assertContains(response, "Bloco 01 · Entrada")
+        self.assertContains(response, "Bloco 02 · Core")
+        self.assertContains(response, "Bloco 03 · Editorial")
+        self.assertContains(response, "Bloco 04 · Finalizacao")
         self.assertContains(response, "Obra autoral")
         self.assertContains(response, "Obra de dominio publico")
 
@@ -143,7 +143,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("book_edition_new"))
 
-    def test_cadastro_shows_continue_selector_for_existing_books(self):
+    def test_cadastro_shows_existing_books_in_single_selector(self):
         work = Work.objects.create(
             code="book_0001",
             title="Continue Book",
@@ -162,9 +162,65 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Livros existentes")
         self.assertContains(response, "01 - book_0001 [en] - Continue Book")
-        self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
+        self.assertContains(response, 'name="book"', html=False)
+        self.assertNotContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
 
-    def test_cadastro_shows_book_012_and_uses_stage_specific_continue_url(self):
+    def test_cadastro_hides_existing_books_table_until_book_is_selected(self):
+        work = Work.objects.create(
+            code="book_0002",
+            title="Hidden Table Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="Hidden Table Book",
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione um livro e clique em <strong>Estado do livro</strong> para exibir o relatorio.", html=True)
+        self.assertNotContains(response, "<th>Book code</th>", html=False)
+
+    def test_cadastro_shows_selected_book_report_when_book_is_selected(self):
+        work = Work.objects.create(
+            code="book_0005",
+            title="Filtered Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        edition = Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="Filtered Book",
+        )
+        BookEditionTemplate.objects.create(
+            book_code="book_0005",
+            language="en",
+            title="Filtered Book",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="txt",
+            registration_status=BookEditionTemplate.STATUS_REGISTERED,
+        )
+
+        response = self.client.get(
+            self.cadastro_url,
+            {"book": "book_0005"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<th>Book code</th>", html=False)
+        self.assertContains(response, "book_0005")
+        self.assertContains(response, "Upload (sobrescrever com cuidado)")
+        self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
+        self.assertNotContains(response, "Selecione um livro e clique em <strong>Estado do livro</strong> para exibir o relatorio.", html=True)
+
+    def test_cadastro_shows_book_012_in_single_selector(self):
         work = Work.objects.create(
             code="book_012",
             title="Conan - Shadows in Moonlight",
@@ -194,12 +250,9 @@ class CadastroSourceFormatRoutingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "12 - book_012 [en] - Conan - Shadows in Moonlight")
-        self.assertContains(
-            response,
-            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
-        )
+        self.assertNotContains(response, reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}))
 
-    def test_cadastro_continue_selector_routes_html_books_after_html_lane_to_common_steps(self):
+    def test_cadastro_report_edit_action_always_uses_common_steps(self):
         work = Work.objects.create(
             code="book_013",
             title="Continue Common Steps",
@@ -225,13 +278,17 @@ class CadastroSourceFormatRoutingTests(TestCase):
             current_stage="MERGED",
         )
 
-        response = self.client.get(self.cadastro_url)
+        response = self.client.get(self.cadastro_url, {"book": "book_013"})
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "13 - book_013 [en] - Continue Common Steps")
+        self.assertContains(response, "Continue Common Steps")
         self.assertContains(
             response,
             reverse("edition_steps", kwargs={"edition_id": edition.id}),
+        )
+        self.assertNotContains(
+            response,
+            reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
         )
 
     def test_frontmatter_page_renders_workspace_nav_for_existing_edition(self):
@@ -251,8 +308,8 @@ class CadastroSourceFormatRoutingTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Inicio / Cadastro")
-        self.assertContains(response, "Pipeline")
+        self.assertContains(response, "Bloco 01 · Entrada")
+        self.assertContains(response, "Bloco 02 · Core")
         self.assertContains(
             response,
             reverse("pipeline_html_dashboard", kwargs={"edition_id": self.edition.id}),
@@ -265,6 +322,46 @@ class CadastroSourceFormatRoutingTests(TestCase):
             response,
             reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
         )
+
+    def test_edition_steps_exposes_four_blocks_and_editorial_languages(self):
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "text_source_mode": "txt",
+            },
+        )
+        response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bloco 01 - Entrada")
+        self.assertContains(response, "Bloco 02 - Core do Sistema")
+        self.assertContains(response, "Bloco 03 - Editorial e Assets")
+        self.assertContains(response, "Bloco 04 - Finalizacao")
+        self.assertContains(response, "Core oficial do sistema.")
+        self.assertContains(response, "PT-BR")
+        self.assertContains(response, "Français")
+        self.assertContains(response, "Italiano")
+
+    def test_build_step_is_blocked_until_block_03_is_ready(self):
+        response = self.client.post(
+            reverse("pipeline_run_edition_step", kwargs={"edition_id": self.edition.id, "step": "build"}),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bloco 04 bloqueado")
+
+
+class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
+    def test_block_02_is_declared_as_core_and_supports_six_isolated_languages(self):
+        self.assertEqual(CORE_BLOCK_KEY, "bloco_02")
+        self.assertEqual(len(CORE_ISOLATION_LANGUAGES), 6)
+        self.assertEqual(set(CORE_ISOLATION_LANGUAGES), {"en", "ptbr", "es", "de", "it", "fr"})
+        self.assertEqual(len(SYSTEM_BLOCKS), 4)
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
@@ -912,10 +1009,10 @@ class HtmlLanePreprodConvertTests(TestCase):
         response = self.client.get(self.dashboard_url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Inicio / Cadastro")
-        self.assertContains(response, "Pipeline")
-        self.assertContains(response, "Steps")
-        self.assertContains(response, "Frontmatter")
+        self.assertContains(response, "Bloco 01 · Entrada")
+        self.assertContains(response, "Bloco 02 · Core")
+        self.assertContains(response, "Bloco 03 · Editorial")
+        self.assertContains(response, "Bloco 04 · Finalizacao")
         self.assertContains(response, "Step 1 - HTML_UPLOADED")
         self.assertContains(response, "RAW HTML")
         self.assertContains(response, f"{self.work.code}_en_raw.html")
@@ -2846,6 +2943,85 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertIn("This is the real prefatory paragraph that should remain.", merged_text)
         self.assertNotIn("By Author Marker Contract", merged_text)
         self.assertIn("## Chapter 01 - First Case", merged_text)
+
+    def test_build_kdp_uses_fixed_editorial_block_order_and_appends_epilogue_last(self):
+        from editorial import kdp_mode
+
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            frontispiece_text="Front page",
+            copyright_text="Rights page",
+            about_edition_text="About this book block",
+            has_preface=True,
+            preface_text="Preface block",
+            has_introduction=True,
+            introduction_text="Introduction block",
+            has_epilogue=True,
+            epilogue_text="Epilogue block",
+        )
+        self.edition.frontispiece_template = "Front page"
+        self.edition.copyright_template = "Rights page"
+        self.edition.about_edition_template = "About this book block"
+        self.edition.save(
+            update_fields=["frontispiece_template", "copyright_template", "about_edition_template"]
+        )
+        kdp_mode.build_frontmatter_files(self.edition, Path("data") / "frontmatter")
+        self.pre_edition_path.write_text("# Chapter 01 - First Case\n\nBody text.\n", encoding="utf-8")
+
+        merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
+
+        front_idx = merged_text.index("# Frontispiece")
+        copyright_idx = merged_text.index("# Copyright")
+        about_idx = merged_text.index("# About This Book")
+        preface_idx = merged_text.index("# Preface")
+        intro_idx = merged_text.index("# Introduction")
+        chapter_idx = merged_text.index("## Chapter 01 - First Case")
+        epilogue_idx = merged_text.index("# Epilogue")
+
+        self.assertLess(front_idx, copyright_idx)
+        self.assertLess(copyright_idx, about_idx)
+        self.assertLess(about_idx, preface_idx)
+        self.assertLess(preface_idx, intro_idx)
+        self.assertLess(intro_idx, chapter_idx)
+        self.assertLess(chapter_idx, epilogue_idx)
+
+    def test_build_frontmatter_skips_empty_optional_blocks_even_when_flagged(self):
+        from editorial.frontmatter import build_frontmatter_files, optional_section_warnings
+
+        template = BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            frontispiece_text="Front page",
+            copyright_text="Rights page",
+            about_edition_text="About this book block",
+            has_preface=True,
+            preface_text="",
+            has_introduction=False,
+            introduction_text="",
+            has_epilogue=True,
+            epilogue_text="   ",
+        )
+        self.edition.frontispiece_template = "Front page"
+        self.edition.copyright_template = "Rights page"
+        self.edition.about_edition_template = "About this book block"
+        self.edition.save(
+            update_fields=["frontispiece_template", "copyright_template", "about_edition_template"]
+        )
+
+        build_frontmatter_files(self.edition, Path("data") / "frontmatter")
+        front_dir = Path("data") / "frontmatter" / self.work.code / "en"
+
+        self.assertEqual((front_dir / "preface.md").read_text(encoding="utf-8"), "")
+        self.assertEqual((front_dir / "epilogue.md").read_text(encoding="utf-8"), "")
+        warnings = optional_section_warnings(template, "en")
+        self.assertEqual(len(warnings), 2)
 
 
 class MdApproveImagesContractTests(TestCase):

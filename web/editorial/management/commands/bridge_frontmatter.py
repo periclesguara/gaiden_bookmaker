@@ -10,8 +10,8 @@ from editorial.models import Edition
 class Command(BaseCommand):
     help = (
         "Faz a ponte entre arquivos de frontmatter (*.md) e o modelo Edition.\n"
-        "Le os 4 arquivos por lingua (frontispiece.md, copyright.md, "
-        "about_edition.md, about_contributor.md), limpa heading/pagebreak, "
+        "Le os arquivos por lingua (frontispiece.md, copyright.md, "
+        "about_this_book.md/about_edition.md, preface.md, introduction.md, epilogue.md, about_contributor.md), limpa heading/pagebreak, "
         "e grava nos campos de template da Edition."
     )
 
