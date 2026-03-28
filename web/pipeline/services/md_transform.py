@@ -853,9 +853,9 @@ def _translated_chunk_dir_for_cfg(cfg: PreEditionConfig, txt_path: Path) -> Path
     wants_refine = "refine" in txt_path.name.lower()
     if wants_refine:
         for variant in chunk_variants:
-            candidate = variant / "return_aldebaran"
-            if candidate.exists():
-                return candidate
+            for candidate in sorted(p for p in variant.glob("return_*") if p.is_dir()):
+                if candidate.exists():
+                    return candidate
     for variant in chunk_variants:
         txt_files = sorted(p for p in variant.glob("*.txt") if not p.name.startswith("merged_"))
         if txt_files:

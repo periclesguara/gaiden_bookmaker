@@ -57,6 +57,7 @@ from .services import (
     build_book,
     chapter_agent,
     canonical_merge,
+    core_docker,
     editorial_split,
     export_book,
     html_preprod,
@@ -99,6 +100,15 @@ REFINE_PROFILES = {
             "atmosphere, pulp-adventure energy, and sword-and-sorcery flavor when supported by the source."
         ),
     },
+    "de_kaiser": {
+        "label": "Deutsch Kaiser",
+        "agent_name": "Kaiser",
+        "description": "Refine literario em alemao com foco em fluidez, tom e registro controlado.",
+        "style_directive": (
+            "Target profile: controlled modern literary German. Preserve full meaning, chronology, paragraphing, "
+            "and atmosphere. Prefer native, fluent German cadence without flattening period tension or detective tone."
+        ),
+    },
 }
 
 BLOCK_STATUS_LABELS = {
@@ -110,6 +120,7 @@ BLOCK_STATUS_LABELS = {
     "bloco_04_done": "bloco_04_done",
 }
 REFINE_RETURN_DIRNAME = "return_aldebaran"
+POLISH_RETURN_DIRNAME = "return_bismarck"
 
 _HTML_STAGE_ORDER = {
     PipelineStage.RAW: 10,
@@ -138,6 +149,10 @@ def _normalize_refine_profile(value: str | None) -> str:
 
 def _refine_profile_config(value: str | None) -> dict[str, str]:
     return REFINE_PROFILES[_normalize_refine_profile(value)]
+
+
+def _default_refine_profile_for_language(language: str | None) -> str:
+    return "de_kaiser" if utils.normalize_lang(language) == "de" else REFINE_PROFILE_DEFAULT
 
 
 def _read_json_dict(path: Path) -> dict:
@@ -753,6 +768,26 @@ def _template_upload_url(template: BookEditionTemplate | None) -> str:
     )
 
 
+def _template_reedit_html_url(template: BookEditionTemplate | None, edition: EditorialEdition | None = None) -> str:
+    book_code = ""
+    language = ""
+    if template is not None:
+        book_code = template.book_code
+        language = utils.normalize_lang(template.language)
+    elif edition is not None:
+        book_code = edition.work.code
+        language = utils.normalize_lang(edition.language.code)
+    if not book_code or not language:
+        return ""
+    return (
+        reverse(
+            "book_edition_upload",
+            kwargs={"book_code": book_code, "language": language},
+        )
+        + "?force_source_format=html"
+    )
+
+
 def _existing_source_info(template: BookEditionTemplate | None, edition: EditorialEdition | None = None) -> dict[str, object]:
     path_value = ""
     if template and (template.source_saved_path or "").strip():
@@ -818,6 +853,7 @@ def _book_registration_rows() -> list[dict[str, object]]:
                 "source_info": _existing_source_info(template, edition),
                 "edit_url": reverse("edition_steps", kwargs={"edition_id": edition.id}),
                 "upload_url": _template_upload_url(template),
+                "reedit_html_url": _template_reedit_html_url(template, edition),
                 "steps_url": steps_url,
             }
         )
@@ -995,12 +1031,29 @@ def _handle_source_upload(
     return redirect("edition_steps", edition_id=edition.id)
 
 
-def _resolve_refine_output_dir(source_dir: Path | None) -> Path | None:
+def _refine_return_dirname(refine_profile: str | None = None, target_language: str | None = None) -> str:
+    profile_cfg = _refine_profile_config(refine_profile)
+    agent_slug = slugify(profile_cfg["agent_name"]).replace("-", "_")
+    if agent_slug:
+        return f"return_{agent_slug}"
+    normalized_lang = utils.normalize_lang(target_language)
+    if normalized_lang == "de":
+        return "return_kaiser"
+    return REFINE_RETURN_DIRNAME
+
+
+def _resolve_refine_output_dir(
+    source_dir: Path | None,
+    *,
+    refine_profile: str | None = None,
+    target_language: str | None = None,
+) -> Path | None:
     if source_dir is None:
         return None
+    dirname = _refine_return_dirname(refine_profile, target_language)
     candidates = [
-        source_dir.parent / REFINE_RETURN_DIRNAME,
-        source_dir / REFINE_RETURN_DIRNAME,
+        source_dir.parent / dirname,
+        source_dir / dirname,
     ]
     return next((path for path in candidates if path.exists()), candidates[0])
 
@@ -1478,7 +1531,10 @@ def book_edition_upload(request, book_code: str, language: str):
         edition, _ = _save_template_and_edition_metadata(template)
 
     source_info = _existing_source_info(template, edition)
-    initial_source_format = _source_format_from_template(template)
+    forced_source_format = _normalize_source_format(request.GET.get("force_source_format") or "")
+    initial_source_format = (
+        forced_source_format if forced_source_format in SOURCE_FORMAT_ALLOWED else _source_format_from_template(template)
+    )
     if request.method == "POST":
         upload_form = BookSourceUploadForm(
             request.POST,
@@ -1628,6 +1684,23 @@ def _editorial_required_fields_ready(template: BookEditionTemplate | None) -> bo
     )
 
 
+def _preflight_gate(target_edition, frontmatter_template: BookEditionTemplate | None) -> tuple[bool, str]:
+    if not _editorial_required_fields_ready(frontmatter_template):
+        return False, "Prerequisito: conclua o Bloco 03 com Frontispiece, Copyright e About This Book."
+
+    merge_refine_clean_path = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "translated"
+        / target_edition.work.code
+        / "merge_refine_clean.txt"
+    )
+    if not merge_refine_clean_path.exists():
+        return False, "Prerequisito: rode Merge/Finalize e gere merge_refine_clean.txt."
+
+    return True, ""
+
+
 def _editorial_language_rows(templates: list[BookEditionTemplate]) -> list[dict[str, object]]:
     labels = dict(BookEditionTemplate.LANG_CHOICES)
     rows: list[dict[str, object]] = []
@@ -1743,6 +1816,34 @@ def _global_core_edition(edition) -> EditorialEdition:
         return EditorialEdition.objects.get(work__code=edition.work.code, language__code="en")
     except EditorialEdition.DoesNotExist as exc:
         raise ValueError(f"Edicao EN nao encontrada para {edition.work.code}.") from exc
+
+
+def _processing_base_edition(edition) -> EditorialEdition:
+    language = utils.normalize_lang(edition.language.code)
+    if language == "en":
+        return edition
+
+    template = BookEditionTemplate.objects.filter(
+        book_code=edition.work.code,
+        language=language,
+    ).first()
+    if template is not None:
+        source_mode = _normalize_source_format(getattr(template, "text_source_mode", ""))
+        if source_mode in SOURCE_FORMAT_ALLOWED:
+            source_saved_path = (getattr(template, "source_saved_path", "") or "").strip()
+            if source_saved_path and _resolve_project_path(source_saved_path).exists():
+                return edition
+
+    texts = EditionText.objects.filter(edition=edition).first()
+    raw_path = ((texts.raw_path if texts else "") or edition.raw_source_path or "").strip()
+    if raw_path and _resolve_project_path(raw_path).exists():
+        return edition
+
+    source_md = html_preprod.artifact_paths(edition.work.code, language)["md_source"]
+    if source_md.exists():
+        return edition
+
+    return _global_core_edition(edition)
 
 
 def _edition_for_language(edition, target_lang: str) -> EditorialEdition:
@@ -2036,6 +2137,7 @@ def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: st
         refine_dir / f"merge_refine_{target_language}.txt",
         refine_dir / "merge_refine.txt",
         refine_dir / "merged_return_aldebaran.txt",
+        refine_dir / "merged_return_kaiser.txt",
         refine_dir / "merged.txt",
     ]
     candidates.extend(sorted(refine_dir.glob("merged_*.txt")))
@@ -2044,11 +2146,14 @@ def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: st
 
 def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = None) -> list[dict]:
     root = Path(settings.BASE_DIR).parent
-    core_edition = _global_core_edition(edition)
+    core_edition = _processing_base_edition(edition)
     core_book_code, core_lang = _edition_codes(core_edition)
     core_lang = utils.normalize_lang(core_lang)
     refine_profile = _normalize_refine_profile(
-        getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+        (
+            getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+        )
+        or _default_refine_profile_for_language(edition.language.code)
     )
     refine_profile_cfg = _refine_profile_config(refine_profile)
 
@@ -2103,7 +2208,11 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         refine_source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_lang)
     except Exception:
         refine_source_dir = None
-    refine_dir = _resolve_refine_output_dir(refine_source_dir)
+    refine_dir = _resolve_refine_output_dir(
+        refine_source_dir,
+        refine_profile=refine_profile,
+        target_language=target_lang,
+    )
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
     refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
@@ -2223,7 +2332,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
                 _rel_project_path(split_by_chapter_dir / "parts" / "*.txt"),
                 _rel_project_path(split_by_chapter_manifest_path),
             ],
-            "notes": "Usa merge_translate.txt, detecta capitulos e salva 4 partes por capitulo. Nao envia nada para OpenAI.",
+            "notes": "Usa merge_translate.txt, detecta capitulos e salva 1 arquivo por capitulo por padrao. So divide em 2 quando solicitado. Nao envia nada para OpenAI.",
         }
     )
 
@@ -2270,42 +2379,6 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         }
     )
 
-    preflight_json = paths.preflight_json_path(target_edition)
-    preflight_md = paths.preflight_md_path(target_edition)
-    preflight_done = preflight_json.exists() and preflight_md.exists()
-    preflight_status_tone = "ok"
-    preflight_status_label = "OK"
-    preflight_status_note = ""
-    if preflight_done:
-        preflight_status_tone, preflight_status_label, preflight_status_note = _preflight_step_status(preflight_json)
-
-    step_defs.append(
-        {
-            "n": 8,
-            "key": "preflight",
-            "title": "Pre-producao (Pre-flight)",
-            "run_url": reverse("pipeline_preflight_run", kwargs={"edition_id": edition.id}),
-            "button_label": "Rodar Pre-flight",
-            "can_run": merge_refine_done,
-            "done": preflight_done,
-            "status_tone": preflight_status_tone,
-            "status_label": preflight_status_label,
-            "block_reason": "Prerequisito: rode Merge/Finalize e gere merge_refine_clean.txt." if not merge_refine_done else "",
-            "outputs": [
-                _rel_project_path(preflight_json),
-                _rel_project_path(preflight_md),
-            ],
-            "notes": " ".join(
-                part
-                for part in [
-                    "Analise editorial/estrutural antes do MD final, headings, figuras e build.",
-                    preflight_status_note,
-                ]
-                if part
-            ),
-        }
-    )
-
     return step_defs
 
 
@@ -2314,7 +2387,7 @@ def _select_contract_path(language: str) -> Path:
         "en": "gaiden/contracts/en_modern_2025.json",
         "es": "gaiden/contracts/en_modern_2025.json",
         "ptbr": "gaiden/contracts/en_modern_2025.json",
-        "de": "gaiden/contracts/en_modern_2025.json",
+        "de": "gaiden/contracts/en_de_2026.json",
         "fr": "gaiden/contracts/en_fr_2025.json",
         "it": "gaiden/contracts/en_it_2025.json",
     }
@@ -2332,10 +2405,24 @@ def _select_refine_contract(language: str) -> Path:
         "en": "gaiden/contracts/refine/en_refine_2025.json",
         "es": "gaiden/contracts/refine/es_refine_2025.json",
         "ptbr": "gaiden/contracts/refine/ptbr_refine_2025.json",
+        "de": "gaiden/contracts/refine/de_refine_2026.json",
     }
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
         raise ValueError(f"No refine contract for language={language}")
+    preferred = Path(settings.BASE_DIR).parent / rel
+    if preferred.exists():
+        return preferred
+    return Path(__file__).resolve().parents[2] / rel
+
+
+def _select_polish_contract(language: str) -> Path:
+    mapping = {
+        "en": "gaiden/contracts/polish/en_polish_2025.json",
+    }
+    rel = mapping.get(utils.normalize_lang(language))
+    if not rel:
+        raise ValueError(f"No polish contract for language={language}")
     preferred = Path(settings.BASE_DIR).parent / rel
     if preferred.exists():
         return preferred
@@ -2957,15 +3044,18 @@ def _build_runtime_refine_contract(
     for path in source_chunks:
         shutil.copyfile(path, refine_input_dir / path.name)
 
-    out_dir = source_dir.parent / REFINE_RETURN_DIRNAME
+    out_dir = source_dir.parent / _refine_return_dirname(refine_profile, target_language)
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
-    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
+    payload["max_output_tokens"] = min(
+        _recommended_translate_max_output_tokens(
         refine_input_dir,
         "*.txt",
         target_language,
         current_limit=payload.get("max_output_tokens"),
+        ),
+        4000,
     )
     payload["sanitize_failure_fallback"] = "keep_source_chunk"
     if not isinstance(payload.get("output"), dict):
@@ -2986,6 +3076,71 @@ def _build_runtime_refine_contract(
         encoding="utf-8",
     )
     return runtime_contract_path, refine_input_dir, out_dir
+
+
+def _build_runtime_polish_contract(
+    edition,
+    target_language: str,
+) -> tuple[Path, Path, Path]:
+    payload = json.loads(_select_polish_contract(target_language).read_text(encoding="utf-8"))
+    source_dir = _resolve_refine_output_dir(
+        _resolve_refine_source_dir(edition, target_language)[0],
+        refine_profile=_default_refine_profile_for_language(target_language),
+        target_language=target_language,
+    )
+    if not source_dir.exists():
+        raise FileNotFoundError(f"Polish source chunks not found: {source_dir}. Run Refine first.")
+
+    polish_input_dir = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "editions"
+        / str(edition.id)
+        / "core"
+        / f"polish_input_{utils.normalize_lang(target_language)}"
+    )
+    polish_input_dir.mkdir(parents=True, exist_ok=True)
+    for stale in polish_input_dir.glob("*.txt"):
+        stale.unlink()
+
+    source_chunks = [
+        p for p in sorted(source_dir.glob("*.txt"))
+        if not (p.name == "merged.txt" or p.name.startswith("merged_"))
+    ]
+    if not source_chunks:
+        raise FileNotFoundError(f"No refine chunks found in {source_dir} for polish input.")
+    for path in source_chunks:
+        shutil.copyfile(path, polish_input_dir / path.name)
+
+    out_dir = source_dir.parent / POLISH_RETURN_DIRNAME
+    payload["chunk_dir"] = str(polish_input_dir)
+    payload["out_dir"] = str(out_dir)
+    payload["target_language"] = utils.normalize_lang(target_language)
+    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
+        polish_input_dir,
+        "*.txt",
+        target_language,
+        current_limit=payload.get("max_output_tokens"),
+    )
+    payload["sanitize_failure_fallback"] = "keep_source_chunk"
+    if not isinstance(payload.get("output"), dict):
+        payload["output"] = {}
+    payload["output"]["language"] = utils.normalize_lang(target_language)
+
+    runtime_contract_path = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "editions"
+        / str(edition.id)
+        / "core"
+        / f"contract_polish_{utils.normalize_lang(target_language)}.json"
+    )
+    runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
+    runtime_contract_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return runtime_contract_path, polish_input_dir, out_dir
 
 
 def _resolve_core_path(path_value: str) -> Path:
@@ -3251,7 +3406,11 @@ def edition_steps(request, edition_id: int):
     source_format = _source_format_from_template(source_template)
     allow_html_to_common = request.GET.get("allow_html_to_common") == "1"
     if request.method == "GET" and source_format == SOURCE_FORMAT_HTML and not allow_html_to_common:
-        return redirect("pipeline_html_dashboard", edition_id=edition.id)
+        root = Path(settings.BASE_DIR).parent
+        html_artifacts = _html_artifact_paths(book_code, normalized_language, source_format)
+        md_source_exists = (root / html_artifacts["md_source"]).exists()
+        if not md_source_exists:
+            return redirect("pipeline_html_dashboard", edition_id=edition.id)
 
     def _redirect_editorial():
         return redirect(f"{_edition_steps_redirect_url(edition)}#transformacao-editorial")
@@ -3713,9 +3872,9 @@ def edition_steps(request, edition_id: int):
         pipeline_state.save(update_fields=["frontmatter_language", "frontmatter_locked"])
 
     frontmatter_lang = (
-        pipeline_state.frontmatter_language
-        or frontmatter_lang_param
+        frontmatter_lang_param
         or language
+        or pipeline_state.frontmatter_language
     )
     if frontmatter_lang not in frontmatter_langs:
         frontmatter_lang = language
@@ -3741,6 +3900,37 @@ def edition_steps(request, edition_id: int):
         epub_exists=epub_path.exists(),
         pdf_exists=pdf_path.exists(),
     )
+    preflight_json = paths.preflight_json_path(edition)
+    preflight_md = paths.preflight_md_path(edition)
+    preflight_done = preflight_json.exists() and preflight_md.exists()
+    preflight_status_tone = "ok"
+    preflight_status_label = "OK"
+    preflight_status_note = ""
+    if preflight_done:
+        preflight_status_tone, preflight_status_label, preflight_status_note = _preflight_step_status(preflight_json)
+    preflight_can_run, preflight_block_reason = _preflight_gate(edition, frontmatter_template)
+    preflight_step = {
+        "title": "Pre-producao (Pre-flight)",
+        "run_url": reverse("pipeline_preflight_run", kwargs={"edition_id": edition.id}),
+        "button_label": "Rodar Pre-flight",
+        "can_run": preflight_can_run,
+        "done": preflight_done,
+        "status_tone": preflight_status_tone,
+        "status_label": preflight_status_label,
+        "block_reason": preflight_block_reason,
+        "outputs": [
+            _rel_project_path(preflight_json),
+            _rel_project_path(preflight_md),
+        ],
+        "notes": " ".join(
+            part
+            for part in [
+                "Analise editorial/estrutural no fim do Bloco 03, antes do MD final e do build.",
+                preflight_status_note,
+            ]
+            if part
+        ),
+    }
 
     def _resolve_md_source_path(lang: str) -> str:
         build_dir = paths.edition_build_dir_for_language(book_code, lang)
@@ -3767,7 +3957,9 @@ def edition_steps(request, edition_id: int):
         or pipeline_state.md_language
         or language
     )
-    refine_profile = _normalize_refine_profile(pipeline_state.refine_profile)
+    refine_profile = _normalize_refine_profile(
+        pipeline_state.refine_profile or _default_refine_profile_for_language(edition.language.code)
+    )
     refine_profile_options = [
         {
             "value": key,
@@ -3870,6 +4062,8 @@ def edition_steps(request, edition_id: int):
         "core_isolation_languages": CORE_ISOLATION_LANGUAGES,
         "block_statuses": block_statuses,
         "block_status_labels": BLOCK_STATUS_LABELS,
+        "pipeline_stage": pipeline_state.current_stage,
+        "pipeline_last_log": pipeline_state.last_log,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
         "translate_contract_map": translate_contract_map_json,
@@ -3899,6 +4093,7 @@ def edition_steps(request, edition_id: int):
         "images_consolidated_count": consolidated_images_count,
         "images_consolidated_map_path": str(consolidated_images_map) if consolidated_images_map.exists() else None,
         "matrix_runs": matrix_runs,
+        "preflight_step": preflight_step,
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -3909,7 +4104,7 @@ def pipeline_heading_cleaner_run(request, edition_id: int):
     if request.method != "POST":
         return redirect(_edition_steps_redirect_url(edition))
 
-    core_edition = _global_core_edition(edition)
+    core_edition = _processing_base_edition(edition)
     core_book_code, _core_lang = _edition_codes(core_edition)
     try:
         normalized_path, normalized_source = _ensure_normalized_v2_for_heading_cleaner(core_edition)
@@ -3975,6 +4170,206 @@ def pipeline_preflight_run(request, edition_id: int):
     return run_edition_step(request, edition_id, "preflight")
 
 
+def _run_translate_step_local(edition, pipeline_state, *, target_language: str) -> dict[str, object]:
+    from gaiden.translate import run_translate_with_contract
+
+    translate_step = next(
+        (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "translate"),
+        None,
+    )
+    if not (translate_step and bool(translate_step.get("can_run"))):
+        reason = (translate_step or {}).get("block_reason") or (
+            "Prerequisito para Translate: rode HeadingCleaner e depois refaca split_01."
+        )
+        raise ValueError(reason)
+
+    book_code, language = _edition_codes(edition)
+    target_language = utils.normalize_lang(target_language or language)
+    target_edition = _edition_for_language(edition, target_language)
+    book_id_for_run = _parse_book_id(_edition_codes(target_edition)[0])
+    if book_id_for_run is not None:
+        os.environ["GAIDEN_BOOK_ID"] = str(book_id_for_run)
+    stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    source_dir_for_validation: Path | None = None
+    runtime_contract_path, source_label = _build_runtime_translate_contract(
+        target_edition,
+        target_language,
+    )
+    run_translate_with_contract(runtime_contract_path)
+    out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
+    source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
+        _edition_codes(target_edition)[0]
+    )
+
+    _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
+    merged_path = _detect_merged_path(out_dir_path)
+    if merged_path is None:
+        merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
+    merged_path, _merge_stats = canonical_merge.write_canonical_merge(
+        source_dir_for_validation,
+        out_dir_path,
+        merged_path,
+    )
+    _copy_merge_to_build(
+        target_edition,
+        merged_path,
+        paths.merge_translate_path(target_edition),
+    )
+    pipeline_state.current_stage = PipelineStage.TRANSLATED
+    pipeline_state.translation_language = target_language
+    pipeline_state.translated_at = timezone.now()
+    pipeline_state.last_log = ""
+    pipeline_state.save()
+    return {
+        "success": "Translate OK",
+        "info": [f"Translate source: {source_label}"],
+        "target_language": target_language,
+    }
+
+
+def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | None = None) -> dict[str, object]:
+    refine_step = next(
+        (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "refine"),
+        None,
+    )
+    if not (refine_step and bool(refine_step.get("can_run"))):
+        raise ValueError(
+            (refine_step or {}).get("block_reason") or "Prerequisito para Refine: rode Translate."
+        )
+
+    target_edition = edition
+    stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
+    target_language = utils.normalize_lang(target_edition.language.code)
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    refine_profile = _normalize_refine_profile(
+        refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language)
+    )
+    refine_profile_cfg = _refine_profile_config(refine_profile)
+    if pipeline_state.refine_profile != refine_profile:
+        pipeline_state.refine_profile = refine_profile
+        pipeline_state.save(update_fields=["refine_profile"])
+    source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
+    if not source_dir.exists():
+        raise FileNotFoundError(
+            f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first."
+        )
+
+    try:
+        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+
+        out_dir_path = _resolve_refine_output_dir(
+            source_dir,
+            refine_profile=refine_profile,
+            target_language=target_language,
+        )
+        result = run_aldebaran_refine_return(
+            chunk_dir=source_dir,
+            out_dir=out_dir_path,
+            merge_name=f"merge_refine_{target_language}.txt",
+            agent_name=refine_profile_cfg["agent_name"],
+        )
+        merged_path = Path(result["merge_path"])
+    except ModuleNotFoundError:
+        from gaiden.translate import run_translate_with_contract
+
+        runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
+            target_edition, target_language, refine_profile=refine_profile
+        )
+        run_translate_with_contract(runtime_contract_path)
+        merged_candidates = [
+            out_dir_path / f"merge_refine_{target_language}.txt",
+            out_dir_path / "merge_refine.txt",
+            out_dir_path / "merged_return_aldebaran.txt",
+            out_dir_path / "merged_return_kaiser.txt",
+            out_dir_path / "merged.txt",
+        ]
+        merged_candidates.extend(sorted(out_dir_path.glob("merged_*.txt")))
+        merged_path = next((p for p in merged_candidates if p.exists()), None)
+        result = {
+            "agent_name": f"{refine_profile_cfg['agent_name']} (contract-fallback)",
+            "source_dir": str(refine_input_dir),
+            "report_path": str(runtime_contract_path),
+            "merge_path": str(merged_path or (out_dir_path / f"merged_{out_dir_path.name}.txt")),
+        }
+
+    _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
+    if merged_path is None:
+        merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
+    merged_path, _merge_stats = canonical_merge.write_canonical_merge(
+        source_dir,
+        out_dir_path,
+        merged_path,
+        book_code=target_edition.work.code,
+        language=target_language,
+    )
+    _copy_merge_to_build(
+        target_edition,
+        merged_path,
+        paths.merge_refine_path(target_edition),
+    )
+    pipeline_state.current_stage = PipelineStage.REFINED
+    pipeline_state.refined_at = timezone.now()
+    pipeline_state.last_log = (
+        f"{timezone.now().isoformat()} :: REFINE :: {refine_profile} :: {result['agent_name']}"
+    )
+    pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log", "refine_profile"])
+    return {
+        "success": f"Refine OK ({refine_profile_cfg['label']} · {result['agent_name']})",
+        "info": [
+            f"Refine source ({refine_source_label}): {result['source_dir']}",
+            f"Refine report: {result['report_path']}",
+        ],
+        "refine_profile": refine_profile,
+    }
+
+
+def _run_polish_step_local(edition) -> dict[str, object]:
+    from gaiden.polish_en_2025 import run_polish_en_2025
+
+    target_edition = edition
+    stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
+    book_code, _language = _edition_codes(target_edition)
+    book_id = _parse_book_id(book_code)
+    if book_id is None:
+        raise ValueError("book_code must be like book_0001 to polish.")
+    if utils.normalize_lang(target_edition.language.code) != "en":
+        raise ValueError("Polish is only available for English.")
+
+    run_polish_en_2025(book_id=book_id, lang_key="en_modern_2026")
+    out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
+
+    _copy_merge_to_build(
+        target_edition,
+        out_path,
+        paths.merge_polish_path(target_edition),
+    )
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    pipeline_state.current_stage = PipelineStage.POLISHED
+    pipeline_state.polished_at = timezone.now()
+    pipeline_state.last_log = ""
+    pipeline_state.save()
+    return {"success": "Polish OK", "info": []}
+
+
+def execute_language_isolated_core_step(
+    *,
+    edition_id: int,
+    step: str,
+    target_language: str | None = None,
+    refine_profile: str | None = None,
+) -> dict[str, object]:
+    edition = EditorialEdition.objects.get(id=edition_id)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    if step == "translate":
+        return _run_translate_step_local(edition, pipeline_state, target_language=target_language or edition.language.code)
+    if step == "refine":
+        return _run_refine_step_local(edition, pipeline_state, refine_profile=refine_profile)
+    if step == "polish":
+        return _run_polish_step_local(edition)
+    raise ValueError(f"Unsupported isolated core step: {step}")
+
+
 def run_edition_step(request, edition_id: int, step: str):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
@@ -4015,7 +4410,7 @@ def run_edition_step(request, edition_id: int, step: str):
 
     try:
         if step == "raw":
-            core_edition = _global_core_edition(edition)
+            core_edition = _processing_base_edition(edition)
             uploaded = request.FILES.get("raw_file")
             if not uploaded:
                 raise ValueError("No raw file uploaded.")
@@ -4038,7 +4433,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"RAW saved: {dest_path}")
 
         elif step == "normalize":
-            core_edition = _global_core_edition(edition)
+            core_edition = _processing_base_edition(edition)
             out_path, normalized_source = _ensure_normalized_v2_for_heading_cleaner(core_edition)
 
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
@@ -4052,7 +4447,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Normalize OK: {out_path} ({normalized_source})")
 
         elif step == "heading_cleaner":
-            core_edition = _global_core_edition(edition)
+            core_edition = _processing_base_edition(edition)
             _ensure_normalized_v2_for_heading_cleaner(core_edition)
             _invalidate_split_01_after_heading_cleaner(core_edition)
             agent_name = (request.POST.get("agent_name") or "MechanicalHeadingCleaner").strip()
@@ -4074,7 +4469,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Report: {result['report_path']}")
 
         elif step == "split":
-            core_edition = _global_core_edition(edition)
+            core_edition = _processing_base_edition(edition)
             count = editorial_split.run_split_struct(core_edition)
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
             pipeline_state.current_stage = PipelineStage.SPLIT
@@ -4084,7 +4479,7 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.success(request, f"Split struct OK: {count} units")
 
         elif step == "chunk":
-            core_edition = _global_core_edition(edition)
+            core_edition = _processing_base_edition(edition)
             clean_path = heading_cleaner.clean_path_for_book_code(_edition_codes(core_edition)[0])
             if not clean_path.exists():
                 raise ValueError("Prerequisito: heading_cleaner/clean.txt.")
@@ -4140,145 +4535,53 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Manifest: {result['manifest_path']}")
 
         elif step == "translate":
-            from gaiden.translate import run_translate_with_contract
-
-            translate_step = next(
-                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "translate"),
-                None,
-            )
-            if not (translate_step and bool(translate_step.get("can_run"))):
-                reason = (translate_step or {}).get("block_reason") or (
-                    "Prerequisito para Translate: rode HeadingCleaner e depois refaca split_01."
-                )
-                raise ValueError(
-                    reason
-                )
-
             target_language = utils.normalize_lang(request.POST.get("target_language") or language)
-            target_edition = _edition_for_language(edition, target_language)
-            book_id_for_run = _parse_book_id(_edition_codes(target_edition)[0])
-            if book_id_for_run is not None:
-                os.environ["GAIDEN_BOOK_ID"] = str(book_id_for_run)
-            stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            source_dir_for_validation: Path | None = None
-            runtime_contract_path, source_label = _build_runtime_translate_contract(
-                target_edition,
-                target_language,
-            )
-            run_translate_with_contract(runtime_contract_path)
-            out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
-            source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
-                _edition_codes(target_edition)[0]
-            )
-            messages.info(request, f"Translate source: {source_label}")
-
-            _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
-            merged_path = _detect_merged_path(out_dir_path)
-            if merged_path is None:
-                merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
-            merged_path, _merge_stats = canonical_merge.write_canonical_merge(
-                source_dir_for_validation,
-                out_dir_path,
-                merged_path,
-            )
-            build_path = _copy_merge_to_build(
-                target_edition,
-                merged_path,
-                paths.merge_translate_path(target_edition),
-            )
-            pipeline_state.current_stage = PipelineStage.TRANSLATED
-            pipeline_state.translation_language = target_language
-            pipeline_state.translated_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, "Translate OK")
+            if core_docker.should_run_in_docker(step, target_language):
+                result = core_docker.run_docker_core_step(
+                    project_root=Path(settings.BASE_DIR).parent,
+                    edition_id=edition.id,
+                    step=step,
+                    language=target_language,
+                    target_language=target_language,
+                )
+                messages.success(request, f"Translate OK (docker:{target_language})")
+                if result.stdout.strip():
+                    messages.info(request, result.stdout.strip())
+            else:
+                result_payload = execute_language_isolated_core_step(
+                    edition_id=edition.id,
+                    step=step,
+                    target_language=target_language,
+                )
+                messages.success(request, result_payload["success"])
+                for item in result_payload.get("info", []):
+                    messages.info(request, item)
 
         elif step == "refine":
-            refine_step = next(
-                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "refine"),
-                None,
-            )
-            if not (refine_step and bool(refine_step.get("can_run"))):
-                raise ValueError(
-                    (refine_step or {}).get("block_reason") or "Prerequisito para Refine: rode Translate."
-                )
-
-            target_edition = edition
-            stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
-            target_language = utils.normalize_lang(target_edition.language.code)
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             refine_profile = _normalize_refine_profile(
-                request.POST.get("refine_profile") or pipeline_state.refine_profile
+                request.POST.get("refine_profile") or (pipeline_state.refine_profile if pipeline_state else "")
             )
-            refine_profile_cfg = _refine_profile_config(refine_profile)
-            if pipeline_state.refine_profile != refine_profile:
-                pipeline_state.refine_profile = refine_profile
-                pipeline_state.save(update_fields=["refine_profile"])
-            source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
-            if not source_dir.exists():
-                raise FileNotFoundError(
-                    f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first."
+            target_language = utils.normalize_lang(edition.language.code)
+            if core_docker.should_run_in_docker(step, target_language):
+                result = core_docker.run_docker_core_step(
+                    project_root=Path(settings.BASE_DIR).parent,
+                    edition_id=edition.id,
+                    step=step,
+                    language=target_language,
+                    refine_profile=refine_profile,
                 )
-
-            try:
-                from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
-
-                out_dir_path = _resolve_refine_output_dir(source_dir)
-                result = run_aldebaran_refine_return(
-                    chunk_dir=source_dir,
-                    out_dir=out_dir_path,
-                    merge_name=f"merge_refine_{target_language}.txt",
-                    agent_name=refine_profile_cfg["agent_name"],
+                messages.success(request, f"Refine OK (docker:{target_language})")
+                if result.stdout.strip():
+                    messages.info(request, result.stdout.strip())
+            else:
+                result_payload = execute_language_isolated_core_step(
+                    edition_id=edition.id,
+                    step=step,
+                    refine_profile=refine_profile,
                 )
-                merged_path = Path(result["merge_path"])
-            except ModuleNotFoundError:
-                from gaiden.translate import run_translate_with_contract
-
-                runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
-                    target_edition, target_language, refine_profile=refine_profile
-                )
-                run_translate_with_contract(runtime_contract_path)
-                merged_candidates = [
-                    out_dir_path / f"merge_refine_{target_language}.txt",
-                    out_dir_path / "merge_refine.txt",
-                    out_dir_path / "merged_return_aldebaran.txt",
-                    out_dir_path / "merged.txt",
-                ]
-                merged_candidates.extend(sorted(out_dir_path.glob("merged_*.txt")))
-                merged_path = next((p for p in merged_candidates if p.exists()), None)
-                result = {
-                    "agent_name": f"{refine_profile_cfg['agent_name']} (contract-fallback)",
-                    "source_dir": str(refine_input_dir),
-                    "report_path": str(runtime_contract_path),
-                    "merge_path": str(merged_path or (out_dir_path / f"merged_{out_dir_path.name}.txt")),
-                }
-
-            _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
-            if merged_path is None:
-                merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
-            merged_path, _merge_stats = canonical_merge.write_canonical_merge(
-                source_dir,
-                out_dir_path,
-                merged_path,
-            )
-            build_path = _copy_merge_to_build(
-                target_edition,
-                merged_path,
-                paths.merge_refine_path(target_edition),
-            )
-            pipeline_state.current_stage = PipelineStage.REFINED
-            pipeline_state.refined_at = timezone.now()
-            pipeline_state.last_log = (
-                f"{timezone.now().isoformat()} :: REFINE :: {refine_profile} :: {result['agent_name']}"
-            )
-            pipeline_state.save(update_fields=["current_stage", "refined_at", "last_log", "refine_profile"])
-            messages.success(
-                request,
-                f"Refine OK ({refine_profile_cfg['label']} · {result['agent_name']})",
-            )
-            messages.info(request, f"Refine source ({refine_source_label}): {result['source_dir']}")
-            messages.info(request, f"Refine report: {result['report_path']}")
+                messages.success(request, result_payload["success"])
+                for item in result_payload.get("info", []):
+                    messages.info(request, item)
 
         elif step == "merge_refine":
             target_edition = edition
@@ -4287,7 +4590,11 @@ def run_edition_step(request, edition_id: int, step: str):
                 getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
             )
             refine_source_dir, _refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
-            refine_dir = _resolve_refine_output_dir(refine_source_dir)
+            refine_dir = _resolve_refine_output_dir(
+                refine_source_dir,
+                refine_profile=getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else "",
+                target_language=target_language,
+            )
             _validate_runtime_chunk_outputs(refine_source_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
             merge_refine_clean = (
@@ -4301,11 +4608,15 @@ def run_edition_step(request, edition_id: int, step: str):
                 refine_source_dir,
                 refine_dir,
                 merge_refine_build,
+                book_code=target_edition.work.code,
+                language=target_language,
             )
             canonical_merge.write_canonical_merge(
                 refine_source_dir,
                 refine_dir,
                 merge_refine_clean,
+                book_code=target_edition.work.code,
+                language=target_language,
             )
 
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
@@ -4339,16 +4650,15 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Refine QA MD: {result['md_path']}")
 
         elif step == "preflight":
-            preflight_step = next(
-                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "preflight"),
-                None,
-            )
-            if not (preflight_step and bool(preflight_step.get("can_run"))):
-                raise ValueError(
-                    (preflight_step or {}).get("block_reason")
-                    or "Prerequisito para Pre-flight: rode Merge/Finalize."
-                )
             target_edition = edition
+            target_lang = utils.normalize_lang(_target_lang())
+            frontmatter_template = BookEditionTemplate.objects.filter(
+                book_code=target_edition.work.code,
+                language=target_lang,
+            ).first()
+            can_run, block_reason = _preflight_gate(target_edition, frontmatter_template)
+            if not can_run:
+                raise ValueError(block_reason or "Prerequisito para Pre-flight: conclua o Bloco 03.")
             result = preflight.run_preflight(target_edition)
             messages.success(
                 request,
@@ -4363,29 +4673,23 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Pre-flight MD: {result['md_path']}")
 
         elif step == "polish":
-            from gaiden.polish_en_2025 import run_polish_en_2025
-
-            target_edition = edition
-            stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
-            book_id = _parse_book_id(book_code)
-            if book_id is None:
-                raise ValueError("book_code must be like book_0001 to polish.")
-            if utils.normalize_lang(target_edition.language.code) != "en":
-                raise ValueError("Polish is only available for English.")
-
-            run_polish_en_2025(book_id=book_id, lang_key="en_modern_2026")
-            out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
-            build_path = _copy_merge_to_build(
-                target_edition,
-                out_path,
-                paths.merge_polish_path(target_edition),
-            )
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            pipeline_state.current_stage = PipelineStage.POLISHED
-            pipeline_state.polished_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-            messages.success(request, "Polish OK")
+            target_language = utils.normalize_lang(edition.language.code)
+            if core_docker.should_run_in_docker(step, target_language):
+                result = core_docker.run_docker_core_step(
+                    project_root=Path(settings.BASE_DIR).parent,
+                    edition_id=edition.id,
+                    step=step,
+                    language=target_language,
+                )
+                messages.success(request, f"Polish OK (docker:{target_language})")
+                if result.stdout.strip():
+                    messages.info(request, result.stdout.strip())
+            else:
+                result_payload = execute_language_isolated_core_step(
+                    edition_id=edition.id,
+                    step=step,
+                )
+                messages.success(request, result_payload["success"])
 
         elif step == "txt_to_md":
             md_language = request.POST.get("md_language") or None

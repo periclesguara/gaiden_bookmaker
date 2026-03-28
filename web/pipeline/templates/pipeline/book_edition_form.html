@@ -231,6 +231,9 @@
             <td>
               <div class="row-actions">
                 <a class="btn secondary" href="{{ row.edit_url }}">Editar</a>
+                {% if row.reedit_html_url %}
+                  <a class="btn secondary" href="{{ row.reedit_html_url }}">Reeditar (HTML)</a>
+                {% endif %}
                 {% if row.upload_url %}
                   <a class="btn secondary" href="{{ row.upload_url }}">Upload (sobrescrever com cuidado)</a>
                 {% endif %}

@@ -179,7 +179,7 @@ _CHUNK_COMPLETE_END_PATTERNS = [
     re.compile(r"^(chapter|book|part)\b", re.IGNORECASE),
     re.compile(r"^[IVXLC0-9]+[.)]?$"),
 ]
-_CHUNK_COMPLETE_END_CHARS = set('.!?…:;"”’\')]}')
+_CHUNK_COMPLETE_END_CHARS = set('.!?…:;"”“’‘‚«»›‹\')]}')
 
 
 def _sanitize_translated_output(text: str) -> str:
@@ -245,6 +245,22 @@ def assert_chunk_not_truncated(source_text: str, candidate_text: str, chunk_name
     reason = chunk_truncation_reason(source_text, candidate_text)
     if reason:
         raise RuntimeError(reason)
+
+
+def _retry_token_limits(base_limit: int, source_text: str) -> list[int]:
+    source_chars = len(source_text or "")
+    estimated = int(source_chars / 3.4) + 240
+    hard_cap = 4000
+    limits: list[int] = []
+    for candidate in (
+        base_limit,
+        max(base_limit + 400, int(base_limit * 1.2)),
+        max(base_limit + 800, int(base_limit * 1.4), estimated),
+    ):
+        bounded = min(int(candidate), hard_cap)
+        if bounded not in limits:
+            limits.append(bounded)
+    return limits
 
 
 def _sanitize_with_contract_fallback(
@@ -412,33 +428,60 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         if not text:
             continue
 
+        out_path = out_dir_path / chunk_path.name
+        if out_path.exists() and out_path.read_text(encoding="utf-8").strip():
+            print(f"[SKIP] {idx:04d}/{len(txt_files):04d} -> {out_path} (existing)")
+            continue
+
         messages = _build_messages(text, contract)
 
-        translated, model_used = _call_translate_with_fallback(
-            client=client,
-            messages=messages,
-            primary_model=str(model),
-            fallback_model=str(fallback_model),
-            temperature=temperature,
-            max_output_tokens=max_output_tokens,
-            chunk_name=chunk_path.name,
-        )
-
-        try:
-            translated = _sanitize_with_contract_fallback(
-                translated,
-                text,
-                contract,
-                chunk_path.name,
+        translated = ""
+        model_used = str(model)
+        last_error: Exception | None = None
+        for attempt, token_limit in enumerate(_retry_token_limits(max_output_tokens, text), start=1):
+            translated, model_used = _call_translate_with_fallback(
+                client=client,
+                messages=messages,
+                primary_model=str(model),
+                fallback_model=str(fallback_model),
+                temperature=temperature,
+                max_output_tokens=token_limit,
+                chunk_name=chunk_path.name,
             )
-            assert_chunk_not_truncated(text, translated, chunk_path.name)
-        except Exception as exc:
+
+            try:
+                translated = _sanitize_with_contract_fallback(
+                    translated,
+                    text,
+                    contract,
+                    chunk_path.name,
+                )
+                assert_chunk_not_truncated(text, translated, chunk_path.name)
+                last_error = None
+                if attempt > 1:
+                    print(
+                        f"[WARN] {chunk_path.name}: retry {attempt} accepted with max_output_tokens={token_limit}."
+                    )
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt < len(_retry_token_limits(max_output_tokens, text)):
+                    print(
+                        f"[WARN] {chunk_path.name}: retrying after validation failure "
+                        f"with max_output_tokens={token_limit}. reason={exc}"
+                    )
+                    continue
+                raw_preview = re.sub(r"\s+", " ", translated).strip()[:200]
+                raise RuntimeError(
+                    f"{chunk_path.name}: {exc}. raw_preview={raw_preview!r}"
+                ) from exc
+
+        if last_error is not None:
             raw_preview = re.sub(r"\s+", " ", translated).strip()[:200]
             raise RuntimeError(
-                f"{chunk_path.name}: {exc}. raw_preview={raw_preview!r}"
-            ) from exc
+                f"{chunk_path.name}: {last_error}. raw_preview={raw_preview!r}"
+            ) from last_error
 
-        out_path = out_dir_path / chunk_path.name
         out_path.write_text(translated, encoding="utf-8")
 
         print(f"[OK] {idx:04d}/{len(txt_files):04d} -> {out_path} (model={model_used})")

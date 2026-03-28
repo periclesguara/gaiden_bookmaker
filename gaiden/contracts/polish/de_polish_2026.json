@@ -1,0 +1,13 @@
+{
+  "name": "de_polish_2026",
+  "language": "de",
+  "stage": "polish",
+  "model": "gpt-5.4",
+  "system_prompt": "You are Bismarck, a senior literary line editor for premium modern German editions. Polish the already-refined German passage for final fluency, cadence, tonal consistency, and native literary finish. Preserve every fact, chronology, paragraph boundary, heading, and dialogue turn. Output only the polished German passage.",
+  "user_prompt": "Polish the following German passage for publication.\n\nRules:\n- Keep the text in German.\n- Preserve all facts, chronology, names, numbers, and paragraph breaks.\n- Do not summarize, expand, explain, annotate, or add commentary.\n- Do not remove or rewrite headings.\n- Preserve detective atmosphere, tension, and voice distinctions.\n- Prefer micro-edits over rewrites.\n\nReturn only the final polished passage.\n\n{text}",
+  "output": {
+    "language": "de"
+  },
+  "temperature": 0.2,
+  "max_output_tokens": 1800
+}

@@ -6,6 +6,29 @@ from pathlib import Path
 from gaiden.chunk_contract import HeadingMatch, detect_heading
 from gaiden.translate import sanitize_generated_chunk_text
 
+LOCALIZED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
+    (
+        "book_0002",
+        "de",
+    ): [
+        "Die Wissenschaft der Deduktion",
+        "Die Darstellung des Falls",
+        "Auf der Suche nach einer Lösung",
+        "Die Geschichte des kahlköpfigen Mannes",
+        "Die Tragödie von Pondicherry Lodge",
+        "Sherlock Holmes liefert eine Demonstration",
+        "Die Episode mit dem Fass",
+        "Die Baker-Street-Truppe",
+        "Ein Bruch in der Kette",
+        "Das Ende des Inselbewohners",
+        "Der große Schatz von Agra",
+        "Die seltsame Geschichte von Jonathan Small",
+    ],
+}
+
+_CHAPTER_FILE_RE = re.compile(r"^chapter_(\d{2})_part_\d{2}\.txt$", re.IGNORECASE)
+_CHAPTER_HEADING_PREFIX_RE = re.compile(r"^(?P<prefix>\s*#{1,6}\s+)(?P<body>.+?)\s*$")
+
 
 def _iter_non_merged_txt_files(directory: Path | None) -> list[Path]:
     if not directory or not directory.exists():
@@ -39,6 +62,67 @@ def _normalize_editorial_punctuation(text: str) -> str:
     normalized = re.sub(r'(^|[\s(\[{—–])"', r"\1“", normalized)
     normalized = normalized.replace('"', "”")
     return normalized
+
+
+def _chapter_label_for_language(language: str) -> str:
+    lang = (language or "").lower()
+    if lang.startswith("de"):
+        return "Kapitel"
+    if lang.startswith("pt") or lang.startswith("es"):
+        return "Capitulo"
+    return "Chapter"
+
+
+def _localized_heading_line(
+    current_heading: str,
+    *,
+    chapter_number: int,
+    title: str,
+    language: str,
+) -> str:
+    match = _CHAPTER_HEADING_PREFIX_RE.match(current_heading.strip())
+    prefix = match.group("prefix") if match else "## "
+    return f"{prefix}{_chapter_label_for_language(language)} {chapter_number} - {title}"
+
+
+def localize_chapter_headings_in_place(
+    candidate_dir: Path | None,
+    *,
+    book_code: str | None,
+    language: str | None,
+) -> int:
+    if not candidate_dir or not candidate_dir.exists():
+        return 0
+    titles = LOCALIZED_CHAPTER_TITLES.get(((book_code or "").strip(), (language or "").strip().lower()))
+    if not titles:
+        return 0
+
+    changed = 0
+    for candidate_path in _iter_non_merged_txt_files(candidate_dir):
+        match = _CHAPTER_FILE_RE.match(candidate_path.name)
+        if not match:
+            continue
+        chapter_number = int(match.group(1))
+        if chapter_number < 1 or chapter_number > len(titles):
+            continue
+        lines = candidate_path.read_text(encoding="utf-8").splitlines()
+        if not lines:
+            continue
+        heading_match = _heading_match("\n".join(lines[:3]))
+        if heading_match is None:
+            continue
+        localized = _localized_heading_line(
+            heading_match.heading_line,
+            chapter_number=chapter_number,
+            title=titles[chapter_number - 1],
+            language=str(language or ""),
+        )
+        if lines[0].strip() == localized.strip():
+            continue
+        lines[0] = localized
+        candidate_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+        changed += 1
+    return changed
 
 
 def canonicalize_chunk_text(source_text: str, candidate_text: str) -> str:
@@ -99,8 +183,17 @@ def write_canonical_merge(
     source_dir: Path | None,
     candidate_dir: Path | None,
     out_path: Path,
+    *,
+    book_code: str | None = None,
+    language: str | None = None,
 ) -> tuple[Path, dict[str, int]]:
     stats = canonicalize_chunk_dir_in_place(source_dir, candidate_dir)
+    localized = localize_chapter_headings_in_place(
+        candidate_dir,
+        book_code=book_code,
+        language=language,
+    )
+    stats["localized_headings"] = localized
     merged = build_canonical_merged_text(candidate_dir)
     if not merged:
         raise FileNotFoundError(f"No canonical chunk outputs found in {candidate_dir}")

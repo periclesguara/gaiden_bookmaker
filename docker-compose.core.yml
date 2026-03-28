@@ -1,0 +1,56 @@
+services:
+  gaiden-core-base:
+    build:
+      context: .
+      dockerfile: docker/core/Dockerfile
+    network_mode: host
+    user: "${GAIDEN_CORE_DOCKER_UID:-1000}:${GAIDEN_CORE_DOCKER_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-only}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-gaiden_portal.settings}
+      PGHOST: ${GAIDEN_CORE_DOCKER_PGHOST:-127.0.0.1}
+      PGPORT: ${PGPORT:-5432}
+      PGDATABASE: ${PGDATABASE:-gaiden}
+      PGUSER: ${PGUSER:-gaiden}
+      PGPASSWORD: ${PGPASSWORD:-gaiden}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GAIDEN_CORE_DOCKER_ENABLED: "1"
+
+  gaiden-core-en:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: en
+
+  gaiden-core-ptbr:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: ptbr
+
+  gaiden-core-es:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: es
+
+  gaiden-core-de:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: de
+
+  gaiden-core-it:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: it
+
+  gaiden-core-fr:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_CORE_LANGUAGE: fr

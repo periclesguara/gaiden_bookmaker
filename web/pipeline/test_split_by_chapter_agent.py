@@ -11,8 +11,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from editorial.models import Contributor, Edition, Language, Seal, Work
-from gaiden.chapter_agent_split import split_merged_text_into_chapters, write_chapter_split_artifacts
-from pipeline.services import chapter_agent, paths
+from gaiden.chapter_agent_split import (
+    rewrite_single_chapter_parts,
+    split_merged_text_into_chapters,
+    write_chapter_split_artifacts,
+)
+from pipeline.services import canonical_merge, chapter_agent, paths
 from pipeline import views as pipeline_views
 
 
@@ -33,7 +37,7 @@ class ChapterAgentSplitLogicTests(TestCase):
         self.assertEqual(chapters[0]["heading"], "## Chapter 1 - The Gate")
         self.assertIn("Paragraph C.", chapters[1]["text"])
 
-    def test_write_chapter_split_artifacts_creates_four_parts_per_chapter(self):
+    def test_write_chapter_split_artifacts_creates_one_part_per_chapter_by_default(self):
         merged_text = (
             "## Chapter 1 - The Gate\n\n"
             "Paragraph A.\n\n"
@@ -53,10 +57,69 @@ class ChapterAgentSplitLogicTests(TestCase):
             )
 
             self.assertEqual(manifest["chapter_count"], 1)
-            self.assertEqual(len(manifest["chapters"][0]["parts"]), 4)
+            self.assertEqual(manifest["parts_per_chapter"], 1)
+            self.assertEqual(len(manifest["chapters"][0]["parts"]), 1)
             self.assertTrue(manifest_path.exists())
             for part in manifest["chapters"][0]["parts"]:
                 self.assertTrue((root / "parts" / part["filename"]).exists())
+
+    def test_write_chapter_split_artifacts_accepts_two_parts_per_chapter_when_requested(self):
+        merged_text = (
+            "## Chapter 1 - The Gate\n\n"
+            + ("Paragraph A.\n\n" * 12)
+            + ("Paragraph B.\n\n" * 12)
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest = write_chapter_split_artifacts(
+                merged_text,
+                root / "parts",
+                parts_per_chapter=2,
+            )
+
+            self.assertEqual(manifest["parts_per_chapter"], 2)
+            self.assertEqual(len(manifest["chapters"][0]["parts"]), 2)
+
+    def test_rewrite_single_chapter_parts_can_expand_specific_chapter_to_four_parts(self):
+        merged_text = (
+            "## Chapter 1 - The Gate\n\n"
+            + ("Paragraph A. " * 120)
+            + "\n\n"
+            + "## Chapter 2 - The Road\n\n"
+            + ("Paragraph B. " * 240)
+            + "\n"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            parts_dir = root / "parts"
+            manifest_path = root / "manifest.json"
+            write_chapter_split_artifacts(
+                merged_text,
+                parts_dir,
+                manifest_path=manifest_path,
+                parts_per_chapter=2,
+            )
+
+            result = rewrite_single_chapter_parts(
+                merged_text,
+                parts_dir,
+                chapter_index=2,
+                parts_per_chapter=4,
+                manifest_path=manifest_path,
+            )
+
+            self.assertEqual(result["part_count"], 4)
+            chapter_two_parts = sorted(parts_dir.glob("chapter_02_part_*.txt"))
+            self.assertEqual([p.name for p in chapter_two_parts], [
+                "chapter_02_part_01.txt",
+                "chapter_02_part_02.txt",
+                "chapter_02_part_03.txt",
+                "chapter_02_part_04.txt",
+            ])
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["parts_per_chapter"], 4)
 
     def test_split_merged_text_ignores_toc_noise_and_false_numeric_headings(self):
         merged_text = (
@@ -153,6 +216,10 @@ class ChapterAgentServiceTests(TestCase):
             json.dumps({"model": "gpt-5.4", "max_output_tokens": 1800, "output": {"language": "en"}}),
             encoding="utf-8",
         )
+        (contract_dir / "de_refine_2026.json").write_text(
+            json.dumps({"model": "gpt-5.4", "max_output_tokens": 1800, "output": {"language": "de"}}),
+            encoding="utf-8",
+        )
 
     def tearDown(self):
         self.override.disable()
@@ -176,7 +243,7 @@ class ChapterAgentServiceTests(TestCase):
         split_root = paths.split_by_chapter_dir(self.edition)
         self.assertEqual(result["merge_translate_path"], str(merge_translate_path))
         self.assertEqual(result["chapter_count"], 1)
-        self.assertEqual(result["part_count"], 4)
+        self.assertEqual(result["part_count"], 1)
         self.assertTrue((split_root / "manifest.json").exists())
         self.assertFalse((split_root / "agent").exists())
         self.assertTrue((split_root / "parts" / "chapter_01_part_01.txt").exists())
@@ -216,3 +283,42 @@ class ChapterAgentServiceTests(TestCase):
         self.assertEqual(copied_files, ["chapter_01_part_01.txt", "chapter_01_part_02.txt"])
         self.assertEqual(payload["chunk_dir"], str(refine_input_dir))
         self.assertEqual(out_dir, split_root / "return_aldebaran")
+
+    def test_build_runtime_refine_contract_uses_return_kaiser_for_german(self):
+        build_dir = paths.edition_build_dir(self.edition)
+        build_dir.mkdir(parents=True, exist_ok=True)
+        split_root = paths.split_by_chapter_dir(self.edition)
+        parts_dir = split_root / "parts"
+        parts_dir.mkdir(parents=True, exist_ok=True)
+        (split_root / "manifest.json").write_text('{"chapter_count": 1}', encoding="utf-8")
+        (parts_dir / "chapter_01_part_01.txt").write_text("teil eins\n", encoding="utf-8")
+
+        contract_path, refine_input_dir, out_dir = pipeline_views._build_runtime_refine_contract(
+            self.edition,
+            "de",
+            refine_profile="de_kaiser",
+        )
+
+        payload = json.loads(contract_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload["agent_name"], "Kaiser")
+        self.assertEqual(refine_input_dir, self.temp_root / "data" / "editions" / str(self.edition.id) / "core" / "refine_input_de")
+        self.assertEqual(out_dir, split_root / "return_kaiser")
+
+    def test_canonical_merge_localizes_german_chapter_headings_for_book_0002(self):
+        refine_dir = self.temp_root / "data" / "builds" / "book_0002" / "de" / "split_by_chapter" / "return_kaiser"
+        refine_dir.mkdir(parents=True, exist_ok=True)
+        chunk_path = refine_dir / "chapter_01_part_01.txt"
+        chunk_path.write_text(
+            "## Chapter 1 The Science of Deduction\n\nHolmes saß ruhig da.\n",
+            encoding="utf-8",
+        )
+
+        changed = canonical_merge.localize_chapter_headings_in_place(
+            refine_dir,
+            book_code="book_0002",
+            language="de",
+        )
+
+        self.assertEqual(changed, 1)
+        updated = chunk_path.read_text(encoding="utf-8")
+        self.assertTrue(updated.startswith("## Kapitel 1 - Die Wissenschaft der Deduktion"))

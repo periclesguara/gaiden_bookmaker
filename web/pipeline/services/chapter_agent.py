@@ -36,7 +36,7 @@ def resolve_merge_translate_path(edition) -> Path:
 def run_split_by_chapter(
     edition,
     *,
-    parts_per_chapter: int = 4,
+    parts_per_chapter: int = 1,
 ) -> dict[str, Any]:
     merge_path = resolve_merge_translate_path(edition)
     split_root = paths.split_by_chapter_dir(edition)

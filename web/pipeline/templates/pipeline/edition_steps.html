@@ -258,6 +258,15 @@
     </article>
   </section>
   {% endif %}
+  {% if pipeline_last_log %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Ultimo Evento</h2>
+      <div class="status"><strong>Stage:</strong> {{ pipeline_stage|default:"-" }}</div>
+      <div class="status">{{ pipeline_last_log }}</div>
+    </article>
+  </section>
+  {% endif %}
   {% if sync_log %}
   <section class="grid" style="padding-top: 0;">
     <article class="card">
@@ -332,7 +341,7 @@
               {% endfor %}
             </select>
             <span class="status">
-              Perfis: ingles neutro = Aldebaran | ingles flex = Alamaguederaz
+              Perfis: ingles neutro = Aldebaran | ingles flex = Alamaguederaz | deutsch kaiser = Kaiser
             </span>
             {% endif %}
             <button
@@ -399,10 +408,12 @@
           </select>
           <button class="btn secondary" type="submit">Next step</button>
         </form>
+        {% if language == "en" %}
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
           {% csrf_token %}
           <button class="btn secondary" type="submit">Polish (optional)</button>
         </form>
+        {% endif %}
       </div>
       <div class="status">
         RAW: <strong>{{ status.raw }}</strong>
@@ -562,6 +573,38 @@
         Bloco 03 aguardando a conclusao textual do bloco 02.
       </div>
       {% endif %}
+      <section class="pipeline-step">
+        <div class="status">
+          <strong>Pre-Flight</strong>
+          {% if preflight_step.done %}
+            <span class="badge {% if preflight_step.status_tone %}{{ preflight_step.status_tone }}{% else %}ok{% endif %}">
+              {% if preflight_step.status_label %}{{ preflight_step.status_label }}{% else %}OK{% endif %}
+            </span>
+          {% elif preflight_step.can_run %}
+            <span class="badge">pronto</span>
+          {% else %}
+            <span class="badge warn">bloqueado</span>
+          {% endif %}
+          {% if preflight_step.block_reason %}
+            {{ preflight_step.block_reason }}
+          {% endif %}
+        </div>
+        <div class="status">
+          {% if preflight_step.notes %}{{ preflight_step.notes }}{% endif %}
+        </div>
+        <div class="status">
+          Saidas:
+          {% for out in preflight_step.outputs %}
+            <code>{{ out }}</code>
+          {% endfor %}
+        </div>
+        <form method="post" action="{{ preflight_step.run_url }}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not preflight_step.can_run %}disabled{% endif %}>
+            {{ preflight_step.button_label }}
+          </button>
+        </form>
+      </section>
       <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
       <p>
         A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.

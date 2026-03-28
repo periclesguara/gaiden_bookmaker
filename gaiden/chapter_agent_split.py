@@ -10,7 +10,8 @@ from gaiden.openai_client import get_client
 DEFAULT_MODEL = "gpt-5.4"
 DEFAULT_FALLBACK_MODEL = "gpt-5.2"
 DEFAULT_MAX_OUTPUT_TOKENS = 4000
-PARTS_PER_CHAPTER = 4
+PARTS_PER_CHAPTER = 1
+MAX_PARTS_PER_CHAPTER = 4
 
 _CHAPTER_LINE_PATTERNS = [
     re.compile(r"^#{1,6}\s*(chapter|part|book|adventure|cap[ií]tulo|kapitel)\b.*$", re.IGNORECASE),
@@ -234,6 +235,10 @@ def split_chapter_into_parts(chapter_text: str, *, parts: int = PARTS_PER_CHAPTE
     cleaned = chapter_text.strip()
     if not cleaned:
         return []
+    if parts < 1 or parts > MAX_PARTS_PER_CHAPTER:
+        raise ValueError(f"parts deve ficar entre 1 e {MAX_PARTS_PER_CHAPTER}.")
+    if parts == 1:
+        return [cleaned + "\n"]
 
     paragraphs = [item.strip() for item in re.split(r"\n\s*\n", cleaned) if item.strip()]
     if len(paragraphs) < parts:
@@ -322,6 +327,74 @@ def write_chapter_split_artifacts(
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
     return manifest
+
+
+def rewrite_single_chapter_parts(
+    merged_text: str,
+    output_dir: Path,
+    *,
+    chapter_index: int,
+    parts_per_chapter: int,
+    manifest_path: Path | None = None,
+) -> dict[str, Any]:
+    if parts_per_chapter < 1 or parts_per_chapter > MAX_PARTS_PER_CHAPTER:
+        raise ValueError(f"parts_per_chapter deve ficar entre 1 e {MAX_PARTS_PER_CHAPTER}.")
+
+    chapters = split_merged_text_into_chapters(merged_text)
+    chapter = next((item for item in chapters if int(item["index"]) == int(chapter_index)), None)
+    if chapter is None:
+        raise ValueError(f"Capitulo {chapter_index} nao encontrado no merge_translate.")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for stale in sorted(output_dir.glob(f"chapter_{chapter_index:02d}_part_*.txt")):
+        stale.unlink()
+
+    chapter_parts = split_chapter_into_parts(chapter["text"], parts=parts_per_chapter)
+    chapter_entry = {
+        "index": chapter["index"],
+        "heading": chapter["heading"],
+        "slug": chapter["slug"],
+        "parts": [],
+    }
+    for part_index, part_text in enumerate(chapter_parts, start=1):
+        filename = f"chapter_{chapter['index']:02d}_part_{part_index:02d}.txt"
+        part_path = output_dir / filename
+        part_path.write_text(part_text, encoding="utf-8")
+        chapter_entry["parts"].append(
+            {
+                "index": part_index,
+                "filename": filename,
+                "char_count": len(part_text),
+            }
+        )
+
+    manifest: dict[str, Any] | None = None
+    if manifest_path is not None and manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        chapters_payload = manifest.get("chapters")
+        if isinstance(chapters_payload, list):
+            replaced = False
+            for idx, existing in enumerate(chapters_payload):
+                if int(existing.get("index") or 0) == int(chapter_index):
+                    chapters_payload[idx] = chapter_entry
+                    replaced = True
+                    break
+            if not replaced:
+                chapters_payload.append(chapter_entry)
+                chapters_payload.sort(key=lambda item: int(item.get("index") or 0))
+        manifest["parts_per_chapter"] = max(
+            int(manifest.get("parts_per_chapter") or 1),
+            parts_per_chapter,
+        )
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {
+        "chapter_index": int(chapter["index"]),
+        "heading": chapter["heading"],
+        "part_count": len(chapter_parts),
+        "parts": chapter_entry["parts"],
+        "manifest_updated": bool(manifest_path is not None),
+    }
 
 
 def _chapter_agent_messages(

@@ -221,6 +221,38 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
         self.assertNotContains(response, "Selecione um livro e clique em <strong>Estado do livro</strong> para exibir o relatorio.", html=True)
 
+    def test_cadastro_report_exposes_reedit_html_action(self):
+        work = Work.objects.create(
+            code="book_0014",
+            title="HTML Reedit Book",
+            original_language=self.language,
+            author=self.author,
+        )
+        Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="HTML Reedit Book",
+        )
+        BookEditionTemplate.objects.create(
+            book_code="book_0014",
+            language="en",
+            title="HTML Reedit Book",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="txt",
+            registration_status=BookEditionTemplate.STATUS_REGISTERED,
+        )
+
+        response = self.client.get(self.cadastro_url, {"book": "book_0014"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Reeditar (HTML)")
+        self.assertContains(
+            response,
+            reverse("book_edition_upload", kwargs={"book_code": "book_0014", "language": "en"}) + "?force_source_format=html",
+        )
+
     def test_cadastro_shows_book_012_in_single_selector(self):
         work = Work.objects.create(
             code="book_012",
@@ -467,6 +499,102 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertEqual(set(CORE_ISOLATION_LANGUAGES), {"en", "ptbr", "es", "de", "it", "fr"})
         self.assertEqual(len(SYSTEM_BLOCKS), 4)
 
+    @override_settings()
+    def test_core_docker_isolation_defaults_to_german_for_sensitive_steps(self):
+        from pipeline.services import core_docker
+
+        self.assertTrue(core_docker.should_run_in_docker("translate", "de"))
+        self.assertTrue(core_docker.should_run_in_docker("refine", "de"))
+        self.assertFalse(core_docker.should_run_in_docker("translate", "en"))
+        self.assertFalse(core_docker.should_run_in_docker("normalize", "de"))
+
+    def test_core_docker_command_targets_language_specific_service(self):
+        from pipeline.services import core_docker
+
+        cmd = core_docker.build_docker_command(
+            project_root=Path("/tmp/project"),
+            edition_id=42,
+            step="translate",
+            language="de",
+            target_language="de",
+        )
+
+        self.assertEqual(cmd[:7], ["docker", "compose", "-f", "/tmp/project/docker-compose.core.yml", "run", "--rm", "gaiden-core-de"])
+        self.assertIn("--edition-id", cmd)
+        self.assertIn("42", cmd)
+        self.assertIn("--target-language", cmd)
+        self.assertIn("de", cmd)
+
+    def test_non_english_html_source_uses_own_language_as_processing_base(self):
+        from pipeline.views import _processing_base_edition, build_pipeline01_steps
+
+        german = Language.objects.create(
+            code="de",
+            name="Deutsch",
+            native_name="Deutsch",
+            is_active=True,
+        )
+        work = Work.objects.create(
+            code="book_0200",
+            title="German Source Book",
+            original_language=german,
+            author=self.author,
+        )
+        en_edition = Edition.objects.create(
+            work=work,
+            language=self.language,
+            seal=self.seal,
+            title="German Source Book EN",
+        )
+        de_edition = Edition.objects.create(
+            work=work,
+            language=german,
+            seal=self.seal,
+            title="German Source Book DE",
+            raw_source_path=str(Path(settings.BASE_DIR).parent / "data" / "raw" / work.code / f"{work.code}_de_raw.html"),
+        )
+        BookEditionTemplate.objects.create(
+            book_code=work.code,
+            language="de",
+            title="German Source Book DE",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="html",
+            source_saved_path=de_edition.raw_source_path,
+        )
+        raw_dir = Path(settings.BASE_DIR).parent / "data" / "raw" / work.code
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        (raw_dir / f"{work.code}_de_raw.html").write_text("<html><body>DE</body></html>", encoding="utf-8")
+
+        try:
+            self.assertEqual(_processing_base_edition(de_edition).id, de_edition.id)
+            steps = build_pipeline01_steps(de_edition)
+            normalize_step = next(step for step in steps if step["key"] == "normalize")
+            self.assertIn(f"data/normalized/{work.code}_de_v2.txt", normalize_step["outputs"][0])
+        finally:
+            shutil.rmtree(raw_dir, ignore_errors=True)
+            shutil.rmtree(Path(settings.BASE_DIR).parent / "data" / "builds" / work.code, ignore_errors=True)
+            shutil.rmtree(Path(settings.BASE_DIR).parent / "data" / "md" / work.code, ignore_errors=True)
+            normalized = Path(settings.BASE_DIR).parent / "data" / "normalized" / f"{work.code}_de_v2.txt"
+            if normalized.exists():
+                normalized.unlink()
+            en_edition.delete()
+            de_edition.delete()
+            work.delete()
+
+    def test_translate_contract_for_german_uses_dedicated_2026_copy(self):
+        from pipeline.views import _select_contract_path
+
+        contract_path = _select_contract_path("de")
+
+        self.assertTrue(str(contract_path).endswith("gaiden/contracts/en_de_2026.json"))
+
+    def test_refine_contract_for_german_is_configured_with_kaiser_profile(self):
+        from pipeline.views import _default_refine_profile_for_language, _select_refine_contract
+
+        self.assertEqual(_default_refine_profile_for_language("de"), "de_kaiser")
+        self.assertTrue(str(_select_refine_contract("de")).endswith("gaiden/contracts/refine/de_refine_2026.json"))
+
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
         upload = SimpleUploadedFile(
@@ -552,6 +680,51 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("book_edition_new"))
+
+    def test_upload_page_can_force_html_source_format_for_reedit(self):
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title="Book Test",
+            author_name="Author Test",
+            publication_year=2026,
+            text_source_mode="txt",
+            registration_status=BookEditionTemplate.STATUS_REGISTERED,
+        )
+
+        response = self.client.get(
+            reverse("book_edition_upload", kwargs={"book_code": self.work.code, "language": "en"})
+            + "?force_source_format=html"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["upload_form"].initial["source_format"], "html")
+        self.assertContains(response, "HTML aceita .html e .htm.")
+
+    def test_html_edition_steps_stays_in_common_flow_after_source_md_exists(self):
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "text_source_mode": "html",
+            },
+        )
+        EditionPipeline.objects.update_or_create(
+            edition=self.edition,
+            defaults={"current_stage": "MD_SOURCE_READY"},
+        )
+        md_dir = self.root / "data" / "md" / self.work.code
+        md_dir.mkdir(parents=True, exist_ok=True)
+        (md_dir / f"{self.work.code}_en_source.md").write_text("# source", encoding="utf-8")
+        self.addCleanup(lambda: shutil.rmtree(md_dir, ignore_errors=True))
+
+        response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bloco 02 · Core do Sistema")
 
     def test_public_domain_requires_original_dates(self):
         response = self.client.post(
@@ -1641,6 +1814,7 @@ class HeadingCleanerGateTests(TestCase):
 
         self.assertGreater(payload["max_output_tokens"], 1200)
         self.assertGreaterEqual(payload["max_output_tokens"], 1800)
+        self.assertLessEqual(payload["max_output_tokens"], 4000)
 
     def test_runtime_refine_contract_raises_max_output_tokens_for_large_chunks(self):
         from pipeline.views import _build_runtime_refine_contract
@@ -1749,6 +1923,85 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(fake_client.responses.calls[0]["model"], "gpt-5.4")
         self.assertEqual(fake_client.responses.calls[1]["model"], "gpt-5.2")
 
+    def test_translate_retries_same_model_when_chunk_output_is_truncated(self):
+        from gaiden.translate import run_translate_with_contract
+
+        temp_root = Path(tempfile.mkdtemp(prefix="translate_retry_"))
+        self.addCleanup(lambda: shutil.rmtree(temp_root, ignore_errors=True))
+
+        chunk_dir = temp_root / "chunks"
+        out_dir = temp_root / "translated" / "de_modern_2026"
+        chunk_dir.mkdir(parents=True, exist_ok=True)
+        source_text = (
+            '"Oh, you value my assistance too highly," said Sherlock Holmes lightly. '
+            '"You cannot expect me to believe that you have read all this from his old watch! '
+            'It is unkind, and, to speak plainly, has a touch of charlatanism in it."'
+        )
+        (chunk_dir / "0001.txt").write_text(source_text, encoding="utf-8")
+
+        contract_path = temp_root / "contract_translate_de.json"
+        contract_path.write_text(
+            json.dumps(
+                {
+                    "chunk_dir": str(chunk_dir),
+                    "out_dir": str(out_dir),
+                    "target_language": "de",
+                    "model": "gpt-5.4",
+                    "fallback_model": "gpt-5.2",
+                    "max_output_tokens": 1800,
+                    "system_prompt": "Translate carefully.",
+                    "user_prompt": "{text}",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        fake_client = _SequentialOpenAIClient(
+            [
+                "„Oh, er schätzt meine Hilfe viel zu hoch ein“, sagte Sherlock Holmes leichthin. "
+                "„Sie können doch nicht erwarten, dass ich glaube,",
+                "„Oh, er schätzt meine Hilfe viel zu hoch ein“, sagte Sherlock Holmes leichthin. "
+                "„Sie können doch nicht erwarten, dass ich glaube, Sie hätten all das aus seiner alten Uhr herausgelesen! "
+                "Das ist unfreundlich und, offen gesagt, hat es einen Anflug von Scharlatanerie.“",
+            ]
+        )
+        with patch("gaiden.translate.get_client", return_value=fake_client):
+            run_translate_with_contract(contract_path)
+
+        self.assertEqual(len(fake_client.responses.calls), 2)
+        self.assertEqual(fake_client.responses.calls[0]["model"], "gpt-5.4")
+        self.assertEqual(fake_client.responses.calls[1]["model"], "gpt-5.4")
+        self.assertGreater(fake_client.responses.calls[1]["max_output_tokens"], fake_client.responses.calls[0]["max_output_tokens"])
+        self.assertIn("Scharlatanerie", (out_dir / "0001.txt").read_text(encoding="utf-8"))
+
+    def test_german_closing_quote_counts_as_complete_chunk_boundary(self):
+        from gaiden.translate import chunk_truncation_reason
+
+        source_text = (
+            '"You cannot expect me to believe that you have read all this from his old watch! '
+            'It is unkind, and, to speak plainly, has a touch of charlatanism in it."'
+        )
+        candidate_text = (
+            '„Sie können doch nicht erwarten, dass ich glaube, Sie hätten all das aus seiner alten Uhr herausgelesen! '
+            'Das ist unfreundlich und, offen gesagt, hat einen Anflug von Scharlatanerie.“'
+        )
+
+        self.assertIsNone(chunk_truncation_reason(source_text, candidate_text))
+
+    def test_german_single_closing_quote_counts_as_complete_chunk_boundary(self):
+        from gaiden.translate import chunk_truncation_reason
+
+        source_text = (
+            "'Not so fast,' said I, growing colder as he got hot. "
+            "'I must have the consent of my three comrades. I tell you that it is four or none with us.'"
+        )
+        candidate_text = (
+            "‚Nicht so schnell‘, sagte ich und wurde kälter, je hitziger er wurde. "
+            "‚Ich muss die Zustimmung meiner drei Kameraden haben. Ich sage Ihnen, bei uns heißt es vier oder keiner.‘"
+        )
+
+        self.assertIsNone(chunk_truncation_reason(source_text, candidate_text))
+
     def test_merge_refine_stays_blocked_when_refine_outputs_are_partial(self):
         self.client.post(self.heading_url)
         self.split_dir.mkdir(parents=True, exist_ok=True)
@@ -1803,11 +2056,12 @@ class HeadingCleanerGateTests(TestCase):
             "5) Split by Chapter (merge_translate)",
             "6) Refine (Ingles neutro)",
             "7) Merge/Finalize",
-            "8) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
+        self.assertContains(response, "Bloco 03 · Editorial e Assets")
+        self.assertContains(response, "Pre-Flight")
 
     def test_translate_disabled_without_heading_cleaner(self):
         response = self.client.get(self.steps_url)
@@ -1848,11 +2102,12 @@ class HeadingCleanerGateTests(TestCase):
             "5) Split by Chapter (merge_translate)",
             "6) Refine (Ingles neutro)",
             "7) Merge/Finalize",
-            "8) Pre-producao (Pre-flight)",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
+        self.assertContains(response, "Bloco 03 · Editorial e Assets")
+        self.assertContains(response, "Pre-Flight")
 
     @patch("pipeline.services.preflight.get_client")
     def test_preflight_run_creates_structured_report_after_merge_refine(self, mock_get_client):
