@@ -575,7 +575,7 @@
       {% endif %}
       <section class="pipeline-step">
         <div class="status">
-          <strong>Pre-Flight</strong>
+          <strong>{{ preflight_step.title }}</strong>
           {% if preflight_step.done %}
             <span class="badge {% if preflight_step.status_tone %}{{ preflight_step.status_tone }}{% else %}ok{% endif %}">
               {% if preflight_step.status_label %}{{ preflight_step.status_label }}{% else %}OK{% endif %}

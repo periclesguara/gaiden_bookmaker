@@ -3912,7 +3912,7 @@ def edition_steps(request, edition_id: int):
     preflight_step = {
         "title": "Pre-producao (Pre-flight)",
         "run_url": reverse("pipeline_preflight_run", kwargs={"edition_id": edition.id}),
-        "button_label": "Rodar Pre-flight",
+        "button_label": "Rerodar Pre-flight" if preflight_done else "Rodar Pre-flight",
         "can_run": preflight_can_run,
         "done": preflight_done,
         "status_tone": preflight_status_tone,

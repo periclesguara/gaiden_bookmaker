@@ -2218,6 +2218,8 @@ class HeadingCleanerGateTests(TestCase):
         response = self.client.get(self.steps_url)
 
         self.assertContains(response, 'class="pipeline-step"')
+        self.assertContains(response, "Pre-producao (Pre-flight)")
+        self.assertContains(response, "Rerodar Pre-flight")
         self.assertContains(response, "revisar")
         self.assertContains(response, "Relatorio com alertas: 1 leve(s); houve fallback/timeout da IA.")
         self.assertContains(response, "Nao tratar como aprovacao silenciosa.")
