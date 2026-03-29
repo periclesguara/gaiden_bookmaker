@@ -20,6 +20,10 @@ class ChapterPattern:
 
 
 CHAPTER_H2_RE = re.compile(r"^\s*##\s+(\d+\.\s+.*)$", re.IGNORECASE)
+EXISTING_MD_HEADING_RE = re.compile(
+    r"^\s*#{1,6}\s+(?:chapter|kapitel|cap[ií]tulo|chapitre)\s+(?:\d+|[IVXLCDM]+)\b",
+    re.IGNORECASE,
+)
 
 
 def promote_chapter_h2_to_h1(md_text: str) -> tuple[str, int]:
@@ -78,6 +82,9 @@ def inject_headings_from_detected(lines: list[str], hits: list[tuple[int, str, s
 
 
 def ensure_markdown_headings(md_text: str, lang: str) -> str:
+    if any(EXISTING_MD_HEADING_RE.match(line) for line in md_text.splitlines()):
+        return md_text if md_text.endswith("\n") else (md_text + "\n")
+
     promoted_text, promoted_count = promote_chapter_h2_to_h1(md_text)
     if promoted_count > 0:
         return promoted_text

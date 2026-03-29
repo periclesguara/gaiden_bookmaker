@@ -470,7 +470,10 @@ class CadastroSourceFormatRoutingTests(TestCase):
                 "text_source_mode": "txt",
             },
         )
-        response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1",
+            follow=True,
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bloco 01 - Entrada")
@@ -481,6 +484,46 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "PT-BR")
         self.assertContains(response, "Français")
         self.assertContains(response, "Italiano")
+
+    @patch("pipeline.views.kdp_mode.build_frontmatter_files")
+    @patch("pipeline.views.kdp_mode.build_merged_kdp_source")
+    def test_build_redirect_preserves_locked_language_after_step(self, mock_build_merged, mock_frontmatter):
+        german = Language.objects.create(code="de", name="German", native_name="Deutsch", is_active=True)
+        de_edition = Edition.objects.create(work=self.work, language=german, seal=self.seal)
+        build_dir = Path("data") / "builds" / self.work.code / "de"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        (build_dir / "BOOK.MD_FINAL").write_text("final md de", encoding="utf-8")
+        (build_dir / "BOOK.BUILD.MD").write_text("build md de", encoding="utf-8")
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="de",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+                "frontispiece_text": "Front DE",
+                "copyright_text": "Rights DE",
+                "about_edition_text": "About DE",
+            },
+        )
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=self.edition)
+        pipeline_state.frontmatter_language = "de"
+        pipeline_state.frontmatter_locked = True
+        pipeline_state.md_language = "de"
+        pipeline_state.save(update_fields=["frontmatter_language", "frontmatter_locked", "md_language"])
+
+        mock_build_merged.return_value = build_dir / "BOOK.BUILD.MD"
+
+        response = self.client.post(
+            reverse("pipeline_run_edition_step", kwargs={"edition_id": self.edition.id, "step": "build"}),
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{reverse('edition_steps', kwargs={'edition_id': de_edition.id})}?frontmatter_lang=de&frontmatter_lock=1",
+        )
 
     def test_build_step_is_blocked_until_block_03_is_ready(self):
         response = self.client.post(

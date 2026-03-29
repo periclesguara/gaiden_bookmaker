@@ -371,7 +371,7 @@
         <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
           {% csrf_token %}
           <input type="hidden" name="lock_name" value="lock_translate" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
+          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
           <input type="hidden" name="value" value="{% if edition.lock_translate %}0{% else %}1{% endif %}" />
           <button class="btn secondary" type="submit">
             Lock translate: {% if edition.lock_translate %}ON{% else %}OFF{% endif %}
@@ -380,7 +380,7 @@
         <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
           {% csrf_token %}
           <input type="hidden" name="lock_name" value="lock_refine" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
+          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
           <input type="hidden" name="value" value="{% if edition.lock_refine %}0{% else %}1{% endif %}" />
           <button class="btn secondary" type="submit">
             Lock refine: {% if edition.lock_refine %}ON{% else %}OFF{% endif %}
@@ -389,7 +389,7 @@
         <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
           {% csrf_token %}
           <input type="hidden" name="lock_name" value="lock_polish" />
-          <input type="hidden" name="target_lang" value="{{ language }}" />
+          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
           <input type="hidden" name="value" value="{% if edition.lock_polish %}0{% else %}1{% endif %}" />
           <button class="btn secondary" type="submit">
             Lock polish: {% if edition.lock_polish %}ON{% else %}OFF{% endif %}

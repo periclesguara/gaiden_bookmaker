@@ -9,6 +9,7 @@ from datetime import datetime
 import hashlib
 import re
 import zipfile
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.management import call_command
@@ -2059,15 +2060,27 @@ def _invalidate_downstream_pipeline_outputs(core_edition) -> dict[str, int]:
     return removed
 
 
-def _edition_steps_redirect_url(edition) -> str:
+def _edition_steps_redirect_url(
+    edition,
+    *,
+    frontmatter_lang: str | None = None,
+    frontmatter_locked: bool | None = None,
+) -> str:
     book_code, language = _edition_codes(edition)
     template = BookEditionTemplate.objects.filter(
         book_code=book_code,
         language=utils.normalize_lang(language),
     ).first()
     url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+    params: dict[str, str] = {}
     if _source_format_from_template(template) == SOURCE_FORMAT_HTML:
-        return f"{url}?allow_html_to_common=1"
+        params["allow_html_to_common"] = "1"
+    if frontmatter_lang:
+        params["frontmatter_lang"] = utils.normalize_lang(frontmatter_lang)
+    if frontmatter_locked:
+        params["frontmatter_lock"] = "1"
+    if params:
+        return f"{url}?{urlencode(params)}"
     return url
 
 
@@ -3413,7 +3426,24 @@ def edition_steps(request, edition_id: int):
             return redirect("pipeline_html_dashboard", edition_id=edition.id)
 
     def _redirect_editorial():
-        return redirect(f"{_edition_steps_redirect_url(edition)}#transformacao-editorial")
+        state = EditionPipeline.objects.filter(edition=edition).first()
+        current_lang = utils.normalize_lang(
+            request.POST.get("target_lang")
+            or request.POST.get("md_language")
+            or request.POST.get("target_language")
+            or (state.frontmatter_language if state and state.frontmatter_language else "")
+            or (state.md_language if state and state.md_language else "")
+            or (state.translation_language if state and state.translation_language else "")
+            or language
+        )
+        try:
+            target_edition = _edition_for_language(edition, current_lang)
+        except Exception:
+            target_edition = edition
+        locked = bool((state and state.frontmatter_locked) or request.POST.get("frontmatter_lock") == "1")
+        return redirect(
+            f"{_edition_steps_redirect_url(target_edition, frontmatter_lang=current_lang, frontmatter_locked=locked)}#transformacao-editorial"
+        )
 
     texts = EditionText.objects.filter(edition=edition).first()
     raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
@@ -3873,8 +3903,10 @@ def edition_steps(request, edition_id: int):
 
     frontmatter_lang = (
         frontmatter_lang_param
-        or language
         or pipeline_state.frontmatter_language
+        or pipeline_state.md_language
+        or pipeline_state.translation_language
+        or language
     )
     if frontmatter_lang not in frontmatter_langs:
         frontmatter_lang = language
@@ -4025,7 +4057,7 @@ def edition_steps(request, edition_id: int):
         },
         "raw_path": raw_path,
         "raw_name": raw_name,
-        "translate_language": pipeline_state.translation_language or language,
+        "translate_language": pipeline_state.translation_language or pipeline_state.md_language or language,
         "refine_profile": refine_profile,
         "refine_profile_options": refine_profile_options,
         "chunk_count": chunk_count,
@@ -4378,6 +4410,30 @@ def run_edition_step(request, edition_id: int, step: str):
         return redirect("edition_steps", edition_id=edition.id)
 
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+
+    def _redirect_after_step() -> str:
+        fresh_state = EditionPipeline.objects.filter(edition=edition).first()
+        target_lang = utils.normalize_lang(
+            request.POST.get("target_language")
+            or request.POST.get("md_language")
+            or (fresh_state.frontmatter_language if fresh_state and fresh_state.frontmatter_locked else "")
+            or (fresh_state.md_language if fresh_state and fresh_state.md_language else "")
+            or (fresh_state.translation_language if fresh_state and fresh_state.translation_language else "")
+            or edition.language.code
+        )
+        try:
+            redirect_edition = _edition_for_language(edition, target_lang)
+        except Exception:
+            redirect_edition = edition
+        return _edition_steps_redirect_url(
+            redirect_edition,
+            frontmatter_lang=(
+                fresh_state.frontmatter_language
+                if fresh_state and fresh_state.frontmatter_language
+                else target_lang
+            ),
+            frontmatter_locked=bool(fresh_state and fresh_state.frontmatter_locked),
+        )
 
     def _target_lang() -> str:
         if pipeline_state and pipeline_state.frontmatter_locked and pipeline_state.frontmatter_language:
@@ -4899,7 +4955,7 @@ def run_edition_step(request, edition_id: int, step: str):
         pipeline_state.last_log = str(exc)
         pipeline_state.save()
 
-    return redirect(_edition_steps_redirect_url(edition))
+    return redirect(_redirect_after_step())
 
 
 def build_book_md(request, book_code, language):

@@ -65,6 +65,13 @@ section#about-this-edition > h1 {
   text-align: center;
 }
 
+section[id^="kapitel-"] > h1,
+section[id^="kapitel-"] > h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.2em;
+}
+
 .chapter-start + h1,
 .chapter-start + h2 {
   margin-top: 0;
@@ -79,6 +86,12 @@ h2 {
   font-size: 0;
   line-height: 0;
   color: transparent;
+}
+
+section[id^="kapitel-"] > h2 {
+  font-size: 1.35em;
+  line-height: 1.25;
+  color: inherit;
 }
 
 p > strong:only-child {
