@@ -8,9 +8,9 @@ from editorial.models import Edition
 from pipeline.models import BookEditionTemplate, ensure_bookeditiontemplate_runtime_columns
 
 FIXED_FRONTMATTER_ORDER = ["frontispiece", "copyright"]
-FRONT_BLOCK_ORDER = ["frontispiece", "copyright", "about_edition", "preface", "introduction"]
+FRONT_BLOCK_ORDER = ["frontispiece", "copyright", "about_edition", "about_contributor", "preface", "introduction"]
 BACK_BLOCK_ORDER = ["epilogue"]
-ALL_SECTION_FILES = FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER + ["about_contributor"]
+ALL_SECTION_FILES = FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER
 BLANK_MARKERS = {"blank", "[blank]", "{blank}", "__blank__"}
 
 
@@ -19,6 +19,8 @@ def language_display(code: str) -> str:
         "en": "English",
         "de": "Deutsch",
         "es": "Español",
+        "fr": "Français",
+        "it": "Italiano",
         "ptbr": "Português",
         "pt-br": "Português",
     }
@@ -71,7 +73,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "preface": "Preface",
             "introduction": "Introduction",
             "epilogue": "Epilogue",
-            "about_contributor": "About the Contributors",
+            "about_contributor": "About the Author",
         },
         "de": {
             "frontispiece": "Frontispiz",
@@ -80,7 +82,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "preface": "Vorwort",
             "introduction": "Einführung",
             "epilogue": "Epilog",
-            "about_contributor": "Über die Mitwirkenden",
+            "about_contributor": "Über den Autor",
         },
         "es": {
             "frontispiece": "Frontispicio",
@@ -89,7 +91,16 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "preface": "Prefacio",
             "introduction": "Introducción",
             "epilogue": "Epílogo",
-            "about_contributor": "Sobre los colaboradores",
+            "about_contributor": "Sobre el autor",
+        },
+        "it": {
+            "frontispiece": "Frontespizio",
+            "copyright": "Copyright",
+            "about_edition": "Su questo libro",
+            "preface": "Prefazione",
+            "introduction": "Introduzione",
+            "epilogue": "Epilogo",
+            "about_contributor": "Sull'autore",
         },
         "ptbr": {
             "frontispiece": "Frontispício",
@@ -98,7 +109,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "preface": "Prefácio",
             "introduction": "Introdução",
             "epilogue": "Epílogo",
-            "about_contributor": "Sobre os colaboradores",
+            "about_contributor": "Sobre o autor",
         },
         "pt-br": {
             "frontispiece": "Frontispício",
@@ -107,7 +118,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "preface": "Prefácio",
             "introduction": "Introdução",
             "epilogue": "Epílogo",
-            "about_contributor": "Sobre os colaboradores",
+            "about_contributor": "Sobre o autor",
         },
     }.get(language, {
         "frontispiece": "Frontispiece",
@@ -116,7 +127,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
         "preface": "Preface",
         "introduction": "Introduction",
         "epilogue": "Epilogue",
-        "about_contributor": "About the Contributors",
+        "about_contributor": "About the Author",
     })
 
 
@@ -210,7 +221,7 @@ def optional_section_warnings(template: BookEditionTemplate | None, language: st
 def build_frontmatter_sections(language: str, rendered_sections: dict[str, str]) -> Dict[str, str]:
     headings = frontmatter_headings(language)
     fm: Dict[str, str] = {}
-    for key in FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER + ["about_contributor"]:
+    for key in FRONT_BLOCK_ORDER + BACK_BLOCK_ORDER:
         body = sanitize_section_body(rendered_sections.get(key, ""), headings[key])
         if not body:
             continue

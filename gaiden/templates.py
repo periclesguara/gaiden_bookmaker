@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-SUPPORTED_LANGS = {"en", "pt", "es"}
+SUPPORTED_LANGS = {"en", "pt", "es", "it"}
 
 
 @dataclass
@@ -78,6 +78,23 @@ LANG_STRINGS = {
         "public_domain_note": (
             "Esta edición se basa en un texto de dominio público. El trabajo editorial, "
             "introducción, notas y maquetación de esta edición son © del editor."
+        ),
+    },
+    "it": {
+        "by": "di",
+        "copyright_word": "Copyright",
+        "about_work_title": "Su quest'opera / edizione",
+        "about_contributor_title": "Sull'autore",
+        "contributor_label": "Collaboratore",
+        "copyright_clause": (
+            "Nessuna parte di questo libro può essere riprodotta o trasmessa in alcuna forma "
+            "o con alcun mezzo, elettronico o meccanico, comprese fotocopie, registrazioni "
+            "o sistemi di archiviazione e recupero delle informazioni, senza previa "
+            "autorizzazione scritta dell'editore."
+        ),
+        "public_domain_note": (
+            "Questa edizione si basa su un testo di pubblico dominio. Il lavoro editoriale, "
+            "l'introduzione, le note e l'impaginazione di questa edizione sono © dell'editore."
         ),
     },
 }

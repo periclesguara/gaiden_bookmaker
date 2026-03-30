@@ -83,6 +83,48 @@ class _SlowOpenAIClient:
         self.responses = _SlowResponsesAPI(output_text, delay)
 
 
+class ItalianSupportTests(TestCase):
+    def test_italian_refine_contract_and_frontmatter_helpers(self):
+        from editorial.frontmatter import frontmatter_headings, language_display
+        from gaiden_portal.utils import country_for_language, get_section_template_for_language
+        from pipeline.views import (
+            _default_refine_profile_for_language,
+            _resolve_refine_output_dir,
+            _select_refine_contract,
+        )
+
+        headings = frontmatter_headings("it")
+        self.assertEqual(language_display("it"), "Italiano")
+        self.assertEqual(headings["preface"], "Prefazione")
+        self.assertEqual(headings["introduction"], "Introduzione")
+        self.assertEqual(headings["about_contributor"], "Sull'autore")
+        self.assertEqual(country_for_language("it", "fallback"), "Brasile")
+        self.assertEqual(get_section_template_for_language("about_edition", "it"), "pipeline/about_edition_it.md.j2")
+        self.assertEqual(_default_refine_profile_for_language("it"), "italiano_neutro")
+        self.assertEqual(_select_refine_contract("it").name, "it_refine_2025.json")
+        self.assertEqual(
+            _resolve_refine_output_dir(Path("data/translated/book_0002/it_2026"), target_language="it"),
+            Path("data/translated/book_0002/it_2026/return_aldebaran"),
+        )
+        self.assertEqual(
+            _resolve_refine_output_dir(
+                Path("data/builds/book_0002/it/split_by_chapter/parts"),
+                target_language="it",
+            ),
+            Path("data/builds/book_0002/it/split_by_chapter/return_aldebaran"),
+        )
+
+    def test_italian_template_placeholder_context_uses_italiano(self):
+        template = BookEditionTemplate(
+            book_code="book_9999",
+            language="it",
+            title="Titolo",
+            author_name="Autore",
+            publication_year=2026,
+        )
+        self.assertEqual(template.get_placeholder_context()["language"], "Italiano")
+
+
 class CadastroSourceFormatRoutingTests(TestCase):
     def setUp(self):
         self.language = Language.objects.create(

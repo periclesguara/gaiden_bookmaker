@@ -481,6 +481,8 @@ class BookEditionTemplate(models.Model):
             "ptbr": "Português",
             "es": "Español",
             "de": "Deutsch",
+            "fr": "Français",
+            "it": "Italiano",
         }
         language_label = language_map.get(self.language, (self.language or "").upper())
         return {

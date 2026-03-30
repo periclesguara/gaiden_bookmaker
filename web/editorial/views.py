@@ -87,6 +87,8 @@ def _default_country(language: str) -> str:
         "ptbr": "Brasil",
         "es": "Brasil",
         "de": "Brasilien",
+        "it": "Brasile",
+        "fr": "Brésil",
     }.get(language, "Brasil")
 
 

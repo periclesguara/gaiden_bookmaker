@@ -65,6 +65,27 @@ TEXT = {
             "Formatação, estrutura e pequenos ajustes editoriais podem ter sido aplicados para melhorar a legibilidade.\n"
         ),
     },
+    "it": {
+        "about_contributor_title": "Note sul {roles}",
+        "about_edition_title": "Su questa edizione",
+        "role_labels": {
+            "adapter": "Adattatore",
+            "editor": "Editor",
+            "translator": "Traduttore",
+            "curator": "Curatore",
+            "reviewer": "Revisore",
+        },
+        "and_word": "e",
+        "comma": ", ",
+        "about_contributor_default": (
+            "{name} lavora a edizioni di classici con attenzione alla chiarezza, alla struttura e alla fluidità di lettura.\n"
+            "Questo marchio pubblica opere di pubblico dominio curate e originali su licenza.\n"
+        ),
+        "about_edition_default": (
+            "Questa edizione è stata preparata per i lettori moderni.\n"
+            "Formattazione, struttura e piccoli interventi editoriali possono essere stati applicati per migliorare la leggibilità.\n"
+        ),
+    },
 }
 
 def _t(lang: str) -> dict:

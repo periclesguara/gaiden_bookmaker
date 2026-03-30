@@ -1,0 +1,24 @@
+<div align="center">Frontespizio</div>
+
+{{ edition.title }}
+{{ edition.subtitle }}
+
+{% if edition.about_edition_text %}
+Su questa edizione
+{{ edition.about_edition_text }}
+{% endif %}
+
+Autore: {{ edition.author }}
+Adattamento di {{ edition.adapter }}
+
+Anno di pubblicazione: {{ edition.publication_year }}
+
+Copyright © {{ edition.publication_year }} {{ edition.author }}.
+Di pubblico dominio negli Stati Uniti e in altri territori.
+
+Questa edizione moderna di *{{ edition.title }}* è stata prodotta sotto il marchio {{ edition.seal_name }}.
+{{ edition.seal_name }} è un marchio registrato di {{ edition.imprint_name }}.
+
+Editore:
+Tutti i diritti riservati a {{ edition.imprint_name }}.
+{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}

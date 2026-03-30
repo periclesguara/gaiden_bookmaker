@@ -1,0 +1,33 @@
+{
+  "name": "it_refine_2025",
+  "language": "it",
+  "stage": "refine",
+  "model": "gpt-5.4",
+  "instructions": {
+    "goal": "Refine the translated Italian text for fluency, clarity, coherence and commercial readability without altering meaning, chronology, tone or literary atmosphere.",
+    "rules": [
+      "Do not rewrite the book.",
+      "Do not summarize.",
+      "Do not embellish.",
+      "Do not moralize.",
+      "Do not add commentary.",
+      "Do not remove dialogue.",
+      "Do not compress paragraphs.",
+      "Do not add new details.",
+      "Do not update the setting culturally."
+    ],
+    "style": {
+      "register": "Italiano letterario moderno",
+      "rhythm": "Scorrevole e controllato",
+      "dialogue": "Naturale e leggibile",
+      "punctuation": "Standard editoriale contemporaneo",
+      "spelling": "Italiano moderno"
+    },
+    "output": {
+      "format": "text",
+      "no_notes": true,
+      "no_disclaimers": true,
+      "no_metadata": true
+    }
+  }
+}

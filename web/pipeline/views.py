@@ -110,6 +110,16 @@ REFINE_PROFILES = {
             "and atmosphere. Prefer native, fluent German cadence without flattening period tension or detective tone."
         ),
     },
+    "italiano_neutro": {
+        "label": "Italiano neutro",
+        "agent_name": "Aldebaran",
+        "description": "Refine letterario in italiano moderno con controllo di tono, fluidita e leggibilita.",
+        "style_directive": (
+            "Target profile: neutral modern Italian. Preserve full meaning, chronology, paragraphing, and atmosphere. "
+            "Prefer fluent, natural Italian prose with controlled rhythm and commercial readability, without flattening "
+            "literary tension or period detail."
+        ),
+    },
 }
 
 BLOCK_STATUS_LABELS = {
@@ -153,7 +163,29 @@ def _refine_profile_config(value: str | None) -> dict[str, str]:
 
 
 def _default_refine_profile_for_language(language: str | None) -> str:
-    return "de_kaiser" if utils.normalize_lang(language) == "de" else REFINE_PROFILE_DEFAULT
+    normalized = utils.normalize_lang(language)
+    if normalized == "de":
+        return "de_kaiser"
+    if normalized == "it":
+        return "italiano_neutro"
+    return REFINE_PROFILE_DEFAULT
+
+
+def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
+    normalized = utils.normalize_lang(language)
+    if normalized == "de":
+        return ("de_kaiser",)
+    if normalized == "it":
+        return ("italiano_neutro",)
+    return ("ingles_neutro", "ingles_flex")
+
+
+def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
+    normalized = _normalize_refine_profile(value)
+    allowed = _refine_profile_keys_for_language(language)
+    if normalized not in allowed:
+        return _default_refine_profile_for_language(language)
+    return normalized
 
 
 def _read_json_dict(path: Path) -> dict:
@@ -323,6 +355,8 @@ def _language_defaults(language_code: str) -> dict[str, str]:
         "ptbr": "Portugues (Brasil)",
         "es": "Espanol",
         "de": "Deutsch",
+        "fr": "Francais",
+        "it": "Italiano",
     }
     label = labels.get(language_code, language_code)
     return {"name": label, "native_name": label}
@@ -1052,10 +1086,13 @@ def _resolve_refine_output_dir(
     if source_dir is None:
         return None
     dirname = _refine_return_dirname(refine_profile, target_language)
-    candidates = [
-        source_dir.parent / dirname,
-        source_dir / dirname,
-    ]
+    if source_dir.name == "parts" and source_dir.parent.name == "split_by_chapter":
+        candidates = [source_dir.parent / dirname]
+    else:
+        candidates = [
+            source_dir / dirname,
+            source_dir.parent / dirname,
+        ]
     return next((path for path in candidates if path.exists()), candidates[0])
 
 
@@ -2419,6 +2456,7 @@ def _select_refine_contract(language: str) -> Path:
         "es": "gaiden/contracts/refine/es_refine_2025.json",
         "ptbr": "gaiden/contracts/refine/ptbr_refine_2025.json",
         "de": "gaiden/contracts/refine/de_refine_2026.json",
+        "it": "gaiden/contracts/refine/it_refine_2025.json",
     }
     rel = mapping.get(utils.normalize_lang(language))
     if not rel:
@@ -3057,7 +3095,13 @@ def _build_runtime_refine_contract(
     for path in source_chunks:
         shutil.copyfile(path, refine_input_dir / path.name)
 
-    out_dir = source_dir.parent / _refine_return_dirname(refine_profile, target_language)
+    out_dir = _resolve_refine_output_dir(
+        source_dir,
+        refine_profile=refine_profile,
+        target_language=target_language,
+    )
+    if out_dir is None:
+        raise FileNotFoundError("Unable to resolve refine output directory.")
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = utils.normalize_lang(target_language)
@@ -3989,17 +4033,18 @@ def edition_steps(request, edition_id: int):
         or pipeline_state.md_language
         or language
     )
-    refine_profile = _normalize_refine_profile(
-        pipeline_state.refine_profile or _default_refine_profile_for_language(edition.language.code)
+    refine_profile = _normalized_refine_profile_for_language(
+        pipeline_state.refine_profile or _default_refine_profile_for_language(edition.language.code),
+        edition.language.code,
     )
     refine_profile_options = [
         {
             "value": key,
-            "label": cfg["label"],
-            "agent_name": cfg["agent_name"],
-            "description": cfg["description"],
+            "label": REFINE_PROFILES[key]["label"],
+            "agent_name": REFINE_PROFILES[key]["agent_name"],
+            "description": REFINE_PROFILES[key]["description"],
         }
-        for key, cfg in REFINE_PROFILES.items()
+        for key in _refine_profile_keys_for_language(edition.language.code)
     ]
     md_source_map = {
         lang: _resolve_md_source_path(lang)
@@ -4274,8 +4319,10 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
     stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
     target_language = utils.normalize_lang(target_edition.language.code)
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-    refine_profile = _normalize_refine_profile(
+    refine_profile = _normalized_refine_profile_for_language(
         refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language)
+        ,
+        target_language,
     )
     refine_profile_cfg = _refine_profile_config(refine_profile)
     if pipeline_state.refine_profile != refine_profile:
