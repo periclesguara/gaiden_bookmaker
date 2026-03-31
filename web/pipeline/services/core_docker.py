@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 CORE_DOCKER_STEPS = {"translate", "refine", "polish"}
-DEFAULT_CORE_DOCKER_LANGS = ("de",)
+DEFAULT_CORE_DOCKER_LANGS = ("en", "ptbr", "es", "de", "it", "fr")
 
 
 def _normalize_lang(value: str | None) -> str:

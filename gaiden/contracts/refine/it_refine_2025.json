@@ -4,17 +4,16 @@
   "stage": "refine",
   "model": "gpt-5.4",
   "instructions": {
-    "goal": "Refine the translated Italian text for fluency, clarity, coherence and commercial readability without altering meaning, chronology, tone or literary atmosphere.",
+    "goal": "Refine the translated Italian text surgically in the same language, preserving meaning, chronology, paragraph structure and literary atmosphere.",
     "rules": [
       "Do not rewrite the book.",
+      "Do not change the language.",
       "Do not summarize.",
-      "Do not embellish.",
-      "Do not moralize.",
+      "Do not omit content.",
       "Do not add commentary.",
       "Do not remove dialogue.",
       "Do not compress paragraphs.",
-      "Do not add new details.",
-      "Do not update the setting culturally."
+      "Do not add new details."
     ],
     "style": {
       "register": "Italiano letterario moderno",

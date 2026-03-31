@@ -2915,42 +2915,31 @@ def _harden_refine_contract(
         or str(payload.get("target_language") or payload.get("language") or "")
     )
     instructions = payload.get("instructions") if isinstance(payload.get("instructions"), dict) else {}
-    style = instructions.get("style") if isinstance(instructions.get("style"), dict) else {}
     output = instructions.get("output") if isinstance(instructions.get("output"), dict) else {}
-    rules = instructions.get("rules") if isinstance(instructions.get("rules"), list) else []
 
     goal = str(instructions.get("goal") or "").strip()
-    style_lines = [
-        f"- Register: {style.get('register')}" if style.get("register") else "",
-        f"- Rhythm: {style.get('rhythm')}" if style.get("rhythm") else "",
-        f"- Dialogue: {style.get('dialogue')}" if style.get("dialogue") else "",
-        f"- Punctuation: {style.get('punctuation')}" if style.get("punctuation") else "",
-        f"- Spelling: {style.get('spelling')}" if style.get("spelling") else "",
-    ]
-    style_block = "\n".join(line for line in style_lines if line)
-    rules_block = "\n".join(f"- {rule}" for rule in rules if str(rule).strip())
-
     system_parts = [
-        "You are a professional literary editor refining already-translated book text.",
+        "You are a professional literary refine agent processing already-translated book text.",
         f"Active refine profile: {refine_profile_cfg['label']} via agent {refine_profile_cfg['agent_name']}.",
         refine_profile_cfg["style_directive"],
+        "Function: receive the existing chunk, refine it in the same target language, and return only the refined chunk.",
+        "This is a surgical pass, not a rewrite pass.",
+        "Keep the chunk in the same language as the input. Never leak another language into the output.",
+        "Preserve every paragraph boundary, heading, speaker turn, factual detail, chronology, and named entity.",
+        "Make only local improvements for fluency, clarity, cadence, punctuation, and naturalness where truly needed.",
+        "Do not globally rewrite the passage. Do not change register beyond what the active profile explicitly requires.",
     ]
     if goal:
         system_parts.append(goal)
-    if rules_block:
-        system_parts.append(f"Refine rules:\n{rules_block}")
-    if style_block:
-        system_parts.append(f"Style target:\n{style_block}")
-    if normalized_lang == "en":
-        system_parts.append(_english_refine_micro_polish_block(refine_profile_cfg))
 
     output_rules = [
         "CRITICAL OUTPUT RULES:",
-        "- Output only the refined literary passage.",
+        "- Output only the refined passage.",
         "- Preserve all information, chronology, speakers, dialogue, paragraph structure, and any existing chapter or section headings.",
-        "- Do not summarize, compress, paraphrase away details, or skip any sentence.",
+        "- Do not summarize, compress, paraphrase away details, skip any sentence, or invent connective material.",
         "- Do not delete, rename, or renumber existing headings or chapter markers.",
         "- Do not add new titles, headings, notes, labels, commentary, explanations, or metadata.",
+        "- Do not translate the chunk into another language.",
         "- Do not mention the prompt, the source text, or your editing choices.",
         "- Return only the refined passage as continuous prose and dialogue.",
     ]
@@ -2961,23 +2950,17 @@ def _harden_refine_contract(
     if output.get("no_metadata"):
         output_rules.append("- No metadata.")
 
-    english_user_block = ""
-    if normalized_lang == "en":
-        english_user_block = (
-            "Editing mode: surgical micro-polish only.\n"
-            "If a line is already strong, leave it unchanged.\n"
-            "Preserve elevated diction where it is intentional.\n"
-        )
-
     user_prompt = (
-        "Refine the following passage line by line for fluency and clarity while preserving every fact, "
-        "sentence-level meaning, dialogue turn, paragraph boundary, and any chapter/section heading already present.\n\n"
+        "Refine the following already-translated passage in the same language in which it is written.\n\n"
         f"Selected profile: {refine_profile_cfg['label']}.\n"
-        f"{english_user_block}"
+        "This is a surgical editorial pass.\n"
+        "Keep the same language as the input.\n"
+        "Preserve every fact, sentence-level meaning, dialogue turn, paragraph boundary, and any chapter/section heading already present.\n"
         "Return only the refined passage.\n"
         "Do not summarize.\n"
-        "Do not omit any sentence.\n"
+        "Do not omit any sentence or paragraph.\n"
         "Do not delete or rewrite headings.\n"
+        "Do not translate into another language.\n"
         "Do not add commentary.\n\n"
         "{text}"
     )

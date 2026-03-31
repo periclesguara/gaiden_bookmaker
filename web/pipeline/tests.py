@@ -585,12 +585,14 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertEqual(len(SYSTEM_BLOCKS), 4)
 
     @override_settings()
-    def test_core_docker_isolation_defaults_to_german_for_sensitive_steps(self):
+    def test_core_docker_isolation_defaults_to_all_block_02_languages(self):
         from pipeline.services import core_docker
 
+        self.assertTrue(core_docker.should_run_in_docker("translate", "en"))
+        self.assertTrue(core_docker.should_run_in_docker("translate", "it"))
         self.assertTrue(core_docker.should_run_in_docker("translate", "de"))
         self.assertTrue(core_docker.should_run_in_docker("refine", "de"))
-        self.assertFalse(core_docker.should_run_in_docker("translate", "en"))
+        self.assertTrue(core_docker.should_run_in_docker("refine", "fr"))
         self.assertFalse(core_docker.should_run_in_docker("normalize", "de"))
 
     def test_core_docker_command_targets_language_specific_service(self):
