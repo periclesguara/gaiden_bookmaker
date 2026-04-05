@@ -101,6 +101,16 @@ REFINE_PROFILES = {
             "atmosphere, pulp-adventure energy, and sword-and-sorcery flavor when supported by the source."
         ),
     },
+    "headingcleaner": {
+        "label": "Inglês filosofia",
+        "agent_name": "HeadingCleaner",
+        "description": "Fluxo especializado para filosofia em ingles, com refine estrutural e prosa controlada.",
+        "style_directive": (
+            "Target profile: philosophical English cleanup. Preserve meaning, argument flow, paragraphing, and tonal gravity, "
+            "while improving structural clarity, section handling, heading consistency, and modern readability. Prefer disciplined, "
+            "clean, conceptually precise prose for classical and philosophical books."
+        ),
+    },
     "de_kaiser": {
         "label": "Deutsch Kaiser",
         "agent_name": "Kaiser",
@@ -132,6 +142,31 @@ BLOCK_STATUS_LABELS = {
 }
 REFINE_RETURN_DIRNAME = "return_aldebaran"
 POLISH_RETURN_DIRNAME = "return_bismarck"
+TRANSLATE_VARIANT_OPTIONS = (
+    {"value": "en", "label": "EN (modern)", "base_language": "en"},
+    {"value": "en_philo", "label": "English-Philosofer", "base_language": "en"},
+    {"value": "es", "label": "ES", "base_language": "es"},
+    {"value": "ptbr", "label": "PT-BR", "base_language": "ptbr"},
+    {"value": "de", "label": "DE", "base_language": "de"},
+    {"value": "fr", "label": "FR", "base_language": "fr"},
+    {"value": "it", "label": "IT", "base_language": "it"},
+)
+_TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
+_TRANSLATE_VARIANT_BASES = {item["value"]: item["base_language"] for item in TRANSLATE_VARIANT_OPTIONS}
+_TRANSLATE_VARIANT_ALIASES = {
+    "": "en",
+    "en": "en",
+    "english": "en",
+    "en_philo": "en_philo",
+    "en-philo": "en_philo",
+    "enphilo": "en_philo",
+    "english-philosofer": "en_philo",
+    "english_philosofer": "en_philo",
+    "englishphilosofer": "en_philo",
+    "english-philosopher": "en_philo",
+    "english_philosopher": "en_philo",
+    "englishphilosopher": "en_philo",
+}
 
 _HTML_STAGE_ORDER = {
     PipelineStage.RAW: 10,
@@ -140,6 +175,27 @@ _HTML_STAGE_ORDER = {
     STAGE_MD_SOURCE_READY: 40,
     PipelineStage.NORMALIZED: 50,
 }
+
+
+def _normalize_translate_variant(value: str | None) -> str:
+    raw = (value or "").strip().lower()
+    if raw in _TRANSLATE_VARIANT_ALIASES:
+        return _TRANSLATE_VARIANT_ALIASES[raw]
+    compact = raw.replace(" ", "").replace("-", "_")
+    if compact in _TRANSLATE_VARIANT_ALIASES:
+        return _TRANSLATE_VARIANT_ALIASES[compact]
+    normalized = utils.normalize_lang(value)
+    return normalized if normalized in _TRANSLATE_VARIANT_LABELS else normalized or "en"
+
+
+def _translate_base_language(value: str | None) -> str:
+    variant = _normalize_translate_variant(value)
+    return _TRANSLATE_VARIANT_BASES.get(variant, utils.normalize_lang(variant))
+
+
+def _translate_variant_label(value: str | None) -> str:
+    variant = _normalize_translate_variant(value)
+    return _TRANSLATE_VARIANT_LABELS.get(variant, variant.upper())
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +233,7 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
         return ("de_kaiser",)
     if normalized == "it":
         return ("italiano_neutro",)
-    return ("ingles_neutro", "ingles_flex")
+    return ("ingles_neutro", "ingles_flex", "headingcleaner")
 
 
 def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
@@ -2199,11 +2255,12 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     core_edition = _processing_base_edition(edition)
     core_book_code, core_lang = _edition_codes(core_edition)
     core_lang = utils.normalize_lang(core_lang)
-    refine_profile = _normalize_refine_profile(
+    refine_profile = _normalized_refine_profile_for_language(
         (
             getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
         )
-        or _default_refine_profile_for_language(edition.language.code)
+        or _default_refine_profile_for_language(edition.language.code),
+        edition.language.code,
     )
     refine_profile_cfg = _refine_profile_config(refine_profile)
 
@@ -2215,21 +2272,23 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     heading_clean_path = heading_cleaner.clean_path_for_book_code(core_book_code)
     heading_report_path = heading_cleaner.report_path_for_book_code(core_book_code)
 
-    target_lang = utils.normalize_lang(
+    target_variant = _normalize_translate_variant(
         (pipeline_state.translation_language if pipeline_state and pipeline_state.translation_language else "")
         or edition.language.code
     )
+    target_lang = _translate_base_language(target_variant)
     try:
         target_edition = _edition_for_language(edition, target_lang)
     except ValueError:
         target_edition = edition
         target_lang = utils.normalize_lang(edition.language.code)
+        target_variant = target_lang
 
     contract_path: Path | None = None
     contract_exists = False
     contract_error = ""
     try:
-        contract_path = _select_contract_path(target_lang)
+        contract_path = _select_contract_path(target_variant)
         contract_exists = contract_path.exists()
     except ValueError as exc:
         contract_error = str(exc)
@@ -2238,7 +2297,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     translate_outputs_count = 0
     translate_merge_path = paths.merge_translate_path(target_edition)
     try:
-        translate_dir = _runtime_translate_dir_for_edition(target_edition, target_lang)
+        translate_dir = _runtime_translate_dir_for_edition(target_edition, target_variant)
         translate_outputs_count = _count_non_merged_txt_files(translate_dir)
     except Exception:
         translate_dir = None
@@ -2255,7 +2314,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     refine_source_dir: Path | None = None
     refine_source_label = "translate_chunks"
     try:
-        refine_source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_lang)
+        refine_source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_variant)
     except Exception:
         refine_source_dir = None
     refine_dir = _resolve_refine_output_dir(
@@ -2357,7 +2416,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
                 _rel_project_path(translate_merge_path),
             ],
             "notes": (
-                f"Translate contract: {_rel_project_path(contract_path)} | chunks={translate_outputs_count}/{expected_translate_chunks}"
+                f"Translate contract: {_rel_project_path(contract_path)} | profile={_translate_variant_label(target_variant)} | chunks={translate_outputs_count}/{expected_translate_chunks}"
                 if contract_path
                 else f"Translate contract: {contract_error or 'nao resolvido'}"
             ),
@@ -2435,13 +2494,14 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 def _select_contract_path(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/en_modern_2025.json",
+        "en_philo": "gaiden/contracts/en_philosofer_2026.json",
         "es": "gaiden/contracts/en_modern_2025.json",
         "ptbr": "gaiden/contracts/en_modern_2025.json",
         "de": "gaiden/contracts/en_de_2026.json",
         "fr": "gaiden/contracts/en_fr_2025.json",
         "it": "gaiden/contracts/en_it_2025.json",
     }
-    rel = mapping.get(utils.normalize_lang(language))
+    rel = mapping.get(_normalize_translate_variant(language))
     if not rel:
         raise ValueError(f"No translate contract for language={language}")
     preferred = Path(settings.BASE_DIR).parent / rel
@@ -2458,7 +2518,7 @@ def _select_refine_contract(language: str) -> Path:
         "de": "gaiden/contracts/refine/de_refine_2026.json",
         "it": "gaiden/contracts/refine/it_refine_2025.json",
     }
-    rel = mapping.get(utils.normalize_lang(language))
+    rel = mapping.get(_translate_base_language(language))
     if not rel:
         raise ValueError(f"No refine contract for language={language}")
     preferred = Path(settings.BASE_DIR).parent / rel
@@ -2471,7 +2531,7 @@ def _select_polish_contract(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/polish/en_polish_2025.json",
     }
-    rel = mapping.get(utils.normalize_lang(language))
+    rel = mapping.get(_translate_base_language(language))
     if not rel:
         raise ValueError(f"No polish contract for language={language}")
     preferred = Path(settings.BASE_DIR).parent / rel
@@ -2537,6 +2597,8 @@ def _runtime_translate_out_dir(book_code: str, target_language: str, payload: di
     if book_id is None:
         raise ValueError("book_code must be like book_0001 to resolve translate out_dir.")
     book_token = f"book_{book_id:04d}"
+    variant_key = _normalize_translate_variant(target_language)
+    base_lang = _translate_base_language(variant_key)
 
     out_dir = payload.get("out_dir")
     if isinstance(out_dir, str) and out_dir.strip():
@@ -2551,7 +2613,7 @@ def _runtime_translate_out_dir(book_code: str, target_language: str, payload: di
     variant = (
         io.get("lang_variant")
         if isinstance(io.get("lang_variant"), str) and io.get("lang_variant").strip()
-        else f"{utils.normalize_lang(target_language)}_2025"
+        else ("en_philosofer_2026" if variant_key == "en_philo" else f"{base_lang}_2025")
     )
     return Path("data") / "translated" / book_token / str(variant)
 
@@ -2779,16 +2841,18 @@ def _english_translate_contract_block(payload: dict) -> str:
 
 def _generic_translate_prompts(target_language: str, payload: dict | None = None) -> tuple[str, str, str]:
     payload = payload or {}
-    lang = utils.normalize_lang(target_language)
+    variant = _normalize_translate_variant(target_language)
+    lang = _translate_base_language(variant)
     target_labels = {
         "en": "modern, natural English",
+        "en_philo": "modern philosophical English",
         "es": "modern, natural Spanish",
         "ptbr": "modern Brazilian Portuguese",
         "de": "modern, natural German",
         "fr": "modern, natural French",
         "it": "modern, natural Italian",
     }
-    target_label = target_labels.get(lang, f"modern {lang}")
+    target_label = target_labels.get(variant, target_labels.get(lang, f"modern {lang}"))
 
     if lang == "en":
         payload = _merge_translate_contract_defaults(payload)
@@ -2796,17 +2860,32 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
         user_prompt = str(payload.get("user_prompt") or "").strip()
         if not system_prompt or not user_prompt:
             english_contract_block = _english_translate_contract_block(payload)
-            system_prompt = (
-                "You are a literary translator-editor. Rewrite the passage into controlled modern English while preserving "
-                "meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
-                "Output only the rewritten passage."
-            )
-            user_prompt = (
-                "Rewrite the following literary passage into controlled modern English.\n\n"
-                f"{english_contract_block}\n\n"
-                "Return only the final rewritten passage.\n\n"
-                "{text}"
-            )
+            if variant == "en_philo":
+                system_prompt = (
+                    "You are a literary translator-editor working on philosophical prose. Rewrite the passage into controlled "
+                    "philosophical English while preserving meaning, chronology, paragraph structure, tone, atmosphere, "
+                    "narrative continuity, and literary intent. Translate embedded Greek and Latin expressions into natural "
+                    "English whenever they function as source text. Output only the rewritten passage."
+                )
+                user_prompt = (
+                    "Rewrite the following literary-philosophical passage into controlled philosophical English.\n\n"
+                    f"{english_contract_block}\n\n"
+                    "Translate embedded Greek and Latin words, phrases, and quotations into natural English when they function as readable source text.\n\n"
+                    "Return only the final rewritten passage.\n\n"
+                    "{text}"
+                )
+            else:
+                system_prompt = (
+                    "You are a literary translator-editor. Rewrite the passage into controlled modern English while preserving "
+                    "meaning, chronology, paragraph structure, tone, atmosphere, narrative continuity, and literary intent. "
+                    "Output only the rewritten passage."
+                )
+                user_prompt = (
+                    "Rewrite the following literary passage into controlled modern English.\n\n"
+                    f"{english_contract_block}\n\n"
+                    "Return only the final rewritten passage.\n\n"
+                    "{text}"
+                )
         return system_prompt, user_prompt, target_label
     english_payload = _merge_translate_contract_defaults(payload)
     english_system = str(english_payload.get("system_prompt") or "").strip()
@@ -2842,7 +2921,7 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
 
 
 def _harden_translate_contract(payload: dict, target_language: str) -> dict:
-    if utils.normalize_lang(target_language) == "en":
+    if _translate_base_language(target_language) == "en":
         payload = _merge_translate_contract_defaults(payload)
     system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language, payload)
     payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
@@ -2875,7 +2954,7 @@ def _recommended_translate_max_output_tokens(
     if max_chars <= 0:
         return max(int(current_limit or 0), 1800)
 
-    normalized_lang = utils.normalize_lang(target_language)
+    normalized_lang = _translate_base_language(target_language)
     chars_per_token = 4.0 if normalized_lang == "en" else 3.6
     estimated_tokens = int(max_chars / chars_per_token)
     recommended = max(1800, int(estimated_tokens * 1.45) + 320)
@@ -2981,32 +3060,35 @@ def _harden_refine_contract(
 
 def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Path, str]:
     book_code, _language = _edition_codes(edition)
-    base_contract_path = _select_contract_path(target_language)
+    target_variant = _normalize_translate_variant(target_language)
+    target_base = _translate_base_language(target_variant)
+    base_contract_path = _select_contract_path(target_variant)
     payload = json.loads(base_contract_path.read_text(encoding="utf-8"))
-    payload = _harden_translate_contract(payload, target_language)
+    payload = _harden_translate_contract(payload, target_variant)
 
     chunk_dir, input_glob, source_label = _translate_source_chunks(book_code)
-    out_dir = _runtime_translate_out_dir(book_code, target_language, payload)
+    out_dir = _runtime_translate_out_dir(book_code, target_variant, payload)
     if not out_dir.is_absolute():
         out_dir = Path(settings.BASE_DIR).parent / out_dir
 
     payload["chunk_dir"] = str(chunk_dir)
     payload["input_glob"] = input_glob
     payload["out_dir"] = str(out_dir)
-    payload["target_language"] = utils.normalize_lang(target_language)
+    payload["target_language"] = target_base
+    payload["translation_variant"] = target_variant
     payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
         chunk_dir,
         input_glob,
-        target_language,
+        target_base,
         current_limit=payload.get("max_output_tokens"),
     )
 
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
-    if utils.normalize_lang(target_language) == "ptbr":
+    if target_base == "ptbr":
         payload["output"]["language"] = "pt-br"
     else:
-        payload["output"]["language"] = utils.normalize_lang(target_language)
+        payload["output"]["language"] = target_base
 
     runtime_contract_path = (
         Path(settings.BASE_DIR).parent
@@ -3014,7 +3096,7 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
         / "editions"
         / str(edition.id)
         / "core"
-        / f"contract_translate_{utils.normalize_lang(target_language)}.json"
+        / f"contract_translate_{target_variant}.json"
     )
     runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
     runtime_contract_path.write_text(
@@ -3026,11 +3108,18 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
 
 def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
     book_code, _language = _edition_codes(edition)
-    payload = json.loads(_select_contract_path(target_language).read_text(encoding="utf-8"))
-    out_dir = _runtime_translate_out_dir(book_code, target_language, payload)
-    if out_dir.is_absolute():
-        return out_dir
-    return Path(settings.BASE_DIR).parent / out_dir
+    target_variant = _normalize_translate_variant(target_language)
+    payload = json.loads(_select_contract_path(target_variant).read_text(encoding="utf-8"))
+    out_dir = _runtime_translate_out_dir(book_code, target_variant, payload)
+    expected_dir = out_dir if out_dir.is_absolute() else Path(settings.BASE_DIR).parent / out_dir
+    if expected_dir.exists():
+        return expected_dir
+
+    for candidate in paths.translated_variant_dirs(book_code, _translate_base_language(target_variant)):
+        if _count_non_merged_txt_files(candidate):
+            return candidate
+
+    return expected_dir
 
 
 def _resolve_refine_source_dir(edition, target_language: str) -> tuple[Path, str]:
@@ -3047,11 +3136,12 @@ def _build_runtime_refine_contract(
     target_language: str,
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
-    payload = json.loads(_select_refine_contract(target_language).read_text(encoding="utf-8"))
+    target_base = _translate_base_language(target_language)
+    payload = json.loads(_select_refine_contract(target_base).read_text(encoding="utf-8"))
     payload = _harden_refine_contract(
         payload,
         refine_profile=refine_profile,
-        target_language=target_language,
+        target_language=target_base,
     )
     source_dir, _source_label = _resolve_refine_source_dir(edition, target_language)
     if not source_dir.exists():
@@ -3063,7 +3153,7 @@ def _build_runtime_refine_contract(
         / "editions"
         / str(edition.id)
         / "core"
-        / f"refine_input_{utils.normalize_lang(target_language)}"
+        / f"refine_input_{target_base}"
     )
     refine_input_dir.mkdir(parents=True, exist_ok=True)
     for stale in refine_input_dir.glob("*.txt"):
@@ -3081,18 +3171,18 @@ def _build_runtime_refine_contract(
     out_dir = _resolve_refine_output_dir(
         source_dir,
         refine_profile=refine_profile,
-        target_language=target_language,
+        target_language=target_base,
     )
     if out_dir is None:
         raise FileNotFoundError("Unable to resolve refine output directory.")
     payload["chunk_dir"] = str(refine_input_dir)
     payload["out_dir"] = str(out_dir)
-    payload["target_language"] = utils.normalize_lang(target_language)
+    payload["target_language"] = target_base
     payload["max_output_tokens"] = min(
         _recommended_translate_max_output_tokens(
         refine_input_dir,
         "*.txt",
-        target_language,
+        target_base,
         current_limit=payload.get("max_output_tokens"),
         ),
         4000,
@@ -3100,7 +3190,7 @@ def _build_runtime_refine_contract(
     payload["sanitize_failure_fallback"] = "keep_source_chunk"
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
-    payload["output"]["language"] = utils.normalize_lang(target_language)
+    payload["output"]["language"] = target_base
 
     runtime_contract_path = (
         Path(settings.BASE_DIR).parent
@@ -3108,7 +3198,7 @@ def _build_runtime_refine_contract(
         / "editions"
         / str(edition.id)
         / "core"
-        / f"contract_refine_{utils.normalize_lang(target_language)}.json"
+        / f"contract_refine_{target_base}.json"
     )
     runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
     runtime_contract_path.write_text(
@@ -3711,21 +3801,22 @@ def edition_steps(request, edition_id: int):
             messages.success(request, f"Core salvo: {pipeline_state.core_last_txt_path}")
             return redirect("edition_steps", edition_id=edition.id)
         if action == "save_translation_language":
-            target_language = utils.normalize_lang(request.POST.get("target_language") or language)
+            target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
+            target_base = _translate_base_language(target_language)
             try:
-                target_edition = _edition_for_language(edition, target_language)
+                target_edition = _edition_for_language(edition, target_base)
             except ValueError as exc:
                 messages.error(request, str(exc))
                 return redirect("edition_steps", edition_id=edition.id)
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.translation_language = target_language
-            pipeline_state.md_language = target_language
+            pipeline_state.md_language = target_base
             pipeline_state.save(update_fields=["translation_language", "md_language"])
             messages.info(
                 request,
-                f"Idioma salvo ({target_language}). Refine ou Next Step.",
+                f"Idioma salvo ({_translate_variant_label(target_language)}). Refine ou Next Step.",
             )
-            result = md_transform.run_txt_to_md(target_edition, language_override=target_language)
+            result = md_transform.run_txt_to_md(target_edition, language_override=target_base)
             items = result.get("items") or []
             if len(items) > 1:
                 outputs = ", ".join(f"{item['language']}: {item['path']}" for item in items)
@@ -4035,8 +4126,10 @@ def edition_steps(request, edition_id: int):
     }
     md_source_map_json = json.dumps(md_source_map)
     translate_contract_map: dict[str, str] = {}
+    translate_variant_options = list(TRANSLATE_VARIANT_OPTIONS)
     project_root = Path(settings.BASE_DIR).parent
-    for lang in ("en", "es", "ptbr", "de", "fr", "it"):
+    for option in translate_variant_options:
+        lang = option["value"]
         try:
             contract_path = _select_contract_path(lang)
             try:
@@ -4086,6 +4179,7 @@ def edition_steps(request, edition_id: int):
         "raw_path": raw_path,
         "raw_name": raw_name,
         "translate_language": pipeline_state.translation_language or pipeline_state.md_language or language,
+        "translate_variant_options": translate_variant_options,
         "refine_profile": refine_profile,
         "refine_profile_options": refine_profile_options,
         "chunk_count": chunk_count,
@@ -4244,8 +4338,9 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
         raise ValueError(reason)
 
     book_code, language = _edition_codes(edition)
-    target_language = utils.normalize_lang(target_language or language)
-    target_edition = _edition_for_language(edition, target_language)
+    target_language = _normalize_translate_variant(target_language or language)
+    target_base = _translate_base_language(target_language)
+    target_edition = _edition_for_language(edition, target_base)
     book_id_for_run = _parse_book_id(_edition_codes(target_edition)[0])
     if book_id_for_run is not None:
         os.environ["GAIDEN_BOOK_ID"] = str(book_id_for_run)
@@ -4278,11 +4373,12 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
     )
     pipeline_state.current_stage = PipelineStage.TRANSLATED
     pipeline_state.translation_language = target_language
+    pipeline_state.md_language = target_base
     pipeline_state.translated_at = timezone.now()
     pipeline_state.last_log = ""
-    pipeline_state.save()
+    pipeline_state.save(update_fields=["current_stage", "translation_language", "md_language", "translated_at", "last_log"])
     return {
-        "success": "Translate OK",
+        "success": f"Translate OK ({_translate_variant_label(target_language)})",
         "info": [f"Translate source: {source_label}"],
         "target_language": target_language,
     }
@@ -4302,6 +4398,9 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
     stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
     target_language = utils.normalize_lang(target_edition.language.code)
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    translate_variant = _normalize_translate_variant(
+        pipeline_state.translation_language or target_edition.language.code
+    )
     refine_profile = _normalized_refine_profile_for_language(
         refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language)
         ,
@@ -4311,7 +4410,7 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
     if pipeline_state.refine_profile != refine_profile:
         pipeline_state.refine_profile = refine_profile
         pipeline_state.save(update_fields=["refine_profile"])
-    source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
+    source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, translate_variant)
     if not source_dir.exists():
         raise FileNotFoundError(
             f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first."
@@ -4336,7 +4435,7 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
         from gaiden.translate import run_translate_with_contract
 
         runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
-            target_edition, target_language, refine_profile=refine_profile
+            target_edition, translate_variant, refine_profile=refine_profile
         )
         run_translate_with_contract(runtime_contract_path)
         merged_candidates = [
@@ -4621,16 +4720,16 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Manifest: {result['manifest_path']}")
 
         elif step == "translate":
-            target_language = utils.normalize_lang(request.POST.get("target_language") or language)
+            target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
             if core_docker.should_run_in_docker(step, target_language):
                 result = core_docker.run_docker_core_step(
                     project_root=Path(settings.BASE_DIR).parent,
                     edition_id=edition.id,
                     step=step,
-                    language=target_language,
+                    language=_translate_base_language(target_language),
                     target_language=target_language,
                 )
-                messages.success(request, f"Translate OK (docker:{target_language})")
+                messages.success(request, f"Translate OK (docker:{_translate_variant_label(target_language)})")
                 if result.stdout.strip():
                     messages.info(request, result.stdout.strip())
             else:
@@ -4644,10 +4743,11 @@ def run_edition_step(request, edition_id: int, step: str):
                     messages.info(request, item)
 
         elif step == "refine":
-            refine_profile = _normalize_refine_profile(
-                request.POST.get("refine_profile") or (pipeline_state.refine_profile if pipeline_state else "")
-            )
             target_language = utils.normalize_lang(edition.language.code)
+            refine_profile = _normalized_refine_profile_for_language(
+                request.POST.get("refine_profile") or (pipeline_state.refine_profile if pipeline_state else ""),
+                target_language,
+            )
             if core_docker.should_run_in_docker(step, target_language):
                 result = core_docker.run_docker_core_step(
                     project_root=Path(settings.BASE_DIR).parent,
@@ -5059,15 +5159,16 @@ def preview_merge_translate(request, edition_id: int):
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     book_code, language = _edition_codes(edition)
 
-    target_language = utils.normalize_lang(
+    target_language = _normalize_translate_variant(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
+    target_base = _translate_base_language(target_language)
     out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         build_candidates = [
-            paths.edition_build_dir_for_language(book_code, target_language) / f"merge_translate_{target_language}.txt",
-            paths.edition_build_dir_for_language(book_code, target_language) / "merge_translate.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate.txt",
         ]
         merged_path = next((path for path in build_candidates if path.exists()), None)
     if not merged_path:
@@ -5076,7 +5177,7 @@ def preview_merge_translate(request, edition_id: int):
     content = merged_path.read_text(encoding="utf-8")
     context = {
         "book_code": book_code,
-        "language": target_language,
+        "language": target_base,
         "md_path": str(merged_path),
         "content": content,
     }
@@ -5091,15 +5192,16 @@ def save_merge_translate_preview(request, edition_id: int):
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     book_code, language = _edition_codes(edition)
 
-    target_language = utils.normalize_lang(
+    target_language = _normalize_translate_variant(
         (pipeline_state.translation_language if pipeline_state else None) or language
     )
+    target_base = _translate_base_language(target_language)
     out_dir_path = _runtime_translate_dir_for_edition(edition, target_language)
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         build_candidates = [
-            paths.edition_build_dir_for_language(book_code, target_language) / f"merge_translate_{target_language}.txt",
-            paths.edition_build_dir_for_language(book_code, target_language) / "merge_translate.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate.txt",
         ]
         merged_path = next((path for path in build_candidates if path.exists()), None)
     if not merged_path:
@@ -5107,14 +5209,14 @@ def save_merge_translate_preview(request, edition_id: int):
         return redirect("edition_steps", edition_id=edition_id)
 
     content = merged_path.read_text(encoding="utf-8")
-    build_dir = paths.edition_build_dir_for_language(book_code, target_language)
+    build_dir = paths.edition_build_dir_for_language(book_code, target_base)
     build_dir.mkdir(parents=True, exist_ok=True)
-    saved_path = build_dir / f"merge_translate_{target_language}.txt"
+    saved_path = build_dir / f"merge_translate_{target_base}.txt"
     saved_path.write_text(content, encoding="utf-8")
 
     TextSnapshot.objects.create(
         edition=edition,
-        language=target_language,
+        language=target_base,
         stage="merge_translate_preview",
         source_path=str(merged_path),
         content=content,
@@ -5123,7 +5225,7 @@ def save_merge_translate_preview(request, edition_id: int):
     PipelineJob.objects.create(
         book_code=book_code,
         book_title=edition.work.title,
-        language=target_language,
+        language=target_base,
         stage="translate",
         status="SUCCESS",
         filepath=str(saved_path),

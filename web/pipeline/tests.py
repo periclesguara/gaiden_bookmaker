@@ -589,6 +589,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         from pipeline.services import core_docker
 
         self.assertTrue(core_docker.should_run_in_docker("translate", "en"))
+        self.assertTrue(core_docker.should_run_in_docker("translate", "en_philo"))
         self.assertTrue(core_docker.should_run_in_docker("translate", "it"))
         self.assertTrue(core_docker.should_run_in_docker("translate", "de"))
         self.assertTrue(core_docker.should_run_in_docker("refine", "de"))
@@ -611,6 +612,21 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertIn("42", cmd)
         self.assertIn("--target-language", cmd)
         self.assertIn("de", cmd)
+
+    def test_core_docker_maps_english_philosofer_to_english_service(self):
+        from pipeline.services import core_docker
+
+        cmd = core_docker.build_docker_command(
+            project_root=Path("/tmp/project"),
+            edition_id=42,
+            step="translate",
+            language="en_philo",
+            target_language="en_philo",
+        )
+
+        self.assertEqual(cmd[:7], ["docker", "compose", "-f", "/tmp/project/docker-compose.core.yml", "run", "--rm", "gaiden-core-en"])
+        self.assertIn("--target-language", cmd)
+        self.assertIn("en_philo", cmd)
 
     def test_non_english_html_source_uses_own_language_as_processing_base(self):
         from pipeline.views import _processing_base_edition, build_pipeline01_steps
@@ -1240,7 +1256,7 @@ class MergeTranslatePreviewTests(TestCase):
             title=self.work.title,
             author_name=self.author.name,
             publication_year=2026,
-            text_source_mode="html",
+            text_source_mode="txt",
         )
         contract_dir = self.temp_root / "gaiden" / "contracts"
         contract_dir.mkdir(parents=True, exist_ok=True)
@@ -1286,6 +1302,235 @@ class MergeTranslatePreviewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Build merge preview content.")
         self.assertEqual(response.context["md_path"], str(build_merge))
+
+
+class EnglishPhilosoferTranslateTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Marcus Aurelius")
+        self.seal = Seal.objects.create(slug="mantaquest-philo", name="MantaQuest")
+        self.work = Work.objects.create(
+            code="book_0201",
+            title="Meditations",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="txt",
+        )
+
+        contract_dir = self.temp_root / "gaiden" / "contracts"
+        contract_dir.mkdir(parents=True, exist_ok=True)
+        (contract_dir / "en_modern_2025.json").write_text(
+            json.dumps({"out_dir": "data/translated/book_0001/en_modern_2026"}),
+            encoding="utf-8",
+        )
+        (contract_dir / "en_philosofer_2026.json").write_text(
+            json.dumps(
+                {
+                    "out_dir": "data/translated/book_0001/en_philosofer_2026",
+                    "io": {"lang_variant": "en_philosofer_2026"},
+                    "system_prompt": "Translate Greek and Latin into English.",
+                    "user_prompt": "Translate philosophical prose and translate Greek and Latin.\n\n{text}",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.split_dir = self.temp_root / "data" / "chunks" / self.work.code / "split_01"
+        self.split_dir.mkdir(parents=True, exist_ok=True)
+        (self.split_dir / "0001.txt").write_text("logos\n", encoding="utf-8")
+        heading_dir = self.temp_root / "data" / "chunks" / self.work.code / "heading_cleaner"
+        heading_dir.mkdir(parents=True, exist_ok=True)
+        (heading_dir / "clean.txt").write_text("clean", encoding="utf-8")
+
+    def tearDown(self):
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_select_contract_path_supports_english_philosofer(self):
+        from pipeline.views import _select_contract_path
+
+        self.assertEqual(_select_contract_path("en_philo").name, "en_philosofer_2026.json")
+
+    def test_runtime_translate_contract_uses_philosophy_variant_directory_and_english_output(self):
+        from pipeline.views import _build_runtime_translate_contract
+
+        runtime_contract_path, _source_label = _build_runtime_translate_contract(self.edition, "en_philo")
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(runtime_contract_path.name, "contract_translate_en_philo.json")
+        self.assertEqual(payload["translation_variant"], "en_philo")
+        self.assertEqual(payload["target_language"], "en")
+        self.assertEqual(payload["output"]["language"], "en")
+        self.assertTrue(payload["out_dir"].endswith("/data/translated/book_0201/en_philosofer_2026"))
+        self.assertIn("Greek and Latin", payload["system_prompt"])
+
+    def test_edition_steps_shows_english_philosofer_option(self):
+        response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "English-Philosofer")
+
+    def test_preview_merge_translate_resolves_philosophy_runtime_dir(self):
+        EditionPipeline.objects.create(
+            edition=self.edition,
+            translation_language="en_philo",
+        )
+        runtime_dir = self.temp_root / "data" / "translated" / self.work.code / "en_philosofer_2026"
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        merged_runtime_path = runtime_dir / "merged_en_philosofer_2026.txt"
+        merged_runtime_path.write_text("Marcus preview content.\n", encoding="utf-8")
+
+        response = self.client.get(reverse("preview_merge_translate", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Marcus preview content.")
+        self.assertEqual(response.context["md_path"], str(merged_runtime_path))
+
+
+class LegacyGermanBackfillTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+
+        self.language = Language.objects.create(
+            code="de",
+            name="Deutsch",
+            native_name="Deutsch",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Arthur Conan Doyle")
+        self.seal = Seal.objects.create(slug="mantaquest-legacy", name="MantaQuest Legacy")
+        self.work = Work.objects.create(
+            code="book_0001",
+            title="The Adventures of Sherlock Holmes",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+            title="Die Abenteuer des Sherlock Holmes",
+        )
+
+        self.translated_dir = self.temp_root / "data" / "translated" / "book_0001" / "de_krimi_2025"
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text("Kapitel eins.\n", encoding="utf-8")
+        (self.translated_dir / "merged_de_krimi_2025.txt").write_text(
+            "Zusammengefuehrter Legacy-Text.\n",
+            encoding="utf-8",
+        )
+
+        contract_dir = self.temp_root / "gaiden" / "contracts"
+        contract_dir.mkdir(parents=True, exist_ok=True)
+        (contract_dir / "en_de_2026.json").write_text(
+            json.dumps({"out_dir": "data/translated/book_0001/de_modern_2026", "output": {"language": "de"}}),
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_runtime_translate_dir_falls_back_to_legacy_variant(self):
+        from pipeline.views import _runtime_translate_dir_for_edition
+
+        resolved = _runtime_translate_dir_for_edition(self.edition, "de")
+
+        self.assertEqual(resolved, self.translated_dir)
+
+    def test_sync_legacy_merges_backfills_translate_from_legacy_variant(self):
+        from pipeline.services.legacy_merges import sync_legacy_merges_from_translated
+
+        sync_legacy_merges_from_translated(self.edition)
+
+        build_merge = self.temp_root / "data" / "builds" / "book_0001" / "de" / "merge_translate.txt"
+        self.assertTrue(build_merge.exists())
+        self.assertEqual(build_merge.read_text(encoding="utf-8"), "Zusammengefuehrter Legacy-Text.\n")
+
+
+class ChapterAgentSplitTests(TestCase):
+    def test_split_merged_text_into_chapters_accepts_numbered_markdown_headings(self):
+        from gaiden.chapter_agent_split import split_merged_text_into_chapters
+
+        text = (
+            "## 1. EIN SKANDAL IN BÖHMEN\n\n"
+            + ("A" * 900)
+            + "\n\n## 2. DER ROTHARIGEN-BUND\n\n"
+            + ("B" * 900)
+            + "\n"
+        )
+
+        chapters = split_merged_text_into_chapters(text)
+
+        self.assertEqual(len(chapters), 2)
+        self.assertEqual(chapters[0]["heading"], "## 1. EIN SKANDAL IN BÖHMEN")
+        self.assertEqual(chapters[1]["heading"], "## 2. DER ROTHARIGEN-BUND")
+
+    def test_split_merged_text_into_chapters_accepts_ordinal_book_headings(self):
+        from gaiden.chapter_agent_split import split_merged_text_into_chapters
+
+        text = (
+            "## INTRODUCTION\n\n"
+            + ("I" * 300)
+            + "\n\n## THE FIRST BOOK\n\n"
+            + ("A" * 900)
+            + "\n\n## THE SECOND BOOK\n\n"
+            + ("B" * 900)
+            + "\n"
+        )
+
+        chapters = split_merged_text_into_chapters(text)
+
+        self.assertEqual(len(chapters), 2)
+        self.assertEqual(chapters[0]["heading"], "## THE FIRST BOOK")
+        self.assertEqual(chapters[1]["heading"], "## THE SECOND BOOK")
+
+    def test_split_merged_text_into_chapters_ignores_trailing_notes_sections(self):
+        from gaiden.chapter_agent_split import split_merged_text_into_chapters
+
+        text = (
+            "## THE FIRST BOOK\n\n"
+            + ("A" * 900)
+            + "\n\n## THE SECOND BOOK\n\n"
+            + ("B" * 900)
+            + "\n\n## NOTES\n\nBOOK II \"Both to frequent\".\n\n## GLOSSARY\n\nGlossary entry.\n"
+        )
+
+        chapters = split_merged_text_into_chapters(text)
+
+        self.assertEqual(len(chapters), 2)
+        self.assertEqual(chapters[0]["heading"], "## THE FIRST BOOK")
+        self.assertEqual(chapters[1]["heading"], "## THE SECOND BOOK")
+        self.assertNotIn("## NOTES", chapters[1]["text"])
+        self.assertNotIn("## GLOSSARY", chapters[1]["text"])
 
 
 class BookCodeNormalizationTests(TestCase):
@@ -1879,6 +2124,30 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("SURGICAL MICRO-POLISH ONLY", payload["system_prompt"])
         self.assertIn("Selected profile: Ingles flex.", payload["user_prompt"])
 
+    def test_runtime_refine_contract_can_switch_to_headingcleaner_profile(self):
+        from pipeline.views import _build_runtime_refine_contract
+
+        self.client.post(self.heading_url)
+        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
+        self.translated_dir.mkdir(parents=True, exist_ok=True)
+        (self.translated_dir / "0001.txt").write_text(
+            "BOOK I\n\nA dense philosophical passage with structural noise.",
+            encoding="utf-8",
+        )
+
+        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
+            self.edition,
+            "en",
+            refine_profile="headingcleaner",
+        )
+        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["refine_profile"], "headingcleaner")
+        self.assertEqual(payload["agent_name"], "HeadingCleaner")
+        self.assertIn("philosophical English cleanup", payload["system_prompt"])
+        self.assertIn("heading consistency", payload["system_prompt"])
+        self.assertIn("Selected profile: HeadingCleaner.", payload["user_prompt"])
+
     def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
         from gaiden.translate import sanitize_generated_chunk_text
 
@@ -2119,6 +2388,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, 'name="refine_profile"')
         self.assertContains(response, "Ingles neutro - Aldebaran")
         self.assertContains(response, "Ingles flex - Alamaguederaz")
+        self.assertContains(response, "Inglês filosofia - HeadingCleaner")
 
     def test_steps_reflect_saved_refine_profile(self):
         EditionPipeline.objects.update_or_create(
@@ -3241,7 +3511,7 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         self.assertIn("# Adapted Preface", merged_text)
         self.assertIn("This is the real prefatory paragraph", merged_text)
-        self.assertIn("## Chapter 01 - First Case", merged_text)
+        self.assertIn("# Chapter 01 - First Case", merged_text)
         self.assertNotIn("MARKER CONTRACT BOOK", merged_text)
         self.assertNotIn("First published 1927", merged_text)
         self.assertNotIn("\nCONTENTS\n", merged_text)
@@ -3265,7 +3535,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         merged_text = merged_path.read_text(encoding="utf-8")
 
         self.assertNotIn("# Adapted Preface", merged_text)
-        self.assertIn("## Chapter 01 - First Case", merged_text)
+        self.assertIn("# Chapter 01 - First Case", merged_text)
 
     def test_build_kdp_respects_explicit_preface_heading_before_first_chapter(self):
         from editorial import kdp_mode
@@ -3285,7 +3555,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertIn("# Preface", merged_text)
         self.assertIn("[Author preface to be inserted in final editorial pass.]", merged_text)
         self.assertNotIn("# Adapted Preface", merged_text)
-        self.assertIn("## Chapter 01 - First Case", merged_text)
+        self.assertIn("# Chapter 01 - First Case", merged_text)
 
     def test_build_kdp_keeps_numeric_chapter_heading_without_visual_title_duplication(self):
         from editorial import kdp_mode
@@ -3302,8 +3572,8 @@ class KdpMarkerCleanupContractTests(TestCase):
         merged_path = kdp_mode.build_merged_kdp_source(self.edition)
         merged_text = merged_path.read_text(encoding="utf-8")
 
-        self.assertIn("## Chapter 01 - Death Strikes a King", merged_text)
-        chapter_idx = merged_text.index("## Chapter 01 - Death Strikes a King")
+        self.assertIn("# Chapter 01 - Death Strikes a King", merged_text)
+        chapter_idx = merged_text.index("# Chapter 01 - Death Strikes a King")
         image_idx = merged_text.index("![](assets/images/ch01_01.jpg)")
         body_idx = merged_text.index("The king of Vendhya was dying.")
         self.assertLess(chapter_idx, image_idx)
@@ -3343,7 +3613,7 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
 
-        self.assertIn("## Chapter 04 - The Horror at the Camp", merged_text)
+        self.assertIn("# Chapter 04 - The Horror at the Camp", merged_text)
         self.assertIn("![](assets/images/ch04_01.jpg)", merged_text)
         self.assertIn("The camp was no longer as we had left it.", merged_text)
         self.assertNotIn("**Chapter 04 - The Horror at the Camp**", merged_text)
@@ -3365,9 +3635,9 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
 
-        self.assertIn("## Chapter 01 - The Warning from Miskatonic", merged_text)
-        self.assertIn("## Chapter 04 - The Horror at the Camp", merged_text)
-        self.assertNotIn("## chapter 01 - have already told", merged_text.casefold())
+        self.assertIn("# Chapter 01 - The Warning from Miskatonic", merged_text)
+        self.assertIn("# Chapter 04 - The Horror at the Camp", merged_text)
+        self.assertNotIn("# chapter 01 - have already told", merged_text.casefold())
         self.assertNotIn("**chapter 01 - have already told", merged_text.casefold())
 
     def test_build_kdp_strips_trailing_author_byline_from_preface(self):
@@ -3390,7 +3660,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertIn("# Adapted Preface", merged_text)
         self.assertIn("This is the real prefatory paragraph that should remain.", merged_text)
         self.assertNotIn("By Author Marker Contract", merged_text)
-        self.assertIn("## Chapter 01 - First Case", merged_text)
+        self.assertIn("# Chapter 01 - First Case", merged_text)
 
     def test_build_kdp_uses_fixed_editorial_block_order_and_appends_epilogue_last(self):
         from editorial import kdp_mode
@@ -3427,7 +3697,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         about_idx = merged_text.index("# About This Book")
         preface_idx = merged_text.index("# Preface")
         intro_idx = merged_text.index("# Introduction")
-        chapter_idx = merged_text.index("## Chapter 01 - First Case")
+        chapter_idx = merged_text.index("# Chapter 01 - First Case")
         epilogue_idx = merged_text.index("# Epilogue")
 
         self.assertLess(front_idx, copyright_idx)
