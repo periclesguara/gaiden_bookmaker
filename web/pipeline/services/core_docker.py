@@ -2,13 +2,14 @@ import os
 import subprocess
 from pathlib import Path
 
+from . import utils
 
 CORE_DOCKER_STEPS = {"translate", "refine", "polish"}
 DEFAULT_CORE_DOCKER_LANGS = ("en", "ptbr", "es", "de", "it", "fr")
 
 
 def _normalize_lang(value: str | None) -> str:
-    return (value or "").strip().lower().replace("-", "").replace("_", "")
+    return utils.normalize_lang(value)
 
 
 def _as_bool(value: str | None) -> bool:

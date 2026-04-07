@@ -323,12 +323,9 @@
             {% csrf_token %}
             {% if s.key == "translate" %}
             <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
-              <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
-              <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
-              <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-              <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE</option>
-              <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
-              <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
+              {% for option in translate_variant_options %}
+              <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
             </select>
             <span class="status">Contrato: <strong id="translate_contract_path"></strong></span>
             {% endif %}
@@ -399,21 +396,12 @@
           {% csrf_token %}
           <input type="hidden" name="action" value="save_translation_language" />
           <select name="target_language" aria-label="Salvar idioma de traducao">
-            <option value="en" {% if translate_language == "en" %}selected{% endif %}>EN (modern)</option>
-            <option value="es" {% if translate_language == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if translate_language == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if translate_language == "de" %}selected{% endif %}>DE</option>
-            <option value="fr" {% if translate_language == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if translate_language == "it" %}selected{% endif %}>IT</option>
+            {% for option in translate_variant_options %}
+            <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
           </select>
           <button class="btn secondary" type="submit">Next step</button>
         </form>
-        {% if language == "en" %}
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'polish' %}">
-          {% csrf_token %}
-          <button class="btn secondary" type="submit">Polish (optional)</button>
-        </form>
-        {% endif %}
       </div>
       <div class="status">
         RAW: <strong>{{ status.raw }}</strong>

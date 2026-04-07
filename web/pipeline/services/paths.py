@@ -4,7 +4,12 @@ from pathlib import Path
 
 from django.conf import settings
 
+from . import utils
 from . import edition_meta
+
+
+def _normalize_lang_token(value: str) -> str:
+    return utils.normalize_lang(value)
 
 
 def _project_root() -> Path:
@@ -21,6 +26,22 @@ def edition_build_dir(edition) -> Path:
 
 def edition_build_dir_for_language(book_code: str, language: str) -> Path:
     return data_dir() / "builds" / book_code / language
+
+
+def translated_variant_dirs(book_code: str, language: str) -> list[Path]:
+    translated_root = data_dir() / "translated" / book_code
+    if not translated_root.exists():
+        return []
+
+    target = _normalize_lang_token(language)
+    matches: list[Path] = []
+    for child in sorted(translated_root.iterdir()):
+        if not child.is_dir():
+            continue
+        variant_lang = child.name.split("_", 1)[0]
+        if _normalize_lang_token(variant_lang) == target:
+            matches.append(child)
+    return matches
 
 
 MERGE_PRIORITY = ["merge_polish.txt", "merge_refine.txt", "merge_translate.txt"]

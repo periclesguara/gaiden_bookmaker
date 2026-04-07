@@ -145,6 +145,7 @@ POLISH_RETURN_DIRNAME = "return_bismarck"
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en", "label": "EN (modern)", "base_language": "en"},
     {"value": "en_philo", "label": "English-Philosofer", "base_language": "en"},
+    {"value": "en_devotional", "label": "English-Devotional", "base_language": "en"},
     {"value": "es", "label": "ES", "base_language": "es"},
     {"value": "ptbr", "label": "PT-BR", "base_language": "ptbr"},
     {"value": "de", "label": "DE", "base_language": "de"},
@@ -166,6 +167,12 @@ _TRANSLATE_VARIANT_ALIASES = {
     "english-philosopher": "en_philo",
     "english_philosopher": "en_philo",
     "englishphilosopher": "en_philo",
+    "en_devotional": "en_devotional",
+    "en-devotional": "en_devotional",
+    "endevotional": "en_devotional",
+    "english-devotional": "en_devotional",
+    "english_devotional": "en_devotional",
+    "englishdevotional": "en_devotional",
 }
 
 _HTML_STAGE_ORDER = {
@@ -196,6 +203,13 @@ def _translate_base_language(value: str | None) -> str:
 def _translate_variant_label(value: str | None) -> str:
     variant = _normalize_translate_variant(value)
     return _TRANSLATE_VARIANT_LABELS.get(variant, variant.upper())
+
+
+def _recommended_split_parts_for_translate_variant(value: str | None) -> int:
+    variant = _normalize_translate_variant(value)
+    if variant in {"en_philo", "en_devotional"}:
+        return 4
+    return 1
 
 logger = logging.getLogger(__name__)
 
@@ -2334,6 +2348,8 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 
     merge_refine_clean_path = root / "data" / "translated" / core_book_code / "merge_refine_clean.txt"
     merge_refine_done = merge_refine_clean_path.exists() and refine_done
+    merge_polish_path = paths.merge_polish_path(target_edition)
+    polish_done = merge_polish_path.exists()
 
     texts = EditionText.objects.filter(edition=core_edition).first()
     raw_path_str = ((texts.raw_path if texts else "") or core_edition.raw_source_path or "").strip()
@@ -2488,6 +2504,24 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         }
     )
 
+    if getattr(target_edition, "lock_polish", False) or polish_done:
+        step_defs.append(
+            {
+                "n": 8,
+                "key": "polish_return",
+                "title": "Polish Return (Optional)",
+                "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "polish_return"}),
+                "button_label": "Rodar Polish Return",
+                "can_run": merge_refine_done,
+                "done": polish_done,
+                "block_reason": "Prerequisito: merge_refine_clean.txt canônico." if not merge_refine_done else "",
+                "outputs": [
+                    _rel_project_path(paths.merge_polish_path(target_edition)),
+                ],
+                "notes": "Etapa opcional. Quando ativada em Lock polish, roda logo após o Merge Refine e antes do Pre-flight, gerando merge_polish.txt.",
+            }
+        )
+
     return step_defs
 
 
@@ -2495,6 +2529,7 @@ def _select_contract_path(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/en_modern_2025.json",
         "en_philo": "gaiden/contracts/en_philosofer_2026.json",
+        "en_devotional": "gaiden/contracts/en_devotional_2026.json",
         "es": "gaiden/contracts/en_modern_2025.json",
         "ptbr": "gaiden/contracts/en_modern_2025.json",
         "de": "gaiden/contracts/en_de_2026.json",
@@ -2510,7 +2545,7 @@ def _select_contract_path(language: str) -> Path:
     return Path(__file__).resolve().parents[2] / rel
 
 
-def _select_refine_contract(language: str) -> Path:
+def _select_refine_contract(language: str, refine_profile: str | None = None) -> Path:
     mapping = {
         "en": "gaiden/contracts/refine/en_refine_2025.json",
         "es": "gaiden/contracts/refine/es_refine_2025.json",
@@ -2531,7 +2566,8 @@ def _select_polish_contract(language: str) -> Path:
     mapping = {
         "en": "gaiden/contracts/polish/en_polish_2025.json",
     }
-    rel = mapping.get(_translate_base_language(language))
+    normalized = _normalize_translate_variant(language)
+    rel = mapping.get(normalized) or mapping.get(_translate_base_language(language))
     if not rel:
         raise ValueError(f"No polish contract for language={language}")
     preferred = Path(settings.BASE_DIR).parent / rel
@@ -2614,6 +2650,8 @@ def _runtime_translate_out_dir(book_code: str, target_language: str, payload: di
         io.get("lang_variant")
         if isinstance(io.get("lang_variant"), str) and io.get("lang_variant").strip()
         else ("en_philosofer_2026" if variant_key == "en_philo" else f"{base_lang}_2025")
+        if variant_key != "en_devotional"
+        else "en_devotional_2026"
     )
     return Path("data") / "translated" / book_token / str(variant)
 
@@ -2846,6 +2884,7 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
     target_labels = {
         "en": "modern, natural English",
         "en_philo": "modern philosophical English",
+        "en_devotional": "modern devotional English",
         "es": "modern, natural Spanish",
         "ptbr": "modern Brazilian Portuguese",
         "de": "modern, natural German",
@@ -2871,6 +2910,20 @@ def _generic_translate_prompts(target_language: str, payload: dict | None = None
                     "Rewrite the following literary-philosophical passage into controlled philosophical English.\n\n"
                     f"{english_contract_block}\n\n"
                     "Translate embedded Greek and Latin words, phrases, and quotations into natural English when they function as readable source text.\n\n"
+                    "Return only the final rewritten passage.\n\n"
+                    "{text}"
+                )
+            elif variant == "en_devotional":
+                system_prompt = (
+                    "You are a literary translator-editor working on devotional and ascetic prose. Rewrite the passage into "
+                    "controlled modern devotional English while preserving meaning, chronology, paragraph structure, "
+                    "numbering, tone, spiritual gravity, and literary intent. Output only the rewritten passage."
+                )
+                user_prompt = (
+                    "Rewrite the following devotional passage into controlled modern devotional English.\n\n"
+                    f"{english_contract_block}\n\n"
+                    "Preserve all numbered sections, prayers, responses, and citations in the same order. "
+                    "Do not omit closing lines just because the opening feels complete.\n\n"
                     "Return only the final rewritten passage.\n\n"
                     "{text}"
                 )
@@ -3137,7 +3190,7 @@ def _build_runtime_refine_contract(
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
     target_base = _translate_base_language(target_language)
-    payload = json.loads(_select_refine_contract(target_base).read_text(encoding="utf-8"))
+    payload = json.loads(_select_refine_contract(target_base, refine_profile=refine_profile).read_text(encoding="utf-8"))
     payload = _harden_refine_contract(
         payload,
         refine_profile=refine_profile,
@@ -4417,13 +4470,13 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
         )
 
     try:
-        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
-
         out_dir_path = _resolve_refine_output_dir(
             source_dir,
             refine_profile=refine_profile,
             target_language=target_language,
         )
+        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+
         result = run_aldebaran_refine_return(
             chunk_dir=source_dir,
             out_dir=out_dir_path,
@@ -4486,7 +4539,7 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
 
 
 def _run_polish_step_local(edition) -> dict[str, object]:
-    from gaiden.polish_en_2025 import run_polish_en_2025
+    from gaiden.polish_en_2025 import run_polish_en_merged_file
 
     target_edition = edition
     stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
@@ -4497,20 +4550,45 @@ def _run_polish_step_local(edition) -> dict[str, object]:
     if utils.normalize_lang(target_edition.language.code) != "en":
         raise ValueError("Polish is only available for English.")
 
-    run_polish_en_2025(book_id=book_id, lang_key="en_modern_2026")
-    out_path = Path(f"data/chunks/book_{book_id:04d}/refine_en_01/merged_polished_en_2025.txt")
+    EditionPipeline.objects.get_or_create(edition=target_edition)
+    lang_key = "en_modern_2026"
+    out_path = paths.merge_polish_path(target_edition)
+    source_path = (
+        Path(settings.BASE_DIR).parent
+        / "data"
+        / "translated"
+        / book_code
+        / "merge_refine_clean.txt"
+    )
+    if not source_path.exists():
+        source_path = paths.merge_refine_path(target_edition)
+
+    if not source_path.exists():
+        raise FileNotFoundError("Polish Return source not found: merge_refine_clean.txt or merge_refine.txt")
+    run_polish_en_merged_file(
+        book_id=book_id,
+        lang_key=lang_key,
+        source_path=source_path,
+        output_path=out_path,
+    )
+    source_info = str(source_path)
 
     _copy_merge_to_build(
         target_edition,
         out_path,
         paths.merge_polish_path(target_edition),
     )
-    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
     pipeline_state.current_stage = PipelineStage.POLISHED
     pipeline_state.polished_at = timezone.now()
     pipeline_state.last_log = ""
     pipeline_state.save()
-    return {"success": "Polish OK", "info": []}
+    return {
+        "success": "Polish Return OK",
+        "info": [
+            f"Polish source: {source_info}",
+            f"Polish merge: {out_path}",
+        ],
+    }
 
 
 def execute_language_isolated_core_step(
@@ -4526,7 +4604,7 @@ def execute_language_isolated_core_step(
         return _run_translate_step_local(edition, pipeline_state, target_language=target_language or edition.language.code)
     if step == "refine":
         return _run_refine_step_local(edition, pipeline_state, refine_profile=refine_profile)
-    if step == "polish":
+    if step in {"polish", "polish_return"}:
         return _run_polish_step_local(edition)
     raise ValueError(f"Unsupported isolated core step: {step}")
 
@@ -4705,11 +4783,18 @@ def run_edition_step(request, edition_id: int, step: str):
                     (pipeline_state.translation_language if pipeline_state else None) or edition.language.code
                 ),
             )
-            result = chapter_agent.run_split_by_chapter(target_edition)
+            requested_parts = _recommended_split_parts_for_translate_variant(
+                getattr(pipeline_state, "translation_language", None) if pipeline_state else None
+            )
+            result = chapter_agent.run_split_by_chapter(
+                target_edition,
+                parts_per_chapter=requested_parts,
+            )
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.last_log = (
                 f"{timezone.now().isoformat()} :: SPLIT_BY_CHAPTER :: "
-                f"chapters={result['chapter_count']} parts={result['part_count']}"
+                f"chapters={result['chapter_count']} parts={result['part_count']} "
+                f"parts_per_chapter={requested_parts}"
             )
             pipeline_state.save(update_fields=["last_log"])
             messages.success(
