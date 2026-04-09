@@ -180,11 +180,13 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "Obra autoral")
         self.assertContains(response, "Obra de dominio publico")
 
-    def test_root_redirects_to_canonical_cadastro_entrypoint(self):
+    def test_root_shows_project_type_choice_before_cadastro(self):
         response = self.client.get("/")
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("book_edition_new"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Criar novo projeto editorial")
+        self.assertContains(response, "Book")
+        self.assertContains(response, "Collection")
 
     def test_cadastro_shows_existing_books_in_single_selector(self):
         work = Work.objects.create(

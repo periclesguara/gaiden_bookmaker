@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Cadastro da Collection</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Salvar collection</button>
+    </form>
+  </body>
+  </html>

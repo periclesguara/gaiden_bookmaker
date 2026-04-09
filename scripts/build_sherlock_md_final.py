@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
+from gaiden.infrastructure import storage
 
-BASE_DIR = Path("/home/periclesguara/Projetos/gaiden_bookmaker")
+BASE_DIR = storage.repo_root()
 
 
 CHAPTER_TITLES = [

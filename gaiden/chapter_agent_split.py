@@ -13,11 +13,47 @@ DEFAULT_MAX_OUTPUT_TOKENS = 4000
 PARTS_PER_CHAPTER = 1
 MAX_PARTS_PER_CHAPTER = 4
 
+_ORDINAL_WORD_MAP = {
+    "first": 1,
+    "second": 2,
+    "third": 3,
+    "fourth": 4,
+    "fifth": 5,
+    "sixth": 6,
+    "seventh": 7,
+    "eighth": 8,
+    "ninth": 9,
+    "tenth": 10,
+    "eleventh": 11,
+    "twelfth": 12,
+    "thirteenth": 13,
+    "fourteenth": 14,
+    "fifteenth": 15,
+    "sixteenth": 16,
+    "seventeenth": 17,
+    "eighteenth": 18,
+    "nineteenth": 19,
+    "twentieth": 20,
+}
+_ORDINAL_WORD_RE = "|".join(sorted(_ORDINAL_WORD_MAP, key=len, reverse=True))
 _CHAPTER_LINE_PATTERNS = [
     re.compile(r"^#{1,6}\s*(chapter|part|book|adventure|cap[ií]tulo|kapitel)\b.*$", re.IGNORECASE),
     re.compile(r"^(chapter|part|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b.*$", re.IGNORECASE),
+    re.compile(r"^#{1,6}\s*([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", re.IGNORECASE),
+    re.compile(r"^([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", re.IGNORECASE),
+    re.compile(
+        rf"^#{{1,6}}\s*(?:the\s+)?({_ORDINAL_WORD_RE})\s+(chapter|part|book|adventure)\b.*$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        rf"^(?:the\s+)?({_ORDINAL_WORD_RE})\s+(chapter|part|book|adventure)\s*$",
+        re.IGNORECASE,
+    ),
 ]
 _EPILOGUE_LINE_RE = re.compile(r"^epilogue\b.*$", re.IGNORECASE)
+_TRAILING_SECTION_LINE_PATTERNS = [
+    re.compile(r"^#{1,6}\s*(appendix|appendices|notes|endnotes|glossary|bibliography|index)\b.*$", re.IGNORECASE),
+]
 _ROMAN_MAP = {
     "I": 1,
     "II": 2,
@@ -58,17 +94,35 @@ def _match_chapter_heading(line: str) -> bool:
 
 def _parse_heading_number(line: str) -> int | None:
     stripped = line.strip().lstrip("#").strip()
+    number: int | None = None
     match = re.match(
         r"^(chapter|part|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b",
         stripped,
         re.IGNORECASE,
     )
-    if not match:
-        return None
-    token = match.group(2).upper()
-    if token.isdigit():
-        number = int(token)
+    if match:
+        token = match.group(2).upper()
     else:
+        numbered = re.match(r"^([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", stripped, re.IGNORECASE)
+        if numbered:
+            token = numbered.group(1).upper()
+            if token.isdigit():
+                number = int(token)
+            else:
+                number = _ROMAN_MAP.get(token)
+        else:
+            ordinal = re.match(
+                rf"^(?:the\s+)?(?P<ordinal>{_ORDINAL_WORD_RE})\s+(chapter|part|book|adventure)\b",
+                stripped,
+                re.IGNORECASE,
+            )
+            if not ordinal:
+                return None
+            number = _ORDINAL_WORD_MAP.get(ordinal.group("ordinal").casefold())
+
+    if match and token.isdigit():
+        number = int(token)
+    elif match:
         number = _ROMAN_MAP.get(token)
     if number is None or number < 1 or number > _MAX_REASONABLE_CHAPTER_NUMBER:
         return None
@@ -78,6 +132,11 @@ def _parse_heading_number(line: str) -> int | None:
 def _normalize_heading_line(line: str) -> str:
     stripped = line.strip()
     if not stripped or _EPILOGUE_LINE_RE.match(stripped):
+        return stripped
+
+    if re.match(r"^#{1,6}\s*([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", stripped, re.IGNORECASE):
+        return stripped
+    if re.match(r"^([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", stripped, re.IGNORECASE):
         return stripped
 
     match = re.match(
@@ -105,6 +164,14 @@ def _body_char_count(lines: list[str], start: int, end: int) -> int:
 
 def _epilogue_candidates(lines: list[str]) -> list[int]:
     return [idx for idx, line in enumerate(lines) if _EPILOGUE_LINE_RE.match(line.strip())]
+
+
+def _trailing_nonchapter_boundary(lines: list[str], *, after_index: int) -> int | None:
+    for idx in range(after_index + 1, len(lines)):
+        stripped = lines[idx].strip()
+        if stripped and any(pattern.match(stripped) for pattern in _TRAILING_SECTION_LINE_PATTERNS):
+            return idx
+    return None
 
 
 def _chapter_candidates(lines: list[str]) -> list[dict[str, Any]]:
@@ -181,13 +248,16 @@ def split_merged_text_into_chapters(text: str) -> list[dict[str, Any]]:
 
     chapters: list[dict[str, Any]] = []
     boundaries = [int(item["line_index"]) for item in accepted]
+    last_boundary = boundaries[-1]
+    final_cutoff = _trailing_nonchapter_boundary(lines, after_index=last_boundary) or len(lines)
+
     epilogues = _epilogue_candidates(lines)
-    trailing_epilogue = next((idx for idx in epilogues if idx > boundaries[-1]), None)
+    trailing_epilogue = next((idx for idx in epilogues if last_boundary < idx < final_cutoff), None)
     if trailing_epilogue is not None:
         boundaries.append(trailing_epilogue)
 
     for chapter_index, start in enumerate(boundaries, start=1):
-        end = boundaries[chapter_index] if chapter_index < len(boundaries) else len(lines)
+        end = boundaries[chapter_index] if chapter_index < len(boundaries) else final_cutoff
         chunk = "\n".join(lines[start:end]).strip()
         if not chunk:
             continue
@@ -231,6 +301,60 @@ def _split_dense_text(text: str, parts: int) -> list[str]:
     return spans
 
 
+_NUMBERED_PARAGRAPH_RE = re.compile(r"^\d+\\?\.", re.IGNORECASE)
+
+
+def _paragraph_is_numbered(paragraph: str) -> bool:
+    first_line = paragraph.strip().splitlines()[0].strip() if paragraph.strip() else ""
+    return bool(_NUMBERED_PARAGRAPH_RE.match(first_line))
+
+
+def _split_paragraphs_by_numbered_boundaries(paragraphs: list[str], parts: int) -> list[list[str]] | None:
+    if parts <= 1 or len(paragraphs) < parts:
+        return None
+
+    numbered_indexes = [idx for idx, item in enumerate(paragraphs) if _paragraph_is_numbered(item)]
+    if len(numbered_indexes) < parts - 1:
+        return None
+
+    total_chars = sum(len(item) for item in paragraphs)
+    target_chars = max(total_chars / parts, 1)
+    boundaries: list[int] = []
+    last_start = 0
+
+    for cut_no in range(1, parts):
+        min_start = last_start + 1
+        candidates = [idx for idx in numbered_indexes if idx >= min_start]
+        if not candidates:
+            return None
+        running = sum(len(item) for item in paragraphs[:min_start])
+        desired = target_chars * cut_no
+        chosen = min(candidates, key=lambda idx: abs(sum(len(item) for item in paragraphs[:idx]) - desired))
+        if boundaries and chosen <= boundaries[-1]:
+            later = [idx for idx in candidates if idx > boundaries[-1]]
+            if not later:
+                return None
+            chosen = later[0]
+        boundaries.append(chosen)
+        last_start = chosen
+
+    chunks: list[list[str]] = []
+    start = 0
+    for boundary in boundaries:
+        chunk = paragraphs[start:boundary]
+        if not chunk:
+            return None
+        chunks.append(chunk)
+        start = boundary
+    tail = paragraphs[start:]
+    if not tail:
+        return None
+    chunks.append(tail)
+    if len(chunks) != parts:
+        return None
+    return chunks
+
+
 def split_chapter_into_parts(chapter_text: str, *, parts: int = PARTS_PER_CHAPTER) -> list[str]:
     cleaned = chapter_text.strip()
     if not cleaned:
@@ -243,6 +367,10 @@ def split_chapter_into_parts(chapter_text: str, *, parts: int = PARTS_PER_CHAPTE
     paragraphs = [item.strip() for item in re.split(r"\n\s*\n", cleaned) if item.strip()]
     if len(paragraphs) < parts:
         return _split_dense_text(cleaned, parts)
+
+    numbered_split = _split_paragraphs_by_numbered_boundaries(paragraphs, parts)
+    if numbered_split:
+        return ["\n\n".join(bucket).strip() + "\n" for bucket in numbered_split if bucket]
 
     total_chars = sum(len(item) for item in paragraphs)
     target_chars = max(total_chars / parts, 1)

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Revisão da Collection</h1>
+    <p>Status: {{ collection.status }}</p>
+    {% if merged_exists %}
+      <p>{{ merged_path }}</p>
+      <pre>{{ preview }}</pre>
+      <form method="post" action="{% url 'collection_handoff' collection.id %}">
+        {% csrf_token %}
+        <button type="submit">Enviar ao pipeline padrão</button>
+      </form>
+    {% else %}
+      <p>Merged final ainda não foi gerado.</p>
+    {% endif %}
+  </body>
+  </html>

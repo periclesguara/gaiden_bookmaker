@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Itens da Collection</h1>
+    <p>{{ collection.code }} - {{ collection.title }}</p>
+    <ul>
+      {% for item in items %}
+      <li>#{{ item.order_index }} - {{ item.work_title }} / {{ item.author_name }}</li>
+      {% empty %}
+      <li>Nenhum item cadastrado.</li>
+      {% endfor %}
+    </ul>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Adicionar item</button>
+    </form>
+    <p><a href="{% url 'collection_upload' collection.id %}">Ir para uploads</a></p>
+  </body>
+  </html>

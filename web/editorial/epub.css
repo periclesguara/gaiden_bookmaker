@@ -47,7 +47,7 @@ figure.post-cover-illustration img,
   height: auto;
 }
 
-/* Frontmatter readability bump (title/copyright/about blocks). */
+/* Keep frontmatter and body in the same text rhythm. */
 section#frontispiece,
 section#copyright,
 section#about-this-edition,
@@ -55,8 +55,14 @@ section#about_contributor,
 section#about-contributor,
 section#introduction,
 section#epilogue {
-  font-size: 1.12em;
-  line-height: 1.6;
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+section#frontispiece > p,
+section#copyright > p {
+  margin-top: 0.9em;
+  margin-bottom: 0.9em;
 }
 
 section#frontispiece > h1,
@@ -68,7 +74,9 @@ section#about-this-edition > h1 {
 section[id^="kapitel-"] > h1,
 section[id^="kapitel-"] > h2,
 section[id^="chapter-"] > h1,
-section[id^="chapter-"] > h2 {
+section[id^="chapter-"] > h2,
+section[id^="book-"] > h1,
+body[epub\:type="bodymatter"] section.level1 > h1 {
   text-align: center;
   margin-top: 0;
   margin-bottom: 1.2em;
@@ -79,15 +87,14 @@ section[id^="chapter-"] > h2 {
   margin-top: 0;
 }
 
-/* Fallback for pipelines that keep chapters as Markdown H2 headings. */
+/* Generic section headings should remain visible. */
 h2 {
   break-before: page;
   page-break-before: always;
   margin-top: 0;
-  margin-bottom: 0;
-  font-size: 0;
-  line-height: 0;
-  color: transparent;
+  margin-bottom: 1.2em;
+  font-size: 1.25em;
+  line-height: 1.3;
 }
 
 section[id^="kapitel-"] > h2,
@@ -95,6 +102,76 @@ section[id^="chapter-"] > h2 {
   font-size: 1.35em;
   line-height: 1.25;
   color: inherit;
+}
+
+/* Main section title pages: centered and isolated from the body text. */
+body[epub\:type="bodymatter"] section.level1 > h1 {
+  break-before: page;
+  page-break-before: always;
+  break-after: page;
+  page-break-after: always;
+  text-align: center;
+  margin-top: 42vh;
+  margin-bottom: 42vh;
+  font-size: 1.6em;
+  line-height: 1.25;
+}
+
+section.level1 > h1 + p,
+section.level2 > h2 + p,
+section.level3 > h3 + p {
+  margin-top: 1.25em;
+}
+
+ol > li {
+  margin-bottom: 0.9em;
+}
+
+ol > li:last-child {
+  margin-bottom: 0;
+}
+
+section#glossary {
+  font-size: 0.92em;
+  line-height: 1.45;
+}
+
+section#glossary > p {
+  margin-top: 0.6em;
+  margin-bottom: 1em;
+  color: inherit;
+}
+
+section#glossary ol {
+  margin-top: 0.8em;
+  margin-bottom: 0;
+  margin-left: 0;
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+section#glossary ol > li {
+  margin-bottom: 0.95em;
+  margin-left: 0;
+  padding-left: 0;
+  text-indent: 0;
+}
+
+section#glossary ol > li p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+section#glossary ol > li strong {
+  font-weight: 700;
+}
+
+sup a,
+sup a:link,
+sup a:visited {
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.8em;
 }
 
 p > strong:only-child {

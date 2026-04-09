@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Upload da Collection</h1>
+    <ul>
+      {% for item in items %}
+      <li>
+        #{{ item.order_index }} - {{ item.work_title }}
+        {% if item.source_filename %} / upload: {{ item.source_filename }}{% endif %}
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="item_id" value="{{ item.id }}">
+          <input type="file" name="source_file" accept=".html,.htm">
+          <button type="submit">Enviar HTML</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    <p><a href="{% url 'collection_process' collection.id %}">Ir para processamento</a></p>
+  </body>
+  </html>

@@ -50,3 +50,20 @@ def sync_legacy_merges_from_translated(edition) -> None:
                     if not target.exists():
                         target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
                     break
+
+    translate_target = build_dir / "merge_translate.txt"
+    if translate_target.exists():
+        return
+
+    target_language = edition_meta.language_code(edition)
+    for variant_dir in paths.translated_variant_dirs(book_code, target_language):
+        candidates = [
+            variant_dir / f"merged_{variant_dir.name}.txt",
+            variant_dir / "merged.txt",
+        ]
+        candidates.extend(sorted(variant_dir.glob("merged_*.txt")))
+        for candidate in candidates:
+            if not candidate.exists():
+                continue
+            translate_target.write_text(candidate.read_text(encoding="utf-8"), encoding="utf-8")
+            return

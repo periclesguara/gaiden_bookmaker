@@ -6,6 +6,8 @@ import shutil
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
+from gaiden.infrastructure import storage
+
 from . import edition_meta, utils
 
 PATTERN_EN = r"^CHAPTER\s+\d+\s*[-–:]?\s*(.*)$"
@@ -199,13 +201,10 @@ def txt_to_md(
 
 
 def publish_miolo_for_kdp(edition, miolo_md_path: Path) -> Path:
-    target = (
-        Path("data")
-        / "translated"
-        / edition_meta.book_code(edition)
-        / edition_meta.language_code(edition)
-        / "miolo.md"
-    )
+    target = storage.translated_dir(
+        edition_meta.book_code(edition),
+        edition_meta.language_code(edition),
+    ) / "miolo.md"
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(miolo_md_path, target)
     return target

@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from editorial.migrations_bridge import migrate_all_languages_for_book
 from editorial.models import Edition
+from gaiden.infrastructure import storage
 
 
 class Command(BaseCommand):
@@ -74,7 +75,7 @@ class Command(BaseCommand):
         )
 
         if not book_codes:
-            base_dir = Path("data") / "frontmatter"
+            base_dir = storage.frontmatter_dir()
             if base_dir.exists():
                 book_codes = sorted({p.name for p in base_dir.iterdir() if p.is_dir()})
 

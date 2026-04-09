@@ -1,4 +1,9 @@
-# web/data (runtime artifacts)
+# web/data (deprecated)
 
-Conteúdo gerado localmente pelo Django/pipeline durante desenvolvimento.
-Não deve ser versionado.
+Este diretório não é o storage canônico do Gaiden BookMaker.
+
+Storage oficial:
+- `repo/data`
+
+`web/data` existe apenas como passivo legado controlado durante a transição.
+Novo código não deve gravar artefatos aqui.

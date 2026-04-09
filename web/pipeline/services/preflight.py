@@ -13,7 +13,7 @@ for candidate in (str(REPO_ROOT), str(WEB_ROOT)):
     if candidate not in sys.path:
         sys.path.insert(0, candidate)
 
-from gaiden.openai_client import get_client
+from gaiden.infrastructure.openai_client import get_client
 
 from . import paths
 

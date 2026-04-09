@@ -21,6 +21,7 @@ from editorial.frontmatter import (
     optional_section_warnings,
 )
 from editorial import kdp_mode
+from gaiden.infrastructure import storage
 from .forms import FrontmatterTemplateForm
 
 
@@ -133,7 +134,7 @@ def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialE
 
 
 def _write_frontmatter_files(edition: EditorialEdition) -> None:
-    base_dir = PROJECT_ROOT / "data" / "frontmatter"
+    base_dir = storage.frontmatter_dir()
     build_frontmatter_files(edition, base_dir)
 
 
@@ -214,7 +215,7 @@ def record_edition_build(
 
 
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
-    out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
+    out_dir = storage.frontmatter_dir(book_code, language)
     return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_this_book.md"))
 
 
@@ -441,13 +442,13 @@ def editorial_frontmatter_actions(request, edition_id: int):
         return redirect("edition_steps", edition_id=edition.id)
 
     if action == "rebuild_frontmatter":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(target_edition, storage.frontmatter_dir())
         messages.success(
             request,
             f"Frontmatter regenerado para {target_edition.work.code} [{target_edition.language.code}]",
         )
     elif action == "build_frontmatter_and_merged":
-        kdp_mode.build_frontmatter_files(target_edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(target_edition, storage.frontmatter_dir())
         merged_path = kdp_mode.build_merged_kdp_source(target_edition)
         messages.success(request, f"Frontmatter + BOOK.BUILD.MD regenerados: {merged_path}")
     else:

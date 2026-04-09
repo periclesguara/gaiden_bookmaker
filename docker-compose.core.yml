@@ -54,3 +54,9 @@ services:
       service: gaiden-core-base
     environment:
       GAIDEN_CORE_LANGUAGE: fr
+
+  gaiden-collections:
+    extends:
+      service: gaiden-core-base
+    environment:
+      GAIDEN_EXECUTOR: collections

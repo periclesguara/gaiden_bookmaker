@@ -81,6 +81,33 @@ class ChapterAgentSplitLogicTests(TestCase):
             self.assertEqual(manifest["parts_per_chapter"], 2)
             self.assertEqual(len(manifest["chapters"][0]["parts"]), 2)
 
+    def test_split_chapter_into_parts_prefers_numbered_boundaries_when_available(self):
+        merged_text = (
+            "## Chapter 1 - Devotional\n\n"
+            "Opening paragraph.\n\n"
+            "2\\. Second numbered section.\n\n"
+            "3\\. Third numbered section.\n\n"
+            "4\\. Fourth numbered section.\n\n"
+            "5\\. Fifth numbered section.\n"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest = write_chapter_split_artifacts(
+                merged_text,
+                root / "parts",
+                parts_per_chapter=4,
+            )
+
+            chapter_parts = manifest["chapters"][0]["parts"]
+            self.assertEqual(len(chapter_parts), 4)
+            part_paths = [root / "parts" / item["filename"] for item in chapter_parts]
+            texts = [path.read_text(encoding="utf-8") for path in part_paths]
+            self.assertTrue(texts[0].startswith("## Chapter 1 - Devotional"))
+            self.assertTrue(texts[1].lstrip().startswith("2\\."))
+            self.assertTrue(texts[2].lstrip().startswith("3\\."))
+            self.assertTrue(texts[3].lstrip().startswith("5\\."))
+
     def test_rewrite_single_chapter_parts_can_expand_specific_chapter_to_four_parts(self):
         merged_text = (
             "## Chapter 1 - The Gate\n\n"
@@ -303,6 +330,11 @@ class ChapterAgentServiceTests(TestCase):
         self.assertEqual(payload["agent_name"], "Kaiser")
         self.assertEqual(refine_input_dir, self.temp_root / "data" / "editions" / str(self.edition.id) / "core" / "refine_input_de")
         self.assertEqual(out_dir, split_root / "return_kaiser")
+
+    def test_recommended_split_parts_for_philosophy_and_devotional_english(self):
+        self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en_philo"), 4)
+        self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en_devotional"), 4)
+        self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en"), 1)
 
     def test_canonical_merge_localizes_german_chapter_headings_for_book_0002(self):
         refine_dir = self.temp_root / "data" / "builds" / "book_0002" / "de" / "split_by_chapter" / "return_kaiser"

@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
 from editorial.models import Edition, Language, Seal, Work
+from gaiden.infrastructure import storage
 
 LANGUAGES: list[str] = ["en", "de", "es", "ptbr"]
 
@@ -19,8 +20,7 @@ LANGUAGE_VERBOSE = {
 
 
 def frontmatter_dir(book_code: str, language: str) -> Path:
-    project_root = Path(__file__).resolve().parents[2]
-    return project_root / "data" / "frontmatter" / book_code / language
+    return storage.frontmatter_dir(book_code, language)
 
 
 def read_file_if_exists(path: Path) -> str | None:

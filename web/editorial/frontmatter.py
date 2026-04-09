@@ -77,7 +77,7 @@ def frontmatter_headings(language: str) -> dict[str, str]:
         },
         "de": {
             "frontispiece": "Frontispiz",
-            "copyright": "Copyright",
+            "copyright": "Impressum",
             "about_edition": "Über dieses Buch",
             "preface": "Vorwort",
             "introduction": "Einführung",
@@ -178,6 +178,48 @@ def sanitize_section_body(text: str, section_heading: str) -> str:
     return _strip_leading_duplicate_heading(stripped, section_heading).strip()
 
 
+def _normalize_frontispiece_body(text: str) -> str:
+    lines = [line.strip() for line in text.splitlines()]
+    blocks = [line for line in lines if line]
+    return "\n\n".join(blocks).strip()
+
+
+def _normalize_copyright_body(text: str) -> str:
+    lines = text.splitlines()
+    if not lines:
+        return text
+
+    preface: list[str] = []
+    rest: list[str] = []
+    in_rest = False
+
+    for raw in lines:
+        stripped = raw.strip()
+        if not in_rest and stripped == "---":
+            in_rest = True
+            rest.append(raw)
+            continue
+        if not in_rest:
+            if stripped:
+                preface.append(stripped)
+            continue
+        rest.append(raw.rstrip())
+
+    credit_block = "\n\n".join(preface).strip()
+    trailing = "\n".join(rest).strip()
+    if credit_block and trailing:
+        return f"{credit_block}\n\n{trailing}".strip()
+    return credit_block or trailing
+
+
+def _normalize_frontmatter_body(section_key: str, text: str) -> str:
+    if section_key == "frontispiece":
+        return _normalize_frontispiece_body(text)
+    if section_key == "copyright":
+        return _normalize_copyright_body(text)
+    return text
+
+
 def _section_file_name(section_name: str) -> str:
     if section_name == "about_edition":
         return "about_this_book.md"
@@ -225,6 +267,7 @@ def build_frontmatter_sections(language: str, rendered_sections: dict[str, str])
         body = sanitize_section_body(rendered_sections.get(key, ""), headings[key])
         if not body:
             continue
+        body = _normalize_frontmatter_body(key, body)
         fm[key] = f"# {headings[key]}\n\n{body}\n\n::: pagebreak\n"
     return fm
 

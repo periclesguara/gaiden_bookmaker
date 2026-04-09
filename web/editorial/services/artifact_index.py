@@ -6,8 +6,9 @@ from pathlib import Path
 from django.db import transaction
 
 from editorial.models import PipelineArtifact
+from gaiden.infrastructure import storage
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = storage.repo_root()
 
 
 def _stat(path: Path) -> tuple[int, str]:
@@ -41,7 +42,7 @@ def _upsert(work_code: str, lang: str, stage: str, path: Path, is_candidate: boo
 
 
 def _scan_builds(work_code: str, lang: str) -> None:
-    bdir = ROOT / "data" / "builds" / work_code / lang
+    bdir = storage.builds_dir(work_code, lang)
     if not bdir.exists():
         return
 
@@ -98,7 +99,7 @@ def _scan_builds(work_code: str, lang: str) -> None:
 
 
 def _scan_frontmatter(work_code: str, lang: str) -> None:
-    fdir = ROOT / "data" / "frontmatter" / work_code / lang
+    fdir = storage.frontmatter_dir(work_code, lang)
     if not fdir.exists():
         return
     for name in [
@@ -117,7 +118,7 @@ def _scan_frontmatter(work_code: str, lang: str) -> None:
 
 
 def _scan_translated(work_code: str, lang: str) -> None:
-    tdir = ROOT / "data" / "translated" / work_code / lang
+    tdir = storage.translated_dir(work_code, lang)
     if not tdir.exists():
         return
     path = tdir / "miolo.md"
@@ -126,7 +127,7 @@ def _scan_translated(work_code: str, lang: str) -> None:
 
 
 def _scan_cover(work_code: str, lang: str) -> None:
-    cdir = ROOT / "data" / "covers" / work_code / lang
+    cdir = storage.covers_dir(work_code, lang)
     if not cdir.exists():
         return
     for name in ["cover.jpg", "cover.png"]:

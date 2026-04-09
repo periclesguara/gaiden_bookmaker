@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Processamento da Collection</h1>
+    <p>Status: {{ collection.status }}</p>
+    <ul>
+      {% for item in items %}
+      <li>
+        #{{ item.order_index }} - {{ item.work_title }}
+        / upload={{ item.upload_status }}
+        / prep={{ item.prep_status }}
+        / normalize={{ item.normalize_status }}
+        / merge={{ item.merge_status }}
+      </li>
+      {% endfor %}
+    </ul>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" name="action" value="prepare">Executar preparação</button>
+      <button type="submit" name="action" value="normalize">Executar normalize</button>
+      <button type="submit" name="action" value="merge">Executar merge</button>
+    </form>
+    <p>Merged: {% if merged_exists %}{{ merged_path }}{% else %}ainda não gerado{% endif %}</p>
+    {% if run_state %}
+    <p>Runner: step={{ run_state.current_step }} / locked={{ run_state.is_locked }}{% if run_state.last_error %} / error={{ run_state.last_error }}{% endif %}</p>
+    {% endif %}
+    <p><a href="{% url 'collection_review' collection.id %}">Ir para revisão</a></p>
+  </body>
+  </html>

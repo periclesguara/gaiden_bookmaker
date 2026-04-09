@@ -8,5 +8,9 @@ version = "0.1.0"
 description = "Gaiden BookMaker"
 requires-python = ">=3.10"
 
-[tool.setuptools]
-packages = ["gaiden"]
+[project.scripts]
+gaiden-cli = "gaiden.interfaces.cli:main"
+gaiden-collections = "gaiden.interfaces.collections_cli:main"
+
+[tool.setuptools.packages.find]
+include = ["gaiden*"]

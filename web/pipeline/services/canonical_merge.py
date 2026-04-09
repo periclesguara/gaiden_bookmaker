@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from gaiden.application.pipeline.translation import sanitize_generated_chunk_text
 from gaiden.chunk_contract import HeadingMatch, detect_heading
-from gaiden.translate import sanitize_generated_chunk_text
 
 LOCALIZED_CHAPTER_TITLES: dict[tuple[str, str], list[str]] = {
     (

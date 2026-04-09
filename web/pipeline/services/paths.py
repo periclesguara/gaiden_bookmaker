@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from django.conf import settings
-
 from . import utils
 from . import edition_meta
+from gaiden.infrastructure import storage
 
 
 def _normalize_lang_token(value: str) -> str:
@@ -13,23 +12,23 @@ def _normalize_lang_token(value: str) -> str:
 
 
 def _project_root() -> Path:
-    return Path(settings.BASE_DIR).parent
+    return storage.repo_root()
 
 
 def data_dir() -> Path:
-    return _project_root() / "data"
+    return storage.data_dir()
 
 
 def edition_build_dir(edition) -> Path:
-    return data_dir() / "builds" / edition_meta.book_code(edition) / edition_meta.language_code(edition)
+    return storage.builds_dir(edition_meta.book_code(edition), edition_meta.language_code(edition))
 
 
 def edition_build_dir_for_language(book_code: str, language: str) -> Path:
-    return data_dir() / "builds" / book_code / language
+    return storage.builds_dir(book_code, language)
 
 
 def translated_variant_dirs(book_code: str, language: str) -> list[Path]:
-    translated_root = data_dir() / "translated" / book_code
+    translated_root = storage.translated_dir(book_code)
     if not translated_root.exists():
         return []
 
@@ -119,7 +118,7 @@ def merge_polish_path(edition) -> Path:
 
 
 def core_last_txt_path(edition) -> Path:
-    return data_dir() / "editions" / str(edition.id) / "core" / "core_last.txt"
+    return storage.editions_dir(edition.id) / "core" / "core_last.txt"
 
 
 def pre_qa_md_path(edition) -> Path:

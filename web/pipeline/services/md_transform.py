@@ -1435,3 +1435,65 @@ def apply_images_to_pre_edition(md_path: Path, images_dir: Path) -> dict[str, in
         "existing_refs": len(IMAGE_MARKDOWN_ANY_RE.findall(updated)),
         "already_applied": 1 if inserted == 0 and len(IMAGE_MARKDOWN_ANY_RE.findall(updated)) > 0 else 0,
     }
+
+
+END_GALLERY_START = "<!-- INTERNAL_IMAGES_END_GALLERY_START -->"
+END_GALLERY_END = "<!-- INTERNAL_IMAGES_END_GALLERY_END -->"
+
+
+def append_images_gallery_to_pre_edition(
+    md_path: Path,
+    images_dir: Path,
+    section_title: str = "Illustrations",
+) -> dict[str, int | str]:
+    text = md_path.read_text(encoding="utf-8")
+    text = IMAGE_PLACEHOLDER_RE.sub("", text)
+    text = IMAGE_MARKDOWN_ANY_RE.sub("", text)
+    text = re.sub(
+        rf"\n*{re.escape(END_GALLERY_START)}.*?{re.escape(END_GALLERY_END)}\n*",
+        "\n\n",
+        text,
+        flags=re.DOTALL,
+    )
+    text = re.sub(r"\n{3,}", "\n\n", text).rstrip()
+
+    images = [p for p in list_available_images(images_dir) if not _is_cover_asset(p)]
+    if not images:
+        md_path.write_text(text + "\n", encoding="utf-8")
+        return {
+            "images_available": 0,
+            "images_used": 0,
+            "inserted": 0,
+            "assets_dir": "",
+            "section_title": section_title,
+        }
+
+    assets_dir = md_path.parent / "assets" / "images"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+
+    blocks: list[str] = [END_GALLERY_START, "", f"# {section_title}", ""]
+    copied = 0
+    for idx, src in enumerate(images, start=1):
+        out_name = _safe_copy_name(idx, 1, src)
+        shutil.copy2(src, assets_dir / out_name)
+        rel_path = Path("assets") / "images" / out_name
+        blocks.extend(
+            [
+                '<figure class="post-cover-illustration">',
+                f'  <img src="{rel_path.as_posix()}" alt="Illustration {idx}" />',
+                "</figure>",
+                "",
+            ]
+        )
+        copied += 1
+    blocks.append(END_GALLERY_END)
+
+    updated = text + "\n\n" + "\n".join(blocks) + "\n"
+    md_path.write_text(updated, encoding="utf-8")
+    return {
+        "images_available": len(images),
+        "images_used": copied,
+        "inserted": copied,
+        "assets_dir": str(assets_dir),
+        "section_title": section_title,
+    }

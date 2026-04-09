@@ -1,25 +1,29 @@
 from __future__ import annotations
 
 import json
+import html
 import re
 import shutil
 import subprocess
+import tempfile
+import zipfile
 from pathlib import Path
 
 from editorial.frontmatter import build_frontmatter_files
 from editorial.models import Edition
+from gaiden.infrastructure import storage
 
 
 def builds_dir(edition: Edition) -> Path:
-    return Path("data") / "builds" / edition.work.code / edition.language.code
+    return storage.builds_dir(edition.work.code, edition.language.code)
 
 
 def frontmatter_dir(edition: Edition) -> Path:
-    return Path("data") / "frontmatter" / edition.work.code / edition.language.code
+    return storage.frontmatter_dir(edition.work.code, edition.language.code)
 
 
 def translated_miolo_path(edition: Edition) -> Path:
-    return Path("data") / "translated" / edition.work.code / edition.language.code / "miolo.md"
+    return storage.translated_dir(edition.work.code, edition.language.code) / "miolo.md"
 
 
 _PAGEBREAK_RE = re.compile(r"^:::\s*pagebreak\s*$", re.MULTILINE)
@@ -27,7 +31,7 @@ _IMAGE_REF_RE = re.compile(r"!\[[^\]]*\]\(assets/images/([^)]+)\)")
 _CH_SLOT_RE = re.compile(r"ch(\d{2})_(\d{2})", re.IGNORECASE)
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 _CHAPTER_HEADING_RE = re.compile(
-    r"^(#{1,6})\s*(chapter|adventure|cap[ií]tulo|kapitel)\b",
+    r"^(#{1,6})\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\b",
     re.IGNORECASE,
 )
 _NUMERIC_CHAPTER_HEADING_RE = re.compile(
@@ -39,7 +43,7 @@ _MANUAL_TOC_HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 _PLAIN_CHAPTER_LINE_RE = re.compile(
-    r"^\s*(chapter|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
@@ -47,7 +51,7 @@ _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 _CHAPTER_MD_LINE_RE = re.compile(
-    r"^\s*#{1,6}\s*(chapter|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*#{1,6}\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _BOLD_LINE_RE = re.compile(r"^\*\*(.+?)\*\*$")
@@ -75,15 +79,12 @@ _EXPLICIT_PRELUDE_HEADINGS = {
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
     cover_value = (getattr(edition, "cover_filepath", "") or "").strip()
-    project_root = Path(__file__).resolve().parents[2]
     if cover_value:
-        cover_path = Path(cover_value)
-        if not cover_path.is_absolute():
-            cover_path = project_root / cover_path
+        cover_path = storage.resolve_storage_path(cover_value)
         if cover_path.exists():
             return cover_path
 
-    cover_dir = project_root / "data" / "covers" / edition.work.code / edition.language.code
+    cover_dir = storage.covers_dir(edition.work.code, edition.language.code)
     for name in ("cover.jpg", "cover.png"):
         candidate = cover_dir / name
         if candidate.exists():
@@ -93,6 +94,394 @@ def _resolve_cover_path(edition: Edition) -> Path | None:
 
 def _normalize_pagebreaks(text: str) -> str:
     return _PAGEBREAK_RE.sub("::: pagebreak\n:::", text)
+
+
+def _split_core_and_supplements(text: str) -> tuple[str, str]:
+    markers = [
+        "\n## LETTERS TO FRONTO",
+        "\n# LETTERS TO FRONTO",
+        "\n## GLOSSARY",
+        "\n# GLOSSARY",
+    ]
+    indices = [text.find(marker) for marker in markers if text.find(marker) != -1]
+    if not indices:
+        return text, ""
+    cut = min(indices)
+    return text[:cut].rstrip(), text[cut:].lstrip()
+
+
+def _promote_supplement_headings(text: str) -> str:
+    if not text.strip():
+        return text
+    text = re.sub(r"(?m)^##\s+LETTERS TO FRONTO\s*$", "# LETTERS TO FRONTO", text)
+    text = re.sub(r"(?m)^##\s+GLOSSARY\s*$", "# GLOSSARY", text)
+    return text.strip() + "\n"
+
+
+def _clean_supplement_false_headings(text: str) -> str:
+    if not text.strip():
+        return text
+    text = re.sub(
+        r"(?m)(writes to)\s*\n\s*\\newpage\s*\n\s*#\s+Chapter\s+\d+\s*-\s*Fronto as follows:---\s*$",
+        r"\1 Fronto as follows:---",
+        text,
+    )
+    text = re.sub(
+        r"(?m)^\s*#\s+Chapter\s+\d+\s*-\s*Fronto as follows:---\s*$",
+        "Fronto as follows:---",
+        text,
+    )
+    return text.strip() + "\n"
+
+
+def _bold_glossary_headwords(text: str) -> str:
+    if not text.strip() or "# GLOSSARY" not in text:
+        return text
+
+    lines = text.splitlines()
+    out: list[str] = []
+    in_glossary = False
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+        if stripped == "# GLOSSARY":
+            in_glossary = True
+            out.append(line)
+            continue
+        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
+            in_glossary = False
+        if not in_glossary or not stripped or stripped.startswith("#"):
+            out.append(line)
+            continue
+        if stripped.startswith("**"):
+            out.append(line)
+            continue
+
+        m_colon = re.match(r"^([A-ZÆŒΆ-῾][^:]{0,90}?):\s+(.*)$", stripped)
+        if m_colon:
+            out.append(f"**{m_colon.group(1).strip()}** - {m_colon.group(2).strip()}")
+            continue
+        m_comma = re.match(r"^([A-ZÆŒΆ-῾][^,]{0,90}?),(?:\s+)(.*)$", stripped)
+        if m_comma:
+            head = m_comma.group(1).strip()
+            if head.lower().startswith("both names"):
+                out.append(line)
+            else:
+                out.append(f"**{head}** - {m_comma.group(2).strip()}")
+            continue
+        out.append(line)
+    return "\n".join(out).strip() + "\n"
+
+
+def _inline_glossary_continuations(text: str) -> str:
+    if not text.strip() or "# GLOSSARY" not in text:
+        return text
+
+    lines = text.splitlines()
+    out: list[str] = []
+    in_glossary = False
+    intro_seen = False
+
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+
+        if stripped == "# GLOSSARY":
+            in_glossary = True
+            intro_seen = False
+            out.append(line)
+            continue
+
+        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
+            in_glossary = False
+
+        if not in_glossary:
+            out.append(line)
+            continue
+
+        if not stripped:
+            out.append(line)
+            continue
+
+        if not intro_seen:
+            out.append(line)
+            intro_seen = True
+            continue
+
+        is_headword = stripped.startswith("**")
+        if is_headword:
+            out.append(line)
+            continue
+
+        if out:
+            j = len(out) - 1
+            while j >= 0 and not out[j].strip():
+                j -= 1
+            if j >= 0 and out[j].strip().startswith("**"):
+                out[j] = f"{out[j].rstrip()} {stripped}"
+                continue
+
+        out.append(line)
+
+    return "\n".join(out).strip() + "\n"
+
+
+def _normalize_glossary_inline_format(text: str) -> str:
+    if not text.strip() or "# GLOSSARY" not in text:
+        return text
+    text = re.sub(r"(?m)^(\*\*.+?\*\*)\s*[,:\u2014-]\s+", r"\1&nbsp;-&nbsp;", text)
+    return text
+
+
+def _format_glossary_as_ordered_list(text: str) -> str:
+    if not text.strip() or "# GLOSSARY" not in text:
+        return text
+
+    lines = text.splitlines()
+    out: list[str] = []
+    in_glossary = False
+    intro: list[str] = []
+    entries: list[str] = []
+    current_entry: str | None = None
+
+    def flush_glossary() -> None:
+        nonlocal intro, entries, current_entry
+        if current_entry:
+            entries.append(current_entry.strip())
+            current_entry = None
+        for para in intro:
+            if para.strip():
+                out.append(para.strip())
+                out.append("")
+        for entry in entries:
+            out.append(f"1. {entry}")
+            out.append("")
+        if out and out[-1] == "":
+            return
+
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+
+        if stripped == "# GLOSSARY":
+            in_glossary = True
+            out.append(line)
+            out.append("")
+            continue
+
+        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
+            flush_glossary()
+            in_glossary = False
+            out.append(line)
+            continue
+
+        if not in_glossary:
+            out.append(line)
+            continue
+
+        if not stripped:
+            continue
+
+        if stripped.startswith("**"):
+            if current_entry:
+                entries.append(current_entry.strip())
+            current_entry = stripped
+            continue
+
+        if current_entry:
+            current_entry = f"{current_entry} {stripped}"
+            continue
+
+        intro.append(stripped)
+
+    if in_glossary:
+        flush_glossary()
+
+    return "\n".join(out).strip() + "\n"
+
+
+def _extract_glossary_entries(text: str) -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    for idx, line in enumerate(text.splitlines(), start=1):
+        m = re.match(r"^\s*1\.\s+\*\*(.+?)\*\*", line.strip())
+        if not m:
+            continue
+        term = html.unescape(m.group(1).replace("&nbsp;", " ")).strip()
+        entry_id = f"glossary-term-{idx:03d}"
+        aliases = [term]
+        if " (" in term:
+            aliases.append(term.split(" (", 1)[0].strip())
+        if term.isupper():
+            aliases.append(term.title())
+        seen: set[str] = set()
+        unique_aliases: list[str] = []
+        for alias in aliases:
+            cleaned = alias.strip()
+            if not cleaned:
+                continue
+            key = cleaned.casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            unique_aliases.append(cleaned)
+        entries.append({"term": term, "id": entry_id, "aliases": unique_aliases})
+    return entries
+
+
+def _inject_glossary_ids(text: str, entries: list[dict[str, str]]) -> str:
+    if not text.strip() or not entries:
+        return text
+
+    lines = text.splitlines()
+    entry_iter = iter(entries)
+    current = next(entry_iter, None)
+    out: list[str] = []
+    for raw in lines:
+        line = raw.rstrip()
+        if current:
+            m = re.match(r"^(\s*1\.\s+)(\*\*.+?\*\*.*)$", line)
+            if m:
+                out.append(f'{m.group(1)}<span id="{current["id"]}"></span>{m.group(2)}')
+                current = next(entry_iter, None)
+                continue
+        out.append(line)
+    return "\n".join(out).strip() + "\n"
+
+
+def _annotate_first_glossary_mentions(text: str, entries: list[dict[str, str]]) -> str:
+    if not text.strip() or not entries:
+        return text
+
+    annotated = text
+    for idx, entry in enumerate(entries, start=1):
+        replacement_done = False
+        for alias in sorted(entry["aliases"], key=len, reverse=True):
+            if len(alias) < 3:
+                continue
+            pattern = re.compile(
+                rf"(?<![\w>])({re.escape(alias)})(?![\w<])"
+            )
+
+            def _repl(match: re.Match[str]) -> str:
+                nonlocal replacement_done
+                if replacement_done:
+                    return match.group(0)
+                replacement_done = True
+                term = match.group(1)
+                return f'{term}<sup><a href="#{entry["id"]}">{idx}</a></sup>'
+
+            annotated, count = pattern.subn(_repl, annotated, count=1)
+            if replacement_done or count:
+                break
+    return annotated
+
+
+def _collapse_orphan_numbered_paragraphs(text: str) -> str:
+    """
+    Join cases like:
+        12.
+
+        Paragraph...
+    into:
+        12. Paragraph...
+    This keeps aphorism numbering readable in EPUB output.
+    """
+    lines = text.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        current = lines[i].rstrip()
+        stripped = current.strip()
+        if re.fullmatch(r"\d+\.", stripped):
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines):
+                nxt = lines[j].strip()
+                if nxt and not nxt.startswith("#") and not _IMAGE_LINE_RE.match(nxt):
+                    out.append(f"{stripped} {nxt}")
+                    i = j + 1
+                    continue
+        out.append(current)
+        i += 1
+    return "\n".join(out).strip() + "\n"
+
+
+def _renumber_core_aphorisms(md_text: str) -> str:
+    def flush_item(target: list[str], number: int | None, blocks: list[str]) -> None:
+        if number is None or not blocks:
+            return
+        first = blocks[0].strip()
+        if not first:
+            return
+        target.append(f"{number}. {first}")
+        for extra in blocks[1:]:
+            cleaned = extra.strip()
+            if not cleaned:
+                continue
+            target.append("")
+            for line in cleaned.splitlines():
+                target.append(f"    {line.rstrip()}")
+        target.append("")
+
+    sections = re.split(r"(?m)(?=^#\s+(?:Chapter|Book|Adventure|Cap[ií]tulo|Kapitel)\b)", md_text.strip())
+    rebuilt: list[str] = []
+
+    for section in sections:
+        if not section.strip():
+            continue
+        lines = section.strip().splitlines()
+        heading = lines[0].rstrip()
+        body = "\n".join(lines[1:]).strip()
+        rebuilt.append(heading)
+        if not body:
+            rebuilt.append("")
+            continue
+
+        rebuilt.append("")
+        blocks = re.split(r"\n\s*\n", body)
+        prelude: list[str] = []
+        item_blocks: list[str] = []
+        current_number: int | None = None
+        next_number = 1
+        in_items = False
+
+        for block in blocks:
+            stripped = block.strip()
+            if not stripped:
+                continue
+            m = re.match(r"^\d+\.\s*(.*)$", stripped, re.DOTALL)
+            if m:
+                if current_number is None and prelude:
+                    rebuilt.extend(prelude)
+                    if rebuilt and rebuilt[-1] != "":
+                        rebuilt.append("")
+                    prelude = []
+                flush_item(rebuilt, current_number, item_blocks)
+                current_number = next_number
+                next_number += 1
+                item_blocks = []
+                first_block = (m.group(1) or "").strip()
+                if first_block:
+                    item_blocks.append(first_block)
+                in_items = True
+                continue
+
+            if in_items and current_number is not None:
+                item_blocks.append(stripped)
+            else:
+                prelude.append(stripped)
+
+        if current_number is None and prelude:
+            rebuilt.extend(prelude)
+            if rebuilt and rebuilt[-1] != "":
+                rebuilt.append("")
+        else:
+            flush_item(rebuilt, current_number, item_blocks)
+            if rebuilt and rebuilt[-1] != "":
+                rebuilt.append("")
+
+    return "\n".join(rebuilt).strip() + "\n"
 
 
 def _image_key_from_name(name: str) -> tuple[int, int] | None:
@@ -112,8 +501,8 @@ def _collect_image_candidates(edition: Edition, builds_base: Path) -> dict[tuple
     lang = edition.language.code
     roots = [
         builds_base / "assets" / "images",
-        Path("data") / "images" / book / lang,
-        Path("data") / "images" / book / lang / "consolidated",
+        storage.images_dir(book, lang),
+        storage.images_dir(book, lang) / "consolidated",
     ]
 
     by_key: dict[tuple[int, int], Path] = {}
@@ -446,10 +835,25 @@ def _write_marker_cleanup_report(builds_base: Path, matches: list[dict[str, obje
     return report_path
 
 
-def _normalize_chapter_headings(md_text: str) -> str:
+def _chapter_label_for_language(language: str) -> str:
+    lang = (language or "").strip().lower()
+    if lang in {"de"}:
+        return "Kapitel"
+    if lang in {"es"}:
+        return "Capítulo"
+    if lang in {"ptbr", "pt-br"}:
+        return "Capítulo"
+    if lang in {"fr"}:
+        return "Chapitre"
+    if lang in {"it"}:
+        return "Capitolo"
+    return "Chapter"
+
+
+def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
     """
     Make chapter headings explicit and stable for EPUB TOC:
-    - normalize "### Chapter X" / "# Chapter X" to "## Chapter X"
+    - normalize "### Chapter X" / "# Chapter X" to "# Chapter X"
     - convert plain/bold chapter lines to markdown heading
     - ensure a blank line before chapter headings
     """
@@ -497,7 +901,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
             n = _match_plain_numeric_heading(chapter_text)
             if not n:
                 return chapter_text.strip(), set()
-            prefix = "Chapter"
+            prefix = _chapter_label_for_language(language)
             num = n.group(1).strip()
             tail = (n.group(2) or "").strip().lstrip(" .:-–—")
         consumed: set[int] = set()
@@ -573,7 +977,7 @@ def _normalize_chapter_headings(md_text: str) -> str:
             consumed_lines.update(consumed)
             if out and out[-1].strip():
                 out.append("")
-            out.append(f"## {normalized_chapter}")
+            out.append(f"# {normalized_chapter}")
             i += 1
             continue
 
@@ -675,12 +1079,22 @@ def _detect_epub_heading_level(md_text: str) -> int:
     Detect preferred chapter heading level for TOC/split.
     Fallback is level 2.
     """
+    has_book_h1 = False
+    has_chapter_h2 = False
     levels: list[int] = []
     for line in md_text.splitlines():
         m = _CHAPTER_HEADING_RE.match(line.strip())
         if not m:
             continue
-        levels.append(len(m.group(1)))
+        hashes = len(m.group(1))
+        heading_word = m.group(2).lower()
+        if heading_word == "book" and hashes == 1:
+            has_book_h1 = True
+        if heading_word == "chapter" and hashes == 2:
+            has_chapter_h2 = True
+        levels.append(hashes)
+    if has_book_h1 and has_chapter_h2:
+        return 2
     if not levels:
         return 2
     return max(1, min(4, min(levels)))
@@ -691,11 +1105,11 @@ def _miolo_candidates(edition: Edition) -> list[Path]:
     build_dir = builds_dir(edition)
     return [
         # Current pipeline outputs.
+        build_dir / "BOOK.MD_FINAL",
         build_dir / f"BOOK.PRE_EDITION.{lang}.md",
         build_dir / "BOOK.PRE_EDITION.md",
         build_dir / f"BOOK.PRE_QA.{lang}.md",
         build_dir / "BOOK.PRE_QA.md",
-        build_dir / "BOOK.MD_FINAL",
         build_dir / "MIOL_TERM.v1.md",
         build_dir / "miolo.md",
         # Legacy published miolo path.
@@ -790,14 +1204,34 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     _publish_legacy_miolo_snapshot(edition, miolo_path)
 
     miolo_txt = miolo_path.read_text(encoding="utf-8").strip()
-    miolo_txt = _ensure_miolo_headings(miolo_txt, edition.language.code).strip()
-    miolo_txt = _remove_unwanted_taglines(miolo_txt).strip()
-    miolo_txt = _remove_manual_contents_block(miolo_txt).strip()
-    miolo_txt = _normalize_chapter_headings(miolo_txt).strip()
-    miolo_txt = _demote_pre_chapter_headings(miolo_txt).strip()
-    miolo_txt = _normalize_pre_chapter_prelude(miolo_txt, edition).strip()
-    miolo_txt = _insert_visual_chapter_titles(miolo_txt).strip()
-    miolo_txt = _remove_unwanted_taglines(miolo_txt).strip()
+    core_txt, supplements_txt = _split_core_and_supplements(miolo_txt)
+
+    core_txt = _collapse_orphan_numbered_paragraphs(core_txt).strip()
+    core_txt = _ensure_miolo_headings(core_txt, edition.language.code).strip()
+    core_txt = _remove_unwanted_taglines(core_txt).strip()
+    core_txt = _remove_manual_contents_block(core_txt).strip()
+    core_txt = _normalize_chapter_headings(core_txt, edition.language.code).strip()
+    core_txt = _demote_pre_chapter_headings(core_txt).strip()
+    core_txt = _normalize_pre_chapter_prelude(core_txt, edition).strip()
+    core_txt = _renumber_core_aphorisms(core_txt).strip()
+    core_txt = _insert_visual_chapter_titles(core_txt).strip()
+    core_txt = _remove_unwanted_taglines(core_txt).strip()
+
+    supplements_txt = _collapse_orphan_numbered_paragraphs(supplements_txt).strip()
+    supplements_txt = _promote_supplement_headings(supplements_txt).strip()
+    supplements_txt = _clean_supplement_false_headings(supplements_txt).strip()
+    supplements_txt = _bold_glossary_headwords(supplements_txt)
+    supplements_txt = _inline_glossary_continuations(supplements_txt).strip()
+    supplements_txt = _normalize_glossary_inline_format(supplements_txt).strip()
+    supplements_txt = _format_glossary_as_ordered_list(supplements_txt).strip()
+    glossary_entries = _extract_glossary_entries(supplements_txt)
+    supplements_txt = _inject_glossary_ids(supplements_txt, glossary_entries).strip()
+    core_txt = _annotate_first_glossary_mentions(core_txt, glossary_entries).strip()
+
+    if supplements_txt:
+        miolo_txt = f"{core_txt}\n\n{supplements_txt}"
+    else:
+        miolo_txt = core_txt
     miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)
     cleanup_matches.extend(image_alt_matches)
@@ -806,6 +1240,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     epilogue_txt = ""
     if epilogue_path.exists():
         epilogue_txt = _normalize_pagebreaks(epilogue_path.read_text(encoding="utf-8").rstrip()).strip()
+        epilogue_txt = _annotate_first_glossary_mentions(epilogue_txt, glossary_entries).strip()
 
     merged_txt = "".join(sections) + "\n\n" + miolo_txt.strip()
     if epilogue_txt:
@@ -820,6 +1255,47 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     book_build_path.write_text(merged_txt, encoding="utf-8")
 
     return kdp_merged_path
+
+
+def _rewrite_glossary_internal_links(epub_path: Path) -> None:
+    if not epub_path.exists():
+        return
+
+    glossary_member: str | None = None
+    with zipfile.ZipFile(epub_path, "r") as zin:
+        for name in zin.namelist():
+            if not name.endswith(".xhtml"):
+                continue
+            data = zin.read(name).decode("utf-8", errors="ignore")
+            if 'id="glossary-term-' in data:
+                glossary_member = name
+                break
+
+        if not glossary_member:
+            return
+
+        glossary_href = glossary_member.rsplit("/", 1)[-1]
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".epub", dir=str(epub_path.parent)) as tmp:
+            temp_path = Path(tmp.name)
+
+        try:
+            with zipfile.ZipFile(temp_path, "w") as zout:
+                for info in zin.infolist():
+                    raw = zin.read(info.filename)
+                    if info.filename.endswith(".xhtml"):
+                        text = raw.decode("utf-8", errors="ignore")
+                        if info.filename != glossary_member:
+                            text = re.sub(
+                                r'href="#(glossary-term-\d+)"',
+                                rf'href="{glossary_href}#\1"',
+                                text,
+                            )
+                        raw = text.encode("utf-8")
+                    zout.writestr(info, raw)
+            shutil.move(str(temp_path), epub_path)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
 
 
 def build_epub_for_edition(edition: Edition, epub_filename: str = "BOOK.epub") -> Path:
@@ -886,11 +1362,13 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "BOOK.epub") -
             f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
         )
 
+    _rewrite_glossary_internal_links(epub_path)
+
     return epub_path
 
 
 def build_kdp_for_edition(edition: Edition) -> dict:
-    build_frontmatter_files(edition, Path("data") / "frontmatter")
+    build_frontmatter_files(edition, storage.frontmatter_dir())
     merged_path = build_merged_kdp_source(edition)
     epub_path = build_epub_for_edition(edition)
 
@@ -956,7 +1434,7 @@ def run_epubcheck_for_edition(edition: Edition, epubcheck_cmd: str = "epubcheck"
 
 
 def gaiden_build_full_book(edition: Edition) -> dict:
-    build_frontmatter_files(edition, Path("data") / "frontmatter")
+    build_frontmatter_files(edition, storage.frontmatter_dir())
     merged_path = build_merged_kdp_source(edition)
     book_build_path = builds_dir(edition) / "BOOK.BUILD.MD"
 
