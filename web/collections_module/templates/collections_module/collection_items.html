@@ -1,20 +1,432 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Itens da Collection</title>
+    <style>
+      :root {
+        --bg: linear-gradient(180deg, #f7f2e8 0%, #ebf1f5 100%);
+        --panel: rgba(255, 252, 247, 0.94);
+        --panel-strong: #fffdfa;
+        --ink: #1d252b;
+        --muted: #5d6b76;
+        --line: rgba(29, 37, 43, 0.12);
+        --accent: #c75a32;
+        --accent-strong: #9f3d1b;
+        --ok: #21573b;
+        --shadow: 0 24px 56px rgba(18, 29, 35, 0.14);
+        --radius: 26px;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, rgba(199, 90, 50, 0.12), transparent 20%),
+          radial-gradient(circle at left center, rgba(33, 87, 59, 0.08), transparent 18%),
+          var(--bg);
+      }
+
+      .page {
+        width: min(1200px, calc(100% - 32px));
+        margin: 24px auto 40px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+
+      .hero,
+      .summary,
+      .workspace {
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .hero,
+      .summary {
+        padding: 28px;
+      }
+
+      .hero {
+        background:
+          linear-gradient(160deg, rgba(24, 38, 45, 0.96), rgba(38, 58, 67, 0.92)),
+          var(--panel);
+        color: #faf6ef;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1, h2 {
+        font-family: "Fraunces", Georgia, serif;
+      }
+
+      h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(2rem, 3vw, 3.3rem);
+        line-height: 1.02;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 42rem;
+        color: rgba(250, 246, 239, 0.86);
+        line-height: 1.7;
+      }
+
+      .summary h2 {
+        margin: 0 0 12px;
+        font-size: 1.5rem;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .metric {
+        padding: 16px;
+        border-radius: 18px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+
+      .metric strong {
+        font-size: 1.05rem;
+      }
+
+      .workspace {
+        padding: 28px;
+      }
+
+      .workspace-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      .workspace-header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        max-width: 44rem;
+        line-height: 1.6;
+      }
+
+      .messages,
+      .errors {
+        margin: 0 0 18px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .messages li,
+      .errors li {
+        padding: 12px 14px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+      }
+
+      .messages li {
+        background: rgba(33, 87, 59, 0.12);
+      }
+
+      .errors li {
+        background: rgba(199, 90, 50, 0.14);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        position: relative;
+        padding: 22px;
+        border-radius: 22px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+
+      .card-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: rgba(199, 90, 50, 0.12);
+        color: var(--accent-strong);
+        font-weight: 800;
+      }
+
+      .status-badge {
+        position: absolute;
+        right: 22px;
+        top: 22px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(33, 87, 59, 0.12);
+        color: var(--ok);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .card h3 {
+        margin: 16px 0 8px;
+        font-size: 1.2rem;
+      }
+
+      .card p {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      label {
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: rgba(199, 90, 50, 0.6);
+        box-shadow: 0 0 0 4px rgba(199, 90, 50, 0.12);
+      }
+
+      input[readonly] {
+        background: rgba(29, 37, 43, 0.04);
+      }
+
+      .field small {
+        color: var(--muted);
+      }
+
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 24px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+      }
+
+      .footer a {
+        color: var(--accent-strong);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 24px;
+        font: inherit;
+        font-weight: 700;
+        color: #fffaf6;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        cursor: pointer;
+      }
+
+      @media (max-width: 920px) {
+        .topbar,
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(100% - 18px, 1200px);
+          margin-top: 10px;
+        }
+
+        .hero,
+        .summary,
+        .workspace {
+          padding: 20px;
+          border-radius: 22px;
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .footer,
+        .workspace-header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
   <body>
-    <h1>Itens da Collection</h1>
-    <p>{{ collection.code }} - {{ collection.title }}</p>
-    <ul>
-      {% for item in items %}
-      <li>#{{ item.order_index }} - {{ item.work_title }} / {{ item.author_name }}</li>
-      {% empty %}
-      <li>Nenhum item cadastrado.</li>
-      {% endfor %}
-    </ul>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Adicionar item</button>
-    </form>
-    <p><a href="{% url 'collection_upload' collection.id %}">Ir para uploads</a></p>
+    <main class="page">
+      <section class="topbar">
+        <article class="hero">
+          <span class="eyebrow">Cadastro de Itens</span>
+          <h1>Preencha os espacos vazios da collection.</h1>
+          <p>
+            Cada card abaixo representa um item da collection. A ordem ja vem organizada conforme a quantidade
+            escolhida na etapa anterior. Preencha autor e titulo de cada volume e siga para uploads.
+          </p>
+        </article>
+
+        <aside class="summary">
+          <h2>Resumo da collection</h2>
+          <div class="summary-grid">
+            <div class="metric">
+              <span>Codigo</span>
+              <strong>{{ collection.code }}</strong>
+            </div>
+            <div class="metric">
+              <span>Idioma</span>
+              <strong>{{ collection.language }}</strong>
+            </div>
+            <div class="metric">
+              <span>Tipo</span>
+              <strong>{{ collection.get_collection_kind_display }}</strong>
+            </div>
+            <div class="metric">
+              <span>Itens esperados</span>
+              <strong>{{ collection.item_count }}</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="workspace">
+        <div class="workspace-header">
+          <div>
+            <h2>{{ collection.title }}</h2>
+            <p>Cadastre todos os itens desta collection em uma unica tela. O layout se adapta ao tamanho da tela e mantem a ordem editorial.</p>
+          </div>
+          <div>
+            <strong>{{ items|length }}/{{ collection.item_count }}</strong><br>
+            <span>itens ja salvos</span>
+          </div>
+        </div>
+
+        {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+          <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if formset.non_form_errors %}
+        <ul class="errors">
+          {% for error in formset.non_form_errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if form and form.errors %}
+        <ul class="errors">
+          {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+          {% for error in form.order_index.errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+          {% for error in form.author_name.errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+          {% for error in form.work_title.errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          {{ formset.management_form }}
+
+          <div class="cards">
+            {% for row_form in formset %}
+            <article class="card">
+              <span class="card-number">#{{ row_form.order_index.value }}</span>
+              {% if row_form.initial.author_name or row_form.initial.work_title %}
+              <span class="status-badge">Preenchido</span>
+              {% endif %}
+
+              <h3>Item {{ row_form.order_index.value }}</h3>
+              <p>Preencha os dados editoriais basicos deste volume.</p>
+
+              <div class="field">
+                <label for="{{ row_form.order_index.id_for_label }}">Ordem</label>
+                {{ row_form.order_index }}
+                {% for error in row_form.order_index.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+
+              <div class="field">
+                <label for="{{ row_form.author_name.id_for_label }}">Autor</label>
+                {{ row_form.author_name }}
+                {% for error in row_form.author_name.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+
+              <div class="field">
+                <label for="{{ row_form.work_title.id_for_label }}">Titulo da obra</label>
+                {{ row_form.work_title }}
+                {% for error in row_form.work_title.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+
+          <div class="footer">
+            <a href="{% url 'collection_create' %}">Voltar e ajustar configuracao</a>
+            <button type="submit">Salvar itens e ir para uploads</button>
+          </div>
+        </form>
+      </section>
+    </main>
   </body>
-  </html>
+</html>

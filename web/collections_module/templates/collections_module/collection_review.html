@@ -1,17 +1,340 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Revisao da Collection</title>
+    <style>
+      :root {
+        --bg: linear-gradient(150deg, #f5eee5 0%, #e5eef5 100%);
+        --panel: rgba(255, 252, 247, 0.96);
+        --ink: #19242b;
+        --muted: #63717b;
+        --line: rgba(25, 36, 43, 0.13);
+        --accent: #b8502d;
+        --accent-strong: #87361d;
+        --blue: #224e68;
+        --green: #276747;
+        --shadow: 0 22px 56px rgba(18, 31, 38, 0.14);
+        --radius: 26px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, rgba(184, 80, 45, 0.15), transparent 24%),
+          radial-gradient(circle at left 38%, rgba(34, 78, 104, 0.12), transparent 22%),
+          var(--bg);
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 28px auto 44px;
+      }
+
+      .hero,
+      .panel,
+      .metric {
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        background: var(--panel);
+      }
+
+      .hero {
+        padding: 30px;
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: end;
+        background:
+          linear-gradient(150deg, rgba(24, 38, 46, 0.96), rgba(34, 78, 104, 0.9)),
+          var(--panel);
+        color: #fff8ef;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        font-family: "Fraunces", Georgia, serif;
+      }
+
+      h1 {
+        margin: 16px 0 10px;
+        font-size: clamp(2rem, 3vw, 3.6rem);
+        line-height: 1;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 54rem;
+        line-height: 1.65;
+        color: rgba(255, 248, 239, 0.84);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff8ef;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr 0.8fr;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .metric {
+        padding: 18px;
+        border: 1px solid var(--line);
+        box-shadow: none;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        margin-bottom: 8px;
+        font-size: 0.92rem;
+      }
+
+      .metric strong {
+        display: block;
+        overflow-wrap: anywhere;
+      }
+
+      .panel {
+        padding: 24px;
+        border: 1px solid var(--line);
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: end;
+        margin-bottom: 16px;
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 1.7rem;
+      }
+
+      .panel-header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      button,
+      .link-button {
+        border: 0;
+        border-radius: 999px;
+        padding: 13px 18px;
+        color: #fff8f0;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .link-button.secondary {
+        background: rgba(25, 36, 43, 0.08);
+        color: var(--ink);
+      }
+
+      .preview-shell {
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: #fffdf9;
+        overflow: hidden;
+      }
+
+      .preview-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      pre {
+        margin: 0;
+        max-height: min(68vh, 760px);
+        overflow: auto;
+        padding: 20px;
+        color: #243038;
+        background:
+          linear-gradient(90deg, rgba(184, 80, 45, 0.05), transparent 18%),
+          #fffdf9;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 0.96rem;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .empty {
+        padding: 28px;
+        border: 1px dashed var(--line);
+        border-radius: 22px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 920px) {
+        .hero,
+        .panel-header {
+          grid-template-columns: 1fr;
+          align-items: start;
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        button,
+        .link-button {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .page {
+          width: min(100% - 18px, 1180px);
+          margin-top: 10px;
+        }
+
+        .hero,
+        .panel {
+          padding: 20px;
+          border-radius: 22px;
+        }
+
+        .preview-toolbar {
+          flex-direction: column;
+        }
+
+        pre {
+          max-height: 62vh;
+          padding: 16px;
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
   <body>
-    <h1>Revisão da Collection</h1>
-    <p>Status: {{ collection.status }}</p>
-    {% if merged_exists %}
-      <p>{{ merged_path }}</p>
-      <pre>{{ preview }}</pre>
-      <form method="post" action="{% url 'collection_handoff' collection.id %}">
-        {% csrf_token %}
-        <button type="submit">Enviar ao pipeline padrão</button>
-      </form>
-    {% else %}
-      <p>Merged final ainda não foi gerado.</p>
-    {% endif %}
+    <main class="page">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Collection Review</span>
+          <h1>Revisao da Collection</h1>
+          <p>
+            Confira o texto consolidado antes de enviar a collection para o pipeline padrao.
+            O preview abaixo usa quebra de linha responsiva para leitura em desktop e mobile.
+          </p>
+        </div>
+        <div class="status-pill">{{ collection.status }}</div>
+      </section>
+
+      <section class="metrics" aria-label="Resumo da collection">
+        <article class="metric">
+          <span>Arquivo merged</span>
+          <strong>{% if merged_exists %}{{ merged_path }}{% else %}Ainda nao gerado{% endif %}</strong>
+        </article>
+        <article class="metric">
+          <span>Collection</span>
+          <strong>{{ collection.code }}</strong>
+        </article>
+        <article class="metric">
+          <span>Idioma</span>
+          <strong>{{ collection.language }}</strong>
+        </article>
+        {% if collection.pipeline_book_code %}
+        <article class="metric">
+          <span>Pipeline book</span>
+          <strong>{{ collection.pipeline_book_code }}</strong>
+        </article>
+        {% endif %}
+      </section>
+
+      {% if messages %}
+      <section class="panel" style="margin-bottom: 18px;">
+        {% for message in messages %}
+        <div class="empty">{{ message }}</div>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>{{ collection.title }}</h2>
+            <p>Revise o inicio do arquivo final antes do handoff.</p>
+          </div>
+          <div class="actions">
+            <a class="link-button secondary" href="{% url 'collection_process' collection.id %}">Voltar ao processamento</a>
+            {% if pipeline_edition %}
+            <a class="link-button" href="{% url 'edition_steps' pipeline_edition.id %}">Abrir pipeline padrao</a>
+            {% elif merged_exists %}
+            <form method="post" action="{% url 'collection_handoff' collection.id %}">
+              {% csrf_token %}
+              <button type="submit">Enviar ao pipeline padrao</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if merged_exists %}
+        <div class="preview-shell">
+          <div class="preview-toolbar">
+            <strong>Preview do merged</strong>
+            <span>Mostrando os primeiros caracteres do arquivo final.</span>
+          </div>
+          <pre>{{ preview }}</pre>
+        </div>
+        {% else %}
+        <div class="empty">
+          Merged final ainda nao foi gerado. Volte ao processamento e execute o merge.
+        </div>
+        {% endif %}
+      </section>
+    </main>
   </body>
-  </html>
+</html>

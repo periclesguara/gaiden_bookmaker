@@ -1,11 +1,340 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nova Collection</title>
+    <style>
+      :root {
+        --bg: linear-gradient(160deg, #f2ede4 0%, #d9e6ef 100%);
+        --panel: rgba(255, 251, 245, 0.92);
+        --panel-strong: #fffdf9;
+        --ink: #172126;
+        --muted: #5f6b73;
+        --line: rgba(23, 33, 38, 0.12);
+        --accent: #b24a2d;
+        --accent-strong: #8d341b;
+        --shadow: 0 24px 60px rgba(23, 33, 38, 0.16);
+        --radius: 28px;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+
+      .shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 32px auto;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 24px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        padding: 40px;
+        background:
+          radial-gradient(circle at top left, rgba(178, 74, 45, 0.16), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(27, 78, 122, 0.18), transparent 35%),
+          #16232b;
+        color: #f9f4ea;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 620px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 18px 0 12px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(2.5rem, 4vw, 4.4rem);
+        line-height: 0.98;
+      }
+
+      .hero p {
+        max-width: 36rem;
+        font-size: 1.06rem;
+        line-height: 1.7;
+        color: rgba(249, 244, 234, 0.86);
+      }
+
+      .highlights {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .highlight {
+        padding: 16px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .highlight strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .panel {
+        padding: 32px;
+        background: var(--panel);
+      }
+
+      .panel h2 {
+        margin: 0 0 8px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 2rem;
+      }
+
+      .panel > p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .messages,
+      .errors {
+        margin: 0 0 18px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .messages li,
+      .errors li {
+        padding: 12px 14px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+      }
+
+      .messages li {
+        background: rgba(39, 110, 73, 0.12);
+      }
+
+      .errors li {
+        background: rgba(178, 74, 45, 0.14);
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel-strong);
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: rgba(178, 74, 45, 0.55);
+        box-shadow: 0 0 0 4px rgba(178, 74, 45, 0.12);
+      }
+
+      .field small {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .actions p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 24px;
+        font: inherit;
+        font-weight: 700;
+        color: #fff8f3;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        cursor: pointer;
+      }
+
+      @media (max-width: 920px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: min(100% - 20px, 1120px);
+          margin: 10px auto 24px;
+        }
+
+        .hero,
+        .panel {
+          padding: 22px;
+          border-radius: 22px;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
   <body>
-    <h1>Cadastro da Collection</h1>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Salvar collection</button>
-    </form>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Collections Module</span>
+          <h1>Estruture a nova collection antes de cadastrar os volumes.</h1>
+          <p>
+            Defina o pacote editorial, escolha idioma, formato da colecao e quantos itens vao entrar.
+            A proxima tela abre um formulario responsivo com todos os espacos vazios para preenchimento dos itens.
+          </p>
+        </div>
+        <div class="highlights">
+          <div class="highlight">
+            <strong>Fluxo em duas etapas</strong>
+            Primeiro a configuracao da collection, depois o cadastro completo dos itens.
+          </div>
+          <div class="highlight">
+            <strong>Cadastro orientado</strong>
+            Selecione o numero de itens e receba os campos prontos na ordem correta.
+          </div>
+          <div class="highlight">
+            <strong>Layout responsivo</strong>
+            A interface foi preparada para desktop, tablet e mobile sem quebrar o formulario.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Nova collection</h2>
+        <p>Preencha os dados-base. Depois do envio, o sistema abre o cadastro detalhado dos itens.</p>
+
+        {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+          <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <ul class="errors">
+          {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div class="field full">
+              <label for="{{ form.title.id_for_label }}">Titulo da collection</label>
+              {{ form.title }}
+              {% for error in form.title.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="field full">
+              <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+              {{ form.subtitle }}
+              <small>Opcional. Use para volume, selo ou recorte editorial.</small>
+              {% for error in form.subtitle.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="field">
+              <label for="{{ form.collection_kind.id_for_label }}">Tipo de collection</label>
+              {{ form.collection_kind }}
+              {% for error in form.collection_kind.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="field">
+              <label for="{{ form.language.id_for_label }}">Idioma</label>
+              {{ form.language }}
+              {% for error in form.language.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="field full">
+              <label for="{{ form.author_display_name.id_for_label }}">Autor exibido</label>
+              {{ form.author_display_name }}
+              {% for error in form.author_display_name.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="field">
+              <label for="{{ form.item_count.id_for_label }}">Numero de itens</label>
+              {{ form.item_count }}
+              <small>Essa escolha define quantos blocos de cadastro aparecerao na proxima etapa.</small>
+              {% for error in form.item_count.errors %}<small>{{ error }}</small>{% endfor %}
+            </div>
+          </div>
+
+          <div class="actions">
+            <p>Ao continuar, voce vai para a tela de cadastro detalhado dos itens.</p>
+            <button type="submit">Continuar para os itens</button>
+          </div>
+        </form>
+      </section>
+    </main>
   </body>
-  </html>
+</html>

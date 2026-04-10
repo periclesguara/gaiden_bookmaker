@@ -132,6 +132,7 @@ class BookSourceUploadForm(forms.Form):
     SOURCE_FORMAT_CHOICES = [
         ("txt", "TXT"),
         ("html", "HTML"),
+        ("epub", "EPUB"),
     ]
 
     source_format = forms.ChoiceField(
@@ -141,7 +142,7 @@ class BookSourceUploadForm(forms.Form):
     )
     source_file = forms.FileField(
         label="Arquivo-fonte",
-        help_text="Envie um arquivo TXT ou HTML conforme o tipo selecionado.",
+        help_text="Envie um arquivo TXT, HTML ou EPUB conforme o tipo selecionado.",
     )
     replace_existing = forms.BooleanField(
         required=False,

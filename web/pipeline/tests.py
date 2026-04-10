@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import re
 import shutil
 import tempfile
@@ -1079,6 +1080,8 @@ class ContractIngestV1Tests(TestCase):
         self.temp_root = Path(self.temp_dir.name)
         self.temp_web = self.temp_root / "web"
         self.repo_root = Path(__file__).resolve().parents[2]
+        self.previous_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
+        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
         self.temp_web.mkdir(parents=True, exist_ok=True)
         shutil.copytree(
             self.repo_root / "gaiden" / "contracts",
@@ -1113,6 +1116,10 @@ class ContractIngestV1Tests(TestCase):
 
     def tearDown(self):
         self.frontmatter_patcher.stop()
+        if self.previous_storage_root is None:
+            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
+        else:
+            os.environ["GAIDEN_STORAGE_ROOT"] = self.previous_storage_root
         self.settings_override.disable()
         self.temp_dir.cleanup()
 
@@ -1197,8 +1204,8 @@ class ContractIngestV1Tests(TestCase):
         template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
         self.assertEqual(template.text_source_mode, "html")
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
-        self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
-        raw_path = self.temp_root / "data" / "raw" / self.work.code / f"{self.work.code}_en_raw.html"
+        self.assertEqual(pipeline_state.current_stage, "SOURCE_EXTRACTED")
+        raw_path = self.temp_root / "data" / "raw" / self.work.code / "en" / "source.html"
         self.assertTrue(raw_path.exists())
 
     def test_txt_lane_persist_stage_raw_path_and_redirect(self):
@@ -1215,8 +1222,8 @@ class ContractIngestV1Tests(TestCase):
         template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
         self.assertEqual(template.text_source_mode, "txt")
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
-        self.assertEqual(pipeline_state.current_stage, "TXT_UPLOADED")
-        raw_path = self.temp_root / "data" / "raw" / self.work.code / f"{self.work.code}_en_raw.txt"
+        self.assertEqual(pipeline_state.current_stage, "SOURCE_EXTRACTED")
+        raw_path = self.temp_root / "data" / "raw" / self.work.code / "en" / "source.txt"
         self.assertTrue(raw_path.exists())
 
 

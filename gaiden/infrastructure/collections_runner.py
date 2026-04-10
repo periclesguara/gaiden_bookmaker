@@ -7,11 +7,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from gaiden.application.pipeline.ingest import extract_text_from_html
+from gaiden.application.pipeline.source_extract import run_source_extract
 from gaiden.application.pipeline.normalization import normalize_text_v2, roman_to_int
 from gaiden.domain.editorial.collections import validate_contiguous_order, validate_item_count, validate_no_duplicates
 
-from . import collections_storage
+from . import collections_storage, storage
 
 
 _BOOK_LABELS = {
@@ -26,6 +26,86 @@ _BOOK_LABELS = {
     9: "BOOK NINE",
     10: "BOOK TEN",
 }
+
+_FRONT_OR_BACK_MATTER_HEADINGS = {
+    "about",
+    "about the author",
+    "about the ebook",
+    "about standard ebooks",
+    "acknowledgements",
+    "acknowledgments",
+    "afterword",
+    "appendix",
+    "bibliography",
+    "colophon",
+    "contents",
+    "copyright",
+    "dedication",
+    "endnotes",
+    "epigraph",
+    "epilogue",
+    "foreword",
+    "frontispiece",
+    "glossary",
+    "imprint",
+    "index",
+    "introduction",
+    "list of illustrations",
+    "notes",
+    "preface",
+    "prologue",
+    "publisher's note",
+    "table of contents",
+    "title page",
+    "transcriber's note",
+    "uncopyright",
+}
+
+_BACK_MATTER_HEADINGS = {
+    "about",
+    "about the author",
+    "about the ebook",
+    "about standard ebooks",
+    "afterword",
+    "appendix",
+    "bibliography",
+    "colophon",
+    "endnotes",
+    "epilogue",
+    "glossary",
+    "index",
+    "notes",
+    "uncopyright",
+}
+
+_METADATA_PREFIXES = (
+    "author:",
+    "cover:",
+    "credits:",
+    "ebook #",
+    "identifier:",
+    "isbn:",
+    "language:",
+    "produced by:",
+    "producer:",
+    "publisher:",
+    "release date:",
+    "rights:",
+    "source:",
+    "title:",
+    "transcriber:",
+    "updated:",
+)
+
+_METADATA_MARKERS = (
+    "standard ebooks",
+    "standardebooks.org",
+    "project gutenberg",
+    "this ebook is for the use of anyone anywhere",
+    "full project gutenberg license",
+    "distributed proofreading",
+    "transcriber's note",
+)
 
 
 @dataclass(frozen=True)
@@ -86,10 +166,56 @@ def _normalize_heading_roman(line: str) -> str:
     return f"{match.group('label').upper()} {number}{match.group('suffix')}".strip()
 
 
+def _normalized_heading_key(line: str) -> str:
+    key = re.sub(r"^\W+|\W+$", "", line.strip().lower())
+    key = re.sub(r"\s+", " ", key)
+    return key
+
+
+def _is_body_heading(line: str) -> bool:
+    return bool(
+        re.match(
+            r"^(chapter|book|part|section|adventure|story|tale)\b|^[IVXLCDM]+\.?$",
+            line.strip(),
+            re.IGNORECASE,
+        )
+    )
+
+
+def _looks_like_image_line(line: str) -> bool:
+    lower = line.strip().lower()
+    if re.fullmatch(r"\[(?:image|illustration|figure|cover|plate)[^\]]*\]", lower):
+        return True
+    if re.fullmatch(r"(?:image|illustration|figure|cover|plate)\s*[:#-].*", lower):
+        return True
+    return bool(re.search(r"\.(?:jpg|jpeg|png|gif|svg|webp|tif|tiff)\b", lower))
+
+
+def _looks_like_metadata_line(line: str) -> bool:
+    lower = line.strip().lower()
+    if lower.startswith(_METADATA_PREFIXES):
+        return True
+    return any(marker in lower for marker in _METADATA_MARKERS)
+
+
+def _without_duplicate_leading_title(text: str, title: str) -> str:
+    clean_title = title.strip().lower()
+    if not clean_title:
+        return text.strip()
+    lines = text.strip().splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if lines and lines[0].strip().lower() == clean_title:
+        lines.pop(0)
+    return "\n".join(lines).strip()
+
+
 def mechanically_prepare_collection_text(raw_text: str) -> str:
     lines = [line.strip() for line in raw_text.splitlines()]
     filtered: list[str] = []
-    skipping_contents = False
+    fallback_body: list[str] = []
+    skipping_non_body_section = False
+    body_started = False
     for line in lines:
         lower = line.lower()
         if not line:
@@ -97,26 +223,32 @@ def mechanically_prepare_collection_text(raw_text: str) -> str:
             continue
         if "*** start of" in lower or "*** end of" in lower:
             continue
-        if "project gutenberg" in lower and ("ebook" in lower or "license" in lower):
-            continue
-        if lower.startswith(("title:", "author:", "release date:", "language:", "ebook #", "produced by:")):
-            continue
-        if lower in {"contents", "table of contents", "index"}:
-            skipping_contents = True
-            continue
-        if skipping_contents:
-            if re.match(r"^(chapter|book|part|section|adventure)\b", line, re.IGNORECASE):
-                skipping_contents = False
-            elif len(line.split()) <= 12:
-                continue
-            else:
-                skipping_contents = False
         if "end of the project gutenberg" in lower or "full project gutenberg license" in lower:
             break
+        if _looks_like_metadata_line(line) or _looks_like_image_line(line):
+            continue
+        heading_key = _normalized_heading_key(line)
+        if body_started and heading_key in _BACK_MATTER_HEADINGS:
+            break
+        if heading_key in _FRONT_OR_BACK_MATTER_HEADINGS:
+            skipping_non_body_section = True
+            continue
+        if skipping_non_body_section:
+            if _is_body_heading(line):
+                skipping_non_body_section = False
+            elif len(line.split()) <= 14:
+                continue
+            else:
+                continue
         if re.fullmatch(r"\d+", line):
             continue
-        filtered.append(_normalize_heading_roman(line))
-    prepared_lines = _collapse_blank(filtered)
+        normalized_line = _normalize_heading_roman(line)
+        fallback_body.append(normalized_line)
+        if _is_body_heading(line):
+            body_started = True
+        if body_started:
+            filtered.append(normalized_line)
+    prepared_lines = _collapse_blank(fallback_body)
     prepared_text = "\n".join(prepared_lines).strip()
     if not prepared_text:
         raise ValueError("Mechanical preparation produced an empty text.")
@@ -135,7 +267,8 @@ def prepare_collection_items(collection, items) -> list[PreparedItemResult]:
         upload_path = Path(item.source_original_path)
         if not upload_path.exists():
             raise FileNotFoundError(f"Missing upload for collection item {item.order_index}: {upload_path}")
-        extracted_text = extract_text_from_html(upload_path)
+        extract_result = run_source_extract(f"{collection.code}_item_{item.order_index:02d}", collection.language, upload_path)
+        extracted_text = storage.resolve_repo_path(extract_result["canonical_txt"]).read_text(encoding="utf-8")
         if not extracted_text:
             raise ValueError(f"Could not extract text from collection item {item.order_index}: {upload_path}")
         prepared_text = mechanically_prepare_collection_text(extracted_text)
@@ -197,7 +330,8 @@ def merge_collection_items(collection, items) -> Path:
         parts.append("")
         parts.append(item.work_title.strip())
         parts.append("")
-        parts.append(normalized_path.read_text(encoding="utf-8").strip())
+        normalized_text = normalized_path.read_text(encoding="utf-8")
+        parts.append(_without_duplicate_leading_title(normalized_text, item.work_title))
         parts.append("")
         parts.append("")
 

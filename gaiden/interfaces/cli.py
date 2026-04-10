@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from gaiden.application.pipeline import ingest, normalization
+from gaiden.application.pipeline import ingest, normalization, source_extract
 from gaiden.infrastructure import env, storage
 
 
@@ -38,6 +38,12 @@ def _cmd_ingest_extract(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_source_extract(args: argparse.Namespace) -> int:
+    result = source_extract.run_source_extract(args.book, args.lang, args.file)
+    print(result["meta_file"])
+    return 0
+
+
 def _cmd_env_check(_: argparse.Namespace) -> int:
     key = env.get_openai_api_key()
     print("OPENAI_API_KEY=present" if key else "OPENAI_API_KEY=missing")
@@ -60,6 +66,12 @@ def build_parser() -> argparse.ArgumentParser:
     extract.add_argument("input")
     extract.add_argument("--output")
     extract.set_defaults(func=_cmd_ingest_extract)
+
+    source_extract_parser = sub.add_parser("source-extract")
+    source_extract_parser.add_argument("--book", required=True)
+    source_extract_parser.add_argument("--lang", required=True)
+    source_extract_parser.add_argument("--file", required=True)
+    source_extract_parser.set_defaults(func=_cmd_source_extract)
 
     env_check = sub.add_parser("env-check")
     env_check.set_defaults(func=_cmd_env_check)

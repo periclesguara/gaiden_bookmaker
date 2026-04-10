@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from gaiden.infrastructure import storage
+from gaiden.application.pipeline.source_extract import (
+    run_source_extract,
+    supported_extensions as source_extract_supported_extensions,
+)
 
 try:
     from pypdf import PdfReader
@@ -23,7 +27,8 @@ try:
 except ImportError:  # pragma: no cover
     BeautifulSoup = None
 
-ALLOWED_EXT = {"txt", "md", "pdf", "docx", "html", "htm"}
+ALLOWED_EXT = {"txt", "md", "pdf", "docx", "html", "htm", "epub"}
+SOURCE_EXTRACT_ALLOWED_EXT = {ext.lstrip(".") for ext in source_extract_supported_extensions()}
 
 
 def sha256_bytes(data: bytes) -> str:

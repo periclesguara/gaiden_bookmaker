@@ -39,6 +39,17 @@ def _ordered_items(collection: Collection) -> list[CollectionItem]:
 
 def build_collection_context(collection: Collection) -> dict:
     merged_path = collections_storage.merged_source_path(collection.code, collection.language)
+    pipeline_edition = None
+    if collection.pipeline_book_code:
+        try:
+            from editorial.models import Edition
+
+            pipeline_edition = Edition.objects.filter(
+                work__code=collection.pipeline_book_code,
+                language__code=collection.language,
+            ).first()
+        except Exception:
+            pipeline_edition = None
     try:
         run_state = collection.run_state
     except CollectionRunState.DoesNotExist:
@@ -48,6 +59,7 @@ def build_collection_context(collection: Collection) -> dict:
         "items": _ordered_items(collection),
         "merged_path": merged_path,
         "merged_exists": merged_path.exists(),
+        "pipeline_edition": pipeline_edition,
         "run_state": run_state,
     }
 

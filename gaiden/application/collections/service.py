@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 from django.utils import timezone
+from django.db import connection
 
 from gaiden.domain.editorial.collections import (
     COLLECTION_STATUS_FAILED,
@@ -245,6 +246,39 @@ def _next_pipeline_book_code() -> str:
     raise RuntimeError("No free pipeline book code available for collection handoff.")
 
 
+def _ensure_pipeline_runtime_defaults() -> None:
+    if connection.vendor != "postgresql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            ALTER TABLE work
+              ALTER COLUMN subtitle SET DEFAULT '',
+              ALTER COLUMN enabled_languages SET DEFAULT '[]'::jsonb,
+              ALTER COLUMN source_format SET DEFAULT 'txt',
+              ALTER COLUMN notes SET DEFAULT ''
+            """
+        )
+        cursor.execute(
+            """
+            ALTER TABLE edition
+              ALTER COLUMN language_variant SET DEFAULT '',
+              ALTER COLUMN copyright_text SET DEFAULT '',
+              ALTER COLUMN editorial_name SET DEFAULT '',
+              ALTER COLUMN edition_copyright_holder SET DEFAULT '',
+              ALTER COLUMN book_id SET DEFAULT '',
+              ALTER COLUMN canonical_official_tag SET DEFAULT '',
+              ALTER COLUMN canonical_run_dir SET DEFAULT '',
+              ALTER COLUMN lang SET DEFAULT '',
+              ALTER COLUMN raw_materialized_path SET DEFAULT '',
+              ALTER COLUMN raw_sha256 SET DEFAULT '',
+              ALTER COLUMN status SET DEFAULT '',
+              ALTER COLUMN truth_path SET DEFAULT '',
+              ALTER COLUMN truth_sha256 SET DEFAULT ''
+            """
+        )
+
+
 def handoff_to_pipeline(collection, items):
     from collections_module.models import CollectionArtifact
     from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, Seal, Work
@@ -256,6 +290,7 @@ def handoff_to_pipeline(collection, items):
         raise ValueError("Pipeline handoff is allowed only after COLLECTION_MERGED.")
     if collection.status == COLLECTION_STATUS_MERGED:
         mark_ready_for_pipeline(collection)
+    _ensure_pipeline_runtime_defaults()
 
     language, _ = Language.objects.get_or_create(
         code=collection.language,

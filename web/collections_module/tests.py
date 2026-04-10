@@ -37,6 +37,12 @@ class CollectionModuleTests(TestCase):
         collection = Collection.objects.get()
         self.assertEqual(collection.title, "Sherlock Collection")
 
+    def test_collection_create_page_uses_responsive_selection_ui(self):
+        response = self.client.get(reverse("collection_new"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Numero de itens")
+        self.assertContains(response, "Continuar para os itens")
+
     def test_create_collection_requires_metadata(self):
         response = self.client.post(
             reverse("collection_new"),
@@ -132,13 +138,40 @@ class CollectionModuleTests(TestCase):
         item = CollectionItem.objects.create(collection=collection, order_index=1, author_name="A", work_title="W1")
         response = self.client.post(
             reverse("collection_upload", kwargs={"collection_id": collection.id}),
-            {"item_id": item.id, "source_file": self._html_upload("one.html", "<html><body><h1>One</h1><p>Body</p></body></html>")},
+            {
+                "item_id": item.id,
+                "source_format": "html",
+                "source_file": self._html_upload("one.html", "<html><body><h1>One</h1><p>Body</p></body></html>"),
+            },
         )
         self.assertEqual(response.status_code, 302)
         item.refresh_from_db()
         self.assertIn(f"/data/collections/{collection.code}/en/uploads/", item.source_original_path)
         self.assertNotIn("/data/raw/", item.source_original_path)
         self.assertEqual(item.upload_status, "completed")
+
+    def test_upload_page_has_txt_html_epub_format_options(self):
+        collection = self._collection_with_two_items()
+        response = self.client.get(reverse("collection_upload", kwargs={"collection_id": collection.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value="txt"')
+        self.assertContains(response, 'value="html"')
+        self.assertContains(response, 'value="epub"')
+        self.assertContains(response, 'accept=".txt,.html,.htm,.epub"')
+
+    def test_upload_rejects_format_file_mismatch(self):
+        collection = self._collection_with_two_items()
+        item = collection.items.order_by("order_index").first()
+        response = self.client.post(
+            reverse("collection_upload", kwargs={"collection_id": collection.id}),
+            {
+                "item_id": item.id,
+                "source_format": "epub",
+                "source_file": self._html_upload("one.html", "<html><body>One</body></html>"),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Arquivo incompativel com EPUB")
 
     def test_prepare_and_merge_create_isolated_artifacts(self):
         collection = self._collection_with_two_items()
@@ -193,7 +226,11 @@ class CollectionModuleTests(TestCase):
         for item in collection.items.order_by("order_index"):
             self.client.post(
                 reverse("collection_upload", kwargs={"collection_id": collection.id}),
-                {"item_id": item.id, "source_file": self._html_upload(f"item_{item.order_index}.html", html)},
+                {
+                    "item_id": item.id,
+                    "source_format": "html",
+                    "source_file": self._html_upload(f"item_{item.order_index}.html", html),
+                },
             )
         self.client.post(reverse("collection_process", kwargs={"collection_id": collection.id}), {"action": "prepare"})
         prepared = collections_storage.item_prepared_path(collection.code, collection.language, 1).read_text(encoding="utf-8")
@@ -203,6 +240,96 @@ class CollectionModuleTests(TestCase):
         self.assertIn("BOOK 1", prepared)
         self.assertIn("CHAPTER 4", prepared)
         self.assertIn("Real body starts here.", prepared)
+
+    def test_prepare_keeps_only_book_body_and_drops_standardebooks_front_back_matter(self):
+        collection = self._collection_with_two_items()
+        html = """
+        <html><body>
+        <h1>Title Page</h1>
+        <p>Standard Ebooks</p>
+        <p>Title: Old Metadata</p>
+        <h1>Frontispiece</h1>
+        <p>[Illustration: Portrait.jpg]</p>
+        <h1>Preface</h1>
+        <p>This explanatory page should go away.</p>
+        <h1>Introduction</h1>
+        <p>This introduction should go away.</p>
+        <h1>Table of Contents</h1>
+        <p>Chapter I. The Start</p>
+        <h1>Chapter I</h1>
+        <p>Real chapter body starts here.</p>
+        <h1>Chapter II</h1>
+        <p>Second chapter body.</p>
+        <h1>Epilogue</h1>
+        <p>Back matter should go away.</p>
+        <h1>Index</h1>
+        <p>Alpha 1</p>
+        </body></html>
+        """
+        for item in collection.items.order_by("order_index"):
+            self.client.post(
+                reverse("collection_upload", kwargs={"collection_id": collection.id}),
+                {
+                    "item_id": item.id,
+                    "source_format": "html",
+                    "source_file": self._html_upload(f"item_{item.order_index}.html", html),
+                },
+            )
+        self.client.post(reverse("collection_process", kwargs={"collection_id": collection.id}), {"action": "prepare"})
+        prepared = collections_storage.item_prepared_path(collection.code, collection.language, 1).read_text(encoding="utf-8")
+        self.assertNotIn("Standard Ebooks", prepared)
+        self.assertNotIn("Old Metadata", prepared)
+        self.assertNotIn("Illustration", prepared)
+        self.assertNotIn("explanatory page", prepared)
+        self.assertNotIn("introduction should go away", prepared)
+        self.assertNotIn("Table of Contents", prepared)
+        self.assertNotIn("Back matter", prepared)
+        self.assertNotIn("Alpha 1", prepared)
+        self.assertIn("CHAPTER 1", prepared)
+        self.assertIn("Real chapter body starts here.", prepared)
+        self.assertIn("CHAPTER 2", prepared)
+        self.assertIn("Second chapter body.", prepared)
+
+    def test_prepare_keeps_short_fiction_without_chapter_headings(self):
+        collection = self._collection_with_two_items()
+        html = """
+        <html><body>
+        <h1>Short Fiction</h1>
+        <h2>The Alchemist</h2>
+        <p>High up, crowning the grassy summit, stands the old chateau.</p>
+        <h2>Dagon</h2>
+        <p>I am writing this under an appreciable mental strain.</p>
+        </body></html>
+        """
+        for item in collection.items.order_by("order_index"):
+            self.client.post(
+                reverse("collection_upload", kwargs={"collection_id": collection.id}),
+                {
+                    "item_id": item.id,
+                    "source_format": "html",
+                    "source_file": self._html_upload(f"item_{item.order_index}.html", html),
+                },
+            )
+        self.client.post(reverse("collection_process", kwargs={"collection_id": collection.id}), {"action": "prepare"})
+        prepared = collections_storage.item_prepared_path(collection.code, collection.language, 1).read_text(encoding="utf-8")
+        self.assertIn("Short Fiction", prepared)
+        self.assertIn("The Alchemist", prepared)
+        self.assertIn("High up, crowning the grassy summit", prepared)
+        self.assertIn("Dagon", prepared)
+
+    def test_merge_does_not_duplicate_item_title_when_body_starts_with_same_title(self):
+        collection = self._collection_with_two_items()
+        normalized_one = collections_storage.item_normalized_path(collection.code, collection.language, 1)
+        normalized_two = collections_storage.item_normalized_path(collection.code, collection.language, 2)
+        normalized_one.parent.mkdir(parents=True, exist_ok=True)
+        normalized_one.write_text("First Work\nCHAPTER 1\nBody one.\n", encoding="utf-8")
+        normalized_two.write_text("Second Work\nCHAPTER 1\nBody two.\n", encoding="utf-8")
+        self.client.post(reverse("collection_process", kwargs={"collection_id": collection.id}), {"action": "merge"})
+        merged = collections_storage.merged_source_path(collection.code, collection.language).read_text(encoding="utf-8")
+        self.assertIn("BOOK ONE\n\nFirst Work\n\nCHAPTER 1", merged)
+        self.assertIn("BOOK TWO\n\nSecond Work\n\nCHAPTER 1", merged)
+        self.assertEqual(merged.count("\nFirst Work\n"), 1)
+        self.assertEqual(merged.count("\nSecond Work\n"), 1)
 
     def test_prepare_generates_prepared_output_per_item(self):
         collection = self._collection_with_two_items()
@@ -271,6 +398,36 @@ class CollectionModuleTests(TestCase):
         self.assertContains(response, "Duplicate item in the same collection is not allowed.")
         self.assertEqual(collection.items.count(), 1)
 
+    def test_items_ui_supports_batch_registration(self):
+        collection = Collection.objects.create(
+            code=self._new_collection_code("batch"),
+            title="Batch Collection",
+            subtitle="",
+            collection_kind="omnibus",
+            author_display_name="Author",
+            language="en",
+            status="COLLECTION_CREATED",
+            item_count=2,
+        )
+        response = self.client.post(
+            reverse("collection_items", kwargs={"collection_id": collection.id}),
+            {
+                "form-TOTAL_FORMS": "2",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-order_index": "1",
+                "form-0-author_name": "Author",
+                "form-0-work_title": "First Work",
+                "form-1-order_index": "2",
+                "form-1-author_name": "Author",
+                "form-1-work_title": "Second Work",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(collection.items.count(), 2)
+        self.assertEqual(collection.items.get(order_index=2).work_title, "Second Work")
+
     def test_collection_review_preview_uses_merged_source_only(self):
         collection = self._collection_with_two_items()
         self._upload_all(collection)
@@ -305,7 +462,11 @@ class CollectionModuleTests(TestCase):
         for item in items:
             self.client.post(
                 reverse("collection_upload", kwargs={"collection_id": collection.id}),
-                {"item_id": item.id, "source_file": self._html_upload(f"item_{item.order_index}.html", payloads[item.order_index])},
+                {
+                    "item_id": item.id,
+                    "source_format": "html",
+                    "source_file": self._html_upload(f"item_{item.order_index}.html", payloads[item.order_index]),
+                },
             )
 
     def _html_upload(self, name: str, content: str):

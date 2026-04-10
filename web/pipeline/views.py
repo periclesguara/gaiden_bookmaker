@@ -85,7 +85,10 @@ from .services import (
 
 SOURCE_FORMAT_HTML = "html"
 SOURCE_FORMAT_TXT = "txt"
-SOURCE_FORMAT_ALLOWED = {SOURCE_FORMAT_HTML, SOURCE_FORMAT_TXT}
+SOURCE_FORMAT_EPUB = "epub"
+SOURCE_FORMAT_ALLOWED = {SOURCE_FORMAT_HTML, SOURCE_FORMAT_TXT, SOURCE_FORMAT_EPUB}
+STAGE_SOURCE_UPLOADED = "SOURCE_UPLOADED"
+STAGE_SOURCE_EXTRACTED = "SOURCE_EXTRACTED"
 STAGE_HTML_UPLOADED = "HTML_UPLOADED"
 STAGE_TXT_UPLOADED = "TXT_UPLOADED"
 STAGE_HTML_PREPROD_READY = "HTML_PREPROD_READY"
@@ -186,6 +189,8 @@ _TRANSLATE_VARIANT_ALIASES = {
 
 _HTML_STAGE_ORDER = {
     PipelineStage.RAW: 10,
+    STAGE_SOURCE_UPLOADED: 20,
+    STAGE_SOURCE_EXTRACTED: 25,
     STAGE_HTML_UPLOADED: 20,
     STAGE_HTML_PREPROD_READY: 30,
     STAGE_MD_SOURCE_READY: 40,
@@ -371,6 +376,8 @@ def _canonicalize_ingest_post_data(post_data):
 def _allowed_upload_exts(source_format: str) -> set[str]:
     if source_format == SOURCE_FORMAT_HTML:
         return {".html", ".htm"}
+    if source_format == SOURCE_FORMAT_EPUB:
+        return {".epub"}
     return {".txt"}
 
 
@@ -382,7 +389,7 @@ def _is_allowed_source_upload(source_format: str, source_file) -> bool:
 def _validate_ingest_v1_request(post_data, files) -> str:
     source_format = (post_data.get("source_format") or "").strip().lower()
     if source_format not in SOURCE_FORMAT_ALLOWED:
-        raise ValidationError("source_format invalido. Use 'html' ou 'txt'.")
+        raise ValidationError("source_format invalido. Use 'html', 'txt' ou 'epub'.")
 
     required_fields = ("book_code", "language", "title", "author_name")
     for field in required_fields:
@@ -1071,17 +1078,25 @@ def _handle_source_upload(
     if edition is None:
         edition, edition_created = _ensure_editorial_edition(template)
     language = utils.normalize_lang(template.language)
-    ext = ".html" if selected_source_format == SOURCE_FORMAT_HTML else ".txt"
-    raw_path = root / "data" / "raw" / template.book_code / f"{template.book_code}_{language}_raw{ext}"
     previous_source = _existing_source_info(template, edition)
-    upload_meta = _write_uploaded_file_atomic(raw_path, source_file)
+    temp_upload_dir = storage.tmp_dir("source_extract_uploads")
+    temp_upload_dir.mkdir(parents=True, exist_ok=True)
+    temp_path = temp_upload_dir / f"{template.book_code}_{language}_upload{Path(source_file.name).suffix.lower()}"
+    upload_meta = _write_uploaded_file_atomic(temp_path, source_file)
+    extract_result = pipeline_ingest.run_source_extract(template.book_code, language, temp_path)
+    original_path = storage.resolve_repo_path(extract_result["original_file"])
+    canonical_txt_path = storage.resolve_repo_path(extract_result["canonical_txt"])
+    canonical_html_path = storage.resolve_repo_path(extract_result["canonical_html"])
+    raw_path = canonical_html_path if selected_source_format == SOURCE_FORMAT_HTML else canonical_txt_path
+    if temp_path.exists():
+        temp_path.unlink()
 
     with transaction.atomic():
         template.text_source_mode = selected_source_format
         template.registration_status = BookEditionTemplate.STATUS_READY_FOR_BLOCK_02
-        template.source_file_type = selected_source_format
+        template.source_file_type = str(extract_result["input_format"])
         template.source_original_name = source_file.name
-        template.source_saved_path = str(raw_path)
+        template.source_saved_path = str(original_path)
         template.source_file_size = int(upload_meta["size"])
         template.source_uploaded_at = timezone.now()
         template.source_file_sha256 = str(upload_meta["sha256"])
@@ -1109,14 +1124,12 @@ def _handle_source_upload(
 
         pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
         pipeline_state.raw_at = timezone.now()
-        pipeline_state.current_stage = (
-            STAGE_HTML_UPLOADED if selected_source_format == SOURCE_FORMAT_HTML else STAGE_TXT_UPLOADED
-        )
+        pipeline_state.current_stage = STAGE_SOURCE_EXTRACTED
         replacement_note = ""
         if previous_source["path"] and replace_existing:
             replacement_note = f" :: replaced={previous_source['path']}"
         pipeline_state.last_log = (
-            f"{timezone.now().isoformat()} :: {pipeline_state.current_stage} :: source_upload :: {raw_path}"
+            f"{timezone.now().isoformat()} :: {pipeline_state.current_stage} :: source_extract :: {raw_path}"
             f"{replacement_note}"
         )
         pipeline_state.save(update_fields=["raw_at", "current_stage", "last_log"])
@@ -1131,6 +1144,7 @@ def _handle_source_upload(
             "source_format": selected_source_format,
             "stage": pipeline_state.current_stage,
             "raw_path": str(raw_path),
+            "meta_file": extract_result["meta_file"],
             "replaced": bool(previous_source["path"] and replace_existing),
             "result": "ok",
         },
