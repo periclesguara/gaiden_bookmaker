@@ -1976,6 +1976,8 @@ class HeadingCleanerGateTests(TestCase):
         shutil.rmtree(self.root / "data" / "translated" / self.book_code, ignore_errors=True)
         shutil.rmtree(self.build_dir, ignore_errors=True)
         shutil.rmtree(self.edition_core_dir.parent, ignore_errors=True)
+        shutil.rmtree(self.root / "data" / "tmp_agent_chunks", ignore_errors=True)
+        shutil.rmtree(self.root / "data" / "tmp_agent_return", ignore_errors=True)
 
     def test_heading_cleaner_button_visible(self):
         response = self.client.get(self.steps_url)
@@ -2063,9 +2065,8 @@ class HeadingCleanerGateTests(TestCase):
         self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
         self.assertFalse((self.edition_core_dir / "refine_input_en").exists())
 
-    def test_runtime_refine_contract_is_hardened_into_prompts(self):
-        from gaiden.translate import run_translate_with_contract
-        from pipeline.views import _build_runtime_refine_contract
+    def test_refine_agent_handoff_uses_source_chunks_without_runtime_contract(self):
+        from pipeline.views import _prepare_refine_agent_handoff
 
         self.client.post(self.heading_url)
         self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
@@ -2075,87 +2076,24 @@ class HeadingCleanerGateTests(TestCase):
             encoding="utf-8",
         )
 
-        runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(self.edition, "en")
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
-
-        self.assertEqual(refine_input_dir, self.edition_core_dir / "refine_input_en")
-        self.assertEqual(out_dir_path, self.translated_dir.parent / "return_aldebaran")
-        self.assertEqual(payload["refine_profile"], "ingles_neutro")
-        self.assertEqual(payload["agent_name"], "Aldebaran")
-        self.assertIn("professional literary editor", payload["system_prompt"])
-        self.assertIn("Active refine profile: Ingles neutro via agent Aldebaran.", payload["system_prompt"])
-        self.assertIn("SURGICAL MICRO-POLISH ONLY", payload["system_prompt"])
-        self.assertIn("Do not globally modernize the book.", payload["system_prompt"])
-        self.assertIn("Preserve all information, chronology, speakers, dialogue, paragraph structure, and any existing chapter or section headings.", payload["system_prompt"])
-        self.assertIn("Do not delete, rename, or renumber existing headings or chapter markers.", payload["system_prompt"])
-        self.assertIn("Do not summarize", payload["system_prompt"])
-        self.assertIn("Selected profile: Ingles neutro.", payload["user_prompt"])
-        self.assertIn("Editing mode: surgical micro-polish only.", payload["user_prompt"])
-        self.assertIn("If a line is already strong, leave it unchanged.", payload["user_prompt"])
-        self.assertIn("Return only the refined passage", payload["user_prompt"])
-        self.assertIn("Do not omit any sentence", payload["user_prompt"])
-        self.assertIn("Do not delete or rewrite headings.", payload["user_prompt"])
-        self.assertEqual(payload["sanitize_failure_fallback"], "keep_source_chunk")
-
-        with patch("gaiden.translate.get_client", return_value=_FakeOpenAIClient("Here is the refined passage:")):
-            run_translate_with_contract(runtime_contract_path)
-
-        refined_chunk = out_dir_path / "0001.txt"
-        self.assertTrue(refined_chunk.exists())
-        self.assertEqual(
-            refined_chunk.read_text(encoding="utf-8"),
-            "Holmes spoke plainly.\n\nWatson listened carefully.",
-        )
-        self.assertTrue((out_dir_path / "merged_return_aldebaran.txt").exists())
-
-    def test_runtime_refine_contract_can_switch_to_ingles_flex_profile(self):
-        from pipeline.views import _build_runtime_refine_contract
-
-        self.client.post(self.heading_url)
-        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
-        self.translated_dir.mkdir(parents=True, exist_ok=True)
-        (self.translated_dir / "0001.txt").write_text(
-            "Steel rang in the dark while the sorcerer watched.",
-            encoding="utf-8",
-        )
-
-        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
+        source_dir, source_label, out_dir_path, profile_cfg, profile = _prepare_refine_agent_handoff(
             self.edition,
             "en",
             refine_profile="ingles_flex",
         )
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(payload["refine_profile"], "ingles_flex")
-        self.assertEqual(payload["agent_name"], "Alamaguederaz")
-        self.assertIn("flexible adventure English", payload["system_prompt"])
-        self.assertIn("sword-and-sorcery flavor", payload["system_prompt"])
-        self.assertIn("SURGICAL MICRO-POLISH ONLY", payload["system_prompt"])
-        self.assertIn("Selected profile: Ingles flex.", payload["user_prompt"])
+        self.assertEqual(source_dir, self.translated_dir)
+        self.assertEqual(source_label, "translate_chunks")
+        self.assertEqual(out_dir_path, self.translated_dir / "return_alamaguederaz")
+        self.assertEqual(profile, "ingles_flex")
+        self.assertEqual(profile_cfg["agent_name"], "Alamaguederaz")
+        self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
 
-    def test_runtime_refine_contract_can_switch_to_headingcleaner_profile(self):
+    def test_runtime_refine_contract_is_disabled(self):
         from pipeline.views import _build_runtime_refine_contract
 
-        self.client.post(self.heading_url)
-        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
-        self.translated_dir.mkdir(parents=True, exist_ok=True)
-        (self.translated_dir / "0001.txt").write_text(
-            "BOOK I\n\nA dense philosophical passage with structural noise.",
-            encoding="utf-8",
-        )
-
-        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
-            self.edition,
-            "en",
-            refine_profile="headingcleaner",
-        )
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
-
-        self.assertEqual(payload["refine_profile"], "headingcleaner")
-        self.assertEqual(payload["agent_name"], "HeadingCleaner")
-        self.assertIn("philosophical English cleanup", payload["system_prompt"])
-        self.assertIn("heading consistency", payload["system_prompt"])
-        self.assertIn("Selected profile: HeadingCleaner.", payload["user_prompt"])
+        with self.assertRaisesRegex(RuntimeError, "Refine via JSON contract is disabled"):
+            _build_runtime_refine_contract(self.edition, "en")
 
     def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
         from gaiden.translate import sanitize_generated_chunk_text
@@ -2181,8 +2119,8 @@ class HeadingCleanerGateTests(TestCase):
         self.assertGreaterEqual(payload["max_output_tokens"], 1800)
         self.assertLessEqual(payload["max_output_tokens"], 4000)
 
-    def test_runtime_refine_contract_raises_max_output_tokens_for_large_chunks(self):
-        from pipeline.views import _build_runtime_refine_contract
+    def test_refine_agent_handoff_keeps_large_chunks_on_direct_source(self):
+        from pipeline.views import _prepare_refine_agent_handoff
 
         self.client.post(self.heading_url)
         self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
@@ -2192,34 +2130,37 @@ class HeadingCleanerGateTests(TestCase):
             encoding="utf-8",
         )
 
-        runtime_contract_path, _refine_input_dir, _out_dir_path = _build_runtime_refine_contract(
-            self.edition,
-            "en",
+        source_dir, _source_label, out_dir_path, _profile_cfg, _profile = _prepare_refine_agent_handoff(
+            self.edition, "en"
         )
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
 
-        self.assertGreater(payload["max_output_tokens"], 1200)
-        self.assertGreaterEqual(payload["max_output_tokens"], 1800)
+        self.assertEqual(source_dir, self.translated_dir)
+        self.assertEqual(out_dir_path, self.translated_dir / "return_aldebaran")
+        self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
 
-    def test_runtime_refine_contract_rejects_truncated_chunk_output(self):
-        from gaiden.translate import run_translate_with_contract
-        from pipeline.views import _build_runtime_refine_contract
+    def test_agent_refine_return_writes_report_and_rejects_incomplete_merge(self):
+        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-        self.client.post(self.heading_url)
-        self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
-        self.translated_dir.mkdir(parents=True, exist_ok=True)
-        (self.translated_dir / "0001.txt").write_text(
+        chunk_dir = self.root / "data" / "tmp_agent_chunks"
+        out_dir = self.root / "data" / "tmp_agent_return"
+        chunk_dir.mkdir(parents=True, exist_ok=True)
+        (chunk_dir / "0001.txt").write_text(
             "The barbarian looked back toward the ruins.\n\nThe stars were already paling for dawn.",
             encoding="utf-8",
         )
 
-        runtime_contract_path, _refine_input_dir, out_dir_path = _build_runtime_refine_contract(self.edition, "en")
+        with patch("gaiden.tools.aldebaran_refine_return.openai_healthcheck", return_value=(True, "ok")):
+            with patch("gaiden.tools.aldebaran_refine_return.call_agent_text", return_value="Refined text."):
+                result = run_aldebaran_refine_return(
+                    chunk_dir=chunk_dir,
+                    out_dir=out_dir,
+                    agent_name="Alamaguederaz",
+                    merge_name="merge_refine_en.txt",
+                )
 
-        with patch("gaiden.translate.get_client", return_value=_FakeOpenAIClient("The barbarian looked back toward the")):
-            with self.assertRaisesRegex(RuntimeError, "appears truncated before the chunk boundary"):
-                run_translate_with_contract(runtime_contract_path)
-
-        self.assertFalse((out_dir_path / "0001.txt").exists())
+        self.assertEqual((out_dir / "0001.txt").read_text(encoding="utf-8"), "Refined text.\n")
+        self.assertTrue((out_dir / "agent_refine_return_report.json").exists())
+        self.assertEqual(Path(result["merge_path"]), out_dir / "merge_refine_en.txt")
 
     def test_runtime_translate_contract_is_generic_and_not_sherlock_specific(self):
         from pipeline.views import _build_runtime_translate_contract

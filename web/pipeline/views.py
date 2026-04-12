@@ -2674,9 +2674,9 @@ def _english_controlled_translation_defaults() -> dict:
             "narrative continuity, paragraph structure, and literary intent."
         ),
         "stage": "translate",
-        "model": "gpt-5.4",
+        "model": "gpt-5.2",
         "model_lock": True,
-        "fallback_model": "gpt-5.2",
+        "fallback_model": "gpt-5.1",
         "fallback_policy": "on_no_response",
         "temperature": 0.2,
         "max_output_tokens": 1800,
@@ -2834,6 +2834,48 @@ def _english_translate_contract_block(payload: dict) -> str:
         if policy_lines:
             sections.append("CONTRACT POLICY:\n" + "\n".join(policy_lines))
 
+    assisted_rewrite_policy = (
+        payload.get("assisted_rewrite_policy")
+        if isinstance(payload.get("assisted_rewrite_policy"), dict)
+        else {}
+    )
+    if assisted_rewrite_policy:
+        rewrite_lines = []
+        allowed_rewrite = assisted_rewrite_policy.get("allowed_rewrite_percent")
+        length_variation = assisted_rewrite_policy.get("length_variation_percent")
+        if allowed_rewrite is not None:
+            rewrite_lines.append(f"- Controlled assisted rewriting limit: {allowed_rewrite} percent.")
+        if length_variation is not None:
+            rewrite_lines.append(f"- Total length variation limit: +/- {length_variation} percent.")
+        if assisted_rewrite_policy.get("scope"):
+            rewrite_lines.append(f"- Scope: {assisted_rewrite_policy['scope']}")
+        constraints = assisted_rewrite_policy.get("constraints")
+        if isinstance(constraints, list):
+            rewrite_lines.extend(f"- {item}" for item in constraints if str(item).strip())
+        if rewrite_lines:
+            sections.append("ASSISTED REWRITE POLICY:\n" + "\n".join(rewrite_lines))
+
+    length_variation_policy = (
+        payload.get("length_variation_policy")
+        if isinstance(payload.get("length_variation_policy"), dict)
+        else {}
+    )
+    if length_variation_policy:
+        length_lines = []
+        allowed_variation = length_variation_policy.get("allowed_variation_percent")
+        if allowed_variation is not None:
+            length_lines.append(f"- Allowed total variation: +/- {allowed_variation} percent.")
+        allowed_for = length_variation_policy.get("allowed_for")
+        if isinstance(allowed_for, list) and allowed_for:
+            length_lines.append("Allowed for:")
+            length_lines.extend(f"- {item}" for item in allowed_for if str(item).strip())
+        forbidden = length_variation_policy.get("forbidden")
+        if isinstance(forbidden, list) and forbidden:
+            length_lines.append("Forbidden:")
+            length_lines.extend(f"- {item}" for item in forbidden if str(item).strip())
+        if length_lines:
+            sections.append("LENGTH VARIATION POLICY:\n" + "\n".join(length_lines))
+
     for title, key in [
         ("CORE OBJECTIVES", "core_objectives"),
         ("EDITORIAL RULES", "editorial_rules"),
@@ -2972,8 +3014,10 @@ def _harden_translate_contract(payload: dict, target_language: str) -> dict:
         payload = _merge_translate_contract_defaults(payload)
     system_prompt, user_prompt, target_label = _generic_translate_prompts(target_language, payload)
     payload["name"] = f"Pipeline runtime literary translate -> {target_label}"
-    if str(payload.get("model") or "").strip() in {"", "gpt-5.1", "gpt-5-chat-latest"}:
-        payload["model"] = "gpt-5.4"
+    if str(payload.get("model") or "").strip() in {"", "gpt-5-chat-latest"}:
+        payload["model"] = "gpt-5.2"
+    if str(payload.get("fallback_model") or "").strip() in {"", "gpt-5.4", "gpt-5-chat-latest"}:
+        payload["fallback_model"] = "gpt-5.1"
     payload["system_prompt"] = system_prompt
     payload["user_prompt"] = user_prompt
     return payload
@@ -3042,6 +3086,16 @@ def _harden_refine_contract(
     )
     instructions = payload.get("instructions") if isinstance(payload.get("instructions"), dict) else {}
     output = instructions.get("output") if isinstance(instructions.get("output"), dict) else {}
+    assisted_rewrite_policy = (
+        payload.get("assisted_rewrite_policy")
+        if isinstance(payload.get("assisted_rewrite_policy"), dict)
+        else {}
+    )
+    length_variation_policy = (
+        payload.get("length_variation_policy")
+        if isinstance(payload.get("length_variation_policy"), dict)
+        else {}
+    )
 
     goal = str(instructions.get("goal") or "").strip()
     system_parts = [
@@ -3055,6 +3109,24 @@ def _harden_refine_contract(
         "Make only local improvements for fluency, clarity, cadence, punctuation, and naturalness where truly needed.",
         "Do not globally rewrite the passage. Do not change register beyond what the active profile explicitly requires.",
     ]
+    rewrite_limit = assisted_rewrite_policy.get("allowed_rewrite_percent")
+    length_limit = (
+        assisted_rewrite_policy.get("length_variation_percent")
+        or length_variation_policy.get("allowed_variation_percent")
+    )
+    if rewrite_limit is not None:
+        system_parts.append(
+            f"Controlled assisted rewriting is allowed up to roughly {rewrite_limit} percent of the text only where needed."
+        )
+    if length_limit is not None:
+        system_parts.append(
+            f"Total output length may vary by approximately +/- {length_limit} percent when substance is preserved."
+        )
+    if assisted_rewrite_policy.get("scope"):
+        system_parts.append(str(assisted_rewrite_policy["scope"]))
+    constraints = assisted_rewrite_policy.get("constraints")
+    if isinstance(constraints, list):
+        system_parts.extend(str(item) for item in constraints if str(item).strip())
     if goal:
         system_parts.append(goal)
 
@@ -3084,6 +3156,8 @@ def _harden_refine_contract(
         "Preserve every fact, sentence-level meaning, dialogue turn, paragraph boundary, and any chapter/section heading already present.\n"
         "Return only the refined passage.\n"
         "Do not summarize.\n"
+        "Apply controlled assisted rewriting only up to the contract limit when needed.\n"
+        "Keep total length within the contract's +/- variation limit when applicable.\n"
         "Do not omit any sentence or paragraph.\n"
         "Do not delete or rewrite headings.\n"
         "Do not translate into another language.\n"
@@ -3123,12 +3197,17 @@ def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Pa
     payload["out_dir"] = str(out_dir)
     payload["target_language"] = target_base
     payload["translation_variant"] = target_variant
-    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
-        chunk_dir,
-        input_glob,
-        target_base,
-        current_limit=payload.get("max_output_tokens"),
-    )
+    if target_base == "en":
+        payload["validation_failure_fallback"] = "keep_source_chunk"
+        payload["max_output_tokens"] = min(int(payload.get("max_output_tokens") or 2000), 2000)
+        payload["max_retry_output_tokens"] = 2000
+    else:
+        payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
+            chunk_dir,
+            input_glob,
+            target_base,
+            current_limit=payload.get("max_output_tokens"),
+        )
 
     if not isinstance(payload.get("output"), dict):
         payload["output"] = {}
@@ -3178,11 +3257,41 @@ def _resolve_refine_source_dir(edition, target_language: str) -> tuple[Path, str
     return _runtime_translate_dir_for_edition(edition, target_language), "translate_chunks"
 
 
+def _prepare_refine_agent_handoff(
+    edition,
+    target_language: str,
+    refine_profile: str | None = None,
+) -> tuple[Path, str, Path, dict[str, str], str]:
+    target_base = _translate_base_language(target_language)
+    normalized_profile = _normalized_refine_profile_for_language(refine_profile, target_base)
+    profile_cfg = _refine_profile_config(normalized_profile)
+    source_dir, source_label = _resolve_refine_source_dir(edition, target_language)
+    if not source_dir.exists():
+        raise FileNotFoundError(f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first.")
+
+    source_chunks = [
+        p for p in sorted(source_dir.glob("*.txt"))
+        if not (p.name == "merged.txt" or p.name.startswith("merged_"))
+    ]
+    if not source_chunks:
+        raise FileNotFoundError(f"No chunks found in {source_dir} for agent refine.")
+
+    out_dir = _resolve_refine_output_dir(
+        source_dir,
+        refine_profile=normalized_profile,
+        target_language=target_base,
+    )
+    if out_dir is None:
+        raise FileNotFoundError("Unable to resolve refine output directory.")
+    return source_dir, source_label, out_dir, profile_cfg, normalized_profile
+
+
 def _build_runtime_refine_contract(
     edition,
     target_language: str,
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
+    raise RuntimeError("Refine via JSON contract is disabled. Use direct agent handoff instead.")
     target_base = _translate_base_language(target_language)
     payload = json.loads(_select_refine_contract(target_base, refine_profile=refine_profile).read_text(encoding="utf-8"))
     payload = _harden_refine_contract(
@@ -4496,55 +4605,28 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
         pipeline_state.translation_language or target_edition.language.code
     )
     refine_profile = _normalized_refine_profile_for_language(
-        refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language)
-        ,
+        refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language),
         target_language,
     )
-    refine_profile_cfg = _refine_profile_config(refine_profile)
     if pipeline_state.refine_profile != refine_profile:
         pipeline_state.refine_profile = refine_profile
         pipeline_state.save(update_fields=["refine_profile"])
-    source_dir, refine_source_label = _resolve_refine_source_dir(target_edition, translate_variant)
-    if not source_dir.exists():
-        raise FileNotFoundError(
-            f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first."
-        )
+    source_dir, refine_source_label, out_dir_path, refine_profile_cfg, refine_profile = _prepare_refine_agent_handoff(
+        target_edition,
+        translate_variant,
+        refine_profile=refine_profile,
+    )
 
-    try:
-        out_dir_path = _resolve_refine_output_dir(
-            source_dir,
-            refine_profile=refine_profile,
-            target_language=target_language,
-        )
-        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+    from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-        result = run_aldebaran_refine_return(
-            chunk_dir=source_dir,
-            out_dir=out_dir_path,
-            merge_name=f"merge_refine_{target_language}.txt",
-            agent_name=refine_profile_cfg["agent_name"],
-        )
-        merged_path = Path(result["merge_path"])
-    except ModuleNotFoundError:
-        runtime_contract_path, refine_input_dir, out_dir_path = _build_runtime_refine_contract(
-            target_edition, translate_variant, refine_profile=refine_profile
-        )
-        run_translation_contract(runtime_contract_path)
-        merged_candidates = [
-            out_dir_path / f"merge_refine_{target_language}.txt",
-            out_dir_path / "merge_refine.txt",
-            out_dir_path / "merged_return_aldebaran.txt",
-            out_dir_path / "merged_return_kaiser.txt",
-            out_dir_path / "merged.txt",
-        ]
-        merged_candidates.extend(sorted(out_dir_path.glob("merged_*.txt")))
-        merged_path = next((p for p in merged_candidates if p.exists()), None)
-        result = {
-            "agent_name": f"{refine_profile_cfg['agent_name']} (contract-fallback)",
-            "source_dir": str(refine_input_dir),
-            "report_path": str(runtime_contract_path),
-            "merge_path": str(merged_path or (out_dir_path / f"merged_{out_dir_path.name}.txt")),
-        }
+    result = run_aldebaran_refine_return(
+        chunk_dir=source_dir,
+        out_dir=out_dir_path,
+        merge_name=f"merge_refine_{target_language}.txt",
+        agent_name=refine_profile_cfg["agent_name"],
+        max_output_tokens=2000,
+    )
+    merged_path = Path(result["merge_path"])
 
     _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
     if merged_path is None:
@@ -4828,12 +4910,13 @@ def run_edition_step(request, edition_id: int, step: str):
             result = chapter_agent.run_split_by_chapter(
                 target_edition,
                 parts_per_chapter=requested_parts,
+                max_chars_per_part=6000,
             )
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.last_log = (
                 f"{timezone.now().isoformat()} :: SPLIT_BY_CHAPTER :: "
                 f"chapters={result['chapter_count']} parts={result['part_count']} "
-                f"parts_per_chapter={requested_parts}"
+                f"parts_per_chapter={requested_parts} max_chars_per_part={result.get('max_chars_per_part')}"
             )
             pipeline_state.save(update_fields=["last_log"])
             messages.success(

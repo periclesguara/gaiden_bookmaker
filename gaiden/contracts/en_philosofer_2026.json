@@ -7,7 +7,7 @@
   "stage": "translate",
   "model": "gpt-5.2",
   "model_lock": true,
-  "fallback_model": "gpt-5.4",
+  "fallback_model": "gpt-5.1",
   "fallback_policy": "on_no_response",
   "temperature": 0.2,
   "max_output_tokens": 1800,
@@ -18,6 +18,16 @@
   },
   "io": {
     "lang_variant": "en_philosofer_2026"
+  },
+  "assisted_rewrite_policy": {
+    "allowed_rewrite_percent": 20,
+    "length_variation_percent": 10,
+    "scope": "Controlled assisted rewriting only where needed to satisfy clarity, fluency, readability, rhythm, and modern comprehension.",
+    "constraints": [
+      "Preserve meaning, structure, paragraph order, chapter order, factual content, names, places, dates, numbers, and narrative intent.",
+      "Do not summarize, omit, invent, censor, explain, annotate, add commentary, or rewrite freely.",
+      "Length variation is allowed only to improve clarity, fluency, readability, rhythm, and modern comprehension while preserving substance."
+    ]
   },
   "mission": "Rewrite raw or old-fashioned English into clear, fluent, modern English while preserving the original meaning, structure, tone, and narrative intent as much as possible.",
   "primary_objective": [

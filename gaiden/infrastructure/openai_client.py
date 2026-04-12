@@ -27,7 +27,7 @@ def choose_model(*, stage: str | None = None, contract_model: str | None = None,
         return env_specific
     if env_default and str(env_default).strip():
         return str(env_default).strip()
-    return os.environ.get("GAIDEN_DEFAULT_MODEL", "gpt-5.4").strip() or "gpt-5.4"
+    return os.environ.get("GAIDEN_DEFAULT_MODEL", "gpt-5.2").strip() or "gpt-5.2"
 
 
 def openai_healthcheck() -> tuple[bool, str]:

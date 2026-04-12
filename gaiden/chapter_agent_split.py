@@ -12,6 +12,7 @@ DEFAULT_FALLBACK_MODEL = "gpt-5.2"
 DEFAULT_MAX_OUTPUT_TOKENS = 4000
 PARTS_PER_CHAPTER = 1
 MAX_PARTS_PER_CHAPTER = 4
+DEFAULT_MAX_CHARS_PER_PART = 6000
 
 _ORDINAL_WORD_MAP = {
     "first": 1,
@@ -406,12 +407,57 @@ def split_chapter_into_parts(chapter_text: str, *, parts: int = PARTS_PER_CHAPTE
     return ["\n\n".join(bucket).strip() + "\n" for bucket in out if bucket]
 
 
+def split_chapter_into_char_limited_parts(
+    chapter_text: str,
+    *,
+    max_chars: int = DEFAULT_MAX_CHARS_PER_PART,
+) -> list[str]:
+    cleaned = chapter_text.strip()
+    if not cleaned:
+        return []
+    if max_chars < 1000:
+        raise ValueError("max_chars deve ser pelo menos 1000.")
+
+    paragraphs = [item.strip() for item in re.split(r"\n\s*\n", cleaned) if item.strip()]
+    if not paragraphs:
+        return _split_dense_text(cleaned, max(1, (len(cleaned) + max_chars - 1) // max_chars))
+
+    out: list[str] = []
+    current: list[str] = []
+    current_chars = 0
+
+    for paragraph in paragraphs:
+        paragraph_len = len(paragraph)
+        if paragraph_len > max_chars:
+            if current:
+                out.append("\n\n".join(current).strip() + "\n")
+                current = []
+                current_chars = 0
+            out.extend(_split_dense_text(paragraph, max(1, (paragraph_len + max_chars - 1) // max_chars)))
+            continue
+
+        projected = current_chars + paragraph_len + (2 if current else 0)
+        if current and projected > max_chars:
+            out.append("\n\n".join(current).strip() + "\n")
+            current = [paragraph]
+            current_chars = paragraph_len
+        else:
+            current.append(paragraph)
+            current_chars = projected
+
+    if current:
+        out.append("\n\n".join(current).strip() + "\n")
+
+    return out
+
+
 def write_chapter_split_artifacts(
     merged_text: str,
     output_dir: Path,
     *,
     manifest_path: Path | None = None,
     parts_per_chapter: int = PARTS_PER_CHAPTER,
+    max_chars_per_part: int | None = None,
 ) -> dict[str, Any]:
     chapters = split_merged_text_into_chapters(merged_text)
     if not chapters:
@@ -421,13 +467,20 @@ def write_chapter_split_artifacts(
 
     manifest: dict[str, Any] = {
         "parts_per_chapter": parts_per_chapter,
+        "max_chars_per_part": max_chars_per_part,
         "chapter_count": len(chapters),
         "chapters": [],
     }
 
     for chapter in chapters:
-        chapter_parts = split_chapter_into_parts(chapter["text"], parts=parts_per_chapter)
-        if len(chapter_parts) != parts_per_chapter:
+        if max_chars_per_part:
+            chapter_parts = split_chapter_into_char_limited_parts(
+                chapter["text"],
+                max_chars=max_chars_per_part,
+            )
+        else:
+            chapter_parts = split_chapter_into_parts(chapter["text"], parts=parts_per_chapter)
+        if not max_chars_per_part and len(chapter_parts) != parts_per_chapter:
             raise ValueError(
                 f"Capitulo {chapter['heading']!r} nao gerou {parts_per_chapter} partes."
             )

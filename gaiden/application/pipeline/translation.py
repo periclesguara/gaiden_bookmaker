@@ -257,15 +257,17 @@ def assert_chunk_not_truncated(source_text: str, candidate_text: str, chunk_name
         raise RuntimeError(reason)
 
 
-def _retry_token_limits(base_limit: int, source_text: str) -> list[int]:
+def _retry_token_limits(base_limit: int, source_text: str, hard_cap: int | None = None) -> list[int]:
     source_chars = len(source_text or "")
     estimated = int(source_chars / 3.4) + 240
-    hard_cap = 4000
+    hard_cap = int(hard_cap or 12000)
     limits: list[int] = []
     for candidate in (
         base_limit,
         max(base_limit + 400, int(base_limit * 1.2)),
         max(base_limit + 800, int(base_limit * 1.4), estimated),
+        max(base_limit + 1600, int(base_limit * 2.0), estimated * 2),
+        max(base_limit + 3200, int(base_limit * 3.0), estimated * 3),
     ):
         bounded = min(int(candidate), hard_cap)
         if bounded not in limits:
@@ -372,12 +374,13 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         out_dir_path = storage.resolve_storage_path(Path(out_dir).expanduser())
     out_dir_path.mkdir(parents=True, exist_ok=True)
 
-    model = contract.get("model", "gpt-5.4")
+    model = contract.get("model", "gpt-5.2")
     fallback_model = contract.get("fallback_model")
-    if fallback_model is None and str(model).strip() == "gpt-5.4":
-        fallback_model = "gpt-5.2"
+    if fallback_model is None and str(model).strip() == "gpt-5.2":
+        fallback_model = "gpt-5.1"
     temperature = float(contract.get("temperature", 0.4))
     max_output_tokens = int(contract.get("max_output_tokens", 1200))
+    max_retry_output_tokens = int(contract.get("max_retry_output_tokens") or max_output_tokens)
     client = get_client()
     txt_files = sorted(chunk_dir_path.glob("*.txt"))
     if not txt_files:
@@ -410,7 +413,7 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
         messages = list(base_messages)
         translated = ""
         model_used = str(model)
-        retry_limits = _retry_token_limits(max_output_tokens, text)
+        retry_limits = _retry_token_limits(max_output_tokens, text, hard_cap=max_retry_output_tokens)
         last_error: Exception | None = None
         for attempt, token_limit in enumerate(retry_limits, start=1):
             primary_model = str(model)
@@ -448,6 +451,15 @@ def run_translate_with_contract(contract_path: str | Path) -> None:
                         f"with max_output_tokens={token_limit}. reason={exc}"
                     )
                     continue
+                validation_fallback = str(contract.get("validation_failure_fallback") or "").strip().lower()
+                if validation_fallback == "keep_source_chunk" and target_lang.lower().startswith("en"):
+                    translated = text.strip()
+                    last_error = None
+                    print(
+                        f"[WARN] validation fallback for {chunk_path.name}: {exc}. "
+                        "Keeping English source chunk unchanged."
+                    )
+                    break
                 raw_preview = re.sub(r"\s+", " ", translated).strip()[:200]
                 raise RuntimeError(f"{chunk_path.name}: {exc}. raw_preview={raw_preview!r}") from exc
 

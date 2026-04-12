@@ -37,6 +37,7 @@ def run_split_by_chapter(
     edition,
     *,
     parts_per_chapter: int = 1,
+    max_chars_per_part: int | None = None,
 ) -> dict[str, Any]:
     merge_path = resolve_merge_translate_path(edition)
     split_root = paths.split_by_chapter_dir(edition)
@@ -53,6 +54,7 @@ def run_split_by_chapter(
         parts_dir,
         manifest_path=manifest_path,
         parts_per_chapter=parts_per_chapter,
+        max_chars_per_part=max_chars_per_part,
     )
 
     part_count = 0
@@ -66,4 +68,5 @@ def run_split_by_chapter(
         "manifest_path": str(manifest_path),
         "chapter_count": int(manifest.get("chapter_count") or 0),
         "part_count": part_count,
+        "max_chars_per_part": max_chars_per_part,
     }

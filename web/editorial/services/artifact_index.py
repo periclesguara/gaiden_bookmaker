@@ -97,6 +97,11 @@ def _scan_builds(work_code: str, lang: str) -> None:
         if path.exists():
             _upsert(work_code, lang, stage, path, is_candidate=True)
 
+    split_root = bdir / "split_by_chapter"
+    if split_root.exists():
+        for path in sorted(split_root.glob("return_*/merge*.txt")):
+            _upsert(work_code, lang, "refine", path, is_candidate=path.name.startswith("merge_"))
+
 
 def _scan_frontmatter(work_code: str, lang: str) -> None:
     fdir = storage.frontmatter_dir(work_code, lang)

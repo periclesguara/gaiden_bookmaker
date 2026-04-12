@@ -86,7 +86,7 @@
         {% for a in artifacts %}
         <tr>
           <td>{{ a.stage }}</td>
-          <td><strong>{{ a.filename }}</strong></td>
+          <td><strong><a href="{% url 'artifact_preview' artifact_id=a.id %}">{{ a.filename }}</a></strong></td>
           <td><code>{{ a.relpath }}</code></td>
           <td>{{ a.size_bytes }}</td>
           <td>{{ a.mtime_iso }}</td>

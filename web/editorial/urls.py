@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-from .views_artifacts import artifacts_reindex, artifacts_table
+from .views_artifacts import artifact_preview, artifacts_reindex, artifacts_table
 
 urlpatterns = [
     path(
@@ -28,6 +28,11 @@ urlpatterns = [
         "edition/<int:edition_id>/frontispiece/",
         views.frontispiece_preview,
         name="frontispiece_preview",
+    ),
+    path(
+        "artifacts/file/<int:artifact_id>/",
+        artifact_preview,
+        name="artifact_preview",
     ),
     path(
         "artifacts/<str:work_code>/<str:lang>/",

@@ -289,7 +289,7 @@ class ChapterAgentServiceTests(TestCase):
         self.assertEqual(source_dir, parts_dir)
         self.assertEqual(source_label, "split_by_chapter/parts")
 
-    def test_build_runtime_refine_contract_uses_split_by_chapter_parts_as_source(self):
+    def test_prepare_refine_agent_handoff_uses_split_by_chapter_parts_as_source(self):
         build_dir = paths.edition_build_dir(self.edition)
         build_dir.mkdir(parents=True, exist_ok=True)
         split_root = paths.split_by_chapter_dir(self.edition)
@@ -299,19 +299,20 @@ class ChapterAgentServiceTests(TestCase):
         (parts_dir / "chapter_01_part_01.txt").write_text("part one\n", encoding="utf-8")
         (parts_dir / "chapter_01_part_02.txt").write_text("part two\n", encoding="utf-8")
 
-        contract_path, refine_input_dir, out_dir = pipeline_views._build_runtime_refine_contract(
+        source_dir, source_label, out_dir, profile_cfg, profile = pipeline_views._prepare_refine_agent_handoff(
             self.edition,
             "en",
             refine_profile="ingles_neutro",
         )
 
-        payload = json.loads(contract_path.read_text(encoding="utf-8"))
-        copied_files = sorted(p.name for p in refine_input_dir.glob("*.txt"))
-        self.assertEqual(copied_files, ["chapter_01_part_01.txt", "chapter_01_part_02.txt"])
-        self.assertEqual(payload["chunk_dir"], str(refine_input_dir))
+        source_files = sorted(p.name for p in source_dir.glob("*.txt"))
+        self.assertEqual(source_files, ["chapter_01_part_01.txt", "chapter_01_part_02.txt"])
+        self.assertEqual(source_label, "split_by_chapter/parts")
         self.assertEqual(out_dir, split_root / "return_aldebaran")
+        self.assertEqual(profile_cfg["agent_name"], "Aldebaran")
+        self.assertEqual(profile, "ingles_neutro")
 
-    def test_build_runtime_refine_contract_uses_return_kaiser_for_german(self):
+    def test_prepare_refine_agent_handoff_uses_return_kaiser_for_german(self):
         build_dir = paths.edition_build_dir(self.edition)
         build_dir.mkdir(parents=True, exist_ok=True)
         split_root = paths.split_by_chapter_dir(self.edition)
@@ -320,15 +321,14 @@ class ChapterAgentServiceTests(TestCase):
         (split_root / "manifest.json").write_text('{"chapter_count": 1}', encoding="utf-8")
         (parts_dir / "chapter_01_part_01.txt").write_text("teil eins\n", encoding="utf-8")
 
-        contract_path, refine_input_dir, out_dir = pipeline_views._build_runtime_refine_contract(
+        source_dir, _source_label, out_dir, profile_cfg, _profile = pipeline_views._prepare_refine_agent_handoff(
             self.edition,
             "de",
             refine_profile="de_kaiser",
         )
 
-        payload = json.loads(contract_path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["agent_name"], "Kaiser")
-        self.assertEqual(refine_input_dir, self.temp_root / "data" / "editions" / str(self.edition.id) / "core" / "refine_input_de")
+        self.assertEqual(profile_cfg["agent_name"], "Kaiser")
+        self.assertEqual(source_dir, parts_dir)
         self.assertEqual(out_dir, split_root / "return_kaiser")
 
     def test_recommended_split_parts_for_philosophy_and_devotional_english(self):
