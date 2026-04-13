@@ -109,12 +109,20 @@ def split_by_chapter_dir(edition) -> Path:
     return edition_build_dir(edition) / "split_by_chapter"
 
 
+def split_refine_by_chapter_dir(edition) -> Path:
+    return edition_build_dir(edition) / "split_refine_by_chapter"
+
+
 def merge_refine_path(edition) -> Path:
     return edition_build_dir(edition) / "merge_refine.txt"
 
 
 def merge_polish_path(edition) -> Path:
     return edition_build_dir(edition) / "merge_polish.txt"
+
+
+def merge_polidor_path(edition) -> Path:
+    return edition_build_dir(edition) / "merge_polidor.txt"
 
 
 def core_last_txt_path(edition) -> Path:

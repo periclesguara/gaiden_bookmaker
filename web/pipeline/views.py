@@ -153,7 +153,16 @@ BLOCK_STATUS_LABELS = {
     "bloco_04_done": "bloco_04_done",
 }
 REFINE_RETURN_DIRNAME = "return_aldebaran"
-POLISH_RETURN_DIRNAME = "return_bismarck"
+POLISH_RETURN_DIRNAME = "return_polisher"
+POLISH_AGENT_DEFAULT = "English Polidor"
+SPLIT_REFINE_MAX_CHARS_PER_PART = 4500
+POLISH_AGENT_OPTIONS = (
+    "English Polidor",
+    "Alamaguederaz",
+    "Aldebaran",
+    "Bismarck",
+    "Kaiser",
+)
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en", "label": "EN (modern)", "base_language": "en"},
     {"value": "en_philo", "label": "English-Philosofer", "base_language": "en"},
@@ -2258,6 +2267,51 @@ def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: st
     return next((p for p in candidates if p.exists()), None)
 
 
+def _resolve_polish_source_dir(edition) -> tuple[Path, str]:
+    split_root = paths.split_refine_by_chapter_dir(edition)
+    split_manifest = split_root / "manifest.json"
+    split_parts_dir = split_root / "parts"
+    if split_manifest.exists() and split_parts_dir.exists():
+        return split_parts_dir, "split_refine_by_chapter/parts"
+
+    refine_source_dir, _source_label = _resolve_refine_source_dir(edition, edition.language.code)
+    refine_dir = _resolve_refine_output_dir(
+        refine_source_dir,
+        refine_profile=getattr(EditionPipeline.objects.filter(edition=edition).first(), "refine_profile", ""),
+        target_language=edition.language.code,
+    )
+    if refine_dir is None:
+        raise FileNotFoundError("Polish source chunks not found. Run Refine first.")
+    return refine_dir, "refine_return"
+
+
+def _normalize_agent_name(value: str | None, *, default: str = POLISH_AGENT_DEFAULT) -> str:
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return default
+    cleaned = re.sub(r"[^A-Za-z0-9 _.-]", "", cleaned).strip()
+    return cleaned or default
+
+
+def _agent_return_dirname(agent_name: str, *, fallback: str = POLISH_RETURN_DIRNAME) -> str:
+    slug = slugify(_normalize_agent_name(agent_name)).replace("-", "_")
+    return f"return_{slug}" if slug else fallback
+
+
+def _resolve_polish_output_dir(
+    source_dir: Path | None,
+    edition,
+    *,
+    agent_name: str | None = None,
+) -> Path | None:
+    if source_dir is None:
+        return None
+    dirname = _agent_return_dirname(agent_name or POLISH_AGENT_DEFAULT)
+    if source_dir.name == "parts" and source_dir.parent.name == "split_refine_by_chapter":
+        return source_dir.parent / dirname
+    return paths.edition_build_dir(edition) / dirname
+
+
 def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = None) -> list[dict]:
     root = Path(settings.BASE_DIR).parent
     core_edition = _processing_base_edition(edition)
@@ -2342,8 +2396,25 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 
     merge_refine_clean_path = root / "data" / "translated" / core_book_code / "merge_refine_clean.txt"
     merge_refine_done = merge_refine_clean_path.exists() and refine_done
+    split_refine_by_chapter_dir = paths.split_refine_by_chapter_dir(target_edition)
+    split_refine_by_chapter_manifest_path = split_refine_by_chapter_dir / "manifest.json"
+    split_refine_by_chapter_done = split_refine_by_chapter_manifest_path.exists()
+    polish_source_dir: Path | None = None
+    polish_source_label = "split_refine_by_chapter/parts"
+    try:
+        polish_source_dir, polish_source_label = _resolve_polish_source_dir(target_edition)
+    except Exception:
+        polish_source_dir = None
+    polish_dir = _resolve_polish_output_dir(polish_source_dir, target_edition)
+    polish_outputs_count = _count_non_merged_txt_files(polish_dir)
     merge_polish_path = paths.merge_polish_path(target_edition)
-    polish_done = merge_polish_path.exists()
+    polish_source_count = _count_non_merged_txt_files(polish_source_dir)
+    polish_done = bool(
+        merge_polish_path.exists()
+        and polish_source_dir
+        and polish_outputs_count >= polish_source_count
+        and polish_source_count
+    )
 
     texts = EditionText.objects.filter(edition=core_edition).first()
     raw_path_str = ((texts.raw_path if texts else "") or core_edition.raw_source_path or "").strip()
@@ -2498,23 +2569,49 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         }
     )
 
-    if getattr(target_edition, "lock_polish", False) or polish_done:
-        step_defs.append(
-            {
-                "n": 8,
-                "key": "polish_return",
-                "title": "Polish Return (Optional)",
-                "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "polish_return"}),
-                "button_label": "Rodar Polish Return",
-                "can_run": merge_refine_done,
-                "done": polish_done,
-                "block_reason": "Prerequisito: merge_refine_clean.txt canônico." if not merge_refine_done else "",
-                "outputs": [
-                    _rel_project_path(paths.merge_polish_path(target_edition)),
-                ],
-                "notes": "Etapa opcional. Quando ativada em Lock polish, roda logo após o Merge Refine e antes do Pre-flight, gerando merge_polish.txt.",
-            }
-        )
+    step_defs.append(
+        {
+            "n": 8,
+            "key": "split_refine_by_chapter",
+            "title": "Etapa 3 · Split by Chapter (merge_refine)",
+            "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "split_refine_by_chapter"}),
+            "button_label": "Rodar Split do Refine",
+            "can_run": merge_refine_done and refine_merge_path.exists(),
+            "done": split_refine_by_chapter_done,
+            "block_reason": "Prerequisito: MergeRefine canônico." if not (merge_refine_done and refine_merge_path.exists()) else "",
+            "outputs": [
+                _rel_project_path(split_refine_by_chapter_dir / "parts" / "*.txt"),
+                _rel_project_path(split_refine_by_chapter_manifest_path),
+            ],
+            "notes": (
+                "Divide o merge_refine.txt por capítulo, com limite conservador de "
+                f"{SPLIT_REFINE_MAX_CHARS_PER_PART} caracteres por parte. "
+                "Não mistura capítulos e não envia nada para OpenAI."
+            ),
+        }
+    )
+
+    step_defs.append(
+        {
+            "n": 9,
+            "key": "polish_agent",
+            "title": "Polidor Agent",
+            "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "polish_agent"}),
+            "button_label": "Rodar Polidor",
+            "can_run": split_refine_by_chapter_done,
+            "done": polish_done,
+            "block_reason": "Prerequisito: Split by Chapter do merge_refine." if not split_refine_by_chapter_done else "",
+            "outputs": [
+                _rel_project_path(polish_dir / "*.txt") if polish_dir else f"data/builds/<book>/<lang>/split_refine_by_chapter/{POLISH_RETURN_DIRNAME}/*.txt",
+                _rel_project_path(paths.merge_polish_path(target_edition)),
+                _rel_project_path(paths.merge_polidor_path(target_edition)),
+            ],
+            "notes": (
+                "Envia os capítulos refinados ao agente polidor selecionado "
+                f"| source={polish_source_label} | chunks={polish_outputs_count}/{polish_source_count}"
+            ),
+        }
+    )
 
     return step_defs
 
@@ -4385,6 +4482,8 @@ def edition_steps(request, edition_id: int):
         "translate_variant_options": translate_variant_options,
         "refine_profile": refine_profile,
         "refine_profile_options": refine_profile_options,
+        "polish_agent_default": POLISH_AGENT_DEFAULT,
+        "polish_agent_options": POLISH_AGENT_OPTIONS,
         "chunk_count": chunk_count,
         "sync_log": sync_log,
         "md_status": md_status,
@@ -4712,12 +4811,80 @@ def _run_polish_step_local(edition) -> dict[str, object]:
     }
 
 
+def _run_polish_agent_step_local(
+    edition,
+    pipeline_state,
+    *,
+    agent_name: str | None = None,
+) -> dict[str, object]:
+    polish_step = next(
+        (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "polish_agent"),
+        None,
+    )
+    if not (polish_step and bool(polish_step.get("can_run"))):
+        raise ValueError(
+            (polish_step or {}).get("block_reason")
+            or "Prerequisito para Polidor: rode Split by Chapter do merge_refine."
+        )
+
+    target_edition = edition
+    if utils.normalize_lang(target_edition.language.code) != "en":
+        raise ValueError("Polidor Agent is only available for English.")
+
+    selected_agent = _normalize_agent_name(agent_name)
+    source_dir, source_label = _resolve_polish_source_dir(target_edition)
+    out_dir = _resolve_polish_output_dir(source_dir, target_edition, agent_name=selected_agent)
+    if out_dir is None:
+        raise FileNotFoundError("Unable to resolve polish output directory.")
+
+    from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+
+    result = run_aldebaran_refine_return(
+        chunk_dir=source_dir,
+        out_dir=out_dir,
+        merge_name="merge_polish_en.txt",
+        agent_name=selected_agent,
+        max_output_tokens=2000,
+    )
+    _validate_runtime_chunk_outputs(source_dir, out_dir, "Polidor")
+    merged_path = Path(result["merge_path"])
+    merged_path, _merge_stats = canonical_merge.write_canonical_merge(
+        source_dir,
+        out_dir,
+        merged_path,
+        book_code=target_edition.work.code,
+        language=utils.normalize_lang(target_edition.language.code),
+    )
+    _copy_merge_to_build(
+        target_edition,
+        merged_path,
+        paths.merge_polish_path(target_edition),
+    )
+
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    pipeline_state.current_stage = PipelineStage.POLISHED
+    pipeline_state.polished_at = timezone.now()
+    pipeline_state.last_log = (
+        f"{timezone.now().isoformat()} :: POLISH_AGENT :: {selected_agent} :: {paths.merge_polish_path(target_edition)}"
+    )
+    pipeline_state.save(update_fields=["current_stage", "polished_at", "last_log"])
+    return {
+        "success": f"Polidor OK ({selected_agent})",
+        "info": [
+            f"Polidor source ({source_label}): {source_dir}",
+            f"Polidor report: {result['report_path']}",
+            f"Polidor merge: {paths.merge_polish_path(target_edition)}",
+        ],
+    }
+
+
 def execute_language_isolated_core_step(
     *,
     edition_id: int,
     step: str,
     target_language: str | None = None,
     refine_profile: str | None = None,
+    polish_agent_name: str | None = None,
 ) -> dict[str, object]:
     edition = EditorialEdition.objects.get(id=edition_id)
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
@@ -4725,6 +4892,12 @@ def execute_language_isolated_core_step(
         return _run_translate_step_local(edition, pipeline_state, target_language=target_language or edition.language.code)
     if step == "refine":
         return _run_refine_step_local(edition, pipeline_state, refine_profile=refine_profile)
+    if step == "polish_agent":
+        return _run_polish_agent_step_local(
+            edition,
+            pipeline_state,
+            agent_name=polish_agent_name,
+        )
     if step in {"polish", "polish_return"}:
         return _run_polish_step_local(edition)
     raise ValueError(f"Unsupported isolated core step: {step}")
@@ -4926,6 +5099,37 @@ def run_edition_step(request, edition_id: int, step: str):
             messages.info(request, f"Merge base: {result['merge_translate_path']}")
             messages.info(request, f"Manifest: {result['manifest_path']}")
 
+        elif step == "split_refine_by_chapter":
+            split_step = next(
+                (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "split_refine_by_chapter"),
+                None,
+            )
+            if not (split_step and bool(split_step.get("can_run"))):
+                raise ValueError(
+                    (split_step or {}).get("block_reason")
+                    or "Prerequisito para Split Refine by Chapter: merge_refine.txt canônico."
+                )
+
+            target_edition = _edition_for_language(edition, utils.normalize_lang(edition.language.code))
+            result = chapter_agent.run_split_refine_by_chapter(
+                target_edition,
+                parts_per_chapter=1,
+                max_chars_per_part=SPLIT_REFINE_MAX_CHARS_PER_PART,
+            )
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            pipeline_state.last_log = (
+                f"{timezone.now().isoformat()} :: SPLIT_REFINE_BY_CHAPTER :: "
+                f"chapters={result['chapter_count']} parts={result['part_count']} "
+                f"max_chars_per_part={result.get('max_chars_per_part')}"
+            )
+            pipeline_state.save(update_fields=["last_log"])
+            messages.success(
+                request,
+                f"Split refine by chapter OK: {result['chapter_count']} capitulos / {result['part_count']} partes",
+            )
+            messages.info(request, f"Merge base: {result['merge_refine_path']}")
+            messages.info(request, f"Manifest: {result['manifest_path']}")
+
         elif step == "translate":
             target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
             if core_docker.should_run_in_docker(step, target_language):
@@ -5083,6 +5287,17 @@ def run_edition_step(request, edition_id: int, step: str):
                     step=step,
                 )
                 messages.success(request, result_payload["success"])
+
+        elif step == "polish_agent":
+            polish_agent_name = _normalize_agent_name(request.POST.get("polish_agent_name"))
+            result_payload = execute_language_isolated_core_step(
+                edition_id=edition.id,
+                step=step,
+                polish_agent_name=polish_agent_name,
+            )
+            messages.success(request, result_payload["success"])
+            for item in result_payload.get("info", []):
+                messages.info(request, item)
 
         elif step == "txt_to_md":
             md_language = request.POST.get("md_language") or None
@@ -5437,6 +5652,80 @@ def save_merge_translate_preview(request, edition_id: int):
         status="SUCCESS",
         filepath=str(saved_path),
         message="Saved preview merge translate to build dir.",
+    )
+
+    messages.success(request, f"Arquivo salvo: {saved_path}")
+    return redirect("edition_steps", edition_id=edition_id)
+
+
+def _resolve_merge_polidor_source(edition: EditorialEdition) -> tuple[Path | None, str]:
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    book_code, language = _edition_codes(edition)
+    target_language = _normalize_translate_variant(
+        (pipeline_state.translation_language if pipeline_state else None) or language
+    )
+    target_base = _translate_base_language(target_language)
+    build_dir = paths.edition_build_dir_for_language(book_code, target_base)
+    candidates = [
+        build_dir / "merge_polidor.txt",
+        build_dir / f"merge_polidor_{target_base}.txt",
+        build_dir / "merge_polish.txt",
+        build_dir / f"merge_polish_{target_base}.txt",
+        build_dir / "split_refine_by_chapter" / "return_english_polidor" / "merge_polish_en.txt",
+    ]
+    return next((path for path in candidates if path.exists()), None), target_base
+
+
+def preview_merge_polidor(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, _language = _edition_codes(edition)
+    merged_path, target_base = _resolve_merge_polidor_source(edition)
+    if not merged_path:
+        raise Http404("Merged polidor file not found.")
+
+    content = merged_path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": target_base,
+        "md_path": str(merged_path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)
+
+
+def save_merge_polidor_preview(request, edition_id: int):
+    if request.method != "POST":
+        return redirect("edition_steps", edition_id=edition_id)
+
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, _language = _edition_codes(edition)
+    merged_path, target_base = _resolve_merge_polidor_source(edition)
+    if not merged_path:
+        messages.error(request, "Merged polidor file not found.")
+        return redirect("edition_steps", edition_id=edition_id)
+
+    content = merged_path.read_text(encoding="utf-8")
+    build_dir = paths.edition_build_dir_for_language(book_code, target_base)
+    build_dir.mkdir(parents=True, exist_ok=True)
+    saved_path = build_dir / "merge_polidor.txt"
+    saved_path.write_text(content, encoding="utf-8")
+
+    TextSnapshot.objects.create(
+        edition=edition,
+        language=target_base,
+        stage="merge_polidor_preview",
+        source_path=str(merged_path),
+        content=content,
+    )
+
+    PipelineJob.objects.create(
+        book_code=book_code,
+        book_title=edition.work.title,
+        language=target_base,
+        stage="polish",
+        status="SUCCESS",
+        filepath=str(saved_path),
+        message="Saved preview merge polidor to build dir.",
     )
 
     messages.success(request, f"Arquivo salvo: {saved_path}")

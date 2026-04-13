@@ -85,6 +85,16 @@ urlpatterns = [
         name="save_merge_translate_preview",
     ),
     path(
+        "editions/<int:edition_id>/preview-merge-polidor/",
+        views.preview_merge_polidor,
+        name="preview_merge_polidor",
+    ),
+    path(
+        "editions/<int:edition_id>/save-merge-polidor/",
+        views.save_merge_polidor_preview,
+        name="save_merge_polidor_preview",
+    ),
+    path(
         "editions/<str:book_code>/<str:language>/build-md/",
         views.build_book_md,
         name="build_book_md",

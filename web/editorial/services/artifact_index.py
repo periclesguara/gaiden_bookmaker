@@ -68,6 +68,8 @@ def _scan_builds(work_code: str, lang: str) -> None:
         (
             "polish",
             [
+                f"merge_polidor_{lang}.txt",
+                "merge_polidor.txt",
                 f"merge_polish_{lang}.txt",
                 "merge_polish.txt",
                 f"polish_{lang}.txt",

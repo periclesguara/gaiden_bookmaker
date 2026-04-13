@@ -2363,12 +2363,22 @@ class HeadingCleanerGateTests(TestCase):
             "5) Split by Chapter (merge_translate)",
             "6) Refine (Ingles neutro)",
             "7) Merge/Finalize",
+            "8) Etapa 3 · Split by Chapter (merge_refine)",
+            "9) Polidor Agent",
         ]
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
         self.assertContains(response, "Bloco 03 · Editorial e Assets")
-        self.assertContains(response, "Pre-Flight")
+        self.assertContains(response, "Pre-flight")
+        self.assertNotContains(response, "Lock translate")
+        self.assertNotContains(response, "Lock refine")
+        self.assertNotContains(response, "Lock polish")
+        self.assertContains(response, 'name="polish_agent_name"')
+        self.assertContains(response, "Preview Merge Polidor")
+        self.assertContains(response, "Salvar Merge Polidor")
+        self.assertNotContains(response, "Preview Merge Translate")
+        self.assertNotContains(response, "Salvar Merge Translate")
 
     def test_translate_disabled_without_heading_cleaner(self):
         response = self.client.get(self.steps_url)
@@ -2414,7 +2424,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
         self.assertContains(response, "Bloco 03 · Editorial e Assets")
-        self.assertContains(response, "Pre-Flight")
+        self.assertContains(response, "Pre-flight")
 
     @patch("pipeline.services.preflight.get_client")
     def test_preflight_run_creates_structured_report_after_merge_refine(self, mock_get_client):

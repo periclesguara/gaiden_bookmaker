@@ -33,14 +33,27 @@ def resolve_merge_translate_path(edition) -> Path:
     raise FileNotFoundError("merge_translate.txt nao encontrado para split_by_chapter.")
 
 
-def run_split_by_chapter(
-    edition,
+def resolve_merge_refine_path(edition) -> Path:
+    build_dir = paths.edition_build_dir(edition)
+    language = edition.language.code
+    candidates = [
+        paths.merge_refine_path(edition),
+        build_dir / f"merge_refine_{language}.txt",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError("merge_refine.txt nao encontrado para split_refine_by_chapter.")
+
+
+def _run_split_from_merge(
     *,
-    parts_per_chapter: int = 1,
-    max_chars_per_part: int | None = None,
+    merge_path: Path,
+    split_root: Path,
+    parts_per_chapter: int,
+    max_chars_per_part: int | None,
+    source_key: str,
 ) -> dict[str, Any]:
-    merge_path = resolve_merge_translate_path(edition)
-    split_root = paths.split_by_chapter_dir(edition)
     parts_dir = split_root / "parts"
     manifest_path = split_root / "manifest.json"
 
@@ -62,7 +75,7 @@ def run_split_by_chapter(
         part_count += len(chapter.get("parts") or [])
 
     return {
-        "merge_translate_path": str(merge_path),
+        source_key: str(merge_path),
         "split_root": str(split_root),
         "parts_dir": str(parts_dir),
         "manifest_path": str(manifest_path),
@@ -70,3 +83,37 @@ def run_split_by_chapter(
         "part_count": part_count,
         "max_chars_per_part": max_chars_per_part,
     }
+
+
+def run_split_by_chapter(
+    edition,
+    *,
+    parts_per_chapter: int = 1,
+    max_chars_per_part: int | None = None,
+) -> dict[str, Any]:
+    merge_path = resolve_merge_translate_path(edition)
+    split_root = paths.split_by_chapter_dir(edition)
+    return _run_split_from_merge(
+        merge_path=merge_path,
+        split_root=split_root,
+        parts_per_chapter=parts_per_chapter,
+        max_chars_per_part=max_chars_per_part,
+        source_key="merge_translate_path",
+    )
+
+
+def run_split_refine_by_chapter(
+    edition,
+    *,
+    parts_per_chapter: int = 1,
+    max_chars_per_part: int | None = None,
+) -> dict[str, Any]:
+    merge_path = resolve_merge_refine_path(edition)
+    split_root = paths.split_refine_by_chapter_dir(edition)
+    return _run_split_from_merge(
+        merge_path=merge_path,
+        split_root=split_root,
+        parts_per_chapter=parts_per_chapter,
+        max_chars_per_part=max_chars_per_part,
+        source_key="merge_refine_path",
+    )

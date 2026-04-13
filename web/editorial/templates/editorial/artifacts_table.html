@@ -62,15 +62,6 @@
       <a href="{% url 'artifacts_table' work_code=work_code lang='ptbr' %}">PT-BR</a>
     </div>
 
-    {% if edition %}
-    <div class="card">
-      <strong>Locks:</strong>
-      translate={{ edition.lock_translate }} |
-      refine={{ edition.lock_refine }} |
-      polish={{ edition.lock_polish }}
-    </div>
-    {% endif %}
-
     <table>
       <thead>
         <tr>

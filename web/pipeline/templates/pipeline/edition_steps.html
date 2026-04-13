@@ -90,6 +90,9 @@
     .pipeline-step .btn {
       width: 100%;
     }
+    .pipeline-step .polidor-action {
+      margin-top: 10px;
+    }
     .pipeline-step .status {
       line-height: 1.45;
     }
@@ -112,6 +115,15 @@
       font-size: 13px;
       cursor: pointer;
       text-decoration: none;
+    }
+    .btn.danger {
+      border-color: #b3261e;
+      background: #b3261e;
+      color: #fff;
+    }
+    .btn.danger:hover {
+      background: #8f1d18;
+      border-color: #8f1d18;
     }
     .btn.secondary {
       background: #fff;
@@ -341,16 +353,33 @@
               Perfis por idioma: EN = Aldebaran/Alamaguederaz | DE = Kaiser | IT = Aldebaran
             </span>
             {% endif %}
+            {% if s.key == "polish_agent" %}
+            <select id="polish_agent_name" name="polish_agent_name" aria-label="Agente polidor">
+              {% for option in polish_agent_options %}
+                <option value="{{ option }}" {% if polish_agent_default == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+            <span class="status">Escolha o agente que fará o polimento antes de rodar.</span>
+            {% endif %}
             <button
               {% if s.key == "translate" %}id="btn_translate"{% endif %}
               {% if s.key == "refine" %}id="btn_refine"{% endif %}
-              class="btn"
+              class="btn{% if s.key == 'polish_agent' %} danger{% endif %}"
               type="submit"
               {% if not s.can_run %}disabled{% endif %}
             >
               {{ s.button_label }}
             </button>
           </form>
+          {% if s.key == "polish_agent" %}
+          <form class="polidor-action" method="post" action="{% url 'save_merge_polidor_preview' edition_id=edition.id %}">
+            {% csrf_token %}
+            <button class="btn danger" type="submit">Salvar Merge Polidor</button>
+          </form>
+          <a class="btn danger polidor-action" href="{% url 'preview_merge_polidor' edition_id=edition.id %}">
+            Preview Merge Polidor
+          </a>
+          {% endif %}
           {% if s.key == "translate" and not s.can_run %}
           <div id="translate_prereq_msg" class="status">
             Prerequisito: rode HeadingCleaner e depois refaca <code>data/chunks/.../split_01/*.txt</code>.
@@ -358,40 +387,6 @@
           {% endif %}
         </section>
         {% endfor %}
-        <a class="btn secondary" href="{% url 'preview_merge_translate' edition_id=edition.id %}">
-          Preview Merge Translate
-        </a>
-        <form method="post" action="{% url 'save_merge_translate_preview' edition_id=edition.id %}">
-          {% csrf_token %}
-          <button class="btn secondary" type="submit">Salvar Merge Translate</button>
-        </form>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_translate" />
-          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_translate %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock translate: {% if edition.lock_translate %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_refine" />
-          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_refine %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock refine: {% if edition.lock_refine %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
-        <form method="post" action="{% url 'toggle_stage_lock' edition.id %}">
-          {% csrf_token %}
-          <input type="hidden" name="lock_name" value="lock_polish" />
-          <input type="hidden" name="target_lang" value="{{ translate_language|default:language }}" />
-          <input type="hidden" name="value" value="{% if edition.lock_polish %}0{% else %}1{% endif %}" />
-          <button class="btn secondary" type="submit">
-            Lock polish: {% if edition.lock_polish %}ON{% else %}OFF{% endif %}
-          </button>
-        </form>
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="save_translation_language" />
@@ -521,10 +516,6 @@
             <option value="{{ code }}" {% if frontmatter_lang == code %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
-        <label class="ml-2">
-          <input type="checkbox" name="frontmatter_lock" value="1" {% if frontmatter_locked %}checked{% endif %} onchange="this.form.submit()" />
-          Lock idioma
-        </label>
         <a class="btn secondary ml-2" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang %}">
           Frontmatter
         </a>

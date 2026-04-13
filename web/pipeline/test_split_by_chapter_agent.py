@@ -81,6 +81,39 @@ class ChapterAgentSplitLogicTests(TestCase):
             self.assertEqual(manifest["parts_per_chapter"], 2)
             self.assertEqual(len(manifest["chapters"][0]["parts"]), 2)
 
+    def test_char_limited_split_never_spills_into_next_chapter(self):
+        chapter_one_body = ("First chapter only marker. " * 140).strip()
+        chapter_two_body = ("Second chapter only marker. " * 140).strip()
+        merged_text = (
+            "## Chapter 1 - The Gate\n\n"
+            f"{chapter_one_body}\n\n"
+            "## Chapter 2 - The Road\n\n"
+            f"{chapter_two_body}\n"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest = write_chapter_split_artifacts(
+                merged_text,
+                root / "parts",
+                max_chars_per_part=1200,
+            )
+
+            self.assertEqual(manifest["chapter_count"], 2)
+            self.assertGreater(len(manifest["chapters"][0]["parts"]), 1)
+            chapter_one_files = sorted((root / "parts").glob("chapter_01_part_*.txt"))
+            chapter_two_files = sorted((root / "parts").glob("chapter_02_part_*.txt"))
+            self.assertTrue(chapter_one_files)
+            self.assertTrue(chapter_two_files)
+            for path in chapter_one_files:
+                text = path.read_text(encoding="utf-8")
+                self.assertLessEqual(len(text), 1200)
+                self.assertNotIn("## Chapter 2 - The Road", text)
+                self.assertNotIn("Second chapter only marker.", text)
+            for path in chapter_two_files:
+                self.assertLessEqual(len(path.read_text(encoding="utf-8")), 1200)
+            self.assertIn("## Chapter 2 - The Road", chapter_two_files[0].read_text(encoding="utf-8"))
+
     def test_split_chapter_into_parts_prefers_numbered_boundaries_when_available(self):
         merged_text = (
             "## Chapter 1 - Devotional\n\n"
@@ -275,6 +308,29 @@ class ChapterAgentServiceTests(TestCase):
         self.assertFalse((split_root / "agent").exists())
         self.assertTrue((split_root / "parts" / "chapter_01_part_01.txt").exists())
 
+    def test_run_split_refine_by_chapter_uses_merge_refine_as_base(self):
+        build_dir = paths.edition_build_dir(self.edition)
+        build_dir.mkdir(parents=True, exist_ok=True)
+        merge_refine_path = build_dir / "merge_refine.txt"
+        merge_refine_path.write_text(
+            "## Chapter 1 - The Return\n\n"
+            "Refined paragraph A.\n\n"
+            "Refined paragraph B.\n",
+            encoding="utf-8",
+        )
+
+        result = chapter_agent.run_split_refine_by_chapter(
+            self.edition,
+            max_chars_per_part=6000,
+        )
+
+        split_root = paths.split_refine_by_chapter_dir(self.edition)
+        self.assertEqual(result["merge_refine_path"], str(merge_refine_path))
+        self.assertEqual(result["chapter_count"], 1)
+        self.assertEqual(result["part_count"], 1)
+        self.assertTrue((split_root / "manifest.json").exists())
+        self.assertTrue((split_root / "parts" / "chapter_01_part_01.txt").exists())
+
     def test_resolve_refine_source_dir_prefers_split_by_chapter_parts(self):
         build_dir = paths.edition_build_dir(self.edition)
         build_dir.mkdir(parents=True, exist_ok=True)
@@ -330,6 +386,26 @@ class ChapterAgentServiceTests(TestCase):
         self.assertEqual(profile_cfg["agent_name"], "Kaiser")
         self.assertEqual(source_dir, parts_dir)
         self.assertEqual(out_dir, split_root / "return_kaiser")
+
+    def test_resolve_polish_source_dir_prefers_split_refine_by_chapter_parts(self):
+        split_root = paths.split_refine_by_chapter_dir(self.edition)
+        parts_dir = split_root / "parts"
+        parts_dir.mkdir(parents=True, exist_ok=True)
+        (split_root / "manifest.json").write_text('{"chapter_count": 1}', encoding="utf-8")
+        (parts_dir / "chapter_01_part_01.txt").write_text("polish source\n", encoding="utf-8")
+
+        source_dir, source_label = pipeline_views._resolve_polish_source_dir(self.edition)
+        out_dir = pipeline_views._resolve_polish_output_dir(source_dir, self.edition)
+
+        self.assertEqual(source_dir, parts_dir)
+        self.assertEqual(source_label, "split_refine_by_chapter/parts")
+        self.assertEqual(out_dir, split_root / "return_english_polidor")
+        custom_out_dir = pipeline_views._resolve_polish_output_dir(
+            source_dir,
+            self.edition,
+            agent_name="Alamaguederaz",
+        )
+        self.assertEqual(custom_out_dir, split_root / "return_alamaguederaz")
 
     def test_recommended_split_parts_for_philosophy_and_devotional_english(self):
         self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en_philo"), 4)

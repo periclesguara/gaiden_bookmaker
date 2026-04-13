@@ -417,10 +417,11 @@ def split_chapter_into_char_limited_parts(
         return []
     if max_chars < 1000:
         raise ValueError("max_chars deve ser pelo menos 1000.")
+    content_budget = max_chars - 1
 
     paragraphs = [item.strip() for item in re.split(r"\n\s*\n", cleaned) if item.strip()]
     if not paragraphs:
-        return _split_dense_text(cleaned, max(1, (len(cleaned) + max_chars - 1) // max_chars))
+        return _split_dense_text(cleaned, max(1, (len(cleaned) + content_budget - 1) // content_budget))
 
     out: list[str] = []
     current: list[str] = []
@@ -428,16 +429,16 @@ def split_chapter_into_char_limited_parts(
 
     for paragraph in paragraphs:
         paragraph_len = len(paragraph)
-        if paragraph_len > max_chars:
+        if paragraph_len > content_budget:
             if current:
                 out.append("\n\n".join(current).strip() + "\n")
                 current = []
                 current_chars = 0
-            out.extend(_split_dense_text(paragraph, max(1, (paragraph_len + max_chars - 1) // max_chars)))
+            out.extend(_split_dense_text(paragraph, max(1, (paragraph_len + content_budget - 1) // content_budget)))
             continue
 
         projected = current_chars + paragraph_len + (2 if current else 0)
-        if current and projected > max_chars:
+        if current and projected > content_budget:
             out.append("\n\n".join(current).strip() + "\n")
             current = [paragraph]
             current_chars = paragraph_len
