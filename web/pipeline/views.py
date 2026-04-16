@@ -39,7 +39,6 @@ from gaiden.application.pipeline import ingest as pipeline_ingest
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
     chunk_truncation_reason as resolve_chunk_truncation_reason,
-    run_translate_with_contract as run_translation_contract,
 )
 from gaiden.application.pipeline.gates import preflight_gate as resolve_preflight_gate
 from gaiden.application.pipeline.status import resolve_block_status_map
@@ -113,16 +112,6 @@ REFINE_PROFILES = {
             "atmosphere, pulp-adventure energy, and sword-and-sorcery flavor when supported by the source."
         ),
     },
-    "headingcleaner": {
-        "label": "Inglês filosofia",
-        "agent_name": "HeadingCleaner",
-        "description": "Fluxo especializado para filosofia em ingles, com refine estrutural e prosa controlada.",
-        "style_directive": (
-            "Target profile: philosophical English cleanup. Preserve meaning, argument flow, paragraphing, and tonal gravity, "
-            "while improving structural clarity, section handling, heading consistency, and modern readability. Prefer disciplined, "
-            "clean, conceptually precise prose for classical and philosophical books."
-        ),
-    },
     "de_kaiser": {
         "label": "Deutsch Kaiser",
         "agent_name": "Kaiser",
@@ -165,35 +154,31 @@ POLISH_AGENT_OPTIONS = (
 )
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en", "label": "EN (modern)", "base_language": "en"},
-    {"value": "en_philo", "label": "English-Philosofer", "base_language": "en"},
-    {"value": "en_devotional", "label": "English-Devotional", "base_language": "en"},
-    {"value": "es", "label": "ES", "base_language": "es"},
-    {"value": "ptbr", "label": "PT-BR", "base_language": "ptbr"},
-    {"value": "de", "label": "DE", "base_language": "de"},
-    {"value": "fr", "label": "FR", "base_language": "fr"},
-    {"value": "it", "label": "IT", "base_language": "it"},
 )
+TRANSLATE_AGENT_BY_VARIANT = {
+    "en": "HeadingCleaner",
+}
 _TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_BASES = {item["value"]: item["base_language"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_ALIASES = {
     "": "en",
     "en": "en",
     "english": "en",
-    "en_philo": "en_philo",
-    "en-philo": "en_philo",
-    "enphilo": "en_philo",
-    "english-philosofer": "en_philo",
-    "english_philosofer": "en_philo",
-    "englishphilosofer": "en_philo",
-    "english-philosopher": "en_philo",
-    "english_philosopher": "en_philo",
-    "englishphilosopher": "en_philo",
-    "en_devotional": "en_devotional",
-    "en-devotional": "en_devotional",
-    "endevotional": "en_devotional",
-    "english-devotional": "en_devotional",
-    "english_devotional": "en_devotional",
-    "englishdevotional": "en_devotional",
+    "en_philo": "en",
+    "en-philo": "en",
+    "enphilo": "en",
+    "english-philosofer": "en",
+    "english_philosofer": "en",
+    "englishphilosofer": "en",
+    "english-philosopher": "en",
+    "english_philosopher": "en",
+    "englishphilosopher": "en",
+    "en_devotional": "en",
+    "en-devotional": "en",
+    "endevotional": "en",
+    "english-devotional": "en",
+    "english_devotional": "en",
+    "englishdevotional": "en",
 }
 
 _HTML_STAGE_ORDER = {
@@ -228,10 +213,25 @@ def _translate_variant_label(value: str | None) -> str:
     return _TRANSLATE_VARIANT_LABELS.get(variant, variant.upper())
 
 
-def _recommended_split_parts_for_translate_variant(value: str | None) -> int:
+def _translate_uses_agent(value: str | None) -> bool:
+    # Translation orchestration is agent-only from now on.
+    return True
+
+
+def _translate_agent_name(value: str | None) -> str:
     variant = _normalize_translate_variant(value)
-    if variant in {"en_philo", "en_devotional"}:
-        return 4
+    if variant in TRANSLATE_AGENT_BY_VARIANT:
+        return TRANSLATE_AGENT_BY_VARIANT[variant]
+    if _translate_base_language(variant) == "en":
+        return "HeadingCleaner"
+    return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()
+
+
+def _translate_route_label(value: str | None) -> str:
+    return "Agent"
+
+
+def _recommended_split_parts_for_translate_variant(value: str | None) -> int:
     return 1
 
 logger = logging.getLogger(__name__)
@@ -270,7 +270,7 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
         return ("de_kaiser",)
     if normalized == "it":
         return ("italiano_neutro",)
-    return ("ingles_neutro", "ingles_flex", "headingcleaner")
+    return ("ingles_neutro", "ingles_flex")
 
 
 def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
@@ -2232,6 +2232,12 @@ def _validate_runtime_chunk_outputs(source_dir: Path | None, candidate_dir: Path
     for candidate_path in _iter_non_merged_txt_files(candidate_dir):
         source_path = source_dir / candidate_path.name
         if not source_path.exists():
+            stem_parts = candidate_path.name.split(".")
+            if len(stem_parts) > 2 and stem_parts[-1] == "txt":
+                unsuffixed = source_dir / f"{'.'.join(stem_parts[:-2])}.txt"
+                if unsuffixed.exists():
+                    source_path = unsuffixed
+        if not source_path.exists():
             issues.append(f"{candidate_path.name}: source chunk missing in {source_dir}")
             continue
 
@@ -2346,14 +2352,8 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         target_lang = utils.normalize_lang(edition.language.code)
         target_variant = target_lang
 
-    contract_path: Path | None = None
     contract_exists = False
-    contract_error = ""
-    try:
-        contract_path = _select_contract_path(target_variant)
-        contract_exists = contract_path.exists()
-    except ValueError as exc:
-        contract_error = str(exc)
+    contract_exists = True
 
     translate_dir: Path | None = None
     translate_outputs_count = 0
@@ -2482,24 +2482,23 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         {
             "n": 4,
             "key": "translate",
-            "title": "Translate (script + JSON)",
+            "title": "Translate (Agent)",
             "run_url": reverse("pipeline_translate_run", kwargs={"edition_id": edition.id}),
             "button_label": "Rodar Translate",
-            "can_run": bool(heading_clean_path.exists() and split_chunks) and contract_exists,
+            "can_run": bool(heading_clean_path.exists() and split_chunks)
+            and (_translate_uses_agent(target_variant) or contract_exists),
             "done": translate_done,
             "block_reason": (
                 "Prerequisito: rode HeadingCleaner e depois refaca split_01."
                 if not heading_clean_path.exists() or not split_chunks
-                else ("Contrato JSON nao encontrado." if not contract_exists else "")
+                else ""
             ),
             "outputs": [
                 _rel_project_path(translate_dir / "*.txt") if translate_dir else "data/translated/<book>/<lang_variant>/*.txt",
                 _rel_project_path(translate_merge_path),
             ],
             "notes": (
-                f"Translate contract: {_rel_project_path(contract_path)} | profile={_translate_variant_label(target_variant)} | chunks={translate_outputs_count}/{expected_translate_chunks}"
-                if contract_path
-                else f"Translate contract: {contract_error or 'nao resolvido'}"
+                f"Translate agent: {_translate_agent_name(target_variant)} | profile={_translate_variant_label(target_variant)} | chunks={translate_outputs_count}/{expected_translate_chunks}"
             ),
         }
     )
@@ -2617,54 +2616,15 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
 
 
 def _select_contract_path(language: str) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/en_modern_2025.json",
-        "en_philo": "gaiden/contracts/en_philosofer_2026.json",
-        "en_devotional": "gaiden/contracts/en_devotional_2026.json",
-        "es": "gaiden/contracts/en_modern_2025.json",
-        "ptbr": "gaiden/contracts/en_modern_2025.json",
-        "de": "gaiden/contracts/en_de_2026.json",
-        "fr": "gaiden/contracts/en_fr_2025.json",
-        "it": "gaiden/contracts/en_it_2025.json",
-    }
-    rel = mapping.get(_normalize_translate_variant(language))
-    if not rel:
-        raise ValueError(f"No translate contract for language={language}")
-    preferred = storage.repo_contract_path(rel)
-    if preferred.exists():
-        return preferred
-    return storage.repo_contract_path(rel)
+    raise RuntimeError("Translate JSON contracts are disabled. Use agent translation.")
 
 
 def _select_refine_contract(language: str, refine_profile: str | None = None) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/refine/en_refine_2025.json",
-        "es": "gaiden/contracts/refine/es_refine_2025.json",
-        "ptbr": "gaiden/contracts/refine/ptbr_refine_2025.json",
-        "de": "gaiden/contracts/refine/de_refine_2026.json",
-        "it": "gaiden/contracts/refine/it_refine_2025.json",
-    }
-    rel = mapping.get(_translate_base_language(language))
-    if not rel:
-        raise ValueError(f"No refine contract for language={language}")
-    preferred = storage.repo_contract_path(rel)
-    if preferred.exists():
-        return preferred
-    return storage.repo_contract_path(rel)
+    raise RuntimeError("Refine JSON contracts are disabled. Use agent refine.")
 
 
 def _select_polish_contract(language: str) -> Path:
-    mapping = {
-        "en": "gaiden/contracts/polish/en_polish_2025.json",
-    }
-    normalized = _normalize_translate_variant(language)
-    rel = mapping.get(normalized) or mapping.get(_translate_base_language(language))
-    if not rel:
-        raise ValueError(f"No polish contract for language={language}")
-    preferred = storage.repo_contract_path(rel)
-    if preferred.exists():
-        return preferred
-    return storage.repo_contract_path(rel)
+    raise RuntimeError("Polish JSON contracts are disabled. Use agent polish.")
 
 
 def _contract_target_lang(payload: dict) -> str:
@@ -2745,6 +2705,22 @@ def _runtime_translate_out_dir(book_code: str, target_language: str, payload: di
         else "en_devotional_2026"
     )
     return storage.translated_dir(book_token, str(variant)).relative_to(storage.repo_root())
+
+
+def _agent_translate_out_dir(book_code: str, target_language: str) -> Path:
+    book_id = _parse_book_id(book_code)
+    if book_id is None:
+        raise ValueError("book_code must be like book_0001 to resolve translate out_dir.")
+    variant = _normalize_translate_variant(target_language)
+    if variant == "en":
+        variant_dir = "en_modern_2026"
+    elif variant == "en_philo":
+        variant_dir = "en_philosofer_2026"
+    elif variant == "en_devotional":
+        variant_dir = "en_devotional_2026"
+    else:
+        variant_dir = variant
+    return storage.translated_dir(f"book_{book_id:04d}", variant_dir)
 
 
 def _append_prompt_block(prompt: str, block: str) -> str:
@@ -3277,72 +3253,13 @@ def _harden_refine_contract(
 
 
 def _build_runtime_translate_contract(edition, target_language: str) -> tuple[Path, str]:
-    book_code, _language = _edition_codes(edition)
-    target_variant = _normalize_translate_variant(target_language)
-    target_base = _translate_base_language(target_variant)
-    base_contract_path = _select_contract_path(target_variant)
-    payload = json.loads(base_contract_path.read_text(encoding="utf-8"))
-    payload = _harden_translate_contract(payload, target_variant)
-
-    chunk_dir, input_glob, source_label = _translate_source_chunks(book_code)
-    out_dir = _runtime_translate_out_dir(book_code, target_variant, payload)
-    if not out_dir.is_absolute():
-        out_dir = Path(settings.BASE_DIR).parent / out_dir
-
-    payload["chunk_dir"] = str(chunk_dir)
-    payload["input_glob"] = input_glob
-    payload["out_dir"] = str(out_dir)
-    payload["target_language"] = target_base
-    payload["translation_variant"] = target_variant
-    if target_base == "en":
-        payload["validation_failure_fallback"] = "keep_source_chunk"
-        payload["max_output_tokens"] = min(int(payload.get("max_output_tokens") or 2000), 2000)
-        payload["max_retry_output_tokens"] = 2000
-    else:
-        payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
-            chunk_dir,
-            input_glob,
-            target_base,
-            current_limit=payload.get("max_output_tokens"),
-        )
-
-    if not isinstance(payload.get("output"), dict):
-        payload["output"] = {}
-    if target_base == "ptbr":
-        payload["output"]["language"] = "pt-br"
-    else:
-        payload["output"]["language"] = target_base
-
-    runtime_contract_path = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "editions"
-        / str(edition.id)
-        / "core"
-        / f"contract_translate_{target_variant}.json"
-    )
-    runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
-    runtime_contract_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return runtime_contract_path, source_label
+    raise RuntimeError("Translate JSON contracts are disabled. Use agent translation.")
 
 
 def _runtime_translate_dir_for_edition(edition, target_language: str) -> Path:
     book_code, _language = _edition_codes(edition)
     target_variant = _normalize_translate_variant(target_language)
-    payload = json.loads(_select_contract_path(target_variant).read_text(encoding="utf-8"))
-    out_dir = _runtime_translate_out_dir(book_code, target_variant, payload)
-    expected_dir = out_dir if out_dir.is_absolute() else Path(settings.BASE_DIR).parent / out_dir
-    if expected_dir.exists():
-        return expected_dir
-
-    for candidate in paths.translated_variant_dirs(book_code, _translate_base_language(target_variant)):
-        if _count_non_merged_txt_files(candidate):
-            return candidate
-
-    return expected_dir
+    return _agent_translate_out_dir(book_code, target_variant)
 
 
 def _resolve_refine_source_dir(edition, target_language: str) -> tuple[Path, str]:
@@ -3388,142 +3305,14 @@ def _build_runtime_refine_contract(
     target_language: str,
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
-    raise RuntimeError("Refine via JSON contract is disabled. Use direct agent handoff instead.")
-    target_base = _translate_base_language(target_language)
-    payload = json.loads(_select_refine_contract(target_base, refine_profile=refine_profile).read_text(encoding="utf-8"))
-    payload = _harden_refine_contract(
-        payload,
-        refine_profile=refine_profile,
-        target_language=target_base,
-    )
-    source_dir, _source_label = _resolve_refine_source_dir(edition, target_language)
-    if not source_dir.exists():
-        raise FileNotFoundError(f"Refine source chunks not found: {source_dir}. Run Translate or Split by Chapter first.")
-
-    refine_input_dir = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "editions"
-        / str(edition.id)
-        / "core"
-        / f"refine_input_{target_base}"
-    )
-    refine_input_dir.mkdir(parents=True, exist_ok=True)
-    for stale in refine_input_dir.glob("*.txt"):
-        stale.unlink()
-
-    source_chunks = [
-        p for p in sorted(source_dir.glob("*.txt"))
-        if not (p.name == "merged.txt" or p.name.startswith("merged_"))
-    ]
-    if not source_chunks:
-        raise FileNotFoundError(f"No translate chunks found in {source_dir} for refine input.")
-    for path in source_chunks:
-        shutil.copyfile(path, refine_input_dir / path.name)
-
-    out_dir = _resolve_refine_output_dir(
-        source_dir,
-        refine_profile=refine_profile,
-        target_language=target_base,
-    )
-    if out_dir is None:
-        raise FileNotFoundError("Unable to resolve refine output directory.")
-    payload["chunk_dir"] = str(refine_input_dir)
-    payload["out_dir"] = str(out_dir)
-    payload["target_language"] = target_base
-    payload["max_output_tokens"] = min(
-        _recommended_translate_max_output_tokens(
-        refine_input_dir,
-        "*.txt",
-        target_base,
-        current_limit=payload.get("max_output_tokens"),
-        ),
-        4000,
-    )
-    payload["sanitize_failure_fallback"] = "keep_source_chunk"
-    if not isinstance(payload.get("output"), dict):
-        payload["output"] = {}
-    payload["output"]["language"] = target_base
-
-    runtime_contract_path = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "editions"
-        / str(edition.id)
-        / "core"
-        / f"contract_refine_{target_base}.json"
-    )
-    runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
-    runtime_contract_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return runtime_contract_path, refine_input_dir, out_dir
+    raise RuntimeError("Refine JSON contracts are disabled. Use direct agent handoff.")
 
 
 def _build_runtime_polish_contract(
     edition,
     target_language: str,
 ) -> tuple[Path, Path, Path]:
-    payload = json.loads(_select_polish_contract(target_language).read_text(encoding="utf-8"))
-    source_dir = _resolve_refine_output_dir(
-        _resolve_refine_source_dir(edition, target_language)[0],
-        refine_profile=_default_refine_profile_for_language(target_language),
-        target_language=target_language,
-    )
-    if not source_dir.exists():
-        raise FileNotFoundError(f"Polish source chunks not found: {source_dir}. Run Refine first.")
-
-    polish_input_dir = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "editions"
-        / str(edition.id)
-        / "core"
-        / f"polish_input_{utils.normalize_lang(target_language)}"
-    )
-    polish_input_dir.mkdir(parents=True, exist_ok=True)
-    for stale in polish_input_dir.glob("*.txt"):
-        stale.unlink()
-
-    source_chunks = [
-        p for p in sorted(source_dir.glob("*.txt"))
-        if not (p.name == "merged.txt" or p.name.startswith("merged_"))
-    ]
-    if not source_chunks:
-        raise FileNotFoundError(f"No refine chunks found in {source_dir} for polish input.")
-    for path in source_chunks:
-        shutil.copyfile(path, polish_input_dir / path.name)
-
-    out_dir = source_dir.parent / POLISH_RETURN_DIRNAME
-    payload["chunk_dir"] = str(polish_input_dir)
-    payload["out_dir"] = str(out_dir)
-    payload["target_language"] = utils.normalize_lang(target_language)
-    payload["max_output_tokens"] = _recommended_translate_max_output_tokens(
-        polish_input_dir,
-        "*.txt",
-        target_language,
-        current_limit=payload.get("max_output_tokens"),
-    )
-    payload["sanitize_failure_fallback"] = "keep_source_chunk"
-    if not isinstance(payload.get("output"), dict):
-        payload["output"] = {}
-    payload["output"]["language"] = utils.normalize_lang(target_language)
-
-    runtime_contract_path = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "editions"
-        / str(edition.id)
-        / "core"
-        / f"contract_polish_{utils.normalize_lang(target_language)}.json"
-    )
-    runtime_contract_path.parent.mkdir(parents=True, exist_ok=True)
-    runtime_contract_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return runtime_contract_path, polish_input_dir, out_dir
+    raise RuntimeError("Polish JSON contracts are disabled. Use direct agent polish.")
 
 
 def _resolve_core_path(path_value: str) -> Path:
@@ -4423,20 +4212,25 @@ def edition_steps(request, edition_id: int):
         for lang in ("en", "es", "ptbr", "de", "fr", "it")
     }
     md_source_map_json = json.dumps(md_source_map)
-    translate_contract_map: dict[str, str] = {}
     translate_variant_options = list(TRANSLATE_VARIANT_OPTIONS)
-    project_root = Path(settings.BASE_DIR).parent
+    translate_agent_map: dict[str, str] = {}
+    translate_agent_options: list[dict[str, str]] = []
     for option in translate_variant_options:
         lang = option["value"]
-        try:
-            contract_path = _select_contract_path(lang)
-            try:
-                translate_contract_map[lang] = str(contract_path.relative_to(project_root))
-            except ValueError:
-                translate_contract_map[lang] = str(contract_path)
-        except ValueError:
-            translate_contract_map[lang] = ""
-    translate_contract_map_json = json.dumps(translate_contract_map)
+        route = "Agent"
+        agent_name = _translate_agent_name(lang)
+        detail = "Regra maxima: envia os chunks direto ao agente; sem contrato JSON+script."
+        translate_agent_map[lang] = f"{route}: {agent_name}"
+        translate_agent_options.append(
+            {
+                "value": lang,
+                "label": option["label"],
+                "route": route,
+                "agent_name": agent_name,
+                "detail": detail,
+            }
+        )
+    translate_agent_map_json = json.dumps(translate_agent_map)
     if PipelineRun is not None:
         matrix_runs = (
             PipelineRun.objects.filter(items__book_code=book_code)
@@ -4522,7 +4316,8 @@ def edition_steps(request, edition_id: int):
         "pipeline_last_log": pipeline_state.last_log,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
-        "translate_contract_map": translate_contract_map_json,
+        "translate_agent_map": translate_agent_map_json,
+        "translate_agent_options": translate_agent_options,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
         "pipeline_prereqs": {
@@ -4649,25 +4444,32 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
     stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
     source_dir_for_validation: Path | None = None
-    runtime_contract_path, source_label = _build_runtime_translate_contract(
-        target_edition,
-        target_language,
-    )
-    run_translation_contract(runtime_contract_path)
-    out_dir_path = _resolve_contract_out_dir(runtime_contract_path, target_edition)
-    source_dir_for_validation, _input_glob, _source_label = _translate_source_chunks(
+    from gaiden.tools.agent_translate_default import run_agent_translate
+
+    source_dir_for_validation, _input_glob, source_label = _translate_source_chunks(
         _edition_codes(target_edition)[0]
     )
+    out_dir_path = _agent_translate_out_dir(_edition_codes(target_edition)[0], target_language)
+    book_token = f"book_{book_id_for_run:04d}" if book_id_for_run is not None else _edition_codes(target_edition)[0]
+    agent_report = run_agent_translate(
+        book_id=book_token,
+        chunk_dir=source_dir_for_validation,
+        out_dir=out_dir_path,
+        suffix=target_language,
+        mode="translate",
+        agent=_translate_agent_name(target_language),
+        max_output_tokens=_recommended_translate_max_output_tokens(
+            source_dir_for_validation,
+            "*.txt",
+            target_base,
+            current_limit=8000,
+        ),
+    )
+    merged_path = Path(str(agent_report.get("merged_txt") or ""))
+    if not merged_path.exists():
+        merged_path = out_dir_path / "merge_refine_clean.txt"
 
     _validate_runtime_chunk_outputs(source_dir_for_validation, out_dir_path, "Translate")
-    merged_path = _detect_merged_path(out_dir_path)
-    if merged_path is None:
-        merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
-    merged_path, _merge_stats = canonical_merge.write_canonical_merge(
-        source_dir_for_validation,
-        out_dir_path,
-        merged_path,
-    )
     _copy_merge_to_build(
         target_edition,
         merged_path,
@@ -4681,7 +4483,10 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
     pipeline_state.save(update_fields=["current_stage", "translation_language", "md_language", "translated_at", "last_log"])
     return {
         "success": f"Translate OK ({_translate_variant_label(target_language)})",
-        "info": [f"Translate source: {source_label}"],
+        "info": [
+            f"Translate source: {source_label}",
+            f"Translate agent: {_translate_agent_name(target_language)}",
+        ],
         "target_language": target_language,
     }
 
@@ -4759,56 +4564,12 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
 
 
 def _run_polish_step_local(edition) -> dict[str, object]:
-    from gaiden.polish_en_2025 import run_polish_en_merged_file
-
-    target_edition = edition
-    stage_policy.POLICY.assert_stage_allowed(target_edition, "polish")
-    book_code, _language = _edition_codes(target_edition)
-    book_id = _parse_book_id(book_code)
-    if book_id is None:
-        raise ValueError("book_code must be like book_0001 to polish.")
-    if utils.normalize_lang(target_edition.language.code) != "en":
-        raise ValueError("Polish is only available for English.")
-
-    EditionPipeline.objects.get_or_create(edition=target_edition)
-    lang_key = "en_modern_2026"
-    out_path = paths.merge_polish_path(target_edition)
-    source_path = (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "translated"
-        / book_code
-        / "merge_refine_clean.txt"
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    return _run_polish_agent_step_local(
+        edition,
+        pipeline_state,
+        agent_name=POLISH_AGENT_DEFAULT,
     )
-    if not source_path.exists():
-        source_path = paths.merge_refine_path(target_edition)
-
-    if not source_path.exists():
-        raise FileNotFoundError("Polish Return source not found: merge_refine_clean.txt or merge_refine.txt")
-    run_polish_en_merged_file(
-        book_id=book_id,
-        lang_key=lang_key,
-        source_path=source_path,
-        output_path=out_path,
-    )
-    source_info = str(source_path)
-
-    _copy_merge_to_build(
-        target_edition,
-        out_path,
-        paths.merge_polish_path(target_edition),
-    )
-    pipeline_state.current_stage = PipelineStage.POLISHED
-    pipeline_state.polished_at = timezone.now()
-    pipeline_state.last_log = ""
-    pipeline_state.save()
-    return {
-        "success": "Polish Return OK",
-        "info": [
-            f"Polish source: {source_info}",
-            f"Polish merge: {out_path}",
-        ],
-    }
 
 
 def _run_polish_agent_step_local(

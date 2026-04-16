@@ -120,6 +120,19 @@ def collection_process(request, collection_id: int):
             elif action == "merge":
                 workflow.run_merge(collection)
                 messages.success(request, "Collection merge completed.")
+            elif action == "pre_images":
+                result = workflow.run_pre_images(collection)
+                ready = "ready" if result["ready_for_image_maker"] else "needs review"
+                messages.success(request, f"Pre-Images package generated ({ready}).")
+            elif action == "image_maker_validate":
+                workflow.validate_image_maker(collection, request.POST.get("pre_images_package", ""))
+                messages.success(request, "Image-Maker rules validated.")
+            elif action == "image_maker_build_jobs":
+                result = workflow.build_image_maker_jobs(collection, request.POST.get("pre_images_package", ""))
+                messages.success(request, f"Image-Maker jobs built: {len(result['jobs'])}.")
+            elif action == "image_maker_dry_run":
+                result = workflow.dry_run_image_maker(collection)
+                messages.success(request, f"Image-Maker dry-run complete: {result['progress']['total_jobs']} jobs.")
             else:
                 messages.warning(request, f"Unknown action: {action}")
         except Exception as exc:

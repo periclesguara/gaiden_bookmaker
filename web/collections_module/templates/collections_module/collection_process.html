@@ -257,6 +257,51 @@
         color: var(--ink);
       }
 
+      .options-table {
+        width: 100%;
+        margin: 18px 0;
+        border-collapse: collapse;
+        color: var(--muted);
+      }
+
+      .options-table th,
+      .options-table td {
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .options-table th,
+      .options-table strong {
+        color: var(--ink);
+      }
+
+      .wide-actions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .paste-box {
+        width: 100%;
+        min-height: 180px;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.75);
+        color: var(--ink);
+        font: 0.9rem/1.45 "IBM Plex Mono", "Courier New", monospace;
+      }
+
+      .report-preview {
+        max-height: 260px;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+
       .footer {
         margin-top: 20px;
         display: flex;
@@ -346,6 +391,16 @@
           <h2>Merge</h2>
           <p>Junta todos os itens normalizados na ordem cadastrada e gera a fonte final da collection.</p>
         </article>
+        <article class="step-card">
+          <span class="step-number">4</span>
+          <h2>Pre-Images</h2>
+          <p>Extrai estrutura, cria mapa, anchors, briefs e prompts-base sem gerar imagens.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">5</span>
+          <h2>Image-Maker</h2>
+          <p>Valida o pacote visual, monta jobs e prepara revisão sem aplicar nada no build.</p>
+        </article>
       </section>
 
       <section class="panel">
@@ -376,6 +431,96 @@
           ainda nao gerado
           {% endif %}
         </div>
+
+        <div class="artifact">
+          <strong>Pre-Images:</strong>
+          {% if pre_images.complete %}
+          pacote completo em {{ pre_images.out_dir }}
+          {% else %}
+          ainda nao gerado
+          {% endif %}
+          <form class="wide-actions" method="post">
+            {% csrf_token %}
+            <button type="submit" name="action" value="pre_images">Gerar Pre-Images</button>
+          </form>
+          {% if pre_images.report_preview %}
+          <div class="report-preview">{{ pre_images.report_preview }}</div>
+          {% endif %}
+        </div>
+
+        <div class="artifact">
+          <strong>Image-Maker:</strong>
+          {% if image_maker.jobs_count %}
+          {{ image_maker.jobs_count }} jobs preparados em {{ image_maker.out_dir }}
+          {% else %}
+          aguardando pacote do Pre-Images
+          {% endif %}
+          <form method="post">
+            {% csrf_token %}
+            <label for="pre_images_package"><strong>Paste Pre-Images Package</strong></label>
+            <textarea id="pre_images_package" class="paste-box" name="pre_images_package" placeholder="Cole aqui image_manifest.json, insertion_anchors.json e image_prompts.json em um objeto JSON. Se deixar vazio, o sistema usa o pacote Pre-Images da collection."></textarea>
+            <div class="wide-actions">
+              <button type="submit" name="action" value="image_maker_validate">Validate Rules</button>
+              <button type="submit" name="action" value="image_maker_build_jobs">Build Jobs</button>
+              <button type="submit" name="action" value="image_maker_dry_run">Dry-run</button>
+              <button type="submit" name="action" value="image_maker_dry_run">Generate Images</button>
+            </div>
+          </form>
+          {% if image_maker.validation_preview %}
+          <div class="report-preview">{{ image_maker.validation_preview }}</div>
+          {% endif %}
+          {% if image_maker.jobs %}
+          <table class="options-table" aria-label="Image-Maker slot preview">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Filename</th>
+                <th>Work</th>
+                <th>Chapter</th>
+                <th>Insert after</th>
+                <th>Prompt preview</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for job in image_maker.jobs %}
+              <tr>
+                <td>{{ job.status }}</td>
+                <td>{{ job.image_type }}</td>
+                <td>{{ job.filename }}</td>
+                <td>{{ job.work_title|default:"—" }}</td>
+                <td>{{ job.chapter_label|default:"—" }}</td>
+                <td>{{ job.insert_after|default:"—" }}</td>
+                <td>{{ job.prompt_preview }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+        </div>
+
+        <table class="options-table" aria-label="Opcoes de traducao por agente">
+          <thead>
+            <tr>
+              <th>Escopo</th>
+              <th>Alvo</th>
+              <th>Rota</th>
+              <th>Agente</th>
+              <th>Observacao</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for option in translate_options %}
+            <tr>
+              <td>{{ option.scope }}</td>
+              <td>{{ option.target }}</td>
+              <td>{{ option.route }}</td>
+              <td><strong>{{ option.agent }}</strong></td>
+              <td>{{ option.notes }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
         {% if run_state and run_state.last_error %}
         <div class="artifact">

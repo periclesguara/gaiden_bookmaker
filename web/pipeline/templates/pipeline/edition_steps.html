@@ -339,7 +339,27 @@
               <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
               {% endfor %}
             </select>
-            <span class="status">Contrato: <strong id="translate_contract_path"></strong></span>
+            <span class="status">Rota: <strong id="translate_agent_route"></strong></span>
+            <table class="status" style="width:100%; border-collapse:collapse; margin:0.75rem 0;">
+              <thead>
+                <tr>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Opcao</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Rota</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Agente</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Observacao</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for option in translate_agent_options %}
+                <tr>
+                  <td style="padding:0.35rem;">{{ option.label }}</td>
+                  <td style="padding:0.35rem;">{{ option.route }}</td>
+                  <td style="padding:0.35rem;"><strong>{{ option.agent_name }}</strong></td>
+                  <td style="padding:0.35rem;">{{ option.detail }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
             {% endif %}
             {% if s.key == "refine" %}
             <select id="refine_profile" name="refine_profile" aria-label="Perfil de refine">
@@ -908,9 +928,9 @@
     const mdSourceMap = {{ md_source_map|safe }};
     const mdSelect = document.getElementById("md_language");
     const mdSourceLabel = document.getElementById("md_source_path");
-    const translateContractMap = {{ translate_contract_map|safe }};
+    const translateAgentMap = {{ translate_agent_map|safe }};
     const translateSelect = document.getElementById("translate_target_language");
-    const translateContractLabel = document.getElementById("translate_contract_path");
+    const translateAgentLabel = document.getElementById("translate_agent_route");
 
     function updateMdSource() {
       if (!mdSelect || !mdSourceLabel) return;
@@ -918,11 +938,10 @@
       mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
     }
 
-    function updateTranslateContract() {
-      if (!translateSelect || !translateContractLabel) return;
+    function updateTranslateAgent() {
+      if (!translateSelect || !translateAgentLabel) return;
       const lang = translateSelect.value;
-      const contractPath = translateContractMap[lang] || "contrato nao encontrado";
-      translateContractLabel.textContent = contractPath;
+      translateAgentLabel.textContent = translateAgentMap[lang] || "rota nao configurada";
     }
 
     if (mdSelect) {
@@ -930,8 +949,8 @@
       updateMdSource();
     }
     if (translateSelect) {
-      translateSelect.addEventListener("change", updateTranslateContract);
-      updateTranslateContract();
+      translateSelect.addEventListener("change", updateTranslateAgent);
+      updateTranslateAgent();
     }
   </script>
 </body>

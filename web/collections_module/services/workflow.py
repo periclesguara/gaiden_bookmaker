@@ -9,6 +9,7 @@ from gaiden.domain.editorial.collections import COLLECTION_STATUS_CREATED, ITEM_
 from gaiden.infrastructure import collections_storage
 
 from collections_module.models import Collection, CollectionItem, CollectionRunState
+from collections_module.services import image_maker, pre_images
 
 
 def next_collection_code() -> str:
@@ -61,6 +62,24 @@ def build_collection_context(collection: Collection) -> dict:
         "merged_exists": merged_path.exists(),
         "pipeline_edition": pipeline_edition,
         "run_state": run_state,
+        "pre_images": pre_images.pre_images_status(collection),
+        "image_maker": image_maker.image_maker_status(collection),
+        "translate_options": [
+            {
+                "scope": "Book + Collection",
+                "target": "EN (modern)",
+                "route": "Agent",
+                "agent": "HeadingCleaner",
+                "notes": "Tradutor geral ativo para os splits que vao para ingles.",
+            },
+            {
+                "scope": "Book + Collection",
+                "target": "ES, PT-BR, DE, FR, IT",
+                "route": "Placeholder",
+                "agent": "not configured yet",
+                "notes": "Sem tradutor registrado ainda; nao aparece na etapa Translate.",
+            },
+        ],
     }
 
 
@@ -110,3 +129,19 @@ def run_merge(collection: Collection) -> Path:
 
 def handoff_to_pipeline(collection: Collection):
     return collection_service.handoff_to_pipeline(collection, _ordered_items(collection))
+
+
+def run_pre_images(collection: Collection) -> dict:
+    return pre_images.run_pre_images(collection, _ordered_items(collection))
+
+
+def validate_image_maker(collection: Collection, raw_package: str = "") -> dict:
+    return image_maker.validate_rules(collection, raw_package)
+
+
+def build_image_maker_jobs(collection: Collection, raw_package: str = "") -> dict:
+    return image_maker.build_jobs(collection, raw_package)
+
+
+def dry_run_image_maker(collection: Collection) -> dict:
+    return image_maker.dry_run_generation(collection)

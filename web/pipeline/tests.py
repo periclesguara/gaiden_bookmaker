@@ -91,7 +91,6 @@ class ItalianSupportTests(TestCase):
         from pipeline.views import (
             _default_refine_profile_for_language,
             _resolve_refine_output_dir,
-            _select_refine_contract,
         )
 
         headings = frontmatter_headings("it")
@@ -102,7 +101,6 @@ class ItalianSupportTests(TestCase):
         self.assertEqual(country_for_language("it", "fallback"), "Brasile")
         self.assertEqual(get_section_template_for_language("about_edition", "it"), "pipeline/about_edition_it.md.j2")
         self.assertEqual(_default_refine_profile_for_language("it"), "italiano_neutro")
-        self.assertEqual(_select_refine_contract("it").name, "it_refine_2025.json")
         self.assertEqual(
             _resolve_refine_output_dir(Path("data/translated/book_0002/it_2026"), target_language="it"),
             Path("data/translated/book_0002/it_2026/return_aldebaran"),
@@ -688,18 +686,18 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             de_edition.delete()
             work.delete()
 
-    def test_translate_contract_for_german_uses_dedicated_2026_copy(self):
+    def test_translate_contracts_are_disabled(self):
         from pipeline.views import _select_contract_path
 
-        contract_path = _select_contract_path("de")
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _select_contract_path("de")
 
-        self.assertTrue(str(contract_path).endswith("gaiden/contracts/en_de_2026.json"))
-
-    def test_refine_contract_for_german_is_configured_with_kaiser_profile(self):
+    def test_refine_contracts_are_disabled_but_profile_remains_configured(self):
         from pipeline.views import _default_refine_profile_for_language, _select_refine_contract
 
         self.assertEqual(_default_refine_profile_for_language("de"), "de_kaiser")
-        self.assertTrue(str(_select_refine_contract("de")).endswith("gaiden/contracts/refine/de_refine_2026.json"))
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _select_refine_contract("de")
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_redirects_to_html_dashboard_when_source_format_is_html(self, mock_frontmatter):
@@ -1378,38 +1376,36 @@ class EnglishPhilosoferTranslateTests(TestCase):
         self.settings_override.disable()
         self.temp_dir.cleanup()
 
-    def test_select_contract_path_supports_english_philosofer(self):
+    def test_select_contract_path_is_disabled_for_english_philosofer(self):
         from pipeline.views import _select_contract_path
 
-        self.assertEqual(_select_contract_path("en_philo").name, "en_philosofer_2026.json")
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _select_contract_path("en_philo")
 
-    def test_runtime_translate_contract_uses_philosophy_variant_directory_and_english_output(self):
+    def test_runtime_translate_contract_is_disabled_for_philosophy_variant(self):
         from pipeline.views import _build_runtime_translate_contract
 
-        runtime_contract_path, _source_label = _build_runtime_translate_contract(self.edition, "en_philo")
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _build_runtime_translate_contract(self.edition, "en_philo")
 
-        self.assertEqual(runtime_contract_path.name, "contract_translate_en_philo.json")
-        self.assertEqual(payload["translation_variant"], "en_philo")
-        self.assertEqual(payload["target_language"], "en")
-        self.assertEqual(payload["output"]["language"], "en")
-        self.assertTrue(payload["out_dir"].endswith("/data/translated/book_0201/en_philosofer_2026"))
-        self.assertIn("Greek and Latin", payload["system_prompt"])
-
-    def test_edition_steps_shows_english_philosofer_option(self):
+    def test_edition_steps_hides_english_philosofer_option(self):
         response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "English-Philosofer")
+        self.assertContains(response, "EN (modern)")
+        self.assertNotContains(response, "English-Philosofer")
+        self.assertNotContains(response, "English-Devotional")
 
-    def test_preview_merge_translate_resolves_philosophy_runtime_dir(self):
+    def test_preview_merge_translate_maps_legacy_philosophy_state_to_modern_en(self):
         EditionPipeline.objects.create(
             edition=self.edition,
             translation_language="en_philo",
         )
-        runtime_dir = self.temp_root / "data" / "translated" / self.work.code / "en_philosofer_2026"
+        from pipeline.views import _runtime_translate_dir_for_edition
+
+        runtime_dir = _runtime_translate_dir_for_edition(self.edition, "en_philo")
         runtime_dir.mkdir(parents=True, exist_ok=True)
-        merged_runtime_path = runtime_dir / "merged_en_philosofer_2026.txt"
+        merged_runtime_path = runtime_dir / "merged_en_modern_2026.txt"
         merged_runtime_path.write_text("Marcus preview content.\n", encoding="utf-8")
 
         response = self.client.get(reverse("preview_merge_translate", kwargs={"edition_id": self.edition.id}))
@@ -2092,7 +2088,7 @@ class HeadingCleanerGateTests(TestCase):
     def test_runtime_refine_contract_is_disabled(self):
         from pipeline.views import _build_runtime_refine_contract
 
-        with self.assertRaisesRegex(RuntimeError, "Refine via JSON contract is disabled"):
+        with self.assertRaisesRegex(RuntimeError, "Refine JSON contracts are disabled"):
             _build_runtime_refine_contract(self.edition, "en")
 
     def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
@@ -2104,7 +2100,7 @@ class HeadingCleanerGateTests(TestCase):
 
         self.assertEqual(cleaned, "Body text.")
 
-    def test_runtime_translate_contract_raises_max_output_tokens_for_large_chunks(self):
+    def test_runtime_translate_contract_is_disabled_for_large_chunks(self):
         from pipeline.views import _build_runtime_translate_contract
 
         self.client.post(self.heading_url)
@@ -2112,12 +2108,8 @@ class HeadingCleanerGateTests(TestCase):
         large_chunk = self.split_dir / "0003.txt"
         large_chunk.write_text(("A long translated paragraph. " * 320), encoding="utf-8")
 
-        runtime_contract_path, _source_label = _build_runtime_translate_contract(self.edition, "en")
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
-
-        self.assertGreater(payload["max_output_tokens"], 1200)
-        self.assertGreaterEqual(payload["max_output_tokens"], 1800)
-        self.assertLessEqual(payload["max_output_tokens"], 4000)
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _build_runtime_translate_contract(self.edition, "en")
 
     def test_refine_agent_handoff_keeps_large_chunks_on_direct_source(self):
         from pipeline.views import _prepare_refine_agent_handoff
@@ -2168,29 +2160,8 @@ class HeadingCleanerGateTests(TestCase):
         self.client.post(self.heading_url)
         self.client.post(reverse("pipeline_chunk_run", kwargs={"edition_id": self.edition.id}))
 
-        runtime_contract_path, source_label = _build_runtime_translate_contract(self.edition, "en")
-        payload = json.loads(runtime_contract_path.read_text(encoding="utf-8"))
-
-        self.assertEqual(source_label, "split_01")
-        self.assertEqual(payload["chunk_dir"], str(self.split_dir))
-        self.assertEqual(payload["out_dir"], str(self.translated_dir))
-        self.assertEqual(payload["model"], "gpt-5.4")
-        self.assertEqual(payload["fallback_model"], "gpt-5.2")
-        self.assertEqual(payload["contract_name"], "stage01_modern_translation_controlled_v3")
-        self.assertEqual(payload["role"], "translator_modernizer")
-        self.assertIn("strictly preserving meaning, narrative continuity, paragraph structure, and literary intent", payload["purpose"])
-        self.assertNotIn("Sherlock Holmes", payload["system_prompt"])
-        self.assertNotIn("Sherlock Holmes", payload["user_prompt"])
-        self.assertNotIn("Conan", payload["system_prompt"])
-        self.assertNotIn("Conan", payload["user_prompt"])
-        self.assertIn("Rewrite the passage into controlled modern English", payload["system_prompt"])
-        self.assertIn("preserving meaning, chronology, paragraph structure", payload["system_prompt"])
-        self.assertIn("Rewrite the following literary passage into controlled modern English.", payload["user_prompt"])
-        self.assertIn("Preserve continuity with adjacent chunks.", payload["user_prompt"])
-        self.assertIn("Modernize archaic wording only where it creates real readability friction.", payload["user_prompt"])
-        self.assertIn("Preserve tone, narrative voice, literary register, and genre atmosphere.", payload["user_prompt"])
-        self.assertIn("Split sentences only if readability clearly improves and no meaning, tone, or nuance is lost.", payload["user_prompt"])
-        self.assertIn("Return only the final rewritten passage.", payload["user_prompt"])
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
+            _build_runtime_translate_contract(self.edition, "en")
 
     def test_translate_falls_back_to_gpt52_when_gpt54_returns_no_response(self):
         from gaiden.translate import run_translate_with_contract
@@ -2218,16 +2189,8 @@ class HeadingCleanerGateTests(TestCase):
             encoding="utf-8",
         )
 
-        fake_client = _SequentialOpenAIClient(["", "Fallback translated chunk."])
-        with patch("gaiden.translate.get_client", return_value=fake_client):
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
             run_translate_with_contract(contract_path)
-
-        self.assertEqual(
-            (out_dir / "0001.txt").read_text(encoding="utf-8"),
-            "Fallback translated chunk.",
-        )
-        self.assertEqual(fake_client.responses.calls[0]["model"], "gpt-5.4")
-        self.assertEqual(fake_client.responses.calls[1]["model"], "gpt-5.2")
 
     def test_translate_retries_same_model_when_chunk_output_is_truncated(self):
         from gaiden.translate import run_translate_with_contract
@@ -2262,23 +2225,8 @@ class HeadingCleanerGateTests(TestCase):
             encoding="utf-8",
         )
 
-        fake_client = _SequentialOpenAIClient(
-            [
-                "„Oh, er schätzt meine Hilfe viel zu hoch ein“, sagte Sherlock Holmes leichthin. "
-                "„Sie können doch nicht erwarten, dass ich glaube,",
-                "„Oh, er schätzt meine Hilfe viel zu hoch ein“, sagte Sherlock Holmes leichthin. "
-                "„Sie können doch nicht erwarten, dass ich glaube, Sie hätten all das aus seiner alten Uhr herausgelesen! "
-                "Das ist unfreundlich und, offen gesagt, hat es einen Anflug von Scharlatanerie.“",
-            ]
-        )
-        with patch("gaiden.translate.get_client", return_value=fake_client):
+        with self.assertRaisesRegex(RuntimeError, "disabled"):
             run_translate_with_contract(contract_path)
-
-        self.assertEqual(len(fake_client.responses.calls), 2)
-        self.assertEqual(fake_client.responses.calls[0]["model"], "gpt-5.4")
-        self.assertEqual(fake_client.responses.calls[1]["model"], "gpt-5.4")
-        self.assertGreater(fake_client.responses.calls[1]["max_output_tokens"], fake_client.responses.calls[0]["max_output_tokens"])
-        self.assertIn("Scharlatanerie", (out_dir / "0001.txt").read_text(encoding="utf-8"))
 
     def test_german_closing_quote_counts_as_complete_chunk_boundary(self):
         from gaiden.translate import chunk_truncation_reason
@@ -2338,7 +2286,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, 'name="refine_profile"')
         self.assertContains(response, "Ingles neutro - Aldebaran")
         self.assertContains(response, "Ingles flex - Alamaguederaz")
-        self.assertContains(response, "Inglês filosofia - HeadingCleaner")
+        self.assertNotContains(response, "Inglês filosofia - HeadingCleaner")
 
     def test_steps_reflect_saved_refine_profile(self):
         EditionPipeline.objects.update_or_create(
@@ -2359,7 +2307,7 @@ class HeadingCleanerGateTests(TestCase):
             "1) Normalize",
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
-            "4) Translate (script + JSON)",
+            "4) Translate (Agent)",
             "5) Split by Chapter (merge_translate)",
             "6) Refine (Ingles neutro)",
             "7) Merge/Finalize",
@@ -2394,10 +2342,13 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(response.url, self.steps_url)
         self.assertFalse(self.split_dir.exists())
 
-    def test_translate_shows_contract_path(self):
+    def test_translate_shows_agent_route(self):
         response = self.client.get(self.steps_url)
 
-        self.assertContains(response, "gaiden/contracts/en_modern_2025.json")
+        self.assertContains(response, "Agent")
+        self.assertContains(response, "HeadingCleaner")
+        self.assertNotContains(response, "English-Philosofer")
+        self.assertNotContains(response, "English-Devotional")
 
     def test_refine_disabled_without_translate_outputs(self):
         self.client.post(self.heading_url)
@@ -2415,7 +2366,7 @@ class HeadingCleanerGateTests(TestCase):
             "1) Normalize",
             "2) HeadingCleaner (Mechanical)",
             "3) Split/Chunk",
-            "4) Translate (script + JSON)",
+            "4) Translate (Agent)",
             "5) Split by Chapter (merge_translate)",
             "6) Refine (Ingles neutro)",
             "7) Merge/Finalize",

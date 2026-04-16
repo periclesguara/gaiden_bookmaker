@@ -12,9 +12,4 @@ from gaiden.application.pipeline.translation import (
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) != 2:
-        print("Uso: python -m gaiden.translate <caminho_contrato.json>")
-        raise SystemExit(1)
-    run_translate_with_contract(sys.argv[1])
+    raise SystemExit("JSON contract translation is disabled. Use the agent translation route.")

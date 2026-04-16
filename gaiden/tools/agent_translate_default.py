@@ -10,7 +10,7 @@ PYTHONPATH=. python gaiden/tools/agent_translate_default.py \
   --book-id book_0003 \
   --chunk-dir data/chunks/book_0003/en \
   --out-dir data/translated/book_0003/en_modern \
-  --agent ALDEBARAN \
+  --agent HeadingCleaner \
   --suffix en_modern \
   --limit 1
 """
@@ -40,7 +40,16 @@ from gaiden.translate_artifacts import (
 )
 
 CHUNK_GLOB = "ch_*_chunk_*.txt"
-ENGLISH_TARGETS = {"en", "en_modern"}
+ENGLISH_TARGETS = {
+    "en",
+    "en_modern",
+    "en_2026",
+    "en_modern_2026",
+    "en_philo",
+    "en_philosofer",
+    "en_philosopher",
+    "en_devotional",
+}
 
 
 def _now_iso() -> str:
@@ -73,6 +82,12 @@ def _merge_outputs(
     mode: str,
 ) -> tuple[Path, int, int]:
     files = sorted(out_dir.glob(f"ch_*_chunk_*.{suffix}.txt"))
+    if not files:
+        files = sorted(
+            p
+            for p in out_dir.glob(f"*.{suffix}.txt")
+            if not (p.name.startswith("book_") or p.name.startswith("merge") or p.name.startswith("merged_"))
+        )
     if not files:
         raise RuntimeError(f"NO_TRANSLATED_CHUNKS: nothing matched {out_dir}/ch_*_chunk_*.{suffix}.txt")
     parts: List[str] = []
@@ -136,14 +151,19 @@ def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_out
 
 
 def _chunk_paths(chunk_dir: Path) -> List[Path]:
-    return sorted(chunk_dir.glob(CHUNK_GLOB))
+    chunks = sorted(chunk_dir.glob(CHUNK_GLOB))
+    if chunks:
+        return chunks
+    return sorted(p for p in chunk_dir.glob("*.txt") if p.is_file())
 
 
 def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
-    # Business rule: english targets always use ALDEBARAN.
+    # Business rule: English translate no longer uses JSON+script contracts.
+    # It always goes through the HeadingCleaner agent.
     target = normalize_lang_code(suffix, default="en_modern")
-    if target in ENGLISH_TARGETS:
-        return "ALDEBARAN"
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        return "HeadingCleaner"
 
     candidate = (requested_agent or "").strip()
     if candidate:

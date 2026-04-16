@@ -362,6 +362,7 @@ def _merge_translated_chunks(out_dir_path: Path, lang_key: str, book_id: Optiona
 
 
 def run_translate_with_contract(contract_path: str | Path) -> None:
+    raise RuntimeError("JSON contract translation is disabled. Use the agent translation route.")
     contract = _load_contract(contract_path)
     out_dir = contract.get("out_dir")
     chunk_dir_path = _detect_chunk_dir(contract)

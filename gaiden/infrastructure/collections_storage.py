@@ -13,6 +13,8 @@ AUDIT_DIRNAME = "audit"
 FRONTMATTER_DIRNAME = "frontmatter"
 MD_DIRNAME = "md"
 BUILD_DIRNAME = "build"
+PRE_IMAGES_DIRNAME = "pre_images"
+IMAGE_MAKER_DIRNAME = "image_maker"
 
 
 def collection_root(collection_code: str, language: str) -> Path:
@@ -47,6 +49,14 @@ def build_dir(collection_code: str, language: str) -> Path:
     return collection_root(collection_code, language) / BUILD_DIRNAME
 
 
+def pre_images_dir(collection_code: str, language: str) -> Path:
+    return collection_root(collection_code, language) / PRE_IMAGES_DIRNAME
+
+
+def image_maker_dir(collection_code: str, language: str) -> Path:
+    return collection_root(collection_code, language) / IMAGE_MAKER_DIRNAME
+
+
 def audit_dir(collection_code: str, language: str) -> Path:
     return collection_root(collection_code, language) / AUDIT_DIRNAME
 
@@ -59,6 +69,8 @@ def ensure_collection_layout(collection_code: str, language: str) -> Path:
         normalized_items_dir(collection_code, language),
         merged_dir(collection_code, language),
         audit_dir(collection_code, language),
+        pre_images_dir(collection_code, language),
+        image_maker_dir(collection_code, language),
     ):
         path.mkdir(parents=True, exist_ok=True)
     return root
