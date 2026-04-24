@@ -37,6 +37,27 @@ class CollectionModuleTests(TestCase):
         collection = Collection.objects.get()
         self.assertEqual(collection.title, "Sherlock Collection")
 
+    def test_collection_context_exposes_french_translate_agent(self):
+        from .services.workflow import build_collection_context
+
+        collection = Collection.objects.create(
+            code=self._new_collection_code("fr-agent"),
+            title="French Collection",
+            subtitle="",
+            collection_kind="collected_tales",
+            author_display_name="Author",
+            language="fr",
+            status="COLLECTION_CREATED",
+            item_count=2,
+        )
+
+        context = build_collection_context(collection)
+        french_option = next((item for item in context["translate_options"] if item["target"] == "FR"), None)
+
+        self.assertIsNotNone(french_option)
+        self.assertEqual(french_option["route"], "Agent")
+        self.assertEqual(french_option["agent"], "LE_GRAND_COULHON")
+
     def test_collection_create_page_uses_responsive_selection_ui(self):
         response = self.client.get(reverse("collection_new"))
         self.assertEqual(response.status_code, 200)

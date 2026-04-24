@@ -50,6 +50,13 @@ ENGLISH_TARGETS = {
     "en_philosopher",
     "en_devotional",
 }
+FRENCH_TARGETS = {
+    "fr",
+    "fr_fr",
+    "french",
+    "francais",
+    "français",
+}
 
 
 def _now_iso() -> str:
@@ -114,7 +121,35 @@ def _merge_outputs(
     return out_path, len(merged.encode("utf-8")), len(files)
 
 
-def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_output_tokens: int = 8000) -> Tuple[str, Dict[str, Any]]:
+def _agent_translate_system_prompt(*, agent_name: str, suffix: str, mode: str, retry: bool = False) -> str:
+    target = normalize_lang_code(suffix, default="en")
+    target_label = "modern English" if target.startswith("en") else target
+    retry_line = (
+        "The previous response was rejected because it was too short. Return the full chunk this time. "
+        if retry
+        else ""
+    )
+    return (
+        f"You are agent {agent_name} working in the Gaiden {mode} stage.\n"
+        f"{retry_line}"
+        f"Transform the source chunk into {target_label} and return the complete transformed chunk only.\n"
+        "Preserve every paragraph, heading, list item, endnote marker, name, number, quote, and factual detail.\n"
+        "Do not summarize, abridge, compress, omit, explain, comment, add metadata, or wrap the output in Markdown fences.\n"
+        "Keep the original order exactly. If a passage is already in the target language, lightly normalize it only where needed.\n"
+        "The output must remain close to the input length unless the source itself makes a small variation unavoidable."
+    )
+
+
+def _call_agent(
+    agent_name: str,
+    text: str,
+    *,
+    suffix: str,
+    mode: str,
+    temperature: float = 0.4,
+    max_output_tokens: int = 8000,
+    retry: bool = False,
+) -> Tuple[str, Dict[str, Any]]:
     """
     Calls your repo's agent helper if available.
     We assume your project already has an OpenAI client wrapper like gaiden/openai_client.py.
@@ -123,20 +158,25 @@ def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_out
         "agent_name": agent_name,
         "temperature": temperature,
         "max_output_tokens": max_output_tokens,
+        "retry": retry,
     }
 
     # Preferred: your existing helper
     try:
         from gaiden.openai_client import call_agent_text  # type: ignore
 
-        # Your repo previously used a signature like:
-        # call_agent_text(agent_name=..., text=..., model=..., temperature=..., max_output_tokens=..., system_prompt=...)
-        # Agents already contain instructions, so we only pass agent_name + text (plus temp/tokens).
+        system_prompt = _agent_translate_system_prompt(
+            agent_name=agent_name,
+            suffix=suffix,
+            mode=mode,
+            retry=retry,
+        )
         out = call_agent_text(
             agent_name=agent_name,
             text=text,
             temperature=temperature,
             max_output_tokens=max_output_tokens,
+            system_prompt=system_prompt,
         )
         meta["call_impl"] = "gaiden.openai_client.call_agent_text"
         return out, meta
@@ -164,6 +204,8 @@ def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None)
     raw_target = (suffix or "").strip().lower().replace("-", "_")
     if target in ENGLISH_TARGETS or raw_target.startswith("en"):
         return "HeadingCleaner"
+    if target in FRENCH_TARGETS or raw_target.startswith("fr"):
+        return "LE_GRAND_COULHON"
 
     candidate = (requested_agent or "").strip()
     if candidate:
@@ -274,14 +316,33 @@ def run_agent_translate(
         }
 
         try:
-            out_text, meta = _call_agent(
-                agent,
-                in_text,
-                temperature=temperature,
-                max_output_tokens=max_output_tokens,
-            )
-            out_len = _safe_len(out_text)
-            ratio = (out_len / in_len) if in_len else None
+            attempts: list[dict[str, Any]] = []
+            out_text = ""
+            meta: Dict[str, Any] = {}
+            out_len = 0
+            ratio = None
+            for attempt in range(1, 3):
+                out_text, meta = _call_agent(
+                    agent,
+                    in_text,
+                    suffix=suffix,
+                    mode=mode,
+                    temperature=temperature,
+                    max_output_tokens=max_output_tokens,
+                    retry=attempt > 1,
+                )
+                out_len = _safe_len(out_text)
+                ratio = (out_len / in_len) if in_len else None
+                attempts.append(
+                    {
+                        "attempt": attempt,
+                        "out_len": out_len,
+                        "ratio": ratio,
+                        "agent_meta": meta,
+                    }
+                )
+                if ratio is None or ratio >= 0.85:
+                    break
             if ratio is not None and ratio < 0.85:
                 raise RuntimeError(f"TRUNCATION_OR_SUMMARY: ratio={ratio:.3f}")
             item.update(
@@ -290,6 +351,7 @@ def run_agent_translate(
                     "out_len": out_len,
                     "ratio": ratio,
                     "agent_meta": meta,
+                    "attempts": attempts,
                 }
             )
             _write_text(out_txt, out_text)

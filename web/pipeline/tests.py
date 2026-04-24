@@ -124,6 +124,39 @@ class ItalianSupportTests(TestCase):
         self.assertEqual(template.get_placeholder_context()["language"], "Italiano")
 
 
+class FrenchRefineRoutingTests(TestCase):
+    def test_french_refine_defaults_to_coulhon(self):
+        from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
+
+        self.assertEqual(_default_refine_profile_for_language("fr"), "fr_coulhon")
+        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_coulhon",))
+        self.assertEqual(_refine_profile_config("fr_coulhon")["agent_name"], "Le Grand Coulhon")
+
+    def test_french_refine_output_dir_uses_agent_slug(self):
+        from pipeline.views import _resolve_refine_output_dir
+
+        self.assertEqual(
+            _resolve_refine_output_dir(
+                Path("data/translated/book_0002/fr_2026"),
+                refine_profile="fr_coulhon",
+                target_language="fr",
+            ),
+            Path("data/translated/book_0002/fr_2026/return_le_grand_coulhon"),
+        )
+
+
+class TranslateAgentRoutingTests(TestCase):
+    def test_french_translate_uses_le_grand_coulhon(self):
+        from pipeline.views import _translate_agent_name
+
+        self.assertEqual(_translate_agent_name("fr"), "LE_GRAND_COULHON")
+
+    def test_agent_translate_default_resolves_french_agent(self):
+        from gaiden.tools.agent_translate_default import resolve_agent_for_target
+
+        self.assertEqual(resolve_agent_for_target(suffix="fr"), "LE_GRAND_COULHON")
+
+
 class CadastroSourceFormatRoutingTests(TestCase):
     def setUp(self):
         self.language = Language.objects.create(
@@ -2349,6 +2382,38 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, "HeadingCleaner")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
+
+
+
+    def test_french_steps_show_coulhon_refine_profile(self):
+        french = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Francais",
+            is_active=True,
+        )
+        french_edition = Edition.objects.create(
+            work=self.work,
+            language=french,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="fr",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': french_edition.id})}?allow_html_to_common=1"
+        )
+
+        self.assertContains(response, 'name="refine_profile"')
+        self.assertContains(response, "Francais Coulhon - Le Grand Coulhon")
+        self.assertNotContains(response, "Ingles neutro - Aldebaran")
+        self.assertNotContains(response, "Ingles flex - Alamaguederaz")
 
     def test_refine_disabled_without_translate_outputs(self):
         self.client.post(self.heading_url)

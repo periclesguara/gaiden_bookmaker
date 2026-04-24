@@ -131,6 +131,15 @@ REFINE_PROFILES = {
             "literary tension or period detail."
         ),
     },
+    "fr_coulhon": {
+        "label": "Francais Coulhon",
+        "agent_name": "Le Grand Coulhon",
+        "description": "Refine litteraire en francais moderne avec fluidite, naturel et controle de registre.",
+        "style_directive": (
+            "Target profile: modern, natural French. Preserve full meaning, chronology, paragraphing, and atmosphere. "
+            "Prefer idiomatic, fluent French prose with controlled literary cadence, without flattening tone, tension, or period detail."
+        ),
+    },
 }
 
 BLOCK_STATUS_LABELS = {
@@ -157,6 +166,7 @@ TRANSLATE_VARIANT_OPTIONS = (
 )
 TRANSLATE_AGENT_BY_VARIANT = {
     "en": "HeadingCleaner",
+    "fr": "LE_GRAND_COULHON",
 }
 _TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_BASES = {item["value"]: item["base_language"] for item in TRANSLATE_VARIANT_OPTIONS}
@@ -259,6 +269,8 @@ def _default_refine_profile_for_language(language: str | None) -> str:
     normalized = utils.normalize_lang(language)
     if normalized == "de":
         return "de_kaiser"
+    if normalized == "fr":
+        return "fr_coulhon"
     if normalized == "it":
         return "italiano_neutro"
     return REFINE_PROFILE_DEFAULT
@@ -268,6 +280,8 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     normalized = utils.normalize_lang(language)
     if normalized == "de":
         return ("de_kaiser",)
+    if normalized == "fr":
+        return ("fr_coulhon",)
     if normalized == "it":
         return ("italiano_neutro",)
     return ("ingles_neutro", "ingles_flex")
