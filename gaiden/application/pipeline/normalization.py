@@ -8,22 +8,32 @@ from typing import Tuple
 from gaiden.infrastructure import storage
 
 ROMAN_MAP = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+ROMAN_CANONICAL_RE = re.compile(r"^(?=[MDCLXVI]+$)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$", re.IGNORECASE)
 STANDALONE_CHAPTER_MARKER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\.?\s*$", re.IGNORECASE)
+MD_STANDALONE_CHAPTER_MARKER_RE = re.compile(r"^\s*#{1,6}\s+([IVXLCDM]+|\d+)\.?\s*$", re.IGNORECASE)
 EXPLICIT_CHAPTER_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:chapter|part|section|adventure)\s+([IVXLCDM]+|\d+)\b",
+    re.IGNORECASE,
+)
+ROMAN_PREFIX_HEADING_RE = re.compile(
+    r"^(?P<prefix>\s*(?:#{1,6}\s+)?)"
+    r"(?P<number>[IVXLCDM]+)"
+    r"(?P<sep>\.|\)|:|—|–|-)\s*"
+    r"(?P<title>.+)$",
     re.IGNORECASE,
 )
 RULE_LINE_RE = re.compile(r"^\s*[-=]{5,}\s*$")
 DIV_MARKER_RE = re.compile(r"^\s*:::(?:\s+.*)?\s*$")
 IMAGE_LINE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]+\)")
 MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
+STANDALONE_NUMERIC_RESIDUE_RE = re.compile(r"^\s*(?:#{1,6}\s+)?(?:\d+|[IVXLCDM]+)\.?\s*$", re.IGNORECASE)
 NORMALIZED_PART_RE = re.compile(r"^\s*PART\s+(\d+)\b", re.IGNORECASE)
 NORMALIZED_CHAPTER_RE = re.compile(r"^\s*CHAPTER\s+(\d+)\b", re.IGNORECASE)
 
 
 def roman_to_int(s: str) -> int | None:
     s = s.upper().strip()
-    if not s or not all(c in ROMAN_MAP for c in s):
+    if not s or not ROMAN_CANONICAL_RE.match(s):
         return None
     total, prev = 0, 0
     for c in reversed(s):
@@ -92,7 +102,8 @@ def _collapse_blank(lines: list[str]) -> list[str]:
 
 
 def _standalone_chapter_token(line: str) -> str | None:
-    match = STANDALONE_CHAPTER_MARKER_RE.match((line or "").strip())
+    stripped = (line or "").strip()
+    match = STANDALONE_CHAPTER_MARKER_RE.match(stripped) or MD_STANDALONE_CHAPTER_MARKER_RE.match(stripped)
     return match.group(1) if match else None
 
 
@@ -123,6 +134,27 @@ def _normalize_explicit_chapter_heading(line: str) -> str:
     label = match.group("label").upper()
     suffix = match.group("suffix") or ""
     return f"{prefix}{label} {chapter_no}{suffix}"
+
+
+def _normalize_roman_prefix_heading(line: str) -> str:
+    match = ROMAN_PREFIX_HEADING_RE.match(line)
+    if not match:
+        return line
+    number = roman_to_int(match.group("number"))
+    if number is None:
+        return line
+    prefix = match.group("prefix") or ""
+    sep = match.group("sep")
+    title = match.group("title")
+    spacer = "" if sep in {"—", "–"} else " "
+    return f"{prefix}{number}{sep}{spacer}{title}"
+
+
+def _is_isolated_numeric_residue(line: str) -> bool:
+    stripped = (line or "").strip()
+    if not stripped:
+        return False
+    return bool(STANDALONE_NUMERIC_RESIDUE_RE.match(stripped))
 
 
 def _looks_like_body_line(line: str) -> bool:
@@ -277,15 +309,11 @@ def normalize_text_v2(raw: str) -> str:
         if in_contents and stripped and stripped.lower().startswith("to sherlock holmes"):
             in_contents = False
         if not in_contents:
-            m = re.match(r"^([IVXLCDM]+)\.\s+(.*)", stripped)
-            if m:
-                n = roman_to_int(m.group(1))
-                if n:
-                    line = f"{n}. {m.group(2)}"
-            else:
-                line = _normalize_explicit_chapter_heading(line)
+            line = _normalize_explicit_chapter_heading(line)
+            line = _normalize_roman_prefix_heading(line)
         out.append(line)
     out = _insert_part_markers_for_chapter_resets(out)
+    out = [line for line in out if not _is_isolated_numeric_residue(line)]
     out = _collapse_blank(out)
     return "\n".join(out).strip()
 

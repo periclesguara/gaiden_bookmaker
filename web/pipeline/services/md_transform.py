@@ -450,7 +450,10 @@ def _chapter_title_only(text: str) -> str:
 
 def _format_chapter_heading(text: str, chapter_no: int, language: str) -> str:
     label = _chapter_label_for_language(language)
+    stripped = (text or "").strip()
     title = _chapter_title_only(text)
+    if title == stripped and _extract_chapter_number(stripped) is not None:
+        return f"{label} {chapter_no:02d}"
     return f"{label} {chapter_no:02d} - {title}"
 
 
@@ -1019,6 +1022,46 @@ def _markdown_from_known_chapter_markers(txt: str, cfg: PreEditionConfig) -> str
     return "\n".join(out_lines)
 
 
+def _markdown_from_explicit_chapter_markers(txt: str, cfg: PreEditionConfig) -> str | None:
+    lines = txt.split("\n")
+    chapter_starts: list[tuple[int, str]] = []
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if not CHAPTER_PREFIX_RE.match(stripped):
+            continue
+        chapter_starts.append((idx, stripped))
+
+    if not chapter_starts:
+        return None
+
+    out_lines: list[str] = []
+    prefix = "\n".join(lines[:chapter_starts[0][0]]).strip()
+    if prefix:
+        out_lines.append(prefix)
+        out_lines.append("")
+
+    for idx, (start_line, heading_text) in enumerate(chapter_starts):
+        end_line = chapter_starts[idx + 1][0] if idx + 1 < len(chapter_starts) else len(lines)
+        chapter_lines = lines[start_line + 1 : end_line]
+        while chapter_lines and not chapter_lines[0].strip():
+            chapter_lines.pop(0)
+        chapter_text = "\n".join(chapter_lines).strip()
+        if cfg.add_pagebreak_before_chapter:
+            out_lines.append(r"\newpage")
+            out_lines.append("")
+        out_lines.append(f"# {_format_chapter_heading(heading_text, idx + 1, cfg.language)}")
+        out_lines.append("")
+        if chapter_text:
+            out_lines.append(chapter_text)
+            out_lines.append("")
+
+    while out_lines and not out_lines[-1].strip():
+        out_lines.pop()
+    return "\n".join(out_lines) if out_lines else None
+
+
 def _markdown_from_blocks(blocks: list[tuple[str, str]], cfg: PreEditionConfig) -> str:
     out_lines: list[str] = []
     chapter_no = 0
@@ -1073,6 +1116,8 @@ def pre_edition_txt_to_md(
         body_md = _markdown_from_source_md_markers(cleaned, cfg)
     if body_md is None and heading_contract and heading_contract.source == "known_markers":
         body_md = _markdown_from_known_chapter_markers(cleaned, cfg)
+    if body_md is None:
+        body_md = _markdown_from_explicit_chapter_markers(cleaned, cfg)
     if body_md is None:
         body_md = _markdown_from_chunk_boundaries(txt_path, cfg)
     if body_md is None:

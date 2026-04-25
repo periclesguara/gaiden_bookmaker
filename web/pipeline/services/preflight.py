@@ -27,6 +27,7 @@ def _pick_source_text(edition) -> Path:
     book_code = edition.work.code
     translated_merge = paths.data_dir() / "translated" / book_code / "merge_refine_clean.txt"
     candidates = [
+        paths.merge_polidor_path(edition),
         translated_merge,
         paths.merge_refine_path(edition),
         paths.merge_polish_path(edition),
@@ -241,7 +242,9 @@ def _heuristic_analysis(text: str) -> dict[str, list[str]]:
     bad_starts = [
         para[:180]
         for para in paragraphs
-        if para and (para[0] in ".;,:" or para[0].islower())
+        if para
+        and not _is_markdown_control_paragraph(para)
+        and (para[0] in ".;,:" or para[0].islower())
     ]
     if bad_starts:
         critical.append(
@@ -291,6 +294,13 @@ def _heuristic_analysis(text: str) -> dict[str, list[str]]:
         "light": light,
         "good": good,
     }
+
+
+def _is_markdown_control_paragraph(paragraph: str) -> bool:
+    lines = [line.strip() for line in paragraph.splitlines() if line.strip()]
+    if not lines:
+        return False
+    return all(line in {"::: pagebreak", ":::", r"\newpage"} for line in lines)
 
 
 def _build_markdown_report(source_path: Path, analysis: dict[str, object]) -> str:

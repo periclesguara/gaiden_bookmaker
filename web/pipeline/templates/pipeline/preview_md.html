@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ language|default:'en' }}" translate="no" class="notranslate">
 <head>
   <meta charset="UTF-8" />
+  <meta name="google" content="notranslate" />
   <title>Markdown Preview - {{ book_code }} ({{ language }})</title>
   <style>
     body {
@@ -51,6 +52,6 @@
     <a href="{% url 'book_edition_edit' book_code=book_code language=language %}">Edit this Edition</a>
   </div>
 
-  <pre>{{ content }}</pre>
+  <pre translate="no" class="notranslate">{{ content }}</pre>
 </body>
 </html>

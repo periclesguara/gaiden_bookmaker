@@ -2064,7 +2064,7 @@ def _heading_cleaner_dir(book_code: str) -> Path:
 
 
 def _pipeline01_prereq_state(edition) -> dict[str, object]:
-    core_edition = _global_core_edition(edition)
+    core_edition = _processing_base_edition(edition)
     book_code, language = _edition_codes(core_edition)
     language = utils.normalize_lang(language)
 
@@ -2142,6 +2142,20 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
     if not raw_path.exists():
         raise FileNotFoundError(f"RAW path not found: {raw_path}")
     ext = raw_path.suffix.lstrip(".")
+    if f".{ext.lower()}" in pipeline_ingest.source_extract_supported_extensions():
+        extract_result = pipeline_ingest.run_source_extract(book_code, language, raw_path)
+        canonical_txt = _resolve_project_path(str(extract_result.get("canonical_txt") or ""))
+        if canonical_txt.exists():
+            text = canonical_txt.read_text(encoding="utf-8", errors="replace").strip()
+            if text:
+                normalized_text = pipeline_normalization.normalize_text_v2(text)
+                out_path.write_text(normalized_text, encoding="utf-8")
+                texts.raw_text = text
+                texts.normalized_text = normalized_text
+                texts.raw_path = str(canonical_txt)
+                texts.normalized_path = str(out_path)
+                texts.save(update_fields=["raw_text", "normalized_text", "raw_path", "normalized_path", "updated_at"])
+                return out_path, "source_extract.canonical_txt"
     text = pipeline_ingest.extract_text_from_file(raw_path, ext)
     if not text:
         raise ValueError("Could not extract text from RAW file to prepare normalized_v2.")
@@ -2259,7 +2273,12 @@ def _count_non_merged_txt_files(directory: Path | None) -> int:
     return len(
         [
             p for p in directory.glob("*.txt")
-            if not (p.name == "merged.txt" or p.name.startswith("merged_") or p.name.startswith("merge_"))
+            if not (
+                p.name == "merged.txt"
+                or p.name.startswith("merged_")
+                or p.name.startswith("merge_")
+                or (p.name.startswith("book_") and "__" in p.name)
+            )
         ]
     )
 
@@ -2269,7 +2288,12 @@ def _iter_non_merged_txt_files(directory: Path | None) -> list[Path]:
         return []
     return sorted(
         p for p in directory.glob("*.txt")
-        if not (p.name == "merged.txt" or p.name.startswith("merged_") or p.name.startswith("merge_"))
+        if not (
+            p.name == "merged.txt"
+            or p.name.startswith("merged_")
+            or p.name.startswith("merge_")
+            or (p.name.startswith("book_") and "__" in p.name)
+        )
     )
 
 
@@ -2421,6 +2445,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     split_by_chapter_dir = paths.split_by_chapter_dir(target_edition)
     split_by_chapter_manifest_path = split_by_chapter_dir / "manifest.json"
     split_by_chapter_done = split_by_chapter_manifest_path.exists()
+    split_by_chapter_can_run = translate_merge_path.exists()
 
     refine_source_dir: Path | None = None
     refine_source_label = "translate_chunks"
@@ -2559,11 +2584,11 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "title": "Split by Chapter (merge_translate)",
             "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "split_by_chapter"}),
             "button_label": "Rodar Split by Chapter",
-            "can_run": translate_done and translate_merge_path.exists(),
+            "can_run": split_by_chapter_can_run,
             "done": split_by_chapter_done,
             "block_reason": (
                 "Prerequisito: merge_translate.txt canonico no build."
-                if not (translate_done and translate_merge_path.exists())
+                if not split_by_chapter_can_run
                 else ""
             ),
             "outputs": [
@@ -5519,7 +5544,23 @@ def _resolve_merge_polidor_source(edition: EditorialEdition) -> tuple[Path | Non
         build_dir / f"merge_polish_{target_base}.txt",
         build_dir / "split_refine_by_chapter" / "return_english_polidor" / "merge_polish_en.txt",
     ]
-    return next((path for path in candidates if path.exists()), None), target_base
+    final_candidates = [
+        *build_dir.glob("BOOK.MD_FINAL_v*.md"),
+        *build_dir.glob("kdp_merged_v*.md"),
+        build_dir / "BOOK.MD_FINAL",
+        build_dir / "BOOK.BUILD.MD",
+        build_dir / "kdp_merged.md",
+        build_dir / "BOOK.PRE_EDITION.md",
+        build_dir / "BOOK.PRE_QA.md",
+        build_dir / "merge_refine_clean.txt",
+        build_dir / "merge_refine.txt",
+    ]
+    # The preview is an operator adjustment surface. Prefer the newest concrete
+    # text artifact, including final outputs created after an older polidor file.
+    existing_candidates = [path for path in [*candidates, *final_candidates] if path.exists()]
+    if existing_candidates:
+        return max(existing_candidates, key=lambda path: path.stat().st_mtime), target_base
+    return None, target_base
 
 
 def preview_merge_polidor(request, edition_id: int):

@@ -575,6 +575,7 @@ class BookEditionTemplate(models.Model):
 
 def ensure_bookeditiontemplate_runtime_columns() -> None:
     table_name = BookEditionTemplate._meta.db_table
+    datetime_column_type = _runtime_datetime_column_type()
     columns_sql = {
         "original_publication_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_publication_date date NULL",
         "original_author_death_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_author_death_date date NULL",
@@ -590,7 +591,7 @@ def ensure_bookeditiontemplate_runtime_columns() -> None:
         "source_original_name": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_original_name varchar(255) NOT NULL DEFAULT ''",
         "source_saved_path": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_saved_path varchar(500) NOT NULL DEFAULT ''",
         "source_file_size": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_size bigint NULL",
-        "source_uploaded_at": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_at datetime NULL",
+        "source_uploaded_at": f"ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_at {datetime_column_type} NULL",
         "source_file_sha256": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_sha256 varchar(64) NOT NULL DEFAULT ''",
         "source_uploaded_by": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_by varchar(150) NOT NULL DEFAULT ''",
     }
@@ -605,3 +606,12 @@ def ensure_bookeditiontemplate_runtime_columns() -> None:
             if column_name in existing_columns:
                 continue
             cursor.execute(sql)
+
+
+def _runtime_datetime_column_type(vendor: str | None = None) -> str:
+    vendor = vendor or connection.vendor
+    if vendor == "postgresql":
+        return "timestamp with time zone"
+    if vendor == "mysql":
+        return "datetime(6)"
+    return "datetime"

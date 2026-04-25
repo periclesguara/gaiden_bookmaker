@@ -1272,6 +1272,8 @@ class MergeTranslatePreviewTests(TestCase):
         self.temp_web.mkdir(parents=True, exist_ok=True)
         self.settings_override = override_settings(BASE_DIR=self.temp_web)
         self.settings_override.enable()
+        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
+        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
 
         self.language = Language.objects.create(
             code="en",
@@ -1318,6 +1320,10 @@ class MergeTranslatePreviewTests(TestCase):
         self.save_url = reverse("save_merge_translate_preview", kwargs={"edition_id": self.edition.id})
 
     def tearDown(self):
+        if self.old_storage_root is None:
+            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
+        else:
+            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
         self.settings_override.disable()
         self.temp_dir.cleanup()
 
@@ -1348,6 +1354,91 @@ class MergeTranslatePreviewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Build merge preview content.")
         self.assertEqual(response.context["md_path"], str(build_merge))
+
+
+class MergePolidorPreviewTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.temp_web = self.temp_root / "web"
+        self.temp_web.mkdir(parents=True, exist_ok=True)
+        self.settings_override = override_settings(BASE_DIR=self.temp_web)
+        self.settings_override.enable()
+        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
+        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
+
+        self.language = Language.objects.create(
+            code="en",
+            name="English",
+            native_name="English",
+            is_active=True,
+        )
+        self.author = Contributor.objects.create(name="Arthur Conan Doyle")
+        self.seal = Seal.objects.create(slug="mantaquest-polidor-preview", name="MantaQuest")
+        self.work = Work.objects.create(
+            code="book_018",
+            title="Sherlock Holmes - The Valley of Fear",
+            original_language=self.language,
+            author=self.author,
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+            title="Sherlock Holmes - The Valley of Fear",
+        )
+        EditionPipeline.objects.create(edition=self.edition, translation_language="en")
+        self.build_dir = self.temp_root / "data" / "builds" / self.work.code / "en"
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        self.preview_url = reverse("preview_merge_polidor", kwargs={"edition_id": self.edition.id})
+        self.save_url = reverse("save_merge_polidor_preview", kwargs={"edition_id": self.edition.id})
+
+    def tearDown(self):
+        if self.old_storage_root is None:
+            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
+        else:
+            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
+        self.settings_override.disable()
+        self.temp_dir.cleanup()
+
+    def test_preview_merge_polidor_falls_back_to_latest_final_text(self):
+        older = self.build_dir / "BOOK.MD_FINAL_v2.md"
+        latest = self.build_dir / "BOOK.MD_FINAL_v3.md"
+        older.write_text("Older final text.\n", encoding="utf-8")
+        latest.write_text("Latest final text.\n", encoding="utf-8")
+        os.utime(older, (100, 100))
+        os.utime(latest, (200, 200))
+
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Latest final text.")
+        self.assertEqual(response.context["md_path"], str(latest))
+
+    def test_preview_merge_polidor_uses_newer_final_text_over_stale_formal_merge(self):
+        stale_merge = self.build_dir / "merge_polidor.txt"
+        latest = self.build_dir / "BOOK.MD_FINAL_v3.md"
+        stale_merge.write_text("Stale polidor text.\n", encoding="utf-8")
+        latest.write_text("Newer final text.\n", encoding="utf-8")
+        os.utime(stale_merge, (100, 100))
+        os.utime(latest, (200, 200))
+
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Newer final text.")
+        self.assertEqual(response.context["md_path"], str(latest))
+
+    def test_save_merge_polidor_copies_latest_final_text_when_formal_merge_is_missing(self):
+        latest = self.build_dir / "kdp_merged_v3.md"
+        latest.write_text("Final text to adjust.\n", encoding="utf-8")
+
+        response = self.client.post(self.save_url)
+
+        self.assertEqual(response.status_code, 302)
+        saved_path = self.build_dir / "merge_polidor.txt"
+        self.assertTrue(saved_path.exists())
+        self.assertEqual(saved_path.read_text(encoding="utf-8"), "Final text to adjust.\n")
 
 
 class EnglishPhilosoferTranslateTests(TestCase):
@@ -2390,8 +2481,6 @@ class HeadingCleanerGateTests(TestCase):
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
 
-
-
     def test_french_steps_show_coulhon_refine_profile(self):
         french = Language.objects.create(
             code="fr",
@@ -2492,6 +2581,31 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("2. PROBLEMAS MEDIOS", preflight_md.read_text(encoding="utf-8"))
         self.assertIn("4. O QUE ESTA BOM", preflight_md.read_text(encoding="utf-8"))
         self.assertIn("pronto para MD com pequenos ajustes", preflight_md.read_text(encoding="utf-8"))
+
+    def test_preflight_source_prefers_merge_polidor_when_available(self):
+        from pipeline.services import preflight
+
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        polidor = self.build_dir / "merge_polidor.txt"
+        polidor.write_text("polidor text", encoding="utf-8")
+        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean.parent.mkdir(parents=True, exist_ok=True)
+        translated_clean.write_text("older canonical refine text", encoding="utf-8")
+
+        self.assertEqual(preflight._pick_source_text(self.edition), polidor)
+
+    def test_preflight_heuristic_does_not_flag_pagebreak_markers_as_amputated(self):
+        from pipeline.services import preflight
+
+        report = preflight._heuristic_analysis(
+            "# Title\n\n"
+            "::: pagebreak\n"
+            ":::\n\n"
+            "## Chapter 01\n\n"
+            "A complete paragraph follows the markdown marker."
+        )
+
+        self.assertEqual(report["critical"], [])
 
     @patch("pipeline.services.preflight.REQUEST_TIMEOUT", 0.01)
     @patch("pipeline.services.preflight.get_client")

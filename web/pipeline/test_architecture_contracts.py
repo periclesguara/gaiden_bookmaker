@@ -90,6 +90,12 @@ class CompatibilityWrapperTests(SimpleTestCase):
 
 
 class ArchitectureSentinelTests(SimpleTestCase):
+    def test_runtime_datetime_column_type_is_backend_safe(self):
+        from pipeline.models import _runtime_datetime_column_type
+
+        self.assertEqual(_runtime_datetime_column_type("postgresql"), "timestamp with time zone")
+        self.assertEqual(_runtime_datetime_column_type("sqlite"), "datetime")
+
     def test_governance_documents_exist(self):
         required = [
             "docs/decisions/system-governance-matrix.md",

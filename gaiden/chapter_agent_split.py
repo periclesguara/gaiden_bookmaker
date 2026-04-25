@@ -77,7 +77,7 @@ _ROMAN_MAP = {
     "XIX": 19,
     "XX": 20,
 }
-_MAX_REASONABLE_CHAPTER_NUMBER = 50
+_MAX_REASONABLE_CHAPTER_NUMBER = 250
 _MIN_CHAPTER_BODY_CHARS = 800
 
 
@@ -230,10 +230,30 @@ def _select_coherent_chapter_sequence(candidates: list[dict[str, Any]]) -> list[
     return accepted
 
 
+def _select_fragment_chapter_sequence(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    accepted: list[dict[str, Any]] = []
+    last_line = -1
+    for item in candidates:
+        number = item.get("number")
+        if number is None:
+            continue
+        body_chars = int(item.get("body_chars") or 0)
+        if body_chars < 120:
+            continue
+        line_index = int(item.get("line_index") or 0)
+        if line_index <= last_line:
+            continue
+        accepted.append(item)
+        last_line = line_index
+    return accepted
+
+
 def split_merged_text_into_chapters(text: str) -> list[dict[str, Any]]:
     lines = text.splitlines()
     candidates = _chapter_candidates(lines)
     accepted = _select_coherent_chapter_sequence(candidates)
+    if not accepted:
+        accepted = _select_fragment_chapter_sequence(candidates)
     if not accepted:
         cleaned = text.strip()
         if not cleaned:

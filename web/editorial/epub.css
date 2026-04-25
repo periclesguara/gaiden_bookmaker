@@ -1,4 +1,18 @@
 /* EPUB layout helpers (frontmatter + illustrated mode). */
+body {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 8%;
+  padding-right: 8%;
+  max-width: 38em;
+  line-height: 1.55;
+}
+
+p {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .pagebreak,
 .page-break,
 .chapter-break,
@@ -8,6 +22,14 @@
 }
 
 /* Pandoc emits image blocks as <p><img .../></p>; center those images. */
+img,
+svg {
+  display: block;
+  margin: 1.2em auto;
+  max-width: 100%;
+  height: auto;
+}
+
 p > img {
   display: block;
   margin: 1.2em auto;
@@ -19,6 +41,12 @@ p.image-block,
 p.illustration,
 div.image-block,
 div.illustration {
+  text-align: center;
+}
+
+p:has(> img),
+div:has(> img),
+figure:has(img) {
   text-align: center;
 }
 

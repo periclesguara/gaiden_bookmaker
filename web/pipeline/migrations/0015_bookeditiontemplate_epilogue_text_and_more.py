@@ -3,6 +3,25 @@
 from django.db import migrations, models
 
 
+def _ensure_bookeditiontemplate_editorial_columns(apps, schema_editor):
+    model = apps.get_model("pipeline", "BookEditionTemplate")
+    table_name = model._meta.db_table
+    columns_sql = {
+        "epilogue_text": f"ALTER TABLE {table_name} ADD COLUMN epilogue_text text NOT NULL DEFAULT ''",
+        "has_epilogue": f"ALTER TABLE {table_name} ADD COLUMN has_epilogue boolean NOT NULL DEFAULT FALSE",
+        "has_introduction": f"ALTER TABLE {table_name} ADD COLUMN has_introduction boolean NOT NULL DEFAULT FALSE",
+        "has_preface": f"ALTER TABLE {table_name} ADD COLUMN has_preface boolean NOT NULL DEFAULT FALSE",
+        "introduction_text": f"ALTER TABLE {table_name} ADD COLUMN introduction_text text NOT NULL DEFAULT ''",
+        "preface_text": f"ALTER TABLE {table_name} ADD COLUMN preface_text text NOT NULL DEFAULT ''",
+    }
+    with schema_editor.connection.cursor() as cursor:
+        description = schema_editor.connection.introspection.get_table_description(cursor, table_name)
+        existing_columns = {getattr(col, "name", col[0]) for col in description}
+        for column_name, sql in columns_sql.items():
+            if column_name not in existing_columns:
+                cursor.execute(sql)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,35 +29,45 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='epilogue_text',
-            field=models.TextField(blank=True),
-        ),
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='has_epilogue',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='has_introduction',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='has_preface',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='introduction_text',
-            field=models.TextField(blank=True),
-        ),
-        migrations.AddField(
-            model_name='bookeditiontemplate',
-            name='preface_text',
-            field=models.TextField(blank=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    _ensure_bookeditiontemplate_editorial_columns,
+                    migrations.RunPython.noop,
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='epilogue_text',
+                    field=models.TextField(blank=True),
+                ),
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='has_epilogue',
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='has_introduction',
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='has_preface',
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='introduction_text',
+                    field=models.TextField(blank=True),
+                ),
+                migrations.AddField(
+                    model_name='bookeditiontemplate',
+                    name='preface_text',
+                    field=models.TextField(blank=True),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='bookeditiontemplate',
