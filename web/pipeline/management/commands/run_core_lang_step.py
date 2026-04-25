@@ -12,6 +12,7 @@ class Command(BaseCommand):
         parser.add_argument("--edition-id", type=int, required=True)
         parser.add_argument("--step", required=True, choices=["translate", "refine", "polish"])
         parser.add_argument("--target-language", default="")
+        parser.add_argument("--translate-agent-name", default="")
         parser.add_argument("--refine-profile", default="")
 
     def handle(self, *args, **options):
@@ -20,6 +21,7 @@ class Command(BaseCommand):
                 edition_id=options["edition_id"],
                 step=options["step"],
                 target_language=options["target_language"] or None,
+                translate_agent_name=options["translate_agent_name"] or None,
                 refine_profile=options["refine_profile"] or None,
             )
         except Exception as exc:

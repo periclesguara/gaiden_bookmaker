@@ -339,6 +339,11 @@
               <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
               {% endfor %}
             </select>
+            <select id="translate_agent_name" name="translate_agent_name" aria-label="Agente de traducao">
+              {% for option in translate_agent_choices %}
+              <option value="{{ option.value }}" {% if selected_translate_agent == option.value %}selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
             <span class="status">Rota: <strong id="translate_agent_route"></strong></span>
             <table class="status" style="width:100%; border-collapse:collapse; margin:0.75rem 0;">
               <thead>
@@ -370,7 +375,7 @@
               {% endfor %}
             </select>
             <span class="status">
-              Perfis por idioma: EN = Aldebaran/Alamaguederaz | DE = Kaiser | IT = Aldebaran
+              Perfis por idioma: EN = Aldebaran/Alamaguederaz | DE = Kaiser | FR = Le Grand Coulhon/Le_Gran_Colhoun | IT = Aldebaran
             </span>
             {% endif %}
             {% if s.key == "polish_agent" %}
@@ -929,7 +934,9 @@
     const mdSelect = document.getElementById("md_language");
     const mdSourceLabel = document.getElementById("md_source_path");
     const translateAgentMap = {{ translate_agent_map|safe }};
+    const translateAgentChoicesMap = {{ translate_agent_choices_map|safe }};
     const translateSelect = document.getElementById("translate_target_language");
+    const translateAgentSelect = document.getElementById("translate_agent_name");
     const translateAgentLabel = document.getElementById("translate_agent_route");
 
     function updateMdSource() {
@@ -941,7 +948,24 @@
     function updateTranslateAgent() {
       if (!translateSelect || !translateAgentLabel) return;
       const lang = translateSelect.value;
-      translateAgentLabel.textContent = translateAgentMap[lang] || "rota nao configurada";
+      const choices = translateAgentChoicesMap[lang] || [];
+      if (translateAgentSelect) {
+        const current = translateAgentSelect.value;
+        translateAgentSelect.innerHTML = "";
+        choices.forEach((agent) => {
+          const option = document.createElement("option");
+          option.value = agent;
+          option.textContent = agent;
+          if (agent === current) option.selected = true;
+          translateAgentSelect.appendChild(option);
+        });
+        if (choices.length && !choices.includes(current)) {
+          translateAgentSelect.value = choices[0];
+        }
+      }
+      translateAgentLabel.textContent = translateAgentSelect && translateAgentSelect.value
+        ? `Agent: ${translateAgentSelect.value}`
+        : (translateAgentMap[lang] || "rota nao configurada");
     }
 
     if (mdSelect) {
@@ -950,6 +974,9 @@
     }
     if (translateSelect) {
       translateSelect.addEventListener("change", updateTranslateAgent);
+      if (translateAgentSelect) {
+        translateAgentSelect.addEventListener("change", updateTranslateAgent);
+      }
       updateTranslateAgent();
     }
   </script>

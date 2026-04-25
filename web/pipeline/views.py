@@ -132,12 +132,22 @@ REFINE_PROFILES = {
         ),
     },
     "fr_coulhon": {
-        "label": "Francais Coulhon",
+        "label": "Francais Le Grand Coulhon",
         "agent_name": "Le Grand Coulhon",
         "description": "Refine litteraire en francais moderne avec fluidite, naturel et controle de registre.",
         "style_directive": (
             "Target profile: modern, natural French. Preserve full meaning, chronology, paragraphing, and atmosphere. "
             "Prefer idiomatic, fluent French prose with controlled literary cadence, without flattening tone, tension, or period detail."
+        ),
+    },
+    "fr_colhoun": {
+        "label": "Francais Le Gran Colhoun",
+        "agent_name": "Le_Gran_Colhoun",
+        "description": "Refine litteraire en francais moderne avec controle de registre, atmosphere et lisibilite.",
+        "style_directive": (
+            "Target profile: premium modern French literary prose. Preserve full meaning, chronology, paragraphing, "
+            "character voice, and atmosphere. Prefer elegant, fluent French for commercial reading without flattening "
+            "gothic tension or period detail."
         ),
     },
 }
@@ -163,10 +173,21 @@ POLISH_AGENT_OPTIONS = (
 )
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en", "label": "EN (modern)", "base_language": "en"},
+    {"value": "fr", "label": "FR (francais)", "base_language": "fr"},
 )
 TRANSLATE_AGENT_BY_VARIANT = {
     "en": "HeadingCleaner",
     "fr": "LE_GRAND_COULHON",
+}
+TRANSLATE_AGENT_OPTIONS_BY_VARIANT = {
+    "en": (
+        "HeadingCleaner",
+        "ALAMAGUEDERAZ",
+    ),
+    "fr": (
+        "LE_GRAND_COULHON",
+        "LE_GRAN_COLHOUN",
+    ),
 }
 _TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_BASES = {item["value"]: item["base_language"] for item in TRANSLATE_VARIANT_OPTIONS}
@@ -228,10 +249,24 @@ def _translate_uses_agent(value: str | None) -> bool:
     return True
 
 
-def _translate_agent_name(value: str | None) -> str:
+def _translate_agent_options(value: str | None) -> tuple[str, ...]:
     variant = _normalize_translate_variant(value)
+    if variant in TRANSLATE_AGENT_OPTIONS_BY_VARIANT:
+        return TRANSLATE_AGENT_OPTIONS_BY_VARIANT[variant]
+    default_agent = _translate_agent_name(variant)
+    return (default_agent,)
+
+
+def _translate_agent_name(value: str | None, requested_agent: str | None = None) -> str:
+    variant = _normalize_translate_variant(value)
+    allowed_agents = TRANSLATE_AGENT_OPTIONS_BY_VARIANT.get(variant)
+    requested = (requested_agent or "").strip()
+    if requested and allowed_agents and requested in allowed_agents:
+        return requested
     if variant in TRANSLATE_AGENT_BY_VARIANT:
         return TRANSLATE_AGENT_BY_VARIANT[variant]
+    if requested and not allowed_agents:
+        return requested
     if _translate_base_language(variant) == "en":
         return "HeadingCleaner"
     return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()
@@ -281,7 +316,7 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     if normalized == "de":
         return ("de_kaiser",)
     if normalized == "fr":
-        return ("fr_coulhon",)
+        return ("fr_coulhon", "fr_colhoun")
     if normalized == "it":
         return ("italiano_neutro",)
     return ("ingles_neutro", "ingles_flex")
@@ -4227,7 +4262,16 @@ def edition_steps(request, edition_id: int):
     }
     md_source_map_json = json.dumps(md_source_map)
     translate_variant_options = list(TRANSLATE_VARIANT_OPTIONS)
+    selected_translate_variant = _normalize_translate_variant(
+        pipeline_state.translation_language or pipeline_state.md_language or language
+    )
+    selected_translate_agent = _translate_agent_name(selected_translate_variant)
+    translate_agent_choices = [
+        {"value": agent, "label": agent}
+        for agent in _translate_agent_options(selected_translate_variant)
+    ]
     translate_agent_map: dict[str, str] = {}
+    translate_agent_choices_map: dict[str, list[str]] = {}
     translate_agent_options: list[dict[str, str]] = []
     for option in translate_variant_options:
         lang = option["value"]
@@ -4235,6 +4279,7 @@ def edition_steps(request, edition_id: int):
         agent_name = _translate_agent_name(lang)
         detail = "Regra maxima: envia os chunks direto ao agente; sem contrato JSON+script."
         translate_agent_map[lang] = f"{route}: {agent_name}"
+        translate_agent_choices_map[lang] = list(_translate_agent_options(lang))
         translate_agent_options.append(
             {
                 "value": lang,
@@ -4245,6 +4290,7 @@ def edition_steps(request, edition_id: int):
             }
         )
     translate_agent_map_json = json.dumps(translate_agent_map)
+    translate_agent_choices_map_json = json.dumps(translate_agent_choices_map)
     if PipelineRun is not None:
         matrix_runs = (
             PipelineRun.objects.filter(items__book_code=book_code)
@@ -4286,7 +4332,9 @@ def edition_steps(request, edition_id: int):
         },
         "raw_path": raw_path,
         "raw_name": raw_name,
-        "translate_language": pipeline_state.translation_language or pipeline_state.md_language or language,
+        "translate_language": selected_translate_variant,
+        "selected_translate_agent": selected_translate_agent,
+        "translate_agent_choices": translate_agent_choices,
         "translate_variant_options": translate_variant_options,
         "refine_profile": refine_profile,
         "refine_profile_options": refine_profile_options,
@@ -4331,6 +4379,7 @@ def edition_steps(request, edition_id: int):
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
         "translate_agent_map": translate_agent_map_json,
+        "translate_agent_choices_map": translate_agent_choices_map_json,
         "translate_agent_options": translate_agent_options,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
@@ -4437,7 +4486,13 @@ def pipeline_preflight_run(request, edition_id: int):
     return run_edition_step(request, edition_id, "preflight")
 
 
-def _run_translate_step_local(edition, pipeline_state, *, target_language: str) -> dict[str, object]:
+def _run_translate_step_local(
+    edition,
+    pipeline_state,
+    *,
+    target_language: str,
+    translate_agent_name: str | None = None,
+) -> dict[str, object]:
     translate_step = next(
         (s for s in build_pipeline01_steps(edition, pipeline_state) if s.get("key") == "translate"),
         None,
@@ -4465,13 +4520,14 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
     )
     out_dir_path = _agent_translate_out_dir(_edition_codes(target_edition)[0], target_language)
     book_token = f"book_{book_id_for_run:04d}" if book_id_for_run is not None else _edition_codes(target_edition)[0]
+    selected_agent = _translate_agent_name(target_language, translate_agent_name)
     agent_report = run_agent_translate(
         book_id=book_token,
         chunk_dir=source_dir_for_validation,
         out_dir=out_dir_path,
         suffix=target_language,
         mode="translate",
-        agent=_translate_agent_name(target_language),
+        agent=selected_agent,
         max_output_tokens=_recommended_translate_max_output_tokens(
             source_dir_for_validation,
             "*.txt",
@@ -4499,7 +4555,7 @@ def _run_translate_step_local(edition, pipeline_state, *, target_language: str) 
         "success": f"Translate OK ({_translate_variant_label(target_language)})",
         "info": [
             f"Translate source: {source_label}",
-            f"Translate agent: {_translate_agent_name(target_language)}",
+            f"Translate agent: {selected_agent}",
         ],
         "target_language": target_language,
     }
@@ -4658,13 +4714,19 @@ def execute_language_isolated_core_step(
     edition_id: int,
     step: str,
     target_language: str | None = None,
+    translate_agent_name: str | None = None,
     refine_profile: str | None = None,
     polish_agent_name: str | None = None,
 ) -> dict[str, object]:
     edition = EditorialEdition.objects.get(id=edition_id)
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     if step == "translate":
-        return _run_translate_step_local(edition, pipeline_state, target_language=target_language or edition.language.code)
+        return _run_translate_step_local(
+            edition,
+            pipeline_state,
+            target_language=target_language or edition.language.code,
+            translate_agent_name=translate_agent_name,
+        )
     if step == "refine":
         return _run_refine_step_local(edition, pipeline_state, refine_profile=refine_profile)
     if step == "polish_agent":
@@ -4907,6 +4969,10 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "translate":
             target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
+            translate_agent_name = _translate_agent_name(
+                target_language,
+                request.POST.get("translate_agent_name"),
+            )
             if core_docker.should_run_in_docker(step, target_language):
                 result = core_docker.run_docker_core_step(
                     project_root=Path(settings.BASE_DIR).parent,
@@ -4914,8 +4980,12 @@ def run_edition_step(request, edition_id: int, step: str):
                     step=step,
                     language=_translate_base_language(target_language),
                     target_language=target_language,
+                    translate_agent_name=translate_agent_name,
                 )
-                messages.success(request, f"Translate OK (docker:{_translate_variant_label(target_language)})")
+                messages.success(
+                    request,
+                    f"Translate OK (docker:{_translate_variant_label(target_language)} · {translate_agent_name})",
+                )
                 if result.stdout.strip():
                     messages.info(request, result.stdout.strip())
             else:
@@ -4923,6 +4993,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     edition_id=edition.id,
                     step=step,
                     target_language=target_language,
+                    translate_agent_name=translate_agent_name,
                 )
                 messages.success(request, result_payload["success"])
                 for item in result_payload.get("info", []):

@@ -129,8 +129,9 @@ class FrenchRefineRoutingTests(TestCase):
         from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
 
         self.assertEqual(_default_refine_profile_for_language("fr"), "fr_coulhon")
-        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_coulhon",))
+        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_coulhon", "fr_colhoun"))
         self.assertEqual(_refine_profile_config("fr_coulhon")["agent_name"], "Le Grand Coulhon")
+        self.assertEqual(_refine_profile_config("fr_colhoun")["agent_name"], "Le_Gran_Colhoun")
 
     def test_french_refine_output_dir_uses_agent_slug(self):
         from pipeline.views import _resolve_refine_output_dir
@@ -150,11 +151,16 @@ class TranslateAgentRoutingTests(TestCase):
         from pipeline.views import _translate_agent_name
 
         self.assertEqual(_translate_agent_name("fr"), "LE_GRAND_COULHON")
+        self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "LE_GRAN_COLHOUN")
 
     def test_agent_translate_default_resolves_french_agent(self):
         from gaiden.tools.agent_translate_default import resolve_agent_for_target
 
         self.assertEqual(resolve_agent_for_target(suffix="fr"), "LE_GRAND_COULHON")
+        self.assertEqual(
+            resolve_agent_for_target(suffix="fr", requested_agent="LE_GRAN_COLHOUN"),
+            "LE_GRAN_COLHOUN",
+        )
 
 
 class CadastroSourceFormatRoutingTests(TestCase):
@@ -2379,6 +2385,7 @@ class HeadingCleanerGateTests(TestCase):
         response = self.client.get(self.steps_url)
 
         self.assertContains(response, "Agent")
+        self.assertContains(response, 'name="translate_agent_name"')
         self.assertContains(response, "HeadingCleaner")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
@@ -2411,7 +2418,8 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertContains(response, 'name="refine_profile"')
-        self.assertContains(response, "Francais Coulhon - Le Grand Coulhon")
+        self.assertContains(response, "Francais Le Grand Coulhon - Le Grand Coulhon")
+        self.assertContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
         self.assertNotContains(response, "Ingles neutro - Aldebaran")
         self.assertNotContains(response, "Ingles flex - Alamaguederaz")
 

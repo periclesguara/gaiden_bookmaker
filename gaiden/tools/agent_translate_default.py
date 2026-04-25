@@ -198,16 +198,18 @@ def _chunk_paths(chunk_dir: Path) -> List[Path]:
 
 
 def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
-    # Business rule: English translate no longer uses JSON+script contracts.
-    # It always goes through the HeadingCleaner agent.
+    candidate = (requested_agent or "").strip()
     target = normalize_lang_code(suffix, default="en_modern")
     raw_target = (suffix or "").strip().lower().replace("-", "_")
     if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        if candidate:
+            return candidate
         return "HeadingCleaner"
     if target in FRENCH_TARGETS or raw_target.startswith("fr"):
+        if candidate:
+            return candidate
         return "LE_GRAND_COULHON"
 
-    candidate = (requested_agent or "").strip()
     if candidate:
         return candidate
     return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()

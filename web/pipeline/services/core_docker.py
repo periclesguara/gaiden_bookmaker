@@ -51,6 +51,7 @@ def build_docker_command(
     step: str,
     language: str,
     target_language: str | None = None,
+    translate_agent_name: str | None = None,
     refine_profile: str | None = None,
 ) -> list[str]:
     cmd = [
@@ -71,6 +72,8 @@ def build_docker_command(
     ]
     if target_language:
         cmd.extend(["--target-language", target_language])
+    if translate_agent_name:
+        cmd.extend(["--translate-agent-name", translate_agent_name])
     if refine_profile:
         cmd.extend(["--refine-profile", refine_profile])
     return cmd
@@ -83,6 +86,7 @@ def run_docker_core_step(
     step: str,
     language: str,
     target_language: str | None = None,
+    translate_agent_name: str | None = None,
     refine_profile: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     cmd = build_docker_command(
@@ -91,6 +95,7 @@ def run_docker_core_step(
         step=step,
         language=language,
         target_language=target_language,
+        translate_agent_name=translate_agent_name,
         refine_profile=refine_profile,
     )
     return subprocess.run(
