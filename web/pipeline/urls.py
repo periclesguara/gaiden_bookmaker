@@ -90,6 +90,11 @@ urlpatterns = [
         name="preview_merge_polidor",
     ),
     path(
+        "editions/<int:edition_id>/preview-merge/",
+        views.preview_merge_selected,
+        name="preview_merge_selected",
+    ),
+    path(
         "editions/<int:edition_id>/save-merge-polidor/",
         views.save_merge_polidor_preview,
         name="save_merge_polidor_preview",

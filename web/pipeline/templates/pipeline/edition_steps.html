@@ -401,9 +401,14 @@
             {% csrf_token %}
             <button class="btn danger" type="submit">Salvar Merge Polidor</button>
           </form>
-          <a class="btn danger polidor-action" href="{% url 'preview_merge_polidor' edition_id=edition.id %}">
-            Preview Merge Polidor
-          </a>
+          <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
+            <select name="merge_kind" aria-label="Arquivo para preview">
+              {% for option in merge_preview_options %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn danger" type="submit">Preview</button>
+          </form>
           {% endif %}
           {% if s.key == "translate" and not s.can_run %}
           <div id="translate_prereq_msg" class="status">

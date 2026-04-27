@@ -4365,6 +4365,7 @@ def edition_steps(request, edition_id: int):
         "refine_profile_options": refine_profile_options,
         "polish_agent_default": POLISH_AGENT_DEFAULT,
         "polish_agent_options": POLISH_AGENT_OPTIONS,
+        "merge_preview_options": MERGE_PREVIEW_OPTIONS,
         "chunk_count": chunk_count,
         "sync_log": sync_log,
         "md_status": md_status,
@@ -5561,6 +5562,84 @@ def _resolve_merge_polidor_source(edition: EditorialEdition) -> tuple[Path | Non
     if existing_candidates:
         return max(existing_candidates, key=lambda path: path.stat().st_mtime), target_base
     return None, target_base
+
+
+MERGE_PREVIEW_OPTIONS = (
+    {"value": "latest", "label": "ultimo finalizado"},
+    {"value": "merge_translate", "label": "merge_translate"},
+    {"value": "merge_refine", "label": "merge_refine"},
+    {"value": "merge_polidor", "label": "merge_polidor"},
+)
+
+
+def _merge_preview_target_base(edition: EditorialEdition) -> tuple[str, str]:
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    book_code, language = _edition_codes(edition)
+    target_language = _normalize_translate_variant(
+        (pipeline_state.translation_language if pipeline_state else None) or language
+    )
+    return book_code, _translate_base_language(target_language)
+
+
+def _resolve_merge_preview_source(edition: EditorialEdition, merge_kind: str | None) -> tuple[Path | None, str, str]:
+    kind = (merge_kind or "latest").strip()
+    allowed = {item["value"] for item in MERGE_PREVIEW_OPTIONS}
+    if kind not in allowed:
+        kind = "latest"
+
+    book_code, target_base = _merge_preview_target_base(edition)
+    build_dir = paths.edition_build_dir_for_language(book_code, target_base)
+    if kind == "latest":
+        candidates = [
+            build_dir / "merge_polidor.txt",
+            build_dir / f"merge_polidor_{target_base}.txt",
+            build_dir / "merge_polish.txt",
+            build_dir / f"merge_polish_{target_base}.txt",
+            build_dir / "merge_refine.txt",
+            build_dir / f"merge_refine_{target_base}.txt",
+            build_dir / "merge_refine_clean.txt",
+            build_dir / "merge_translate.txt",
+            build_dir / f"merge_translate_{target_base}.txt",
+        ]
+    elif kind == "merge_translate":
+        candidates = [
+            build_dir / "merge_translate.txt",
+            build_dir / f"merge_translate_{target_base}.txt",
+        ]
+    elif kind == "merge_refine":
+        candidates = [
+            build_dir / "merge_refine.txt",
+            build_dir / f"merge_refine_{target_base}.txt",
+            build_dir / "merge_refine_clean.txt",
+        ]
+    else:
+        merged_path, resolved_base = _resolve_merge_polidor_source(edition)
+        return merged_path, resolved_base, kind
+
+    existing_candidates = [path for path in candidates if path.exists()]
+    if kind == "latest" and existing_candidates:
+        return max(existing_candidates, key=lambda path: path.stat().st_mtime), target_base, kind
+    return next(iter(existing_candidates), None), target_base, kind
+
+
+def preview_merge_selected(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    book_code, _language = _edition_codes(edition)
+    merged_path, target_base, merge_kind = _resolve_merge_preview_source(
+        edition,
+        request.GET.get("merge_kind"),
+    )
+    if not merged_path:
+        raise Http404(f"{merge_kind} file not found.")
+
+    content = merged_path.read_text(encoding="utf-8")
+    context = {
+        "book_code": book_code,
+        "language": target_base,
+        "md_path": str(merged_path),
+        "content": content,
+    }
+    return render(request, "pipeline/preview_md.html", context)
 
 
 def preview_merge_polidor(request, edition_id: int):
