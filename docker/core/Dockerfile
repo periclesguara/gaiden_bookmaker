@@ -11,4 +11,4 @@ RUN apt-get update \
 
 COPY pyproject.toml /tmp/pyproject.toml
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir django psycopg2-binary openai beautifulsoup4 pyyaml
+RUN pip install --no-cache-dir django psycopg2-binary openai beautifulsoup4 pyyaml pillow

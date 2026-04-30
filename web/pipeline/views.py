@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
 import shutil
@@ -183,10 +184,12 @@ POLISH_AGENT_OPTIONS = (
 )
 POLISH_AGENT_DEFAULT_BY_LANGUAGE = {
     "en": "English Polidor",
+    "ptbr": "Cacique Tibiriça",
     "fr": "Francês_Polidor",
 }
 POLISH_AGENT_OPTIONS_BY_LANGUAGE = {
     "en": POLISH_AGENT_OPTIONS,
+    "ptbr": ("Cacique Tibiriça",),
     "fr": ("Francês_Polidor",),
 }
 TRANSLATE_VARIANT_OPTIONS = (
@@ -2567,13 +2570,17 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     effective_polish_source_label = reported_polish_source_label or polish_source_label
     polish_outputs_count = _count_non_merged_txt_files(polish_dir)
     merge_polish_path = paths.merge_polish_path(target_edition)
+    merge_polidor_path = paths.merge_polidor_path(target_edition)
+    merge_polish_exists = merge_polish_path.exists() and merge_polish_path.stat().st_size > 0
+    merge_polidor_exists = merge_polidor_path.exists() and merge_polidor_path.stat().st_size > 0
     polish_source_count = _count_non_merged_txt_files(effective_polish_source_dir)
-    polish_done = bool(
-        merge_polish_path.exists()
+    polish_done_from_chunks = bool(
+        merge_polish_exists
         and effective_polish_source_dir
-        and polish_outputs_count >= polish_source_count
         and polish_source_count
+        and polish_outputs_count >= polish_source_count
     )
+    polish_done = bool(merge_polidor_exists or merge_polish_exists or polish_done_from_chunks)
 
     texts = EditionText.objects.filter(edition=core_edition).first()
     raw_path_str = ((texts.raw_path if texts else "") or core_edition.raw_source_path or "").strip()
@@ -2756,7 +2763,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "title": "Polidor Agent",
             "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "polish_agent"}),
             "button_label": "Rodar Polidor",
-            "can_run": split_refine_by_chapter_done,
+            "can_run": split_refine_by_chapter_done and not polish_done,
             "done": polish_done,
             "block_reason": "Prerequisito: Split by Chapter do merge_refine." if not split_refine_by_chapter_done else "",
             "outputs": [
@@ -3635,6 +3642,43 @@ def _unique_jpg_name(stem: str, used: set[str]) -> str:
     return candidate
 
 
+def _save_uploaded_image_as_jpg(uploaded, out_path: Path) -> None:
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if Image is not None:
+        with Image.open(uploaded) as img:
+            rgb = img.convert("RGB")
+            rgb.save(out_path, format="JPEG", quality=95, optimize=True)
+        return
+
+    converter = shutil.which("magick") or shutil.which("convert")
+    if not converter:
+        suffix = Path(getattr(uploaded, "name", "")).suffix.lower()
+        if suffix in {".jpg", ".jpeg"}:
+            uploaded.seek(0)
+            with out_path.open("wb") as dst:
+                shutil.copyfileobj(uploaded, dst)
+            return
+        raise RuntimeError("Pillow/ImageMagick nao instalado. Nao foi possivel converter a imagem.")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(getattr(uploaded, "name", "")).suffix or ".img") as tmp:
+        uploaded.seek(0)
+        shutil.copyfileobj(uploaded, tmp)
+        tmp_path = Path(tmp.name)
+    try:
+        if Path(converter).name == "magick":
+            cmd = [converter, str(tmp_path), "-colorspace", "sRGB", "-quality", "95", str(out_path)]
+        else:
+            cmd = [converter, str(tmp_path), "-colorspace", "sRGB", "-quality", "95", str(out_path)]
+        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
 def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[Path]]:
     try:
         from PIL import Image
@@ -3881,11 +3925,6 @@ def edition_steps(request, edition_id: int):
             if not cover_file:
                 messages.error(request, "Selecione uma imagem de capa.")
                 return _redirect_editorial()
-            try:
-                from PIL import Image
-            except ImportError:
-                messages.error(request, "Pillow nao instalado. Nao foi possivel converter a capa.")
-                return redirect("edition_steps", edition_id=edition.id)
 
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             book_code = edition.work.code
@@ -3906,9 +3945,11 @@ def edition_steps(request, edition_id: int):
             cover_dir.mkdir(parents=True, exist_ok=True)
             cover_path = cover_dir / "cover.jpg"
 
-            with Image.open(cover_file) as img:
-                rgb = img.convert("RGB")
-                rgb.save(cover_path, format="JPEG", quality=95, optimize=True)
+            try:
+                _save_uploaded_image_as_jpg(cover_file, cover_path)
+            except Exception as exc:
+                messages.error(request, str(exc))
+                return redirect("edition_steps", edition_id=edition.id)
 
             try:
                 rel_path = cover_path.relative_to(Path(settings.BASE_DIR).parent)
