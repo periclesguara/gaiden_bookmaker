@@ -57,6 +57,16 @@ FRENCH_TARGETS = {
     "francais",
     "français",
 }
+PORTUGUESE_TARGETS = {
+    "pt",
+    "ptbr",
+    "pt_br",
+    "pt-br",
+    "portuguese",
+    "portugues",
+    "português",
+    "brazilian_portuguese",
+}
 
 
 def _now_iso() -> str:
@@ -123,7 +133,14 @@ def _merge_outputs(
 
 def _agent_translate_system_prompt(*, agent_name: str, suffix: str, mode: str, retry: bool = False) -> str:
     target = normalize_lang_code(suffix, default="en")
-    target_label = "modern English" if target.startswith("en") else target
+    if target.startswith("en"):
+        target_label = "modern English"
+    elif target in PORTUGUESE_TARGETS or target.startswith("pt"):
+        target_label = "modern Brazilian Portuguese"
+    elif target in FRENCH_TARGETS or target.startswith("fr"):
+        target_label = "modern French"
+    else:
+        target_label = target
     retry_line = (
         "The previous response was rejected because it was too short. Return the full chunk this time. "
         if retry
@@ -197,6 +214,14 @@ def _chunk_paths(chunk_dir: Path) -> List[Path]:
     return sorted(p for p in chunk_dir.glob("*.txt") if p.is_file())
 
 
+def _min_output_ratio_for_target(suffix: str) -> float:
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        return 0.80
+    return 0.85
+
+
 def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
     candidate = (requested_agent or "").strip()
     target = normalize_lang_code(suffix, default="en_modern")
@@ -209,6 +234,10 @@ def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None)
         if candidate:
             return candidate
         return "LE_GRAND_COULHON"
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        if candidate:
+            return candidate
+        return "CACIQUE"
 
     if candidate:
         return candidate
@@ -275,6 +304,8 @@ def run_agent_translate(
     if limit and limit > 0:
         chunks = chunks[:limit]
 
+    min_output_ratio = _min_output_ratio_for_target(suffix)
+
     run_report: Dict[str, Any] = {
         "schema": "gaiden_translate_default_v2",
         "ts_start": _now_iso(),
@@ -317,6 +348,17 @@ def run_agent_translate(
             "ts": _now_iso(),
         }
 
+        if out_txt.exists() and out_txt.stat().st_size > 0:
+            item.update(
+                {
+                    "status": "skipped_existing",
+                    "out_len": out_txt.stat().st_size,
+                    "resume": True,
+                }
+            )
+            run_report["items"].append(item)
+            continue
+
         try:
             attempts: list[dict[str, Any]] = []
             out_text = ""
@@ -343,9 +385,9 @@ def run_agent_translate(
                         "agent_meta": meta,
                     }
                 )
-                if ratio is None or ratio >= 0.85:
+                if ratio is None or ratio >= min_output_ratio:
                     break
-            if ratio is not None and ratio < 0.85:
+            if ratio is not None and ratio < min_output_ratio:
                 raise RuntimeError(f"TRUNCATION_OR_SUMMARY: ratio={ratio:.3f}")
             item.update(
                 {

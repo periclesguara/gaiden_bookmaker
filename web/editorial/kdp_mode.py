@@ -27,11 +27,12 @@ def translated_miolo_path(edition: Edition) -> Path:
 
 
 _PAGEBREAK_RE = re.compile(r"^:::\s*pagebreak\s*$", re.MULTILINE)
+_LATEX_PAGEBREAK_RE = re.compile(r"\n*\\newpage\n*")
 _IMAGE_REF_RE = re.compile(r"!\[[^\]]*\]\(assets/images/([^)]+)\)")
 _CH_SLOT_RE = re.compile(r"ch(\d{2})_(\d{2})", re.IGNORECASE)
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 _CHAPTER_HEADING_RE = re.compile(
-    r"^(#{1,6})\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\b",
+    r"^(#{1,6})\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\b",
     re.IGNORECASE,
 )
 _NUMERIC_CHAPTER_HEADING_RE = re.compile(
@@ -43,7 +44,7 @@ _MANUAL_TOC_HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 _PLAIN_CHAPTER_LINE_RE = re.compile(
-    r"^\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
@@ -51,7 +52,7 @@ _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 _CHAPTER_MD_LINE_RE = re.compile(
-    r"^\s*#{1,6}\s*(chapter|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*#{1,6}\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _BOLD_LINE_RE = re.compile(r"^\*\*(.+?)\*\*$")
@@ -93,7 +94,8 @@ def _resolve_cover_path(edition: Edition) -> Path | None:
 
 
 def _normalize_pagebreaks(text: str) -> str:
-    return _PAGEBREAK_RE.sub("::: pagebreak\n:::", text)
+    normalized = _PAGEBREAK_RE.sub("::: pagebreak\n:::", text)
+    return _LATEX_PAGEBREAK_RE.sub("\n\n\\\\newpage\n\n", normalized).strip() + "\n"
 
 
 def _split_core_and_supplements(text: str) -> tuple[str, str]:
@@ -102,6 +104,9 @@ def _split_core_and_supplements(text: str) -> tuple[str, str]:
         "\n# LETTERS TO FRONTO",
         "\n## GLOSSARY",
         "\n# GLOSSARY",
+        "\n## GLOSSAIRE",
+        "\n# GLOSSAIRE",
+        "\nGLOSSAIRE",
     ]
     indices = [text.find(marker) for marker in markers if text.find(marker) != -1]
     if not indices:
@@ -110,11 +115,16 @@ def _split_core_and_supplements(text: str) -> tuple[str, str]:
     return text[:cut].rstrip(), text[cut:].lstrip()
 
 
+def _is_glossary_heading(stripped: str) -> bool:
+    return stripped in {"# GLOSSARY", "# GLOSSAIRE"}
+
+
 def _promote_supplement_headings(text: str) -> str:
     if not text.strip():
         return text
     text = re.sub(r"(?m)^##\s+LETTERS TO FRONTO\s*$", "# LETTERS TO FRONTO", text)
     text = re.sub(r"(?m)^##\s+GLOSSARY\s*$", "# GLOSSARY", text)
+    text = re.sub(r"(?m)^(?:##\s+)?GLOSSAIRE\s*$", "# GLOSSAIRE", text)
     return text.strip() + "\n"
 
 
@@ -135,7 +145,7 @@ def _clean_supplement_false_headings(text: str) -> str:
 
 
 def _bold_glossary_headwords(text: str) -> str:
-    if not text.strip() or "# GLOSSARY" not in text:
+    if not text.strip() or not re.search(r"(?m)^#\s+GLOSS(?:ARY|AIRE)\s*$", text):
         return text
 
     lines = text.splitlines()
@@ -144,13 +154,16 @@ def _bold_glossary_headwords(text: str) -> str:
     for raw in lines:
         line = raw.rstrip()
         stripped = line.strip()
-        if stripped == "# GLOSSARY":
+        if _is_glossary_heading(stripped):
             in_glossary = True
             out.append(line)
             continue
-        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
+        if in_glossary and stripped.startswith("# ") and not _is_glossary_heading(stripped):
             in_glossary = False
         if not in_glossary or not stripped or stripped.startswith("#"):
+            out.append(line)
+            continue
+        if re.match(r"^(?:<span id=\"glossary-term-\d+\"></span>)?[GTV]\d{3}\s+-\s+", stripped):
             out.append(line)
             continue
         if stripped.startswith("**"):
@@ -174,7 +187,7 @@ def _bold_glossary_headwords(text: str) -> str:
 
 
 def _inline_glossary_continuations(text: str) -> str:
-    if not text.strip() or "# GLOSSARY" not in text:
+    if not text.strip() or not re.search(r"(?m)^#\s+GLOSS(?:ARY|AIRE)\s*$", text):
         return text
 
     lines = text.splitlines()
@@ -186,13 +199,13 @@ def _inline_glossary_continuations(text: str) -> str:
         line = raw.rstrip()
         stripped = line.strip()
 
-        if stripped == "# GLOSSARY":
+        if _is_glossary_heading(stripped):
             in_glossary = True
             intro_seen = False
             out.append(line)
             continue
 
-        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
+        if in_glossary and stripped.startswith("# ") and not _is_glossary_heading(stripped):
             in_glossary = False
 
         if not in_glossary:
@@ -227,50 +240,40 @@ def _inline_glossary_continuations(text: str) -> str:
 
 
 def _normalize_glossary_inline_format(text: str) -> str:
-    if not text.strip() or "# GLOSSARY" not in text:
+    if not text.strip() or not re.search(r"(?m)^#\s+GLOSS(?:ARY|AIRE)\s*$", text):
         return text
     text = re.sub(r"(?m)^(\*\*.+?\*\*)\s*[,:\u2014-]\s+", r"\1&nbsp;-&nbsp;", text)
     return text
 
 
 def _format_glossary_as_ordered_list(text: str) -> str:
-    if not text.strip() or "# GLOSSARY" not in text:
+    if not text.strip() or not re.search(r"(?m)^#\s+GLOSS(?:ARY|AIRE)\s*$", text):
         return text
 
     lines = text.splitlines()
     out: list[str] = []
     in_glossary = False
-    intro: list[str] = []
-    entries: list[str] = []
     current_entry: str | None = None
 
-    def flush_glossary() -> None:
-        nonlocal intro, entries, current_entry
+    def flush_entry() -> None:
+        nonlocal current_entry
         if current_entry:
-            entries.append(current_entry.strip())
-            current_entry = None
-        for para in intro:
-            if para.strip():
-                out.append(para.strip())
-                out.append("")
-        for entry in entries:
-            out.append(f"1. {entry}")
+            out.append(current_entry.strip())
             out.append("")
-        if out and out[-1] == "":
-            return
+            current_entry = None
 
     for raw in lines:
         line = raw.rstrip()
         stripped = line.strip()
 
-        if stripped == "# GLOSSARY":
+        if _is_glossary_heading(stripped):
             in_glossary = True
             out.append(line)
             out.append("")
             continue
 
-        if in_glossary and stripped.startswith("# ") and stripped != "# GLOSSARY":
-            flush_glossary()
+        if in_glossary and stripped.startswith("# ") and not _is_glossary_heading(stripped):
+            flush_entry()
             in_glossary = False
             out.append(line)
             continue
@@ -282,6 +285,21 @@ def _format_glossary_as_ordered_list(text: str) -> str:
         if not stripped:
             continue
 
+        if re.match(r"^\d+\.\s+\S", stripped):
+            flush_entry()
+            out.append(re.sub(r"^(\d+)\.", r"\1\\.", stripped))
+            out.append("")
+            continue
+
+        if re.fullmatch(r"[GTV]\d{3}", stripped):
+            flush_entry()
+            current_entry = stripped
+            continue
+
+        if current_entry and re.fullmatch(r"[GTV]\d{3}", current_entry):
+            current_entry = f"{current_entry} - {stripped}"
+            continue
+
         if stripped.startswith("**"):
             if current_entry:
                 entries.append(current_entry.strip())
@@ -289,13 +307,16 @@ def _format_glossary_as_ordered_list(text: str) -> str:
             continue
 
         if current_entry:
-            current_entry = f"{current_entry} {stripped}"
+            separator = " - " if re.match(r"^[GTV]\d{3}\b", current_entry) and current_entry.count(" - ") == 1 else " "
+            current_entry = f"{current_entry}{separator}{stripped}"
             continue
 
-        intro.append(stripped)
+        flush_entry()
+        out.append(stripped)
+        out.append("")
 
     if in_glossary:
-        flush_glossary()
+        flush_entry()
 
     return "\n".join(out).strip() + "\n"
 
@@ -303,7 +324,12 @@ def _format_glossary_as_ordered_list(text: str) -> str:
 def _extract_glossary_entries(text: str) -> list[dict[str, str]]:
     entries: list[dict[str, str]] = []
     for idx, line in enumerate(text.splitlines(), start=1):
-        m = re.match(r"^\s*1\.\s+\*\*(.+?)\*\*", line.strip())
+        stripped = line.strip()
+        m = re.match(r"^(?:<span id=\"glossary-term-\d+\"></span>)?[GTV]\d{3}\s+-\s+(.+?)\s+-\s+", stripped)
+        if not m:
+            m = re.match(r"^\s*1\.\s+\*\*(.+?)\*\*", stripped)
+        if not m:
+            m = re.match(r"^(?:<span id=\"glossary-term-\d+\"></span>)?\*\*(.+?)\*\*", stripped)
         if not m:
             continue
         term = html.unescape(m.group(1).replace("&nbsp;", " ")).strip()
@@ -339,7 +365,7 @@ def _inject_glossary_ids(text: str, entries: list[dict[str, str]]) -> str:
     for raw in lines:
         line = raw.rstrip()
         if current:
-            m = re.match(r"^(\s*1\.\s+)(\*\*.+?\*\*.*)$", line)
+            m = re.match(r"^(\s*)((?:[GTV]\d{3}\s+-\s+.+?)|(?:\*\*.+?\*\*.*)|(?:1\.\s+\*\*.+?\*\*.*))$", line)
             if m:
                 out.append(f'{m.group(1)}<span id="{current["id"]}"></span>{m.group(2)}')
                 current = next(entry_iter, None)
@@ -408,6 +434,20 @@ def _collapse_orphan_numbered_paragraphs(text: str) -> str:
 
 
 def _renumber_core_aphorisms(md_text: str) -> str:
+    def capitalize_first_alpha(text: str) -> str:
+        for idx, char in enumerate(text):
+            if char.isalpha():
+                return text[:idx] + char.upper() + text[idx + 1 :]
+        return text
+
+    def append_blocks(target: list[str], blocks: list[str]) -> None:
+        for block in blocks:
+            stripped = block.strip()
+            if not stripped:
+                continue
+            target.append(stripped)
+            target.append("")
+
     def flush_item(target: list[str], number: int | None, blocks: list[str]) -> None:
         if number is None or not blocks:
             return
@@ -424,7 +464,7 @@ def _renumber_core_aphorisms(md_text: str) -> str:
                 target.append(f"    {line.rstrip()}")
         target.append("")
 
-    sections = re.split(r"(?m)(?=^#\s+(?:Chapter|Book|Adventure|Cap[ií]tulo|Kapitel)\b)", md_text.strip())
+    sections = re.split(r"(?m)(?=^#\s+(?:Chapter|Book|Adventure|Cap[ií]tulo|Kapitel|Chapitre|Livre)\b)", md_text.strip())
     rebuilt: list[str] = []
 
     for section in sections:
@@ -450,18 +490,25 @@ def _renumber_core_aphorisms(md_text: str) -> str:
             stripped = block.strip()
             if not stripped:
                 continue
-            m = re.match(r"^\d+\.\s*(.*)$", stripped, re.DOTALL)
-            if m:
+            m = re.match(r"^(\d+)([.)])\s*(.*)$", stripped, re.DOTALL)
+            dash = re.match(r"^(\d{1,3}\s+[—–-])\s*(.*)$", stripped, re.DOTALL)
+            if m or dash:
                 if current_number is None and prelude:
-                    rebuilt.extend(prelude)
-                    if rebuilt and rebuilt[-1] != "":
-                        rebuilt.append("")
+                    append_blocks(rebuilt, prelude)
                     prelude = []
                 flush_item(rebuilt, current_number, item_blocks)
+                if dash:
+                    first_block = capitalize_first_alpha((dash.group(2) or "").strip())
+                    rebuilt.append(f"**{dash.group(1)}** {first_block}".rstrip())
+                    rebuilt.append("")
+                    current_number = None
+                    item_blocks = []
+                    in_items = True
+                    continue
                 current_number = next_number
                 next_number += 1
                 item_blocks = []
-                first_block = (m.group(1) or "").strip()
+                first_block = capitalize_first_alpha((m.group(3) or "").strip())
                 if first_block:
                     item_blocks.append(first_block)
                 in_items = True
@@ -473,9 +520,7 @@ def _renumber_core_aphorisms(md_text: str) -> str:
                 prelude.append(stripped)
 
         if current_number is None and prelude:
-            rebuilt.extend(prelude)
-            if rebuilt and rebuilt[-1] != "":
-                rebuilt.append("")
+            append_blocks(rebuilt, prelude)
         else:
             flush_item(rebuilt, current_number, item_blocks)
             if rebuilt and rebuilt[-1] != "":
@@ -1216,14 +1261,15 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     core_txt = _renumber_core_aphorisms(core_txt).strip()
     core_txt = _insert_visual_chapter_titles(core_txt).strip()
     core_txt = _remove_unwanted_taglines(core_txt).strip()
+    core_txt = _normalize_pagebreaks(core_txt).strip()
 
     supplements_txt = _collapse_orphan_numbered_paragraphs(supplements_txt).strip()
     supplements_txt = _promote_supplement_headings(supplements_txt).strip()
     supplements_txt = _clean_supplement_false_headings(supplements_txt).strip()
+    supplements_txt = _format_glossary_as_ordered_list(supplements_txt).strip()
     supplements_txt = _bold_glossary_headwords(supplements_txt)
     supplements_txt = _inline_glossary_continuations(supplements_txt).strip()
     supplements_txt = _normalize_glossary_inline_format(supplements_txt).strip()
-    supplements_txt = _format_glossary_as_ordered_list(supplements_txt).strip()
     glossary_entries = _extract_glossary_entries(supplements_txt)
     supplements_txt = _inject_glossary_ids(supplements_txt, glossary_entries).strip()
     core_txt = _annotate_first_glossary_mentions(core_txt, glossary_entries).strip()
@@ -1234,6 +1280,7 @@ def build_merged_kdp_source(edition: Edition) -> Path:
         miolo_txt = core_txt
     miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)
+    miolo_txt = _normalize_pagebreaks(miolo_txt).strip()
     cleanup_matches.extend(image_alt_matches)
     _write_marker_cleanup_report(builds_base, cleanup_matches)
     epilogue_path = fm_base / "epilogue.md"

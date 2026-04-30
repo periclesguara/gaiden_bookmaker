@@ -146,17 +146,29 @@ class FrenchRefineRoutingTests(TestCase):
         )
 
 
+class FrenchPolishRoutingTests(TestCase):
+    def test_french_polish_defaults_to_frances_polidor(self):
+        from pipeline.views import _default_polish_agent_for_language, _polish_agent_options_for_language, _normalize_agent_name
+
+        self.assertEqual(_default_polish_agent_for_language("fr"), "Francês_Polidor")
+        self.assertEqual(_polish_agent_options_for_language("fr"), ("Francês_Polidor",))
+        self.assertEqual(_normalize_agent_name("Francês_Polidor"), "Francês_Polidor")
+
+
 class TranslateAgentRoutingTests(TestCase):
     def test_french_translate_uses_le_grand_coulhon(self):
         from pipeline.views import _translate_agent_name
 
         self.assertEqual(_translate_agent_name("fr"), "LE_GRAND_COULHON")
         self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "LE_GRAN_COLHOUN")
+        self.assertEqual(_translate_agent_name("ptbr"), "CACIQUE")
+        self.assertEqual(_translate_agent_name("pt-br"), "CACIQUE")
 
     def test_agent_translate_default_resolves_french_agent(self):
         from gaiden.tools.agent_translate_default import resolve_agent_for_target
 
         self.assertEqual(resolve_agent_for_target(suffix="fr"), "LE_GRAND_COULHON")
+        self.assertEqual(resolve_agent_for_target(suffix="ptbr"), "CACIQUE")
         self.assertEqual(
             resolve_agent_for_target(suffix="fr", requested_agent="LE_GRAN_COLHOUN"),
             "LE_GRAN_COLHOUN",
@@ -1355,6 +1367,21 @@ class MergeTranslatePreviewTests(TestCase):
         self.assertContains(response, "Build merge preview content.")
         self.assertEqual(response.context["md_path"], str(build_merge))
 
+    def test_preview_merge_translate_prefers_fixed_build_merge_when_runtime_is_missing(self):
+        self.merged_runtime_path.unlink()
+        build_dir = self.temp_root / "data" / "builds" / self.work.code / "en"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        fixed_merge = build_dir / "merge_translate_en_fixed.txt"
+        canonical_merge = build_dir / "merge_translate.txt"
+        fixed_merge.write_text("Fixed build merge preview content.\n", encoding="utf-8")
+        canonical_merge.write_text("Canonical build merge preview content.\n", encoding="utf-8")
+
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Fixed build merge preview content.")
+        self.assertEqual(response.context["md_path"], str(fixed_merge))
+
 
 class MergePolidorPreviewTests(TestCase):
     def setUp(self):
@@ -1392,6 +1419,7 @@ class MergePolidorPreviewTests(TestCase):
         self.build_dir.mkdir(parents=True, exist_ok=True)
         self.preview_url = reverse("preview_merge_polidor", kwargs={"edition_id": self.edition.id})
         self.save_url = reverse("save_merge_polidor_preview", kwargs={"edition_id": self.edition.id})
+        self.generic_preview_url = reverse("preview_merge_selected", kwargs={"edition_id": self.edition.id})
 
     def tearDown(self):
         if self.old_storage_root is None:
@@ -1429,6 +1457,18 @@ class MergePolidorPreviewTests(TestCase):
         self.assertContains(response, "Newer final text.")
         self.assertEqual(response.context["md_path"], str(latest))
 
+    def test_preview_merge_polidor_prefers_fixed_variant_when_present(self):
+        canonical = self.build_dir / "merge_polidor.txt"
+        fixed = self.build_dir / "merge_polidor_en_fixed.txt"
+        canonical.write_text("Canonical polidor text.\n", encoding="utf-8")
+        fixed.write_text("Fixed polidor text.\n", encoding="utf-8")
+
+        response = self.client.get(self.preview_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Fixed polidor text.")
+        self.assertEqual(response.context["md_path"], str(fixed))
+
     def test_save_merge_polidor_copies_latest_final_text_when_formal_merge_is_missing(self):
         latest = self.build_dir / "kdp_merged_v3.md"
         latest.write_text("Final text to adjust.\n", encoding="utf-8")
@@ -1439,6 +1479,27 @@ class MergePolidorPreviewTests(TestCase):
         saved_path = self.build_dir / "merge_polidor.txt"
         self.assertTrue(saved_path.exists())
         self.assertEqual(saved_path.read_text(encoding="utf-8"), "Final text to adjust.\n")
+
+    def test_preview_merge_selected_prefers_fixed_translate_and_refine_variants(self):
+        fixed_translate = self.build_dir / "merge_translate_en_fixed.txt"
+        canonical_translate = self.build_dir / "merge_translate.txt"
+        fixed_refine = self.build_dir / "merge_refine_en_fixed.txt"
+        canonical_refine = self.build_dir / "merge_refine.txt"
+        fixed_translate.write_text("Fixed translate text.\n", encoding="utf-8")
+        canonical_translate.write_text("Canonical translate text.\n", encoding="utf-8")
+        fixed_refine.write_text("Fixed refine text.\n", encoding="utf-8")
+        canonical_refine.write_text("Canonical refine text.\n", encoding="utf-8")
+
+        translate_response = self.client.get(self.generic_preview_url, {"merge_kind": "merge_translate"})
+        refine_response = self.client.get(self.generic_preview_url, {"merge_kind": "merge_refine"})
+
+        self.assertEqual(translate_response.status_code, 200)
+        self.assertContains(translate_response, "Fixed translate text.")
+        self.assertEqual(translate_response.context["md_path"], str(fixed_translate))
+
+        self.assertEqual(refine_response.status_code, 200)
+        self.assertContains(refine_response, "Fixed refine text.")
+        self.assertEqual(refine_response.context["md_path"], str(fixed_refine))
 
 
 class EnglishPhilosoferTranslateTests(TestCase):
@@ -1523,6 +1584,8 @@ class EnglishPhilosoferTranslateTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "EN (modern)")
+        self.assertContains(response, "PT-BR (portugues)")
+        self.assertContains(response, "CACIQUE")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
 
@@ -2478,6 +2541,8 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, "Agent")
         self.assertContains(response, 'name="translate_agent_name"')
         self.assertContains(response, "HeadingCleaner")
+        self.assertContains(response, "PT-BR (portugues)")
+        self.assertContains(response, "CACIQUE")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
 
@@ -2511,6 +2576,114 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
         self.assertNotContains(response, "Ingles neutro - Aldebaran")
         self.assertNotContains(response, "Ingles flex - Alamaguederaz")
+
+    def test_ptbr_steps_show_cacique_tibirica_refine_profile(self):
+        ptbr = Language.objects.create(
+            code="ptbr",
+            name="Portuguese",
+            native_name="Portugues",
+            is_active=True,
+        )
+        ptbr_edition = Edition.objects.create(
+            work=self.work,
+            language=ptbr,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="ptbr",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': ptbr_edition.id})}?allow_html_to_common=1"
+        )
+
+        self.assertContains(response, 'name="refine_profile"')
+        self.assertContains(response, "Portugues Cacique Tibiriça - Cacique Tibiriça")
+        self.assertNotContains(response, "Ingles neutro - Aldebaran")
+        self.assertNotContains(response, "Ingles flex - Alamaguederaz")
+
+    def test_french_steps_show_frances_polidor_option(self):
+        french = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Francais",
+            is_active=True,
+        )
+        french_edition = Edition.objects.create(
+            work=self.work,
+            language=french,
+            seal=self.seal,
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="fr",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': french_edition.id})}?allow_html_to_common=1"
+        )
+
+        self.assertContains(response, 'name="polish_agent_name"')
+        self.assertContains(response, "Francês_Polidor")
+        self.assertNotContains(response, '<option value="English Polidor" selected>', html=False)
+
+
+    def test_split_refine_by_chapter_unlocks_when_language_variant_has_canonical_merge_refine_clean(self):
+        french = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Francais",
+            is_active=True,
+        )
+        french_edition = Edition.objects.create(
+            work=self.work,
+            language=french,
+            seal=self.seal,
+        )
+        EditionPipeline.objects.update_or_create(
+            edition=french_edition,
+            defaults={
+                "current_stage": "REFINED",
+                "translation_language": "fr",
+                "md_language": "fr",
+                "refine_profile": "fr_colhoun",
+                "translated_at": timezone.now(),
+                "refined_at": timezone.now(),
+            },
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="fr",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="html",
+        )
+        french_build_dir = self.root / "data" / "builds" / self.work.code / "fr"
+        french_build_dir.mkdir(parents=True, exist_ok=True)
+        (french_build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
+        (french_build_dir / "merge_refine.txt").write_text("merged refine", encoding="utf-8")
+        refine_parts = french_build_dir / "split_by_chapter" / "return_le_gran_colhoun"
+        refine_parts.mkdir(parents=True, exist_ok=True)
+        (refine_parts / "chapter_01_part_01.txt").write_text("refined chapter", encoding="utf-8")
+        translated_clean = self.root / "data" / "translated" / self.work.code / "fr"
+        translated_clean.mkdir(parents=True, exist_ok=True)
+        (translated_clean / "merge_refine_clean.txt").write_text("canonical refine clean", encoding="utf-8")
+
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': french_edition.id})}?allow_html_to_common=1"
+        )
+
+        self.assertNotContains(response, "8) Etapa 3 · Split by Chapter (merge_refine) bloqueado")
 
     def test_refine_disabled_without_translate_outputs(self):
         self.client.post(self.heading_url)
@@ -3127,6 +3300,38 @@ class MdTransformSourceHeadingContractTests(TestCase):
         self.assertLess(output.index("Rewritten opening for case one."), second_idx)
         self.assertGreater(output.index("Rewritten opening for case two."), second_idx)
 
+    def test_txt_to_md_promotes_french_livre_markers_to_chapter_headings(self):
+        from pipeline.services import md_transform
+
+        txt_path = self.temp_root / "merge_polish.txt"
+        txt_path.write_text(
+            (
+                "LIVRE 01\n\n"
+                "01 — Premier aphorisme.\n\n"
+                "02 — Deuxieme aphorisme.\n\n"
+                "LIVRE 02\n\n"
+                "01 — Troisieme aphorisme.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        out_path = self.temp_root / "BOOK.PRE_EDITION.md"
+        md_transform.pre_edition_txt_to_md(
+            txt_path,
+            out_path,
+            md_transform.PreEditionConfig(
+                title="Meditations",
+                book_code="book_0024",
+                language="fr",
+            ),
+        )
+
+        output = out_path.read_text(encoding="utf-8")
+        self.assertIn("# Livre 01", output)
+        self.assertIn("# Livre 02", output)
+        self.assertIn("01 — Premier aphorisme.", output)
+        self.assertNotIn("# Chapter 01 - Livre 01", output)
+
     def test_heading_contract_prefers_split_map_over_source_marker_heuristics(self):
         from pipeline.services import md_transform
 
@@ -3634,6 +3839,169 @@ class KdpMarkerCleanupContractTests(TestCase):
 
         self.assertNotIn("# Adapted Preface", merged_text)
         self.assertIn("# Chapter 01 - First Case", merged_text)
+
+    def test_build_kdp_recognizes_french_livre_headings_as_miolo(self):
+        from editorial import kdp_mode
+
+        fr_language = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Français",
+            is_active=True,
+        )
+        fr_edition = Edition.objects.create(
+            work=self.work,
+            language=fr_language,
+            seal=self.seal,
+        )
+        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir.mkdir(parents=True, exist_ok=True)
+        (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
+            (
+                "::: center\n"
+                "# Les Meditations\n"
+                ":::\n\n"
+                "# Livre 01\n\n"
+                "01 — Premier aphorisme.\n\n"
+                "# Livre 02\n\n"
+                "01 — Deuxieme aphorisme.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(fr_edition).read_text(encoding="utf-8")
+
+        self.assertNotIn("# Adapted Preface", merged_text)
+        self.assertIn("# Livre 01", merged_text)
+        self.assertIn("# Livre 02", merged_text)
+        self.assertIn("**01 —** Premier aphorisme.\n\n# Livre 02", merged_text)
+
+    def test_build_kdp_preserves_french_numbered_aphorism_spacing_and_caps(self):
+        from editorial import kdp_mode
+
+        fr_language = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Français",
+            is_active=True,
+        )
+        fr_edition = Edition.objects.create(
+            work=self.work,
+            language=fr_language,
+            seal=self.seal,
+        )
+        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir.mkdir(parents=True, exist_ok=True)
+        (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
+            (
+                "# Livre 01\n\n"
+                "01 — premier aphorisme.\n\n"
+                "02 — deuxieme aphorisme.\n\n"
+                "03 — Troisieme aphorisme.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(fr_edition).read_text(encoding="utf-8")
+
+        self.assertIn("**01 —** Premier aphorisme.\n\n**02 —** Deuxieme aphorisme.", merged_text)
+        self.assertIn("\n\n**03 —** Troisieme aphorisme.", merged_text)
+
+    def test_build_kdp_keeps_blank_lines_around_latex_pagebreaks_before_french_livre(self):
+        from editorial import kdp_mode
+
+        fr_language = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Français",
+            is_active=True,
+        )
+        fr_edition = Edition.objects.create(
+            work=self.work,
+            language=fr_language,
+            seal=self.seal,
+        )
+        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir.mkdir(parents=True, exist_ok=True)
+        (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
+            (
+                "# Livre 01\n\n"
+                "01 — Premier aphorisme.\n\n"
+                "\\newpage\n"
+                "# Livre 02\n\n"
+                "01 — Deuxieme aphorisme.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(fr_edition).read_text(encoding="utf-8")
+
+        self.assertIn("**01 —** Premier aphorisme.\n\n\\newpage\n\n# Livre 02", merged_text)
+
+    def test_build_kdp_formats_french_glossary_identifier_entries_inline(self):
+        from editorial import kdp_mode
+
+        fr_language = Language.objects.create(
+            code="fr",
+            name="French",
+            native_name="Français",
+            is_active=True,
+        )
+        fr_edition = Edition.objects.create(
+            work=self.work,
+            language=fr_language,
+            seal=self.seal,
+        )
+        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir.mkdir(parents=True, exist_ok=True)
+        (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
+            (
+                "# Livre 01\n\n"
+                "Harmodios est mentionné dans le texte.\n\n"
+                "GLOSSAIRE\n\n"
+                "1. Philosophes, auteurs, maîtres et personnages grecs\n\n"
+                "G037\n"
+                "Harmodios\n"
+                "Citoyen athénien connu avec Aristogiton comme symbole de lutte contre la tyrannie.\n\n"
+                "G038\n"
+                "Héraclite\n"
+                "Philosophe présocratique grec, connu pour sa doctrine du changement.\n\n"
+                "6. Termes grecs traduits en français\n\n"
+                "T001\n"
+                "ὑπομνήματα\n"
+                "Traduction française à utiliser dans le texte : notes personnelles.\n"
+                "Sens : notes, souvenirs ou mémoranda destinés à soi-même.\n\n"
+                "7. Variantes éditoriales à surveiller\n\n"
+                "V003\n"
+                "Platon / Plato\n"
+                "Règle : utiliser Platon en français.\n"
+            ),
+            encoding="utf-8",
+        )
+
+        merged_text = kdp_mode.build_merged_kdp_source(fr_edition).read_text(encoding="utf-8")
+
+        self.assertIn("# GLOSSAIRE", merged_text)
+        self.assertRegex(
+            merged_text,
+            r'<span id="glossary-term-\d+"></span>G037 - Harmodios - '
+            r"Citoyen athénien connu avec Aristogiton comme symbole de lutte contre la tyrannie\.",
+        )
+        self.assertIn("1\\. Philosophes, auteurs, maîtres et personnages grecs", merged_text)
+        self.assertIn(
+            "G038 - Héraclite - Philosophe présocratique grec, connu pour sa doctrine du changement.",
+            merged_text,
+        )
+        self.assertIn("6\\. Termes grecs traduits en français", merged_text)
+        self.assertIn(
+            "T001 - ὑπομνήματα - Traduction française à utiliser dans le texte : notes personnelles. "
+            "Sens : notes, souvenirs ou mémoranda destinés à soi-même.",
+            merged_text,
+        )
+        self.assertIn("7\\. Variantes éditoriales à surveiller", merged_text)
+        self.assertIn("V003 - Platon / Plato - Règle : utiliser Platon en français.", merged_text)
+        self.assertNotIn("**G038", merged_text)
+        self.assertNotIn("    G037", merged_text)
 
     def test_build_kdp_respects_explicit_preface_heading_before_first_chapter(self):
         from editorial import kdp_mode

@@ -23,7 +23,7 @@ class ChapterPattern:
 
 CHAPTER_H2_RE = re.compile(r"^\s*##\s+(\d+\.\s+.*)$", re.IGNORECASE)
 EXISTING_MD_HEADING_RE = re.compile(
-    r"^\s*#{1,6}\s+(?:chapter|kapitel|cap[ií]tulo|chapitre)\s+(?:\d+|[IVXLCDM]+)\b",
+    r"^\s*#{1,6}\s+(?:chapter|kapitel|cap[ií]tulo|chapitre|livre)\s+(?:\d+|[IVXLCDM]+)\b",
     re.IGNORECASE,
 )
 
@@ -52,6 +52,9 @@ CHAPTER_PATTERNS_BY_LANG = {
         ChapterPattern("ROMAN_DOT", re.compile(r"^[IVXLCDM]+\.\s+.+$", re.I)),
         ChapterPattern("NUM_DOT", re.compile(r"^\d+\.\s+.+$")),
         ChapterPattern("ALLCAPS", re.compile(r"^[A-ZÄÖÜ][A-ZÄÖÜ0-9 ,;:\\-–'\"!?()]+$", re.U)),
+    ],
+    "fr": [
+        ChapterPattern("LIVRE_NUM_OR_ROMAN", re.compile(r"^LIVRE\s+(?:\d+|[IVXLCDM]+)\s*[-–:.]?\s*(.*)$", re.I)),
     ],
 }
 

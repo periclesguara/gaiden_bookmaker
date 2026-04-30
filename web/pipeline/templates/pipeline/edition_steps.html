@@ -96,6 +96,20 @@
     .pipeline-step .status {
       line-height: 1.45;
     }
+    .translate-controls {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .translate-field {
+      display: grid;
+      gap: 4px;
+    }
+    .translate-field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
     .pipeline-step code {
       display: inline-block;
       margin: 4px 6px 0 0;
@@ -334,17 +348,25 @@
           <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
             {% csrf_token %}
             {% if s.key == "translate" %}
-            <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
-              {% for option in translate_variant_options %}
-              <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
-              {% endfor %}
-            </select>
-            <select id="translate_agent_name" name="translate_agent_name" aria-label="Agente de traducao">
-              {% for option in translate_agent_choices %}
-              <option value="{{ option.value }}" {% if selected_translate_agent == option.value %}selected{% endif %}>{{ option.label }}</option>
-              {% endfor %}
-            </select>
-            <span class="status">Rota: <strong id="translate_agent_route"></strong></span>
+            <div class="translate-controls">
+              <div class="translate-field">
+                <label for="translate_target_language">Lingua</label>
+                <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
+                  {% for option in translate_variant_options %}
+                  <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="translate-field">
+                <label for="translate_agent_name">Agente</label>
+                <select id="translate_agent_name" name="translate_agent_name" aria-label="Agente de traducao">
+                  {% for option in translate_agent_choices %}
+                  <option value="{{ option.value }}" {% if selected_translate_agent == option.value %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <span class="status">Agente selecionado: <strong id="translate_agent_route"></strong></span>
             <table class="status" style="width:100%; border-collapse:collapse; margin:0.75rem 0;">
               <thead>
                 <tr>
@@ -969,7 +991,7 @@
         }
       }
       translateAgentLabel.textContent = translateAgentSelect && translateAgentSelect.value
-        ? `Agent: ${translateAgentSelect.value}`
+        ? translateAgentSelect.value
         : (translateAgentMap[lang] || "rota nao configurada");
     }
 

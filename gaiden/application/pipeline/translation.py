@@ -55,6 +55,10 @@ def _numbered_item_sequence(text: str) -> list[int]:
     return [int(match.group(1)) for match in _NUMBERED_ITEM_PATTERN.finditer(text or "")]
 
 
+def _contains_numbered_references(text: str, numbers: list[int]) -> bool:
+    return all(re.search(rf"(?<!\d){number}\s*\\?\.", text or "") for number in numbers)
+
+
 def _build_validation_retry_messages(
     *,
     base_messages: List[Dict[str, str]],
@@ -229,6 +233,8 @@ def chunk_truncation_reason(source_text: str, candidate_text: str) -> Optional[s
     source_numbers = _numbered_item_sequence(source_clean)
     candidate_numbers = _numbered_item_sequence(candidate_clean)
     if source_numbers:
+        if not candidate_numbers and _contains_numbered_references(candidate_clean, source_numbers):
+            return None
         if len(candidate_numbers) < len(source_numbers):
             return (
                 "Model output is missing numbered sections from the source chunk. "

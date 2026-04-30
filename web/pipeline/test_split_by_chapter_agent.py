@@ -407,6 +407,23 @@ class ChapterAgentServiceTests(TestCase):
         )
         self.assertEqual(custom_out_dir, split_root / "return_alamaguederaz")
 
+    def test_resolve_polish_report_source_dir_uses_agent_report_chunk_dir(self):
+        split_root = paths.split_refine_by_chapter_dir(self.edition)
+        polish_dir = split_root / "return_frances_polidor"
+        polish_dir.mkdir(parents=True, exist_ok=True)
+        source_dir = paths.split_by_chapter_dir(self.edition) / "return_le_gran_colhoun"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        (source_dir / "chapter_01_part_01.txt").write_text("refined chapter\n", encoding="utf-8")
+        (polish_dir / "agent_refine_return_report.json").write_text(
+            json.dumps({"chunk_dir": str(source_dir), "status": "ok"}),
+            encoding="utf-8",
+        )
+
+        resolved_dir, resolved_label = pipeline_views._resolve_polish_report_source_dir(polish_dir)
+
+        self.assertEqual(resolved_dir, source_dir)
+        self.assertEqual(resolved_label, "agent_report_source")
+
     def test_recommended_split_parts_for_philosophy_and_devotional_english(self):
         self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en_philo"), 4)
         self.assertEqual(pipeline_views._recommended_split_parts_for_translate_variant("en_devotional"), 4)

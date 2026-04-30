@@ -131,6 +131,16 @@ REFINE_PROFILES = {
             "literary tension or period detail."
         ),
     },
+    "ptbr_cacique_tibirica": {
+        "label": "Portugues Cacique Tibiriça",
+        "agent_name": "Cacique Tibiriça",
+        "description": "Refine literario em portugues brasileiro com fluidez, registro e clareza editorial.",
+        "style_directive": (
+            "Target profile: modern Brazilian Portuguese literary prose. Preserve full meaning, chronology, "
+            "paragraphing, character voice, terminology, references, and philosophical nuance. Prefer fluent, "
+            "natural Brazilian Portuguese with controlled editorial cadence and commercial readability."
+        ),
+    },
     "fr_coulhon": {
         "label": "Francais Le Grand Coulhon",
         "agent_name": "Le Grand Coulhon",
@@ -171,18 +181,31 @@ POLISH_AGENT_OPTIONS = (
     "Bismarck",
     "Kaiser",
 )
+POLISH_AGENT_DEFAULT_BY_LANGUAGE = {
+    "en": "English Polidor",
+    "fr": "Francês_Polidor",
+}
+POLISH_AGENT_OPTIONS_BY_LANGUAGE = {
+    "en": POLISH_AGENT_OPTIONS,
+    "fr": ("Francês_Polidor",),
+}
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en", "label": "EN (modern)", "base_language": "en"},
+    {"value": "ptbr", "label": "PT-BR (portugues)", "base_language": "ptbr"},
     {"value": "fr", "label": "FR (francais)", "base_language": "fr"},
 )
 TRANSLATE_AGENT_BY_VARIANT = {
     "en": "HeadingCleaner",
+    "ptbr": "CACIQUE",
     "fr": "LE_GRAND_COULHON",
 }
 TRANSLATE_AGENT_OPTIONS_BY_VARIANT = {
     "en": (
         "HeadingCleaner",
         "ALAMAGUEDERAZ",
+    ),
+    "ptbr": (
+        "CACIQUE",
     ),
     "fr": (
         "LE_GRAND_COULHON",
@@ -210,6 +233,16 @@ _TRANSLATE_VARIANT_ALIASES = {
     "english-devotional": "en",
     "english_devotional": "en",
     "englishdevotional": "en",
+    "pt": "ptbr",
+    "ptbr": "ptbr",
+    "pt-br": "ptbr",
+    "pt_br": "ptbr",
+    "portuguese": "ptbr",
+    "portugues": "ptbr",
+    "português": "ptbr",
+    "brazilian_portuguese": "ptbr",
+    "portugues_brasil": "ptbr",
+    "português_brasil": "ptbr",
 }
 
 _HTML_STAGE_ORDER = {
@@ -308,6 +341,8 @@ def _default_refine_profile_for_language(language: str | None) -> str:
         return "fr_coulhon"
     if normalized == "it":
         return "italiano_neutro"
+    if normalized == "ptbr":
+        return "ptbr_cacique_tibirica"
     return REFINE_PROFILE_DEFAULT
 
 
@@ -319,6 +354,8 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
         return ("fr_coulhon", "fr_colhoun")
     if normalized == "it":
         return ("italiano_neutro",)
+    if normalized == "ptbr":
+        return ("ptbr_cacique_tibirica",)
     return ("ingles_neutro", "ingles_flex")
 
 
@@ -328,6 +365,16 @@ def _normalized_refine_profile_for_language(value: str | None, language: str | N
     if normalized not in allowed:
         return _default_refine_profile_for_language(language)
     return normalized
+
+
+def _default_polish_agent_for_language(language: str | None) -> str:
+    normalized = utils.normalize_lang(language)
+    return POLISH_AGENT_DEFAULT_BY_LANGUAGE.get(normalized, POLISH_AGENT_DEFAULT)
+
+
+def _polish_agent_options_for_language(language: str | None) -> tuple[str, ...]:
+    normalized = utils.normalize_lang(language)
+    return POLISH_AGENT_OPTIONS_BY_LANGUAGE.get(normalized, POLISH_AGENT_OPTIONS)
 
 
 def _read_json_dict(path: Path) -> dict:
@@ -2297,6 +2344,35 @@ def _iter_non_merged_txt_files(directory: Path | None) -> list[Path]:
     )
 
 
+def _resolve_merge_refine_clean_path(book_code: str, language: str) -> Path:
+    root = Path(settings.BASE_DIR).parent
+    normalized_language = utils.normalize_lang(language)
+    candidates: list[Path] = []
+    for variant_dir in paths.translated_variant_dirs(book_code, normalized_language):
+        candidates.append(variant_dir / "merge_refine_clean.txt")
+    candidates.append(root / "data" / "translated" / book_code / "merge_refine_clean.txt")
+    return next((path for path in candidates if path.exists()), candidates[0])
+
+
+def _resolve_polish_report_source_dir(candidate_dir: Path | None) -> tuple[Path | None, str | None]:
+    if not candidate_dir or not candidate_dir.exists():
+        return None, None
+    report_path = candidate_dir / "agent_refine_return_report.json"
+    if not report_path.exists():
+        return None, None
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return None, None
+    raw_source = str(payload.get("chunk_dir") or "").strip()
+    if not raw_source:
+        return None, None
+    source_dir = Path(raw_source)
+    if not source_dir.exists():
+        return None, None
+    return source_dir, "agent_report_source"
+
+
 def _validate_runtime_chunk_outputs(source_dir: Path | None, candidate_dir: Path | None, stage_label: str) -> None:
     if not source_dir or not candidate_dir or not source_dir.exists() or not candidate_dir.exists():
         return
@@ -2368,7 +2444,7 @@ def _normalize_agent_name(value: str | None, *, default: str = POLISH_AGENT_DEFA
     cleaned = (value or "").strip()
     if not cleaned:
         return default
-    cleaned = re.sub(r"[^A-Za-z0-9 _.-]", "", cleaned).strip()
+    cleaned = re.sub(r"[^\w .-]", "", cleaned, flags=re.UNICODE).strip()
     return cleaned or default
 
 
@@ -2385,7 +2461,9 @@ def _resolve_polish_output_dir(
 ) -> Path | None:
     if source_dir is None:
         return None
-    dirname = _agent_return_dirname(agent_name or POLISH_AGENT_DEFAULT)
+    dirname = _agent_return_dirname(
+        agent_name or _default_polish_agent_for_language(getattr(edition.language, "code", ""))
+    )
     if source_dir.name == "parts" and source_dir.parent.name == "split_refine_by_chapter":
         return source_dir.parent / dirname
     return paths.edition_build_dir(edition) / dirname
@@ -2468,7 +2546,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         and (refine_merge_path.exists() or refine_runtime_merge)
     )
 
-    merge_refine_clean_path = root / "data" / "translated" / core_book_code / "merge_refine_clean.txt"
+    merge_refine_clean_path = _resolve_merge_refine_clean_path(core_book_code, target_lang)
     merge_refine_done = merge_refine_clean_path.exists() and refine_done
     split_refine_by_chapter_dir = paths.split_refine_by_chapter_dir(target_edition)
     split_refine_by_chapter_manifest_path = split_refine_by_chapter_dir / "manifest.json"
@@ -2479,13 +2557,20 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         polish_source_dir, polish_source_label = _resolve_polish_source_dir(target_edition)
     except Exception:
         polish_source_dir = None
-    polish_dir = _resolve_polish_output_dir(polish_source_dir, target_edition)
+    polish_dir = _resolve_polish_output_dir(
+        polish_source_dir,
+        target_edition,
+        agent_name=_default_polish_agent_for_language(target_edition.language.code),
+    )
+    reported_polish_source_dir, reported_polish_source_label = _resolve_polish_report_source_dir(polish_dir)
+    effective_polish_source_dir = reported_polish_source_dir or polish_source_dir
+    effective_polish_source_label = reported_polish_source_label or polish_source_label
     polish_outputs_count = _count_non_merged_txt_files(polish_dir)
     merge_polish_path = paths.merge_polish_path(target_edition)
-    polish_source_count = _count_non_merged_txt_files(polish_source_dir)
+    polish_source_count = _count_non_merged_txt_files(effective_polish_source_dir)
     polish_done = bool(
         merge_polish_path.exists()
-        and polish_source_dir
+        and effective_polish_source_dir
         and polish_outputs_count >= polish_source_count
         and polish_source_count
     )
@@ -2681,7 +2766,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             ],
             "notes": (
                 "Envia os capítulos refinados ao agente polidor selecionado "
-                f"| source={polish_source_label} | chunks={polish_outputs_count}/{polish_source_count}"
+                f"| source={effective_polish_source_label} | chunks={polish_outputs_count}/{polish_source_count}"
             ),
         }
     )
@@ -4332,6 +4417,8 @@ def edition_steps(request, edition_id: int):
     consolidated_images_map = consolidated_images_dir / "images_map.json"
     internal_images_disabled = _internal_images_disabled_for_edition(edition)
     internal_images_end_only = _internal_images_end_only_for_edition(edition)
+    polish_agent_default = _default_polish_agent_for_language(edition.language.code)
+    polish_agent_options = _polish_agent_options_for_language(edition.language.code)
     build_history = list(
         EditionBuild.objects.filter(edition=edition, language_code=frontmatter_lang).order_by("-build_version", "-created_at")
     )
@@ -4363,8 +4450,8 @@ def edition_steps(request, edition_id: int):
         "translate_variant_options": translate_variant_options,
         "refine_profile": refine_profile,
         "refine_profile_options": refine_profile_options,
-        "polish_agent_default": POLISH_AGENT_DEFAULT,
-        "polish_agent_options": POLISH_AGENT_OPTIONS,
+        "polish_agent_default": polish_agent_default,
+        "polish_agent_options": polish_agent_options,
         "merge_preview_options": MERGE_PREVIEW_OPTIONS,
         "chunk_count": chunk_count,
         "sync_log": sync_log,
@@ -4664,7 +4751,7 @@ def _run_polish_step_local(edition) -> dict[str, object]:
     return _run_polish_agent_step_local(
         edition,
         pipeline_state,
-        agent_name=POLISH_AGENT_DEFAULT,
+        agent_name=_default_polish_agent_for_language(edition.language.code),
     )
 
 
@@ -4685,10 +4772,19 @@ def _run_polish_agent_step_local(
         )
 
     target_edition = edition
-    if utils.normalize_lang(target_edition.language.code) != "en":
-        raise ValueError("Polidor Agent is only available for English.")
+    target_language = utils.normalize_lang(target_edition.language.code)
+    allowed_agents = _polish_agent_options_for_language(target_language)
+    if not allowed_agents:
+        raise ValueError(f"Polidor Agent is not available for language: {target_language}.")
 
-    selected_agent = _normalize_agent_name(agent_name)
+    selected_agent = _normalize_agent_name(
+        agent_name,
+        default=_default_polish_agent_for_language(target_language),
+    )
+    if selected_agent not in allowed_agents:
+        raise ValueError(
+            f"Polidor Agent '{selected_agent}' is not available for language: {target_language}."
+        )
     source_dir, source_label = _resolve_polish_source_dir(target_edition)
     out_dir = _resolve_polish_output_dir(source_dir, target_edition, agent_name=selected_agent)
     if out_dir is None:
@@ -4699,7 +4795,7 @@ def _run_polish_agent_step_local(
     result = run_aldebaran_refine_return(
         chunk_dir=source_dir,
         out_dir=out_dir,
-        merge_name="merge_polish_en.txt",
+        merge_name=f"merge_polish_{target_language}.txt",
         agent_name=selected_agent,
         max_output_tokens=2000,
     )
@@ -4710,7 +4806,7 @@ def _run_polish_agent_step_local(
         out_dir,
         merged_path,
         book_code=target_edition.work.code,
-        language=utils.normalize_lang(target_edition.language.code),
+        language=target_language,
     )
     _copy_merge_to_build(
         target_edition,
@@ -5461,6 +5557,8 @@ def preview_merge_translate(request, edition_id: int):
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         build_candidates = [
+            paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}_fixed.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate_fixed.txt",
             paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}.txt",
             paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate.txt",
         ]
@@ -5494,6 +5592,8 @@ def save_merge_translate_preview(request, edition_id: int):
     merged_path = _detect_merged_path(out_dir_path)
     if not merged_path:
         build_candidates = [
+            paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}_fixed.txt",
+            paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate_fixed.txt",
             paths.edition_build_dir_for_language(book_code, target_base) / f"merge_translate_{target_base}.txt",
             paths.edition_build_dir_for_language(book_code, target_base) / "merge_translate.txt",
         ]
@@ -5539,8 +5639,12 @@ def _resolve_merge_polidor_source(edition: EditorialEdition) -> tuple[Path | Non
     target_base = _translate_base_language(target_language)
     build_dir = paths.edition_build_dir_for_language(book_code, target_base)
     candidates = [
+        build_dir / "merge_polidor_fixed.txt",
+        build_dir / f"merge_polidor_{target_base}_fixed.txt",
         build_dir / "merge_polidor.txt",
         build_dir / f"merge_polidor_{target_base}.txt",
+        build_dir / "merge_polish_fixed.txt",
+        build_dir / f"merge_polish_{target_base}_fixed.txt",
         build_dir / "merge_polish.txt",
         build_dir / f"merge_polish_{target_base}.txt",
         build_dir / "split_refine_by_chapter" / "return_english_polidor" / "merge_polish_en.txt",
@@ -5591,23 +5695,35 @@ def _resolve_merge_preview_source(edition: EditorialEdition, merge_kind: str | N
     build_dir = paths.edition_build_dir_for_language(book_code, target_base)
     if kind == "latest":
         candidates = [
+            build_dir / "merge_polidor_fixed.txt",
+            build_dir / f"merge_polidor_{target_base}_fixed.txt",
             build_dir / "merge_polidor.txt",
             build_dir / f"merge_polidor_{target_base}.txt",
+            build_dir / "merge_polish_fixed.txt",
+            build_dir / f"merge_polish_{target_base}_fixed.txt",
             build_dir / "merge_polish.txt",
             build_dir / f"merge_polish_{target_base}.txt",
+            build_dir / "merge_refine_fixed.txt",
+            build_dir / f"merge_refine_{target_base}_fixed.txt",
             build_dir / "merge_refine.txt",
             build_dir / f"merge_refine_{target_base}.txt",
             build_dir / "merge_refine_clean.txt",
+            build_dir / "merge_translate_fixed.txt",
+            build_dir / f"merge_translate_{target_base}_fixed.txt",
             build_dir / "merge_translate.txt",
             build_dir / f"merge_translate_{target_base}.txt",
         ]
     elif kind == "merge_translate":
         candidates = [
+            build_dir / "merge_translate_fixed.txt",
+            build_dir / f"merge_translate_{target_base}_fixed.txt",
             build_dir / "merge_translate.txt",
             build_dir / f"merge_translate_{target_base}.txt",
         ]
     elif kind == "merge_refine":
         candidates = [
+            build_dir / "merge_refine_fixed.txt",
+            build_dir / f"merge_refine_{target_base}_fixed.txt",
             build_dir / "merge_refine.txt",
             build_dir / f"merge_refine_{target_base}.txt",
             build_dir / "merge_refine_clean.txt",

@@ -19,11 +19,11 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*$")
 ROMAN_ONLY_RE = re.compile(r"^[IVXLCDM]+$", re.IGNORECASE)
 CHAPTER_NUM_RE = re.compile(
-    r"^\s*(?:chapter|adventure|cap[ií]tulo)\s+([ivxlcdm]+|\d+)\b",
+    r"^\s*(?:chapter|adventure|cap[ií]tulo|livre)\s+([ivxlcdm]+|\d+)\b",
     re.IGNORECASE,
 )
 CHAPTER_PREFIX_RE = re.compile(
-    r"^\s*(?:chapter|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\s*[-.:]?\s*(.*)$",
+    r"^\s*(?:chapter|cap[ií]tulo|kapitel|livre)\s+([ivxlcdm]+|\d+)\s*[-.:]?\s*(.*)$",
     re.IGNORECASE,
 )
 LEADING_NUMERIC_CHAPTER_RE = re.compile(
@@ -424,6 +424,8 @@ def _looks_like_story_title(line: str) -> bool:
 
 def _chapter_label_for_language(language: str) -> str:
     lang = (language or "").lower()
+    if lang.startswith("fr"):
+        return "Livre"
     if lang.startswith("pt") or lang.startswith("es"):
         return "Capitulo"
     if lang.startswith("de"):
