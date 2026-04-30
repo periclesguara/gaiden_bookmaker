@@ -4299,7 +4299,12 @@ def edition_steps(request, edition_id: int):
             refine_qa_status = "invalid"
 
     frontmatter_langs = [choice[0] for choice in BookEditionTemplate.LANG_CHOICES]
-    frontmatter_lang_param = utils.normalize_lang(request.GET.get("frontmatter_lang") or "")
+    raw_frontmatter_lang_param = (request.GET.get("frontmatter_lang") or "").strip()
+    frontmatter_lang_param = (
+        utils.normalize_lang(raw_frontmatter_lang_param)
+        if raw_frontmatter_lang_param
+        else ""
+    )
     frontmatter_locked = request.GET.get("frontmatter_lock") == "1"
     if frontmatter_lang_param in frontmatter_langs:
         pipeline_state.frontmatter_language = frontmatter_lang_param
