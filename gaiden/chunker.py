@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple
 
+from gaiden.chapter_agent_split import split_merged_text_into_chapters
 from gaiden.structure import Unit, detect_units
 
 CHUNKS_DIR = Path("data/chunks")
@@ -189,6 +190,159 @@ def make_chunks_from_text(text: str, language: str, min_tokens: int, target_toke
         # flush remaining at end of unit
         flush()
 
+    return out
+
+
+def _split_paragraphs(text: str) -> list[str]:
+    return [item.strip() for item in re.split(r"\n\s*\n", text.strip()) if item.strip()]
+
+
+def _pack_paragraphs_with_token_cap(
+    paragraphs: list[str],
+    *,
+    language: str,
+    max_tokens: int,
+) -> list[str]:
+    chunks: list[str] = []
+    current: list[str] = []
+    for paragraph in paragraphs:
+        expanded_paragraphs = [paragraph]
+        if estimate_tokens(paragraph, language) > max_tokens:
+            sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", paragraph) if s.strip()]
+            expanded_paragraphs = []
+            sentence_buf: list[str] = []
+            for sentence in sentences:
+                sentence_candidate = " ".join(sentence_buf + [sentence]).strip()
+                if sentence_buf and estimate_tokens(sentence_candidate, language) > max_tokens:
+                    expanded_paragraphs.append(" ".join(sentence_buf).strip())
+                    sentence_buf = [sentence]
+                else:
+                    sentence_buf.append(sentence)
+            if sentence_buf:
+                expanded_paragraphs.append(" ".join(sentence_buf).strip())
+
+        for piece in expanded_paragraphs:
+            candidate = ("\n\n".join(current + [piece])).strip() + "\n"
+            if current and estimate_tokens(candidate, language) > max_tokens:
+                chunks.append(("\n\n".join(current)).strip() + "\n")
+                current = [piece]
+                continue
+            current.append(piece)
+    if current:
+        chunks.append(("\n\n".join(current)).strip() + "\n")
+    return chunks
+
+
+def _rebalance_to_max_parts(
+    paragraphs: list[str],
+    *,
+    language: str,
+    parts: int,
+) -> list[str]:
+    if parts <= 1 or len(paragraphs) <= 1:
+        return [("\n\n".join(paragraphs)).strip() + "\n"] if paragraphs else []
+    total_tokens = max(1, estimate_tokens("\n\n".join(paragraphs), language))
+    target_tokens = total_tokens / parts
+    out: list[list[str]] = []
+    bucket: list[str] = []
+    bucket_tokens = 0
+
+    for idx, paragraph in enumerate(paragraphs):
+        paragraph_tokens = estimate_tokens(paragraph, language)
+        remaining = len(paragraphs) - idx
+        remaining_buckets = parts - len(out)
+        if (
+            bucket
+            and len(out) < parts - 1
+            and bucket_tokens >= target_tokens
+            and remaining >= remaining_buckets
+        ):
+            out.append(bucket)
+            bucket = []
+            bucket_tokens = 0
+        bucket.append(paragraph)
+        bucket_tokens += paragraph_tokens
+
+    if bucket:
+        out.append(bucket)
+
+    while len(out) > parts:
+        tail = out.pop()
+        out[-1].extend(tail)
+    while len(out) < parts:
+        donor_idx = next((i for i, item in enumerate(out) if len(item) > 1), None)
+        if donor_idx is None:
+            break
+        moved = out[donor_idx].pop()
+        out.insert(donor_idx + 1, [moved])
+
+    return [("\n\n".join(item)).strip() + "\n" for item in out if item]
+
+
+def make_chapter_bound_chunks_from_text(
+    text: str,
+    language: str,
+    min_tokens: int,
+    target_tokens: int,
+    max_tokens: int,
+    *,
+    max_parts_per_chapter: int = 8,
+) -> List[Chunk]:
+    chapters = split_merged_text_into_chapters(text)
+    out: List[Chunk] = []
+    chunk_idx = 1
+
+    for chapter in chapters:
+        chapter_text = (chapter.get("text") or "").strip()
+        if not chapter_text:
+            continue
+        paragraphs = _split_paragraphs(chapter_text)
+        if not paragraphs:
+            continue
+
+        parts = _rebalance_to_max_parts(
+            paragraphs,
+            language=language,
+            parts=2,
+        )
+        for candidate_parts in (2, 4, 6, 8):
+            candidate = _rebalance_to_max_parts(
+                paragraphs,
+                language=language,
+                parts=candidate_parts,
+            )
+            if candidate and all(estimate_tokens(item, language) <= max_tokens for item in candidate):
+                parts = candidate
+                break
+            parts = candidate
+
+        # If even 8-way balancing still leaves an oversized part (usually a very
+        # dense single paragraph), force a token-capped split to keep the chapter
+        # boundary intact.
+        if any(estimate_tokens(item, language) > max_tokens for item in parts):
+            parts = _pack_paragraphs_with_token_cap(
+                paragraphs,
+                language=language,
+                max_tokens=max_tokens,
+            )
+
+        for part_text in parts:
+            normalized = part_text.strip() + "\n"
+            out.append(
+                Chunk(
+                    idx=chunk_idx,
+                    unit_type="chapter",
+                    unit_title=str(chapter.get("heading") or f"Chapter {chapter.get('index', 0)}"),
+                    start_line=0,
+                    end_line=0,
+                    text=normalized,
+                    est_tokens=estimate_tokens(normalized, language),
+                    sha256=_sha256(normalized),
+                    out_path=str(CHUNKS_DIR / "TMP"),
+                    char_count=len(normalized),
+                )
+            )
+            chunk_idx += 1
     return out
 
 def write_chunks(book_id: int, stage: str, chunks: List[Chunk]) -> List[Chunk]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+import shutil
 
 from django.conf import settings
 
@@ -11,7 +12,7 @@ PROJECT_ROOT = Path(settings.BASE_DIR).parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from gaiden.chunker import make_chunks_from_text, write_chunks
+from gaiden.chunker import make_chapter_bound_chunks_from_text, make_chunks_from_text, write_chunks
 from gaiden.structure import detect_units
 
 from . import edition_meta
@@ -61,10 +62,27 @@ def run_split_struct(edition) -> int:
     return len(units)
 
 
-def run_split_01(edition, min_tokens: int = 1500, target_tokens: int = 1800, max_tokens: int = 2200) -> int:
+def run_split_01(edition, min_tokens: int = 1500, target_tokens: int = 1800, max_tokens: int = 2000) -> int:
     normalized = _get_normalized_text(edition)
     _ensure_normalized_file(edition, normalized)
     book_id = _parse_book_id(edition_meta.book_code(edition))
-    chunks = make_chunks_from_text(normalized, edition_meta.language_code(edition), min_tokens, target_tokens, max_tokens)
+    chunks = make_chapter_bound_chunks_from_text(
+        normalized,
+        edition_meta.language_code(edition),
+        min_tokens,
+        target_tokens,
+        max_tokens,
+    )
+    if not chunks:
+        chunks = make_chunks_from_text(
+            normalized,
+            edition_meta.language_code(edition),
+            min_tokens,
+            target_tokens,
+            max_tokens,
+        )
+    out_dir = PROJECT_ROOT / "data" / "chunks" / f"book_{book_id:04d}" / "split_01"
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
     chunks = write_chunks(book_id, "split_01", chunks)
     return len(chunks)
