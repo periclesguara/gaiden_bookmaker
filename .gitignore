@@ -21,6 +21,7 @@ venv/
 # Local databases
 *.sqlite3
 *.sqlite
+*.db
 db.sqlite3
 sqlite3
 
@@ -45,6 +46,8 @@ data/exports/**
 /scripts/ops/env_local_dev.sh
 .gaiden_secrets
 data/db/gaiden.sqlite3
+data/db/
+data/tmp/
 web/db.sqlite3
 docs/audit/
 # pipeline artifacts
