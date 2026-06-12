@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "default_provider": "openai",
+  "default_api": "responses",
+  "agents": [
+    {
+      "id": "modernize_en_us_2026",
+      "stage": "modernize",
+      "language": "en_us",
+      "contract_path": "data/contracts/agents/modernize_en_us_2026.agent.json",
+      "enabled": true,
+      "default": true
+    }
+  ],
+  "resolution_rules": [
+    {
+      "when": {
+        "stage": "modernize",
+        "language": "en_us"
+      },
+      "use_agent": "modernize_en_us_2026"
+    }
+  ]
+}

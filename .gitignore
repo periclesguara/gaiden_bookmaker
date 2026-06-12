@@ -1,11 +1,28 @@
 # Python
 __pycache__/
 *.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
+venv/
 
 # OS / IDE
 .DS_Store
 .vscode/
+.idea/
+
+# Environments
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.sqlite3
+*.sqlite
+db.sqlite3
+sqlite3
 
 # Build artifacts
 dist/
@@ -20,11 +37,9 @@ build/
 *.lot
 
 # Editorial artifacts
-backups/*
-exports/*
-
-!backups/README.md
-!exports/README.md
+backups/**
+!backups/.gitkeep
+data/exports/**
 
 # local-only dev env (do not commit)
 /scripts/ops/env_local_dev.sh
@@ -37,6 +52,7 @@ data/**
 !data/**/
 !data/README.md
 !data/**/README.md
+!data/contracts/**
 web/data/builds/
 _vault/
 BOOK.MD_FINAL*
@@ -45,4 +61,3 @@ kdp_merged/
 
 # django runtime artifacts (do not commit)
 web/data/
-!web/data/README.md

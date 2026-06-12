@@ -1,0 +1,57 @@
+{
+  "id": "archaic_terms_en_us_2026",
+  "version": "1.0.0",
+  "type": "forbidden_terms_validator",
+  "language": "en_us",
+  "case_sensitive": false,
+  "match_mode": "word_boundary",
+  "fail_on_match": true,
+  "terms": [
+    "thou",
+    "thee",
+    "thy",
+    "thine",
+    "hath",
+    "doth",
+    "dost",
+    "shalt",
+    "wilt",
+    "wouldst",
+    "couldst",
+    "shouldst",
+    "wert",
+    "whilst",
+    "amongst",
+    "ere",
+    "nay",
+    "hither",
+    "thither",
+    "whither",
+    "wherefore",
+    "methinks",
+    "perchance",
+    "naught",
+    "aught",
+    "anon"
+  ],
+  "phrase_terms": [
+    "art thou",
+    "wert thou",
+    "dost thou",
+    "hast thou",
+    "wouldst thou",
+    "couldst thou",
+    "shouldst thou"
+  ],
+  "exceptions": [
+    {
+      "term": "Ye",
+      "allowed_when": "part_of_historical_title_or_fixed_proper_name"
+    },
+    {
+      "term": "Art",
+      "allowed_when": "means_visual_art_or_fine_art"
+    }
+  ],
+  "failure_message_template": "The output still contains forbidden archaic terms for EN-US 2026: {{matches}}. Rewrite the text again using modern American English while preserving meaning and structure. Return only the corrected text."
+}
