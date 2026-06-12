@@ -97,13 +97,17 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
         report = {
             "job_id": job.get("job_id"),
             "book_id": job.get("book_id"),
+            "ui_stage": job.get("ui_stage"),
             "stage": job.get("stage", "modernize"),
+            "resolved_stage": job.get("stage", "modernize"),
             "language": job.get("language", "en_us"),
+            "target_language": job.get("target_language", job.get("language", "en_us")),
             "agent_id": job.get("agent_id", "modernize_en_us_2026"),
             "status": "skipped",
             "reason": "target_exists_overwrite_false",
             "input_path": str(source_path),
             "output_path": str(target_path),
+            "audit_path": str(audit_path),
             "created_at": created_at,
         }
         _write_audit(audit_path, report)
@@ -193,10 +197,14 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
     audit = {
         "job_id": job.get("job_id"),
         "book_id": job.get("book_id"),
+        "ui_stage": job.get("ui_stage"),
         "stage": job.get("stage", "modernize"),
+        "resolved_stage": job.get("stage", "modernize"),
         "language": job.get("language", "en_us"),
+        "target_language": job.get("target_language", job.get("language", "en_us")),
         "agent_id": agent_contract.get("id") if "agent_contract" in locals() else job.get("agent_id"),
         "agent_version": agent_contract.get("version") if "agent_contract" in locals() else None,
+        "contract_version": agent_contract.get("version") if "agent_contract" in locals() else None,
         "model": used_model,
         "input_path": str(source_path),
         "output_path": str(target_path),
@@ -208,6 +216,7 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
         "cost": {"currency": "USD", "estimated": None},
         "status": status,
         "errors": errors,
+        "audit_path": str(audit_path),
         "created_at": created_at,
     }
     _write_audit(audit_path, audit)

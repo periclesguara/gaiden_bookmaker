@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
-Force-translate chunks via an OpenAI Agent (default: ALAMAGUEDERAZ).
+Force-translate chunks via an OpenAI Agent.
 
-This bypasses any gpt-5.2 translate path and sends each chunk directly to the agent.
+This bypasses the translate step entirely and sends each chunk directly to the agent.
 Outputs are written into out_dir, preserving per-chunk filenames, plus a run report.
 
 Example:
 PYTHONPATH=. python gaiden/tools/agent_translate_default.py \
   --book-id book_0003 \
   --chunk-dir data/chunks/book_0003/en \
-  --out-dir data/translated/book_0003/en_modern \
-  --agent ALAMAGUEDERAZ \
-  --suffix en_modern \
+  --out-dir data/translated/book_0003/en_us \
+  --suffix en_us \
   --limit 1
 """
 
@@ -25,6 +24,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from gaiden.lang import normalize_lang_code
 from gaiden.translate_artifacts import (
     assert_valid_canonical_artifact,
     canonical_meta_path,
@@ -39,6 +39,33 @@ from gaiden.translate_artifacts import (
 )
 
 CHUNK_GLOB = "ch_*_chunk_*.txt"
+ENGLISH_TARGETS = {
+    "en",
+    "en_modern",
+    "en_2026",
+    "en_modern_2026",
+    "en_philo",
+    "en_philosofer",
+    "en_philosopher",
+    "en_devotional",
+}
+FRENCH_TARGETS = {
+    "fr",
+    "fr_fr",
+    "french",
+    "francais",
+    "français",
+}
+PORTUGUESE_TARGETS = {
+    "pt",
+    "ptbr",
+    "pt_br",
+    "pt-br",
+    "portuguese",
+    "portugues",
+    "português",
+    "brazilian_portuguese",
+}
 
 
 def _now_iso() -> str:
@@ -72,6 +99,12 @@ def _merge_outputs(
 ) -> tuple[Path, int, int]:
     files = sorted(out_dir.glob(f"ch_*_chunk_*.{suffix}.txt"))
     if not files:
+        files = sorted(
+            p
+            for p in out_dir.glob(f"*.{suffix}.txt")
+            if not (p.name.startswith("book_") or p.name.startswith("merge") or p.name.startswith("merged_"))
+        )
+    if not files:
         raise RuntimeError(f"NO_TRANSLATED_CHUNKS: nothing matched {out_dir}/ch_*_chunk_*.{suffix}.txt")
     parts: List[str] = []
     for fp in files:
@@ -97,7 +130,42 @@ def _merge_outputs(
     return out_path, len(merged.encode("utf-8")), len(files)
 
 
-def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_output_tokens: int = 8000) -> Tuple[str, Dict[str, Any]]:
+def _agent_translate_system_prompt(*, agent_name: str, suffix: str, mode: str, retry: bool = False) -> str:
+    target = normalize_lang_code(suffix, default="en")
+    if target.startswith("en"):
+        target_label = "modern English"
+    elif target in PORTUGUESE_TARGETS or target.startswith("pt"):
+        target_label = "modern Brazilian Portuguese"
+    elif target in FRENCH_TARGETS or target.startswith("fr"):
+        target_label = "modern French"
+    else:
+        target_label = target
+    retry_line = (
+        "The previous response was rejected because it was too short. Return the full chunk this time. "
+        if retry
+        else ""
+    )
+    return (
+        f"You are agent {agent_name} working in the Gaiden {mode} stage.\n"
+        f"{retry_line}"
+        f"Transform the source chunk into {target_label} and return the complete transformed chunk only.\n"
+        "Preserve every paragraph, heading, list item, endnote marker, name, number, quote, and factual detail.\n"
+        "Do not summarize, abridge, compress, omit, explain, comment, add metadata, or wrap the output in Markdown fences.\n"
+        "Keep the original order exactly. If a passage is already in the target language, lightly normalize it only where needed.\n"
+        "The output must remain close to the input length unless the source itself makes a small variation unavoidable."
+    )
+
+
+def _call_agent(
+    agent_name: str,
+    text: str,
+    *,
+    suffix: str,
+    mode: str,
+    temperature: float = 0.4,
+    max_output_tokens: int = 8000,
+    retry: bool = False,
+) -> Tuple[str, Dict[str, Any]]:
     """
     Calls your repo's agent helper if available.
     We assume your project already has an OpenAI client wrapper like gaiden/openai_client.py.
@@ -106,20 +174,25 @@ def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_out
         "agent_name": agent_name,
         "temperature": temperature,
         "max_output_tokens": max_output_tokens,
+        "retry": retry,
     }
 
     # Preferred: your existing helper
     try:
         from gaiden.openai_client import call_agent_text  # type: ignore
 
-        # Your repo previously used a signature like:
-        # call_agent_text(agent_name=..., text=..., model=..., temperature=..., max_output_tokens=..., system_prompt=...)
-        # Agents already contain instructions, so we only pass agent_name + text (plus temp/tokens).
+        system_prompt = _agent_translate_system_prompt(
+            agent_name=agent_name,
+            suffix=suffix,
+            mode=mode,
+            retry=retry,
+        )
         out = call_agent_text(
             agent_name=agent_name,
             text=text,
             temperature=temperature,
             max_output_tokens=max_output_tokens,
+            system_prompt=system_prompt,
         )
         meta["call_impl"] = "gaiden.openai_client.call_agent_text"
         return out, meta
@@ -134,7 +207,40 @@ def _call_agent(agent_name: str, text: str, *, temperature: float = 0.4, max_out
 
 
 def _chunk_paths(chunk_dir: Path) -> List[Path]:
-    return sorted(chunk_dir.glob(CHUNK_GLOB))
+    chunks = sorted(chunk_dir.glob(CHUNK_GLOB))
+    if chunks:
+        return chunks
+    return sorted(p for p in chunk_dir.glob("*.txt") if p.is_file())
+
+
+def _min_output_ratio_for_target(suffix: str) -> float:
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        return 0.80
+    return 0.85
+
+
+def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
+    candidate = (requested_agent or "").strip()
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        if candidate:
+            return candidate
+        return "modernize_en_us_2026"
+    if target in FRENCH_TARGETS or raw_target.startswith("fr"):
+        if candidate:
+            return candidate
+        return "translate_fr_2026"
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        if candidate:
+            return candidate
+        return "translate_pt_br_2026"
+
+    if candidate:
+        return candidate
+    return f"translate_{target}_2026"
 
 
 def run_agent_translate(
@@ -153,7 +259,20 @@ def run_agent_translate(
     out_dir = Path(out_dir)
     book_id = normalize_book_code(book_id)
     mode = normalize_mode(mode, default="default")
-    agent = agent or os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ")
+    agent = resolve_agent_for_target(suffix=suffix, requested_agent=agent)
+
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        from gaiden.application.agents.translate_router import run_translate_en_us_modernize
+
+        return run_translate_en_us_modernize(
+            book_id=book_id,
+            chunk_dir=chunk_dir,
+            out_dir=out_dir,
+            overwrite=False,
+            limit=limit,
+        )
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -197,6 +316,8 @@ def run_agent_translate(
     if limit and limit > 0:
         chunks = chunks[:limit]
 
+    min_output_ratio = _min_output_ratio_for_target(suffix)
+
     run_report: Dict[str, Any] = {
         "schema": "gaiden_translate_default_v2",
         "ts_start": _now_iso(),
@@ -239,16 +360,46 @@ def run_agent_translate(
             "ts": _now_iso(),
         }
 
-        try:
-            out_text, meta = _call_agent(
-                agent,
-                in_text,
-                temperature=temperature,
-                max_output_tokens=max_output_tokens,
+        if out_txt.exists() and out_txt.stat().st_size > 0:
+            item.update(
+                {
+                    "status": "skipped_existing",
+                    "out_len": out_txt.stat().st_size,
+                    "resume": True,
+                }
             )
-            out_len = _safe_len(out_text)
-            ratio = (out_len / in_len) if in_len else None
-            if ratio is not None and ratio < 0.85:
+            run_report["items"].append(item)
+            continue
+
+        try:
+            attempts: list[dict[str, Any]] = []
+            out_text = ""
+            meta: Dict[str, Any] = {}
+            out_len = 0
+            ratio = None
+            for attempt in range(1, 3):
+                out_text, meta = _call_agent(
+                    agent,
+                    in_text,
+                    suffix=suffix,
+                    mode=mode,
+                    temperature=temperature,
+                    max_output_tokens=max_output_tokens,
+                    retry=attempt > 1,
+                )
+                out_len = _safe_len(out_text)
+                ratio = (out_len / in_len) if in_len else None
+                attempts.append(
+                    {
+                        "attempt": attempt,
+                        "out_len": out_len,
+                        "ratio": ratio,
+                        "agent_meta": meta,
+                    }
+                )
+                if ratio is None or ratio >= min_output_ratio:
+                    break
+            if ratio is not None and ratio < min_output_ratio:
                 raise RuntimeError(f"TRUNCATION_OR_SUMMARY: ratio={ratio:.3f}")
             item.update(
                 {
@@ -256,6 +407,7 @@ def run_agent_translate(
                     "out_len": out_len,
                     "ratio": ratio,
                     "agent_meta": meta,
+                    "attempts": attempts,
                 }
             )
             _write_text(out_txt, out_text)
@@ -306,7 +458,7 @@ def main() -> int:
     ap.add_argument("--book-id", required=True, help="e.g. book_0003")
     ap.add_argument("--chunk-dir", required=True, help="e.g. data/chunks/book_0003/en")
     ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
-    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ"))
+    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", ""))
     ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
     ap.add_argument("--mode", default="default", choices=["default"], help="translate mode")
     ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")
