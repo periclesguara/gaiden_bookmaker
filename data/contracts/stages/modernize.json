@@ -1,0 +1,43 @@
+{
+  "id": "modernize",
+  "version": "1.0.0",
+  "stage_type": "llm_editorial_stage",
+  "description": "Modernizes source text into the target language/style contract while preserving meaning, structure, and narrative integrity.",
+  "input_requirements": {
+    "requires_chunk": true,
+    "requires_language_contract": true,
+    "requires_agent_contract": true,
+    "requires_source_text": true
+  },
+  "output_requirements": {
+    "plain_text_only": true,
+    "preserve_headings": true,
+    "preserve_paragraphs": true,
+    "preserve_dialogue": true,
+    "no_explanations": true,
+    "no_notes": true,
+    "no_json": true,
+    "no_markdown_fences": true
+  },
+  "processing_order": [
+    "load_agent_contract",
+    "load_language_contract",
+    "load_stage_contract",
+    "load_validator_contracts",
+    "scan_input",
+    "build_prompt",
+    "call_openai_responses_api",
+    "validate_output",
+    "retry_if_needed",
+    "write_output",
+    "write_audit_log"
+  ],
+  "failure_policy": {
+    "empty_output": "fail",
+    "meta_commentary_detected": "retry",
+    "archaic_terms_remaining": "retry",
+    "heading_loss": "retry",
+    "length_ratio_suspicious": "manual_review",
+    "max_retries_exceeded": "fail_and_save_report"
+  }
+}

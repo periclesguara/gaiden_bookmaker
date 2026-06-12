@@ -185,6 +185,9 @@ data/builds
 
 # --- workspace/artefatos ---
 /data/**
+!/data/
+!/data/contracts/
+!/data/contracts/**
 /editorial/raw_uploads/
 /backups/**
 !/backups/README.md

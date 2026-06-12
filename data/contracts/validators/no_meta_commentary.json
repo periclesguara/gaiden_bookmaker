@@ -1,0 +1,28 @@
+{
+  "id": "no_meta_commentary",
+  "version": "1.0.0",
+  "type": "forbidden_prefix_and_marker_validator",
+  "case_sensitive": false,
+  "fail_on_match": true,
+  "forbidden_prefixes": [
+    "here is",
+    "certainly",
+    "sure",
+    "below is",
+    "i have",
+    "this is",
+    "the revised text",
+    "the modernized text",
+    "as requested"
+  ],
+  "forbidden_markers": [
+    "notes:",
+    "explanation:",
+    "translator's note",
+    "editor's note",
+    "```",
+    "source_text_start",
+    "source_text_end"
+  ],
+  "failure_message_template": "The output contains meta commentary, notes, wrappers, or markdown fences: {{matches}}. Remove them and return only the processed text."
+}
