@@ -77,6 +77,8 @@ __pycache__/
 # build artifacts
 dist/
 build/
+*.egg-info/
+*.egg
 *.log
 docs/gaiden_pipeline_log.*
 
