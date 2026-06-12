@@ -15,6 +15,17 @@
   "resolution_rules": [
     {
       "when": {
+        "ui_stage": "translate",
+        "target_language": "en_us"
+      },
+      "resolve_to": {
+        "stage": "modernize",
+        "language": "en_us",
+        "agent_id": "modernize_en_us_2026"
+      }
+    },
+    {
+      "when": {
         "stage": "modernize",
         "language": "en_us"
       },

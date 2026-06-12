@@ -9,9 +9,8 @@ Example:
 PYTHONPATH=. python gaiden/tools/agent_translate_default.py \
   --book-id book_0003 \
   --chunk-dir data/chunks/book_0003/en \
-  --out-dir data/translated/book_0003/en_modern \
-  --agent HeadingCleaner \
-  --suffix en_modern \
+  --out-dir data/translated/book_0003/en_us \
+  --suffix en_us \
   --limit 1
 """
 
@@ -229,19 +228,19 @@ def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None)
     if target in ENGLISH_TARGETS or raw_target.startswith("en"):
         if candidate:
             return candidate
-        return "HeadingCleaner"
+        return "modernize_en_us_2026"
     if target in FRENCH_TARGETS or raw_target.startswith("fr"):
         if candidate:
             return candidate
-        return "LE_GRAND_COULHON"
+        return "translate_fr_2026"
     if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
         if candidate:
             return candidate
-        return "CACIQUE"
+        return "translate_pt_br_2026"
 
     if candidate:
         return candidate
-    return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()
+    return f"translate_{target}_2026"
 
 
 def run_agent_translate(
@@ -261,6 +260,19 @@ def run_agent_translate(
     book_id = normalize_book_code(book_id)
     mode = normalize_mode(mode, default="default")
     agent = resolve_agent_for_target(suffix=suffix, requested_agent=agent)
+
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        from gaiden.application.agents.translate_router import run_translate_en_us_modernize
+
+        return run_translate_en_us_modernize(
+            book_id=book_id,
+            chunk_dir=chunk_dir,
+            out_dir=out_dir,
+            overwrite=False,
+            limit=limit,
+        )
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -446,7 +458,7 @@ def main() -> int:
     ap.add_argument("--book-id", required=True, help="e.g. book_0003")
     ap.add_argument("--chunk-dir", required=True, help="e.g. data/chunks/book_0003/en")
     ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
-    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ"))
+    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", ""))
     ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
     ap.add_argument("--mode", default="default", choices=["default"], help="translate mode")
     ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")

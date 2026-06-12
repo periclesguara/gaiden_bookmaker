@@ -67,3 +67,17 @@ def resolve_agent(
             return load_json_contract(contract_path)
 
     raise LookupError(f"No agent resolved for stage={stage} language={language}")
+
+
+def contract_path_for_agent(
+    agent_id: str,
+    registry_path: str | Path = "data/contracts/agent_registry.json",
+) -> str:
+    registry = load_json_contract(registry_path)
+    for agent in _enabled_agents(registry):
+        if agent.get("id") == agent_id:
+            contract_path = agent.get("contract_path")
+            if not contract_path:
+                raise ValueError(f"Agent {agent_id} has no contract_path.")
+            return str(contract_path)
+    raise LookupError(f"Enabled agent not found: {agent_id}")

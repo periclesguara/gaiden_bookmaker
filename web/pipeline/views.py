@@ -193,49 +193,56 @@ POLISH_AGENT_OPTIONS_BY_LANGUAGE = {
     "fr": ("Francês_Polidor",),
 }
 TRANSLATE_VARIANT_OPTIONS = (
-    {"value": "en", "label": "EN (modern)", "base_language": "en"},
+    {"value": "en_us", "label": "EN-US (Modernize 2026)", "base_language": "en"},
     {"value": "ptbr", "label": "PT-BR (portugues)", "base_language": "ptbr"},
     {"value": "fr", "label": "FR (francais)", "base_language": "fr"},
 )
 TRANSLATE_AGENT_BY_VARIANT = {
-    "en": "HeadingCleaner",
-    "ptbr": "CACIQUE",
-    "fr": "LE_GRAND_COULHON",
+    "en_us": "modernize_en_us_2026",
+    "ptbr": "translate_pt_br_2026",
+    "fr": "translate_fr_2026",
 }
 TRANSLATE_AGENT_OPTIONS_BY_VARIANT = {
-    "en": (
-        "HeadingCleaner",
-        "ALAMAGUEDERAZ",
-    ),
+    "en_us": ("modernize_en_us_2026",),
     "ptbr": (
-        "CACIQUE",
+        "translate_pt_br_2026",
     ),
     "fr": (
-        "LE_GRAND_COULHON",
-        "LE_GRAN_COLHOUN",
+        "translate_fr_2026",
     ),
 }
 _TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_BASES = {item["value"]: item["base_language"] for item in TRANSLATE_VARIANT_OPTIONS}
 _TRANSLATE_VARIANT_ALIASES = {
-    "": "en",
-    "en": "en",
-    "english": "en",
-    "en_philo": "en",
-    "en-philo": "en",
-    "enphilo": "en",
-    "english-philosofer": "en",
-    "english_philosofer": "en",
-    "englishphilosofer": "en",
-    "english-philosopher": "en",
-    "english_philosopher": "en",
-    "englishphilosopher": "en",
-    "en_devotional": "en",
-    "en-devotional": "en",
-    "endevotional": "en",
-    "english-devotional": "en",
-    "english_devotional": "en",
-    "englishdevotional": "en",
+    "": "en_us",
+    "en": "en_us",
+    "en_us": "en_us",
+    "en-us": "en_us",
+    "english": "en_us",
+    "english us": "en_us",
+    "english_us": "en_us",
+    "english-us": "en_us",
+    "english united states": "en_us",
+    "english_united_states": "en_us",
+    "english-united-states": "en_us",
+    "us english": "en_us",
+    "us_english": "en_us",
+    "us-english": "en_us",
+    "en_philo": "en_us",
+    "en-philo": "en_us",
+    "enphilo": "en_us",
+    "english-philosofer": "en_us",
+    "english_philosofer": "en_us",
+    "englishphilosofer": "en_us",
+    "english-philosopher": "en_us",
+    "english_philosopher": "en_us",
+    "englishphilosopher": "en_us",
+    "en_devotional": "en_us",
+    "en-devotional": "en_us",
+    "endevotional": "en_us",
+    "english-devotional": "en_us",
+    "english_devotional": "en_us",
+    "englishdevotional": "en_us",
     "pt": "ptbr",
     "ptbr": "ptbr",
     "pt-br": "ptbr",
@@ -295,6 +302,8 @@ def _translate_agent_options(value: str | None) -> tuple[str, ...]:
 
 def _translate_agent_name(value: str | None, requested_agent: str | None = None) -> str:
     variant = _normalize_translate_variant(value)
+    if variant == "en_us":
+        return "modernize_en_us_2026"
     allowed_agents = TRANSLATE_AGENT_OPTIONS_BY_VARIANT.get(variant)
     requested = (requested_agent or "").strip()
     if requested and allowed_agents and requested in allowed_agents:
@@ -304,11 +313,14 @@ def _translate_agent_name(value: str | None, requested_agent: str | None = None)
     if requested and not allowed_agents:
         return requested
     if _translate_base_language(variant) == "en":
-        return "HeadingCleaner"
-    return (os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", "ALAMAGUEDERAZ") or "ALAMAGUEDERAZ").strip()
+        return "modernize_en_us_2026"
+    return f"translate_{_translate_base_language(variant)}_2026"
 
 
 def _translate_route_label(value: str | None) -> str:
+    variant = _normalize_translate_variant(value)
+    if variant == "en_us":
+        return "Translate -> Modernize EN-US 2026"
     return "Agent"
 
 
@@ -2878,8 +2890,8 @@ def _agent_translate_out_dir(book_code: str, target_language: str) -> Path:
     if book_id is None:
         raise ValueError("book_code must be like book_0001 to resolve translate out_dir.")
     variant = _normalize_translate_variant(target_language)
-    if variant == "en":
-        variant_dir = "en_modern_2026"
+    if variant == "en_us":
+        variant_dir = "en_us"
     elif variant == "en_philo":
         variant_dir = "en_philosofer_2026"
     elif variant == "en_devotional":
@@ -4672,28 +4684,47 @@ def _run_translate_step_local(
     stage_policy.POLICY.assert_stage_allowed(target_edition, "translate")
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
     source_dir_for_validation: Path | None = None
-    from gaiden.tools.agent_translate_default import run_agent_translate
-
     source_dir_for_validation, _input_glob, source_label = _translate_source_chunks(
         _edition_codes(target_edition)[0]
     )
     out_dir_path = _agent_translate_out_dir(_edition_codes(target_edition)[0], target_language)
     book_token = f"book_{book_id_for_run:04d}" if book_id_for_run is not None else _edition_codes(target_edition)[0]
     selected_agent = _translate_agent_name(target_language, translate_agent_name)
-    agent_report = run_agent_translate(
-        book_id=book_token,
-        chunk_dir=source_dir_for_validation,
-        out_dir=out_dir_path,
-        suffix=target_language,
-        mode="translate",
-        agent=selected_agent,
-        max_output_tokens=_recommended_translate_max_output_tokens(
-            source_dir_for_validation,
-            "*.txt",
-            target_base,
-            current_limit=8000,
-        ),
-    )
+    resolution_info: list[str] = []
+    if target_language == "en_us":
+        from gaiden.application.agents.translate_router import run_translate_en_us_modernize
+
+        agent_report = run_translate_en_us_modernize(
+            book_id=book_token,
+            chunk_dir=source_dir_for_validation,
+            out_dir=out_dir_path,
+            overwrite=False,
+        )
+        resolution_info = [
+            "[Gaiden Agents] UI stage: translate",
+            "[Gaiden Agents] Target language: en_us",
+            f"[Gaiden Agents] Resolved internal stage: {agent_report['resolved_stage']}",
+            f"[Gaiden Agents] Resolved agent: {agent_report['agent_id']}",
+            f"[Gaiden Agents] Model: {agent_report['model']}",
+            f"[Gaiden Agents] Contract: {agent_report['contract_path']}",
+        ]
+    else:
+        from gaiden.tools.agent_translate_default import run_agent_translate
+
+        agent_report = run_agent_translate(
+            book_id=book_token,
+            chunk_dir=source_dir_for_validation,
+            out_dir=out_dir_path,
+            suffix=target_language,
+            mode="translate",
+            agent=selected_agent,
+            max_output_tokens=_recommended_translate_max_output_tokens(
+                source_dir_for_validation,
+                "*.txt",
+                target_base,
+                current_limit=8000,
+            ),
+        )
     merged_path = Path(str(agent_report.get("merged_txt") or ""))
     if not merged_path.exists():
         merged_path = out_dir_path / "merge_refine_clean.txt"
@@ -4708,13 +4739,14 @@ def _run_translate_step_local(
     pipeline_state.translation_language = target_language
     pipeline_state.md_language = target_base
     pipeline_state.translated_at = timezone.now()
-    pipeline_state.last_log = ""
+    pipeline_state.last_log = "\n".join(resolution_info)
     pipeline_state.save(update_fields=["current_stage", "translation_language", "md_language", "translated_at", "last_log"])
     return {
         "success": f"Translate OK ({_translate_variant_label(target_language)})",
         "info": [
             f"Translate source: {source_label}",
             f"Translate agent: {selected_agent}",
+            *resolution_info,
         ],
         "target_language": target_language,
     }
