@@ -49,7 +49,10 @@ data/db/gaiden.sqlite3
 data/db/
 data/tmp/
 web/db.sqlite3
-docs/audit/
+docs/audit/*
+!docs/audit/agent_runs/
+docs/audit/agent_runs/*
+!docs/audit/agent_runs/.gitkeep
 # pipeline artifacts
 data/**
 !data/**/
