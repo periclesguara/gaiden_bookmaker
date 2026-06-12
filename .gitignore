@@ -28,6 +28,8 @@ sqlite3
 # Build artifacts
 dist/
 build/
+*.egg-info/
+*.egg
 *.log
 
 # LaTeX
