@@ -145,6 +145,7 @@ docs/*pipeline_log*
 
 # --- local / derived artifacts ---
 /data/db/
+/data/tmp/
 /data/normalized/
 
 # Local operator scripts (untracked)
@@ -162,6 +163,7 @@ vault/
 
 # --- Keep typical runtime outputs out of git (if not already) ---
 web/db.sqlite3
+web/data/
 gaiden_bookmaker.egg-info/
 .pytest_cache/
 
@@ -171,6 +173,10 @@ secrets_gaiden/
 
 # GAIDEN_LIBRARY-backed dirs (local symlinks, never commit)
 docs/audit/runs
+docs/audit/*
+!docs/audit/agent_runs/
+docs/audit/agent_runs/*
+!docs/audit/agent_runs/.gitkeep
 gaiden/frontmatter_store
 
 # Local backups created during library migration
