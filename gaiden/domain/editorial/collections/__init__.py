@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.db import models
+
 COLLECTION_STATUS_CREATED = "COLLECTION_CREATED"
 COLLECTION_STATUS_ITEMS_REGISTERED = "COLLECTION_ITEMS_REGISTERED"
 COLLECTION_STATUS_UPLOADS_RECEIVED = "COLLECTION_UPLOADS_RECEIVED"
@@ -36,15 +38,24 @@ ITEM_STATUS_CHOICES = [
     (ITEM_STATUS_COMPLETED, "Completed"),
 ]
 
-COLLECTION_KIND_CHOICES = [
-    ("novel_trilogy", "Novel trilogy"),
-    ("complete_novels", "Complete novels"),
-    ("collected_tales", "Collected tales"),
-    ("selected_stories", "Selected stories"),
-    ("omnibus", "Omnibus"),
-    ("anthology", "Anthology"),
-    ("mixed_collection", "Mixed collection"),
-]
+class CollectionKind(models.TextChoices):
+    NOVEL_TRILOGY = "novel_trilogy", "Novel trilogy"
+    COMPLETE_NOVELS = "complete_novels", "Complete novels"
+    COLLECTED_TALES = "collected_tales", "Collected tales"
+    SELECTED_STORIES = "selected_stories", "Selected stories"
+    THEMATIC_COLLECTION = "thematic_collection", "Thematic Collection"
+    COLLECTED_DIALOGUES = "collected_dialogues", "Collected Dialogues"
+    SELECTED_WORKS = "selected_works", "Selected Works"
+    COMPLETE_WORKS = "complete_works", "Complete Works"
+    COLLECTED_WORKS = "collected_works", "Collected Works"
+    ANTHOLOGY = "anthology", "Anthology"
+    OMNIBUS = "omnibus", "Omnibus"
+    MIXED_COLLECTION = "mixed_collection", "Mixed Collection"
+    CYCLE_COLLECTION = "cycle_collection", "Cycle Collection"
+    COMPANION_VOLUME = "companion_volume", "Companion Volume"
+
+
+COLLECTION_KIND_CHOICES = CollectionKind.choices
 
 
 def validate_item_count(value: int) -> None:

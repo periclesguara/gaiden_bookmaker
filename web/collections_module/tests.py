@@ -5,6 +5,7 @@ import json
 from django.test import TestCase
 from django.urls import reverse
 
+from gaiden.domain.editorial.collections import CollectionKind
 from gaiden.infrastructure import collections_storage
 
 from .models import Collection, CollectionItem
@@ -36,6 +37,59 @@ class CollectionModuleTests(TestCase):
         self.assertEqual(response.status_code, 302)
         collection = Collection.objects.get()
         self.assertEqual(collection.title, "Sherlock Collection")
+
+    def test_new_collection_kinds_are_valid_model_choices(self):
+        expected = {
+            "thematic_collection",
+            "collected_dialogues",
+            "selected_works",
+            "complete_works",
+            "collected_works",
+            "anthology",
+            "omnibus",
+            "mixed_collection",
+            "cycle_collection",
+            "companion_volume",
+        }
+        self.assertTrue(expected.issubset({value for value, _label in CollectionKind.choices}))
+
+        for collection_kind in expected:
+            with self.subTest(collection_kind=collection_kind):
+                collection = Collection(
+                    code=self._new_collection_code(collection_kind),
+                    title="Kind Test",
+                    subtitle="",
+                    collection_kind=collection_kind,
+                    author_display_name="Author",
+                    language="en",
+                    status="COLLECTION_CREATED",
+                    item_count=2,
+                )
+                collection.full_clean()
+
+    def test_create_socrates_as_collected_dialogues(self):
+        response = self.client.post(
+            reverse("collection_new"),
+            {
+                "title": "Socrates",
+                "subtitle": "The Trial, Death, and Immortality of the Soul",
+                "collection_kind": "collected_dialogues",
+                "author_display_name": "Plato",
+                "language": "en",
+                "item_count": 4,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        collection = Collection.objects.get(title="Socrates")
+        self.assertEqual(collection.collection_kind, "collected_dialogues")
+        self.assertEqual(collection.get_collection_kind_display(), "Collected Dialogues")
+
+    def test_collection_create_page_shows_new_collection_kind_labels(self):
+        response = self.client.get(reverse("collection_new"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Thematic Collection")
+        self.assertContains(response, "Collected Dialogues")
+        self.assertContains(response, "Companion Volume")
 
     def test_collection_context_exposes_french_translate_agent(self):
         from .services.workflow import build_collection_context
