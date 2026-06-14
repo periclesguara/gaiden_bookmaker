@@ -9,8 +9,20 @@ def test_registry_resolves_modernize_en_us_agent():
     assert contract["id"] == "modernize_en_us_2026"
 
 
+def test_registry_resolves_refine_en_us_agent():
+    contract = resolve_agent("refine", "en_us")
+
+    assert contract["id"] == "refine_en_us_2026"
+
+
 def test_agent_contract_loads_gpt_5_4_default_model():
     contract = load_agent_contract("modernize_en_us_2026")
+
+    assert contract["engine"]["default_model"] == "gpt-5.4"
+
+
+def test_refine_agent_contract_loads_gpt_5_4_default_model():
+    contract = load_agent_contract("refine_en_us_2026")
 
     assert contract["engine"]["default_model"] == "gpt-5.4"
 

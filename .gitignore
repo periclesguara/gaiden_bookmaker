@@ -50,6 +50,8 @@ data/exports/**
 data/db/gaiden.sqlite3
 data/db/
 data/tmp/
+data/refined/
+data/polished/
 web/db.sqlite3
 docs/audit/*
 !docs/audit/agent_runs/
