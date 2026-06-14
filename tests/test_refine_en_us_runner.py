@@ -71,6 +71,7 @@ def test_refine_runner_processes_chunk_and_writes_output_and_audit(tmp_path, mon
     )
 
     assert report["status"] == "passed"
+    assert report["stage"] == "refine"
     assert report["agent_id"] == "refine_en_us_2026"
     assert target.read_text(encoding="utf-8") == "The room fell quiet as he looked toward the door.\n"
     assert audit.exists()
