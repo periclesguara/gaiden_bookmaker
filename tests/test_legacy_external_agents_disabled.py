@@ -7,7 +7,9 @@ def test_new_translate_en_us_runtime_does_not_reference_external_agents_or_assis
     runtime_files = [
         Path("gaiden/application/agents/stage_resolver.py"),
         Path("gaiden/application/agents/translate_router.py"),
+        Path("gaiden/application/agents/refine_router.py"),
         Path("gaiden/application/agents/stages/modernize_en_us_2026.py"),
+        Path("gaiden/application/agents/stages/refine_en_us_2026.py"),
         Path("gaiden/infrastructure/openai/responses_client.py"),
         Path("gaiden/tools/agent_translate_default.py"),
     ]

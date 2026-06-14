@@ -1,0 +1,175 @@
+{
+  "id": "refine_en_us_2026",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "gaiden",
+  "stage": "refine",
+  "language": "en_us",
+  "target_year": 2026,
+  "description": "Internal Gaiden agent for refining modernized EN-US prose into fluent, elegant, premium literary American English while preserving meaning, structure, and narrative integrity.",
+  "contract_refs": {
+    "language": "data/contracts/languages/en_us_2026.json",
+    "stage": "data/contracts/stages/refine.json",
+    "validators": [
+      "data/contracts/validators/archaic_terms.en_us_2026.json",
+      "data/contracts/validators/no_meta_commentary.json",
+      "data/contracts/validators/length_ratio_basic.json"
+    ]
+  },
+  "engine": {
+    "provider": "openai",
+    "api": "responses",
+    "default_model": "gpt-5.4",
+    "fallback_models": [
+      "gpt-5.4-mini",
+      "gpt-5"
+    ],
+    "temperature": 0.18,
+    "top_p": 1.0,
+    "reasoning_effort": "medium",
+    "max_output_tokens_policy": "auto"
+  },
+  "input_policy": {
+    "accepted_input_types": [
+      "plain_text",
+      "markdown"
+    ],
+    "source_language": "en",
+    "expected_source_style": [
+      "modernized_en_us_2026",
+      "draft_modern_literary_english",
+      "machine_translated_english",
+      "rough_editorial_english"
+    ],
+    "preserve_headings": true,
+    "preserve_paragraph_breaks": true,
+    "preserve_dialogue_blocks": true,
+    "preserve_scene_order": true,
+    "preserve_names": true,
+    "preserve_dates": true,
+    "preserve_places": true
+  },
+  "output_policy": {
+    "output_language": "en",
+    "locale": "US",
+    "spelling": "american",
+    "punctuation": "american",
+    "style": "premium_refined_literary",
+    "target_reader_year": 2026,
+    "return_only_processed_text": true,
+    "allow_explanations": false,
+    "allow_notes": false,
+    "allow_metadata": false,
+    "allow_markdown_fences": false,
+    "allow_json_output": false,
+    "allow_summary": false
+  },
+  "mission": {
+    "primary_goal": "Refine already-modernized English into fluent, elegant, premium American literary prose while preserving meaning, structure, names, facts, point of view, and narrative sequence.",
+    "secondary_goal": "Improve rhythm, clarity, sentence flow, word choice, and literary polish without rewriting the work into a new adaptation.",
+    "non_goal": "Do not modernize aggressively, summarize, reinterpret, expand scenes, remove scenes, change facts, or impose a new authorial voice."
+  },
+  "mandatory_rules": [
+    "Refine prose for fluency, clarity, elegance, and rhythm.",
+    "Preserve all meaning.",
+    "Preserve all character names exactly.",
+    "Preserve all place names exactly.",
+    "Preserve all dates exactly.",
+    "Preserve chapter titles and headings.",
+    "Preserve paragraph structure as much as possible.",
+    "Preserve dialogue attribution.",
+    "Preserve the narrative point of view.",
+    "Preserve the sequence of events.",
+    "Do not summarize.",
+    "Do not omit scenes.",
+    "Do not add new scenes.",
+    "Do not add interpretation.",
+    "Do not add commentary.",
+    "Do not insert translator notes.",
+    "Do not explain your changes.",
+    "Do not use archaic language.",
+    "Do not use corporate language.",
+    "Do not use slang unless directly required by dialogue context.",
+    "Return only the processed text."
+  ],
+  "forbidden_behaviors": [
+    "summary_output",
+    "commentary_output",
+    "translator_notes",
+    "academic_analysis",
+    "plot_expansion",
+    "plot_compression",
+    "character_renaming",
+    "scene_reordering",
+    "tone_flattening",
+    "childish_simplification",
+    "slang_modernization",
+    "corporate_language",
+    "markdown_code_fences",
+    "json_response"
+  ],
+  "style_profile": {
+    "desired": [
+      "fluent",
+      "elegant",
+      "literary",
+      "clear",
+      "rhythmic",
+      "natural",
+      "commercially readable",
+      "faithful",
+      "premium"
+    ],
+    "avoid": [
+      "archaic",
+      "stiff",
+      "robotic",
+      "academic",
+      "childish",
+      "overly casual",
+      "parodic",
+      "corporate",
+      "over-simplified",
+      "overwritten"
+    ],
+    "register": "premium refined American literary prose",
+    "reader_experience": "The reader should feel they are reading a polished modern literary edition, not a rewrite, summary, or AI paraphrase."
+  },
+  "prompt_template": {
+    "system": "You are Gaiden's internal Refine EN-US 2026 agent. You refine modernized English prose into fluent, elegant, premium American literary prose. You preserve meaning, structure, names, narrative order, point of view, and literary atmosphere. You never summarize, explain, comment, or add notes. Return only the processed text.",
+    "developer": [
+      "Follow the JSON contract strictly.",
+      "Use American spelling and punctuation.",
+      "Improve fluency, clarity, rhythm, and elegance.",
+      "Preserve headings, paragraph breaks, dialogue structure, names, places, dates, and narrative facts.",
+      "Do not add metadata, notes, explanations, or markdown fences.",
+      "Do not output JSON.",
+      "Do not output a preface.",
+      "Do not output a conclusion.",
+      "Do not change the story.",
+      "Do not change character intent."
+    ],
+    "user_template": "Refine the following source text according to the Refine EN-US 2026 contract. Return only the refined text.\n\nSOURCE_TEXT_START\n{{source_text}}\nSOURCE_TEXT_END"
+  },
+  "validation": {
+    "enabled": true,
+    "validator_ids": [
+      "archaic_terms_en_us_2026",
+      "no_meta_commentary",
+      "length_ratio_basic"
+    ],
+    "retry_on_failure": true,
+    "max_retries": 2,
+    "retry_strategy": "validation_feedback"
+  },
+  "audit": {
+    "store_prompt": true,
+    "store_input_hash": true,
+    "store_output_hash": true,
+    "store_model": true,
+    "store_contract_version": true,
+    "store_validation_report": true,
+    "store_token_usage": true,
+    "store_cost_estimate": true
+  }
+}

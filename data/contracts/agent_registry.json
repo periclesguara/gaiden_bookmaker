@@ -10,6 +10,14 @@
       "contract_path": "data/contracts/agents/modernize_en_us_2026.agent.json",
       "enabled": true,
       "default": true
+    },
+    {
+      "id": "refine_en_us_2026",
+      "stage": "refine",
+      "language": "en_us",
+      "contract_path": "data/contracts/agents/refine_en_us_2026.agent.json",
+      "enabled": true,
+      "default": true
     }
   ],
   "resolution_rules": [
@@ -26,10 +34,28 @@
     },
     {
       "when": {
+        "ui_stage": "refine",
+        "target_language": "en_us"
+      },
+      "resolve_to": {
+        "stage": "refine",
+        "language": "en_us",
+        "agent_id": "refine_en_us_2026"
+      }
+    },
+    {
+      "when": {
         "stage": "modernize",
         "language": "en_us"
       },
       "use_agent": "modernize_en_us_2026"
+    },
+    {
+      "when": {
+        "stage": "refine",
+        "language": "en_us"
+      },
+      "use_agent": "refine_en_us_2026"
     }
   ]
 }

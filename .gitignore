@@ -104,6 +104,11 @@ data/builds/
 data/canonical/
 data/chunks/
 data/frontmatter/
+data/db/gaiden.sqlite3
+data/db/
+data/tmp/
+data/refined/
+data/polished/
 web/db.sqlite3
 *.epub
 *.pdf

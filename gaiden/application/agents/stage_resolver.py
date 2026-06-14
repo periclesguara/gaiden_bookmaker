@@ -74,9 +74,21 @@ def resolve_agent_for_ui_stage(
             "agent_id": agent_id,
             "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
         }
+    if normalized_stage == "refine" and normalized_language == "en_us":
+        agent_id = "refine_en_us_2026"
+        return {
+            "stage": "refine",
+            "language": "en_us",
+            "agent_id": agent_id,
+            "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
+        }
 
     raise LookupError(f"No UI agent resolved for ui_stage={ui_stage} target_language={target_language}")
 
 
 def is_translate_en_us(ui_stage: str, target_language: str | None) -> bool:
     return (ui_stage or "").strip().lower() == "translate" and normalize_target_language_alias(target_language) == "en_us"
+
+
+def is_refine_en_us(ui_stage: str, target_language: str | None) -> bool:
+    return (ui_stage or "").strip().lower() == "refine" and normalize_target_language_alias(target_language) == "en_us"
