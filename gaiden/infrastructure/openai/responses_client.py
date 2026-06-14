@@ -39,12 +39,19 @@ def run_responses(
     reasoning_effort: str = "medium",
 ) -> dict[str, Any]:
     client = get_client()
-    response = client.responses.create(
-        model=model,
-        input=messages,
-        temperature=temperature,
-        reasoning={"effort": reasoning_effort},
-    )
+    payload: dict[str, Any] = {
+        "model": model,
+        "input": messages,
+        "temperature": temperature,
+        "reasoning": {"effort": reasoning_effort},
+    }
+    try:
+        response = client.responses.create(**payload)
+    except Exception as exc:
+        if "Unsupported parameter: 'temperature'" not in str(exc):
+            raise
+        payload.pop("temperature", None)
+        response = client.responses.create(**payload)
     return {
         "output_text": _extract_output_text(response),
         "model": model,
