@@ -2,7 +2,7 @@
   "id": "refine",
   "version": "1.0.0",
   "stage_type": "llm_editorial_stage",
-  "description": "Refines already processed text into fluent, elegant, premium literary prose while preserving meaning, structure, and narrative integrity.",
+  "description": "Refines chunks produced by the EN-US translate/modernize stage into fluent, elegant, rhythmic modern American literary prose while preserving semantic fidelity and allowing controlled assisted rewriting for cadence, clarity, sentence reduction, and flow.",
   "input_requirements": {
     "requires_chunk": true,
     "requires_language_contract": true,
@@ -39,5 +39,27 @@
     "heading_loss": "retry",
     "length_ratio_suspicious": "manual_review",
     "max_retries_exceeded": "fail_and_save_report"
+  },
+  "stage_position": {
+    "expected_previous_stage": [
+      "modernize",
+      "translate"
+    ],
+    "expected_input_location": [
+      "data/translated/{book_id}/en_us/",
+      "translate_US_EN"
+    ],
+    "recommended_output_location": "data/refined/{book_id}/en_us/"
+  },
+  "editorial_behavior": {
+    "semantic_preservation_target": 0.7,
+    "assisted_rewrite_allowance": 0.3,
+    "ratio_is_guidance_not_exact_metric": true,
+    "reduce_overlong_sentences": true,
+    "improve_cadence": true,
+    "improve_musicality": true,
+    "improve_flow": true,
+    "remove_residual_archaisms": true,
+    "use_contractions_sparingly": true
   }
 }
