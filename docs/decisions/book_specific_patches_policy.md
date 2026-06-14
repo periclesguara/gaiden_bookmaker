@@ -2,7 +2,7 @@
 
 Gaiden must not promote book-specific emergency fixes into generic pipeline logic.
 
-Book-specific patches, including book_0026 PT-BR fixes, must remain isolated
+Book-specific patches, including one-off language-specific fixes, must remain isolated
 from the internal agent runtime and from generic editorial stages.
 
 Generic stages must be driven by:
