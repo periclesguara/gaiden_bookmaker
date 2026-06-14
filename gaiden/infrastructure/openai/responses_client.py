@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from gaiden.infrastructure.openai_client import get_client
+from gaiden.openai_client import get_client
 
 
 def _extract_output_text(response: Any) -> str:
