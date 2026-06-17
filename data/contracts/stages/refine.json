@@ -19,6 +19,40 @@
     "no_json": true,
     "no_markdown_fences": true
   },
+  "merge_policy": {
+    "canonical_order_source": "chunks_manifest.json",
+    "order_by": [
+      "chapter_index",
+      "chunk_index",
+      "source_chunk_id"
+    ],
+    "require_run_id_isolation": true,
+    "run_output_layout": "data/refined/{book_id}/{language}/runs/{run_id}/",
+    "required_manifests": [
+      "refine_manifest.json",
+      "merge_report.json"
+    ],
+    "block_merge_when": [
+      "expected_chunk_missing",
+      "extra_chunk_present",
+      "duplicate_source_chunk_id",
+      "chunk_outside_manifest",
+      "source_sha256_mismatch",
+      "output_sha256_mismatch",
+      "empty_output",
+      "wrong_run_id",
+      "wrong_book_id",
+      "wrong_language"
+    ],
+    "do_not_order_by": [
+      "filesystem_order",
+      "glob_order",
+      "alphabetical_filename_order",
+      "creation_time",
+      "model_output_headings",
+      "response_arrival_order"
+    ]
+  },
   "processing_order": [
     "load_agent_contract",
     "load_language_contract",
