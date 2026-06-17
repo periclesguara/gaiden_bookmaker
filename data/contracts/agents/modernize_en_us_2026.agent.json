@@ -13,6 +13,7 @@
     "validators": [
       "data/contracts/validators/archaic_terms.en_us_2026.json",
       "data/contracts/validators/no_meta_commentary.json",
+      "data/contracts/validators/no_roman_heading_numerals.json",
       "data/contracts/validators/length_ratio_basic.json"
     ]
   },
@@ -84,6 +85,12 @@
     "Preserve all place names exactly.",
     "Preserve all dates exactly.",
     "Preserve all chapter titles and headings unless another contract explicitly overrides this rule.",
+    "Convert Roman numerals in structural headings to Arabic numerals.",
+    "Preserve the heading label, but normalize its number.",
+    "BOOK IV must become BOOK 4.",
+    "CHAPTER IX must become CHAPTER 9.",
+    "Do not leave structural headings with Roman numerals.",
+    "Do not convert Roman numerals inside normal prose unless they are detected as headings.",
     "Preserve paragraph structure as much as possible.",
     "Preserve dialogue attribution.",
     "Preserve the narrative point of view.",
@@ -145,6 +152,8 @@
       "Remove archaic pronouns and verb forms.",
       "Rewrite obsolete idioms into natural current English.",
       "Preserve headings, paragraph breaks, dialogue structure, names, places, dates, and narrative facts.",
+      "Convert Roman numerals in structural headings to Arabic numerals: BOOK IV becomes BOOK 4, CHAPTER IX becomes CHAPTER 9, PART III becomes PART 3, SECTION VII becomes SECTION 7.",
+      "Do not convert Roman numerals inside normal prose unless they are structural headings.",
       "Do not add metadata, notes, explanations, or markdown fences.",
       "Do not output JSON.",
       "Do not output a preface.",

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from gaiden.application.agents.contracts import load_agent_contract, load_json_contract, resolve_agent
+from gaiden.application.agents.heading_normalization import normalize_roman_heading_numerals
 from gaiden.application.agents.prompt_builder import build_messages
 from gaiden.application.agents.validators import run_validators
 from gaiden.infrastructure.openai import responses_client
@@ -82,6 +83,11 @@ def _should_retry(validation_report: dict[str, Any], output_text: str) -> bool:
     return any(item.get("status") == "failed" for item in validation_report.get("validators", []))
 
 
+def _should_normalize_heading_numerals(stage_contract: dict[str, Any]) -> bool:
+    heading_policy = stage_contract.get("heading_policy") or {}
+    return bool(heading_policy.get("convert_roman_numerals_to_arabic"))
+
+
 def _usage_empty() -> dict[str, Any]:
     return {"input_tokens": None, "output_tokens": None, "total_tokens": None}
 
@@ -97,6 +103,7 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
         report = {
             "job_id": job.get("job_id"),
             "book_id": job.get("book_id"),
+            "metadata": job.get("metadata") or {},
             "ui_stage": job.get("ui_stage"),
             "stage": job.get("stage", "modernize"),
             "resolved_stage": job.get("stage", "modernize"),
@@ -163,6 +170,8 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
                 raise RuntimeError("All configured models failed.") from last_error
 
             output_text = str(call_result.get("output_text") or "").strip()
+            if output_text and _should_normalize_heading_numerals(stage_contract):
+                output_text = normalize_roman_heading_numerals(output_text).strip()
             usage = call_result.get("usage") or _usage_empty()
             if output_text:
                 validation_report = run_validators(source_text, output_text, validator_contracts)
@@ -197,6 +206,7 @@ def run_modernize_en_us_2026(job: dict[str, Any]) -> dict[str, Any]:
     audit = {
         "job_id": job.get("job_id"),
         "book_id": job.get("book_id"),
+        "metadata": job.get("metadata") or {},
         "ui_stage": job.get("ui_stage"),
         "stage": job.get("stage", "modernize"),
         "resolved_stage": job.get("stage", "modernize"),

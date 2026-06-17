@@ -1,8 +1,8 @@
 {
-  "id": "modernize",
+  "id": "translate",
   "version": "1.0.0",
   "stage_type": "llm_editorial_stage",
-  "description": "Modernizes source text into the target language/style contract while preserving meaning, structure, and narrative integrity.",
+  "description": "Translates or modernizes source chunks into the target language/style contract while preserving meaning, structure, and narrative integrity.",
   "input_requirements": {
     "requires_chunk": true,
     "requires_language_contract": true,
@@ -40,6 +40,14 @@
     "do_not_translate_heading_numbers_as_words": true,
     "do_not_leave_roman_numeral_headings": true
   },
+  "mandatory_rules": [
+    "Convert Roman numerals in structural headings to Arabic numerals.",
+    "Preserve the heading label, but normalize its number.",
+    "BOOK IV must become BOOK 4.",
+    "CHAPTER IX must become CHAPTER 9.",
+    "Do not leave structural headings with Roman numerals.",
+    "Do not convert Roman numerals inside normal prose unless they are detected as headings."
+  ],
   "processing_order": [
     "load_agent_contract",
     "load_language_contract",
@@ -48,6 +56,7 @@
     "scan_input",
     "build_prompt",
     "call_openai_responses_api",
+    "normalize_structural_heading_numerals",
     "validate_output",
     "retry_if_needed",
     "write_output",
@@ -55,10 +64,9 @@
   ],
   "failure_policy": {
     "empty_output": "fail",
+    "roman_heading_numerals_remaining": "retry",
     "meta_commentary_detected": "retry",
-    "archaic_terms_remaining": "retry",
     "heading_loss": "retry",
-    "length_ratio_suspicious": "manual_review",
     "max_retries_exceeded": "fail_and_save_report"
   }
 }

@@ -5,6 +5,7 @@ from typing import Any
 from .archaic_terms_validator import validate_archaic_terms
 from .length_ratio_validator import validate_length_ratio
 from .no_meta_commentary_validator import validate_no_meta_commentary
+from .no_roman_heading_numerals import validate_no_roman_heading_numerals
 
 
 def run_validators(
@@ -21,6 +22,8 @@ def run_validators(
             result = validate_no_meta_commentary(source_text, output_text, contract)
         elif validator_type == "length_ratio_validator":
             result = validate_length_ratio(source_text, output_text, contract)
+        elif validator_type == "heading_roman_numerals_validator":
+            result = validate_no_roman_heading_numerals(source_text, output_text, contract)
         else:
             raise ValueError(f"Unknown validator type: {validator_type}")
         validators.append(result)
