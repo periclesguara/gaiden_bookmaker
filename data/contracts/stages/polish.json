@@ -1,0 +1,42 @@
+{
+  "id": "polish",
+  "version": "1.0.0",
+  "stage_type": "llm_editorial_stage",
+  "description": "Final editorial polish for EN-US classical philosophy prose while preserving meaning, argumentative order, and structure.",
+  "input_requirements": {
+    "requires_chunk": true,
+    "requires_language_contract": true,
+    "requires_agent_contract": true,
+    "requires_source_text": true
+  },
+  "output_requirements": {
+    "plain_text_only": true,
+    "preserve_headings": true,
+    "preserve_paragraphs": true,
+    "preserve_argument_order": true,
+    "no_explanations": true,
+    "no_notes": true,
+    "no_json": true,
+    "no_markdown_fences": true,
+    "no_summary": true
+  },
+  "stage_position": {
+    "expected_previous_stage": [
+      "refine"
+    ],
+    "recommended_output_location": "data/builds/{book_id}/{language}/split_refine_by_chapter/return_polish_en_us_aristotle_2026/"
+  },
+  "editorial_behavior": {
+    "primary_goal": "Remove residual stiffness, archaic phrasing, overly long syntax, and translated-sounding English while preserving Aristotle's philosophical meaning.",
+    "preserve_meaning": true,
+    "preserve_argument_order": true,
+    "preserve_book_and_chapter_structure": true,
+    "do_not_summarize": true,
+    "do_not_add_explanations": true,
+    "formal_modern_american_english": true,
+    "classical_philosophy_register": true,
+    "break_overloaded_sentences_when_needed": true,
+    "avoid_casual_or_journalistic_language": true,
+    "avoid_generic_academic_flattening": true
+  }
+}

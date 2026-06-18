@@ -78,6 +78,7 @@ from .services import (
     miolo_transform,
     paths,
     preflight,
+    refine_ordering,
     refine_qa,
     stage_policy,
     utils,
@@ -93,8 +94,17 @@ STAGE_HTML_UPLOADED = "HTML_UPLOADED"
 STAGE_TXT_UPLOADED = "TXT_UPLOADED"
 STAGE_HTML_PREPROD_READY = "HTML_PREPROD_READY"
 STAGE_MD_SOURCE_READY = "MD_SOURCE_READY"
-REFINE_PROFILE_DEFAULT = "ingles_neutro"
+REFINE_PROFILE_DEFAULT = "refine_en_us_2026"
 REFINE_PROFILES = {
+    "refine_en_us_2026": {
+        "label": "Refine_US_EN (2026)",
+        "agent_name": "refine_en_us_2026",
+        "description": "Refine interno EN-US 2026 via contratos JSON-first do Gaiden.",
+        "style_directive": (
+            "Target profile: controlled EN-US editorial refinement. Preserve meaning, order, "
+            "paragraphing, terminology, and philosophical nuance. Improve cadence and clarity only where needed."
+        ),
+    },
     "ingles_neutro": {
         "label": "Ingles neutro",
         "agent_name": "Aldebaran",
@@ -173,17 +183,13 @@ BLOCK_STATUS_LABELS = {
 }
 REFINE_RETURN_DIRNAME = "return_aldebaran"
 POLISH_RETURN_DIRNAME = "return_polisher"
-POLISH_AGENT_DEFAULT = "English Polidor"
+POLISH_AGENT_DEFAULT = "polish_en_us_aristotle_2026"
 SPLIT_REFINE_MAX_CHARS_PER_PART = 4500
 POLISH_AGENT_OPTIONS = (
-    "English Polidor",
-    "Alamaguederaz",
-    "Aldebaran",
-    "Bismarck",
-    "Kaiser",
+    "polish_en_us_aristotle_2026",
 )
 POLISH_AGENT_DEFAULT_BY_LANGUAGE = {
-    "en": "English Polidor",
+    "en": "polish_en_us_aristotle_2026",
     "ptbr": "Cacique Tibiriça",
     "fr": "Francês_Polidor",
 }
@@ -350,6 +356,8 @@ def _refine_profile_config(value: str | None) -> dict[str, str]:
 
 def _default_refine_profile_for_language(language: str | None) -> str:
     normalized = utils.normalize_lang(language)
+    if normalized == "en":
+        return "refine_en_us_2026"
     if normalized == "de":
         return "de_kaiser"
     if normalized == "fr":
@@ -363,6 +371,8 @@ def _default_refine_profile_for_language(language: str | None) -> str:
 
 def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     normalized = utils.normalize_lang(language)
+    if normalized == "en":
+        return ("refine_en_us_2026",)
     if normalized == "de":
         return ("de_kaiser",)
     if normalized == "fr":
@@ -371,7 +381,7 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
         return ("italiano_neutro",)
     if normalized == "ptbr":
         return ("ptbr_cacique_tibirica",)
-    return ("ingles_neutro", "ingles_flex")
+    return ("refine_en_us_2026",)
 
 
 def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
@@ -1281,6 +1291,8 @@ def _handle_source_upload(
 
 def _refine_return_dirname(refine_profile: str | None = None, target_language: str | None = None) -> str:
     profile_cfg = _refine_profile_config(refine_profile)
+    if profile_cfg["agent_name"] == "refine_en_us_2026":
+        return "return_refine_en_us_2026"
     agent_slug = slugify(profile_cfg["agent_name"]).replace("-", "_")
     if agent_slug:
         return f"return_{agent_slug}"
@@ -2204,6 +2216,25 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
     if not raw_path.exists():
         raise FileNotFoundError(f"RAW path not found: {raw_path}")
     ext = raw_path.suffix.lstrip(".")
+    if ext.lower() not in {"txt", "md", "markdown"}:
+        try:
+            from gaiden.application.ingest.convert_source_to_markdown import convert_source_to_markdown
+
+            markitdown_result = convert_source_to_markdown(book_code, language, raw_path, force=True)
+            promoted_md = _resolve_project_path(str(markitdown_result.get("promoted_markdown_path") or ""))
+            if promoted_md.exists():
+                text = promoted_md.read_text(encoding="utf-8", errors="replace").strip()
+                if text:
+                    normalized_text = pipeline_normalization.normalize_text_v2(text)
+                    out_path.write_text(normalized_text, encoding="utf-8")
+                    texts.raw_text = text
+                    texts.normalized_text = normalized_text
+                    texts.raw_path = str(promoted_md)
+                    texts.normalized_path = str(out_path)
+                    texts.save(update_fields=["raw_text", "normalized_text", "raw_path", "normalized_path", "updated_at"])
+                    return out_path, "markitdown.source_md"
+        except Exception:
+            pass
     if f".{ext.lower()}" in pipeline_ingest.source_extract_supported_extensions():
         extract_result = pipeline_ingest.run_source_extract(book_code, language, raw_path)
         canonical_txt = _resolve_project_path(str(extract_result.get("canonical_txt") or ""))
@@ -2395,6 +2426,16 @@ def _validate_runtime_chunk_outputs(source_dir: Path | None, candidate_dir: Path
     issues: list[str] = []
     for candidate_path in _iter_non_merged_txt_files(candidate_dir):
         source_path = source_dir / candidate_path.name
+        meta_path = refine_ordering.metadata_path_for_output(candidate_path)
+        if meta_path.exists():
+            try:
+                metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                metadata = {}
+            metadata_source_raw = str(metadata.get("source_path") or "").strip()
+            metadata_source = Path(metadata_source_raw) if metadata_source_raw else None
+            if metadata_source is not None and metadata_source.exists():
+                source_path = metadata_source
         if not source_path.exists():
             stem_parts = candidate_path.name.split(".")
             if len(stem_parts) > 2 and stem_parts[-1] == "txt":
@@ -2428,7 +2469,9 @@ def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: st
         return None
     candidates = [
         refine_dir / f"merge_refine_{target_language}.txt",
+        refine_dir / "merge_refine_en_us.txt",
         refine_dir / "merge_refine.txt",
+        refine_dir / "merged_refine_en_us_2026.txt",
         refine_dir / "merged_return_aldebaran.txt",
         refine_dir / "merged_return_kaiser.txt",
         refine_dir / "merged.txt",
@@ -2437,12 +2480,33 @@ def _resolve_refine_merge_candidate(refine_dir: Path | None, target_language: st
     return next((p for p in candidates if p.exists()), None)
 
 
+def _refined_runs_root(book_code: str, lang: str) -> Path:
+    return Path(settings.BASE_DIR).parent / "data" / "refined" / book_code / lang / "runs"
+
+
+def _latest_refine_run_dir(book_code: str, lang: str) -> Path | None:
+    runs_root = _refined_runs_root(book_code, lang)
+    if not runs_root.exists():
+        return None
+    candidates = [
+        path for path in runs_root.iterdir()
+        if path.is_dir() and (path / refine_ordering.REFINE_MANIFEST_NAME).exists()
+    ]
+    if not candidates:
+        return None
+    return sorted(candidates)[-1]
+
+
 def _resolve_polish_source_dir(edition) -> tuple[Path, str]:
     split_root = paths.split_refine_by_chapter_dir(edition)
     split_manifest = split_root / "manifest.json"
     split_parts_dir = split_root / "parts"
     if split_manifest.exists() and split_parts_dir.exists():
         return split_parts_dir, "split_refine_by_chapter/parts"
+
+    latest_run_dir = _latest_refine_run_dir(edition.work.code, "en_us")
+    if latest_run_dir is not None:
+        return latest_run_dir, "refine_run"
 
     refine_source_dir, _source_label = _resolve_refine_source_dir(edition, edition.language.code)
     refine_dir = _resolve_refine_output_dir(
@@ -2482,6 +2546,132 @@ def _resolve_polish_output_dir(
     if source_dir.name == "parts" and source_dir.parent.name == "split_refine_by_chapter":
         return source_dir.parent / dirname
     return paths.edition_build_dir(edition) / dirname
+
+
+def _chunk_text_paths(chunk_dir: Path) -> list[Path]:
+    return [
+        path
+        for path in sorted(chunk_dir.glob("*.txt"))
+        if path.name != "merged.txt" and not path.name.startswith("merged_")
+    ]
+
+
+def _run_internal_polish_agent(
+    *,
+    edition,
+    source_dir: Path,
+    out_dir: Path,
+    agent_name: str,
+) -> dict[str, object]:
+    from gaiden.application.agents.stages.polish_en_us_aristotle_2026 import (
+        run_polish_en_us_aristotle_2026,
+    )
+
+    manifest_path = source_dir.parent / "manifest.json"
+    if manifest_path.exists():
+        run_id = timezone.now().strftime("polish_en_us_aristotle_2026_%Y%m%d_%H%M%S_%f")
+        chunks = refine_ordering.load_refine_chunks_from_manifest(
+            manifest_path=manifest_path,
+            source_dir=source_dir,
+            book_id=edition.work.code,
+            lang="en_us",
+            run_id=run_id,
+            stage="polish",
+        )
+    else:
+        run_id = timezone.now().strftime("polish_en_us_aristotle_2026_%Y%m%d_%H%M%S_%f")
+        source_paths = _chunk_text_paths(source_dir)
+        chunks = [
+            refine_ordering.RefineChunk(
+                book_id=edition.work.code,
+                lang="en_us",
+                stage="polish",
+                run_id=run_id,
+                source_chunk_id=path.stem,
+                chapter_index=1,
+                chunk_index=index,
+                source_path=str(path),
+                source_sha256=refine_ordering.sha256_file(path),
+                output_filename=refine_ordering.canonical_output_filename(1, index),
+                source_chunks_manifest_path="",
+            )
+            for index, path in enumerate(source_paths, start=1)
+        ]
+    if not chunks:
+        raise RuntimeError(f"NO_POLISH_CHUNKS: nothing matched {source_dir}/*.txt")
+
+    base_out_dir = out_dir
+    out_dir = base_out_dir / "runs" / run_id
+    out_dir.mkdir(parents=True, exist_ok=False)
+    (base_out_dir / "LATEST_POLISH_RUN.txt").parent.mkdir(parents=True, exist_ok=True)
+    (base_out_dir / "LATEST_POLISH_RUN.txt").write_text(str(out_dir) + "\n", encoding="utf-8")
+    report_path = out_dir / "agent_polish_en_us_run_report.json"
+    report: dict[str, object] = {
+        "schema": "agent_polish_en_us_run_v1",
+        "agent_name": agent_name,
+        "book_code": edition.work.code,
+        "language": "en_us",
+        "source_dir": str(source_dir),
+        "out_dir": str(out_dir),
+        "count": len(chunks),
+        "run_id": run_id,
+        "items": [],
+        "status": "running",
+        "ts_start": timezone.now().isoformat(),
+    }
+
+    for index, chunk in enumerate(chunks, start=1):
+        source_path = Path(chunk.source_path)
+        target_path = out_dir / chunk.output_filename
+        job = {
+            "job_id": f"{edition.work.code}_polish_{index:04d}",
+            "book_id": edition.work.code,
+            "ui_stage": "polish",
+            "stage": "polish",
+            "language": "en_us",
+            "target_language": "en_us",
+            "agent_id": "polish_en_us_aristotle_2026",
+            "metadata": {
+                "book_code": chunk.book_id,
+                "book_id": chunk.book_id,
+                "language": chunk.lang,
+                "lang": chunk.lang,
+                "stage": chunk.stage,
+                "run_id": chunk.run_id,
+                "source_chunk_id": chunk.source_chunk_id,
+                "chapter_index": chunk.chapter_index,
+                "chunk_index": chunk.chunk_index,
+                "source_path": chunk.source_path,
+                "source_sha256": chunk.source_sha256,
+            },
+            "input": {"source_path": str(source_path)},
+            "output": {"target_path": str(target_path), "overwrite": False},
+        }
+        item = run_polish_en_us_aristotle_2026(job)
+        if target_path.exists():
+            refine_ordering.write_refine_output_metadata(target_path, chunk, item)
+        report["items"].append(item)
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        if item.get("status") not in {"passed", "skipped"}:
+            report["status"] = "failed"
+            report["ts_end"] = timezone.now().isoformat()
+            report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+            raise RuntimeError(f"POLISH_AGENT_FAILED: {source_path.name}: {item.get('errors')}")
+
+    merged_path = out_dir / f"merge_polish_{utils.normalize_lang(edition.language.code)}.txt"
+    merged_path, order_validation = refine_ordering.merge_refine_run_by_manifest(
+        run_dir=out_dir,
+        chunks=chunks,
+        out_path=merged_path,
+        book_code=edition.work.code,
+        language="en_us",
+    )
+    report["status"] = "ok"
+    report["ts_end"] = timezone.now().isoformat()
+    report["merge_path"] = str(merged_path)
+    report["order_validation"] = order_validation
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"report_path": str(report_path), "merge_path": str(merged_path), "out_dir": str(out_dir)}
 
 
 def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = None) -> list[dict]:
@@ -2551,6 +2741,9 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         refine_profile=refine_profile,
         target_language=target_lang,
     )
+    latest_refine_run_dir = _latest_refine_run_dir(core_book_code, "en_us") if target_variant == "en_us" else None
+    if latest_refine_run_dir is not None:
+        refine_dir = latest_refine_run_dir
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
     refine_merge_path = paths.merge_refine_path(target_edition)
     refine_runtime_merge = _resolve_refine_merge_candidate(refine_dir, target_lang)
@@ -2798,7 +2991,7 @@ def _select_contract_path(language: str) -> Path:
 
 
 def _select_refine_contract(language: str, refine_profile: str | None = None) -> Path:
-    raise RuntimeError("Refine JSON contracts are disabled. Use agent refine.")
+    raise RuntimeError("Legacy hosted Refine contracts are disabled. Use internal refine_router.")
 
 
 def _select_polish_contract(language: str) -> Path:
@@ -3478,12 +3671,119 @@ def _prepare_refine_agent_handoff(
     return source_dir, source_label, out_dir, profile_cfg, normalized_profile
 
 
+def _run_internal_refine_en_us(
+    *,
+    book_code: str,
+    source_dir: Path,
+    out_dir: Path,
+) -> dict[str, object]:
+    from gaiden.application.agents.refine_router import run_refine
+
+    run_id = timezone.now().strftime("refine_en_us_2026_%Y%m%d_%H%M%S_%f")
+    run_dir = _refined_runs_root(book_code, "en_us") / run_id
+    run_dir.mkdir(parents=True, exist_ok=False)
+    manifest_path = source_dir.parent / "manifest.json"
+    chunks = refine_ordering.load_refine_chunks_from_manifest(
+        manifest_path=manifest_path,
+        source_dir=source_dir,
+        book_id=book_code,
+        lang="en_us",
+        run_id=run_id,
+    )
+    items: list[dict[str, object]] = []
+    for chunk_path in chunks:
+        source_path = Path(chunk_path.source_path)
+        target_path = run_dir / chunk_path.output_filename
+        metadata = {
+            "book_id": chunk_path.book_id,
+            "lang": chunk_path.lang,
+            "stage": chunk_path.stage,
+            "run_id": chunk_path.run_id,
+            "source_chunk_id": chunk_path.source_chunk_id,
+            "chapter_index": chunk_path.chapter_index,
+            "chunk_index": chunk_path.chunk_index,
+            "source_path": chunk_path.source_path,
+            "source_sha256": chunk_path.source_sha256,
+        }
+        report = run_refine(
+            book_id=book_code,
+            target_language="en_us",
+            source_path=source_path,
+            target_path=target_path,
+            overwrite=False,
+            metadata=metadata,
+        )
+        if target_path.exists():
+            refine_ordering.write_refine_output_metadata(target_path, chunk_path, report)
+        items.append(
+            {
+                "chunk": source_path.name,
+                "source_chunk_id": chunk_path.source_chunk_id,
+                "chapter_index": chunk_path.chapter_index,
+                "chunk_index": chunk_path.chunk_index,
+                "out_txt": str(target_path),
+                "status": report.get("status"),
+                "validation": report.get("validation"),
+                "audit_path": report.get("audit_path"),
+            }
+        )
+        if report.get("status") not in {"passed", "skipped"}:
+            refine_ordering.write_refine_manifest(run_dir, refine_ordering.validate_refine_run(run_dir, chunks))
+            raise RuntimeError(f"Refine EN-US failed for {source_path.name}: {report}")
+
+    merged_path = run_dir / "merged_refine_en_us_2026.txt"
+    merged_path, validation = refine_ordering.merge_refine_run_by_manifest(
+        run_dir=run_dir,
+        chunks=chunks,
+        out_path=merged_path,
+        book_code=book_code,
+        language="en",
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    legacy_manifest_pointer = out_dir / "LATEST_REFINE_RUN.txt"
+    legacy_manifest_pointer.write_text(str(run_dir) + "\n", encoding="utf-8")
+    report_path = run_dir / "agent_refine_en_us_run_report.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "schema": "gaiden_refine_en_us_2026_run_v1",
+                "book_id": book_code,
+                "agent_id": "refine_en_us_2026",
+                "run_id": run_id,
+                "source_dir": str(source_dir),
+                "out_dir": str(run_dir),
+                "merge_path": str(merged_path),
+                "refine_manifest_path": str(run_dir / refine_ordering.REFINE_MANIFEST_NAME),
+                "count": len(items),
+                "items": items,
+                "order_validation": validation,
+                "status": "ok",
+                "created_at": timezone.now().isoformat(),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "agent_name": "refine_en_us_2026",
+        "source_dir": str(source_dir),
+        "out_dir": str(run_dir),
+        "merge_path": str(merged_path),
+        "report_path": str(report_path),
+        "refine_manifest_path": str(run_dir / refine_ordering.REFINE_MANIFEST_NAME),
+        "run_id": run_id,
+        "count": len(items),
+    }
+
+
 def _build_runtime_refine_contract(
     edition,
     target_language: str,
     refine_profile: str | None = None,
 ) -> tuple[Path, Path, Path]:
-    raise RuntimeError("Refine JSON contracts are disabled. Use direct agent handoff.")
+    raise RuntimeError("Legacy hosted Refine contracts are disabled. Use internal refine_router.")
 
 
 def _build_runtime_polish_contract(
@@ -4445,7 +4745,10 @@ def edition_steps(request, edition_id: int):
         lang = option["value"]
         route = "Agent"
         agent_name = _translate_agent_name(lang)
-        detail = "Regra maxima: envia os chunks direto ao agente; sem contrato JSON+script."
+        if lang == "en_us":
+            detail = "Runtime interno JSON-first: contrato + script Gaiden; OpenAI apenas como inferencia."
+        else:
+            detail = "Agente interno planejado para migracao incremental; sem agente hospedado externo."
         translate_agent_map[lang] = f"{route}: {agent_name}"
         translate_agent_choices_map[lang] = list(_translate_agent_options(lang))
         translate_agent_options.append(
@@ -4782,27 +5085,19 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
         refine_profile=refine_profile,
     )
 
-    from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
-
-    result = run_aldebaran_refine_return(
-        chunk_dir=source_dir,
-        out_dir=out_dir_path,
-        merge_name=f"merge_refine_{target_language}.txt",
-        agent_name=refine_profile_cfg["agent_name"],
-        max_output_tokens=2000,
-    )
+    if translate_variant == "en_us":
+        result = _run_internal_refine_en_us(
+            book_code=target_edition.work.code,
+            source_dir=source_dir,
+            out_dir=out_dir_path,
+        )
+    else:
+        raise RuntimeError(
+            f"No internal Refine agent configured for target language {translate_variant}. "
+            "External hosted OpenAI agents are disabled for new runtime execution."
+        )
     merged_path = Path(result["merge_path"])
-
-    _validate_runtime_chunk_outputs(source_dir, out_dir_path, "Refine")
-    if merged_path is None:
-        merged_path = out_dir_path / f"merged_{out_dir_path.name}.txt"
-    merged_path, _merge_stats = canonical_merge.write_canonical_merge(
-        source_dir,
-        out_dir_path,
-        merged_path,
-        book_code=target_edition.work.code,
-        language=target_language,
-    )
+    out_dir_path = Path(result["out_dir"])
     _copy_merge_to_build(
         target_edition,
         merged_path,
@@ -4818,7 +5113,9 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
         "success": f"Refine OK ({refine_profile_cfg['label']} · {result['agent_name']})",
         "info": [
             f"Refine source ({refine_source_label}): {result['source_dir']}",
+            f"Refine run: {result['out_dir']}",
             f"Refine report: {result['report_path']}",
+            f"Refine manifest: {result['refine_manifest_path']}",
         ],
         "refine_profile": refine_profile,
     }
@@ -4868,15 +5165,23 @@ def _run_polish_agent_step_local(
     if out_dir is None:
         raise FileNotFoundError("Unable to resolve polish output directory.")
 
-    from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
+    if selected_agent == "polish_en_us_aristotle_2026":
+        result = _run_internal_polish_agent(
+            edition=target_edition,
+            source_dir=source_dir,
+            out_dir=out_dir,
+            agent_name=selected_agent,
+        )
+    else:
+        from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-    result = run_aldebaran_refine_return(
-        chunk_dir=source_dir,
-        out_dir=out_dir,
-        merge_name=f"merge_polish_{target_language}.txt",
-        agent_name=selected_agent,
-        max_output_tokens=2000,
-    )
+        result = run_aldebaran_refine_return(
+            chunk_dir=source_dir,
+            out_dir=out_dir,
+            merge_name=f"merge_polish_{target_language}.txt",
+            agent_name=selected_agent,
+            max_output_tokens=2000,
+        )
     _validate_runtime_chunk_outputs(source_dir, out_dir, "Polidor")
     merged_path = Path(result["merge_path"])
     merged_path, _merge_stats = canonical_merge.write_canonical_merge(
@@ -5232,13 +5537,15 @@ def run_edition_step(request, edition_id: int, step: str):
             refine_profile_cfg = _refine_profile_config(
                 getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
             )
+            translate_variant = _normalize_translate_variant(
+                getattr(pipeline_state, "translation_language", "") if pipeline_state is not None else target_language
+            )
             refine_source_dir, _refine_source_label = _resolve_refine_source_dir(target_edition, target_language)
             refine_dir = _resolve_refine_output_dir(
                 refine_source_dir,
                 refine_profile=getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else "",
                 target_language=target_language,
             )
-            _validate_runtime_chunk_outputs(refine_source_dir, refine_dir, "MergeRefine")
             merge_refine_build = paths.merge_refine_path(target_edition)
             merge_refine_clean = (
                 Path(settings.BASE_DIR).parent
@@ -5247,20 +5554,38 @@ def run_edition_step(request, edition_id: int, step: str):
                 / target_edition.work.code
                 / "merge_refine_clean.txt"
             )
-            canonical_merge.write_canonical_merge(
-                refine_source_dir,
-                refine_dir,
-                merge_refine_build,
-                book_code=target_edition.work.code,
-                language=target_language,
+            latest_run_dir = (
+                _latest_refine_run_dir(target_edition.work.code, "en_us")
+                if translate_variant == "en_us"
+                else None
             )
-            canonical_merge.write_canonical_merge(
-                refine_source_dir,
-                refine_dir,
-                merge_refine_clean,
-                book_code=target_edition.work.code,
-                language=target_language,
-            )
+            if latest_run_dir is not None:
+                chunks = refine_ordering.load_chunks_for_existing_run(latest_run_dir)
+                refine_ordering.merge_refine_run_by_manifest(
+                    run_dir=latest_run_dir,
+                    chunks=chunks,
+                    out_path=merge_refine_build,
+                    book_code=target_edition.work.code,
+                    language=target_language,
+                )
+                merge_refine_clean.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(merge_refine_build, merge_refine_clean)
+            else:
+                _validate_runtime_chunk_outputs(refine_source_dir, refine_dir, "MergeRefine")
+                canonical_merge.write_canonical_merge(
+                    refine_source_dir,
+                    refine_dir,
+                    merge_refine_build,
+                    book_code=target_edition.work.code,
+                    language=target_language,
+                )
+                canonical_merge.write_canonical_merge(
+                    refine_source_dir,
+                    refine_dir,
+                    merge_refine_clean,
+                    book_code=target_edition.work.code,
+                    language=target_language,
+                )
 
             pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             pipeline_state.current_stage = PipelineStage.MERGED

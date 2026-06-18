@@ -7,6 +7,9 @@ name = "gaiden-bookmaker"
 version = "0.1.0"
 description = "Gaiden BookMaker"
 requires-python = ">=3.10"
+dependencies = [
+    "markitdown[all]>=0.1.5",
+]
 
 [project.scripts]
 gaiden-cli = "gaiden.interfaces.cli:main"

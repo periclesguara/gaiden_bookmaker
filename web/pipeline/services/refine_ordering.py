@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from gaiden.application.pipeline import fail_closed_merge
 from . import canonical_merge
 
 
@@ -313,6 +314,7 @@ def validate_refine_run(run_dir: Path, chunks: list[RefineChunk]) -> dict[str, A
         for index, row in enumerate(ordered_outputs, 1)
     ]
     return {
+        "ok": status == "PASSED",
         "run_id": expected_run_id,
         "book_id": expected_book_id,
         "language": expected_lang,
@@ -385,13 +387,36 @@ def merge_refine_run_by_manifest(
     merged = "\n\n".join(parts).rstrip() + "\n"
     if not merged.strip():
         raise FileNotFoundError(f"No ordered refine outputs found in {run_dir}")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(merged, encoding="utf-8")
+    chunk_order_report = {
+        "book_code": book_code or validation.get("book_id") or "",
+        "language": language or validation.get("language") or validation.get("lang") or "",
+        "stage": validation.get("stage") or "refine",
+        "run_id": validation.get("run_id") or run_dir.name,
+        "total_expected_chunks": len(chunks),
+        "total_received_chunks": validation.get("received_count"),
+        "ordered_source_chunk_ids": [chunk.source_chunk_id for chunk in sorted(chunks, key=_sort_key)],
+        "final_status": "PASSED",
+        "canonical_written": False,
+    }
+    fail_closed_merge.validate_repair_and_write(
+        text=merged,
+        out_path=out_path,
+        root=Path.cwd(),
+        book_code=str(book_code or validation.get("book_id") or ""),
+        language=str(language or validation.get("language") or validation.get("lang") or ""),
+        stage=str(validation.get("stage") or "refine"),
+        run_id=str(validation.get("run_id") or run_dir.name),
+        merge_validation={**validation, "ok": validation["status"] == "PASSED"},
+        chunk_order_report=chunk_order_report,
+    )
     validation = validate_refine_run(run_dir, chunks)
     validation["merge_path"] = str(out_path)
     validation["merge_report_path"] = str(run_dir / MERGE_REPORT_NAME)
     validation["total_merged_chunks"] = len(parts)
     validation["status"] = "PASSED"
+    validation["ok"] = True
+    validation["canonical_written"] = True
+    validation["boundary_validation_report_path"] = str(out_path.parent / "boundary_validation_report.json")
     write_refine_manifest(run_dir, validation)
     write_merge_report(run_dir, validation)
     return out_path, validation

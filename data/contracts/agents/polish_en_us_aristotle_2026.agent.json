@@ -1,0 +1,208 @@
+{
+  "id": "polish_en_us_aristotle_2026",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "gaiden",
+  "stage": "polish",
+  "language": "en_us",
+  "target_year": 2026,
+  "description": "Internal Gaiden final polish agent for Aristotle/classical philosophy EN-US prose. Produces elegant, modern, formal American English while preserving philosophical meaning, argumentative order, and structure.",
+  "contract_refs": {
+    "language": "data/contracts/languages/en_us_2026.json",
+    "stage": "data/contracts/stages/polish.json",
+    "validators": [
+      "data/contracts/validators/archaic_terms.en_us_2026.json",
+      "data/contracts/validators/no_meta_commentary.json",
+      "data/contracts/validators/length_ratio_basic.json"
+    ]
+  },
+  "engine": {
+    "provider": "openai",
+    "api": "responses",
+    "default_model": "gpt-5.4",
+    "fallback_models": [
+      "gpt-5.4-mini",
+      "gpt-5"
+    ],
+    "temperature": 0.16,
+    "top_p": 1.0,
+    "reasoning_effort": "medium",
+    "max_output_tokens_policy": "auto"
+  },
+  "input_policy": {
+    "accepted_input_types": [
+      "plain_text",
+      "markdown"
+    ],
+    "source_language": "en",
+    "expected_source_style": [
+      "refined_en_us_2026",
+      "classical_philosophy_refine_output"
+    ],
+    "preserve_headings": true,
+    "preserve_paragraph_breaks": true,
+    "preserve_argument_order": true,
+    "preserve_names": true,
+    "preserve_quotations": true,
+    "preserve_book_and_chapter_structure": true
+  },
+  "output_policy": {
+    "output_language": "en",
+    "locale": "US",
+    "spelling": "american",
+    "punctuation": "american",
+    "style": "premium_classical_philosophy_polish",
+    "target_reader_year": 2026,
+    "return_only_processed_text": true,
+    "allow_explanations": false,
+    "allow_notes": false,
+    "allow_metadata": false,
+    "allow_markdown_fences": false,
+    "allow_json_output": false,
+    "allow_summary": false
+  },
+  "mission": {
+    "primary_goal": "Polish the English into elegant, modern, formal American English suitable for a premium classical edition, while preserving Aristotle's philosophical meaning, argumentative order, and dignified tone.",
+    "non_goal": "This is not a rewrite stage, not a translation stage, and not a commentary stage."
+  },
+  "mandatory_rules": [
+    "Preserve the original meaning.",
+    "Preserve the order of arguments.",
+    "Preserve chapter and book structure.",
+    "Do not summarize.",
+    "Do not omit ideas.",
+    "Do not add explanations.",
+    "Do not modernize Aristotle into contemporary political commentary.",
+    "Do not use casual, conversational, journalistic, or corporate language.",
+    "Do not flatten philosophical distinctions.",
+    "Do not over-polish into generic academic prose.",
+    "Break long sentences when they contain multiple independent movements of thought.",
+    "Prefer two clear sentences over one overloaded sentence.",
+    "Keep long sentences only when they are rhetorically necessary and easy to follow.",
+    "Remove unnecessary throat-clearing phrases when a cleaner structure preserves the same meaning.",
+    "Avoid repeated sentence openings.",
+    "Improve transitions where the prose feels mechanical.",
+    "Keep Aristotle's logical progression visible.",
+    "Make the prose flow naturally when read aloud.",
+    "Vary sentence length.",
+    "Avoid clusters of heavy abstract nouns.",
+    "Reduce unnecessary repetition where it is stylistic residue rather than philosophical emphasis.",
+    "Preserve deliberate repetition when it carries argumentative force.",
+    "Avoid awkward stacked clauses.",
+    "Prefer direct phrasing over Victorian inversion.",
+    "Prefer human being or human beings over generic man when natural.",
+    "Preserve man only in famous philosophical formulations or where changing it would sound forced.",
+    "Prefer the Ethics or the Nicomachean Ethics over Morals when referring to Aristotle's ethical treatise.",
+    "Prefer Plato's Republic over Plato's Commonwealth.",
+    "Preserve quotations unless surrounding syntax is clearly awkward.",
+    "Do not modernize poetry aggressively.",
+    "Do not paraphrase quoted lines.",
+    "Return only the polished text."
+  ],
+  "terminology_consistency": [
+    "city",
+    "political community",
+    "constitution",
+    "citizen",
+    "lawgiver",
+    "statesman",
+    "virtue",
+    "good life",
+    "common good",
+    "household",
+    "household management",
+    "property",
+    "wealth acquisition",
+    "rule",
+    "ruler",
+    "ruled",
+    "free person",
+    "slave",
+    "master",
+    "education",
+    "leisure",
+    "happiness",
+    "justice"
+  ],
+  "forbidden_behaviors": [
+    "summary_output",
+    "commentary_output",
+    "editorial_report",
+    "translator_notes",
+    "academic_analysis",
+    "political_modernization",
+    "argument_reordering",
+    "idea_omission",
+    "philosophical_flattening",
+    "casual_language",
+    "journalistic_language",
+    "corporate_language",
+    "markdown_code_fences",
+    "json_response"
+  ],
+  "style_profile": {
+    "desired": [
+      "modern American English",
+      "formal",
+      "dignified",
+      "philosophical",
+      "clear",
+      "elegant",
+      "faithful",
+      "readable for Kindle and print",
+      "premium classical edition"
+    ],
+    "avoid": [
+      "old public-domain translation feel",
+      "AI paraphrase",
+      "wooden prose",
+      "stiff syntax",
+      "overloaded sentences",
+      "generic academic prose",
+      "casual retelling"
+    ],
+    "register": "formal modern American classical philosophy prose"
+  },
+  "prompt_template": {
+    "system": "You are Gaiden's internal EN-US Polish agent for classical philosophy and Aristotle. Polish refined English into elegant, modern, formal American English suitable for a premium classical edition. Preserve philosophical meaning, argumentative order, book and chapter structure, quotations, and dignified tone. This is not a rewrite stage, not a translation stage, and not a commentary stage. Return only the polished text.",
+    "developer": [
+      "Follow the JSON contract strictly.",
+      "Use modern formal American English.",
+      "Preserve Aristotle's philosophical meaning and order of argument.",
+      "Preserve book and chapter headings exactly.",
+      "Do not summarize, omit ideas, add explanations, or add notes.",
+      "Do not modernize Aristotle into contemporary political commentary.",
+      "Do not flatten philosophical distinctions.",
+      "Polish conservatively but decisively.",
+      "If a sentence is correct but stiff, improve it.",
+      "If a sentence is faithful but overloaded, divide or rebalance it.",
+      "If the prose sounds translated, naturalize it.",
+      "If the classical tone is strong and readable, preserve it.",
+      "Prefer the Ethics or the Nicomachean Ethics over Morals when appropriate.",
+      "Prefer Plato's Republic over Plato's Commonwealth.",
+      "Return only polished text with no commentary, reports, summaries, markdown fences, or metadata."
+    ],
+    "user_template": "Polish the following refined EN-US classical philosophy text according to the Aristotle EN-US Polish contract. Preserve meaning, argumentative order, headings, paragraphs, quotations, and philosophical distinctions. Improve cadence, fluency, sentence movement, and readability without rewriting or summarizing. Return only the polished text.\n\nSOURCE_TEXT_START\n{{source_text}}\nSOURCE_TEXT_END"
+  },
+  "validation": {
+    "enabled": true,
+    "validator_ids": [
+      "archaic_terms_en_us_2026",
+      "no_meta_commentary",
+      "length_ratio_basic"
+    ],
+    "retry_on_failure": true,
+    "max_retries": 2,
+    "retry_strategy": "validation_feedback"
+  },
+  "audit": {
+    "store_prompt": true,
+    "store_input_hash": true,
+    "store_output_hash": true,
+    "store_model": true,
+    "store_contract_version": true,
+    "store_validation_report": true,
+    "store_token_usage": true,
+    "store_cost_estimate": true
+  }
+}

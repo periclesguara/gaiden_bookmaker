@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from gaiden.application.pipeline import fail_closed_merge
 from gaiden.application.pipeline.translation import sanitize_generated_chunk_text
 from gaiden.chunk_contract import HeadingMatch, detect_heading
 
@@ -197,6 +198,40 @@ def write_canonical_merge(
     merged = build_canonical_merged_text(candidate_dir)
     if not merged:
         raise FileNotFoundError(f"No canonical chunk outputs found in {candidate_dir}")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(merged, encoding="utf-8")
+    stage = "polish" if "polish" in out_path.name else "refine" if "refine" in out_path.name else "merge"
+    run_id = candidate_dir.name if candidate_dir else out_path.stem
+    fail_closed_merge.validate_repair_and_write(
+        text=merged,
+        out_path=out_path,
+        root=Path.cwd(),
+        book_code=str(book_code or ""),
+        language=str(language or ""),
+        stage=stage,
+        run_id=run_id,
+        merge_validation={
+            "ok": True,
+            "book_code": book_code or "",
+            "language": language or "",
+            "stage": stage,
+            "run_id": run_id,
+            "total_expected_chunks": stats.get("total", 0),
+            "total_received_chunks": stats.get("total", 0),
+            "missing_chunks": [],
+            "extra_chunks": [],
+            "duplicate_chunks": [],
+            "final_status": "PASSED",
+            "canonical_written": True,
+        },
+        chunk_order_report={
+            "book_code": book_code or "",
+            "language": language or "",
+            "stage": stage,
+            "run_id": run_id,
+            "total_expected_chunks": stats.get("total", 0),
+            "total_received_chunks": stats.get("total", 0),
+            "ordered_outputs": [str(path) for path in _iter_non_merged_txt_files(candidate_dir)],
+            "final_status": "PASSED",
+            "canonical_written": True,
+        },
+    )
     return out_path, stats

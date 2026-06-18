@@ -15,6 +15,7 @@ def run_refine(
     source_path: str | Path,
     target_path: str | Path,
     overwrite: bool = False,
+    metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     normalized_language = normalize_target_language_alias(target_language)
     if normalized_language != "en_us":
@@ -29,8 +30,7 @@ def run_refine(
     print("[Gaiden Agents] Model: gpt-5.4")
     print(f"[Gaiden Agents] Contract: {resolution['contract_path']}")
 
-    return run_refine_en_us_2026(
-        {
+    job = {
             "job_id": f"refine_en_us_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             "book_id": book_id,
             "ui_stage": "refine",
@@ -40,5 +40,9 @@ def run_refine(
             "agent_id": resolution["agent_id"],
             "input": {"source_path": str(source_path)},
             "output": {"target_path": str(target_path), "overwrite": overwrite},
-        }
-    )
+    }
+    if metadata:
+        job["metadata"] = dict(metadata)
+        if metadata.get("run_id"):
+            job["job_id"] = f"{metadata['run_id']}__{metadata.get('source_chunk_id', Path(source_path).stem)}"
+    return run_refine_en_us_2026(job)

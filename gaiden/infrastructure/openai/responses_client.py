@@ -39,12 +39,19 @@ def run_responses(
     reasoning_effort: str = "medium",
 ) -> dict[str, Any]:
     client = get_client()
-    response = client.responses.create(
-        model=model,
-        input=messages,
-        temperature=temperature,
-        reasoning={"effort": reasoning_effort},
-    )
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "input": messages,
+        "temperature": temperature,
+        "reasoning": {"effort": reasoning_effort},
+    }
+    try:
+        response = client.responses.create(**kwargs)
+    except Exception as exc:
+        if "Unsupported parameter: 'temperature'" not in str(exc):
+            raise
+        kwargs.pop("temperature", None)
+        response = client.responses.create(**kwargs)
     return {
         "output_text": _extract_output_text(response),
         "model": model,

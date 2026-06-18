@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Force-translate chunks via an OpenAI Agent.
+Force-translate chunks through the Gaiden internal agent runtime.
 
-This bypasses the translate step entirely and sends each chunk directly to the agent.
+For EN-US, this routes to the JSON-first internal Modernize agent.
+For other languages, this compatibility CLI uses the Responses API inference
+helper directly with internal route ids.
 Outputs are written into out_dir, preserving per-chunk filenames, plus a run report.
 
 Example:
@@ -66,6 +68,24 @@ PORTUGUESE_TARGETS = {
     "português",
     "brazilian_portuguese",
 }
+DEPRECATED_EXTERNAL_AGENT_NAMES = {
+    "alamaguederaz",
+    "aldebaran",
+    "yoda ming",
+    "kaiser",
+    "cacique",
+    "cacique tibirica",
+    "cacique tibiriça",
+    "priscus",
+    "el_obregon",
+    "le_grand_coulhon",
+    "le_gran_colhoun",
+}
+
+
+def _is_deprecated_external_agent_name(value: str | None) -> bool:
+    normalized = (value or "").strip().lower().replace("-", "_")
+    return normalized in DEPRECATED_EXTERNAL_AGENT_NAMES
 
 
 def _now_iso() -> str:
@@ -167,8 +187,7 @@ def _call_agent(
     retry: bool = False,
 ) -> Tuple[str, Dict[str, Any]]:
     """
-    Calls your repo's agent helper if available.
-    We assume your project already has an OpenAI client wrapper like gaiden/openai_client.py.
+    Calls the repository Responses API helper with a Gaiden-controlled prompt.
     """
     meta: Dict[str, Any] = {
         "agent_name": agent_name,
@@ -223,6 +242,8 @@ def _min_output_ratio_for_target(suffix: str) -> float:
 
 def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
     candidate = (requested_agent or "").strip()
+    if _is_deprecated_external_agent_name(candidate):
+        candidate = ""
     target = normalize_lang_code(suffix, default="en_modern")
     raw_target = (suffix or "").strip().lower().replace("-", "_")
     if target in ENGLISH_TARGETS or raw_target.startswith("en"):
