@@ -7,11 +7,14 @@ from typing import Any
 
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 CHAPTER_RE = re.compile(r"\bchapter\s+([0-9ivxlcdm]+)\b", re.IGNORECASE)
+HTML_SUP_RE = re.compile(r"<\s*sup\b", re.IGNORECASE)
+HTML_LINK_RE = re.compile(r"<\s*a\b", re.IGNORECASE)
 
 
 def inspect_markdown_headings(markdown_text: str) -> tuple[dict[str, Any], dict[str, Any]]:
     headings: list[dict[str, Any]] = []
     chapters: list[dict[str, Any]] = []
+    suspicious_headings: list[dict[str, Any]] = []
     warnings: list[str] = []
 
     for line_number, line in enumerate(markdown_text.splitlines(), start=1):
@@ -25,6 +28,13 @@ def inspect_markdown_headings(markdown_text: str) -> tuple[dict[str, Any], dict[
             "title": title,
         }
         headings.append(heading)
+        reasons: list[str] = []
+        if HTML_SUP_RE.search(title):
+            reasons.append("html_sup")
+        if HTML_LINK_RE.search(title):
+            reasons.append("html_link")
+        if reasons:
+            suspicious_headings.append({**heading, "reasons": reasons})
         chapter_match = CHAPTER_RE.search(title)
         if chapter_match:
             chapters.append(
@@ -42,7 +52,14 @@ def inspect_markdown_headings(markdown_text: str) -> tuple[dict[str, Any], dict[
     headings_report = {
         "schema": "gaiden.heading_inspection.v1",
         "total_headings": len(headings),
+        "h1": sum(1 for heading in headings if heading["level"] == 1),
+        "h2": sum(1 for heading in headings if heading["level"] == 2),
+        "h3": sum(1 for heading in headings if heading["level"] == 3),
+        "h4": sum(1 for heading in headings if heading["level"] == 4),
+        "h5": sum(1 for heading in headings if heading["level"] == 5),
+        "h6": sum(1 for heading in headings if heading["level"] == 6),
         "headings": headings,
+        "suspicious_headings": suspicious_headings,
         "warnings": warnings,
     }
     chapters_report = {
@@ -51,6 +68,10 @@ def inspect_markdown_headings(markdown_text: str) -> tuple[dict[str, Any], dict[
         "chapter_candidates": chapters,
     }
     return headings_report, chapters_report
+
+
+def inspect_markdown(markdown_text: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    return inspect_markdown_headings(markdown_text)
 
 
 def write_inspection_reports(
