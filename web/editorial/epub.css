@@ -44,12 +44,6 @@ div.illustration {
   text-align: center;
 }
 
-p:has(> img),
-div:has(> img),
-figure:has(img) {
-  text-align: center;
-}
-
 figure.chapter-illustration,
 figure.post-cover-illustration,
 .chapter-illustration,

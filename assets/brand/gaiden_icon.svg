@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Gaiden</title>
+  <desc id="desc">Gaiden project launcher icon</desc>
+  <defs>
+    <linearGradient id="bg" x1="92" y1="70" x2="426" y2="444" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f6f68"/>
+      <stop offset="0.55" stop-color="#1f4e7a"/>
+      <stop offset="1" stop-color="#272445"/>
+    </linearGradient>
+    <linearGradient id="page" x1="152" y1="122" x2="374" y2="388" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff8df"/>
+      <stop offset="1" stop-color="#e6d2a1"/>
+    </linearGradient>
+  </defs>
+  <rect x="36" y="36" width="440" height="440" rx="96" fill="url(#bg)"/>
+  <path d="M134 144c38-18 81-18 122 2 41-20 84-20 122-2v230c-38-18-81-18-122 2-41-20-84-20-122-2V144Z" fill="#0d1824" opacity=".36"/>
+  <path d="M138 132c38-16 78-15 118 5v230c-40-20-80-21-118-5V132Z" fill="url(#page)"/>
+  <path d="M256 137c40-20 80-21 118-5v230c-38-16-78-15-118 5V137Z" fill="#f6e9c4"/>
+  <path d="M178 190h54M178 228h48M178 266h54M280 190h54M280 228h48M280 266h54" stroke="#46505a" stroke-width="12" stroke-linecap="round" opacity=".58"/>
+  <path d="M256 137v230" stroke="#7c6841" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+  <path d="M326 336c-19 28-51 45-88 45-65 0-111-47-111-119 0-70 48-119 116-119 44 0 78 18 99 51l-44 28c-12-19-29-29-53-29-38 0-63 28-63 69 0 43 25 70 63 70 29 0 49-13 58-37h-63v-45h115v25c0 22-5 42-15 61Z" fill="#f2c84b"/>
+  <path d="M326 336c-19 28-51 45-88 45-65 0-111-47-111-119 0-70 48-119 116-119 44 0 78 18 99 51" fill="none" stroke="#111827" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+</svg>

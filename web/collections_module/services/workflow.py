@@ -76,8 +76,8 @@ def build_collection_context(collection: Collection) -> dict:
                 "scope": "Book + Collection",
                 "target": "FR",
                 "route": "Agent",
-                "agent": "LE_GRAND_COULHON",
-                "notes": "Tradutor ativo para frances no stage Translate, tanto em Book quanto em Collection.",
+                "agent": "translate_fr_2026",
+                "notes": "Tradutor interno ativo para frances no stage Translate, tanto em Book quanto em Collection.",
             },
             {
                 "scope": "Book + Collection",

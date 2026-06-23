@@ -76,6 +76,32 @@ _VISUAL_CHAPTER_TITLE_RE = re.compile(r"^\s*\*\*.+\*\*\s*$", re.IGNORECASE)
 _EXPLICIT_PRELUDE_HEADINGS = {
     "preface": "Preface",
 }
+_SUPERSCRIPT_MARKER_RE = re.compile(r"([ᴳᴺᴾᴰᶜ])([⁰¹²³⁴⁵⁶⁷⁸⁹]{2})")
+_SUPERSCRIPT_PREFIX_TO_ID = {"ᴳ": "G", "ᴺ": "N", "ᴾ": "P", "ᴰ": "D", "ᶜ": "C"}
+BOOK_0029_EDITORIAL_TITLES = {
+    1: "Happiness and the Human Good",
+    2: "Moral Virtue and Habit",
+    3: "Choice, Responsibility, Courage, and Temperance",
+    4: "The Virtues of Character",
+    5: "Justice",
+    6: "Practical Wisdom and Intellectual Virtue",
+    7: "Self-Control, Weakness, and Pleasure",
+    8: "Friendship: Its Kinds and Foundations",
+    9: "Friendship and the Good Life",
+    10: "Pleasure, Contemplation, and Final Happiness",
+}
+_SUPERSCRIPT_DIGITS_TO_ASCII = {
+    "⁰": "0",
+    "¹": "1",
+    "²": "2",
+    "³": "3",
+    "⁴": "4",
+    "⁵": "5",
+    "⁶": "6",
+    "⁷": "7",
+    "⁸": "8",
+    "⁹": "9",
+}
 
 
 def _resolve_cover_path(edition: Edition) -> Path | None:
@@ -587,6 +613,99 @@ def _repair_missing_referenced_assets(edition: Edition, builds_base: Path, merge
             shutil.copy2(source, target)
 
 
+def _glossary_candidate_paths(edition: Edition, builds_base: Path) -> list[Path]:
+    book_code = edition.work.code
+    lang = edition.language.code
+    return [
+        builds_base / "glossary" / "glossary.json",
+        builds_base / "glossary" / f"{book_code}_{lang}_glossary.json",
+        builds_base / "glossary" / f"{book_code}_glossary.json",
+        builds_base / "glossary" / f"{book_code}_nicomachean_ethics_glossary_FINAL.json",
+        builds_base / f"{book_code}_glossary.json",
+        storage.data_dir() / "glossaries" / book_code / lang / "glossary.json",
+    ]
+
+
+def _load_external_glossary_entries(edition: Edition, builds_base: Path) -> list[dict]:
+    for path in _glossary_candidate_paths(edition, builds_base):
+        if not path.exists() or path.stat().st_size == 0:
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            continue
+        entries = payload.get("entries") if isinstance(payload, dict) else None
+        if isinstance(entries, list):
+            return [entry for entry in entries if isinstance(entry, dict) and entry.get("id")]
+    return []
+
+
+def _superscript_marker_to_glossary_id(prefix: str, digits: str) -> str:
+    ascii_digits = "".join(_SUPERSCRIPT_DIGITS_TO_ASCII[digit] for digit in digits)
+    return f"{_SUPERSCRIPT_PREFIX_TO_ID[prefix]}{ascii_digits}"
+
+
+def _link_external_glossary_markers(text: str, entries: list[dict]) -> str:
+    entry_ids = {str(entry.get("id") or "").upper() for entry in entries}
+
+    def replace(match: re.Match[str]) -> str:
+        glossary_id = _superscript_marker_to_glossary_id(match.group(1), match.group(2))
+        marker = match.group(0)
+        if glossary_id.upper() not in entry_ids:
+            return marker
+        return f"[{marker}](#glossary-{glossary_id.lower()})"
+
+    return _SUPERSCRIPT_MARKER_RE.sub(replace, text)
+
+
+def _external_glossary_group_title(category: str) -> str:
+    if category in {"greek_term", "greek_phrase"}:
+        return "Greek Terms"
+    if category in {"city", "people_or_region"}:
+        return "Places and Peoples"
+    if category in {"god", "divine_figure"}:
+        return "Gods and Divine Figures"
+    if category in {"technical_concept"}:
+        return "Technical Concepts"
+    return "Names and Historical References"
+
+
+def _build_external_glossary_markdown(entries: list[dict]) -> str:
+    if not entries:
+        return ""
+    groups: dict[str, list[dict]] = {}
+    for entry in entries:
+        groups.setdefault(_external_glossary_group_title(str(entry.get("category") or "")), []).append(entry)
+
+    lines = ["# Glossary"]
+    group_order = [
+        "Greek Terms",
+        "Names and Historical References",
+        "Places and Peoples",
+        "Gods and Divine Figures",
+        "Technical Concepts",
+    ]
+    for group in group_order:
+        group_entries = groups.get(group) or []
+        if not group_entries:
+            continue
+        lines.extend(["", f"## {group}"])
+        for entry in group_entries:
+            entry_id = str(entry.get("id") or "").upper()
+            anchor = f"glossary-{entry_id.lower()}"
+            display = str(entry.get("display") or entry.get("name") or entry.get("english") or entry_id).strip()
+            lines.extend(["", f"### [{entry_id}] {display} {{#{anchor}}}"])
+            if entry.get("greek"):
+                lines.append(f"**Greek:** {entry['greek']}  ")
+            if entry.get("transliteration"):
+                lines.append(f"**Transliteration:** {entry['transliteration']}  ")
+            if entry.get("english"):
+                lines.append(f"**Meaning:** {entry['english']}.  ")
+            if entry.get("note"):
+                lines.append(f"**Note:** {entry['note']}")
+    return "\n".join(lines).strip() + "\n"
+
+
 def _remove_manual_contents_block(md_text: str) -> str:
     """
     Remove manually authored "Contents" block inside miolo.
@@ -797,8 +916,11 @@ def _normalize_pre_chapter_prelude(md_text: str, edition: Edition) -> str:
     if not prelude:
         return "\n".join(chapters).strip() + "\n"
 
+    if edition.work.code == "book_0030":
+        return "\n".join(chapters).strip() + "\n"
+
     if prelude and any(_looks_like_paragraph(line) for line in prelude) and not any(line.strip().startswith("#") for line in prelude):
-        prelude = [f"# {explicit_heading or 'Adapted Preface'}", ""] + prelude
+        prelude = [f"# {explicit_heading or 'Preface'}", ""] + prelude
 
     merged = prelude + [""] + chapters
     return "\n".join(merged).strip() + "\n"
@@ -848,8 +970,84 @@ def _assert_no_marker_in_headings(md_text: str) -> None:
             )
 
 
+def _assert_short_structural_headings(md_text: str, limit: int = 60) -> None:
+    for line_no, raw in enumerate(md_text.splitlines(), start=1):
+        stripped = raw.strip()
+        if not stripped.startswith("#"):
+            continue
+        heading = re.sub(r"^#{1,6}\s+", "", stripped).strip()
+        heading_limit = 80 if re.match(r"^Book\s+\d{2}\s+—\s+", heading) else limit
+        if len(heading) <= heading_limit:
+            continue
+        raise RuntimeError(
+            f"EPUB/PDF heading validation failed: heading longer than {heading_limit} characters "
+            f"at line {line_no}: {heading}"
+        )
+
+
+def _apply_book_0029_editorial_titles(md_text: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        hashes = match.group(1)
+        book_num = int(match.group(2))
+        title = BOOK_0029_EDITORIAL_TITLES.get(book_num)
+        if not title:
+            return match.group(0)
+        return f"{hashes} Book {book_num:02d} — {title}"
+
+    return re.sub(
+        r"(?m)^(#{1,6})\s*Book\s+(\d{1,2})\b(?:\s*[.:—-].*)?$",
+        replace,
+        md_text,
+    )
+
+
+def _book_0029_title_report() -> dict[str, str]:
+    return {f"Book {num:02d}": title for num, title in BOOK_0029_EDITORIAL_TITLES.items()}
+
+
+def _assert_book_0029_editorial_titles(md_text: str) -> None:
+    found: list[tuple[int, str]] = []
+    for line_no, raw in enumerate(md_text.splitlines(), start=1):
+        m = re.match(r"^#\s+Book\s+(\d{2})\s+—\s+(.+?)\s*$", raw.strip())
+        if not m:
+            continue
+        number = int(m.group(1))
+        found.append((number, m.group(2)))
+
+    expected_numbers = list(BOOK_0029_EDITORIAL_TITLES)
+    found_numbers = [number for number, _ in found]
+    if found_numbers != expected_numbers:
+        raise RuntimeError(
+            "Book title validation failed: expected Book 01 through Book 10 in order; "
+            f"found {found_numbers}"
+        )
+
+    for number, title in found:
+        expected = BOOK_0029_EDITORIAL_TITLES[number]
+        if title != expected:
+            raise RuntimeError(
+                f"Book title validation failed for Book {number:02d}: "
+                f"expected {expected!r}, found {title!r}"
+            )
+
+
+def _assert_chapter_headings_short(md_text: str, limit: int = 30) -> None:
+    for line_no, raw in enumerate(md_text.splitlines(), start=1):
+        heading = re.sub(r"^#{1,6}\s+", "", raw.strip()).strip()
+        if not re.match(r"^Chapter\s+\d{2}\.$", heading):
+            if re.match(r"^Chapter\b", heading):
+                raise RuntimeError(f"Chapter heading validation failed at line {line_no}: {heading}")
+            continue
+        if len(heading) > limit:
+            raise RuntimeError(
+                f"Chapter heading validation failed: heading longer than {limit} characters "
+                f"at line {line_no}: {heading}"
+            )
+
+
 def _clean_leaked_body_markers(md_text: str) -> tuple[str, list[dict[str, object]]]:
     _assert_no_marker_in_headings(md_text)
+    _assert_short_structural_headings(md_text)
     matches = _find_leaked_marker_matches(md_text)
     cleaned = _FULL_LINE_MARKER_RE.sub("", md_text)
     cleaned = _PARA_LEAD_MARKER_RE.sub(r"\1\2", cleaned)
@@ -936,7 +1134,7 @@ def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
             key_num = parsed if parsed is not None else num.lower()
         return (prefix, key_num)
 
-    def _chapter_text_with_subtitle(chapter_text: str, lines: list[str], idx: int) -> tuple[str, set[int]]:
+    def _chapter_text_with_body(chapter_text: str, lines: list[str], idx: int) -> tuple[str, list[str], set[int]]:
         m = _PLAIN_CHAPTER_LINE_RE.match(chapter_text.strip())
         if m:
             prefix = m.group(1).capitalize()
@@ -945,14 +1143,16 @@ def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
         else:
             n = _match_plain_numeric_heading(chapter_text)
             if not n:
-                return chapter_text.strip(), set()
+                return chapter_text.strip(), [], set()
             prefix = _chapter_label_for_language(language)
             num = n.group(1).strip()
             tail = (n.group(2) or "").strip().lstrip(" .:-–—")
         consumed: set[int] = set()
+        body_lines: list[str] = []
 
         if not tail:
-            # If a bold title appears soon after (optionally after image), merge it into the heading.
+            # If a bold title appears soon after (optionally after image), keep it as body
+            # text below the short chapter heading. EPUB/PDF TOC headings must stay short.
             for look_ahead in range(1, 9):
                 j = idx + look_ahead
                 if j >= len(lines):
@@ -971,18 +1171,13 @@ def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
                 break
 
         if tail:
-            if num.isdigit():
-                return f"{prefix} {int(num):02d} - {tail}", consumed
-            parsed = _roman_to_int(num)
-            if parsed is not None:
-                return f"{prefix} {parsed:02d} - {tail}", consumed
-            return f"{prefix} {num} - {tail}", consumed
+            body_lines.append(tail)
         if num.isdigit():
-            return f"{prefix} {int(num):02d}", consumed
+            return f"{prefix} {int(num):02d}.", body_lines, consumed
         parsed = _roman_to_int(num)
         if parsed is not None:
-            return f"{prefix} {parsed:02d}", consumed
-        return f"{prefix} {num}", consumed
+            return f"{prefix} {parsed:02d}.", body_lines, consumed
+        return f"{prefix} {num}.", body_lines, consumed
 
     src_lines = md_text.splitlines()
     out: list[str] = []
@@ -1018,23 +1213,28 @@ def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
                 chapter_text = stripped
 
         if chapter_text is not None:
-            normalized_chapter, consumed = _chapter_text_with_subtitle(chapter_text, src_lines, i)
+            normalized_chapter, body_lines, consumed = _chapter_text_with_body(chapter_text, src_lines, i)
             consumed_lines.update(consumed)
             if out and out[-1].strip():
                 out.append("")
-            out.append(f"# {normalized_chapter}")
+            heading_hashes = "#" if normalized_chapter.lower().startswith("book ") else "##"
+            out.append(f"{heading_hashes} {normalized_chapter}")
+            if body_lines:
+                out.append("")
+                out.extend(body_lines)
             i += 1
             continue
 
         out.append(line)
         i += 1
 
-    # Keep only one occurrence per chapter key, but preserve the richest title variant.
-    # If we saw "Chapter 7" first and later "Chapter 7: The Stapletons...", replace
-    # the earlier heading text in-place with the richer one.
+    # Keep only one occurrence per chapter key within the current book, but preserve
+    # the richest title variant. Chapter numbers repeat across books, so the book
+    # scope is part of the dedupe key.
     deduped: list[str] = []
-    seen_index: dict[tuple[str, str | int], int] = {}
-    seen_tail_len: dict[tuple[str, str | int], int] = {}
+    seen_index: dict[tuple[tuple[str, str | int] | None, tuple[str, str | int]], int] = {}
+    seen_tail_len: dict[tuple[tuple[str, str | int] | None, tuple[str, str | int]], int] = {}
+    current_book_key: tuple[str, str | int] | None = None
     for line in out:
         stripped = line.strip()
         m = _CHAPTER_MD_LINE_RE.match(stripped)
@@ -1042,16 +1242,19 @@ def _normalize_chapter_headings(md_text: str, language: str = "en") -> str:
             key = _chapter_key(
                 f"{m.group(1)} {m.group(2)}{m.group(3)}"
             )
+            if key and key[0] == "book":
+                current_book_key = key
             tail_len = len((m.group(3) or "").strip())
-            if key and key in seen_index:
-                prev_idx = seen_index[key]
-                if tail_len > seen_tail_len.get(key, 0):
+            scoped_key = (None if key and key[0] == "book" else current_book_key, key) if key else None
+            if scoped_key and scoped_key in seen_index:
+                prev_idx = seen_index[scoped_key]
+                if tail_len > seen_tail_len.get(scoped_key, 0):
                     deduped[prev_idx] = line
-                    seen_tail_len[key] = tail_len
+                    seen_tail_len[scoped_key] = tail_len
                 continue
-            if key:
-                seen_index[key] = len(deduped)
-                seen_tail_len[key] = tail_len
+            if scoped_key:
+                seen_index[scoped_key] = len(deduped)
+                seen_tail_len[scoped_key] = tail_len
         deduped.append(line)
 
     return "\n".join(deduped).strip() + "\n"
@@ -1256,6 +1459,10 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     core_txt = _remove_unwanted_taglines(core_txt).strip()
     core_txt = _remove_manual_contents_block(core_txt).strip()
     core_txt = _normalize_chapter_headings(core_txt, edition.language.code).strip()
+    if edition.work.code == "book_0029" and edition.language.code.lower() in {"en", "en-us"}:
+        core_txt = _apply_book_0029_editorial_titles(core_txt).strip()
+        _assert_book_0029_editorial_titles(core_txt)
+        _assert_chapter_headings_short(core_txt)
     core_txt = _demote_pre_chapter_headings(core_txt).strip()
     core_txt = _normalize_pre_chapter_prelude(core_txt, edition).strip()
     core_txt = _renumber_core_aphorisms(core_txt).strip()
@@ -1273,11 +1480,14 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     glossary_entries = _extract_glossary_entries(supplements_txt)
     supplements_txt = _inject_glossary_ids(supplements_txt, glossary_entries).strip()
     core_txt = _annotate_first_glossary_mentions(core_txt, glossary_entries).strip()
+    external_glossary_entries = _load_external_glossary_entries(edition, builds_base)
 
     if supplements_txt:
         miolo_txt = f"{core_txt}\n\n{supplements_txt}"
     else:
         miolo_txt = core_txt
+    if external_glossary_entries:
+        miolo_txt = _link_external_glossary_markers(miolo_txt, external_glossary_entries)
     miolo_txt, cleanup_matches = _clean_leaked_body_markers(miolo_txt)
     miolo_txt, image_alt_matches = _clean_technical_image_alt_markers(miolo_txt)
     miolo_txt = _normalize_pagebreaks(miolo_txt).strip()
@@ -1288,10 +1498,15 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     if epilogue_path.exists():
         epilogue_txt = _normalize_pagebreaks(epilogue_path.read_text(encoding="utf-8").rstrip()).strip()
         epilogue_txt = _annotate_first_glossary_mentions(epilogue_txt, glossary_entries).strip()
+        if external_glossary_entries:
+            epilogue_txt = _link_external_glossary_markers(epilogue_txt, external_glossary_entries)
 
     merged_txt = "".join(sections) + "\n\n" + miolo_txt.strip()
     if epilogue_txt:
         merged_txt += "\n\n" + epilogue_txt
+    external_glossary_txt = _build_external_glossary_markdown(external_glossary_entries)
+    if external_glossary_txt:
+        merged_txt += "\n\n" + external_glossary_txt.strip()
     merged_txt += "\n"
     _repair_missing_referenced_assets(edition, builds_base, merged_txt)
 
@@ -1314,7 +1529,7 @@ def _rewrite_glossary_internal_links(epub_path: Path) -> None:
             if not name.endswith(".xhtml"):
                 continue
             data = zin.read(name).decode("utf-8", errors="ignore")
-            if 'id="glossary-term-' in data:
+            if re.search(r'id="glossary-(?:term-\d+|[a-z]\d{2})"', data):
                 glossary_member = name
                 break
 
@@ -1333,7 +1548,7 @@ def _rewrite_glossary_internal_links(epub_path: Path) -> None:
                         text = raw.decode("utf-8", errors="ignore")
                         if info.filename != glossary_member:
                             text = re.sub(
-                                r'href="#(glossary-term-\d+)"',
+                                r'href="#(glossary-(?:term-\d+|[a-z]\d{2}))"',
                                 rf'href="{glossary_href}#\1"',
                                 text,
                             )

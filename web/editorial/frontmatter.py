@@ -180,8 +180,33 @@ def sanitize_section_body(text: str, section_heading: str) -> str:
 
 def _normalize_frontispiece_body(text: str) -> str:
     lines = [line.strip() for line in text.splitlines()]
-    blocks = [line for line in lines if line]
+    blocks = []
+    for line in lines:
+        if not line:
+            continue
+        heading = re.match(r"^(#{1,5})\s+(.+)$", line)
+        if heading:
+            # Frontispiece is already wrapped in "# Frontispiece"; demote nested
+            # headings below split-level 2 so Pandoc keeps the title page as a
+            # single EPUB/PDF page while still allowing body chapters as h2.
+            level = max(3, len(heading.group(1)) + 1)
+            blocks.append(f"{'#' * level} {heading.group(2).strip()}")
+            continue
+        blocks.append(line)
     return "\n\n".join(blocks).strip()
+
+
+def _demote_nested_frontmatter_headings(text: str) -> str:
+    out: list[str] = []
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        heading = re.match(r"^(#{1,5})\s+(.+)$", line.strip())
+        if heading:
+            level = max(3, len(heading.group(1)))
+            out.append(f"{'#' * level} {heading.group(2).strip()}")
+            continue
+        out.append(line)
+    return "\n".join(out).strip()
 
 
 def _normalize_copyright_body(text: str) -> str:
@@ -216,8 +241,8 @@ def _normalize_frontmatter_body(section_key: str, text: str) -> str:
     if section_key == "frontispiece":
         return _normalize_frontispiece_body(text)
     if section_key == "copyright":
-        return _normalize_copyright_body(text)
-    return text
+        return _demote_nested_frontmatter_headings(_normalize_copyright_body(text))
+    return _demote_nested_frontmatter_headings(text)
 
 
 def _section_file_name(section_name: str) -> str:

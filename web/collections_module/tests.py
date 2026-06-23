@@ -110,7 +110,7 @@ class CollectionModuleTests(TestCase):
 
         self.assertIsNotNone(french_option)
         self.assertEqual(french_option["route"], "Agent")
-        self.assertEqual(french_option["agent"], "LE_GRAND_COULHON")
+        self.assertEqual(french_option["agent"], "translate_fr_2026")
 
     def test_collection_create_page_uses_responsive_selection_ui(self):
         response = self.client.get(reverse("collection_new"))

@@ -114,6 +114,37 @@ class ChapterAgentSplitLogicTests(TestCase):
                 self.assertLessEqual(len(path.read_text(encoding="utf-8")), 1200)
             self.assertIn("## Chapter 2 - The Road", chapter_two_files[0].read_text(encoding="utf-8"))
 
+    def test_low_coverage_false_numbered_chapters_falls_back_to_full_text(self):
+        merged_text = (
+            "INTRODUCTION\n\n"
+            "Opening introduction paragraph.\n\n"
+            "1. This numbered paragraph is an argument inside the introduction.\n\n"
+            "Body of the first numbered paragraph.\n\n"
+            "2. This numbered paragraph is also not a chapter.\n\n"
+            + ("Second numbered paragraph body. " * 80)
+            + "\n\nBIBLIOGRAPHY\n\n"
+            + ("Bibliography entry. " * 100)
+            + "\n\nBOOK 1\n\nCHAPTER 1\n\n"
+            + ("Real chapter body. " * 500)
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest = write_chapter_split_artifacts(
+                merged_text,
+                root / "parts",
+                max_chars_per_part=1200,
+            )
+
+            self.assertTrue(manifest["fallback_used"])
+            self.assertGreater(manifest["coverage_ratio"], 0.99)
+            parts = sorted((root / "parts").glob("*.txt"))
+            self.assertGreater(len(parts), 3)
+            joined = "\n".join(path.read_text(encoding="utf-8") for path in parts)
+            self.assertIn("INTRODUCTION", joined)
+            self.assertIn("BOOK 1", joined)
+            self.assertIn("Real chapter body.", joined)
+
     def test_split_chapter_into_parts_prefers_numbered_boundaries_when_available(self):
         merged_text = (
             "## Chapter 1 - Devotional\n\n"
@@ -364,9 +395,9 @@ class ChapterAgentServiceTests(TestCase):
         source_files = sorted(p.name for p in source_dir.glob("*.txt"))
         self.assertEqual(source_files, ["chapter_01_part_01.txt", "chapter_01_part_02.txt"])
         self.assertEqual(source_label, "split_by_chapter/parts")
-        self.assertEqual(out_dir, split_root / "return_aldebaran")
-        self.assertEqual(profile_cfg["agent_name"], "Aldebaran")
-        self.assertEqual(profile, "ingles_neutro")
+        self.assertEqual(out_dir, split_root / "return_refine_en_us_2026")
+        self.assertEqual(profile_cfg["agent_name"], "refine_en_us_2026")
+        self.assertEqual(profile, "refine_en_us_2026")
 
     def test_prepare_refine_agent_handoff_uses_return_kaiser_for_german(self):
         build_dir = paths.edition_build_dir(self.edition)

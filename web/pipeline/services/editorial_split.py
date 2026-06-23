@@ -62,6 +62,14 @@ def run_split_struct(edition) -> int:
     return len(units)
 
 
+def _text_coverage_ratio(source_text: str, chunks: list) -> float:
+    source_chars = len(source_text.strip())
+    if source_chars <= 0:
+        return 0.0
+    chunk_chars = sum(len((getattr(chunk, "text", "") or "").strip()) for chunk in chunks)
+    return chunk_chars / source_chars
+
+
 def run_split_01(edition, min_tokens: int = 1500, target_tokens: int = 1800, max_tokens: int = 2000) -> int:
     normalized = _get_normalized_text(edition)
     _ensure_normalized_file(edition, normalized)
@@ -73,7 +81,7 @@ def run_split_01(edition, min_tokens: int = 1500, target_tokens: int = 1800, max
         target_tokens,
         max_tokens,
     )
-    if not chunks:
+    if not chunks or _text_coverage_ratio(normalized, chunks) < 0.80:
         chunks = make_chunks_from_text(
             normalized,
             edition_meta.language_code(edition),

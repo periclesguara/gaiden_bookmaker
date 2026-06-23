@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
+HOST="${GAIDEN_HOST:-127.0.0.1}"
+PORT="${GAIDEN_PORT:-8000}"
+URL="${GAIDEN_URL:-http://${HOST}:${PORT}/}"
+LOG_DIR="$PROJECT_ROOT/data/tmp/launcher"
+LOG_FILE="$LOG_DIR/django_runserver.log"
+PID_FILE="$LOG_DIR/django_runserver.pid"
+
+mkdir -p "$LOG_DIR"
+
+export DJANGO_SECRET_KEY="${DJANGO_SECRET_KEY:-dev-only}"
+export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-gaiden_portal.settings}"
+export GAIDEN_DATA_ROOT="${GAIDEN_DATA_ROOT:-$PROJECT_ROOT/data}"
+export GAIDEN_STORAGE_ROOT="${GAIDEN_STORAGE_ROOT:-$GAIDEN_DATA_ROOT}"
+export GAIDEN_DB_FINGERPRINT="${GAIDEN_DB_FINGERPRINT:-local-postgres-gaiden}"
+export PGHOST="${PGHOST:-127.0.0.1}"
+export PGPORT="${PGPORT:-5432}"
+export PGDATABASE="${PGDATABASE:-gaiden}"
+export PGUSER="${PGUSER:-gaiden}"
+export PGPASSWORD="${PGPASSWORD:-gaiden}"
+export POSTGRES_HOST="${POSTGRES_HOST:-$PGHOST}"
+export POSTGRES_PORT="${POSTGRES_PORT:-$PGPORT}"
+export POSTGRES_DB="${POSTGRES_DB:-$PGDATABASE}"
+export POSTGRES_USER="${POSTGRES_USER:-$PGUSER}"
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$PGPASSWORD}"
+
+PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  PYTHON_BIN="$(command -v python3 || command -v python)"
+fi
+
+port_open() {
+  "$PYTHON_BIN" - "$HOST" "$PORT" <<'PY'
+import socket
+import sys
+
+host = sys.argv[1]
+port = int(sys.argv[2])
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.settimeout(0.4)
+    raise SystemExit(0 if sock.connect_ex((host, port)) == 0 else 1)
+PY
+}
+
+if command -v code >/dev/null 2>&1; then
+  code "$PROJECT_ROOT" >/dev/null 2>&1 &
+fi
+
+if port_open; then
+  echo "Django ja esta rodando em ${HOST}:${PORT}."
+else
+  : >"$LOG_FILE"
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$PYTHON_BIN" web/manage.py runserver --noreload "${HOST}:${PORT}" >"$LOG_FILE" 2>&1 < /dev/null &
+  else
+    nohup "$PYTHON_BIN" web/manage.py runserver --noreload "${HOST}:${PORT}" >"$LOG_FILE" 2>&1 < /dev/null &
+  fi
+  SERVER_PID=$!
+  disown "$SERVER_PID" >/dev/null 2>&1 || true
+  echo "$SERVER_PID" >"$PID_FILE"
+  for _ in $(seq 1 40); do
+    if port_open; then
+      echo "Django iniciado em ${HOST}:${PORT} (PID ${SERVER_PID})."
+      break
+    fi
+    if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+      echo "Falha ao iniciar Django. Veja o log: $LOG_FILE" >&2
+      tail -40 "$LOG_FILE" >&2 || true
+      exit 1
+    fi
+    sleep 0.5
+  done
+  if ! port_open; then
+    echo "Django ainda nao respondeu em ${HOST}:${PORT}. Veja o log: $LOG_FILE" >&2
+    exit 1
+  fi
+fi
+
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$URL" >/dev/null 2>&1 &
+elif command -v sensible-browser >/dev/null 2>&1; then
+  sensible-browser "$URL" >/dev/null 2>&1 &
+fi
+
+echo "Gaiden: $URL"
+echo "Projeto VS Code: $PROJECT_ROOT"
+echo "Logs: $LOG_FILE"

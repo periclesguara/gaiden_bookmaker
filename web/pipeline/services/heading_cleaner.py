@@ -10,6 +10,12 @@ from editorial.models import EditionText
 from . import edition_meta, paths
 
 _TOC_HEADING_RE = re.compile(r"^\s*(#{1,6}\s+)?(contents|table of contents)\s*$", re.IGNORECASE)
+_TOC_ENTRY_RE = re.compile(
+    r"^\s*(contents|table of contents|introduction|bibliography|index|"
+    r"book\s+[ivxlcdm]+|chapter\s+[ivxlcdm]+|part\s+[ivxlcdm]+|"
+    r"book\s+\d+|chapter\s+\d+|part\s+\d+)\s*$",
+    re.IGNORECASE,
+)
 _RULE_LINE_RE = re.compile(r"^\s*[-=]{5,}\s*$")
 _DIV_MARKER_RE = re.compile(r"^\s*:::(?:\s+.*)?\s*$")
 _MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*$")
@@ -92,6 +98,31 @@ def _is_body_boundary(stripped: str) -> bool:
     )
 
 
+def _next_nonblank(lines: list[str], start: int) -> str:
+    for idx in range(start, len(lines)):
+        stripped = lines[idx].strip()
+        if stripped:
+            return stripped
+    return ""
+
+
+def _looks_like_body_prose(stripped: str) -> bool:
+    if not stripped or len(stripped) < 35:
+        return False
+    return bool(re.search(r"[a-z]", stripped)) and not _TOC_ENTRY_RE.match(stripped)
+
+
+def _is_probable_toc_entry(stripped: str) -> bool:
+    if not stripped:
+        return True
+    if _TOC_ENTRY_RE.match(stripped):
+        return True
+    # Project Gutenberg TOCs often include the work title as a plain all-caps
+    # line inside the contents block.
+    letters = re.sub(r"[^A-Za-z]", "", stripped)
+    return bool(letters) and letters.upper() == letters and len(stripped) <= 80
+
+
 def _clean_normalized_text(text: str) -> tuple[str, dict[str, int]]:
     lines = text.replace("\r\n", "\n").replace("\r", "\n").splitlines()
     out: list[str] = []
@@ -118,7 +149,11 @@ def _clean_normalized_text(text: str) -> tuple[str, dict[str, int]]:
             j = i + 1
             while j < len(lines):
                 probe = lines[j].strip()
-                if _is_body_boundary(probe):
+                next_probe = _next_nonblank(lines, j + 1)
+                if _is_probable_toc_entry(probe) and not _looks_like_body_prose(next_probe):
+                    j += 1
+                    continue
+                if _looks_like_body_prose(next_probe) or _is_body_boundary(probe):
                     break
                 j += 1
             stats["removed_toc_blocks"] += 1

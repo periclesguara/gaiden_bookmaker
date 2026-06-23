@@ -5,6 +5,10 @@ import re
 from pathlib import Path
 from typing import Any
 
+from gaiden.application.pipeline.safe_text_splitter import (
+    split_long_paragraph_sentence_aware,
+    split_text_by_paragraphs_sentence_aware,
+)
 from gaiden.openai_client import get_client
 
 DEFAULT_MODEL = "gpt-5.4"
@@ -13,6 +17,7 @@ DEFAULT_MAX_OUTPUT_TOKENS = 4000
 PARTS_PER_CHAPTER = 1
 MAX_PARTS_PER_CHAPTER = 4
 DEFAULT_MAX_CHARS_PER_PART = 6000
+MIN_SPLIT_COVERAGE_RATIO = 0.95
 
 _ORDINAL_WORD_MAP = {
     "first": 1,
@@ -54,6 +59,11 @@ _CHAPTER_LINE_PATTERNS = [
 _EPILOGUE_LINE_RE = re.compile(r"^epilogue\b.*$", re.IGNORECASE)
 _TRAILING_SECTION_LINE_PATTERNS = [
     re.compile(r"^#{1,6}\s*(appendix|appendices|notes|endnotes|glossary|bibliography|index)\b.*$", re.IGNORECASE),
+    re.compile(r"^(appendix|appendices|notes|endnotes|glossary|bibliography|index)\b.*$", re.IGNORECASE),
+]
+_TERMINAL_NOTES_SECTION_LINE_PATTERNS = [
+    re.compile(r"^#{1,6}\s*(notes|endnotes|glossary|bibliography|index)\b.*$", re.IGNORECASE),
+    re.compile(r"^(notes|endnotes|glossary|bibliography|index)\b.*$", re.IGNORECASE),
 ]
 _ROMAN_MAP = {
     "I": 1,
@@ -175,6 +185,14 @@ def _trailing_nonchapter_boundary(lines: list[str], *, after_index: int) -> int 
     return None
 
 
+def _terminal_notes_boundary(lines: list[str], *, after_index: int) -> int | None:
+    for idx in range(after_index + 1, len(lines)):
+        stripped = lines[idx].strip()
+        if stripped and any(pattern.match(stripped) for pattern in _TERMINAL_NOTES_SECTION_LINE_PATTERNS):
+            return idx
+    return None
+
+
 def _chapter_candidates(lines: list[str]) -> list[dict[str, Any]]:
     headings = [idx for idx, line in enumerate(lines) if _match_chapter_heading(line)]
     candidates: list[dict[str, Any]] = []
@@ -221,6 +239,12 @@ def _select_coherent_chapter_sequence(candidates: list[dict[str, Any]]) -> list[
             chapters_in_current_run += 1
             continue
 
+        if number == 1 and chapters_in_current_run < 4 and body_chars >= _MIN_CHAPTER_BODY_CHARS:
+            accepted = [item]
+            last_number = 1
+            chapters_in_current_run = 1
+            continue
+
         if number == 1 and chapters_in_current_run >= 4 and body_chars >= _MIN_CHAPTER_BODY_CHARS:
             accepted.append(item)
             last_number = 1
@@ -254,6 +278,15 @@ def split_merged_text_into_chapters(text: str) -> list[dict[str, Any]]:
     accepted = _select_coherent_chapter_sequence(candidates)
     if not accepted:
         accepted = _select_fragment_chapter_sequence(candidates)
+    if accepted:
+        first_boundary = int(accepted[0]["line_index"])
+        trailing_boundary = _terminal_notes_boundary(lines, after_index=first_boundary - 1)
+        if trailing_boundary is not None:
+            accepted = [
+                item
+                for item in accepted
+                if int(item.get("line_index") or 0) < trailing_boundary
+            ]
     if not accepted:
         cleaned = text.strip()
         if not cleaned:
@@ -308,13 +341,20 @@ def _split_dense_text(text: str, parts: int) -> list[str]:
     spans: list[str] = []
     cursor = 0
     total_len = len(cleaned)
+    target_size = max(1, total_len // parts)
     for idx in range(parts):
         if idx == parts - 1:
             piece = cleaned[cursor:].strip()
         else:
             target = max(cursor + ((total_len - cursor) // (parts - idx)), cursor + 1)
-            while target < total_len and not cleaned[target].isspace():
-                target += 1
+            window = cleaned[cursor:]
+            safe_parts = split_long_paragraph_sentence_aware(window, max(target - cursor, target_size))
+            if safe_parts:
+                piece = safe_parts[0].strip()
+                target = cursor + len(piece)
+            else:
+                while target < total_len and not cleaned[target].isspace():
+                    target += 1
             piece = cleaned[cursor:target].strip()
             cursor = target
         if piece:
@@ -439,10 +479,13 @@ def split_chapter_into_char_limited_parts(
         raise ValueError("max_chars deve ser pelo menos 1000.")
     content_budget = max_chars - 1
 
+    safe_chunks = split_text_by_paragraphs_sentence_aware(cleaned, content_budget)
+    if safe_chunks:
+        return safe_chunks
+
     paragraphs = [item.strip() for item in re.split(r"\n\s*\n", cleaned) if item.strip()]
     if not paragraphs:
         return _split_dense_text(cleaned, max(1, (len(cleaned) + content_budget - 1) // content_budget))
-
     out: list[str] = []
     current: list[str] = []
     current_chars = 0
@@ -472,6 +515,29 @@ def split_chapter_into_char_limited_parts(
     return out
 
 
+def _chapter_split_coverage(source_text: str, chapters: list[dict[str, Any]]) -> float:
+    source_chars = len(source_text.strip())
+    if source_chars <= 0:
+        return 0.0
+    chapter_chars = sum(len(str(chapter.get("text") or "").strip()) for chapter in chapters)
+    return chapter_chars / source_chars
+
+
+def _fallback_full_text_chapter(merged_text: str) -> list[dict[str, Any]]:
+    cleaned = merged_text.strip()
+    if not cleaned:
+        return []
+    return [
+        {
+            "index": 1,
+            "heading": "Full Text",
+            "slug": "01_full_text",
+            "text": cleaned + "\n",
+            "fallback": "full_text",
+        }
+    ]
+
+
 def write_chapter_split_artifacts(
     merged_text: str,
     output_dir: Path,
@@ -483,6 +549,12 @@ def write_chapter_split_artifacts(
     chapters = split_merged_text_into_chapters(merged_text)
     if not chapters:
         raise ValueError("merge_translate vazio ou sem conteudo processavel.")
+    coverage_ratio = _chapter_split_coverage(merged_text, chapters)
+    fallback_used = False
+    if coverage_ratio < MIN_SPLIT_COVERAGE_RATIO:
+        chapters = _fallback_full_text_chapter(merged_text)
+        coverage_ratio = _chapter_split_coverage(merged_text, chapters)
+        fallback_used = True
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -490,14 +562,17 @@ def write_chapter_split_artifacts(
         "parts_per_chapter": parts_per_chapter,
         "max_chars_per_part": max_chars_per_part,
         "chapter_count": len(chapters),
+        "coverage_ratio": coverage_ratio,
+        "min_coverage_ratio": MIN_SPLIT_COVERAGE_RATIO,
+        "fallback_used": fallback_used,
         "chapters": [],
     }
 
     for chapter in chapters:
-        if max_chars_per_part:
+        if max_chars_per_part or fallback_used:
             chapter_parts = split_chapter_into_char_limited_parts(
                 chapter["text"],
-                max_chars=max_chars_per_part,
+                max_chars=max_chars_per_part or DEFAULT_MAX_CHARS_PER_PART,
             )
         else:
             chapter_parts = split_chapter_into_parts(chapter["text"], parts=parts_per_chapter)
@@ -512,8 +587,9 @@ def write_chapter_split_artifacts(
             "slug": chapter["slug"],
             "parts": [],
         }
+        part_width = max(2, len(str(len(chapter_parts))))
         for part_index, part_text in enumerate(chapter_parts, start=1):
-            filename = f"chapter_{chapter['index']:02d}_part_{part_index:02d}.txt"
+            filename = f"chapter_{chapter['index']:02d}_part_{part_index:0{part_width}d}.txt"
             part_path = output_dir / filename
             part_path.write_text(part_text, encoding="utf-8")
             chapter_entry["parts"].append(

@@ -156,22 +156,22 @@ class FrenchPolishRoutingTests(TestCase):
 
 
 class TranslateAgentRoutingTests(TestCase):
-    def test_french_translate_uses_le_grand_coulhon(self):
+    def test_french_translate_uses_internal_agent_id(self):
         from pipeline.views import _translate_agent_name
 
-        self.assertEqual(_translate_agent_name("fr"), "LE_GRAND_COULHON")
-        self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "LE_GRAN_COLHOUN")
-        self.assertEqual(_translate_agent_name("ptbr"), "CACIQUE")
-        self.assertEqual(_translate_agent_name("pt-br"), "CACIQUE")
+        self.assertEqual(_translate_agent_name("fr"), "translate_fr_2026")
+        self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "translate_fr_2026")
+        self.assertEqual(_translate_agent_name("ptbr"), "translate_pt_br_2026")
+        self.assertEqual(_translate_agent_name("pt-br"), "translate_pt_br_2026")
 
     def test_agent_translate_default_resolves_french_agent(self):
         from gaiden.tools.agent_translate_default import resolve_agent_for_target
 
-        self.assertEqual(resolve_agent_for_target(suffix="fr"), "LE_GRAND_COULHON")
-        self.assertEqual(resolve_agent_for_target(suffix="ptbr"), "CACIQUE")
+        self.assertEqual(resolve_agent_for_target(suffix="fr"), "translate_fr_2026")
+        self.assertEqual(resolve_agent_for_target(suffix="ptbr"), "translate_pt_br_2026")
         self.assertEqual(
             resolve_agent_for_target(suffix="fr", requested_agent="LE_GRAN_COLHOUN"),
-            "LE_GRAN_COLHOUN",
+            "translate_fr_2026",
         )
 
 
@@ -1585,7 +1585,7 @@ class EnglishPhilosoferTranslateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "EN (modern)")
         self.assertContains(response, "PT-BR (portugues)")
-        self.assertContains(response, "CACIQUE")
+        self.assertContains(response, "translate_pt_br_2026")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
 
@@ -2129,7 +2129,7 @@ class HeadingCleanerGateTests(TestCase):
         self.normalized_path = self.root / "data" / "normalized" / f"{self.book_code}_en_v2.txt"
         self.split_dir = self.root / "data" / "chunks" / "book_9001" / "split_01"
         self.cleaner_dir = self.root / "data" / "chunks" / "book_9001" / "heading_cleaner"
-        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_modern_2026"
+        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_us"
         self.build_dir = self.root / "data" / "builds" / self.book_code / "en"
         self.edition_core_dir = self.root / "data" / "editions" / str(self.edition.id) / "core"
 
@@ -2230,8 +2230,10 @@ class HeadingCleanerGateTests(TestCase):
         self.translated_dir.mkdir(parents=True, exist_ok=True)
         (self.translated_dir / "0001.txt").write_text("stale translate", encoding="utf-8")
         (self.translated_dir / "merged_en_modern_2026.txt").write_text("stale merged", encoding="utf-8")
-        (self.translated_dir / "return_aldebaran").mkdir(parents=True, exist_ok=True)
-        ((self.translated_dir / "return_aldebaran") / "0001.txt").write_text("stale refine", encoding="utf-8")
+        (self.translated_dir / "return_refine_en_us_2026").mkdir(parents=True, exist_ok=True)
+        ((self.translated_dir / "return_refine_en_us_2026") / "0001.txt").write_text(
+            "stale refine", encoding="utf-8"
+        )
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("stale build translate", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("stale build refine", encoding="utf-8")
@@ -2273,15 +2275,15 @@ class HeadingCleanerGateTests(TestCase):
 
         self.assertEqual(source_dir, self.translated_dir)
         self.assertEqual(source_label, "translate_chunks")
-        self.assertEqual(out_dir_path, self.translated_dir / "return_alamaguederaz")
-        self.assertEqual(profile, "ingles_flex")
-        self.assertEqual(profile_cfg["agent_name"], "Alamaguederaz")
+        self.assertEqual(out_dir_path, self.translated_dir / "return_refine_en_us_2026")
+        self.assertEqual(profile, "refine_en_us_2026")
+        self.assertEqual(profile_cfg["agent_name"], "refine_en_us_2026")
         self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
 
     def test_runtime_refine_contract_is_disabled(self):
         from pipeline.views import _build_runtime_refine_contract
 
-        with self.assertRaisesRegex(RuntimeError, "Refine JSON contracts are disabled"):
+        with self.assertRaisesRegex(RuntimeError, "Legacy hosted Refine contracts are disabled"):
             _build_runtime_refine_contract(self.edition, "en")
 
     def test_prompt_echo_line_is_stripped_from_generated_chunk_output(self):
@@ -2320,7 +2322,7 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertEqual(source_dir, self.translated_dir)
-        self.assertEqual(out_dir_path, self.translated_dir / "return_aldebaran")
+        self.assertEqual(out_dir_path, self.translated_dir / "return_refine_en_us_2026")
         self.assertFalse((self.edition_core_dir / "contract_refine_en.json").exists())
 
     def test_agent_refine_return_writes_report_and_rejects_incomplete_merge(self):
@@ -2461,10 +2463,10 @@ class HeadingCleanerGateTests(TestCase):
         (self.build_dir / "merge_translate.txt").parent.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
 
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text("partial refine", encoding="utf-8")
-        (refine_dir / "merged_return_aldebaran.txt").write_text("partial merged refine", encoding="utf-8")
+        (refine_dir / "merged_refine_en_us_2026.txt").write_text("partial merged refine", encoding="utf-8")
 
         response = self.client.get(self.steps_url)
         html = response.content.decode("utf-8")
@@ -2477,8 +2479,9 @@ class HeadingCleanerGateTests(TestCase):
         response = self.client.get(self.steps_url)
 
         self.assertContains(response, 'name="refine_profile"')
-        self.assertContains(response, "Ingles neutro - Aldebaran")
-        self.assertContains(response, "Ingles flex - Alamaguederaz")
+        self.assertContains(response, "Refine_US_EN (2026) - refine_en_us_2026")
+        self.assertNotContains(response, "Ingles neutro - Aldebaran")
+        self.assertNotContains(response, "Ingles flex - Alamaguederaz")
         self.assertNotContains(response, "Inglês filosofia - HeadingCleaner")
 
     def test_steps_reflect_saved_refine_profile(self):
@@ -2489,8 +2492,8 @@ class HeadingCleanerGateTests(TestCase):
 
         response = self.client.get(self.steps_url)
 
-        self.assertContains(response, "6) Refine (Ingles flex)")
-        self.assertContains(response, '<option value="ingles_flex" selected>', html=False)
+        self.assertContains(response, "6) Refine (Refine_US_EN (2026))")
+        self.assertContains(response, '<option value="refine_en_us_2026" selected>', html=False)
 
     def test_pipeline01_step_order_is_fixed(self):
         response = self.client.get(self.steps_url)
@@ -2502,7 +2505,7 @@ class HeadingCleanerGateTests(TestCase):
             "3) Split/Chunk",
             "4) Translate (Agent)",
             "5) Split by Chapter (merge_translate)",
-            "6) Refine (Ingles neutro)",
+            "6) Refine (Refine_US_EN (2026))",
             "7) Merge/Finalize",
             "8) Etapa 3 · Split by Chapter (merge_refine)",
             "9) Polidor Agent",
@@ -2542,7 +2545,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertContains(response, 'name="translate_agent_name"')
         self.assertContains(response, "HeadingCleaner")
         self.assertContains(response, "PT-BR (portugues)")
-        self.assertContains(response, "CACIQUE")
+        self.assertContains(response, "translate_pt_br_2026")
         self.assertNotContains(response, "English-Philosofer")
         self.assertNotContains(response, "English-Devotional")
 
@@ -2703,7 +2706,7 @@ class HeadingCleanerGateTests(TestCase):
             "3) Split/Chunk",
             "4) Translate (Agent)",
             "5) Split by Chapter (merge_translate)",
-            "6) Refine (Ingles neutro)",
+            "6) Refine (Refine_US_EN (2026))",
             "7) Merge/Finalize",
         ]
         positions = [html.find(item) for item in expected]
@@ -2730,10 +2733,10 @@ class HeadingCleanerGateTests(TestCase):
         (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
-        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
         translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
@@ -2791,10 +2794,10 @@ class HeadingCleanerGateTests(TestCase):
         (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
-        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
         translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
@@ -2821,10 +2824,10 @@ class HeadingCleanerGateTests(TestCase):
         (self.translated_dir / "0001.txt").write_text("translated 1", encoding="utf-8")
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
-        (refine_dir / "merged_return_aldebaran.txt").write_text("merged refine", encoding="utf-8")
+        (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
         translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
@@ -2859,10 +2862,10 @@ class HeadingCleanerGateTests(TestCase):
         (self.translated_dir / "0001.txt").write_text("source chunk closes cleanly.", encoding="utf-8")
         self.build_dir.mkdir(parents=True, exist_ok=True)
         (self.build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text("source chunk closes with The", encoding="utf-8")
-        (refine_dir / "merged_return_aldebaran.txt").write_text("bad merged refine", encoding="utf-8")
+        (refine_dir / "merged_refine_en_us_2026.txt").write_text("bad merged refine", encoding="utf-8")
 
         response = self.client.post(
             reverse("pipeline_merge_refine_run", kwargs={"edition_id": self.edition.id}),
@@ -2887,7 +2890,7 @@ class HeadingCleanerGateTests(TestCase):
         (self.split_dir / "0001.txt").write_text(source_chunk, encoding="utf-8")
         (self.translated_dir / "0001.txt").write_text(source_chunk, encoding="utf-8")
 
-        refine_dir = self.translated_dir / "return_aldebaran"
+        refine_dir = self.translated_dir / "return_refine_en_us_2026"
         refine_dir.mkdir(parents=True, exist_ok=True)
         (refine_dir / "0001.txt").write_text(
             'Please provide the passage from *The People of the Black Circle* that you would like me to modernize.\n\n'

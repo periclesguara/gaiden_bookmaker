@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Gaiden
+Comment=Open Gaiden in VS Code, start Django, and launch the browser
+Exec=/home/periclesguara/Projetos/gaiden_bookmaker/scripts/dev/open_gaiden
+Icon=/home/periclesguara/Projetos/gaiden_bookmaker/assets/brand/gaiden_icon.svg
+Terminal=false
+Categories=Development;
+StartupNotify=true

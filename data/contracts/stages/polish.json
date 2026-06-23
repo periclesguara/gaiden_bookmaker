@@ -2,7 +2,7 @@
   "id": "polish",
   "version": "1.0.0",
   "stage_type": "llm_editorial_stage",
-  "description": "Final editorial polish for EN-US classical philosophy prose while preserving meaning, argumentative order, and structure.",
+  "description": "Final conservative editorial polish for EN-US 2026 prose while preserving the refined text as source of truth, meaning, order, structure, tone, and atmosphere.",
   "input_requirements": {
     "requires_chunk": true,
     "requires_language_contract": true,
@@ -14,6 +14,7 @@
     "preserve_headings": true,
     "preserve_paragraphs": true,
     "preserve_argument_order": true,
+    "preserve_narrative_order": true,
     "no_explanations": true,
     "no_notes": true,
     "no_json": true,
@@ -27,16 +28,25 @@
     "recommended_output_location": "data/builds/{book_id}/{language}/split_refine_by_chapter/return_polish_en_us_aristotle_2026/"
   },
   "editorial_behavior": {
-    "primary_goal": "Remove residual stiffness, archaic phrasing, overly long syntax, and translated-sounding English while preserving Aristotle's philosophical meaning.",
+    "primary_goal": "Identify, review, and improve sentences that are too long, overloaded, unclear, stiff, repetitive, or rhythmically heavy while preserving the refined version's meaning, order, tone, and atmosphere.",
     "preserve_meaning": true,
     "preserve_argument_order": true,
+    "preserve_narrative_order": true,
     "preserve_book_and_chapter_structure": true,
     "do_not_summarize": true,
+    "do_not_rewrite": true,
+    "do_not_re_adapt": true,
+    "do_not_translate": true,
     "do_not_add_explanations": true,
     "formal_modern_american_english": true,
-    "classical_philosophy_register": true,
+    "conservative_literary_register": true,
+    "target_surface_intervention_percent": "5-12",
+    "primary_sentence_length_focus": true,
+    "review_every_sentence_above_words": 50,
+    "review_overloaded_sentences_above_words": 35,
     "break_overloaded_sentences_when_needed": true,
     "avoid_casual_or_journalistic_language": true,
-    "avoid_generic_academic_flattening": true
+    "avoid_generic_academic_flattening": true,
+    "avoid_atmosphere_flattening": true
   }
 }
