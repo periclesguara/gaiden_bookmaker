@@ -42,6 +42,14 @@
       "contract_path": "data/contracts/agents/polish_en_us_aristotle_2026.agent.json",
       "enabled": true,
       "default": true
+    },
+    {
+      "id": "polish_fr_universal_2026",
+      "stage": "polish",
+      "language": "fr",
+      "contract_path": "data/contracts/agents/polish_fr_universal_2026.json",
+      "enabled": true,
+      "default": true
     }
   ],
   "resolution_rules": [
@@ -102,6 +110,17 @@
     },
     {
       "when": {
+        "ui_stage": "polish",
+        "target_language": "fr"
+      },
+      "resolve_to": {
+        "stage": "polish",
+        "language": "fr",
+        "agent_id": "polish_fr_universal_2026"
+      }
+    },
+    {
+      "when": {
         "stage": "modernize",
         "language": "en_us"
       },
@@ -134,6 +153,13 @@
         "language": "en_us"
       },
       "use_agent": "polish_en_us_aristotle_2026"
+    },
+    {
+      "when": {
+        "stage": "polish",
+        "language": "fr"
+      },
+      "use_agent": "polish_fr_universal_2026"
     }
   ]
 }

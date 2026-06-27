@@ -30,6 +30,16 @@ FORBIDDEN_FRENCH_REFINE_AGENTS = {
 }
 FR_REFINE_AGENT_ID = "fr_refine_universal_2026"
 FR_REFINE_CONTRACT_NAME = "FR_REFINE_UNIVERSAL"
+FORBIDDEN_FRENCH_POLISH_AGENTS = {
+    "Francês_Polidor",
+    "Frances_Polidor",
+    "frances_polidor",
+    "FR_POLIDOR",
+    "LE_GRAN_COULHON",
+    "LE_GRAND_COULHON",
+}
+FR_POLISH_AGENT_ID = "polish_fr_universal_2026"
+FR_POLISH_CONTRACT_NAME = "POLISH_FR"
 
 
 def load_json_contract(path: str | Path) -> dict[str, Any]:
@@ -111,6 +121,25 @@ def validate_refine_contract_for_language(language: str | None, contract: dict[s
         raise ValueError("French REFINE contract must read model gpt-5.5 from fr_refine_universal_2026.json.")
 
 
+def validate_polish_contract_for_language(language: str | None, contract: dict[str, Any]) -> None:
+    identifiers = {
+        str(contract.get("id") or ""),
+        str(contract.get("agent_name") or ""),
+        str(contract.get("contract_name") or ""),
+        str(contract.get("name") or ""),
+    }
+    if identifiers & FORBIDDEN_FRENCH_POLISH_AGENTS:
+        raise ValueError("Forbidden legacy French polish agent resolved.")
+    if _normalize_language(language) != "fr":
+        return
+    if FR_POLISH_CONTRACT_NAME not in identifiers:
+        raise ValueError("French POLISH must resolve to POLISH_FR.")
+    if str(contract.get("stage") or "").strip() != "polish":
+        raise ValueError("French POLISH contract must use stage polish.")
+    if str(contract.get("model") or "").strip() != "gpt-5-chat-latest":
+        raise ValueError("French POLISH contract must read model gpt-5-chat-latest from polish_fr_universal_2026.json.")
+
+
 def resolve_agent(
     stage: str,
     language: str,
@@ -134,6 +163,8 @@ def resolve_agent(
                 validate_translate_contract_for_language(language, contract)
             if stage == "refine":
                 validate_refine_contract_for_language(language, contract)
+            if stage == "polish":
+                validate_polish_contract_for_language(language, contract)
             return contract
 
     for agent in _enabled_agents(registry):
@@ -146,6 +177,8 @@ def resolve_agent(
                 validate_translate_contract_for_language(language, contract)
             if stage == "refine":
                 validate_refine_contract_for_language(language, contract)
+            if stage == "polish":
+                validate_polish_contract_for_language(language, contract)
             return contract
 
     raise LookupError(f"No agent resolved for stage={stage} language={language}")

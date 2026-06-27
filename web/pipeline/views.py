@@ -182,12 +182,12 @@ POLISH_AGENT_OPTIONS = (
 POLISH_AGENT_DEFAULT_BY_LANGUAGE = {
     "en": "polish_en_us_aristotle_2026",
     "ptbr": "Cacique Tibiriça",
-    "fr": "Francês_Polidor",
+    "fr": "polish_fr_universal_2026",
 }
 POLISH_AGENT_OPTIONS_BY_LANGUAGE = {
     "en": POLISH_AGENT_OPTIONS,
     "ptbr": ("Cacique Tibiriça",),
-    "fr": ("Francês_Polidor",),
+    "fr": ("polish_fr_universal_2026",),
 }
 TRANSLATE_VARIANT_OPTIONS = (
     {"value": "en_us", "label": "EN-US (Modernize 2026)", "base_language": "en"},
@@ -2086,7 +2086,8 @@ def _global_core_edition(edition) -> EditorialEdition:
 
 
 def _processing_base_edition(edition) -> EditorialEdition:
-    language = utils.normalize_lang(edition.language.code)
+    target_language = utils.normalize_lang(edition.language.code)
+    language = target_language
     if language == "en":
         return edition
 
@@ -2387,6 +2388,7 @@ def _count_non_merged_txt_files(directory: Path | None) -> int:
                 p.name == "merged.txt"
                 or p.name.startswith("merged_")
                 or p.name.startswith("merge_")
+                or p.name.startswith("LATEST_")
                 or (p.name.startswith("book_") and "__" in p.name)
             )
         ]
@@ -2402,6 +2404,7 @@ def _iter_non_merged_txt_files(directory: Path | None) -> list[Path]:
             p.name == "merged.txt"
             or p.name.startswith("merged_")
             or p.name.startswith("merge_")
+            or p.name.startswith("LATEST_")
             or (p.name.startswith("book_") and "__" in p.name)
         )
     )
@@ -2514,6 +2517,28 @@ def _latest_refine_run_dir(book_code: str, lang: str) -> Path | None:
     return sorted(candidates)[-1]
 
 
+def _latest_polish_run_dir(base_out_dir: Path | None) -> Path | None:
+    if not base_out_dir or not base_out_dir.exists():
+        return None
+    pointer = base_out_dir / "LATEST_POLISH_RUN.txt"
+    if pointer.exists():
+        try:
+            raw = pointer.read_text(encoding="utf-8").strip()
+        except OSError:
+            raw = ""
+        if raw:
+            candidate = Path(raw)
+            if str(candidate).startswith("/workspace/"):
+                candidate = Path(str(candidate).replace("/workspace/", str(Path(settings.BASE_DIR).parent) + "/", 1))
+            if candidate.exists() and candidate.is_dir():
+                return candidate
+    runs_root = base_out_dir / "runs"
+    if not runs_root.exists():
+        return None
+    candidates = [path for path in runs_root.iterdir() if path.is_dir()]
+    return sorted(candidates)[-1] if candidates else None
+
+
 def _resolve_polish_source_dir(edition) -> tuple[Path, str]:
     split_root = paths.split_refine_by_chapter_dir(edition)
     split_manifest = split_root / "manifest.json"
@@ -2580,28 +2605,46 @@ def _run_internal_polish_agent(
     out_dir: Path,
     agent_name: str,
 ) -> dict[str, object]:
-    from gaiden.application.agents.stages.polish_en_us_aristotle_2026 import (
-        run_polish_en_us_aristotle_2026,
-    )
+    language = utils.normalize_lang(edition.language.code)
+    if agent_name == "polish_fr_universal_2026":
+        from gaiden.application.agents.stages.polish_fr_universal_2026 import (
+            run_polish_fr_universal_2026,
+        )
+
+        runner = run_polish_fr_universal_2026
+        runner_agent_id = "polish_fr_universal_2026"
+        report_schema = "agent_polish_fr_universal_2026_run_v1"
+        report_filename = "agent_polish_fr_universal_run_report.json"
+        run_prefix = "polish_fr_universal_2026"
+    else:
+        from gaiden.application.agents.stages.polish_en_us_aristotle_2026 import (
+            run_polish_en_us_aristotle_2026,
+        )
+
+        runner = run_polish_en_us_aristotle_2026
+        runner_agent_id = "polish_en_us_aristotle_2026"
+        report_schema = "agent_polish_en_us_run_v1"
+        report_filename = "agent_polish_en_us_run_report.json"
+        run_prefix = "polish_en_us_aristotle_2026"
 
     manifest_path = source_dir.parent / "manifest.json"
     if manifest_path.exists():
-        run_id = timezone.now().strftime("polish_en_us_aristotle_2026_%Y%m%d_%H%M%S_%f")
+        run_id = timezone.now().strftime(f"{run_prefix}_%Y%m%d_%H%M%S_%f")
         chunks = refine_ordering.load_refine_chunks_from_manifest(
             manifest_path=manifest_path,
             source_dir=source_dir,
             book_id=edition.work.code,
-            lang="en_us",
+            lang=language,
             run_id=run_id,
             stage="polish",
         )
     else:
-        run_id = timezone.now().strftime("polish_en_us_aristotle_2026_%Y%m%d_%H%M%S_%f")
+        run_id = timezone.now().strftime(f"{run_prefix}_%Y%m%d_%H%M%S_%f")
         source_paths = _chunk_text_paths(source_dir)
         chunks = [
             refine_ordering.RefineChunk(
                 book_id=edition.work.code,
-                lang="en_us",
+                lang=language,
                 stage="polish",
                 run_id=run_id,
                 source_chunk_id=path.stem,
@@ -2622,12 +2665,13 @@ def _run_internal_polish_agent(
     out_dir.mkdir(parents=True, exist_ok=False)
     (base_out_dir / "LATEST_POLISH_RUN.txt").parent.mkdir(parents=True, exist_ok=True)
     (base_out_dir / "LATEST_POLISH_RUN.txt").write_text(str(out_dir) + "\n", encoding="utf-8")
-    report_path = out_dir / "agent_polish_en_us_run_report.json"
+    report_path = out_dir / report_filename
     report: dict[str, object] = {
-        "schema": "agent_polish_en_us_run_v1",
+        "schema": report_schema,
         "agent_name": agent_name,
+        "agent_id": runner_agent_id,
         "book_code": edition.work.code,
-        "language": "en_us",
+        "language": language,
         "source_dir": str(source_dir),
         "out_dir": str(out_dir),
         "count": len(chunks),
@@ -2645,9 +2689,9 @@ def _run_internal_polish_agent(
             "book_id": edition.work.code,
             "ui_stage": "polish",
             "stage": "polish",
-            "language": "en_us",
-            "target_language": "en_us",
-            "agent_id": "polish_en_us_aristotle_2026",
+            "language": language,
+            "target_language": language,
+            "agent_id": runner_agent_id,
             "metadata": {
                 "book_code": chunk.book_id,
                 "book_id": chunk.book_id,
@@ -2664,7 +2708,7 @@ def _run_internal_polish_agent(
             "input": {"source_path": str(source_path)},
             "output": {"target_path": str(target_path), "overwrite": False},
         }
-        item = run_polish_en_us_aristotle_2026(job)
+        item = runner(job)
         if target_path.exists():
             refine_ordering.write_refine_output_metadata(target_path, chunk, item)
         report["items"].append(item)
@@ -2675,13 +2719,13 @@ def _run_internal_polish_agent(
             report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
             raise RuntimeError(f"POLISH_AGENT_FAILED: {source_path.name}: {item.get('errors')}")
 
-    merged_path = out_dir / f"merge_polish_{utils.normalize_lang(edition.language.code)}.txt"
+    merged_path = out_dir / f"merge_polish_{language}.txt"
     merged_path, order_validation = refine_ordering.merge_refine_run_by_manifest(
         run_dir=out_dir,
         chunks=chunks,
         out_path=merged_path,
         book_code=edition.work.code,
-        language="en_us",
+        language=language,
     )
     report["status"] = "ok"
     report["ts_end"] = timezone.now().isoformat()
@@ -2772,7 +2816,8 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     )
 
     merge_refine_clean_path = _resolve_merge_refine_clean_path(core_book_code, target_lang)
-    merge_refine_done = merge_refine_clean_path.exists() and refine_done
+    refine_merge_exists = refine_merge_path.exists() and refine_merge_path.stat().st_size > 0
+    merge_refine_done = bool(refine_merge_exists or (merge_refine_clean_path.exists() and refine_done))
     split_refine_by_chapter_dir = paths.split_refine_by_chapter_dir(target_edition)
     split_refine_by_chapter_manifest_path = split_refine_by_chapter_dir / "manifest.json"
     split_refine_by_chapter_done = split_refine_by_chapter_manifest_path.exists()
@@ -2782,15 +2827,18 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         polish_source_dir, polish_source_label = _resolve_polish_source_dir(target_edition)
     except Exception:
         polish_source_dir = None
+    selected_polish_agent = _default_polish_agent_for_language(target_edition.language.code)
     polish_dir = _resolve_polish_output_dir(
         polish_source_dir,
         target_edition,
-        agent_name=_default_polish_agent_for_language(target_edition.language.code),
+        agent_name=selected_polish_agent,
     )
     reported_polish_source_dir, reported_polish_source_label = _resolve_polish_report_source_dir(polish_dir)
     effective_polish_source_dir = reported_polish_source_dir or polish_source_dir
     effective_polish_source_label = reported_polish_source_label or polish_source_label
-    polish_outputs_count = _count_non_merged_txt_files(polish_dir)
+    latest_polish_run_dir = _latest_polish_run_dir(polish_dir)
+    effective_polish_output_dir = latest_polish_run_dir or polish_dir
+    polish_outputs_count = _count_non_merged_txt_files(effective_polish_output_dir)
     merge_polish_path = paths.merge_polish_path(target_edition)
     merge_polidor_path = paths.merge_polidor_path(target_edition)
     merge_polish_exists = merge_polish_path.exists() and merge_polish_path.stat().st_size > 0
@@ -2802,7 +2850,10 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         and polish_source_count
         and polish_outputs_count >= polish_source_count
     )
-    polish_done = bool(merge_polidor_exists or merge_polish_exists or polish_done_from_chunks)
+    if selected_polish_agent == "polish_fr_universal_2026":
+        polish_done = polish_done_from_chunks
+    else:
+        polish_done = bool(merge_polidor_exists or merge_polish_exists or polish_done_from_chunks)
 
     texts = EditionText.objects.filter(edition=core_edition).first()
     raw_path_str = ((texts.raw_path if texts else "") or core_edition.raw_source_path or "").strip()
@@ -2963,9 +3014,9 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
             "title": "Etapa 3 · Split by Chapter (merge_refine)",
             "run_url": reverse("pipeline_run_edition_step", kwargs={"edition_id": edition.id, "step": "split_refine_by_chapter"}),
             "button_label": "Rodar Split do Refine",
-            "can_run": merge_refine_done and refine_merge_path.exists(),
+            "can_run": refine_merge_exists,
             "done": split_refine_by_chapter_done,
-            "block_reason": "Prerequisito: MergeRefine canônico." if not (merge_refine_done and refine_merge_path.exists()) else "",
+            "block_reason": "Prerequisito: MergeRefine canônico." if not refine_merge_exists else "",
             "outputs": [
                 _rel_project_path(split_refine_by_chapter_dir / "parts" / "*.txt"),
                 _rel_project_path(split_refine_by_chapter_manifest_path),
@@ -5300,7 +5351,7 @@ def _run_polish_agent_step_local(
     if out_dir is None:
         raise FileNotFoundError("Unable to resolve polish output directory.")
 
-    if selected_agent == "polish_en_us_aristotle_2026":
+    if selected_agent in {"polish_en_us_aristotle_2026", "polish_fr_universal_2026"}:
         result = _run_internal_polish_agent(
             edition=target_edition,
             source_dir=source_dir,
@@ -5317,11 +5368,12 @@ def _run_polish_agent_step_local(
             agent_name=selected_agent,
             max_output_tokens=2000,
         )
-    _validate_runtime_chunk_outputs(source_dir, out_dir, "Polidor")
+    runtime_out_dir = Path(result.get("out_dir") or out_dir)
+    _validate_runtime_chunk_outputs(source_dir, runtime_out_dir, "Polidor")
     merged_path = Path(result["merge_path"])
     merged_path, _merge_stats = canonical_merge.write_canonical_merge(
         source_dir,
-        out_dir,
+        runtime_out_dir,
         merged_path,
         book_code=target_edition.work.code,
         language=target_language,

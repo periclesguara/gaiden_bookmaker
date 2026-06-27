@@ -14,6 +14,7 @@ class Command(BaseCommand):
         parser.add_argument("--target-language", default="")
         parser.add_argument("--translate-agent-name", default="")
         parser.add_argument("--refine-profile", default="")
+        parser.add_argument("--polish-agent-name", default="")
 
     def handle(self, *args, **options):
         try:
@@ -23,6 +24,7 @@ class Command(BaseCommand):
                 target_language=options["target_language"] or None,
                 translate_agent_name=options["translate_agent_name"] or None,
                 refine_profile=options["refine_profile"] or None,
+                polish_agent_name=options["polish_agent_name"] or None,
             )
         except Exception as exc:
             raise CommandError(str(exc)) from exc

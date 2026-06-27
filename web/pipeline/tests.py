@@ -146,12 +146,12 @@ class FrenchRefineRoutingTests(TestCase):
 
 
 class FrenchPolishRoutingTests(TestCase):
-    def test_french_polish_defaults_to_frances_polidor(self):
+    def test_french_polish_defaults_to_universal_agent(self):
         from pipeline.views import _default_polish_agent_for_language, _polish_agent_options_for_language, _normalize_agent_name
 
-        self.assertEqual(_default_polish_agent_for_language("fr"), "Francês_Polidor")
-        self.assertEqual(_polish_agent_options_for_language("fr"), ("Francês_Polidor",))
-        self.assertEqual(_normalize_agent_name("Francês_Polidor"), "Francês_Polidor")
+        self.assertEqual(_default_polish_agent_for_language("fr"), "polish_fr_universal_2026")
+        self.assertEqual(_polish_agent_options_for_language("fr"), ("polish_fr_universal_2026",))
+        self.assertEqual(_normalize_agent_name("polish_fr_universal_2026"), "polish_fr_universal_2026")
 
 
 class TranslateAgentRoutingTests(TestCase):
@@ -2610,7 +2610,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertNotContains(response, "Ingles neutro - Aldebaran")
         self.assertNotContains(response, "Ingles flex - Alamaguederaz")
 
-    def test_french_steps_show_frances_polidor_option(self):
+    def test_french_steps_show_polish_fr_universal_option(self):
         french = Language.objects.create(
             code="fr",
             name="French",
@@ -2636,7 +2636,7 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertContains(response, 'name="polish_agent_name"')
-        self.assertContains(response, "Francês_Polidor")
+        self.assertContains(response, "polish_fr_universal_2026")
         self.assertNotContains(response, '<option value="English Polidor" selected>', html=False)
 
 
