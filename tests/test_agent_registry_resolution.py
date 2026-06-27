@@ -29,6 +29,15 @@ def test_refine_en_us_resolves_to_refine_agent():
     assert resolved["contract_path"] == "data/contracts/agents/refine_en_us_2026.agent.json"
 
 
+def test_refine_fr_resolves_to_universal_refine_agent():
+    resolved = resolve_agent_for_ui_stage("refine", "fr")
+
+    assert resolved["stage"] == "refine"
+    assert resolved["language"] == "fr"
+    assert resolved["agent_id"] == "fr_refine_universal_2026"
+    assert resolved["contract_path"] == "data/contracts/agents/fr_refine_universal_2026.json"
+
+
 def test_refine_en_us_aliases_normalize_to_en_us():
     assert resolve_agent_for_ui_stage("refine", "en-US")["language"] == "en_us"
     assert resolve_agent_for_ui_stage("refine", "English US")["language"] == "en_us"

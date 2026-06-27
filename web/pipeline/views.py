@@ -152,23 +152,14 @@ REFINE_PROFILES = {
             "natural Brazilian Portuguese with controlled editorial cadence and commercial readability."
         ),
     },
-    "fr_coulhon": {
-        "label": "Francais Le Grand Coulhon",
-        "agent_name": "Le Grand Coulhon",
-        "description": "Refine litteraire en francais moderne avec fluidite, naturel et controle de registre.",
+    "fr_refine_universal_2026": {
+        "label": "FR_REFINE_UNIVERSAL",
+        "agent_name": "FR_REFINE_UNIVERSAL",
+        "description": "Refine universal frances JSON-first via contrato fr_refine_universal_2026.",
         "style_directive": (
-            "Target profile: modern, natural French. Preserve full meaning, chronology, paragraphing, and atmosphere. "
-            "Prefer idiomatic, fluent French prose with controlled literary cadence, without flattening tone, tension, or period detail."
-        ),
-    },
-    "fr_colhoun": {
-        "label": "Francais Le Gran Colhoun",
-        "agent_name": "Le_Gran_Colhoun",
-        "description": "Refine litteraire en francais moderne avec controle de registre, atmosphere et lisibilite.",
-        "style_directive": (
-            "Target profile: premium modern French literary prose. Preserve full meaning, chronology, paragraphing, "
-            "character voice, and atmosphere. Prefer elegant, fluent French for commercial reading without flattening "
-            "gothic tension or period detail."
+            "Target profile: universal modern literary French editorial refinement. Preserve structure, meaning, "
+            "paragraph order, headings, numbering, and links. Improve rhythm, cadence, musicality, fluency, "
+            "sentence architecture, and readability without translating from scratch."
         ),
     },
 }
@@ -206,7 +197,7 @@ TRANSLATE_VARIANT_OPTIONS = (
 TRANSLATE_AGENT_BY_VARIANT = {
     "en_us": "modernize_en_us_2026",
     "ptbr": "translate_pt_br_2026",
-    "fr": "translate_fr_2026",
+    "fr": "fr_translate_universal_2026",
 }
 TRANSLATE_AGENT_OPTIONS_BY_VARIANT = {
     "en_us": ("modernize_en_us_2026",),
@@ -214,7 +205,7 @@ TRANSLATE_AGENT_OPTIONS_BY_VARIANT = {
         "translate_pt_br_2026",
     ),
     "fr": (
-        "translate_fr_2026",
+        "fr_translate_universal_2026",
     ),
 }
 _TRANSLATE_VARIANT_LABELS = {item["value"]: item["label"] for item in TRANSLATE_VARIANT_OPTIONS}
@@ -259,6 +250,12 @@ _TRANSLATE_VARIANT_ALIASES = {
     "brazilian_portuguese": "ptbr",
     "portugues_brasil": "ptbr",
     "português_brasil": "ptbr",
+    "fr": "fr",
+    "fr_fr": "fr",
+    "fr-fr": "fr",
+    "french": "fr",
+    "français": "fr",
+    "francais": "fr",
 }
 
 _HTML_STAGE_ORDER = {
@@ -327,7 +324,25 @@ def _translate_route_label(value: str | None) -> str:
     variant = _normalize_translate_variant(value)
     if variant == "en_us":
         return "Translate -> Modernize EN-US 2026"
+    if variant == "fr":
+        return "Translate -> FR_TRANSLATE_UNIVERSAL 2026"
     return "Agent"
+
+
+def _translate_agent_display(agent_name: str) -> str:
+    if agent_name != "fr_translate_universal_2026":
+        return agent_name
+    try:
+        from gaiden.application.agents.contracts import load_agent_contract
+
+        contract = load_agent_contract(agent_name)
+    except Exception:
+        return agent_name
+    label = str(contract.get("contract_name") or agent_name)
+    version = str(contract.get("contract_version") or "").strip()
+    model = str(contract.get("model") or "").strip()
+    details = [item for item in (version, model) if item]
+    return f"{label} / {' / '.join(details)}" if details else label
 
 
 def _recommended_split_parts_for_translate_variant(value: str | None) -> int:
@@ -361,7 +376,7 @@ def _default_refine_profile_for_language(language: str | None) -> str:
     if normalized == "de":
         return "de_kaiser"
     if normalized == "fr":
-        return "fr_coulhon"
+        return "fr_refine_universal_2026"
     if normalized == "it":
         return "italiano_neutro"
     if normalized == "ptbr":
@@ -376,7 +391,7 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     if normalized == "de":
         return ("de_kaiser",)
     if normalized == "fr":
-        return ("fr_coulhon", "fr_colhoun")
+        return ("fr_refine_universal_2026",)
     if normalized == "it":
         return ("italiano_neutro",)
     if normalized == "ptbr":
@@ -1293,6 +1308,8 @@ def _refine_return_dirname(refine_profile: str | None = None, target_language: s
     profile_cfg = _refine_profile_config(refine_profile)
     if profile_cfg["agent_name"] == "refine_en_us_2026":
         return "return_refine_en_us_2026"
+    if profile_cfg["agent_name"] == "FR_REFINE_UNIVERSAL":
+        return "return_fr_refine_universal_2026"
     agent_slug = slugify(profile_cfg["agent_name"]).replace("-", "_")
     if agent_slug:
         return f"return_{agent_slug}"
@@ -3778,6 +3795,115 @@ def _run_internal_refine_en_us(
     }
 
 
+def _run_internal_refine_fr(
+    *,
+    book_code: str,
+    source_dir: Path,
+    out_dir: Path,
+) -> dict[str, object]:
+    from gaiden.application.agents.refine_router import run_refine
+
+    run_id = timezone.now().strftime("fr_refine_universal_2026_%Y%m%d_%H%M%S_%f")
+    run_dir = _refined_runs_root(book_code, "fr") / run_id
+    run_dir.mkdir(parents=True, exist_ok=False)
+    manifest_path = source_dir.parent / "manifest.json"
+    chunks = refine_ordering.load_refine_chunks_from_manifest(
+        manifest_path=manifest_path,
+        source_dir=source_dir,
+        book_id=book_code,
+        lang="fr",
+        run_id=run_id,
+    )
+    items: list[dict[str, object]] = []
+    for chunk_path in chunks:
+        source_path = Path(chunk_path.source_path)
+        target_path = run_dir / chunk_path.output_filename
+        metadata = {
+            "book_id": chunk_path.book_id,
+            "lang": chunk_path.lang,
+            "stage": chunk_path.stage,
+            "run_id": chunk_path.run_id,
+            "source_chunk_id": chunk_path.source_chunk_id,
+            "chapter_index": chunk_path.chapter_index,
+            "chunk_index": chunk_path.chunk_index,
+            "source_path": chunk_path.source_path,
+            "source_sha256": chunk_path.source_sha256,
+        }
+        report = run_refine(
+            book_id=book_code,
+            target_language="fr",
+            source_path=source_path,
+            target_path=target_path,
+            overwrite=False,
+            metadata=metadata,
+        )
+        if target_path.exists():
+            refine_ordering.write_refine_output_metadata(target_path, chunk_path, report)
+        items.append(
+            {
+                "chunk": source_path.name,
+                "source_chunk_id": chunk_path.source_chunk_id,
+                "chapter_index": chunk_path.chapter_index,
+                "chunk_index": chunk_path.chunk_index,
+                "out_txt": str(target_path),
+                "status": report.get("status"),
+                "validation": report.get("validation"),
+                "audit_path": report.get("audit_path"),
+            }
+        )
+        if report.get("status") not in {"passed", "skipped"}:
+            refine_ordering.write_refine_manifest(run_dir, refine_ordering.validate_refine_run(run_dir, chunks))
+            raise RuntimeError(f"Refine FR failed for {source_path.name}: {report}")
+
+    merged_path = run_dir / "merged_refine_fr_universal_2026.txt"
+    merged_path, validation = refine_ordering.merge_refine_run_by_manifest(
+        run_dir=run_dir,
+        chunks=chunks,
+        out_path=merged_path,
+        book_code=book_code,
+        language="fr",
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    legacy_manifest_pointer = out_dir / "LATEST_REFINE_RUN.txt"
+    legacy_manifest_pointer.write_text(str(run_dir) + "\n", encoding="utf-8")
+    report_path = run_dir / "agent_refine_fr_universal_run_report.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "schema": "gaiden_fr_refine_universal_2026_run_v1",
+                "book_id": book_code,
+                "agent_id": "fr_refine_universal_2026",
+                "agent_name": "FR_REFINE_UNIVERSAL",
+                "contract_path": "data/contracts/agents/fr_refine_universal_2026.json",
+                "run_id": run_id,
+                "source_dir": str(source_dir),
+                "out_dir": str(run_dir),
+                "merge_path": str(merged_path),
+                "refine_manifest_path": str(run_dir / refine_ordering.REFINE_MANIFEST_NAME),
+                "count": len(items),
+                "items": items,
+                "order_validation": validation,
+                "status": "ok",
+                "created_at": timezone.now().isoformat(),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "agent_name": "FR_REFINE_UNIVERSAL",
+        "source_dir": str(source_dir),
+        "out_dir": str(run_dir),
+        "merge_path": str(merged_path),
+        "report_path": str(report_path),
+        "refine_manifest_path": str(run_dir / refine_ordering.REFINE_MANIFEST_NAME),
+        "run_id": run_id,
+        "count": len(items),
+    }
+
+
 def _build_runtime_refine_contract(
     edition,
     target_language: str,
@@ -4735,7 +4861,7 @@ def edition_steps(request, edition_id: int):
     )
     selected_translate_agent = _translate_agent_name(selected_translate_variant)
     translate_agent_choices = [
-        {"value": agent, "label": agent}
+        {"value": agent, "label": _translate_agent_display(agent)}
         for agent in _translate_agent_options(selected_translate_variant)
     ]
     translate_agent_map: dict[str, str] = {}
@@ -4747,16 +4873,19 @@ def edition_steps(request, edition_id: int):
         agent_name = _translate_agent_name(lang)
         if lang == "en_us":
             detail = "Runtime interno JSON-first: contrato + script Gaiden; OpenAI apenas como inferencia."
+        elif lang == "fr":
+            detail = "Runtime interno JSON-first: contrato universal frances; modelo lido do contrato."
         else:
             detail = "Agente interno planejado para migracao incremental; sem agente hospedado externo."
-        translate_agent_map[lang] = f"{route}: {agent_name}"
+        agent_display = _translate_agent_display(agent_name)
+        translate_agent_map[lang] = f"{route}: {agent_display}"
         translate_agent_choices_map[lang] = list(_translate_agent_options(lang))
         translate_agent_options.append(
             {
                 "value": lang,
                 "label": option["label"],
                 "route": route,
-                "agent_name": agent_name,
+                "agent_name": agent_display,
                 "detail": detail,
             }
         )
@@ -5087,6 +5216,12 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
 
     if translate_variant == "en_us":
         result = _run_internal_refine_en_us(
+            book_code=target_edition.work.code,
+            source_dir=source_dir,
+            out_dir=out_dir_path,
+        )
+    elif translate_variant == "fr":
+        result = _run_internal_refine_fr(
             book_code=target_edition.work.code,
             source_dir=source_dir,
             out_dir=out_dir_path,

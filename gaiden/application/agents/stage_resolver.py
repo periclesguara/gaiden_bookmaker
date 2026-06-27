@@ -23,6 +23,16 @@ EN_US_ALIASES = {
     "us_english",
 }
 
+FR_ALIASES = {
+    "fr",
+    "fr_fr",
+    "fr-fr",
+    "fr fr",
+    "french",
+    "français",
+    "francais"
+}
+
 
 def normalize_target_language_alias(value: str | None) -> str:
     raw = (value or "").strip()
@@ -32,6 +42,8 @@ def normalize_target_language_alias(value: str | None) -> str:
     compact = " ".join(lowered.split())
     if compact in {alias.replace("_", " ").replace("-", " ") for alias in EN_US_ALIASES}:
         return "en_us"
+    if compact in {alias.replace("_", " ").replace("-", " ") for alias in FR_ALIASES}:
+        return "fr"
     return raw.strip().lower().replace("-", "_").replace(" ", "_")
 
 
@@ -74,11 +86,27 @@ def resolve_agent_for_ui_stage(
             "agent_id": agent_id,
             "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
         }
+    if normalized_stage == "translate" and normalized_language == "fr":
+        agent_id = "fr_translate_universal_2026"
+        return {
+            "stage": "translate",
+            "language": "fr",
+            "agent_id": agent_id,
+            "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
+        }
     if normalized_stage == "refine" and normalized_language == "en_us":
         agent_id = "refine_en_us_2026"
         return {
             "stage": "refine",
             "language": "en_us",
+            "agent_id": agent_id,
+            "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
+        }
+    if normalized_stage == "refine" and normalized_language == "fr":
+        agent_id = "fr_refine_universal_2026"
+        return {
+            "stage": "refine",
+            "language": "fr",
             "agent_id": agent_id,
             "contract_path": contract_path_for_agent(agent_id, registry_path=registry_path),
         }
@@ -90,5 +118,13 @@ def is_translate_en_us(ui_stage: str, target_language: str | None) -> bool:
     return (ui_stage or "").strip().lower() == "translate" and normalize_target_language_alias(target_language) == "en_us"
 
 
+def is_translate_fr(ui_stage: str, target_language: str | None) -> bool:
+    return (ui_stage or "").strip().lower() == "translate" and normalize_target_language_alias(target_language) == "fr"
+
+
 def is_refine_en_us(ui_stage: str, target_language: str | None) -> bool:
     return (ui_stage or "").strip().lower() == "refine" and normalize_target_language_alias(target_language) == "en_us"
+
+
+def is_refine_fr(ui_stage: str, target_language: str | None) -> bool:
+    return (ui_stage or "").strip().lower() == "refine" and normalize_target_language_alias(target_language) == "fr"

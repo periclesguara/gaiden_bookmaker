@@ -53,15 +53,22 @@ def call_agent_text(
 ) -> str:
     client = get_client()
     prompt = system_prompt or f"You are agent {agent_name}. Return only the transformed text."
-    response = client.responses.create(
-        model=choose_model(stage=agent_name, contract_model=model, env_default=None),
-        input=[
+    kwargs: dict[str, Any] = {
+        "model": choose_model(stage=agent_name, contract_model=model, env_default=None),
+        "input": [
             {"role": "system", "content": prompt},
             {"role": "user", "content": text},
         ],
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
-    )
+        "temperature": temperature,
+        "max_output_tokens": max_output_tokens,
+    }
+    try:
+        response = client.responses.create(**kwargs)
+    except Exception as exc:
+        if "Unsupported parameter: 'temperature'" not in str(exc):
+            raise
+        kwargs.pop("temperature", None)
+        response = client.responses.create(**kwargs)
     output_text = getattr(response, "output_text", "") or ""
     if output_text.strip():
         return output_text.strip()

@@ -15,6 +15,14 @@ def test_registry_resolves_refine_en_us_agent():
     assert contract["id"] == "refine_en_us_2026"
 
 
+def test_registry_resolves_refine_fr_agent():
+    contract = resolve_agent("refine", "fr")
+
+    assert contract["contract_name"] == "FR_REFINE_UNIVERSAL"
+    assert contract["model"] == "gpt-5.5"
+    assert contract["mode"] == "refine_existing_french"
+
+
 def test_agent_contract_loads_gpt_5_4_default_model():
     contract = load_agent_contract("modernize_en_us_2026")
 

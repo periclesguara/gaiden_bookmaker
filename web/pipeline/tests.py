@@ -125,13 +125,12 @@ class ItalianSupportTests(TestCase):
 
 
 class FrenchRefineRoutingTests(TestCase):
-    def test_french_refine_defaults_to_coulhon(self):
+    def test_french_refine_defaults_to_universal_agent(self):
         from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
 
-        self.assertEqual(_default_refine_profile_for_language("fr"), "fr_coulhon")
-        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_coulhon", "fr_colhoun"))
-        self.assertEqual(_refine_profile_config("fr_coulhon")["agent_name"], "Le Grand Coulhon")
-        self.assertEqual(_refine_profile_config("fr_colhoun")["agent_name"], "Le_Gran_Colhoun")
+        self.assertEqual(_default_refine_profile_for_language("fr"), "fr_refine_universal_2026")
+        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_refine_universal_2026",))
+        self.assertEqual(_refine_profile_config("fr_refine_universal_2026")["agent_name"], "FR_REFINE_UNIVERSAL")
 
     def test_french_refine_output_dir_uses_agent_slug(self):
         from pipeline.views import _resolve_refine_output_dir
@@ -139,10 +138,10 @@ class FrenchRefineRoutingTests(TestCase):
         self.assertEqual(
             _resolve_refine_output_dir(
                 Path("data/translated/book_0002/fr_2026"),
-                refine_profile="fr_coulhon",
+                refine_profile="fr_refine_universal_2026",
                 target_language="fr",
             ),
-            Path("data/translated/book_0002/fr_2026/return_le_grand_coulhon"),
+            Path("data/translated/book_0002/fr_2026/return_fr_refine_universal_2026"),
         )
 
 
@@ -159,19 +158,19 @@ class TranslateAgentRoutingTests(TestCase):
     def test_french_translate_uses_internal_agent_id(self):
         from pipeline.views import _translate_agent_name
 
-        self.assertEqual(_translate_agent_name("fr"), "translate_fr_2026")
-        self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "translate_fr_2026")
+        self.assertEqual(_translate_agent_name("fr"), "fr_translate_universal_2026")
+        self.assertEqual(_translate_agent_name("fr", "LE_GRAN_COLHOUN"), "fr_translate_universal_2026")
         self.assertEqual(_translate_agent_name("ptbr"), "translate_pt_br_2026")
         self.assertEqual(_translate_agent_name("pt-br"), "translate_pt_br_2026")
 
     def test_agent_translate_default_resolves_french_agent(self):
         from gaiden.tools.agent_translate_default import resolve_agent_for_target
 
-        self.assertEqual(resolve_agent_for_target(suffix="fr"), "translate_fr_2026")
+        self.assertEqual(resolve_agent_for_target(suffix="fr"), "fr_translate_universal_2026")
         self.assertEqual(resolve_agent_for_target(suffix="ptbr"), "translate_pt_br_2026")
         self.assertEqual(
             resolve_agent_for_target(suffix="fr", requested_agent="LE_GRAN_COLHOUN"),
-            "translate_fr_2026",
+            "fr_translate_universal_2026",
         )
 
 
@@ -2575,8 +2574,9 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertContains(response, 'name="refine_profile"')
-        self.assertContains(response, "Francais Le Grand Coulhon - Le Grand Coulhon")
-        self.assertContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
+        self.assertContains(response, "FR_REFINE_UNIVERSAL - FR_REFINE_UNIVERSAL")
+        self.assertNotContains(response, "Francais Le Grand Coulhon - Le Grand Coulhon")
+        self.assertNotContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
         self.assertNotContains(response, "Ingles neutro - Aldebaran")
         self.assertNotContains(response, "Ingles flex - Alamaguederaz")
 
@@ -2658,7 +2658,7 @@ class HeadingCleanerGateTests(TestCase):
                 "current_stage": "REFINED",
                 "translation_language": "fr",
                 "md_language": "fr",
-                "refine_profile": "fr_colhoun",
+                "refine_profile": "fr_refine_universal_2026",
                 "translated_at": timezone.now(),
                 "refined_at": timezone.now(),
             },
@@ -2675,7 +2675,7 @@ class HeadingCleanerGateTests(TestCase):
         french_build_dir.mkdir(parents=True, exist_ok=True)
         (french_build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
         (french_build_dir / "merge_refine.txt").write_text("merged refine", encoding="utf-8")
-        refine_parts = french_build_dir / "split_by_chapter" / "return_le_gran_colhoun"
+        refine_parts = french_build_dir / "split_by_chapter" / "return_fr_refine_universal_2026"
         refine_parts.mkdir(parents=True, exist_ok=True)
         (refine_parts / "chapter_01_part_01.txt").write_text("refined chapter", encoding="utf-8")
         translated_clean = self.root / "data" / "translated" / self.work.code / "fr"

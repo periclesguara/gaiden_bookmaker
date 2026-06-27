@@ -12,10 +12,26 @@
       "default": true
     },
     {
+      "id": "fr_translate_universal_2026",
+      "stage": "translate",
+      "language": "fr",
+      "contract_path": "data/contracts/agents/fr_translate_universal_2026.json",
+      "enabled": true,
+      "default": true
+    },
+    {
       "id": "refine_en_us_2026",
       "stage": "refine",
       "language": "en_us",
       "contract_path": "data/contracts/agents/refine_en_us_2026.agent.json",
+      "enabled": true,
+      "default": true
+    },
+    {
+      "id": "fr_refine_universal_2026",
+      "stage": "refine",
+      "language": "fr",
+      "contract_path": "data/contracts/agents/fr_refine_universal_2026.json",
       "enabled": true,
       "default": true
     },
@@ -42,6 +58,17 @@
     },
     {
       "when": {
+        "ui_stage": "translate",
+        "target_language": "fr"
+      },
+      "resolve_to": {
+        "stage": "translate",
+        "language": "fr",
+        "agent_id": "fr_translate_universal_2026"
+      }
+    },
+    {
+      "when": {
         "ui_stage": "refine",
         "target_language": "en_us"
       },
@@ -49,6 +76,17 @@
         "stage": "refine",
         "language": "en_us",
         "agent_id": "refine_en_us_2026"
+      }
+    },
+    {
+      "when": {
+        "ui_stage": "refine",
+        "target_language": "fr"
+      },
+      "resolve_to": {
+        "stage": "refine",
+        "language": "fr",
+        "agent_id": "fr_refine_universal_2026"
       }
     },
     {
@@ -71,10 +109,24 @@
     },
     {
       "when": {
+        "stage": "translate",
+        "language": "fr"
+      },
+      "use_agent": "fr_translate_universal_2026"
+    },
+    {
+      "when": {
         "stage": "refine",
         "language": "en_us"
       },
       "use_agent": "refine_en_us_2026"
+    },
+    {
+      "when": {
+        "stage": "refine",
+        "language": "fr"
+      },
+      "use_agent": "fr_refine_universal_2026"
     },
     {
       "when": {

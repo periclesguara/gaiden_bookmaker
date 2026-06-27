@@ -27,6 +27,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from gaiden.lang import normalize_lang_code
+from gaiden.application.agents.contracts import (
+    contract_path_for_agent,
+    load_agent_contract,
+    validate_translate_contract_for_language,
+)
 from gaiden.translate_artifacts import (
     assert_valid_canonical_artifact,
     canonical_meta_path,
@@ -78,8 +83,11 @@ DEPRECATED_EXTERNAL_AGENT_NAMES = {
     "cacique tibiriça",
     "priscus",
     "el_obregon",
+    "le_gran_coulhon",
+    "le_gran_coulhon_translate",
     "le_grand_coulhon",
     "le_gran_colhoun",
+    "le_grand_colhoun",
 }
 
 
@@ -151,6 +159,15 @@ def _merge_outputs(
 
 
 def _agent_translate_system_prompt(*, agent_name: str, suffix: str, mode: str, retry: bool = False) -> str:
+    if agent_name == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent_name)
+        validate_translate_contract_for_language(suffix, contract)
+        prompt = str(contract.get("system_prompt") or "").strip()
+        if not prompt:
+            raise RuntimeError("FR_TRANSLATE_UNIVERSAL contract has no system_prompt.")
+        if retry:
+            return prompt + "\n\nThe previous response was rejected because it was too short. Return the full chunk this time."
+        return prompt
     target = normalize_lang_code(suffix, default="en")
     if target.startswith("en"):
         target_label = "modern English"
@@ -195,6 +212,15 @@ def _call_agent(
         "max_output_tokens": max_output_tokens,
         "retry": retry,
     }
+    contract_model: str | None = None
+    if agent_name == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent_name)
+        validate_translate_contract_for_language(suffix, contract)
+        contract_model = str(contract.get("model") or "").strip()
+        temperature = float(contract.get("temperature", temperature))
+        meta["contract_name"] = contract.get("contract_name")
+        meta["contract_version"] = contract.get("contract_version")
+        meta["model"] = contract_model
 
     # Preferred: your existing helper
     try:
@@ -209,6 +235,7 @@ def _call_agent(
         out = call_agent_text(
             agent_name=agent_name,
             text=text,
+            model=contract_model,
             temperature=temperature,
             max_output_tokens=max_output_tokens,
             system_prompt=system_prompt,
@@ -251,9 +278,9 @@ def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None)
             return candidate
         return "modernize_en_us_2026"
     if target in FRENCH_TARGETS or raw_target.startswith("fr"):
-        if candidate:
+        if candidate and candidate == "fr_translate_universal_2026":
             return candidate
-        return "translate_fr_2026"
+        return "fr_translate_universal_2026"
     if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
         if candidate:
             return candidate
@@ -338,6 +365,11 @@ def run_agent_translate(
         chunks = chunks[:limit]
 
     min_output_ratio = _min_output_ratio_for_target(suffix)
+    if agent == "fr_translate_universal_2026":
+        # The French universal contract is allowed to remove internal pipeline
+        # labels, glossary control notes, and agent-facing variants. Those
+        # cleanup-heavy chunks can legitimately shrink more than normal prose.
+        min_output_ratio = 0.70
 
     run_report: Dict[str, Any] = {
         "schema": "gaiden_translate_default_v2",
@@ -363,6 +395,13 @@ def run_agent_translate(
         "items": [],
         "status": "running",
     }
+    if agent == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent)
+        validate_translate_contract_for_language(suffix, contract)
+        run_report["contract_name"] = contract.get("contract_name")
+        run_report["contract_version"] = contract.get("contract_version")
+        run_report["model"] = contract.get("model")
+        run_report["contract_path"] = contract_path_for_agent(agent)
 
     for p in chunks:
         in_text = _read_text(p)
