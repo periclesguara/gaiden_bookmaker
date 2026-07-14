@@ -1,0 +1,6 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>{{ author.name }}</h1><p><strong>Código:</strong> {{ author.code }} · <strong>Obras:</strong> {{ author.works.count }}</p>
+<p><a class="button" href="{% url 'author_studio:work_create' author.slug %}">Adicionar obra</a></p>
+{% for work in author.works.all %}<div class="card"><a href="{% url 'author_studio:work_detail' work.code %}"><strong>{{ work.title }}</strong></a><br>{{ work.code }} · {{ work.get_status_display }}<div class="actions"><a class="button secondary icon" href="{% url 'author_studio:work_edit' work.code %}" title="Editar obra" aria-label="Editar obra">✎</a><form method="post" action="{% url 'author_studio:work_delete' work.code %}" onsubmit="return confirm('Excluir esta obra? Esta ação não pode ser desfeita.');">{% csrf_token %}<button class="button danger icon" type="submit" title="Excluir obra" aria-label="Excluir obra">🗑</button></form></div></div>{% empty %}<p>Nenhuma obra cadastrada.</p>{% endfor %}
+{% endblock %}

@@ -9,5 +9,6 @@ urlpatterns = [
     path("collections/", include("collections_module.urls")),
     path("pipeline/", include("pipeline.urls")),
     path("editorial/", include("editorial.urls")),
+    path("author-studio/", include("web.author_studio.urls")),
     path("", include("pipeline.urls")),
 ]

@@ -1,0 +1,8 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>{{ work.title }}</h1>
+<div class="actions"><a class="button secondary icon" href="{% url 'author_studio:work_edit' work.code %}" title="Editar obra" aria-label="Editar obra">✎</a><form method="post" action="{% url 'author_studio:work_delete' work.code %}" onsubmit="return confirm('Excluir esta obra? Esta ação não pode ser desfeita.');">{% csrf_token %}<button class="button danger icon" type="submit" title="Excluir obra" aria-label="Excluir obra">🗑</button></form></div>
+<div class="card"><p><strong>Autor:</strong> {{ work.author.name }} ({{ work.author.code }})</p><p><strong>Código da obra:</strong> {{ work.code }}</p><p><strong>Status:</strong> {{ work.get_status_display }}</p></div>
+{% for source in work.sources.all %}<div class="card"><h2>Fonte {{ source.code }}</h2><p><strong>Arquivo:</strong> {{ source.original_filename }}</p><p><strong>Formato:</strong> {{ source.extension }} · <strong>Tamanho:</strong> {{ source.size_bytes }} bytes</p><p><strong>SHA-256:</strong> <code>{{ source.sha256 }}</code></p><p><strong>Extração:</strong> {{ source.get_extraction_status_display }}</p>{% if source.extraction_error %}<p>{{ source.extraction_error }}</p>{% endif %}</div>{% empty %}<p>Nenhuma fonte.</p>{% endfor %}
+{% if canonical %}<div class="card"><h2>Texto canônico {{ canonical.code }}</h2><p><strong>Status:</strong> {{ canonical.get_status_display }}</p><p>{{ canonical.word_count }} palavras · {{ canonical.character_count }} caracteres</p><a class="button" href="{% url 'author_studio:canonical_text' work.code %}">Visualizar texto canônico</a></div>{% endif %}
+{% endblock %}

@@ -1,8 +1,4 @@
 from .settings import *  # noqa
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": str(BASE_DIR / "db.sqlite3"),
-    }
-}
+# Compatibility module only. Gaiden always uses the PostgreSQL DATABASES
+# configuration inherited from settings.py.

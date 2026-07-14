@@ -1,0 +1,86 @@
+from django.db import models
+
+from gaiden.domain.author_studio.enums import CanonicalTextStatus, SourceStatus, WorkStatus
+from gaiden.infrastructure.author_studio.storage import canonical_upload_path, source_upload_path
+
+
+def enum_choices(enum_type):
+    return [(member.value, member.value.replace("_", " ").title()) for member in enum_type]
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=255)
+    canonical_name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, db_index=True)
+    code = models.CharField(max_length=12, unique=True, editable=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.code} — {self.name}"
+
+
+class Work(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.PROTECT, related_name="works", db_index=True)
+    title = models.CharField(max_length=500)
+    canonical_title = models.CharField(max_length=500)
+    slug = models.SlugField(max_length=500)
+    code = models.CharField(max_length=32, unique=True, editable=False, db_index=True)
+    original_language = models.CharField(max_length=20, blank=True, default="")
+    status = models.CharField(max_length=30, choices=enum_choices(WorkStatus), default=WorkStatus.CREATED.value)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["title"]
+        constraints = [
+            models.UniqueConstraint(fields=["author", "canonical_title"], name="author_studio_unique_author_work"),
+            models.UniqueConstraint(fields=["author", "slug"], name="author_studio_unique_author_slug"),
+        ]
+
+    def __str__(self):
+        return f"{self.code} — {self.title}"
+
+
+class WorkSource(models.Model):
+    work = models.ForeignKey(Work, on_delete=models.PROTECT, related_name="sources")
+    code = models.CharField(max_length=48, unique=True, editable=False, db_index=True)
+    original_filename = models.CharField(max_length=500)
+    stored_file = models.FileField(upload_to=source_upload_path)
+    extension = models.CharField(max_length=20)
+    mime_type = models.CharField(max_length=255, blank=True)
+    size_bytes = models.PositiveBigIntegerField(default=0)
+    sha256 = models.CharField(max_length=64, db_index=True)
+    source_provider = models.CharField(max_length=50, default="UNKNOWN")
+    extraction_status = models.CharField(max_length=30, choices=enum_choices(SourceStatus), default=SourceStatus.PENDING.value)
+    extraction_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        constraints = [models.UniqueConstraint(fields=["work", "sha256"], name="author_studio_unique_work_source")]
+
+    def __str__(self):
+        return self.code
+
+
+class CanonicalText(models.Model):
+    work = models.OneToOneField(Work, on_delete=models.PROTECT, related_name="canonical_text")
+    source = models.ForeignKey(WorkSource, on_delete=models.PROTECT, related_name="canonical_versions")
+    code = models.CharField(max_length=48, unique=True, editable=False, db_index=True)
+    text_file = models.FileField(upload_to=canonical_upload_path)
+    sha256 = models.CharField(max_length=64, db_index=True)
+    character_count = models.PositiveBigIntegerField(default=0)
+    word_count = models.PositiveBigIntegerField(default=0)
+    status = models.CharField(max_length=30, choices=enum_choices(CanonicalTextStatus), default=CanonicalTextStatus.DRAFT.value)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return self.code

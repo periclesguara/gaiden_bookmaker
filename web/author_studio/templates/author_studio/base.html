@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Gaiden Author Studio{% endblock %}</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #f6f3ed; color: #24211d; }
+    header, main { max-width: 980px; margin: auto; padding: 1.25rem; }
+    header { display: flex; justify-content: space-between; align-items: center; }
+    a { color: #704923; }
+    .button, button { display: inline-block; padding: .65rem 1rem; border: 0; border-radius: .35rem; background: #704923; color: white; text-decoration: none; cursor: pointer; }
+    .button.secondary { background: #5f665f; }
+    .button.danger { background: #9b2c2c; }
+    .button.icon { min-width: 2.5rem; padding: .55rem .7rem; text-align: center; font-size: 1.05rem; }
+    .actions { display: inline-flex; gap: .45rem; align-items: center; }
+    .actions form { display: inline; margin: 0; }
+    .card { background: white; border: 1px solid #ddd4c8; border-radius: .5rem; padding: 1rem; margin: .8rem 0; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: .75rem; border-bottom: 1px solid #e5ded5; text-align: left; }
+    label { display: block; font-weight: 600; margin-top: .8rem; }
+    input { width: 100%; max-width: 38rem; padding: .55rem; box-sizing: border-box; }
+    .errorlist { color: #9b1c1c; }
+    pre { white-space: pre-wrap; background: white; padding: 1.25rem; line-height: 1.55; }
+  </style>
+</head>
+<body>
+<header><strong><a href="{% url 'author_studio:author_list' %}">Gaiden Author Studio</a></strong><a href="/">Gaiden</a></header>
+<main>
+  {% for message in messages %}<div class="card">{{ message }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
