@@ -1,6 +1,13 @@
 from django.db import models
 
-from gaiden.domain.author_studio.enums import CanonicalTextStatus, SourceStatus, SplitStatus, WorkStatus
+from gaiden.domain.author_studio.enums import (
+    CanonicalTextStatus,
+    SourceStatus,
+    SplitOutcome,
+    SplitRunStatus,
+    SplitStatus,
+    WorkStatus,
+)
 from gaiden.infrastructure.author_studio.storage import canonical_upload_path, chunk_upload_path, source_upload_path
 
 
@@ -91,6 +98,12 @@ class WorkSplit(models.Model):
     canonical_text = models.ForeignKey(CanonicalText, on_delete=models.CASCADE, related_name="split_runs")
     status = models.CharField(max_length=20, choices=enum_choices(SplitStatus), default=SplitStatus.PENDING.value)
     source_sha256 = models.CharField(max_length=64, db_index=True)
+    chunker_version = models.CharField(max_length=50, blank=True)
+    tokenizer_name = models.CharField(max_length=100, blank=True)
+    minimum_tokens = models.PositiveIntegerField(default=400)
+    target_tokens = models.PositiveIntegerField(default=700)
+    maximum_tokens = models.PositiveIntegerField(default=900)
+    overlap_tokens = models.PositiveIntegerField(default=0)
     chunk_count = models.PositiveIntegerField(default=0)
     error = models.TextField(blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
@@ -113,6 +126,11 @@ class WorkChunk(models.Model):
     character_count = models.PositiveIntegerField(default=0)
     word_count = models.PositiveIntegerField(default=0)
     estimated_tokens = models.PositiveIntegerField(default=0)
+    token_count = models.PositiveIntegerField(default=0)
+    tokenizer_name = models.CharField(max_length=100, blank=True)
+    chunker_version = models.CharField(max_length=50, blank=True)
+    start_line = models.PositiveIntegerField(default=0)
+    end_line = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -123,3 +141,35 @@ class WorkChunk(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class WorkSplitRun(models.Model):
+    work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name="split_runs")
+    canonical_text = models.ForeignKey(CanonicalText, on_delete=models.CASCADE, related_name="processing_runs")
+    source_sha256 = models.CharField(max_length=64, db_index=True)
+    chunker_version = models.CharField(max_length=50)
+    tokenizer_name = models.CharField(max_length=100)
+    minimum_tokens = models.PositiveIntegerField(default=400)
+    target_tokens = models.PositiveIntegerField(default=700)
+    maximum_tokens = models.PositiveIntegerField(default=900)
+    overlap_tokens = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=enum_choices(SplitRunStatus),
+        default=SplitRunStatus.PENDING.value,
+    )
+    outcome = models.CharField(max_length=30, choices=enum_choices(SplitOutcome), blank=True)
+    chunks_previous = models.PositiveIntegerField(default=0)
+    chunks_created = models.PositiveIntegerField(default=0)
+    chunks_updated = models.PositiveIntegerField(default=0)
+    chunks_preserved = models.PositiveIntegerField(default=0)
+    chunks_removed = models.PositiveIntegerField(default=0)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+
+    def __str__(self):
+        return f"{self.work.code} — {self.outcome or self.status}"

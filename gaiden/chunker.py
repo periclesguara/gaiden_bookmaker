@@ -4,7 +4,7 @@ import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 from gaiden.chapter_agent_split import split_merged_text_into_chapters
 from gaiden.structure import Unit, detect_units
@@ -23,6 +23,8 @@ class Chunk:
     sha256: str
     out_path: str
     char_count: int
+    token_count: int = 0
+    tokenizer_name: str = "character-estimate:v1"
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -57,138 +59,176 @@ def split_into_paragraphs(lines: List[str]) -> List[Tuple[int, int]]:
         spans.append((start, end))
     return spans
 
-def make_chunks_from_text(text: str, language: str, min_tokens: int, target_tokens: int, max_tokens: int) -> List[Chunk]:
-    normalized_lang = (language or "").strip().lower()
-    # English literary modernization is more sensitive to overlong chunks because
-    # the runtime preserves paragraph structure and cannot safely summarize.
-    if normalized_lang in {"en", "eng", "english"}:
-        target_tokens = min(target_tokens, 1400)
-        max_tokens = min(max_tokens, 1700)
+@dataclass(frozen=True)
+class _Piece:
+    text: str
+    start_line: int
+    end_line: int
+    separator: str = "\n\n"
 
+
+def make_chunks_from_text(
+    text: str,
+    language: str,
+    min_tokens: int,
+    target_tokens: int,
+    max_tokens: int,
+    *,
+    token_counter: Callable[[str], int] | None = None,
+    token_splitter: Callable[[str, int], list[str]] | None = None,
+    tokenizer_name: str = "character-estimate:v1",
+) -> List[Chunk]:
+    """Split text without crossing detected structural units.
+
+    Author Studio supplies a real tokenizer. Other callers retain the explicit
+    character-estimate compatibility path.
+    """
+    normalized_lang = (language or "").strip().lower()
+    count = token_counter or (lambda value: estimate_tokens(value, normalized_lang))
+
+    def fallback_split(value: str, limit: int) -> list[str]:
+        if not value:
+            return []
+        approximate_chars = max(1, int(limit * (4.0 if normalized_lang in {"en", "eng", "english"} else 3.6)))
+        return [value[offset : offset + approximate_chars] for offset in range(0, len(value), approximate_chars)]
+
+    split_tokens = token_splitter or fallback_split
     lines = text.splitlines()
     units = detect_units(lines)
-
     out: List[Chunk] = []
     chunk_idx = 1
 
-    for u in units:
-        unit_lines = lines[u.start_line:u.end_line + 1]
-        para_spans = split_into_paragraphs(unit_lines)
+    def normalize(value: str) -> str:
+        return value.strip() + "\n"
 
-        buf_lines: List[str] = []
-        buf_start_abs = None
-        buf_end_abs = None
+    def expanded_paragraphs(unit: Unit) -> list[_Piece]:
+        unit_lines = lines[unit.start_line : unit.end_line + 1]
+        pieces: list[_Piece] = []
+        for paragraph_start, paragraph_end in split_into_paragraphs(unit_lines):
+            start_line = unit.start_line + paragraph_start
+            end_line = unit.start_line + paragraph_end
+            paragraph = "\n".join(unit_lines[paragraph_start : paragraph_end + 1]).strip()
+            if not paragraph:
+                continue
+            if count(normalize(paragraph)) <= max_tokens:
+                pieces.append(_Piece(paragraph, start_line, end_line))
+                continue
 
-        def flush():
-            nonlocal chunk_idx, buf_lines, buf_start_abs, buf_end_abs
-            if not buf_lines:
-                return
-            chunk_text = "\n".join(buf_lines).strip() + "\n"
-            tok = estimate_tokens(chunk_text, language)
-            # Allow small last chunk inside unit; we'll keep it even if < min_tokens
-            sha = _sha256(chunk_text)
-            out_path = str(CHUNKS_DIR / "TMP")  # will be overwritten by writer
-            out.append(Chunk(
-                idx=chunk_idx,
-                unit_type=u.unit_type,
-                unit_title=u.title,
-                start_line=buf_start_abs if buf_start_abs is not None else u.start_line,
-                end_line=buf_end_abs if buf_end_abs is not None else u.end_line,
-                text=chunk_text,
-                est_tokens=tok,
-                sha256=sha,
-                out_path=out_path,
-                char_count=len(chunk_text),
-            ))
-            chunk_idx += 1
-            buf_lines = []
-            buf_start_abs = None
-            buf_end_abs = None
+            sentences = [item.strip() for item in re.split(r"(?<=[.!?])\s+", paragraph) if item.strip()]
+            if not sentences:
+                sentences = [paragraph]
+            first_sentence_piece = True
+            for sentence in sentences:
+                sentence_parts = [sentence]
+                if count(normalize(sentence)) > max_tokens:
+                    split_limit = max(1, max_tokens - 1)
+                    while True:
+                        sentence_parts = [part for part in split_tokens(sentence, split_limit) if part]
+                        largest = max((count(normalize(part)) for part in sentence_parts), default=0)
+                        if largest <= max_tokens:
+                            break
+                        split_limit -= max(1, largest - max_tokens + 1)
+                        if split_limit < 1:
+                            raise ValueError("Não foi possível respeitar o limite rígido por tokens.")
+                for part_index, part in enumerate(sentence_parts):
+                    if count(normalize(part)) > max_tokens:
+                        raise ValueError("O divisor por tokens produziu conteúdo acima do limite rígido.")
+                    separator = "\n\n" if first_sentence_piece else ("" if part_index else " ")
+                    pieces.append(_Piece(part, start_line, end_line, separator))
+                    first_sentence_piece = False
+        return pieces
 
-        def split_huge_paragraph(para_text: str, start_line: int, end_line: int) -> None:
-            nonlocal chunk_idx
-            sentences = re.split(r"(?<=[.!?])\s+", para_text.strip())
-            acc: List[str] = []
-            for s in sentences:
-                if not s.strip():
+    for unit in units:
+        unit_chunks: list[tuple[str, int, int]] = []
+        current = ""
+        current_start = unit.start_line
+        current_end = unit.start_line
+
+        def flush() -> None:
+            nonlocal current, current_start, current_end
+            normalized = normalize(current) if current.strip() else ""
+            if normalized:
+                unit_chunks.append((normalized, current_start, current_end))
+            current = ""
+
+        for piece in expanded_paragraphs(unit):
+            candidate = piece.text if not current else current + piece.separator + piece.text
+            if current and count(normalize(candidate)) > max_tokens:
+                flush()
+                candidate = piece.text
+            if count(normalize(candidate)) > max_tokens:
+                raise ValueError("Chunk candidato acima do limite rígido de tokens.")
+            if not current:
+                current_start = piece.start_line
+            current = candidate
+            current_end = piece.end_line
+            if count(normalize(current)) >= target_tokens:
+                flush()
+        flush()
+
+        index = 0
+        while index < len(unit_chunks):
+            chunk_text, start_line, end_line = unit_chunks[index]
+            if count(chunk_text) >= 100 or len(unit_chunks) == 1:
+                index += 1
+                continue
+            if index > 0:
+                previous_text, previous_start, _ = unit_chunks[index - 1]
+                merged = normalize(previous_text.rstrip() + "\n\n" + chunk_text.lstrip())
+                if count(merged) <= max_tokens:
+                    unit_chunks[index - 1] = (merged, previous_start, end_line)
+                    unit_chunks.pop(index)
                     continue
-                cand = (" ".join(acc + [s])).strip()
-                if estimate_tokens(cand, language) > max_tokens and acc:
-                    chunk_text = (" ".join(acc)).strip() + "\n"
-                    sha = _sha256(chunk_text)
-                    out.append(Chunk(
-                        idx=chunk_idx,
-                        unit_type=u.unit_type,
-                        unit_title=u.title,
-                        start_line=start_line,
-                        end_line=end_line,
-                        text=chunk_text,
-                        est_tokens=estimate_tokens(chunk_text, language),
-                        sha256=sha,
-                        out_path=str(CHUNKS_DIR / "TMP"),
-                        char_count=len(chunk_text),
-                    ))
-                    chunk_idx += 1
-                    acc = [s]
-                else:
-                    acc.append(s)
-            if acc:
-                chunk_text = (" ".join(acc)).strip() + "\n"
-                sha = _sha256(chunk_text)
-                out.append(Chunk(
+            if index + 1 < len(unit_chunks):
+                next_text, _, next_end = unit_chunks[index + 1]
+                merged = normalize(chunk_text.rstrip() + "\n\n" + next_text.lstrip())
+                if count(merged) <= max_tokens:
+                    unit_chunks[index] = (merged, start_line, next_end)
+                    unit_chunks.pop(index + 1)
+                    continue
+            index += 1
+
+        if len(unit_chunks) > 1 and count(unit_chunks[-1][0]) < min_tokens:
+            previous_text, previous_start, _ = unit_chunks[-2]
+            tail_text, _, tail_end = unit_chunks[-1]
+            combined = normalize(previous_text.rstrip() + "\n\n" + tail_text.lstrip())
+            combined_tokens = count(combined)
+            if combined_tokens <= max_tokens:
+                unit_chunks[-2:] = [(combined, previous_start, tail_end)]
+            elif combined_tokens >= min_tokens * 2:
+                balanced_limit = min(max_tokens - 4, max(1, (combined_tokens + 1) // 2))
+                balanced = [normalize(part) for part in split_tokens(combined.strip(), balanced_limit) if part.strip()]
+                if (
+                    len(balanced) >= 2
+                    and all(min_tokens <= count(part) <= max_tokens for part in balanced)
+                ):
+                    unit_chunks[-2:] = [
+                        (part, previous_start, tail_end) for part in balanced
+                    ]
+
+        for chunk_text, start_line, end_line in unit_chunks:
+            real_tokens = count(chunk_text)
+            if not chunk_text.strip():
+                raise ValueError("O splitter produziu um chunk vazio.")
+            if real_tokens > max_tokens:
+                raise ValueError(f"Chunk com {real_tokens} tokens excede o limite {max_tokens}.")
+            out.append(
+                Chunk(
                     idx=chunk_idx,
-                    unit_type=u.unit_type,
-                    unit_title=u.title,
+                    unit_type=unit.unit_type,
+                    unit_title=unit.title,
                     start_line=start_line,
                     end_line=end_line,
                     text=chunk_text,
-                    est_tokens=estimate_tokens(chunk_text, language),
-                    sha256=sha,
+                    est_tokens=estimate_tokens(chunk_text, normalized_lang),
+                    sha256=_sha256(chunk_text),
                     out_path=str(CHUNKS_DIR / "TMP"),
                     char_count=len(chunk_text),
-                ))
-                chunk_idx += 1
-
-        for (ps, pe) in para_spans:
-            para_lines = unit_lines[ps:pe + 1]
-            para_text = "\n".join(para_lines).strip() + "\n"
-            if not para_text.strip():
-                continue
-
-            if not buf_lines and estimate_tokens(para_text, language) > max_tokens:
-                split_huge_paragraph(para_text, u.start_line + ps, u.start_line + pe)
-                continue
-
-            candidate_lines = (buf_lines + [""] + para_lines) if buf_lines else para_lines
-            candidate_text = "\n".join(candidate_lines).strip() + "\n"
-            candidate_tokens = estimate_tokens(candidate_text, language)
-
-            # If adding this paragraph would exceed max_tokens, flush current buffer first.
-            if buf_lines and candidate_tokens > max_tokens:
-                flush()
-                # If paragraph itself exceeds max_tokens, we have to split inside it (rare, huge paragraph).
-                if estimate_tokens(para_text, language) > max_tokens:
-                    split_huge_paragraph(para_text, u.start_line + ps, u.start_line + pe)
-                    continue
-
-                # start new buffer with this paragraph
-                buf_lines = para_lines
-                buf_start_abs = u.start_line + ps
-                buf_end_abs = u.start_line + pe
-                continue
-
-            # Otherwise safe to add
-            if not buf_lines:
-                buf_start_abs = u.start_line + ps
-            buf_lines = candidate_lines
-            buf_end_abs = u.start_line + pe
-
-            # If we've reached target, flush (but ensure we are >= min_tokens)
-            if estimate_tokens("\n".join(buf_lines).strip() + "\n", language) >= target_tokens:
-                flush()
-
-        # flush remaining at end of unit
-        flush()
+                    token_count=real_tokens,
+                    tokenizer_name=tokenizer_name,
+                )
+            )
+            chunk_idx += 1
 
     return out
 

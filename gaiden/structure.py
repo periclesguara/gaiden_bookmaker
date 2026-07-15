@@ -20,10 +20,16 @@ RX_ROMAN_DOT_TITLE = re.compile(rf"^\s*({ROMAN_RX})\.\s+(.+)$")
 RX_ALL_CAPS = re.compile(r"^[A-Z0-9][A-Z0-9 \-—’'\",:;.!?]{6,}$")  # long-ish all caps line
 RX_MD_HEADING = re.compile(r"^\s*(#{1,6})\s+(.+)$")
 
+REJECTED_STRUCTURAL_TITLES = {"M.R.C.S.", "L", "FULL TEXT"}
+
 def _clean_title(s: str) -> str:
     s = s.strip()
     s = re.sub(r"\s+", " ", s)
     return s
+
+
+def _is_rejected_structural_title(title: str) -> bool:
+    return _clean_title(title).upper() in REJECTED_STRUCTURAL_TITLES
 
 def detect_units(lines: List[str]) -> List[Unit]:
     """
@@ -46,6 +52,8 @@ def detect_units(lines: List[str]) -> List[Unit]:
         if m:
             level = len(m.group(1))
             title = _clean_title(m.group(2))
+            if _is_rejected_structural_title(title):
+                continue
             # Map headings: # as book/part, ## as chapter, deeper as section
             unit_type = "book" if level == 1 else "chapter" if level == 2 else "section"
             candidates.append((i, unit_type, title))
@@ -60,6 +68,8 @@ def detect_units(lines: List[str]) -> List[Unit]:
             title = f"{m.group(1)} {num}".strip()
             if rest:
                 title = f"{title} — {rest}"
+            if _is_rejected_structural_title(title):
+                continue
             candidates.append((i, unit_type, title))
             continue
 
@@ -68,13 +78,15 @@ def detect_units(lines: List[str]) -> List[Unit]:
         if m:
             title = _clean_title(m.group(2))
             # Heuristic: treat as unit heading if it's mostly Title/Caps OR short line
-            if len(line) <= 90 and (line.upper() == line or RX_ALL_CAPS.match(line) or title.istitle()):
+            if not _is_rejected_structural_title(title) and len(line) <= 90 and (line.upper() == line or RX_ALL_CAPS.match(line) or title.istitle()):
                 candidates.append((i, "chapter", title))
             continue
 
         # All-caps heading fallback (avoid shouting paragraphs: require short)
         if len(line) <= 90 and RX_ALL_CAPS.match(line):
-            candidates.append((i, "section", _clean_title(line.title())))
+            title = _clean_title(line)
+            if not _is_rejected_structural_title(title):
+                candidates.append((i, "section", title.title()))
 
     # Deduplicate near-duplicates (sometimes two detectors hit the same line)
     candidates = sorted(set(candidates), key=lambda x: x[0])
@@ -85,15 +97,12 @@ def detect_units(lines: List[str]) -> List[Unit]:
         units.append(Unit(1, "unknown", "FULL TEXT", 0, len(lines) - 1))
         return units
 
+    if candidates[0][0] > 0:
+        candidates.insert(0, (0, "unknown", "UNSTRUCTURED TEXT"))
+
     for idx, (start_i, utype, title) in enumerate(candidates, start=1):
         end_i = (candidates[idx][0] - 1) if idx < len(candidates) else (len(lines) - 1)
         units.append(Unit(idx, utype, title, start_i, end_i))
 
-    # Drop units that are too tiny (noise headings). Keep the first.
-    filtered: List[Unit] = []
-    for u in units:
-        if u.end_line - u.start_line < 3 and u.unit_type != "book":
-            continue
-        filtered.append(u)
-
-    return filtered or [Unit(1, "unknown", "FULL TEXT", 0, len(lines) - 1)]
+    # Units are never dropped here: doing so would also drop their source lines.
+    return units

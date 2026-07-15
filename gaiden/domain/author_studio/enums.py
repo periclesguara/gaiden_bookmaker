@@ -43,3 +43,17 @@ class SplitStatus(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     STALE = "STALE"
+
+
+class SplitRunStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class SplitOutcome(str, Enum):
+    CREATED = "CREATED"
+    REPROCESSED = "REPROCESSED"
+    ALREADY_CURRENT = "ALREADY_CURRENT"
+    FAILED = "FAILED"

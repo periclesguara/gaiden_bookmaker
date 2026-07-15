@@ -9,6 +9,7 @@ description = "Gaiden BookMaker"
 requires-python = ">=3.10"
 dependencies = [
     "markitdown[all]>=0.1.5",
+    "tiktoken>=0.7.0",
 ]
 
 [project.scripts]
