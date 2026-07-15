@@ -4,11 +4,49 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from gaiden.application.author_studio.ingest_work_source import ingest_new_work
 from gaiden.application.author_studio.delete_work import delete_work
+from gaiden.application.author_studio.split_work import split_author_works, split_work
 from gaiden.application.author_studio.update_work import update_work
+from gaiden.domain.author_studio.enums import SplitStatus
 from gaiden.domain.author_studio.exceptions import AuthorStudioError
 
 from .forms import AuthorCreateForm, WorkCreateForm, WorkEditForm
 from .models import Author, CanonicalText, Work
+
+
+def _processing_row(work):
+    try:
+        canonical = work.canonical_text
+    except CanonicalText.DoesNotExist:
+        canonical = None
+    try:
+        split_run = work.split_run
+    except Exception:
+        split_run = None
+    split_complete = bool(
+        canonical
+        and split_run
+        and split_run.status == SplitStatus.COMPLETED.value
+        and split_run.source_sha256 == canonical.sha256
+    )
+    return {
+        "work": work,
+        "canonical": canonical,
+        "split_run": split_run,
+        "split_complete": split_complete,
+        "chunk_count": split_run.chunk_count if split_complete else 0,
+    }
+
+
+def _author_processing_context(author):
+    work_rows = [_processing_row(work) for work in author.works.all()]
+    completed_rows = [row for row in work_rows if row["split_complete"]]
+    return {
+        "author": author,
+        "work_rows": work_rows,
+        "all_split_complete": bool(work_rows) and len(completed_rows) == len(work_rows),
+        "completed_work_count": len(completed_rows),
+        "total_chunks": sum(row["chunk_count"] for row in completed_rows),
+    }
 
 
 def author_list(request):
@@ -30,8 +68,31 @@ def author_create(request):
 
 
 def author_detail(request, slug):
-    author = get_object_or_404(Author.objects.prefetch_related("works"), slug=slug)
-    return render(request, "author_studio/author_detail.html", {"author": author})
+    author = get_object_or_404(
+        Author.objects.prefetch_related("works__canonical_text", "works__split_run"),
+        slug=slug,
+    )
+    return render(request, "author_studio/author_detail.html", _author_processing_context(author))
+
+
+def author_processing(request, slug):
+    author = get_object_or_404(
+        Author.objects.prefetch_related("works__canonical_text", "works__split_run"),
+        slug=slug,
+    )
+    return render(request, "author_studio/processing.html", _author_processing_context(author))
+
+
+def author_embeddings(request, slug):
+    author = get_object_or_404(
+        Author.objects.prefetch_related("works__canonical_text", "works__split_run"),
+        slug=slug,
+    )
+    context = _author_processing_context(author)
+    if not context["all_split_complete"]:
+        messages.warning(request, "Conclua a etapa 01 de todas as obras antes de prosseguir.")
+        return redirect("author_studio:author_processing", slug=author.slug)
+    return render(request, "author_studio/embeddings_setup.html", context)
 
 
 def work_create(request, author_slug):
@@ -57,9 +118,39 @@ def work_create(request, author_slug):
 
 
 def work_detail(request, code):
-    work = get_object_or_404(Work.objects.select_related("author").prefetch_related("sources"), code=code)
+    work = get_object_or_404(
+        Work.objects.select_related("author").prefetch_related("sources"),
+        code=code,
+    )
     canonical = CanonicalText.objects.filter(work=work).first()
-    return render(request, "author_studio/work_detail.html", {"work": work, "canonical": canonical})
+    processing = _processing_row(work)
+    return render(request, "author_studio/work_detail.html", {"work": work, "canonical": canonical, "processing": processing})
+
+
+def author_split(request, slug):
+    author = get_object_or_404(Author, slug=slug)
+    if request.method != "POST":
+        return redirect("author_studio:author_detail", slug=author.slug)
+    results, errors = split_author_works(author=author)
+    if results:
+        total_chunks = sum(item.chunk_count for item in results)
+        messages.success(request, f"Etapa 01 concluída: {len(results)} obras, {total_chunks} chunks.")
+    for code, error in errors:
+        messages.error(request, f"{code}: {error}")
+    return redirect("author_studio:author_detail", slug=author.slug)
+
+
+def work_split(request, code):
+    work = get_object_or_404(Work.objects.select_related("author"), code=code)
+    if request.method != "POST":
+        return redirect("author_studio:work_detail", code=work.code)
+    try:
+        result = split_work(work=work)
+    except Exception as exc:
+        messages.error(request, f"Não foi possível executar o split: {exc}")
+    else:
+        messages.success(request, f"Etapa 01 concluída: {result.chunk_count} chunks.")
+    return redirect("author_studio:work_detail", code=work.code)
 
 
 def work_edit(request, code):

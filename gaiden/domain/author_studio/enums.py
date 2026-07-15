@@ -35,3 +35,11 @@ class SourceProvider(str, Enum):
     INTERNET_ARCHIVE = "INTERNET_ARCHIVE"
     OTHER = "OTHER"
     UNKNOWN = "UNKNOWN"
+
+
+class SplitStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    STALE = "STALE"

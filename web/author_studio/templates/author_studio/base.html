@@ -13,9 +13,24 @@
     .button, button { display: inline-block; padding: .65rem 1rem; border: 0; border-radius: .35rem; background: #704923; color: white; text-decoration: none; cursor: pointer; }
     .button.secondary { background: #5f665f; }
     .button.danger { background: #9b2c2c; }
+    .button.saved { background: #24724c; cursor: default; opacity: 1; }
     .button.icon { min-width: 2.5rem; padding: .55rem .7rem; text-align: center; font-size: 1.05rem; }
     .actions { display: inline-flex; gap: .45rem; align-items: center; }
     .actions form { display: inline; margin: 0; }
+    .pipeline { display: grid; gap: .55rem; margin-top: 1rem; }
+    .stage { position: relative; padding: .7rem .85rem .7rem 1rem; border: 1px solid #ded7cd; border-radius: .35rem; background: #faf8f4; }
+    .stage::before { content: ""; position: absolute; inset: 0 auto 0 0; width: .35rem; border-radius: .35rem 0 0 .35rem; background: #b8b1a7; }
+    .stage.done::before { background: #24724c; }
+    .stage.active::before { background: #b87924; }
+    .stage.locked { color: #77716a; }
+    .stage-title { display: flex; justify-content: space-between; gap: 1rem; font-weight: 700; }
+    .stage-meta { margin-top: .25rem; color: #686159; font-size: .9rem; }
+    .work-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+    .tabs { display: flex; gap: .4rem; margin: 1rem 0; border-bottom: 1px solid #d8d0c5; }
+    .tab { padding: .7rem 1rem; text-decoration: none; color: #5d554d; border-bottom: .25rem solid transparent; }
+    .tab.active { color: #704923; border-bottom-color: #704923; font-weight: 700; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .75rem; }
+    .summary-value { display: block; font-size: 1.6rem; font-weight: 800; }
     .card { background: white; border: 1px solid #ddd4c8; border-radius: .5rem; padding: 1rem; margin: .8rem 0; }
     table { width: 100%; border-collapse: collapse; background: white; }
     th, td { padding: .75rem; border-bottom: 1px solid #e5ded5; text-align: left; }

@@ -19,3 +19,15 @@ def source_upload_path(instance, filename: str) -> str:
 
 def canonical_upload_path(instance, filename: str) -> str:
     return str(Path("author_studio/authors") / instance.work.author.code / "works" / instance.work.code / "canonical" / instance.code / "canonical.txt")
+
+
+def chunk_upload_path(instance, filename: str) -> str:
+    return str(
+        Path("author_studio/authors")
+        / instance.work.author.code
+        / "works"
+        / instance.work.code
+        / "chunks"
+        / instance.code
+        / "chunk.txt"
+    )

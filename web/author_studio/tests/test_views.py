@@ -64,6 +64,14 @@ class AuthorStudioViewTests(TestCase):
         response = self.client.get(reverse("author_studio:author_detail", args=[author.slug]))
         self.assertContains(response, "Adicionar obra")
 
+    def test_saved_work_is_visibly_marked_as_persisted(self):
+        from gaiden.application.author_studio.create_work import create_work
+
+        author = create_author("Arthur Conan Doyle")
+        create_work(author=author, title="The Hound")
+        response = self.client.get(reverse("author_studio:author_detail", args=[author.slug]))
+        self.assertContains(response, "✓ Salva no banco")
+
     def test_work_edit_preserves_code(self):
         from gaiden.application.author_studio.create_work import create_work
 
@@ -90,3 +98,13 @@ class AuthorStudioViewTests(TestCase):
         self.assertRedirects(response, reverse("author_studio:author_detail", args=[author.slug]))
         self.assertFalse(Work.objects.filter(pk=selected.pk).exists())
         self.assertTrue(Work.objects.filter(pk=preserved.pk).exists())
+
+    def test_author_detail_displays_processing_stages(self):
+        from gaiden.application.author_studio.create_work import create_work
+
+        author = create_author("Arthur Conan Doyle")
+        create_work(author=author, title="The Hound")
+        response = self.client.get(reverse("author_studio:author_detail", args=[author.slug]))
+        self.assertContains(response, "01 — Split/Chunks")
+        self.assertContains(response, "02 — Embeddings")
+        self.assertContains(response, "03 — Índice vetorial")

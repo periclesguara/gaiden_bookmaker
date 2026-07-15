@@ -1,7 +1,7 @@
 from django.db import models
 
-from gaiden.domain.author_studio.enums import CanonicalTextStatus, SourceStatus, WorkStatus
-from gaiden.infrastructure.author_studio.storage import canonical_upload_path, source_upload_path
+from gaiden.domain.author_studio.enums import CanonicalTextStatus, SourceStatus, SplitStatus, WorkStatus
+from gaiden.infrastructure.author_studio.storage import canonical_upload_path, chunk_upload_path, source_upload_path
 
 
 def enum_choices(enum_type):
@@ -81,6 +81,45 @@ class CanonicalText(models.Model):
 
     class Meta:
         ordering = ["-updated_at"]
+
+    def __str__(self):
+        return self.code
+
+
+class WorkSplit(models.Model):
+    work = models.OneToOneField(Work, on_delete=models.CASCADE, related_name="split_run")
+    canonical_text = models.ForeignKey(CanonicalText, on_delete=models.CASCADE, related_name="split_runs")
+    status = models.CharField(max_length=20, choices=enum_choices(SplitStatus), default=SplitStatus.PENDING.value)
+    source_sha256 = models.CharField(max_length=64, db_index=True)
+    chunk_count = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.work.code} — {self.status}"
+
+
+class WorkChunk(models.Model):
+    work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name="chunks")
+    canonical_text = models.ForeignKey(CanonicalText, on_delete=models.CASCADE, related_name="chunks")
+    code = models.CharField(max_length=64, unique=True, editable=False, db_index=True)
+    sequence = models.PositiveIntegerField()
+    unit_type = models.CharField(max_length=30, blank=True)
+    unit_title = models.CharField(max_length=500, blank=True)
+    text_file = models.FileField(upload_to=chunk_upload_path)
+    sha256 = models.CharField(max_length=64, db_index=True)
+    character_count = models.PositiveIntegerField(default=0)
+    word_count = models.PositiveIntegerField(default=0)
+    estimated_tokens = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sequence"]
+        constraints = [
+            models.UniqueConstraint(fields=["work", "sequence"], name="author_studio_unique_work_chunk_sequence"),
+        ]
 
     def __str__(self):
         return self.code
