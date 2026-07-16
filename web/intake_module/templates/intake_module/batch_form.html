@@ -1,2 +1,10 @@
 {% extends "intake_module/base.html" %}
-{% block content %}<h1>Criar lote</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Salvar lote</button></form>{% endblock %}
+{% block content %}
+<h1>Criar lote</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" name="save_and_files" value="1">Salvar lote e adicionar arquivos</button>
+  <button class="secondary" type="submit" name="save_only" value="1">Salvar somente o cadastro</button>
+</form>
+{% endblock %}

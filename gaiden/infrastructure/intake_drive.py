@@ -49,6 +49,10 @@ class RcloneClient:
             raise RcloneUnavailableError("rclone executable is not available")
         self._run(["rclone", "version"])
 
+    @property
+    def executable_available(self) -> bool:
+        return bool(shutil.which("rclone"))
+
     def list_folders(self, relative_path: str = "") -> list[str]:
         target = self._remote_path(relative_path)
         result = self._run(["rclone", "lsf", target, "--dirs-only"])

@@ -22,16 +22,35 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
     client = client or RcloneClient()
     client.check_available()
     files = client.list_files(relative_folder)
-    report = {"folder": relative_folder, "discovered": [], "ignored": [], "existing": [], "errors": []}
+    report = {
+        "folder": relative_folder,
+        "files": [],
+        "discovered": [],
+        "ignored": [],
+        "existing": [],
+        "errors": [],
+    }
     for drive_file in files:
         suffix = Path(drive_file.name).suffix.lower()
+        row = {
+            "filename": drive_file.name,
+            "extension": suffix.lstrip(".").upper() or "—",
+            "size": drive_file.size,
+            "remote_id": drive_file.file_id,
+            "compatible": suffix in ACCEPTED_SUFFIXES,
+            "item_id": None,
+            "state": "DISCOVERED" if suffix in ACCEPTED_SUFFIXES else "Ignorado nesta etapa",
+        }
         if suffix in IGNORED_IMAGE_SUFFIXES:
             report["ignored"].append(
                 {"filename": drive_file.name, "reason": "image_not_processed_in_v1"}
             )
+            report["files"].append(row)
             continue
         if suffix not in ACCEPTED_SUFFIXES:
+            row["state"] = "Formato não compatível"
             report["ignored"].append({"filename": drive_file.name, "reason": "unsupported_format"})
+            report["files"].append(row)
             continue
         existing = None
         if drive_file.file_id:
@@ -43,6 +62,9 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
             ).first()
         if existing is not None:
             report["existing"].append({"filename": drive_file.name, "item_id": existing.id})
+            row["item_id"] = existing.id
+            row["state"] = existing.status
+            report["files"].append(row)
             continue
         try:
             item = discover_item(
@@ -52,8 +74,12 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
                 drive_file_id=drive_file.file_id,
             )
             report["discovered"].append({"filename": drive_file.name, "item_id": item.id})
+            row["item_id"] = item.id
+            row["state"] = item.status
         except Exception as exc:
+            row["state"] = "ERROR"
             report["errors"].append({"filename": drive_file.name, "error": str(exc)[:500]})
+        report["files"].append(row)
     intake_storage.ensure_batch_layout(batch.code, batch.source_language)
     intake_storage.atomic_write_json(
         intake_storage.drive_audit_path(batch.code, batch.source_language), report, overwrite=True

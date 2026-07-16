@@ -22,6 +22,11 @@ class IntakeBatchForm(forms.ModelForm):
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
+    def __init__(self, attrs=None):
+        defaults = {"accept": ".epub,.txt,.html,.htm"}
+        defaults.update(attrs or {})
+        super().__init__(defaults)
+
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -40,7 +45,7 @@ class IntakeUploadForm(forms.Form):
 
 
 class DriveSyncForm(forms.Form):
-    relative_folder = forms.CharField(max_length=500)
+    relative_folder = forms.CharField(max_length=500, label="Drive relative path")
 
 
 class PrepareCodexForm(forms.Form):

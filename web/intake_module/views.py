@@ -11,8 +11,10 @@ from gaiden.application.intake import (
     ingest_many,
     prepare_for_codex,
     register_translation_return,
+    store_uploaded_files,
 )
 from gaiden.domain.intake import IntakeState
+from gaiden.infrastructure.intake_drive import RcloneClient
 
 from .forms import (
     DriveSyncForm,
@@ -33,7 +35,9 @@ def batch_create(request):
     form = IntakeBatchForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         batch = form.save()
-        return redirect("intake_module:batch_detail", batch_id=batch.id)
+        if "save_only" in request.POST:
+            return redirect("intake_module:batch_detail", batch_id=batch.id)
+        return redirect("intake_module:batch_files", batch_id=batch.id)
     return render(request, "intake_module/batch_form.html", {"form": form})
 
 
@@ -49,6 +53,7 @@ def batch_detail(request, batch_id: int):
             "upload_form": IntakeUploadForm(),
             "can_download_next": items.filter(status=IntakeState.DISCOVERED.value).exists(),
             "can_clean_next": items.filter(status=IntakeState.DOWNLOADED.value).exists(),
+            "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
         },
     )
 
@@ -73,33 +78,168 @@ def batch_upload(request, batch_id: int):
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
     form = IntakeUploadForm(request.POST, request.FILES)
     if form.is_valid():
-        results = ingest_many(batch, request.FILES.getlist("files"))
-        imported = sum(not result.get("ignored", False) for result in results)
-        ignored = len(results) - imported
-        messages.success(request, f"Importados: {imported}; ignorados: {ignored}.")
+        uploads = request.FILES.getlist("files")
+        results = store_uploaded_files(batch, uploads)
+        imported = sum(not row.get("ignored") and not row.get("error") for row in results)
+        ignored = sum(bool(row.get("ignored")) for row in results)
+        duplicates = sum(bool(row.get("duplicate")) for row in results)
+        errors = sum(bool(row.get("error")) for row in results)
+        _store_summary(
+            request,
+            batch.id,
+            found=len(uploads),
+            selected=len(uploads),
+            imported=imported,
+            ignored=ignored,
+            duplicates=duplicates,
+            errors=errors,
+        )
+        messages.success(
+            request,
+            f"Upload local: {imported} recebidos, {ignored} ignorados, {errors} erros.",
+        )
     else:
         messages.error(request, "Selecione um ou mais arquivos válidos.")
-    return redirect("intake_module:batch_detail", batch_id=batch.id)
+    return redirect("intake_module:batch_files", batch_id=batch.id)
+
+
+def _summary_key(batch_id: int) -> str:
+    return f"intake_batch_file_summary_{batch_id}"
+
+
+def _report_key(batch_id: int) -> str:
+    return f"intake_batch_drive_report_{batch_id}"
+
+
+def _empty_summary() -> dict:
+    return {"found": 0, "selected": 0, "imported": 0, "ignored": 0, "duplicates": 0, "errors": 0}
+
+
+def _store_summary(request, batch_id: int, **values) -> dict:
+    summary = {**_empty_summary(), **request.session.get(_summary_key(batch_id), {}), **values}
+    request.session[_summary_key(batch_id)] = summary
+    return summary
+
+
+def batch_files(request, batch_id: int):
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    form = DriveSyncForm(request.POST or None, initial={"relative_folder": batch.drive_relative_path})
+    report = request.session.get(_report_key(batch.id))
+    try:
+        client = RcloneClient()
+        remote_name = client.remote
+        rclone_available = client.executable_available
+        configuration_error = ""
+    except Exception as exc:
+        client = None
+        remote_name = "Configuração inválida"
+        rclone_available = False
+        configuration_error = str(exc)
+    if request.method == "POST" and form.is_valid():
+        try:
+            if client is None:
+                raise ValueError(configuration_error or "Configuração do rclone inválida")
+            batch.drive_relative_path = form.cleaned_data["relative_folder"]
+            batch.save(update_fields=["drive_relative_path", "updated_at"])
+            action = request.POST.get("drive_action")
+            if action == "verify":
+                client.check_available()
+                client.list_folders(form.cleaned_data["relative_folder"])
+                messages.success(request, "Pasta verificada com sucesso; nenhum arquivo foi transferido.")
+            elif action == "list":
+                report = discover_drive_folder(
+                    batch,
+                    form.cleaned_data["relative_folder"],
+                    client=client,
+                )
+                request.session[_report_key(batch.id)] = report
+                _store_summary(
+                    request,
+                    batch.id,
+                    found=len(report["files"]),
+                    selected=0,
+                    imported=0,
+                    ignored=len(report["ignored"]),
+                    duplicates=0,
+                    errors=len(report["errors"]),
+                )
+                messages.success(
+                    request,
+                    f"Drive: {len(report['files'])} encontrados; nenhum arquivo foi transferido.",
+                )
+            else:
+                raise ValueError("Ação do Drive inválida.")
+        except Exception as exc:
+            messages.error(request, str(exc))
+    elif request.method == "POST":
+        messages.error(request, "Informe um caminho relativo válido para o Drive.")
+    return render(
+        request,
+        "intake_module/batch_files.html",
+        {
+            "batch": batch,
+            "form": form,
+            "upload_form": IntakeUploadForm(),
+            "report": report,
+            "remote_name": remote_name,
+            "rclone_available": rclone_available,
+            "configuration_error": configuration_error,
+            "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
+        },
+    )
 
 
 def batch_drive(request, batch_id: int):
+    return batch_files(request, batch_id)
+
+
+def batch_import_selected(request, batch_id: int):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
-    form = DriveSyncForm(request.POST or None, initial={"relative_folder": batch.drive_relative_path})
-    report = None
-    if request.method == "POST" and form.is_valid():
+    raw_ids = request.POST.getlist("selected_items")
+    selected_ids = []
+    for value in raw_ids:
         try:
-            batch.drive_relative_path = form.cleaned_data["relative_folder"]
-            batch.save(update_fields=["drive_relative_path", "updated_at"])
-            report = discover_drive_folder(batch, form.cleaned_data["relative_folder"])
-            messages.success(
-                request,
-                f"Drive: {len(report['discovered'])} descobertos, {len(report['existing'])} já cadastrados, "
-                f"{len(report['ignored'])} ignorados, "
-                f"{len(report['errors'])} erros.",
-            )
+            selected_ids.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    selected_ids = list(dict.fromkeys(selected_ids))
+    items = list(
+        batch.items.filter(
+            id__in=selected_ids,
+            status=IntakeState.DISCOVERED.value,
+        ).order_by("order_index")
+    )
+    imported = 0
+    duplicates = 0
+    errors = len(selected_ids) - len(items)
+    client = None
+    for item in items:
+        try:
+            client = client or RcloneClient()
+            result = download_drive_item(item, client=client)
+            imported += 1
+            duplicates += int(bool(result.get("duplicate")))
         except Exception as exc:
-            messages.error(request, str(exc))
-    return render(request, "intake_module/drive_sync.html", {"batch": batch, "form": form, "report": report})
+            errors += 1
+            messages.error(request, f"{item.source_filename}: {exc}")
+    previous = request.session.get(_summary_key(batch.id), _empty_summary())
+    _store_summary(
+        request,
+        batch.id,
+        found=previous.get("found", 0),
+        selected=len(selected_ids),
+        imported=imported,
+        ignored=previous.get("ignored", 0),
+        duplicates=duplicates,
+        errors=errors,
+    )
+    messages.success(
+        request,
+        f"Seleção: {len(selected_ids)}; importados: {imported}; erros: {errors}.",
+    )
+    return redirect("intake_module:batch_files", batch_id=batch.id)
 
 
 def item_update_metadata(request, item_id: int):

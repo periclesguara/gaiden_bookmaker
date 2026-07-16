@@ -4,12 +4,19 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, PipelineStage, Work
 from gaiden.application.intake.drive_sync import discover_drive_folder, download_drive_item
-from gaiden.application.intake.ingestion import clean_downloaded_item, ingest_bytes
+from gaiden.application.intake import drive_sync as drive_sync_service
+from gaiden.application.intake import ingestion as ingestion_service
+from gaiden.application.intake.ingestion import (
+    clean_downloaded_item,
+    ingest_bytes,
+    store_uploaded_files,
+)
 from gaiden.application.intake.pipeline_handoff import (
     IntakeHandoffConflict,
     IntakeHandoffError,
@@ -54,6 +61,52 @@ class FakeDiscoveryClient:
         self.downloaded += 1
         destination.write_bytes(self.payload)
         return destination
+
+
+class FakeSelectionClient:
+    remote = "gaiden_test_drive:"
+    executable_available = True
+
+    def __init__(self):
+        self.files = [
+            DriveFile(
+                "tarzan-id",
+                "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+                "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+                21,
+            ),
+            DriveFile("mars-id", "a-princess-of-mars.epub", "a-princess-of-mars.epub", 17),
+            DriveFile("cover-id", "cover.jpg", "cover.jpg", 9),
+        ]
+        self.payloads = {
+            "edgar-rice-burroughs_tarzan-of-the-apes.epub": b"Tarzan selected payload",
+            "a-princess-of-mars.epub": b"Mars payload",
+        }
+        self.checked = 0
+        self.downloaded = []
+
+    def check_available(self):
+        self.checked += 1
+
+    def list_folders(self, _relative_path):
+        return []
+
+    def list_files(self, _relative_path):
+        return list(self.files)
+
+    def download_file(self, _folder, drive_file, destination):
+        self.downloaded.append(drive_file.name)
+        destination.write_bytes(self.payloads[drive_file.name])
+        return destination
+
+
+class FakeUpload:
+    def __init__(self, name, payload):
+        self.name = name
+        self.payload = payload
+
+    def chunks(self):
+        yield self.payload
 
 
 class BlockZeroTests(TestCase):
@@ -124,6 +177,147 @@ class BlockZeroTests(TestCase):
         self.assertContains(response, "Descobertos: 1")
         self.assertContains(response, "Upload individual — método atual")
         self.assertContains(response, reverse("book_edition_new"))
+
+    def _batch_form_data(self, code):
+        return {
+            "code": code,
+            "name": "New batch",
+            "author_default": "Edgar Rice Burroughs",
+            "source_language": "en",
+            "imprint_default": "RinoBooks",
+            "editor_default": "Gaiden Editor",
+            "collection_name": "",
+            "public_domain": "on",
+            "drive_relative_path": "Edgar_Rice_Burroughs",
+        }
+
+    def test_create_batch_shows_both_save_actions(self):
+        response = self.client.get(reverse("intake_module:batch_create"))
+        self.assertContains(response, "Salvar lote e adicionar arquivos")
+        self.assertContains(response, "Salvar somente o cadastro")
+
+    def test_create_batch_redirects_to_file_selection_by_default(self):
+        response = self.client.post(
+            reverse("intake_module:batch_create"),
+            {**self._batch_form_data("new_files"), "save_and_files": "1"},
+        )
+        batch = IntakeBatch.objects.get(code="new_files")
+        self.assertRedirects(
+            response,
+            reverse("intake_module:batch_files", args=[batch.id]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(response.url, f"/intake/batches/{batch.id}/files/")
+
+    def test_create_batch_can_save_only_the_registration(self):
+        response = self.client.post(
+            reverse("intake_module:batch_create"),
+            {**self._batch_form_data("save_only"), "save_only": "1"},
+        )
+        batch = IntakeBatch.objects.get(code="save_only")
+        self.assertRedirects(
+            response,
+            reverse("intake_module:batch_detail", args=[batch.id]),
+            fetch_redirect_response=False,
+        )
+
+    def test_drive_listing_is_simulated_without_transfer_and_png_is_visible(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+                response = self.client.post(
+                    reverse("intake_module:batch_files", args=[self.batch.id]),
+                    {"relative_folder": "Edgar_Rice_Burroughs", "drive_action": "list"},
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "edgar-rice-burroughs_tarzan-of-the-apes.epub")
+        self.assertContains(response, "a-princess-of-mars.epub")
+        self.assertContains(response, "cover.jpg")
+        self.assertContains(response, "Ignorado nesta etapa")
+        self.assertEqual(self.batch.items.count(), 2)
+        self.assertFalse(self.batch.items.exclude(status=IntakeState.DISCOVERED.value).exists())
+        self.assertEqual(client.downloaded, [])
+        subprocess_run.assert_not_called()
+
+    def test_only_selected_drive_file_is_downloaded(self):
+        client = FakeSelectionClient()
+        report = discover_drive_folder(
+            self.batch,
+            self.batch.drive_relative_path,
+            client=client,
+        )
+        tarzan_id = next(
+            row["item_id"]
+            for row in report["files"]
+            if row["filename"] == "edgar-rice-burroughs_tarzan-of-the-apes.epub"
+        )
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            response = self.client.post(
+                reverse("intake_module:batch_import_selected", args=[self.batch.id]),
+                {"selected_items": [str(tarzan_id)]},
+            )
+        self.assertEqual(response.status_code, 302)
+        tarzan = self.batch.items.get(pk=tarzan_id)
+        other = self.batch.items.exclude(pk=tarzan_id).get()
+        self.assertEqual(tarzan.status, IntakeState.DOWNLOADED.value)
+        self.assertEqual(other.status, IntakeState.DISCOVERED.value)
+        self.assertEqual(client.downloaded, ["edgar-rice-burroughs_tarzan-of-the-apes.epub"])
+
+    def test_local_multiple_upload_uses_intake_storage(self):
+        with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+            response = self.client.post(
+                reverse("intake_module:batch_upload", args=[self.batch.id]),
+                data={
+                    "files": [
+                        SimpleUploadedFile("one.txt", b"Book one", content_type="text/plain"),
+                        SimpleUploadedFile("two.html", b"<p>Book two</p>", content_type="text/html"),
+                    ]
+                },
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.batch.items.count(), 2)
+        for item in self.batch.items.all():
+            self.assertEqual(item.status, IntakeState.DOWNLOADED.value)
+            self.assertTrue(intake_storage.resolve_stored_path(item.original_path).is_file())
+        subprocess_run.assert_not_called()
+
+    def test_drive_and_local_upload_share_download_storage_service(self):
+        self.assertIs(drive_sync_service.store_downloaded_bytes, ingestion_service.store_downloaded_bytes)
+        local = store_uploaded_files(self.batch, [FakeUpload("local.txt", b"same contract")])[0]["item"]
+        client = FakeSelectionClient()
+        report = discover_drive_folder(self.batch, self.batch.drive_relative_path, client=client)
+        drive_item = self.batch.items.get(
+            pk=next(row["item_id"] for row in report["files"] if row["compatible"])
+        )
+        download_drive_item(drive_item, client=client)
+        for item in (local, drive_item):
+            item.refresh_from_db()
+            self.assertEqual(item.status, IntakeState.DOWNLOADED.value)
+            self.assertEqual(
+                item.source_sha256,
+                hashlib.sha256(intake_storage.resolve_stored_path(item.original_path).read_bytes()).hexdigest(),
+            )
+
+    def test_one_failed_local_file_does_not_corrupt_the_next(self):
+        results = store_uploaded_files(
+            self.batch,
+            [FakeUpload("empty.txt", b""), FakeUpload("valid.txt", b"Valid payload")],
+        )
+        self.assertIn("error", results[0])
+        self.assertNotIn("error", results[1])
+        failed = self.batch.items.get(source_filename="empty.txt")
+        valid = self.batch.items.get(source_filename="valid.txt")
+        self.assertEqual(failed.status, IntakeState.FAILED.value)
+        self.assertEqual(valid.status, IntakeState.DOWNLOADED.value)
+        self.assertTrue(intake_storage.resolve_stored_path(valid.original_path).is_file())
+
+    def test_file_page_explains_when_rclone_is_unavailable(self):
+        with patch("gaiden.infrastructure.intake_drive.shutil.which", return_value=None):
+            with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+                response = self.client.get(reverse("intake_module:batch_files", args=[self.batch.id]))
+        self.assertContains(response, "rclone")
+        self.assertContains(response, "Não disponível")
+        subprocess_run.assert_not_called()
 
     def test_batch_actions_are_shown_only_for_the_current_state(self):
         discovered = IntakeItem.objects.create(

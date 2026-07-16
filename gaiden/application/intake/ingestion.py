@@ -169,6 +169,44 @@ def ingest_many(batch, files: Iterable, *, converter: Converter | None = None) -
     return [ingest_uploaded_file(batch, uploaded, converter=converter) for uploaded in files]
 
 
+def store_uploaded_files(batch, files: Iterable) -> list[dict]:
+    results: list[dict] = []
+    for uploaded in files:
+        item = None
+        try:
+            safe_name = _validated_filename(uploaded.name)
+            suffix = Path(safe_name).suffix.lower()
+            if suffix in IGNORED_IMAGE_SUFFIXES:
+                results.append(
+                    {"ignored": True, "filename": safe_name, "reason": "image_not_processed_in_v1"}
+                )
+                continue
+            if suffix not in ACCEPTED_SUFFIXES:
+                results.append(
+                    {"ignored": True, "filename": safe_name, "reason": "unsupported_format"}
+                )
+                continue
+            payload = b"".join(uploaded.chunks())
+            item = discover_item(batch, safe_name, source_size=len(payload))
+            result = store_downloaded_bytes(item, payload)
+            results.append({"ignored": False, "item": item, **result})
+        except Exception as exc:
+            if item is not None and item.status != IntakeState.FAILED.value:
+                try:
+                    transition_item(item, IntakeState.FAILED, error=str(exc))
+                except Exception:
+                    pass
+            results.append(
+                {
+                    "ignored": False,
+                    "item": item,
+                    "filename": getattr(uploaded, "name", ""),
+                    "error": str(exc)[:500],
+                }
+            )
+    return results
+
+
 def store_downloaded_bytes(item, payload: bytes, *, drive_file_id: str = "") -> dict:
     if not payload:
         raise ValueError("Empty intake source is not allowed")

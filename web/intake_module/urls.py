@@ -7,6 +7,12 @@ app_name = "intake_module"
 urlpatterns = [
     path("", views.batch_list, name="batch_list"),
     path("new/", views.batch_create, name="batch_create"),
+    path("batches/<int:batch_id>/files/", views.batch_files, name="batch_files"),
+    path(
+        "batches/<int:batch_id>/files/import/",
+        views.batch_import_selected,
+        name="batch_import_selected",
+    ),
     path("<int:batch_id>/", views.batch_detail, name="batch_detail"),
     path("<int:batch_id>/upload/", views.batch_upload, name="batch_upload"),
     path("<int:batch_id>/drive/", views.batch_drive, name="batch_drive"),

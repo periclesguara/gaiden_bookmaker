@@ -1,0 +1,79 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Arquivos do lote</h1>
+<p><strong>{{ batch.name }}</strong> · {{ batch.code }}</p>
+<p><a href="{% url 'intake_module:batch_detail' batch.id %}">Ver detalhe e processamento</a></p>
+
+<section class="summary" aria-label="Resumo dos arquivos">
+  <span><strong>{{ file_summary.found }}</strong> encontrados</span>
+  <span><strong>{{ file_summary.selected }}</strong> selecionados</span>
+  <span><strong>{{ file_summary.imported }}</strong> importados</span>
+  <span><strong>{{ file_summary.ignored }}</strong> ignorados</span>
+  <span><strong>{{ file_summary.duplicates }}</strong> duplicados</span>
+  <span><strong>{{ file_summary.errors }}</strong> erros</span>
+</section>
+
+<div class="panels">
+  <section class="panel">
+    <h2>Painel 1 — Google Drive</h2>
+    <dl>
+      <dt>Remote configurado</dt><dd>{{ remote_name }}</dd>
+      <dt>Drive relative path</dt><dd>{{ batch.drive_relative_path|default:"Não informado" }}</dd>
+      <dt>rclone</dt><dd>{% if rclone_available %}Disponível{% else %}<span class="error">Não disponível. Instale ou configure o rclone antes de verificar a pasta.</span>{% endif %}</dd>
+    </dl>
+    {% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" name="drive_action" value="verify">Verificar pasta</button>
+      <button type="submit" name="drive_action" value="list">Listar arquivos</button>
+    </form>
+
+    {% if report %}
+      <h3>Arquivos encontrados</h3>
+      <form method="post" action="{% url 'intake_module:batch_import_selected' batch.id %}">
+        {% csrf_token %}
+        <p>
+          <button class="secondary" type="button" id="select-compatible">Selecionar todos os compatíveis</button>
+          <button class="secondary" type="button" id="clear-selection">Limpar seleção</button>
+          <button type="submit">Importar arquivos selecionados</button>
+        </p>
+        <table>
+          <thead><tr><th>Seleção</th><th>Nome</th><th>Extensão</th><th>Tamanho</th><th>ID remoto</th><th>Compatibilidade</th><th>Estado</th></tr></thead>
+          <tbody>
+          {% for file in report.files %}
+            <tr>
+              <td>{% if file.compatible and file.item_id and file.state == "DISCOVERED" %}<input class="compatible-file" type="checkbox" name="selected_items" value="{{ file.item_id }}">{% else %}—{% endif %}</td>
+              <td>{{ file.filename }}</td>
+              <td>{{ file.extension }}</td>
+              <td>{{ file.size }} bytes</td>
+              <td>{{ file.remote_id|default:"—" }}</td>
+              <td>{% if file.compatible %}Compatível{% else %}Ignorado nesta etapa{% endif %}</td>
+              <td>{{ file.state }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7">Nenhum arquivo encontrado.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Painel 2 — Upload local</h2>
+    <p class="muted">Alternativa ao Drive. EPUB, TXT, HTML e HTM são recebidos sequencialmente pelo mesmo storage de intake.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'intake_module:batch_upload' batch.id %}">
+      {% csrf_token %}
+      {{ upload_form.as_p }}
+      <button type="submit">Enviar arquivos selecionados</button>
+    </form>
+  </section>
+</div>
+
+<script>
+  const compatible = () => document.querySelectorAll('.compatible-file');
+  document.getElementById('select-compatible')?.addEventListener('click', () => compatible().forEach((box) => box.checked = true));
+  document.getElementById('clear-selection')?.addEventListener('click', () => compatible().forEach((box) => box.checked = false));
+</script>
+{% endblock %}
