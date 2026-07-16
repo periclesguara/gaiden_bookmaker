@@ -1,0 +1,34 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Reconciliar estado do lote</h1>
+<p><strong>{{ batch.name }}</strong> · {{ batch.code }}</p>
+<p class="muted">Prévia dry-run: nenhuma alteração foi realizada no banco ou nos arquivos.</p>
+
+<section class="summary" aria-label="Resumo da reconciliação">
+  <span><strong>{{ report.adoptable|length }}</strong> arquivos adotáveis</span>
+  <span><strong>{{ report.interrupted|length }}</strong> downloads interrompidos</span>
+  <span><strong>{{ report.conflicts|length }}</strong> conflitos</span>
+  <span><strong>{{ report.duplicates|length }}</strong> duplicatas</span>
+</section>
+
+<h2>Arquivos adotáveis</h2>
+<table><thead><tr><th>Item</th><th>Arquivo</th><th>Status</th><th>SHA-256</th></tr></thead><tbody>
+{% for row in report.adoptable %}<tr><td>{{ row.order_index }}</td><td>{{ row.filename }}</td><td>{{ row.from_status }} → {{ row.to_status }}</td><td>{{ row.sha256 }}</td></tr>{% empty %}<tr><td colspan="4">Nenhum.</td></tr>{% endfor %}
+</tbody></table>
+
+<h2>Downloads interrompidos</h2>
+<ul>{% for row in report.interrupted %}<li>Item {{ row.order_index }} — {{ row.filename }}: {{ row.reason }}</li>{% empty %}<li>Nenhum.</li>{% endfor %}</ul>
+
+<h2>Conflitos</h2>
+<ul>{% for row in report.conflicts %}<li>Item {{ row.order_index }} — {{ row.filename }}: {{ row.reason }}</li>{% empty %}<li>Nenhum.</li>{% endfor %}</ul>
+
+<h2>Duplicatas</h2>
+<ul>{% for row in report.duplicates %}<li>Item {{ row.order_index }} — {{ row.filename }}: duplicata do item {{ row.duplicate_of_order_index }} · {{ row.sha256 }}</li>{% empty %}<li>Nenhuma.</li>{% endfor %}</ul>
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="confirm" value="1">
+  <button type="submit">Confirmar e executar reconciliação</button>
+  <a class="button secondary" href="{% url 'intake_module:batch_detail' batch.id %}">Cancelar</a>
+</form>
+{% endblock %}

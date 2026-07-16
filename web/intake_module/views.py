@@ -9,6 +9,7 @@ from gaiden.application.intake import (
     download_drive_item,
     handoff_to_pipeline,
     prepare_for_codex,
+    reconcile_batch_downloads,
     register_translation_return,
     store_uploaded_files,
 )
@@ -220,7 +221,7 @@ def batch_create(request):
 
 def batch_detail(request, batch_id: int):
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
-    items = batch.items.all()
+    items = batch.items.select_related("duplicate_of").all()
     return render(
         request,
         "intake_module/batch_detail.html",
@@ -229,10 +230,35 @@ def batch_detail(request, batch_id: int):
             "items": items,
             "upload_form": IntakeUploadForm(),
             "can_download_next": items.filter(status=IntakeState.DISCOVERED.value).exists(),
-            "can_clean_next": items.filter(status=IntakeState.DOWNLOADED.value).exists(),
+            "can_clean_next": items.filter(
+                status=IntakeState.DOWNLOADED.value,
+                duplicate_of__isnull=True,
+            ).exists(),
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
         },
     )
+
+
+def batch_reconcile(request, batch_id: int):
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    if request.method == "GET":
+        report = reconcile_batch_downloads(batch, dry_run=True)
+        return render(
+            request,
+            "intake_module/batch_reconcile.html",
+            {"batch": batch, "report": report},
+        )
+    if request.method == "POST" and request.POST.get("confirm") == "1":
+        report = reconcile_batch_downloads(batch, dry_run=False)
+        messages.success(
+            request,
+            "Reconciliação concluída: "
+            f"{len(report['adoptable'])} adotados, "
+            f"{len(report['interrupted'])} interrompidos e "
+            f"{len(report['conflicts'])} conflitos.",
+        )
+        return redirect("intake_module:batch_detail", batch_id=batch.id)
+    return HttpResponseNotAllowed(["GET", "POST"])
 
 
 def item_detail(request, item_id: int):
@@ -459,7 +485,14 @@ def batch_process_next(request, batch_id: int):
             download_drive_item(item)
             messages.success(request, f"Download sequencial concluído para {item.source_filename}.")
         elif action == "clean":
-            item = batch.items.filter(status=IntakeState.DOWNLOADED.value).order_by("order_index").first()
+            item = (
+                batch.items.filter(
+                    status=IntakeState.DOWNLOADED.value,
+                    duplicate_of__isnull=True,
+                )
+                .order_by("order_index")
+                .first()
+            )
             if item is None:
                 raise ValueError("Não há item DOWNLOADED aguardando limpeza.")
             clean_downloaded_item(item)

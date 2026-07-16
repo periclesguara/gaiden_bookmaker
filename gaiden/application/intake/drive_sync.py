@@ -4,6 +4,8 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
+from django.db import transaction
+
 from gaiden.infrastructure import intake_storage
 from gaiden.infrastructure.intake_drive import RcloneClient
 
@@ -15,6 +17,11 @@ from .ingestion import (
     discover_item,
     ingest_path,
     store_downloaded_bytes,
+)
+from .reconciliation import (
+    IntakeArtifactConflict,
+    adopt_existing_artifact,
+    inspect_original_artifact,
 )
 from .workflow import transition_item
 
@@ -93,40 +100,62 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
 
 
 def download_drive_item(item, *, client=None) -> dict:
-    if item.status != IntakeState.DISCOVERED.value:
-        raise ValueError("Item must be DISCOVERED before download")
-    if not item.batch.drive_relative_path:
-        raise ValueError("Drive folder is not configured for this batch")
-    client = client or RcloneClient()
-    client.check_available()
-    files = client.list_files(item.batch.drive_relative_path)
-    drive_file = next(
-        (
-            row
-            for row in files
-            if (item.drive_file_id and row.file_id == item.drive_file_id)
-            or (not item.drive_file_id and row.name == item.source_filename)
-        ),
-        None,
-    )
-    if drive_file is None or drive_file.name != item.source_filename:
-        raise FileNotFoundError("Discovered Drive file is no longer available")
     try:
-        transition_item(item, IntakeState.DOWNLOADING)
-        with tempfile.TemporaryDirectory(prefix="gaiden-intake-drive-") as temporary:
-            destination = Path(temporary) / Path(drive_file.name).name
-            client.download_file(item.batch.drive_relative_path, drive_file, destination)
-            return store_downloaded_bytes(
-                item,
-                destination.read_bytes(),
-                drive_file_id=drive_file.file_id,
+        with transaction.atomic():
+            locked = (
+                type(item).objects.select_for_update().select_related("batch").get(pk=item.pk)
             )
+            inspection = inspect_original_artifact(locked)
+            if inspection.exists:
+                return adopt_existing_artifact(locked, inspection)
+            if locked.status not in {
+                IntakeState.DISCOVERED.value,
+                IntakeState.DOWNLOADING.value,
+                IntakeState.DOWNLOADED.value,
+                IntakeState.FAILED.value,
+            }:
+                raise ValueError("Item is not eligible for download recovery")
+            if not locked.batch.drive_relative_path:
+                raise ValueError("Drive folder is not configured for this batch")
+            locked.status = IntakeState.DOWNLOADING.value
+            locked.last_error = ""
+            locked.save(update_fields=["status", "last_error", "updated_at"])
+            client = client or RcloneClient()
+            client.check_available()
+            files = client.list_files(locked.batch.drive_relative_path)
+            drive_file = next(
+                (
+                    row
+                    for row in files
+                    if (locked.drive_file_id and row.file_id == locked.drive_file_id)
+                    or (not locked.drive_file_id and row.name == locked.source_filename)
+                ),
+                None,
+            )
+            if drive_file is None or drive_file.name != locked.source_filename:
+                raise FileNotFoundError("Discovered Drive file is no longer available")
+            with tempfile.TemporaryDirectory(prefix="gaiden-intake-drive-") as temporary:
+                destination = Path(temporary) / Path(drive_file.name).name
+                client.download_file(locked.batch.drive_relative_path, drive_file, destination)
+                return store_downloaded_bytes(
+                    locked,
+                    destination.read_bytes(),
+                    drive_file_id=drive_file.file_id,
+                )
+    except IntakeArtifactConflict as exc:
+        with transaction.atomic():
+            locked = type(item).objects.select_for_update().get(pk=item.pk)
+            locked.status = IntakeState.FAILED.value
+            locked.last_error = str(exc)[:500]
+            locked.save(update_fields=["status", "last_error", "updated_at"])
+        raise
     except Exception as exc:
-        if item.status != IntakeState.FAILED.value:
-            try:
-                transition_item(item, IntakeState.FAILED, error=str(exc))
-            except Exception:
-                pass
+        with transaction.atomic():
+            locked = type(item).objects.select_for_update().get(pk=item.pk)
+            if locked.status != IntakeState.DOWNLOADED.value:
+                locked.status = IntakeState.FAILED.value
+                locked.last_error = str(exc)[:500]
+                locked.save(update_fields=["status", "last_error", "updated_at"])
         raise
 
 

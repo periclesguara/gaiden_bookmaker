@@ -106,8 +106,9 @@ class IntakeWorkflowTests(TestCase):
         second = self.ingest("renamed.txt", b"same payload")
         self.assertFalse(first["duplicate"])
         self.assertTrue(second["duplicate"])
-        self.assertTrue(first["item"].is_duplicate)
+        self.assertFalse(first["item"].is_duplicate)
         self.assertTrue(second["item"].is_duplicate)
+        self.assertEqual(second["item"].duplicate_of_id, first["item"].id)
 
     def test_same_size_with_different_hashes_is_not_duplicate(self):
         first = self.ingest("one.txt", b"abcd")

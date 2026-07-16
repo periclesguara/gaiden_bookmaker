@@ -13,6 +13,13 @@ from gaiden.domain.intake import IntakeState
 from gaiden.infrastructure import intake_storage
 from gaiden.infrastructure.converters.markitdown_adapter import MarkItDownAdapter
 
+from .reconciliation import (
+    ARTIFACT_CONFLICT,
+    IntakeArtifactConflict,
+    adopt_existing_artifact,
+    inspect_original_artifact,
+    update_duplicate_group,
+)
 from .workflow import transition_item
 
 
@@ -146,6 +153,15 @@ def ingest_bytes(
             payload,
             drive_file_id=drive_file_id,
         )
+        item = download_result["item"]
+        if download_result["duplicate"]:
+            return {
+                "ignored": False,
+                "item": item,
+                "duplicate": True,
+                "audit": None,
+                "root": download_result["root"],
+            }
         clean_result = clean_downloaded_item(item, converter=converter)
         return {
             "ignored": False,
@@ -210,44 +226,89 @@ def store_uploaded_files(batch, files: Iterable) -> list[dict]:
 def store_downloaded_bytes(item, payload: bytes, *, drive_file_id: str = "") -> dict:
     if not payload:
         raise ValueError("Empty intake source is not allowed")
-    if item.status == IntakeState.DISCOVERED.value:
-        transition_item(item, IntakeState.DOWNLOADING)
-    elif item.status != IntakeState.DOWNLOADING.value:
-        raise ValueError("Item must be DISCOVERED or DOWNLOADING before download")
+    try:
+        return _store_downloaded_bytes_locked(item, payload, drive_file_id=drive_file_id)
+    except IntakeArtifactConflict as exc:
+        with transaction.atomic():
+            locked = type(item).objects.select_for_update().get(pk=item.pk)
+            locked.status = IntakeState.FAILED.value
+            locked.last_error = str(exc)[:500]
+            locked.save(update_fields=["status", "last_error", "updated_at"])
+        raise
 
-    suffix = Path(item.source_filename).suffix.lower()
-    if suffix not in ACCEPTED_SUFFIXES:
-        raise ValueError(f"Unsupported intake format: {suffix or '(none)'}")
-    digest = hashlib.sha256(payload).hexdigest()
-    duplicate = item.batch.items.filter(source_sha256=digest).exclude(pk=item.pk).first()
-    root = intake_storage.ensure_batch_layout(item.batch.code, item.batch.source_language)
-    destination = intake_storage.original_path(
-        item.batch.code,
-        item.batch.source_language,
-        item.order_index,
-        suffix,
-    )
-    intake_storage.atomic_write_bytes(destination, payload)
-    item.source_size = len(payload)
-    item.source_sha256 = digest
-    item.drive_file_id = drive_file_id or item.drive_file_id
-    item.original_path = intake_storage.relative_storage_path(destination)
-    item.last_error = f"Duplicate of item {duplicate.id}" if duplicate else ""
-    item.save(
-        update_fields=[
-            "source_size",
-            "source_sha256",
-            "drive_file_id",
-            "original_path",
-            "last_error",
-            "updated_at",
-        ]
-    )
-    transition_item(item, IntakeState.DOWNLOADED)
-    return {"item": item, "duplicate": bool(duplicate), "root": root}
+
+def _store_downloaded_bytes_locked(item, payload: bytes, *, drive_file_id: str = "") -> dict:
+    with transaction.atomic():
+        locked = (
+            type(item).objects.select_for_update().select_related("batch").get(pk=item.pk)
+        )
+        suffix = Path(locked.source_filename).suffix.lower()
+        if suffix not in ACCEPTED_SUFFIXES:
+            raise ValueError(f"Unsupported intake format: {suffix or '(none)'}")
+        digest = hashlib.sha256(payload).hexdigest()
+        inspection = inspect_original_artifact(locked)
+        if inspection.exists:
+            if inspection.valid and inspection.sha256 == digest:
+                locked.drive_file_id = drive_file_id or locked.drive_file_id
+                locked.save(update_fields=["drive_file_id", "updated_at"])
+                return adopt_existing_artifact(locked, inspection)
+            reason = inspection.reason or "existing artifact differs from downloaded content"
+            locked.status = IntakeState.FAILED.value
+            locked.last_error = f"{ARTIFACT_CONFLICT}: {reason}"
+            locked.save(update_fields=["status", "last_error", "updated_at"])
+            raise IntakeArtifactConflict(locked.last_error)
+        if locked.status not in {
+            IntakeState.DISCOVERED.value,
+            IntakeState.DOWNLOADING.value,
+            IntakeState.DOWNLOADED.value,
+            IntakeState.FAILED.value,
+        }:
+            raise ValueError("Item is not eligible for download recovery")
+        locked.status = IntakeState.DOWNLOADING.value
+        locked.last_error = ""
+        locked.save(update_fields=["status", "last_error", "updated_at"])
+        root = intake_storage.ensure_batch_layout(
+            locked.batch.code,
+            locked.batch.source_language,
+        )
+        destination = intake_storage.original_path(
+            locked.batch.code,
+            locked.batch.source_language,
+            locked.order_index,
+            suffix,
+        )
+        intake_storage.atomic_write_bytes(destination, payload)
+        locked.source_size = len(payload)
+        locked.source_sha256 = digest
+        locked.drive_file_id = drive_file_id or locked.drive_file_id
+        locked.original_path = intake_storage.relative_storage_path(destination)
+        locked.status = IntakeState.DOWNLOADED.value
+        locked.last_error = ""
+        locked.save(
+            update_fields=[
+                "source_size",
+                "source_sha256",
+                "drive_file_id",
+                "original_path",
+                "status",
+                "last_error",
+                "updated_at",
+            ]
+        )
+        update_duplicate_group(locked.batch, digest)
+        locked.refresh_from_db()
+        return {
+            "item": locked,
+            "duplicate": locked.duplicate_of_id is not None,
+            "adopted": False,
+            "no_op": False,
+            "root": root,
+        }
 
 
 def clean_downloaded_item(item, *, converter: Converter | None = None) -> dict:
+    if item.duplicate_of_id:
+        raise ValueError(f"Duplicate item must use canonical item {item.duplicate_of_id}")
     if item.status != IntakeState.DOWNLOADED.value:
         raise ValueError("Item must be DOWNLOADED before cleaning")
     source = intake_storage.resolve_stored_path(item.original_path)
@@ -264,12 +325,6 @@ def clean_downloaded_item(item, *, converter: Converter | None = None) -> dict:
             item.order_index,
         )
         intake_storage.atomic_write_text(cleaned_path, cleaned)
-        duplicate = (
-            item.batch.items.filter(source_sha256=item.source_sha256)
-            .exclude(pk=item.pk)
-            .order_by("id")
-            .first()
-        )
         audit = {
             "item_id": item.id,
             "source_filename": item.source_filename,
@@ -279,7 +334,7 @@ def clean_downloaded_item(item, *, converter: Converter | None = None) -> dict:
             "removed_lines": removed,
             "warnings": warnings,
             "needs_review": bool(warnings),
-            "duplicate_of_item_id": duplicate.id if duplicate else None,
+            "duplicate_of_item_id": item.duplicate_of_id,
         }
         intake_storage.atomic_write_json(
             intake_storage.audit_path(
@@ -290,7 +345,7 @@ def clean_downloaded_item(item, *, converter: Converter | None = None) -> dict:
             audit,
         )
         item.clean_path = intake_storage.relative_storage_path(cleaned_path)
-        item.last_error = f"Duplicate of item {duplicate.id}" if duplicate else ""
+        item.last_error = ""
         item.save(update_fields=["clean_path", "last_error", "updated_at"])
         transition_item(item, IntakeState.CLEAN_READY)
         return {"item": item, "audit": audit}

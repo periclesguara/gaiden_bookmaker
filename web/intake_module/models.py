@@ -48,6 +48,13 @@ class IntakeBatch(models.Model):
 
 class IntakeItem(models.Model):
     batch = models.ForeignKey(IntakeBatch, on_delete=models.CASCADE, related_name="items")
+    duplicate_of = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="duplicate_items",
+    )
     order_index = models.PositiveIntegerField()
     drive_file_id = models.CharField(max_length=255, blank=True)
     source_filename = models.CharField(max_length=255)
@@ -82,9 +89,7 @@ class IntakeItem(models.Model):
 
     @property
     def is_duplicate(self) -> bool:
-        if not self.source_sha256:
-            return False
-        return self.batch.items.filter(source_sha256=self.source_sha256).exclude(pk=self.pk).exists()
+        return self.duplicate_of_id is not None
 
     def __str__(self) -> str:
         return f"{self.batch.code} #{self.order_index}: {self.source_filename}"

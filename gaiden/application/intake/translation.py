@@ -29,6 +29,8 @@ def _manifest_for_item(item) -> tuple[dict, object]:
 
 
 def prepare_for_codex(item, *, target_language: str | None = None) -> dict:
+    if item.duplicate_of_id:
+        raise ValueError(f"Duplicate item must use canonical item {item.duplicate_of_id}")
     if item.status != IntakeState.CLEAN_READY.value:
         raise ValueError("Item must be CLEAN_READY before preparing for Codex")
     if target_language is not None:
