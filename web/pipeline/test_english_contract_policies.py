@@ -1,22 +1,30 @@
 import json
-from pathlib import Path
-
-from django.test import SimpleTestCase
 
 from pipeline import views
+from pipeline.test_support import IsolatedStorageSimpleTestCase, write_json_fixture
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-class EnglishContractPolicyTests(SimpleTestCase):
-    contract_paths = [
-        REPO_ROOT / "gaiden" / "contracts" / "en_modern_2025.json",
-        REPO_ROOT / "gaiden" / "contracts" / "en_philosofer_2026.json",
-        REPO_ROOT / "gaiden" / "contracts" / "en_devotional_2026.json",
-        REPO_ROOT / "gaiden" / "contracts" / "refine" / "en_refine_2025.json",
-        REPO_ROOT / "gaiden" / "contracts" / "polish" / "en_polish_2025.json",
-    ]
+class EnglishContractPolicyTests(IsolatedStorageSimpleTestCase):
+    def setUp(self):
+        contract_payload = {
+            "assisted_rewrite_policy": {
+                "allowed_rewrite_percent": 20,
+                "length_variation_percent": 10,
+            },
+            "system_prompt": (
+                "Rewrite literary prose while preserving meaning. "
+                "Allow up to 20 percent controlled rewriting and +/- 10 percent length variation."
+            ),
+            "user_prompt": "Rewrite the following passage.\n\n{text}",
+        }
+        contract_root = self.test_storage_root / "contracts"
+        self.contract_paths = [
+            write_json_fixture(contract_root / "en_modern_2025.json", contract_payload),
+            write_json_fixture(contract_root / "en_philosofer_2026.json", contract_payload),
+            write_json_fixture(contract_root / "en_devotional_2026.json", contract_payload),
+            write_json_fixture(contract_root / "refine" / "en_refine_2025.json", contract_payload),
+            write_json_fixture(contract_root / "polish" / "en_polish_2025.json", contract_payload),
+        ]
 
     def test_english_contracts_allow_controlled_twenty_percent_rewrite(self):
         for path in self.contract_paths:
@@ -29,9 +37,7 @@ class EnglishContractPolicyTests(SimpleTestCase):
                 self.assertEqual(policy.get("length_variation_percent"), 10)
 
     def test_runtime_translate_prompt_exposes_rewrite_and_length_policy(self):
-        payload = json.loads(
-            (REPO_ROOT / "gaiden" / "contracts" / "en_modern_2025.json").read_text(encoding="utf-8")
-        )
+        payload = json.loads(self.contract_paths[0].read_text(encoding="utf-8"))
 
         runtime_payload = views._harden_translate_contract(payload, "en")
         prompt_text = f"{runtime_payload['system_prompt']}\n{runtime_payload['user_prompt']}"

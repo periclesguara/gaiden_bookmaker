@@ -11,7 +11,6 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -19,6 +18,7 @@ from django.utils import timezone
 from editorial.models import Contributor, Edition, EditionBuild, EditionPipeline, EditionText, Language, Seal, Work
 from pipeline.forms import normalize_book_code_input
 from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, SYSTEM_BLOCKS
+from pipeline.test_support import IsolatedStorageTestCase, write_json_fixture
 
 
 class _FakeResponsesAPI:
@@ -84,7 +84,7 @@ class _SlowOpenAIClient:
         self.responses = _SlowResponsesAPI(output_text, delay)
 
 
-class ItalianSupportTests(TestCase):
+class ItalianSupportTests(IsolatedStorageTestCase):
     def test_italian_refine_contract_and_frontmatter_helpers(self):
         from editorial.frontmatter import frontmatter_headings, language_display
         from gaiden_portal.utils import country_for_language, get_section_template_for_language
@@ -124,7 +124,7 @@ class ItalianSupportTests(TestCase):
         self.assertEqual(template.get_placeholder_context()["language"], "Italiano")
 
 
-class FrenchRefineRoutingTests(TestCase):
+class FrenchRefineRoutingTests(IsolatedStorageTestCase):
     def test_french_refine_defaults_to_universal_agent(self):
         from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
 
@@ -145,7 +145,7 @@ class FrenchRefineRoutingTests(TestCase):
         )
 
 
-class FrenchPolishRoutingTests(TestCase):
+class FrenchPolishRoutingTests(IsolatedStorageTestCase):
     def test_french_polish_defaults_to_universal_agent(self):
         from pipeline.views import _default_polish_agent_for_language, _polish_agent_options_for_language, _normalize_agent_name
 
@@ -154,7 +154,7 @@ class FrenchPolishRoutingTests(TestCase):
         self.assertEqual(_normalize_agent_name("polish_fr_universal_2026"), "polish_fr_universal_2026")
 
 
-class TranslateAgentRoutingTests(TestCase):
+class TranslateAgentRoutingTests(IsolatedStorageTestCase):
     def test_french_translate_uses_internal_agent_id(self):
         from pipeline.views import _translate_agent_name
 
@@ -174,7 +174,7 @@ class TranslateAgentRoutingTests(TestCase):
         )
 
 
-class CadastroSourceFormatRoutingTests(TestCase):
+class CadastroSourceFormatRoutingTests(IsolatedStorageTestCase):
     def setUp(self):
         self.language = Language.objects.create(
             code="en",
@@ -197,7 +197,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
         )
         self.cadastro_url = reverse("book_edition_new")
         self.root = Path(settings.BASE_DIR).parent
-        self.raw_dir = self.root / "data" / "raw" / self.work.code
+        self.raw_dir = self.test_storage_root / "raw" / self.work.code
 
     def tearDown(self):
         shutil.rmtree(self.raw_dir, ignore_errors=True)
@@ -506,7 +506,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     @patch("pipeline.views.kdp_mode.build_merged_kdp_source")
     def test_build_creates_history_and_preserves_previous_versions(self, mock_build_merged, mock_frontmatter):
-        build_dir = Path("data") / "builds" / self.work.code / "en"
+        build_dir = self.test_storage_root / "builds" / self.work.code / "en"
         build_dir.mkdir(parents=True, exist_ok=True)
         (build_dir / "BOOK.MD_FINAL").write_text("final md", encoding="utf-8")
         build_output = build_dir / "BOOK.BUILD.MD"
@@ -583,7 +583,7 @@ class CadastroSourceFormatRoutingTests(TestCase):
     def test_build_redirect_preserves_locked_language_after_step(self, mock_build_merged, mock_frontmatter):
         german = Language.objects.create(code="de", name="German", native_name="Deutsch", is_active=True)
         de_edition = Edition.objects.create(work=self.work, language=german, seal=self.seal)
-        build_dir = Path("data") / "builds" / self.work.code / "de"
+        build_dir = self.test_storage_root / "builds" / self.work.code / "de"
         build_dir.mkdir(parents=True, exist_ok=True)
         (build_dir / "BOOK.MD_FINAL").write_text("final md de", encoding="utf-8")
         (build_dir / "BOOK.BUILD.MD").write_text("build md de", encoding="utf-8")
@@ -705,7 +705,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             language=german,
             seal=self.seal,
             title="German Source Book DE",
-            raw_source_path=str(Path(settings.BASE_DIR).parent / "data" / "raw" / work.code / f"{work.code}_de_raw.html"),
+            raw_source_path=str(self.test_storage_root / "raw" / work.code / f"{work.code}_de_raw.html"),
         )
         BookEditionTemplate.objects.create(
             book_code=work.code,
@@ -716,7 +716,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             text_source_mode="html",
             source_saved_path=de_edition.raw_source_path,
         )
-        raw_dir = Path(settings.BASE_DIR).parent / "data" / "raw" / work.code
+        raw_dir = self.test_storage_root / "raw" / work.code
         raw_dir.mkdir(parents=True, exist_ok=True)
         (raw_dir / f"{work.code}_de_raw.html").write_text("<html><body>DE</body></html>", encoding="utf-8")
 
@@ -727,9 +727,9 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             self.assertIn(f"data/normalized/{work.code}_de_v2.txt", normalize_step["outputs"][0])
         finally:
             shutil.rmtree(raw_dir, ignore_errors=True)
-            shutil.rmtree(Path(settings.BASE_DIR).parent / "data" / "builds" / work.code, ignore_errors=True)
-            shutil.rmtree(Path(settings.BASE_DIR).parent / "data" / "md" / work.code, ignore_errors=True)
-            normalized = Path(settings.BASE_DIR).parent / "data" / "normalized" / f"{work.code}_de_v2.txt"
+            shutil.rmtree(self.test_storage_root / "builds" / work.code, ignore_errors=True)
+            shutil.rmtree(self.test_storage_root / "md" / work.code, ignore_errors=True)
+            normalized = self.test_storage_root / "normalized" / f"{work.code}_de_v2.txt"
             if normalized.exists():
                 normalized.unlink()
             en_edition.delete()
@@ -870,7 +870,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             edition=self.edition,
             defaults={"current_stage": "MD_SOURCE_READY"},
         )
-        md_dir = self.root / "data" / "md" / self.work.code
+        md_dir = self.test_storage_root / "md" / self.work.code
         md_dir.mkdir(parents=True, exist_ok=True)
         (md_dir / f"{self.work.code}_en_source.md").write_text("# source", encoding="utf-8")
         self.addCleanup(lambda: shutil.rmtree(md_dir, ignore_errors=True))
@@ -1122,21 +1122,19 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         mock_frontmatter.assert_called_once()
 
 
-class ContractIngestV1Tests(TestCase):
+class ContractIngestV1Tests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
-        self.repo_root = Path(__file__).resolve().parents[2]
-        self.previous_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
-        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(
-            self.repo_root / "gaiden" / "contracts",
-            self.temp_root / "gaiden" / "contracts",
+        self.ingest_contract_path = write_json_fixture(
+            self.test_storage_root / "contracts" / "source_ingest_v1.json",
+            {
+                "schema": "source_ingest_v1",
+                "source_formats": ["html", "txt"],
+                "required_fields": ["book_code", "language", "source_format", "source_file"],
+            },
         )
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
 
         self.language = Language.objects.create(
             code="en",
@@ -1158,21 +1156,16 @@ class ContractIngestV1Tests(TestCase):
             seal=self.seal,
         )
         self.cadastro_url = reverse("book_edition_new")
-        self.fixture_dir = Path(__file__).resolve().parent / "tests" / "fixtures"
+        self.fixture_payloads = {
+            "minimal.html": b"<html><body><h1>Fixture</h1><p>Body.</p></body></html>",
+            "minimal.txt": b"Fixture body.\n",
+        }
         self.frontmatter_patcher = patch("pipeline.views.kdp_mode.build_frontmatter_files")
         self.mock_frontmatter = self.frontmatter_patcher.start()
-
-    def tearDown(self):
-        self.frontmatter_patcher.stop()
-        if self.previous_storage_root is None:
-            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
-        else:
-            os.environ["GAIDEN_STORAGE_ROOT"] = self.previous_storage_root
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
+        self.addCleanup(self.frontmatter_patcher.stop)
 
     def _fixture_upload(self, filename: str, content_type: str) -> SimpleUploadedFile:
-        payload = (self.fixture_dir / filename).read_bytes()
+        payload = self.fixture_payloads[filename]
         return SimpleUploadedFile(filename, payload, content_type=content_type)
 
     def _payload(self, source_format: str, source_file: SimpleUploadedFile) -> dict:
@@ -1275,16 +1268,11 @@ class ContractIngestV1Tests(TestCase):
         self.assertTrue(raw_path.exists())
 
 
-class MergeTranslatePreviewTests(TestCase):
+class MergeTranslatePreviewTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
-        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
-        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
 
         self.language = Language.objects.create(
             code="en",
@@ -1330,14 +1318,6 @@ class MergeTranslatePreviewTests(TestCase):
         self.preview_url = reverse("preview_merge_translate", kwargs={"edition_id": self.edition.id})
         self.save_url = reverse("save_merge_translate_preview", kwargs={"edition_id": self.edition.id})
 
-    def tearDown(self):
-        if self.old_storage_root is None:
-            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
-        else:
-            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
-
     def test_preview_merge_translate_reads_runtime_out_dir_for_current_book(self):
         response = self.client.get(self.preview_url)
 
@@ -1382,16 +1362,11 @@ class MergeTranslatePreviewTests(TestCase):
         self.assertEqual(response.context["md_path"], str(fixed_merge))
 
 
-class MergePolidorPreviewTests(TestCase):
+class MergePolidorPreviewTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
-        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
-        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
 
         self.language = Language.objects.create(
             code="en",
@@ -1419,14 +1394,6 @@ class MergePolidorPreviewTests(TestCase):
         self.preview_url = reverse("preview_merge_polidor", kwargs={"edition_id": self.edition.id})
         self.save_url = reverse("save_merge_polidor_preview", kwargs={"edition_id": self.edition.id})
         self.generic_preview_url = reverse("preview_merge_selected", kwargs={"edition_id": self.edition.id})
-
-    def tearDown(self):
-        if self.old_storage_root is None:
-            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
-        else:
-            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
 
     def test_preview_merge_polidor_falls_back_to_latest_final_text(self):
         older = self.build_dir / "BOOK.MD_FINAL_v2.md"
@@ -1501,14 +1468,11 @@ class MergePolidorPreviewTests(TestCase):
         self.assertEqual(refine_response.context["md_path"], str(fixed_refine))
 
 
-class EnglishPhilosoferTranslateTests(TestCase):
+class EnglishPhilosoferTranslateTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
 
         self.language = Language.objects.create(
             code="en",
@@ -1562,10 +1526,6 @@ class EnglishPhilosoferTranslateTests(TestCase):
         heading_dir.mkdir(parents=True, exist_ok=True)
         (heading_dir / "clean.txt").write_text("clean", encoding="utf-8")
 
-    def tearDown(self):
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
-
     def test_select_contract_path_is_disabled_for_english_philosofer(self):
         from pipeline.views import _select_contract_path
 
@@ -1607,14 +1567,11 @@ class EnglishPhilosoferTranslateTests(TestCase):
         self.assertEqual(response.context["md_path"], str(merged_runtime_path))
 
 
-class LegacyGermanBackfillTests(TestCase):
+class LegacyGermanBackfillTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
 
         self.language = Language.objects.create(
             code="de",
@@ -1652,10 +1609,6 @@ class LegacyGermanBackfillTests(TestCase):
             encoding="utf-8",
         )
 
-    def tearDown(self):
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
-
     def test_runtime_translate_dir_falls_back_to_legacy_variant(self):
         from pipeline.views import _runtime_translate_dir_for_edition
 
@@ -1673,7 +1626,7 @@ class LegacyGermanBackfillTests(TestCase):
         self.assertEqual(build_merge.read_text(encoding="utf-8"), "Zusammengefuehrter Legacy-Text.\n")
 
 
-class ChapterAgentSplitTests(TestCase):
+class ChapterAgentSplitTests(IsolatedStorageTestCase):
     def test_split_merged_text_into_chapters_accepts_numbered_markdown_headings(self):
         from gaiden.chapter_agent_split import split_merged_text_into_chapters
 
@@ -1730,7 +1683,7 @@ class ChapterAgentSplitTests(TestCase):
         self.assertNotIn("## GLOSSARY", chapters[1]["text"])
 
 
-class BookCodeNormalizationTests(TestCase):
+class BookCodeNormalizationTests(IsolatedStorageTestCase):
     def test_normalize_book_code_input_pads_short_numeric_codes(self):
         self.assertEqual(normalize_book_code_input("book_13"), "book_013")
         self.assertEqual(normalize_book_code_input("13"), "book_013")
@@ -1741,7 +1694,7 @@ class BookCodeNormalizationTests(TestCase):
         self.assertEqual(normalize_book_code_input("book_9001"), "book_9001")
 
 
-class HtmlLanePreprodConvertTests(TestCase):
+class HtmlLanePreprodConvertTests(IsolatedStorageTestCase):
     def setUp(self):
         self.language = Language.objects.create(
             code="en",
@@ -1771,10 +1724,10 @@ class HtmlLanePreprodConvertTests(TestCase):
             text_source_mode="html",
         )
         self.root = Path(settings.BASE_DIR).parent
-        self.raw_dir = self.root / "data" / "raw" / self.work.code
-        self.preprod_dir = self.root / "data" / "preprod" / self.work.code
-        self.md_dir = self.root / "data" / "md" / self.work.code
-        self.normalized_dir = self.root / "data" / "normalized"
+        self.raw_dir = self.test_storage_root / "raw" / self.work.code
+        self.preprod_dir = self.test_storage_root / "preprod" / self.work.code
+        self.md_dir = self.test_storage_root / "md" / self.work.code
+        self.normalized_dir = self.test_storage_root / "normalized"
         self.raw_path = self.raw_dir / f"{self.work.code}_en_raw.html"
         self.clean_path = self.preprod_dir / f"{self.work.code}_en_clean.html"
         self.report_path = self.preprod_dir / f"{self.work.code}_en_report.json"
@@ -2091,7 +2044,7 @@ class HtmlLanePreprodConvertTests(TestCase):
         self.assertIn("## CHAPTER 2", md_text)
 
 
-class HeadingCleanerGateTests(TestCase):
+class HeadingCleanerGateTests(IsolatedStorageTestCase):
     def setUp(self):
         self.language = Language.objects.create(
             code="en",
@@ -2123,14 +2076,14 @@ class HeadingCleanerGateTests(TestCase):
 
         self.root = Path(settings.BASE_DIR).parent
         self.book_code = self.work.code
-        self.source_md_dir = self.root / "data" / "md" / self.book_code
+        self.source_md_dir = self.test_storage_root / "md" / self.book_code
         self.source_md_path = self.source_md_dir / f"{self.book_code}_en_source.md"
-        self.normalized_path = self.root / "data" / "normalized" / f"{self.book_code}_en_v2.txt"
-        self.split_dir = self.root / "data" / "chunks" / "book_9001" / "split_01"
-        self.cleaner_dir = self.root / "data" / "chunks" / "book_9001" / "heading_cleaner"
-        self.translated_dir = self.root / "data" / "translated" / "book_9001" / "en_us"
-        self.build_dir = self.root / "data" / "builds" / self.book_code / "en"
-        self.edition_core_dir = self.root / "data" / "editions" / str(self.edition.id) / "core"
+        self.normalized_path = self.test_storage_root / "normalized" / f"{self.book_code}_en_v2.txt"
+        self.split_dir = self.test_storage_root / "chunks" / "book_9001" / "split_01"
+        self.cleaner_dir = self.test_storage_root / "chunks" / "book_9001" / "heading_cleaner"
+        self.translated_dir = self.test_storage_root / "translated" / "book_9001" / "en_us"
+        self.build_dir = self.test_storage_root / "builds" / self.book_code / "en"
+        self.edition_core_dir = self.test_storage_root / "editions" / str(self.edition.id) / "core"
 
         self.source_md_dir.mkdir(parents=True, exist_ok=True)
         self.source_md_path.write_text(
@@ -2159,13 +2112,13 @@ class HeadingCleanerGateTests(TestCase):
         shutil.rmtree(self.source_md_dir, ignore_errors=True)
         if self.normalized_path.exists():
             self.normalized_path.unlink()
-        shutil.rmtree(self.root / "data" / "chunks" / "book_9001", ignore_errors=True)
-        shutil.rmtree(self.root / "data" / "translated" / "book_9001", ignore_errors=True)
-        shutil.rmtree(self.root / "data" / "translated" / self.book_code, ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "chunks" / "book_9001", ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "translated" / "book_9001", ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "translated" / self.book_code, ignore_errors=True)
         shutil.rmtree(self.build_dir, ignore_errors=True)
         shutil.rmtree(self.edition_core_dir.parent, ignore_errors=True)
-        shutil.rmtree(self.root / "data" / "tmp_agent_chunks", ignore_errors=True)
-        shutil.rmtree(self.root / "data" / "tmp_agent_return", ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "tmp_agent_chunks", ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "tmp_agent_return", ignore_errors=True)
 
     def test_heading_cleaner_button_visible(self):
         response = self.client.get(self.steps_url)
@@ -2327,8 +2280,8 @@ class HeadingCleanerGateTests(TestCase):
     def test_agent_refine_return_writes_report_and_rejects_incomplete_merge(self):
         from gaiden.tools.aldebaran_refine_return import run_aldebaran_refine_return
 
-        chunk_dir = self.root / "data" / "tmp_agent_chunks"
-        out_dir = self.root / "data" / "tmp_agent_return"
+        chunk_dir = self.test_storage_root / "tmp_agent_chunks"
+        out_dir = self.test_storage_root / "tmp_agent_return"
         chunk_dir.mkdir(parents=True, exist_ok=True)
         (chunk_dir / "0001.txt").write_text(
             "The barbarian looked back toward the ruins.\n\nThe stars were already paling for dawn.",
@@ -2671,14 +2624,14 @@ class HeadingCleanerGateTests(TestCase):
             publication_year=2026,
             text_source_mode="html",
         )
-        french_build_dir = self.root / "data" / "builds" / self.work.code / "fr"
+        french_build_dir = self.test_storage_root / "builds" / self.work.code / "fr"
         french_build_dir.mkdir(parents=True, exist_ok=True)
         (french_build_dir / "merge_translate.txt").write_text("merged translate", encoding="utf-8")
         (french_build_dir / "merge_refine.txt").write_text("merged refine", encoding="utf-8")
         refine_parts = french_build_dir / "split_by_chapter" / "return_fr_refine_universal_2026"
         refine_parts.mkdir(parents=True, exist_ok=True)
         (refine_parts / "chapter_01_part_01.txt").write_text("refined chapter", encoding="utf-8")
-        translated_clean = self.root / "data" / "translated" / self.work.code / "fr"
+        translated_clean = self.test_storage_root / "translated" / self.work.code / "fr"
         translated_clean.mkdir(parents=True, exist_ok=True)
         (translated_clean / "merge_refine_clean.txt").write_text("canonical refine clean", encoding="utf-8")
 
@@ -2738,7 +2691,7 @@ class HeadingCleanerGateTests(TestCase):
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
         (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
-        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean = self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
         translated_clean.write_text(
             "# Chapter I\n\nA clean merged passage for pre-flight review.\n\n# Chapter II\n\nAnother passage.",
@@ -2764,7 +2717,7 @@ class HeadingCleanerGateTests(TestCase):
         self.build_dir.mkdir(parents=True, exist_ok=True)
         polidor = self.build_dir / "merge_polidor.txt"
         polidor.write_text("polidor text", encoding="utf-8")
-        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean = self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
         translated_clean.write_text("older canonical refine text", encoding="utf-8")
 
@@ -2799,7 +2752,7 @@ class HeadingCleanerGateTests(TestCase):
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
         (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
-        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean = self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
         translated_clean.write_text(
             "# Chapter I\n\nA clean merged passage for pre-flight review.\n\n# Chapter II\n\nAnother passage.",
@@ -2829,7 +2782,7 @@ class HeadingCleanerGateTests(TestCase):
         (refine_dir / "0001.txt").write_text("refined 1", encoding="utf-8")
         (refine_dir / "merged_refine_en_us_2026.txt").write_text("merged refine", encoding="utf-8")
         (self.build_dir / "merge_refine.txt").write_text("build refine", encoding="utf-8")
-        translated_clean = self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt"
+        translated_clean = self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt"
         translated_clean.parent.mkdir(parents=True, exist_ok=True)
         translated_clean.write_text("Clean merge for preflight.", encoding="utf-8")
         (self.build_dir / "PRE_FLIGHT.json").write_text(
@@ -2875,7 +2828,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Step merge_refine failed: MergeRefine blocked: suspicious chunk ending(s) detected.")
         self.assertFalse((self.build_dir / "merge_refine.txt").exists())
-        self.assertFalse((self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt").exists())
+        self.assertFalse((self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt").exists())
 
     def test_merge_refine_rebuilds_canonical_text_from_chunks(self):
         self.split_dir.mkdir(parents=True, exist_ok=True)
@@ -2907,7 +2860,7 @@ class HeadingCleanerGateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "MergeRefine OK")
 
-        canonical_text = (self.root / "data" / "translated" / self.book_code / "merge_refine_clean.txt").read_text(
+        canonical_text = (self.test_storage_root / "translated" / self.book_code / "merge_refine_clean.txt").read_text(
             encoding="utf-8"
         )
         self.assertTrue(canonical_text.startswith("## 5 The Black Stallion"))
@@ -2920,14 +2873,11 @@ class HeadingCleanerGateTests(TestCase):
         self.assertIn("“Watch out!” he said. “I’ve come.”", rewritten_chunk)
 
 
-class EditorialImagePipelineContractTests(TestCase):
+class EditorialImagePipelineContractTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
 
         self.language = Language.objects.create(
             code="en",
@@ -2958,8 +2908,8 @@ class EditorialImagePipelineContractTests(TestCase):
         )
 
         self.root = Path(settings.BASE_DIR).parent
-        self.build_dir = self.root / "data" / "builds" / self.work.code / "en"
-        self.images_dir = self.root / "data" / "images" / self.work.code / "en"
+        self.build_dir = self.test_storage_root / "builds" / self.work.code / "en"
+        self.images_dir = self.test_storage_root / "images" / self.work.code / "en"
         self.assets_dir = self.build_dir / "assets" / "images"
         self.pre_edition_path = self.build_dir / "BOOK.PRE_EDITION.md"
         self.steps_url = (
@@ -2976,10 +2926,6 @@ class EditorialImagePipelineContractTests(TestCase):
             ),
             encoding="utf-8",
         )
-
-    def tearDown(self):
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
 
     def _image_upload(self, name: str) -> SimpleUploadedFile:
         from PIL import Image
@@ -3163,18 +3109,11 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertIn("# Chapter 02 - The Bodymaster\n{{IMAGE:CH04:01}}", updated_md)
 
 
-class MdTransformSourceHeadingContractTests(TestCase):
+class MdTransformSourceHeadingContractTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
-
-    def tearDown(self):
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
 
     def test_txt_to_md_uses_source_md_story_titles_and_ignores_false_chapters(self):
         from pipeline.services import md_transform
@@ -3706,14 +3645,11 @@ class MdTransformSourceHeadingContractTests(TestCase):
         )
 
 
-class KdpMarkerCleanupContractTests(TestCase):
+class KdpMarkerCleanupContractTests(IsolatedStorageTestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root = Path(self.temp_dir.name)
+        self.temp_root = self.test_project_root
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
-        self.settings_override = override_settings(BASE_DIR=self.temp_web)
-        self.settings_override.enable()
 
         self.language = Language.objects.create(
             code="en",
@@ -3735,15 +3671,13 @@ class KdpMarkerCleanupContractTests(TestCase):
             seal=self.seal,
         )
 
-        self.build_dir = Path("data") / "builds" / self.work.code / "en"
+        self.build_dir = self.test_storage_root / "builds" / self.work.code / "en"
         self.pre_edition_path = self.build_dir / "BOOK.PRE_EDITION.md"
         self.build_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self):
-        shutil.rmtree(Path("data") / "builds" / self.work.code, ignore_errors=True)
-        shutil.rmtree(Path("data") / "translated" / self.work.code, ignore_errors=True)
-        self.settings_override.disable()
-        self.temp_dir.cleanup()
+        shutil.rmtree(self.test_storage_root / "builds" / self.work.code, ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "translated" / self.work.code, ignore_errors=True)
 
     def test_build_kdp_cleans_leaked_body_markers_and_writes_report(self):
         from editorial import kdp_mode
@@ -3857,7 +3791,7 @@ class KdpMarkerCleanupContractTests(TestCase):
             language=fr_language,
             seal=self.seal,
         )
-        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir = self.test_storage_root / "builds" / self.work.code / "fr"
         fr_build_dir.mkdir(parents=True, exist_ok=True)
         (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
             (
@@ -3893,7 +3827,7 @@ class KdpMarkerCleanupContractTests(TestCase):
             language=fr_language,
             seal=self.seal,
         )
-        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir = self.test_storage_root / "builds" / self.work.code / "fr"
         fr_build_dir.mkdir(parents=True, exist_ok=True)
         (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
             (
@@ -3924,7 +3858,7 @@ class KdpMarkerCleanupContractTests(TestCase):
             language=fr_language,
             seal=self.seal,
         )
-        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir = self.test_storage_root / "builds" / self.work.code / "fr"
         fr_build_dir.mkdir(parents=True, exist_ok=True)
         (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
             (
@@ -3955,7 +3889,7 @@ class KdpMarkerCleanupContractTests(TestCase):
             language=fr_language,
             seal=self.seal,
         )
-        fr_build_dir = Path("data") / "builds" / self.work.code / "fr"
+        fr_build_dir = self.test_storage_root / "builds" / self.work.code / "fr"
         fr_build_dir.mkdir(parents=True, exist_ok=True)
         (fr_build_dir / "BOOK.PRE_EDITION.md").write_text(
             (
@@ -4156,7 +4090,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.edition.save(
             update_fields=["frontispiece_template", "copyright_template", "about_edition_template"]
         )
-        kdp_mode.build_frontmatter_files(self.edition, Path("data") / "frontmatter")
+        kdp_mode.build_frontmatter_files(self.edition, self.test_storage_root / "frontmatter")
         self.pre_edition_path.write_text("# Chapter 01 - First Case\n\nBody text.\n", encoding="utf-8")
 
         merged_text = kdp_mode.build_merged_kdp_source(self.edition).read_text(encoding="utf-8")
@@ -4202,8 +4136,8 @@ class KdpMarkerCleanupContractTests(TestCase):
             update_fields=["frontispiece_template", "copyright_template", "about_edition_template"]
         )
 
-        build_frontmatter_files(self.edition, Path("data") / "frontmatter")
-        front_dir = Path("data") / "frontmatter" / self.work.code / "en"
+        build_frontmatter_files(self.edition, self.test_storage_root / "frontmatter")
+        front_dir = self.test_storage_root / "frontmatter" / self.work.code / "en"
 
         self.assertEqual((front_dir / "preface.md").read_text(encoding="utf-8"), "")
         self.assertEqual((front_dir / "epilogue.md").read_text(encoding="utf-8"), "")
@@ -4211,7 +4145,7 @@ class KdpMarkerCleanupContractTests(TestCase):
         self.assertEqual(len(warnings), 2)
 
 
-class MdApproveImagesContractTests(TestCase):
+class MdApproveImagesContractTests(IsolatedStorageTestCase):
     def setUp(self):
         self.language = Language.objects.create(
             code="en",
@@ -4232,11 +4166,11 @@ class MdApproveImagesContractTests(TestCase):
             language=self.language,
             seal=self.seal,
         )
-        self.build_dir = Path("data") / "builds" / self.work.code / "en"
+        self.build_dir = self.test_storage_root / "builds" / self.work.code / "en"
         self.build_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self):
-        shutil.rmtree(Path("data") / "builds" / self.work.code, ignore_errors=True)
+        shutil.rmtree(self.test_storage_root / "builds" / self.work.code, ignore_errors=True)
 
     def test_approve_md_prefers_pre_edition_when_it_has_images(self):
         from pipeline.services import md_quality, paths
