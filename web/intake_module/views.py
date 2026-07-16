@@ -302,7 +302,11 @@ def item_detail(request, item_id: int):
 
 def _can_open_in_bookmaker(item: IntakeItem) -> bool:
     return bool(
-        item.status == IntakeState.DOWNLOADED.value
+        item.status
+        in {
+            IntakeState.DOWNLOADED.value,
+            IntakeState.CLEAN_READY.value,
+        }
         and not item.duplicate_of_id
         and item.batch.author_default
         and item.confirmed_title

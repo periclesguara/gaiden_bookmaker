@@ -715,10 +715,16 @@ class BlockZeroTests(TestCase):
         self.assertEqual(item.confirmed_title, "Tarzan Updated")
         self.assertEqual(item.status, IntakeState.CLEAN_READY.value)
 
-    def test_bookmaker_button_is_shown_only_for_valid_downloaded_canonical_item(self):
+    def test_bookmaker_button_replaces_codex_action_for_valid_clean_item(self):
         item = self._bookmaker_item()
         response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
         self.assertContains(response, "Abrir no Gaiden Bookmaker")
+
+        item.status = IntakeState.CLEAN_READY.value
+        item.save(update_fields=["status", "updated_at"])
+        response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
+        self.assertContains(response, "Abrir no Gaiden Bookmaker")
+        self.assertNotContains(response, "Preparar para Codex")
 
         item.status = IntakeState.FAILED.value
         item.save(update_fields=["status", "updated_at"])
@@ -809,7 +815,7 @@ class BlockZeroTests(TestCase):
         )
 
     def test_open_in_bookmaker_redirects_to_steps_and_header_identifies_book(self):
-        item = self._bookmaker_item()
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         response = self.client.post(
             reverse("intake_module:item_open_bookmaker", args=[item.id])
         )

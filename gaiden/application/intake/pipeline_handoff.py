@@ -426,8 +426,13 @@ def handoff_to_pipeline(item: IntakeItem) -> HandoffResult:
 
 
 def _validate_bookmaker_item(item: IntakeItem) -> tuple[Path, str, str, str]:
-    if item.status != IntakeState.DOWNLOADED.value:
-        raise IntakeHandoffError("Item must be DOWNLOADED before opening in Gaiden Bookmaker")
+    if item.status not in {
+        IntakeState.DOWNLOADED.value,
+        IntakeState.CLEAN_READY.value,
+    }:
+        raise IntakeHandoffError(
+            "Item must be DOWNLOADED or CLEAN_READY before opening in Gaiden Bookmaker"
+        )
     if item.duplicate_of_id:
         raise IntakeHandoffError(f"Duplicate item must use canonical item {item.duplicate_of_id}")
     required = {
