@@ -8,8 +8,95 @@ from gaiden.infrastructure.intake_drive import RcloneClient
 
 from gaiden.domain.intake import IntakeState
 
-from .ingestion import ACCEPTED_SUFFIXES, IGNORED_IMAGE_SUFFIXES, discover_item, ingest_path
+from .ingestion import (
+    ACCEPTED_SUFFIXES,
+    IGNORED_IMAGE_SUFFIXES,
+    discover_item,
+    ingest_path,
+    store_downloaded_bytes,
+)
 from .workflow import transition_item
+
+
+def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
+    client = client or RcloneClient()
+    client.check_available()
+    files = client.list_files(relative_folder)
+    report = {"folder": relative_folder, "discovered": [], "ignored": [], "existing": [], "errors": []}
+    for drive_file in files:
+        suffix = Path(drive_file.name).suffix.lower()
+        if suffix in IGNORED_IMAGE_SUFFIXES:
+            report["ignored"].append(
+                {"filename": drive_file.name, "reason": "image_not_processed_in_v1"}
+            )
+            continue
+        if suffix not in ACCEPTED_SUFFIXES:
+            report["ignored"].append({"filename": drive_file.name, "reason": "unsupported_format"})
+            continue
+        existing = None
+        if drive_file.file_id:
+            existing = batch.items.filter(drive_file_id=drive_file.file_id).first()
+        if existing is None:
+            existing = batch.items.filter(
+                source_filename=drive_file.name,
+                source_size=drive_file.size,
+            ).first()
+        if existing is not None:
+            report["existing"].append({"filename": drive_file.name, "item_id": existing.id})
+            continue
+        try:
+            item = discover_item(
+                batch,
+                drive_file.name,
+                source_size=drive_file.size,
+                drive_file_id=drive_file.file_id,
+            )
+            report["discovered"].append({"filename": drive_file.name, "item_id": item.id})
+        except Exception as exc:
+            report["errors"].append({"filename": drive_file.name, "error": str(exc)[:500]})
+    intake_storage.ensure_batch_layout(batch.code, batch.source_language)
+    intake_storage.atomic_write_json(
+        intake_storage.drive_audit_path(batch.code, batch.source_language), report, overwrite=True
+    )
+    return report
+
+
+def download_drive_item(item, *, client=None) -> dict:
+    if item.status != IntakeState.DISCOVERED.value:
+        raise ValueError("Item must be DISCOVERED before download")
+    if not item.batch.drive_relative_path:
+        raise ValueError("Drive folder is not configured for this batch")
+    client = client or RcloneClient()
+    client.check_available()
+    files = client.list_files(item.batch.drive_relative_path)
+    drive_file = next(
+        (
+            row
+            for row in files
+            if (item.drive_file_id and row.file_id == item.drive_file_id)
+            or (not item.drive_file_id and row.name == item.source_filename)
+        ),
+        None,
+    )
+    if drive_file is None or drive_file.name != item.source_filename:
+        raise FileNotFoundError("Discovered Drive file is no longer available")
+    try:
+        transition_item(item, IntakeState.DOWNLOADING)
+        with tempfile.TemporaryDirectory(prefix="gaiden-intake-drive-") as temporary:
+            destination = Path(temporary) / Path(drive_file.name).name
+            client.download_file(item.batch.drive_relative_path, drive_file, destination)
+            return store_downloaded_bytes(
+                item,
+                destination.read_bytes(),
+                drive_file_id=drive_file.file_id,
+            )
+    except Exception as exc:
+        if item.status != IntakeState.FAILED.value:
+            try:
+                transition_item(item, IntakeState.FAILED, error=str(exc))
+            except Exception:
+                pass
+        raise
 
 
 def synchronize_drive_folder(batch, relative_folder: str, *, client=None, converter=None) -> dict:

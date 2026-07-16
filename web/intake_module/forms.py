@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import IntakeBatch
+from .models import IntakeBatch, IntakeItem
 
 
 class IntakeBatchForm(forms.ModelForm):
@@ -49,3 +49,9 @@ class PrepareCodexForm(forms.Form):
 
 class TranslationReturnForm(forms.Form):
     return_file = forms.FileField()
+
+
+class IntakeItemMetadataForm(forms.ModelForm):
+    class Meta:
+        model = IntakeItem
+        fields = ["confirmed_title", "original_year", "book_code", "target_language"]

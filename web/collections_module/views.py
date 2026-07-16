@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.db import transaction
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CollectionCreateForm, CollectionItemForm, CollectionUploadForm, build_collection_item_formset
@@ -9,7 +10,26 @@ from .services import workflow
 
 
 def project_entry(request):
-    return render(request, "collections_module/project_entry.html")
+    from gaiden.domain.intake import IntakeState
+    from web.intake_module.models import IntakeBatch, IntakeItem
+
+    item_counts = IntakeItem.objects.aggregate(
+        discovered=Count("id", filter=Q(status=IntakeState.DISCOVERED.value)),
+        clean_ready=Count("id", filter=Q(status=IntakeState.CLEAN_READY.value)),
+        awaiting_codex=Count(
+            "id",
+            filter=Q(status__in=[IntakeState.READY_FOR_CODEX.value, IntakeState.TRANSLATING.value]),
+        ),
+        returned=Count("id", filter=Q(status=IntakeState.TRANSLATION_RETURNED.value)),
+        ready=Count("id", filter=Q(status=IntakeState.READY_FOR_EDITING.value)),
+        errors=Count("id", filter=Q(status=IntakeState.FAILED.value)),
+    )
+    intake_stats = {"active_batches": IntakeBatch.objects.count(), **item_counts}
+    return render(
+        request,
+        "collections_module/project_entry.html",
+        {"intake_stats": intake_stats},
+    )
 
 
 def collection_create(request):

@@ -135,54 +135,25 @@ def ingest_bytes(
     if not payload:
         raise ValueError("Empty intake source is not allowed")
 
-    digest = hashlib.sha256(payload).hexdigest()
     if item is None:
         item = discover_item(batch, safe_name, source_size=len(payload), drive_file_id=drive_file_id)
     elif item.batch_id != batch.id or item.source_filename != safe_name:
         raise ValueError("Discovered item does not match downloaded source")
-    duplicate = batch.items.filter(source_sha256=digest).exclude(pk=item.pk).first()
-    item.source_size = len(payload)
-    item.source_sha256 = digest
-    item.drive_file_id = drive_file_id or item.drive_file_id
-    item.save(update_fields=["source_size", "source_sha256", "drive_file_id", "updated_at"])
 
     try:
-        if item.status == IntakeState.DISCOVERED.value:
-            transition_item(item, IntakeState.DOWNLOADING)
-        elif item.status != IntakeState.DOWNLOADING.value:
-            raise ValueError("Item must be DISCOVERED or DOWNLOADING before ingestion")
-        root = intake_storage.ensure_batch_layout(batch.code, batch.source_language)
-        destination = intake_storage.original_path(batch.code, batch.source_language, item.order_index, suffix)
-        intake_storage.atomic_write_bytes(destination, payload)
-        item.original_path = intake_storage.relative_storage_path(destination)
-        item.save(update_fields=["original_path", "updated_at"])
-        transition_item(item, IntakeState.DOWNLOADED)
-        transition_item(item, IntakeState.CLEANING)
-
-        converter = converter or MarkItDownAdapter()
-        extracted = converter.convert_to_markdown(destination)
-        cleaned, removed, warnings = clean_extracted_text(extracted)
-        cleaned_path = intake_storage.clean_path(batch.code, batch.source_language, item.order_index)
-        intake_storage.atomic_write_text(cleaned_path, cleaned)
-        audit = {
-            "item_id": item.id,
-            "source_filename": safe_name,
-            "source_sha256": digest,
-            "original_path": intake_storage.relative_storage_path(destination),
-            "clean_path": intake_storage.relative_storage_path(cleaned_path),
-            "removed_lines": removed,
-            "warnings": warnings,
-            "needs_review": bool(warnings),
-            "duplicate_of_item_id": duplicate.id if duplicate else None,
-        }
-        intake_storage.atomic_write_json(
-            intake_storage.audit_path(batch.code, batch.source_language, item.order_index), audit
+        download_result = store_downloaded_bytes(
+            item,
+            payload,
+            drive_file_id=drive_file_id,
         )
-        item.clean_path = intake_storage.relative_storage_path(cleaned_path)
-        item.last_error = f"Duplicate of item {duplicate.id}" if duplicate else ""
-        item.save(update_fields=["clean_path", "last_error", "updated_at"])
-        transition_item(item, IntakeState.CLEAN_READY)
-        return {"ignored": False, "item": item, "duplicate": bool(duplicate), "audit": audit, "root": root}
+        clean_result = clean_downloaded_item(item, converter=converter)
+        return {
+            "ignored": False,
+            "item": item,
+            "duplicate": download_result["duplicate"],
+            "audit": clean_result["audit"],
+            "root": download_result["root"],
+        }
     except Exception as exc:
         if item.status != IntakeState.FAILED.value:
             try:
@@ -196,3 +167,96 @@ def ingest_bytes(
 
 def ingest_many(batch, files: Iterable, *, converter: Converter | None = None) -> list[dict]:
     return [ingest_uploaded_file(batch, uploaded, converter=converter) for uploaded in files]
+
+
+def store_downloaded_bytes(item, payload: bytes, *, drive_file_id: str = "") -> dict:
+    if not payload:
+        raise ValueError("Empty intake source is not allowed")
+    if item.status == IntakeState.DISCOVERED.value:
+        transition_item(item, IntakeState.DOWNLOADING)
+    elif item.status != IntakeState.DOWNLOADING.value:
+        raise ValueError("Item must be DISCOVERED or DOWNLOADING before download")
+
+    suffix = Path(item.source_filename).suffix.lower()
+    if suffix not in ACCEPTED_SUFFIXES:
+        raise ValueError(f"Unsupported intake format: {suffix or '(none)'}")
+    digest = hashlib.sha256(payload).hexdigest()
+    duplicate = item.batch.items.filter(source_sha256=digest).exclude(pk=item.pk).first()
+    root = intake_storage.ensure_batch_layout(item.batch.code, item.batch.source_language)
+    destination = intake_storage.original_path(
+        item.batch.code,
+        item.batch.source_language,
+        item.order_index,
+        suffix,
+    )
+    intake_storage.atomic_write_bytes(destination, payload)
+    item.source_size = len(payload)
+    item.source_sha256 = digest
+    item.drive_file_id = drive_file_id or item.drive_file_id
+    item.original_path = intake_storage.relative_storage_path(destination)
+    item.last_error = f"Duplicate of item {duplicate.id}" if duplicate else ""
+    item.save(
+        update_fields=[
+            "source_size",
+            "source_sha256",
+            "drive_file_id",
+            "original_path",
+            "last_error",
+            "updated_at",
+        ]
+    )
+    transition_item(item, IntakeState.DOWNLOADED)
+    return {"item": item, "duplicate": bool(duplicate), "root": root}
+
+
+def clean_downloaded_item(item, *, converter: Converter | None = None) -> dict:
+    if item.status != IntakeState.DOWNLOADED.value:
+        raise ValueError("Item must be DOWNLOADED before cleaning")
+    source = intake_storage.resolve_stored_path(item.original_path)
+    if source.is_symlink() or not source.is_file():
+        raise intake_storage.IntakeStorageError("Downloaded source is not a regular intake file")
+    transition_item(item, IntakeState.CLEANING)
+    try:
+        converter = converter or MarkItDownAdapter()
+        extracted = converter.convert_to_markdown(source)
+        cleaned, removed, warnings = clean_extracted_text(extracted)
+        cleaned_path = intake_storage.clean_path(
+            item.batch.code,
+            item.batch.source_language,
+            item.order_index,
+        )
+        intake_storage.atomic_write_text(cleaned_path, cleaned)
+        duplicate = (
+            item.batch.items.filter(source_sha256=item.source_sha256)
+            .exclude(pk=item.pk)
+            .order_by("id")
+            .first()
+        )
+        audit = {
+            "item_id": item.id,
+            "source_filename": item.source_filename,
+            "source_sha256": item.source_sha256,
+            "original_path": item.original_path,
+            "clean_path": intake_storage.relative_storage_path(cleaned_path),
+            "removed_lines": removed,
+            "warnings": warnings,
+            "needs_review": bool(warnings),
+            "duplicate_of_item_id": duplicate.id if duplicate else None,
+        }
+        intake_storage.atomic_write_json(
+            intake_storage.audit_path(
+                item.batch.code,
+                item.batch.source_language,
+                item.order_index,
+            ),
+            audit,
+        )
+        item.clean_path = intake_storage.relative_storage_path(cleaned_path)
+        item.last_error = f"Duplicate of item {duplicate.id}" if duplicate else ""
+        item.save(update_fields=["clean_path", "last_error", "updated_at"])
+        transition_item(item, IntakeState.CLEAN_READY)
+        return {"item": item, "audit": audit}
+    except Exception as exc:
+        if item.status != IntakeState.FAILED.value:
+            transition_item(item, IntakeState.FAILED, error=str(exc))
+        raise
