@@ -23,8 +23,9 @@ def get_data_root(*, must_exist: bool = False) -> Path:
 
 def validate_data_root() -> Path:
     root = get_data_root(must_exist=True)
-    if "web/data" in root.as_posix():
-        raise storage.StorageConfigurationError(f"Deprecated web/data root is not allowed: {root}")
+    deprecated_root = storage.deprecated_web_storage_root().resolve()
+    if root == deprecated_root or deprecated_root in root.parents:
+        raise storage.StorageConfigurationError(f"Deprecated web storage root is not allowed: {root}")
     return root
 
 
