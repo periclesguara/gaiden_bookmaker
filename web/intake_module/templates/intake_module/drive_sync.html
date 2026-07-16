@@ -1,0 +1,6 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Sincronizar pasta do Drive</h1><p>{{ batch.name }}</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Listar, baixar e limpar</button></form>
+{% if report %}<h2>Relatório</h2><p>{{ report.imported|length }} importados · {{ report.ignored|length }} ignorados · {{ report.errors|length }} erros</p>{% endif %}
+{% endblock %}

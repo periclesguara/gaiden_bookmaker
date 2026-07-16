@@ -91,6 +91,34 @@ def audit_path(batch_code: str, source_language: str, order_index: int) -> Path:
     return batch_root(batch_code, source_language) / "audit" / f"{item_code(order_index)}_cleaning.json"
 
 
+def drive_audit_path(batch_code: str, source_language: str) -> Path:
+    return batch_root(batch_code, source_language) / "audit" / "drive_sync_report.json"
+
+
+def translation_manifest_path(
+    batch_code: str, source_language: str, order_index: int, target_language: str
+) -> Path:
+    return translation_dir(batch_code, source_language, order_index, target_language) / "manifest.json"
+
+
+def relative_storage_path(path: Path) -> str:
+    root = storage.data_dir().resolve()
+    candidate = path.resolve()
+    try:
+        return str(candidate.relative_to(root))
+    except ValueError as exc:
+        raise IntakeStorageError(f"Path escapes canonical storage: {path}") from exc
+
+
+def resolve_stored_path(path_value: str) -> Path:
+    candidate = Path(path_value)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise IntakeStorageError(f"Unsafe stored path: {path_value!r}")
+    resolved = (storage.data_dir() / candidate).resolve()
+    relative_storage_path(resolved)
+    return resolved
+
+
 def atomic_write_bytes(path: Path, payload: bytes, *, overwrite: bool = False) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() and not overwrite:

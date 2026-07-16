@@ -1,2 +1,7 @@
 {% extends "intake_module/base.html" %}
-{% block content %}<h1>{{ item.source_filename }}</h1><p>Lote: <a href="{% url 'intake_module:batch_detail' item.batch.id %}">{{ item.batch.name }}</a></p><dl><dt>Status</dt><dd>{{ item.status }}</dd><dt>SHA-256</dt><dd>{{ item.source_sha256|default:"—" }}</dd><dt>Texto limpo</dt><dd>{{ item.clean_path|default:"—" }}</dd><dt>Retorno</dt><dd>{{ item.translation_return_path|default:"—" }}</dd></dl>{% endblock %}
+{% block content %}
+<h1>{{ item.source_filename }}</h1><p>Lote: <a href="{% url 'intake_module:batch_detail' item.batch.id %}">{{ item.batch.name }}</a></p><dl><dt>Status</dt><dd>{{ item.status }}</dd><dt>SHA-256</dt><dd>{{ item.source_sha256|default:"—" }}</dd><dt>Texto limpo</dt><dd>{{ item.clean_path|default:"—" }}</dd><dt>Retorno</dt><dd>{{ item.translation_return_path|default:"—" }}</dd></dl>
+{% if item.status == "CLEAN_READY" %}<h2>Preparar para Codex</h2><form method="post" action="{% url 'intake_module:item_prepare_codex' item.id %}">{% csrf_token %}{{ prepare_form.as_p }}<button type="submit">Preparar para Codex</button></form>{% endif %}
+{% if item.status == "READY_FOR_CODEX" or item.status == "TRANSLATING" %}<h2>Registrar retorno</h2><form method="post" enctype="multipart/form-data" action="{% url 'intake_module:item_register_return' item.id %}">{% csrf_token %}{{ return_form.as_p }}<button type="submit">Registrar retorno</button></form>{% endif %}
+{% if item.status == "TRANSLATION_RETURNED" %}<form method="post" action="{% url 'intake_module:item_confirm_ready' item.id %}">{% csrf_token %}<button type="submit">Confirmar READY_FOR_EDITING</button></form>{% endif %}
+{% endblock %}
