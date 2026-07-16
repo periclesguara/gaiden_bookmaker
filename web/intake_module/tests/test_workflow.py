@@ -204,6 +204,30 @@ class IntakeWorkflowTests(TestCase):
         self.assertIs(kwargs["shell"], False)
         self.assertEqual(kwargs["timeout"], 9)
 
+    def test_rclone_upload_uses_safe_copyto_without_overwriting(self):
+        source = self.temporary_root / "book_heading_clean.txt"
+        source.write_text("clean text", encoding="utf-8")
+        client = RcloneClient(timeout=11)
+        with patch.object(client, "list_files", return_value=[]):
+            with patch.object(client, "_run") as run:
+                result = client.upload_file(
+                    source,
+                    "01_INBOX_RAW/Edgar_Rice_borroughs",
+                    "book_heading_clean.txt",
+                )
+        self.assertFalse(result["no_op"])
+        self.assertEqual(
+            run.call_args.args[0],
+            [
+                "rclone",
+                "copyto",
+                str(source),
+                "gaiden_drive:01_INBOX_RAW/Edgar_Rice_borroughs/book_heading_clean.txt",
+                "--no-traverse",
+                "--immutable",
+            ],
+        )
+
     @patch("gaiden.infrastructure.converters.markitdown_adapter.MarkItDownAdapter.convert_to_markdown")
     @patch("gaiden.infrastructure.intake_drive.subprocess.run")
     def test_multiple_browser_upload_uses_ingestion_without_external_call(self, subprocess_run, convert):

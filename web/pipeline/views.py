@@ -16,7 +16,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.contrib import messages
-from django.http import Http404, HttpResponse, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.db import IntegrityError, connection, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -37,6 +37,7 @@ from editorial.models import (
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
 from gaiden.application.pipeline import ingest as pipeline_ingest
+from gaiden.application.pipeline import heading_cleaner_drive
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
     chunk_truncation_reason as resolve_chunk_truncation_reason,
@@ -4742,6 +4743,19 @@ def edition_steps(request, edition_id: int):
         str(pipeline_prereqs["book_code"])
     )
     heading_cleaner_done = bool(pipeline_prereqs["heading_clean_exists"])
+    heading_drive_destination = heading_cleaner_drive.resolve_heading_cleaner_destination(
+        _processing_base_edition(edition)
+    )
+    heading_drive_export = {
+        "available": bool(heading_cleaner_done and heading_drive_destination),
+        "remote_filename": (
+            heading_drive_destination.remote_filename if heading_drive_destination else ""
+        ),
+        "run_url": reverse(
+            "pipeline_heading_cleaner_drive_upload",
+            kwargs={"edition_id": edition.id},
+        ),
+    }
     translate_step = next((s for s in pipeline01_steps if s.get("key") == "translate"), None)
     can_translate = bool(translate_step and translate_step.get("can_run"))
 
@@ -5055,6 +5069,7 @@ def edition_steps(request, edition_id: int):
         "translate_agent_options": translate_agent_options,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
+        "heading_drive_export": heading_drive_export,
         "pipeline_prereqs": {
             "normalized_v2_path": str(pipeline_prereqs["normalized_v2_path"]),
             "normalized_v2_exists": bool(pipeline_prereqs["normalized_v2_exists"]),
@@ -5131,6 +5146,30 @@ def pipeline_heading_cleaner_run(request, edition_id: int):
 
     if core_edition.id != edition.id:
         messages.info(request, f"HeadingCleaner executado na edicao core EN de {core_book_code}.")
+    return redirect(_edition_steps_redirect_url(edition))
+
+
+def pipeline_heading_cleaner_drive_upload(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    core_edition = _processing_base_edition(edition)
+    try:
+        result = heading_cleaner_drive.send_heading_cleaner_to_drive(core_edition)
+        if result.no_op:
+            messages.info(request, "O arquivo do HeadingCleaner já existe no Google Drive.")
+        else:
+            messages.success(request, "Arquivo do HeadingCleaner enviado ao Google Drive.")
+        messages.info(request, f"Destino: {result.remote_path}")
+    except Exception:
+        logger.exception(
+            "heading_cleaner_drive_upload_failed edition_id=%s",
+            core_edition.id,
+        )
+        messages.error(
+            request,
+            "Não foi possível enviar o arquivo ao Google Drive. Verifique o vínculo do lote e o remote gaiden_drive.",
+        )
     return redirect(_edition_steps_redirect_url(edition))
 
 

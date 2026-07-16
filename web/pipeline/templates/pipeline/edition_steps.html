@@ -419,6 +419,13 @@
               {{ s.button_label }}
             </button>
           </form>
+          {% if s.key == "heading_cleaner" and s.done and heading_drive_export.available %}
+          <form method="post" action="{{ heading_drive_export.run_url }}" onsubmit="return confirm('Enviar o arquivo limpo do HeadingCleaner para a pasta vinculada no Google Drive?');">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit">Enviar para Google Drive</button>
+            <span class="status">Arquivo: <strong>{{ heading_drive_export.remote_filename }}</strong></span>
+          </form>
+          {% endif %}
           {% if s.key == "polish_agent" %}
           <form class="polidor-action" method="post" action="{% url 'save_merge_polidor_preview' edition_id=edition.id %}">
             {% csrf_token %}

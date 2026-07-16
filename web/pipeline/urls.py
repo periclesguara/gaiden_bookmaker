@@ -50,6 +50,11 @@ urlpatterns = [
         name="pipeline_heading_cleaner_run",
     ),
     path(
+        "editions/<int:edition_id>/heading_cleaner/send-drive/",
+        views.pipeline_heading_cleaner_drive_upload,
+        name="pipeline_heading_cleaner_drive_upload",
+    ),
+    path(
         "editions/<int:edition_id>/translate/run/",
         views.pipeline_translate_run,
         name="pipeline_translate_run",

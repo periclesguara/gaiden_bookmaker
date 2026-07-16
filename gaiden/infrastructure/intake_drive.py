@@ -114,6 +114,41 @@ class RcloneClient:
             raise RcloneCommandError("rclone did not produce a regular downloaded file")
         return destination
 
+    def upload_file(self, source: Path, folder: str, remote_filename: str) -> dict:
+        source_path = Path(source)
+        if source_path.is_symlink() or not source_path.is_file():
+            raise ValueError("Upload source must be an existing regular file")
+        safe_folder = self.stored_folder_path(self.direct_child_name(folder))
+        safe_filename = _safe_relative_path(remote_filename)
+        if "/" in safe_filename:
+            raise ValueError("Drive upload filename must not contain directories")
+        existing = next(
+            (drive_file for drive_file in self.list_files(safe_folder) if drive_file.name == safe_filename),
+            None,
+        )
+        if existing is not None:
+            if existing.size == source_path.stat().st_size:
+                return {
+                    "remote_path": f"{safe_folder}/{safe_filename}",
+                    "no_op": True,
+                }
+            raise FileExistsError("A different Drive artifact already uses the destination name")
+        target = self._remote_path(f"{safe_folder}/{safe_filename}")
+        self._run(
+            [
+                "rclone",
+                "copyto",
+                str(source_path),
+                target,
+                "--no-traverse",
+                "--immutable",
+            ]
+        )
+        return {
+            "remote_path": f"{safe_folder}/{safe_filename}",
+            "no_op": False,
+        }
+
     def _remote_path(self, relative_path: str) -> str:
         safe_path = _safe_relative_path(relative_path) if relative_path else ""
         if safe_path == self.inbox or safe_path.startswith(f"{self.inbox}/"):

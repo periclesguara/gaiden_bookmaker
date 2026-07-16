@@ -119,6 +119,28 @@ class FakeUpload:
         yield self.payload
 
 
+class FakeHeadingDriveClient:
+    def __init__(self):
+        self.uploads = []
+        self.checked = 0
+
+    def check_available(self):
+        self.checked += 1
+
+    def direct_child_name(self, stored_path):
+        return stored_path.rsplit("/", 1)[-1]
+
+    def list_folders(self, _relative_path=""):
+        return ["Edgar_Rice_Burroughs"]
+
+    def upload_file(self, source, folder, remote_filename):
+        self.uploads.append((Path(source), folder, remote_filename))
+        return {
+            "remote_path": f"{folder}/{remote_filename}",
+            "no_op": False,
+        }
+
+
 def bookmaker_epub_payload() -> bytes:
     stream = io.BytesIO()
     with ZipFile(stream, "w") as archive:
@@ -843,6 +865,45 @@ class BlockZeroTests(TestCase):
         response = self.client.get(reverse("book_edition_new"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Cadastro do livro")
+
+    def test_heading_cleaner_drive_button_uses_linked_intake_folder(self):
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        handoff = open_in_bookmaker(item)
+        page_url = reverse("edition_steps", kwargs={"edition_id": handoff.edition.id})
+        response = self.client.get(page_url)
+        self.assertNotContains(response, "Enviar para Google Drive")
+
+        clean_path = storage.heading_cleaner_dir(item.book_code) / "clean.txt"
+        clean_path.parent.mkdir(parents=True, exist_ok=True)
+        clean_path.write_text("Chapter One\nTarzan begins.\n", encoding="utf-8")
+        response = self.client.get(page_url)
+        self.assertContains(response, "Enviar para Google Drive")
+        self.assertContains(
+            response,
+            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean.txt",
+        )
+
+        client = FakeHeadingDriveClient()
+        upload_url = reverse(
+            "pipeline_heading_cleaner_drive_upload",
+            kwargs={"edition_id": handoff.edition.id},
+        )
+        self.assertEqual(self.client.get(upload_url).status_code, 405)
+        with patch(
+            "gaiden.application.pipeline.heading_cleaner_drive.RcloneClient",
+            return_value=client,
+        ):
+            response = self.client.post(upload_url)
+        self.assertRedirects(response, page_url, fetch_redirect_response=False)
+        self.assertEqual(client.checked, 1)
+        self.assertEqual(len(client.uploads), 1)
+        source, folder, remote_filename = client.uploads[0]
+        self.assertEqual(source, clean_path)
+        self.assertEqual(folder, self.batch.drive_relative_path)
+        self.assertEqual(
+            remote_filename,
+            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean.txt",
+        )
 
     def test_no_drive_subprocess_is_called_by_dashboard_or_upload(self):
         with patch("gaiden.infrastructure.intake_drive.subprocess.run") as run:
