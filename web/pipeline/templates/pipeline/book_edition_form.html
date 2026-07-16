@@ -231,6 +231,9 @@
             <td>
               <div class="row-actions">
                 <a class="btn secondary" href="{{ row.edit_url }}">Editar</a>
+                {% if row.registration_edit_url %}
+                  <a class="btn secondary" href="{{ row.registration_edit_url }}">Cadastro</a>
+                {% endif %}
                 {% if row.reedit_html_url %}
                   <a class="btn secondary" href="{{ row.reedit_html_url }}">Reeditar (HTML)</a>
                 {% endif %}

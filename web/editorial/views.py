@@ -94,6 +94,7 @@ def _default_country(language: str) -> str:
 
 
 def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialEdition) -> None:
+    edition.language_code = getattr(getattr(edition, "language", None), "code", "") or edition.language_code
     edition.title = template.title
     edition.subtitle = template.subtitle
     edition.author = template.author_name
@@ -114,6 +115,7 @@ def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialE
     edition.save(
         update_fields=[
             "title",
+            "language_code",
             "subtitle",
             "author",
             "adapter",
@@ -278,7 +280,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
     updated_fields = []
     if created:
         template.apply_language_defaults_if_empty()
-        template.save()
+        template.save(apply_defaults=False)
     else:
         language_overrides = BOOK_LANGUAGE_DEFAULTS.get(book_code, {})
         title_candidates = [item["title"] for item in language_overrides.values() if item.get("title")]
@@ -333,7 +335,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                 updated_fields.extend(default_updates)
 
         if updated_fields:
-            template.save(update_fields=updated_fields)
+            template.save(apply_defaults=False, update_fields=updated_fields)
     files_exist = _frontmatter_files_exist(book_code, language)
     warning = ""
 
@@ -376,6 +378,8 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                     ],
                 }
                 update_fields = block_fields_map.get(save_block, block_fields_map["all"])
+                instance.book_code = book_code
+                instance.language = language
                 instance.save(apply_defaults=False, update_fields=update_fields)
                 if edition:
                     _sync_template_to_edition(template, edition)

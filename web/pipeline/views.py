@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import os
 import subprocess
 import sys
@@ -16,7 +17,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.contrib import messages
-from django.http import Http404, HttpResponse, HttpResponseBadRequest
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest
 from django.db import IntegrityError, connection, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -156,6 +157,16 @@ REFINE_PROFILES = {
         "label": "FR_REFINE_UNIVERSAL",
         "agent_name": "FR_REFINE_UNIVERSAL",
         "description": "Refine universal frances JSON-first via contrato fr_refine_universal_2026.",
+        "style_directive": (
+            "Target profile: universal modern literary French editorial refinement. Preserve structure, meaning, "
+            "paragraph order, headings, numbering, and links. Improve rhythm, cadence, musicality, fluency, "
+            "sentence architecture, and readability without translating from scratch."
+        ),
+    },
+    "refine_fr": {
+        "label": "refine_FR",
+        "agent_name": "FR_REFINE_UNIVERSAL",
+        "description": "Opcao curta para enviar o texto frances para o Refine FR universal.",
         "style_directive": (
             "Target profile: universal modern literary French editorial refinement. Preserve structure, meaning, "
             "paragraph order, headings, numbering, and links. Improve rhythm, cadence, musicality, fluency, "
@@ -376,7 +387,7 @@ def _default_refine_profile_for_language(language: str | None) -> str:
     if normalized == "de":
         return "de_kaiser"
     if normalized == "fr":
-        return "fr_refine_universal_2026"
+        return "refine_fr"
     if normalized == "it":
         return "italiano_neutro"
     if normalized == "ptbr":
@@ -391,12 +402,19 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     if normalized == "de":
         return ("de_kaiser",)
     if normalized == "fr":
-        return ("fr_refine_universal_2026",)
+        return ("refine_fr",)
     if normalized == "it":
         return ("italiano_neutro",)
     if normalized == "ptbr":
         return ("ptbr_cacique_tibirica",)
     return ("refine_en_us_2026",)
+
+
+def _refine_profile_option_keys_for_language(language: str | None) -> tuple[str, ...]:
+    keys = list(_refine_profile_keys_for_language(language))
+    if "refine_fr" not in keys:
+        keys.append("refine_fr")
+    return tuple(keys)
 
 
 def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
@@ -512,10 +530,39 @@ def _canonicalize_ingest_post_data(post_data):
         normalized["publication_year"] = "2026"
     posted_book_code = (normalized.get("book_code") or "").strip()
     if posted_book_code:
-        normalized["book_code"] = normalize_book_code_input(posted_book_code)
+        normalized["book_code"] = _resolve_existing_book_code_alias(
+            normalize_book_code_input(posted_book_code)
+        )
     posted_language = (normalized.get("language") or "").strip()
     normalized["language"] = utils.normalize_lang(posted_language) if posted_language else ""
     return normalized
+
+
+def _resolve_existing_book_code_alias(book_code: str) -> str:
+    normalized = normalize_book_code_input((book_code or "").strip())
+    if not normalized:
+        return ""
+    if BookEditionTemplate.objects.filter(book_code=normalized).exists():
+        return normalized
+    if EditorialEdition.objects.filter(work__code=normalized).exists():
+        return normalized
+
+    parsed = _parse_book_id(normalized)
+    if parsed is None:
+        return normalized
+
+    known_codes = set(BookEditionTemplate.objects.values_list("book_code", flat=True))
+    known_codes.update(
+        EditorialEdition.objects.values_list("work__code", flat=True).distinct()
+    )
+    numeric_matches = [
+        code
+        for code in known_codes
+        if code and code != normalized and _parse_book_id(code) == parsed
+    ]
+    if not numeric_matches:
+        return normalized
+    return sorted(numeric_matches, key=lambda code: (len(code), code), reverse=True)[0]
 
 
 def _allowed_upload_exts(source_format: str) -> set[str]:
@@ -1117,7 +1164,15 @@ def _book_registration_rows() -> list[dict[str, object]]:
                 "template": template,
                 "status_label": _registration_status_label(template),
                 "source_info": _existing_source_info(template, edition),
-                "edit_url": reverse("edition_steps", kwargs={"edition_id": edition.id}),
+                "edit_url": steps_url,
+                "registration_edit_url": (
+                    reverse(
+                        "book_edition_edit",
+                        kwargs={"book_code": template.book_code, "language": language},
+                    )
+                    if template
+                    else ""
+                ),
                 "upload_url": _template_upload_url(template),
                 "reedit_html_url": _template_reedit_html_url(template, edition),
                 "steps_url": steps_url,
@@ -1158,7 +1213,7 @@ def _render_registration_page(request, form, *, template=None, status=200):
         template.text_source_mode if template else SOURCE_FORMAT_TXT
     )
     all_rows = _book_registration_rows()
-    book_filter = (request.GET.get("book") or "").strip()
+    book_filter = _resolve_existing_book_code_alias((request.GET.get("book") or "").strip())
     filtered_rows, show_rows_table = _filter_registration_rows(
         all_rows,
         book_filter=book_filter,
@@ -1631,7 +1686,7 @@ def book_edition_edit(request, book_code=None, language=None):
         return postgres_guard
     ensure_bookeditiontemplate_runtime_columns()
 
-    initial_book_code = (book_code or request.GET.get("book_code") or "").strip()
+    initial_book_code = _resolve_existing_book_code_alias((book_code or request.GET.get("book_code") or "").strip())
     initial_language = utils.normalize_lang((language or request.GET.get("language") or "en").strip())
     canonical_post_data = _canonicalize_ingest_post_data(request.POST) if request.method == "POST" else None
 
@@ -1967,7 +2022,10 @@ def _editorial_required_fields_ready(template: BookEditionTemplate | None) -> bo
 def _preflight_gate(target_edition, frontmatter_template: BookEditionTemplate | None) -> tuple[bool, str]:
     gate = resolve_preflight_gate(
         editorial_ready=_editorial_required_fields_ready(frontmatter_template),
-        merge_refine_clean_path=storage.translated_dir(target_edition.work.code) / "merge_refine_clean.txt",
+        merge_refine_clean_path=_resolve_merge_refine_clean_path(
+            target_edition.work.code,
+            target_edition.language.code,
+        ),
     )
     return gate.ok, gate.reason
 
@@ -2031,6 +2089,57 @@ def _archive_build_artifact(path: Path, version: int, suffix_label: str) -> str:
     archive_path = archive_dir / f"{path.stem}.v{version}.{suffix_label}{path.suffix}"
     archive_path.write_bytes(path.read_bytes())
     return str(archive_path)
+
+
+def _safe_project_file(path_value: str | Path) -> Path:
+    if not path_value:
+        raise Http404("Arquivo nao informado.")
+    try:
+        path = storage.resolve_repo_path(path_value).resolve()
+        path.relative_to(storage.repo_root().resolve())
+    except Exception as exc:
+        raise Http404("Arquivo fora da raiz do projeto.") from exc
+    if not path.exists() or not path.is_file():
+        raise Http404("Arquivo nao encontrado.")
+    return path
+
+
+def _latest_version_path_for_edition(edition, pipeline_state: EditionPipeline | None = None) -> Path | None:
+    state = pipeline_state or EditionPipeline.objects.filter(edition=edition).first()
+    if state and state.last_version_path:
+        try:
+            path = _safe_project_file(state.last_version_path)
+            if path.exists():
+                return path
+        except Http404:
+            pass
+
+    latest = (
+        EditionBuild.objects.filter(edition=edition, language_code=edition.language.code)
+        .exclude(epub_path="")
+        .order_by("-build_version", "-created_at")
+        .first()
+    )
+    if latest and latest.epub_path:
+        try:
+            return _safe_project_file(latest.epub_path)
+        except Http404:
+            pass
+
+    active_epub = paths.epub_path(edition)
+    if active_epub.exists():
+        return active_epub
+    return None
+
+
+def _set_pipeline_last_version(pipeline_state: EditionPipeline, path: Path | str) -> None:
+    resolved = storage.resolve_repo_path(path).resolve()
+    try:
+        rel_path = str(resolved.relative_to(storage.repo_root().resolve()))
+    except ValueError:
+        rel_path = str(resolved)
+    pipeline_state.last_version_path = rel_path
+    pipeline_state.last_version_filename = resolved.name
 
 
 def _record_build_history(edition, *, language_code: str, build_path: Path | None = None, epub_path: Path | None = None, pdf_path: Path | None = None, notes: str = "") -> EditionBuild:
@@ -2740,14 +2849,6 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     core_edition = _processing_base_edition(edition)
     core_book_code, core_lang = _edition_codes(core_edition)
     core_lang = utils.normalize_lang(core_lang)
-    refine_profile = _normalized_refine_profile_for_language(
-        (
-            getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
-        )
-        or _default_refine_profile_for_language(edition.language.code),
-        edition.language.code,
-    )
-    refine_profile_cfg = _refine_profile_config(refine_profile)
 
     source_md = html_preprod.artifact_paths(core_book_code, core_lang)["md_source"]
     normalized_path = _normalized_v2_path(core_book_code, core_lang)
@@ -2768,6 +2869,15 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         target_edition = edition
         target_lang = utils.normalize_lang(edition.language.code)
         target_variant = target_lang
+
+    refine_profile = _normalized_refine_profile_for_language(
+        (
+            getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+        )
+        or _default_refine_profile_for_language(target_lang),
+        target_lang,
+    )
+    refine_profile_cfg = _refine_profile_config(refine_profile)
 
     contract_exists = False
     contract_exists = True
@@ -2802,7 +2912,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         refine_profile=refine_profile,
         target_language=target_lang,
     )
-    latest_refine_run_dir = _latest_refine_run_dir(core_book_code, "en_us") if target_variant == "en_us" else None
+    latest_refine_run_dir = _latest_refine_run_dir(core_book_code, target_lang)
     if latest_refine_run_dir is not None:
         refine_dir = latest_refine_run_dir
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
@@ -4888,9 +4998,13 @@ def edition_steps(request, edition_id: int):
         or pipeline_state.md_language
         or language
     )
+    selected_translate_variant = _normalize_translate_variant(
+        pipeline_state.translation_language or pipeline_state.md_language or language
+    )
+    selected_refine_language = _translate_base_language(selected_translate_variant)
     refine_profile = _normalized_refine_profile_for_language(
-        pipeline_state.refine_profile or _default_refine_profile_for_language(edition.language.code),
-        edition.language.code,
+        pipeline_state.refine_profile or _default_refine_profile_for_language(selected_refine_language),
+        selected_refine_language,
     )
     refine_profile_options = [
         {
@@ -4899,7 +5013,7 @@ def edition_steps(request, edition_id: int):
             "agent_name": REFINE_PROFILES[key]["agent_name"],
             "description": REFINE_PROFILES[key]["description"],
         }
-        for key in _refine_profile_keys_for_language(edition.language.code)
+        for key in _refine_profile_option_keys_for_language(selected_refine_language)
     ]
     md_source_map = {
         lang: _resolve_md_source_path(lang)
@@ -4907,9 +5021,6 @@ def edition_steps(request, edition_id: int):
     }
     md_source_map_json = json.dumps(md_source_map)
     translate_variant_options = list(TRANSLATE_VARIANT_OPTIONS)
-    selected_translate_variant = _normalize_translate_variant(
-        pipeline_state.translation_language or pipeline_state.md_language or language
-    )
     selected_translate_agent = _translate_agent_name(selected_translate_variant)
     translate_agent_choices = [
         {"value": agent, "label": _translate_agent_display(agent)}
@@ -4963,6 +5074,18 @@ def edition_steps(request, edition_id: int):
     build_history = list(
         EditionBuild.objects.filter(edition=edition, language_code=frontmatter_lang).order_by("-build_version", "-created_at")
     )
+    cover_preview_url = ""
+    if edition.cover_filepath:
+        try:
+            _safe_project_file(edition.cover_filepath)
+            cover_preview_url = reverse("pipeline_edition_cover", kwargs={"edition_id": edition.id})
+        except Http404:
+            cover_preview_url = ""
+    latest_version_path = _latest_version_path_for_edition(edition, pipeline_state)
+    latest_version_filename = (
+        pipeline_state.last_version_filename
+        or (latest_version_path.name if latest_version_path else "")
+    )
 
     context = {
         "edition": edition,
@@ -5007,6 +5130,13 @@ def edition_steps(request, edition_id: int):
         "build_status": "DONE" if build_md_path.exists() else "NONE",
         "build_path": str(build_md_path) if build_md_path.exists() else None,
         "epub_path": str(epub_path) if epub_path.exists() else None,
+        "last_version_path": str(latest_version_path) if latest_version_path else None,
+        "last_version_filename": latest_version_filename,
+        "last_version_download_url": (
+            reverse("pipeline_download_last_version", kwargs={"edition_id": edition.id})
+            if latest_version_path
+            else ""
+        ),
         "pdf_path": str(pdf_path) if pdf_path.exists() else None,
         "editorial_changed": bool(getattr(pipeline_state, "editorial_changed", False)),
         "build_outdated": bool(getattr(pipeline_state, "build_outdated", False)),
@@ -5055,6 +5185,7 @@ def edition_steps(request, edition_id: int):
         "refine_qa_json_path": str(refine_qa_json_path) if refine_qa_json_path.exists() else None,
         "refine_qa_md_path": str(refine_qa_md_path) if refine_qa_md_path.exists() else None,
         "cover_filepath": edition.cover_filepath,
+        "cover_preview_url": cover_preview_url,
         "internal_images_disabled": internal_images_disabled,
         "internal_images_end_only": internal_images_end_only,
         "images_dir_path": str(images_dir) if images_dir.exists() else None,
@@ -5245,20 +5376,35 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
             (refine_step or {}).get("block_reason") or "Prerequisito para Refine: rode Translate."
         )
 
-    target_edition = edition
-    stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
-    target_language = utils.normalize_lang(target_edition.language.code)
-    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    base_pipeline_state = pipeline_state
     translate_variant = _normalize_translate_variant(
-        pipeline_state.translation_language or target_edition.language.code
+        (base_pipeline_state.translation_language if base_pipeline_state and base_pipeline_state.translation_language else "")
+        or (base_pipeline_state.md_language if base_pipeline_state and base_pipeline_state.md_language else "")
+        or edition.language.code
     )
+    target_language = _translate_base_language(translate_variant)
+    target_edition = _edition_for_language(edition, target_language)
+    stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
     refine_profile = _normalized_refine_profile_for_language(
-        refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language),
+        refine_profile
+        or pipeline_state.refine_profile
+        or (base_pipeline_state.refine_profile if base_pipeline_state else "")
+        or _default_refine_profile_for_language(target_language),
         target_language,
     )
+    update_fields = []
+    if pipeline_state.translation_language != translate_variant:
+        pipeline_state.translation_language = translate_variant
+        update_fields.append("translation_language")
+    if pipeline_state.md_language != target_language:
+        pipeline_state.md_language = target_language
+        update_fields.append("md_language")
     if pipeline_state.refine_profile != refine_profile:
         pipeline_state.refine_profile = refine_profile
-        pipeline_state.save(update_fields=["refine_profile"])
+        update_fields.append("refine_profile")
+    if update_fields:
+        pipeline_state.save(update_fields=update_fields)
     source_dir, refine_source_label, out_dir_path, refine_profile_cfg, refine_profile = _prepare_refine_agent_handoff(
         target_edition,
         translate_variant,
@@ -5692,15 +5838,36 @@ def run_edition_step(request, edition_id: int, step: str):
                     messages.info(request, item)
 
         elif step == "refine":
-            target_language = utils.normalize_lang(edition.language.code)
+            translate_variant = _normalize_translate_variant(
+                (pipeline_state.translation_language if pipeline_state and pipeline_state.translation_language else "")
+                or (pipeline_state.md_language if pipeline_state and pipeline_state.md_language else "")
+                or edition.language.code
+            )
+            target_language = _translate_base_language(translate_variant)
+            target_edition = _edition_for_language(edition, target_language)
+            target_pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             refine_profile = _normalized_refine_profile_for_language(
-                request.POST.get("refine_profile") or (pipeline_state.refine_profile if pipeline_state else ""),
+                request.POST.get("refine_profile")
+                or target_pipeline_state.refine_profile
+                or (pipeline_state.refine_profile if pipeline_state else ""),
                 target_language,
             )
+            update_fields = []
+            if target_pipeline_state.translation_language != translate_variant:
+                target_pipeline_state.translation_language = translate_variant
+                update_fields.append("translation_language")
+            if target_pipeline_state.md_language != target_language:
+                target_pipeline_state.md_language = target_language
+                update_fields.append("md_language")
+            if target_pipeline_state.refine_profile != refine_profile:
+                target_pipeline_state.refine_profile = refine_profile
+                update_fields.append("refine_profile")
+            if update_fields:
+                target_pipeline_state.save(update_fields=update_fields)
             if core_docker.should_run_in_docker(step, target_language):
                 result = core_docker.run_docker_core_step(
                     project_root=Path(settings.BASE_DIR).parent,
-                    edition_id=edition.id,
+                    edition_id=target_edition.id,
                     step=step,
                     language=target_language,
                     refine_profile=refine_profile,
@@ -5710,7 +5877,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     messages.info(request, result.stdout.strip())
             else:
                 result_payload = execute_language_isolated_core_step(
-                    edition_id=edition.id,
+                    edition_id=target_edition.id,
                     step=step,
                     refine_profile=refine_profile,
                 )
@@ -5734,18 +5901,12 @@ def run_edition_step(request, edition_id: int, step: str):
                 target_language=target_language,
             )
             merge_refine_build = paths.merge_refine_path(target_edition)
-            merge_refine_clean = (
-                Path(settings.BASE_DIR).parent
-                / "data"
-                / "translated"
-                / target_edition.work.code
-                / "merge_refine_clean.txt"
+            merge_refine_clean = _resolve_merge_refine_clean_path(
+                target_edition.work.code,
+                target_language,
             )
-            latest_run_dir = (
-                _latest_refine_run_dir(target_edition.work.code, "en_us")
-                if translate_variant == "en_us"
-                else None
-            )
+            refine_run_language = "en_us" if translate_variant == "en_us" else target_language
+            latest_run_dir = _latest_refine_run_dir(target_edition.work.code, refine_run_language)
             if latest_run_dir is not None:
                 chunks = refine_ordering.load_chunks_for_existing_run(latest_run_dir)
                 refine_ordering.merge_refine_run_by_manifest(
@@ -5973,8 +6134,18 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.editorial_changed = False
             pipeline_state.build_outdated = False
             pipeline_state.last_built_at = timezone.now()
+            _set_pipeline_last_version(pipeline_state, epub_output)
             pipeline_state.last_log = ""
-            pipeline_state.save(update_fields=["miolo_md_at", "editorial_changed", "build_outdated", "last_built_at", "current_stage", "last_log"])
+            pipeline_state.save(update_fields=[
+                "miolo_md_at",
+                "editorial_changed",
+                "build_outdated",
+                "last_built_at",
+                "current_stage",
+                "last_version_path",
+                "last_version_filename",
+                "last_log",
+            ])
             _record_build_history(
                 target_edition,
                 language_code=utils.normalize_lang(_target_lang()),
@@ -5982,6 +6153,29 @@ def run_edition_step(request, edition_id: int, step: str):
                 notes="EPUB gerado a partir do bloco 04.",
             )
             messages.success(request, f"EPUB OK: {result['path']}")
+
+        elif step == "done":
+            target_edition = _target_edition()
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            latest_path = _latest_version_path_for_edition(target_edition, pipeline_state)
+            if latest_path is None:
+                raise FileNotFoundError("Nenhuma versao EPUB encontrada para marcar como DONE.")
+            pipeline_state.current_stage = PipelineStage.DONE
+            pipeline_state.editorial_changed = False
+            pipeline_state.build_outdated = False
+            pipeline_state.last_built_at = timezone.now()
+            _set_pipeline_last_version(pipeline_state, latest_path)
+            pipeline_state.last_log = "DONE: versao oficial marcada no Bloco 04."
+            pipeline_state.save(update_fields=[
+                "current_stage",
+                "editorial_changed",
+                "build_outdated",
+                "last_built_at",
+                "last_version_path",
+                "last_version_filename",
+                "last_log",
+            ])
+            messages.success(request, f"0 DONE (FEITO): versao oficial marcada ({pipeline_state.last_version_filename}).")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
@@ -6066,6 +6260,33 @@ def run_edition_step(request, edition_id: int, step: str):
         pipeline_state.save()
 
     return redirect(_redirect_after_step())
+
+
+def download_last_version(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    path = _latest_version_path_for_edition(edition, pipeline_state)
+    if path is None:
+        raise Http404("Ultima versao nao encontrada.")
+    filename = (
+        getattr(pipeline_state, "last_version_filename", "")
+        if pipeline_state is not None
+        else ""
+    ) or path.name
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return FileResponse(
+        path.open("rb"),
+        as_attachment=True,
+        filename=filename,
+        content_type=content_type,
+    )
+
+
+def edition_cover_file(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    path = _safe_project_file(edition.cover_filepath)
+    content_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    return FileResponse(path.open("rb"), content_type=content_type)
 
 
 def build_book_md(request, book_code, language):

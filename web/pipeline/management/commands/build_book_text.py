@@ -108,6 +108,7 @@ class Command(BaseCommand):
         preface = read_file(front_dir / "preface.md") if (front_dir / "preface.md").exists() else ""
         introduction = read_file(front_dir / "introduction.md") if (front_dir / "introduction.md").exists() else ""
         epilogue = read_file(front_dir / "epilogue.md") if (front_dir / "epilogue.md").exists() else ""
+        glossaire = read_file(front_dir / "glossaire.md") if (front_dir / "glossaire.md").exists() else ""
         content = read_file(content_path)
 
         sections = []
@@ -124,6 +125,8 @@ class Command(BaseCommand):
         sections.append(content.strip() + "\n")
         if epilogue.strip():
             sections.append("\n---\n\n" + epilogue.strip() + "\n")
+        if glossaire.strip():
+            sections.append("\n---\n\n" + glossaire.strip() + "\n")
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text("".join(sections), encoding="utf-8")

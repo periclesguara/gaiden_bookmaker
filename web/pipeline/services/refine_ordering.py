@@ -37,6 +37,19 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _resolve_runtime_path(path_value: str | Path) -> Path:
+    path = Path(path_value)
+    if path.exists():
+        return path
+    path_str = str(path)
+    if path_str.startswith("/workspace/"):
+        project_root = Path(__file__).resolve().parents[3]
+        candidate = project_root / path_str.removeprefix("/workspace/")
+        if candidate.exists():
+            return candidate
+    return path
+
+
 def metadata_path_for_output(output_path: Path) -> Path:
     if output_path.name.endswith(REFINE_OUTPUT_SUFFIX):
         return output_path.with_name(output_path.name[: -len(REFINE_OUTPUT_SUFFIX)] + REFINE_META_SUFFIX)
@@ -173,10 +186,13 @@ def _should_infer_initial_book_one(chunks: list[RefineChunk]) -> bool:
     if not chunks:
         return False
     ordered = sorted(chunks, key=_sort_key)
-    first_text = Path(ordered[0].source_path).read_text(encoding="utf-8")
+    first_text = _resolve_runtime_path(ordered[0].source_path).read_text(encoding="utf-8")
     if _has_book_heading(first_text) or not _starts_with_chapter_one(first_text):
         return False
-    return any(_has_book_heading(Path(chunk.source_path).read_text(encoding="utf-8"), "II") for chunk in ordered[1:])
+    return any(
+        _has_book_heading(_resolve_runtime_path(chunk.source_path).read_text(encoding="utf-8"), "II")
+        for chunk in ordered[1:]
+    )
 
 
 def validate_refine_run(run_dir: Path, chunks: list[RefineChunk]) -> dict[str, Any]:
@@ -238,7 +254,7 @@ def validate_refine_run(run_dir: Path, chunks: list[RefineChunk]) -> dict[str, A
                     "path": str(output_path),
                 }
             )
-        current_source = Path(str(metadata.get("source_path") or expected.source_path))
+        current_source = _resolve_runtime_path(str(metadata.get("source_path") or expected.source_path))
         current_sha = sha256_file(current_source) if current_source.exists() else ""
         recorded_sha = str(metadata.get("source_sha256") or "")
         if current_sha != expected.source_sha256 or recorded_sha != expected.source_sha256:
@@ -373,7 +389,7 @@ def merge_refine_run_by_manifest(
     parts: list[str] = []
     infer_initial_book_one = _should_infer_initial_book_one(chunks)
     for index, chunk in enumerate(sorted(chunks, key=_sort_key)):
-        source_text = Path(chunk.source_path).read_text(encoding="utf-8")
+        source_text = _resolve_runtime_path(chunk.source_path).read_text(encoding="utf-8")
         output_path = run_dir / chunk.output_filename
         candidate_text = output_path.read_text(encoding="utf-8")
         canonical = canonical_merge.canonicalize_chunk_text(source_text, candidate_text).rstrip()

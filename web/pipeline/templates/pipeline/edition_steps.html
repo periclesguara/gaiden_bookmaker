@@ -191,6 +191,21 @@
       color: var(--accent-dark);
       text-decoration: none;
     }
+    .cover-preview {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: minmax(82px, 120px) 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .cover-preview img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
     .meta-row {
       display: flex;
       flex-wrap: wrap;
@@ -669,9 +684,14 @@
         <input id="cover_file" type="file" name="cover_file" accept="image/*" />
         <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>Salvar capa (JPG)</button>
         {% if cover_filepath %}
-        <p class="form-text">
-          Capa atual: <strong>{{ cover_filepath }}</strong>
-        </p>
+        <div class="cover-preview">
+          {% if cover_preview_url %}
+          <img src="{{ cover_preview_url }}" alt="Capa atual de {{ book_code }}" />
+          {% endif %}
+          <p class="form-text">
+            Capa atual: <strong>{{ cover_filepath }}</strong>
+          </p>
+        </div>
         {% endif %}
       </form>
       {% if internal_images_end_only %}
@@ -911,6 +931,15 @@
           {% csrf_token %}
           <button class="btn ghost" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Run epubcheck</button>
         </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'done' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not last_version_download_url %}disabled{% endif %}>0 DONE (FEITO)</button>
+        </form>
+        {% if last_version_download_url %}
+        <a class="btn secondary" href="{{ last_version_download_url }}">DOWNLOAD LAST VERSION</a>
+        {% else %}
+        <span class="badge">DOWNLOAD LAST VERSION</span>
+        {% endif %}
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
           {% csrf_token %}
           <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Gaiden: Montar Livro Completo</button>
@@ -924,6 +953,15 @@
       {% endif %}
       <div class="status">
         Build status: <strong>{{ build_status }}</strong>
+      </div>
+      <div class="status">
+        Ultima versao oficial:
+        {% if last_version_filename %}
+          <strong>{{ last_version_filename }}</strong>
+          {% if last_version_path %}<code>{{ last_version_path }}</code>{% endif %}
+        {% else %}
+          <strong>nao registrada</strong>
+        {% endif %}
       </div>
       <div class="links">
         {% if build_path %}

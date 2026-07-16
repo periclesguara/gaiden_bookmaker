@@ -128,9 +128,15 @@ class FrenchRefineRoutingTests(TestCase):
     def test_french_refine_defaults_to_universal_agent(self):
         from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
 
-        self.assertEqual(_default_refine_profile_for_language("fr"), "fr_refine_universal_2026")
-        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_refine_universal_2026",))
-        self.assertEqual(_refine_profile_config("fr_refine_universal_2026")["agent_name"], "FR_REFINE_UNIVERSAL")
+        self.assertEqual(_default_refine_profile_for_language("fr"), "refine_fr")
+        self.assertEqual(_refine_profile_keys_for_language("fr"), ("refine_fr",))
+        self.assertEqual(_refine_profile_config("refine_fr")["agent_name"], "FR_REFINE_UNIVERSAL")
+
+    def test_french_refine_option_is_always_available(self):
+        from pipeline.views import _refine_profile_keys_for_language, _refine_profile_option_keys_for_language
+
+        self.assertEqual(_refine_profile_keys_for_language("en"), ("refine_en_us_2026",))
+        self.assertIn("refine_fr", _refine_profile_option_keys_for_language("en"))
 
     def test_french_refine_output_dir_uses_agent_slug(self):
         from pipeline.views import _resolve_refine_output_dir
@@ -2574,7 +2580,8 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertContains(response, 'name="refine_profile"')
-        self.assertContains(response, "FR_REFINE_UNIVERSAL - FR_REFINE_UNIVERSAL")
+        self.assertContains(response, "refine_FR - FR_REFINE_UNIVERSAL")
+        self.assertNotContains(response, "FR_REFINE_UNIVERSAL - FR_REFINE_UNIVERSAL")
         self.assertNotContains(response, "Francais Le Grand Coulhon - Le Grand Coulhon")
         self.assertNotContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
         self.assertNotContains(response, "Ingles neutro - Aldebaran")

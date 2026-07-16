@@ -75,6 +75,16 @@ urlpatterns = [
         name="pipeline_run_edition_step",
     ),
     path(
+        "editions/<int:edition_id>/download-last-version/",
+        views.download_last_version,
+        name="pipeline_download_last_version",
+    ),
+    path(
+        "editions/<int:edition_id>/cover/",
+        views.edition_cover_file,
+        name="pipeline_edition_cover",
+    ),
+    path(
         "editions/<int:edition_id>/preview-merge-translate/",
         views.preview_merge_translate,
         name="preview_merge_translate",

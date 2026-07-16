@@ -25,12 +25,17 @@ REQUEST_TIMEOUT = float(os.environ.get("GAIDEN_PREFLIGHT_TIMEOUT", "8"))
 
 def _pick_source_text(edition) -> Path:
     book_code = edition.work.code
-    translated_merge = paths.data_dir() / "translated" / book_code / "merge_refine_clean.txt"
+    language = edition.language.code
+    build_dir = paths.edition_build_dir(edition)
+    translated_merge = paths.data_dir() / "translated" / book_code / language / "merge_refine_clean.txt"
+    legacy_translated_merge = paths.data_dir() / "translated" / book_code / "merge_refine_clean.txt"
     candidates = [
+        build_dir / f"merge_premium_watson_{language}.txt",
         paths.merge_polidor_path(edition),
-        translated_merge,
-        paths.merge_refine_path(edition),
         paths.merge_polish_path(edition),
+        translated_merge,
+        legacy_translated_merge,
+        paths.merge_refine_path(edition),
         paths.merge_translate_path(edition),
     ]
     for candidate in candidates:

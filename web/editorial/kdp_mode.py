@@ -32,7 +32,7 @@ _IMAGE_REF_RE = re.compile(r"!\[[^\]]*\]\(assets/images/([^)]+)\)")
 _CH_SLOT_RE = re.compile(r"ch(\d{2})_(\d{2})", re.IGNORECASE)
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 _CHAPTER_HEADING_RE = re.compile(
-    r"^(#{1,6})\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\b",
+    r"^(#{1,6})\s*(chapter|book|adventure|cap[ií]tulo|chapitre|capitolo|kapitel|livre)\b",
     re.IGNORECASE,
 )
 _NUMERIC_CHAPTER_HEADING_RE = re.compile(
@@ -44,7 +44,7 @@ _MANUAL_TOC_HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 _PLAIN_CHAPTER_LINE_RE = re.compile(
-    r"^\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*(chapter|book|adventure|cap[ií]tulo|chapitre|capitolo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
@@ -52,7 +52,7 @@ _PLAIN_NUMERIC_CHAPTER_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 _CHAPTER_MD_LINE_RE = re.compile(
-    r"^\s*#{1,6}\s*(chapter|book|adventure|cap[ií]tulo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
+    r"^\s*#{1,6}\s*(chapter|book|adventure|cap[ií]tulo|chapitre|capitolo|kapitel|livre)\s+([ivxlcdm]+|\d+)\b(.*)$",
     re.IGNORECASE,
 )
 _BOLD_LINE_RE = re.compile(r"^\*\*(.+?)\*\*$")
@@ -90,6 +90,62 @@ BOOK_0029_EDITORIAL_TITLES = {
     9: "Friendship and the Good Life",
     10: "Pleasure, Contemplation, and Final Happiness",
 }
+BOOK_0031_FR_EDITORIAL_TITLES = {
+    1: "La citadelle intérieure",
+    2: "Désir, aversion et perception",
+    3: "Discipline et pratique quotidienne",
+    4: "Conduite, vertu et société",
+    5: "Maîtrise, liberté et raison",
+}
+BOOK_0031_FR_GLOSSAIRE_ANCHORS = {
+    "Arrien de Nicomédie": "glossaire-arrien-de-nicomedie",
+    "Assentiment": "glossaire-assentiment",
+    "Chrysippe": "glossaire-chrysippe",
+    "Citadelle intérieure": "glossaire-citadelle-interieure",
+    "Cyniques": "glossaire-cyniques",
+    "Diogène": "glossaire-diogene",
+    "Domitien": "glossaire-domitien",
+    "Enchiridion": "glossaire-enchiridion",
+    "Épaphrodite": "glossaire-epaphrodite",
+    "Épictète de Hiérapolis": "glossaire-epictete-de-hierapolis",
+    "Faculté directrice": "glossaire-faculte-directrice",
+    "Hiérapolis": "glossaire-hierapolis",
+    "Marc Aurèle": "glossaire-marc-aurele",
+    "Musonius Rufus": "glossaire-musonius-rufus",
+    "Nature": "glossaire-nature",
+    "Nicopolis": "glossaire-nicopolis",
+    "Prohairesis": "glossaire-prohairesis",
+    "Représentation": "glossaire-representation",
+    "Socrate": "glossaire-socrate",
+    "Stoïcisme": "glossaire-stoicisme",
+    "Thérapie cognitivo-comportementale": "glossaire-therapie-cognitivo-comportementale",
+    "Volonté": "glossaire-volonte",
+    "Zénon de Citium": "glossaire-zenon-de-citium",
+}
+BOOK_0031_FR_GLOSSAIRE_LINKS = [
+    (("Arrien de Nicomédie",), "glossaire-arrien-de-nicomedie"),
+    (("Musonius Rufus",), "glossaire-musonius-rufus"),
+    (("Socrate",), "glossaire-socrate"),
+    (("cyniques", "Cyniques"), "glossaire-cyniques"),
+    (("Diogène",), "glossaire-diogene"),
+    (("stoïcisme", "Stoïcisme"), "glossaire-stoicisme"),
+    (("prohairesis", "Prohairesis"), "glossaire-prohairesis"),
+    (("assentiment", "Assentiment"), "glossaire-assentiment"),
+    (("représentations", "représentation", "Représentation"), "glossaire-representation"),
+    (("faculté directrice", "Faculté directrice"), "glossaire-faculte-directrice"),
+    (("Chrysippe",), "glossaire-chrysippe"),
+    (("Zénon de Citium",), "glossaire-zenon-de-citium"),
+    (("Marc Aurèle",), "glossaire-marc-aurele"),
+    (("thérapie cognitivo-comportementale", "Thérapie cognitivo-comportementale"), "glossaire-therapie-cognitivo-comportementale"),
+    (("Nicopolis",), "glossaire-nicopolis"),
+    (("Hiérapolis",), "glossaire-hierapolis"),
+    (("Enchiridion",), "glossaire-enchiridion"),
+    (("Épaphrodite",), "glossaire-epaphrodite"),
+    (("Épictète de Hiérapolis",), "glossaire-epictete-de-hierapolis"),
+    (("Domitien",), "glossaire-domitien"),
+    (("nature", "Nature"), "glossaire-nature"),
+    (("volonté", "Volonté"), "glossaire-volonte"),
+]
 _SUPERSCRIPT_DIGITS_TO_ASCII = {
     "⁰": "0",
     "¹": "1",
@@ -142,7 +198,7 @@ def _split_core_and_supplements(text: str) -> tuple[str, str]:
 
 
 def _is_glossary_heading(stripped: str) -> bool:
-    return stripped in {"# GLOSSARY", "# GLOSSAIRE"}
+    return stripped.casefold() in {"# glossary", "# glossaire"}
 
 
 def _promote_supplement_headings(text: str) -> str:
@@ -1299,6 +1355,120 @@ def _insert_visual_chapter_titles(md_text: str) -> str:
     return "\n".join(out).strip() + "\n"
 
 
+def _apply_book_0031_fr_editorial_shape(md_text: str) -> str:
+    lines = md_text.splitlines()
+    out: list[str] = []
+    skip_next_subtitle = False
+    skipping_prelude = False
+
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+
+        if re.match(r"^#\s+Preface\s*$", stripped):
+            skipping_prelude = True
+            continue
+
+        chapter = re.match(r"^##\s+Chapitre\s+0?(\d+)\.\s*$", stripped)
+        if chapter:
+            skipping_prelude = False
+            number = int(chapter.group(1))
+            title = BOOK_0031_FR_EDITORIAL_TITLES.get(number)
+            if title:
+                out.append(f"# Chapitre {number} — {title}")
+                skip_next_subtitle = True
+                continue
+
+        if skipping_prelude:
+            continue
+
+        if skip_next_subtitle:
+            if not stripped:
+                continue
+            if any(stripped.startswith(title) for title in BOOK_0031_FR_EDITORIAL_TITLES.values()):
+                skip_next_subtitle = False
+                continue
+            skip_next_subtitle = False
+
+        out.append(line)
+
+    text = "\n".join(out).strip() + "\n"
+    legacy_epilogue = re.search(r"(?m)^Épilogue\s*$", text)
+    if legacy_epilogue:
+        text = text[: legacy_epilogue.start()].rstrip() + "\n"
+    return text
+
+
+def _add_book_0031_fr_glossaire_anchors(md_text: str) -> str:
+    text = md_text
+    for term, anchor in BOOK_0031_FR_GLOSSAIRE_ANCHORS.items():
+        if f'id="{anchor}"' in text:
+            continue
+        text = re.sub(
+            rf"(?m)^(\*\*{re.escape(term)}\*\*\s*)$",
+            rf'<a id="{anchor}"></a>' + "\n" + r"\1",
+            text,
+            count=1,
+        )
+    return text
+
+
+def _link_book_0031_fr_glossaire_terms(md_text: str) -> str:
+    if "# Glossaire" not in md_text:
+        return md_text
+
+    body, glossary = md_text.split("# Glossaire", 1)
+    glossary = "# Glossaire" + glossary
+
+    intro_start = body.find("# Introduction")
+    first_chapter = body.find("# Chapitre 1")
+    epilogue_start = body.find("# Épilogue")
+
+    segments: list[tuple[str, str]] = []
+    if intro_start != -1 and first_chapter != -1 and intro_start < first_chapter:
+        segments.append(("intro", body[intro_start:first_chapter]))
+    if epilogue_start != -1:
+        segments.append(("epilogue", body[epilogue_start:]))
+
+    linked_anchors: set[str] = set()
+
+    def link_once(segment: str, aliases: tuple[str, ...], anchor: str) -> str:
+        if anchor in linked_anchors or f"](#${anchor})" in segment or f"]({anchor})" in segment or f"](#" + anchor + ")" in segment:
+            return segment
+        lines = segment.splitlines()
+        for idx, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or f'id="{anchor}"' in line:
+                continue
+            if "[#" in line or re.search(r"\[[^\]]+\]\([^)]+\)", line):
+                continue
+            for alias in aliases:
+                pattern = re.compile(rf"(?<![\w\]\-])({re.escape(alias)})(?![\w\[-])")
+                if not pattern.search(line):
+                    continue
+                lines[idx] = pattern.sub(lambda match: f"[{match.group(1)}](#{anchor})", line, count=1)
+                linked_anchors.add(anchor)
+                return "\n".join(lines)
+        return segment
+
+    rebuilt_segments: dict[str, str] = {}
+    for name, segment in segments:
+        current = segment
+        for aliases, anchor in BOOK_0031_FR_GLOSSAIRE_LINKS:
+            current = link_once(current, aliases, anchor)
+        rebuilt_segments[name] = current
+
+    if "intro" in rebuilt_segments and intro_start != -1 and first_chapter != -1:
+        body = body[:intro_start] + rebuilt_segments["intro"] + body[first_chapter:]
+    if "epilogue" in rebuilt_segments:
+        epilogue_start = body.find("# Épilogue")
+        if epilogue_start != -1:
+            body = body[:epilogue_start] + rebuilt_segments["epilogue"]
+
+    merged = body.rstrip() + "\n\n" + glossary.lstrip()
+    return re.sub(r":::(?=#)", ":::\n\n", merged)
+
+
 def _demote_pre_chapter_headings(md_text: str) -> str:
     """
     In miolo, keep TOC focused on chapters:
@@ -1354,6 +1524,8 @@ def _miolo_candidates(edition: Edition) -> list[Path]:
     return [
         # Current pipeline outputs.
         build_dir / "BOOK.MD_FINAL",
+        build_dir / f"merge_premium_watson_{lang}.txt",
+        build_dir / "merge_premium_watson.txt",
         build_dir / f"BOOK.PRE_EDITION.{lang}.md",
         build_dir / "BOOK.PRE_EDITION.md",
         build_dir / f"BOOK.PRE_QA.{lang}.md",
@@ -1465,8 +1637,11 @@ def build_merged_kdp_source(edition: Edition) -> Path:
         _assert_chapter_headings_short(core_txt)
     core_txt = _demote_pre_chapter_headings(core_txt).strip()
     core_txt = _normalize_pre_chapter_prelude(core_txt, edition).strip()
+    if edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr":
+        core_txt = _apply_book_0031_fr_editorial_shape(core_txt).strip()
     core_txt = _renumber_core_aphorisms(core_txt).strip()
-    core_txt = _insert_visual_chapter_titles(core_txt).strip()
+    if not (edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr"):
+        core_txt = _insert_visual_chapter_titles(core_txt).strip()
     core_txt = _remove_unwanted_taglines(core_txt).strip()
     core_txt = _normalize_pagebreaks(core_txt).strip()
 
@@ -1500,14 +1675,27 @@ def build_merged_kdp_source(edition: Edition) -> Path:
         epilogue_txt = _annotate_first_glossary_mentions(epilogue_txt, glossary_entries).strip()
         if external_glossary_entries:
             epilogue_txt = _link_external_glossary_markers(epilogue_txt, external_glossary_entries)
+    glossaire_path = fm_base / "glossaire.md"
+    glossaire_txt = ""
+    if glossaire_path.exists():
+        glossaire_txt = _normalize_pagebreaks(glossaire_path.read_text(encoding="utf-8").rstrip()).strip()
+        if edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr":
+            glossaire_txt = _add_book_0031_fr_glossaire_anchors(glossaire_txt)
+        glossaire_txt = _annotate_first_glossary_mentions(glossaire_txt, glossary_entries).strip()
+        if external_glossary_entries:
+            glossaire_txt = _link_external_glossary_markers(glossaire_txt, external_glossary_entries)
 
     merged_txt = "".join(sections) + "\n\n" + miolo_txt.strip()
     if epilogue_txt:
         merged_txt += "\n\n" + epilogue_txt
+    if glossaire_txt:
+        merged_txt += "\n\n" + glossaire_txt
     external_glossary_txt = _build_external_glossary_markdown(external_glossary_entries)
     if external_glossary_txt:
         merged_txt += "\n\n" + external_glossary_txt.strip()
     merged_txt += "\n"
+    if edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr":
+        merged_txt = _link_book_0031_fr_glossaire_terms(merged_txt)
     _repair_missing_referenced_assets(edition, builds_base, merged_txt)
 
     kdp_merged_path = builds_base / "kdp_merged.md"
