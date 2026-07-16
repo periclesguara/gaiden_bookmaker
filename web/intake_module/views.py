@@ -10,6 +10,7 @@ from gaiden.application.intake import (
     handoff_to_pipeline,
     prepare_for_codex,
     reconcile_batch_downloads,
+    reconcile_item_download,
     register_translation_return,
     store_uploaded_files,
 )
@@ -222,6 +223,12 @@ def batch_create(request):
 def batch_detail(request, batch_id: int):
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
     items = batch.items.select_related("duplicate_of").all()
+    reconciliation_preview = reconcile_batch_downloads(batch, dry_run=True)
+    reconcilable_item_ids = {
+        row["item_id"]
+        for row in reconciliation_preview["adoptable"]
+        if row["from_status"] == IntakeState.FAILED.value
+    }
     return render(
         request,
         "intake_module/batch_detail.html",
@@ -234,6 +241,11 @@ def batch_detail(request, batch_id: int):
                 status=IntakeState.DOWNLOADED.value,
                 duplicate_of__isnull=True,
             ).exists(),
+            "show_reconciliation": bool(
+                reconciliation_preview["adoptable"]
+                or reconciliation_preview["interrupted"]
+            ),
+            "reconcilable_item_ids": reconcilable_item_ids,
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
         },
     )
@@ -262,7 +274,11 @@ def batch_reconcile(request, batch_id: int):
 
 
 def item_detail(request, item_id: int):
-    item = get_object_or_404(IntakeItem.objects.select_related("batch"), pk=item_id)
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch", "duplicate_of"),
+        pk=item_id,
+    )
+    reconciliation_preview = reconcile_item_download(item, dry_run=True)
     return render(
         request,
         "intake_module/item_detail.html",
@@ -271,8 +287,35 @@ def item_detail(request, item_id: int):
             "metadata_form": IntakeItemMetadataForm(instance=item),
             "prepare_form": PrepareCodexForm(initial={"target_language": item.target_language}),
             "return_form": TranslationReturnForm(),
+            "can_reconcile_item": bool(
+                item.status == IntakeState.FAILED.value
+                and reconciliation_preview["adoptable"]
+            ),
         },
     )
+
+
+def item_reconcile(request, item_id: int):
+    item = get_object_or_404(IntakeItem.objects.select_related("batch"), pk=item_id)
+    if request.method == "GET":
+        report = reconcile_item_download(item, dry_run=True)
+        return render(
+            request,
+            "intake_module/batch_reconcile.html",
+            {"batch": item.batch, "item": item, "report": report},
+        )
+    if request.method == "POST" and request.POST.get("confirm") == "1":
+        report = reconcile_item_download(item, dry_run=False)
+        if report["adoptable"]:
+            messages.success(
+                request,
+                f"{item.source_filename} reconciliado com sucesso; "
+                "o arquivo existente foi adotado sem novo download.",
+            )
+        else:
+            messages.success(request, "Item já reconciliado; nenhuma alteração necessária.")
+        return redirect("intake_module:batch_detail", batch_id=item.batch_id)
+    return HttpResponseNotAllowed(["GET", "POST"])
 
 
 def batch_upload(request, batch_id: int):

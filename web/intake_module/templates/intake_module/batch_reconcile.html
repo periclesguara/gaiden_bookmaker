@@ -1,7 +1,8 @@
 {% extends "intake_module/base.html" %}
 {% block content %}
-<h1>Reconciliar estado do lote</h1>
+<h1>{% if item %}Reconciliar este item{% else %}Reconciliar arquivos importados{% endif %}</h1>
 <p><strong>{{ batch.name }}</strong> · {{ batch.code }}</p>
+{% if item %}<p>Item {{ item.order_index }} · {{ item.source_filename }}</p>{% endif %}
 <p class="muted">Prévia dry-run: nenhuma alteração foi realizada no banco ou nos arquivos.</p>
 
 <section class="summary" aria-label="Resumo da reconciliação">
@@ -29,6 +30,6 @@
   {% csrf_token %}
   <input type="hidden" name="confirm" value="1">
   <button type="submit">Confirmar e executar reconciliação</button>
-  <a class="button secondary" href="{% url 'intake_module:batch_detail' batch.id %}">Cancelar</a>
+  {% if item %}<a class="button secondary" href="{% url 'intake_module:item_detail' item.id %}">Cancelar</a>{% else %}<a class="button secondary" href="{% url 'intake_module:batch_detail' batch.id %}">Cancelar</a>{% endif %}
 </form>
 {% endblock %}

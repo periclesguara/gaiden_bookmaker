@@ -21,6 +21,7 @@ urlpatterns = [
     path("<int:batch_id>/drive/", views.batch_drive, name="batch_drive"),
     path("<int:batch_id>/process-next/", views.batch_process_next, name="batch_process_next"),
     path("items/<int:item_id>/", views.item_detail, name="item_detail"),
+    path("items/<int:item_id>/reconcile/", views.item_reconcile, name="item_reconcile"),
     path("items/<int:item_id>/metadata/", views.item_update_metadata, name="item_update_metadata"),
     path("items/<int:item_id>/download/", views.item_download, name="item_download"),
     path("items/<int:item_id>/clean/", views.item_clean, name="item_clean"),

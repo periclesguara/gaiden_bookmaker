@@ -2,7 +2,7 @@
 {% block content %}
 <h1>{{ batch.name }}</h1><p><strong>{{ batch.code }}</strong> · {{ batch.source_language }} · {{ batch.status }}</p>
 <p><a class="button" href="{% url 'intake_module:batch_files' batch.id %}">Adicionar ou selecionar arquivos</a></p>
-<p><a class="button secondary" href="{% url 'intake_module:batch_reconcile' batch.id %}">Reconciliar estado do lote</a></p>
+{% if show_reconciliation %}<p><a class="button secondary" href="{% url 'intake_module:batch_reconcile' batch.id %}">Reconciliar arquivos importados</a></p>{% endif %}
 <section class="summary" aria-label="Resumo dos arquivos">
   <span><strong>{{ file_summary.found }}</strong> encontrados</span>
   <span><strong>{{ file_summary.selected }}</strong> selecionados</span>
@@ -21,6 +21,6 @@
 {% endif %}
 <h2>Itens</h2>
 <table><thead><tr><th>Ordem</th><th>Arquivo</th><th>Formato</th><th>Tamanho</th><th>Título sugerido</th><th>Destino</th><th>Status</th><th>Duplicata</th><th>Último erro</th><th>Ação</th></tr></thead><tbody>
-{% for item in items %}<tr><td>{{ item.order_index }}</td><td>{{ item.source_filename }}</td><td>{{ item.source_format }}</td><td>{{ item.source_size }}</td><td>{{ item.suggested_title|default:"—" }}</td><td>{{ item.target_language|default:"—" }}</td><td>{{ item.status }}</td><td>{% if item.duplicate_of_id %}Duplicata do item {{ item.duplicate_of.order_index }}{% else %}Não{% endif %}</td><td class="error">{{ item.last_error }}</td><td><a href="{% url 'intake_module:item_detail' item.id %}">Abrir</a>{% if not item.duplicate_of_id %}{% if item.status == "DISCOVERED" %}<form method="post" action="{% url 'intake_module:item_download' item.id %}">{% csrf_token %}<button type="submit">Baixar</button></form>{% elif item.status == "DOWNLOADED" %}<form method="post" action="{% url 'intake_module:item_clean' item.id %}">{% csrf_token %}<button type="submit">Limpar</button></form>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="10">Nenhum item importado.</td></tr>{% endfor %}
+{% for item in items %}<tr><td>{{ item.order_index }}</td><td>{{ item.source_filename }}</td><td>{{ item.source_format }}</td><td>{{ item.source_size }}</td><td>{{ item.suggested_title|default:"—" }}</td><td>{{ item.target_language|default:"—" }}</td><td>{{ item.status }}</td><td>{% if item.duplicate_of_id %}Duplicata do item {{ item.duplicate_of.order_index }}{% else %}Não{% endif %}</td><td class="error">{{ item.last_error }}</td><td><a href="{% url 'intake_module:item_detail' item.id %}">Abrir</a>{% if item.id in reconcilable_item_ids %} <a class="button secondary" href="{% url 'intake_module:item_reconcile' item.id %}">Reconciliar</a>{% elif not item.duplicate_of_id %}{% if item.status == "DISCOVERED" %}<form method="post" action="{% url 'intake_module:item_download' item.id %}">{% csrf_token %}<button type="submit">Baixar</button></form>{% elif item.status == "DOWNLOADED" %}<form method="post" action="{% url 'intake_module:item_clean' item.id %}">{% csrf_token %}<button type="submit">Limpar</button></form>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="10">Nenhum item importado.</td></tr>{% endfor %}
 </tbody></table>
 {% endblock %}

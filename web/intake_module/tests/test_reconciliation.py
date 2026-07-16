@@ -270,3 +270,105 @@ class IntakeReconciliationTests(TestCase):
         self.assertContains(response, "Confirmar e executar reconciliação")
         item.refresh_from_db()
         self.assertEqual(item.status, IntakeState.DOWNLOADING.value)
+
+    def test_batch_and_failed_item_show_reconciliation_actions(self):
+        item, _path, _payload = self.create_item(
+            7,
+            "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+            status=IntakeState.FAILED.value,
+        )
+        batch_response = self.client.get(
+            reverse("intake_module:batch_detail", args=[self.batch.id])
+        )
+        self.assertContains(batch_response, "Reconciliar arquivos importados")
+        self.assertContains(batch_response, reverse("intake_module:item_reconcile", args=[item.id]))
+        item_response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
+        self.assertContains(item_response, "Reconciliar este item")
+
+    def test_conflicting_item_does_not_show_reconciliation_action(self):
+        item, _path, _payload = self.create_item(
+            1,
+            "conflict.epub",
+            status=IntakeState.FAILED.value,
+            source_size=999999,
+        )
+        batch_response = self.client.get(
+            reverse("intake_module:batch_detail", args=[self.batch.id])
+        )
+        self.assertNotContains(batch_response, "Reconciliar arquivos importados")
+        self.assertNotContains(
+            batch_response,
+            reverse("intake_module:item_reconcile", args=[item.id]),
+        )
+        item_response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
+        self.assertNotContains(item_response, "Reconciliar este item")
+
+    def test_item_get_is_preview_only_and_post_adopts_without_copy_or_download(self):
+        self.create_item(
+            1,
+            "another-valid-book.epub",
+            status=IntakeState.DOWNLOADED.value,
+        )
+        item, path, payload = self.create_item(
+            7,
+            "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+            status=IntakeState.FAILED.value,
+        )
+        url = reverse("intake_module:item_reconcile", args=[item.id])
+        before_updated_at = item.updated_at
+        get_response = self.client.get(url)
+        self.assertContains(get_response, "FAILED → DOWNLOADED")
+        self.assertContains(get_response, "Confirmar e executar reconciliação")
+        item.refresh_from_db()
+        self.assertEqual(item.status, IntakeState.FAILED.value)
+        self.assertEqual(item.updated_at, before_updated_at)
+
+        with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+            with patch("gaiden.infrastructure.intake_storage.atomic_write_bytes") as write_bytes:
+                post_response = self.client.post(url, {"confirm": "1"}, follow=True)
+        item.refresh_from_db()
+        self.assertRedirects(
+            post_response,
+            reverse("intake_module:batch_detail", args=[self.batch.id]),
+        )
+        self.assertContains(post_response, "reconciliado com sucesso")
+        self.assertEqual(item.status, IntakeState.DOWNLOADED.value)
+        self.assertEqual(item.original_path, intake_storage.relative_storage_path(path))
+        self.assertEqual(len(item.source_sha256), 64)
+        self.assertEqual(item.last_error, "")
+        self.assertEqual(path.read_bytes(), payload)
+        subprocess_run.assert_not_called()
+        write_bytes.assert_not_called()
+
+    def test_second_item_reconciliation_post_is_a_true_no_op(self):
+        item, path, payload = self.create_item(
+            7,
+            "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+            status=IntakeState.FAILED.value,
+        )
+        url = reverse("intake_module:item_reconcile", args=[item.id])
+        self.client.post(url, {"confirm": "1"})
+        item.refresh_from_db()
+        first_state = (
+            item.status,
+            item.original_path,
+            item.source_sha256,
+            item.last_error,
+            item.updated_at,
+        )
+        with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+            with patch("gaiden.infrastructure.intake_storage.atomic_write_bytes") as write_bytes:
+                response = self.client.post(url, {"confirm": "1"}, follow=True)
+        item.refresh_from_db()
+        second_state = (
+            item.status,
+            item.original_path,
+            item.source_sha256,
+            item.last_error,
+            item.updated_at,
+        )
+        self.assertEqual(first_state, second_state)
+        self.assertContains(response, "nenhuma alteração necessária")
+        self.assertEqual(path.read_bytes(), payload)
+        subprocess_run.assert_not_called()
+        write_bytes.assert_not_called()

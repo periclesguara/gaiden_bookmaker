@@ -147,19 +147,42 @@ def update_duplicate_group(batch, digest: str) -> int | None:
     return canonical.id
 
 
-def reconcile_batch_downloads(batch, *, dry_run: bool = False) -> dict:
+def reconcile_batch_downloads(
+    batch,
+    *,
+    dry_run: bool = False,
+    item_ids: set[int] | None = None,
+) -> dict:
     if dry_run:
         items = list(batch.items.select_related("batch").order_by("order_index", "id"))
-        return _build_reconciliation_report(items, apply=False)
+        return _build_reconciliation_report(items, apply=False, item_ids=item_ids)
     with transaction.atomic():
         locked_batch = type(batch).objects.select_for_update().get(pk=batch.pk)
         items = list(
             locked_batch.items.select_for_update().select_related("batch").order_by("order_index", "id")
         )
-        return _build_reconciliation_report(items, apply=True)
+        return _build_reconciliation_report(items, apply=True, item_ids=item_ids)
 
 
-def _build_reconciliation_report(items: list, *, apply: bool) -> dict:
+def reconcile_item_download(item, *, dry_run: bool = False) -> dict:
+    return reconcile_batch_downloads(
+        item.batch,
+        dry_run=dry_run,
+        item_ids={item.id},
+    )
+
+
+def _build_reconciliation_report(
+    items: list,
+    *,
+    apply: bool,
+    item_ids: set[int] | None,
+) -> dict:
+    known_ids = {item.id for item in items}
+    selected_ids = known_ids if item_ids is None else set(item_ids)
+    if not selected_ids.issubset(known_ids):
+        raise ValueError("Reconciliation item does not belong to this batch")
+    selected_items = [item for item in items if item.id in selected_ids]
     inspections = {item.id: inspect_original_artifact(item) for item in items}
     canonical_by_digest: dict[str, object] = {}
     valid_groups: dict[str, list] = {}
@@ -181,7 +204,7 @@ def _build_reconciliation_report(items: list, *, apply: bool) -> dict:
         "unchanged": [],
     }
     now = timezone.now()
-    for item in items:
+    for item in selected_items:
         inspection = inspections[item.id]
         base = {
             "item_id": item.id,
@@ -221,7 +244,8 @@ def _build_reconciliation_report(items: list, *, apply: bool) -> dict:
                 )
             else:
                 report["unchanged"].append({**base, "sha256": inspection.sha256})
-            if apply:
+            duplicate_changed = item.duplicate_of_id != duplicate_of_id
+            if apply and (needs_adoption or duplicate_changed):
                 type(item).objects.filter(pk=item.pk).update(
                     original_path=inspection.relative_path,
                     source_sha256=inspection.sha256,
@@ -232,7 +256,12 @@ def _build_reconciliation_report(items: list, *, apply: bool) -> dict:
                 )
         elif not inspection.exists and item.status == IntakeState.DOWNLOADING.value:
             report["interrupted"].append({**base, "reason": "download interrompido"})
-            if apply:
+            needs_interruption_reset = (
+                item.status != IntakeState.DISCOVERED.value
+                or item.last_error != "download interrompido"
+                or item.duplicate_of_id is not None
+            )
+            if apply and needs_interruption_reset:
                 type(item).objects.filter(pk=item.pk).update(
                     status=IntakeState.DISCOVERED.value,
                     last_error="download interrompido",
@@ -241,10 +270,16 @@ def _build_reconciliation_report(items: list, *, apply: bool) -> dict:
                 )
         elif inspection.exists:
             report["conflicts"].append({**base, "reason": inspection.reason})
-            if apply:
+            conflict_error = f"{ARTIFACT_CONFLICT}: {inspection.reason}"
+            needs_conflict_update = (
+                item.status != IntakeState.FAILED.value
+                or item.last_error != conflict_error
+                or item.duplicate_of_id is not None
+            )
+            if apply and needs_conflict_update:
                 type(item).objects.filter(pk=item.pk).update(
                     status=IntakeState.FAILED.value,
-                    last_error=f"{ARTIFACT_CONFLICT}: {inspection.reason}",
+                    last_error=conflict_error,
                     duplicate_of=None,
                     updated_at=now,
                 )
