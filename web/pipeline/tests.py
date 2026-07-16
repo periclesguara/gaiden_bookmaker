@@ -1986,9 +1986,9 @@ class HtmlLanePreprodConvertTests(TestCase):
                 "## By H. P. LOVECRAFT\n\n"
                 "I am forced into speech because men of science have refused to follow my advice.\n\n"
                 "------------------------------------------------------------------------\n\n"
-                "II.\n\n"
+                "## II.\n\n"
                 "The public knows of the Miskatonic Expedition through our frequent reports.\n\n"
-                "III.\n\n"
+                "## III.\n\n"
                 "It was natural that we should make our camp near the edge of the barrier.\n"
             ),
             encoding="utf-8",

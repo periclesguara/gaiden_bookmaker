@@ -41,7 +41,7 @@ def resolve_heading_cleaner_destination(edition) -> HeadingCleanerDriveDestinati
     return HeadingCleanerDriveDestination(
         item_id=item.id,
         folder=item.batch.drive_relative_path,
-        remote_filename=f"{source_stem}_heading_clean.txt",
+        remote_filename=f"{source_stem}_heading_clean_v2.txt",
     )
 
 

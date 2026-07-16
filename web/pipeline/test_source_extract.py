@@ -8,6 +8,7 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from gaiden.application.pipeline.normalization import normalize_text_v2
 from gaiden.application.pipeline.source_extract import UnsupportedSourceFormatError, run_source_extract
 
 
@@ -76,6 +77,36 @@ class SourceExtractTests(SimpleTestCase):
         self.assertIn("Clean body.", canonical_txt)
         self.assertNotIn("alert", canonical_txt)
         self.assertNotIn(".x", canonical_txt)
+
+    def test_html_to_text_preserves_inline_elements_inside_paragraphs(self):
+        source = Path(self.tempdir.name) / "inline.html"
+        source.write_text(
+            (
+                "<html><body><h2>XVIII</h2>"
+                "<p>There were monkeys under <i>M</i>, in the alphabet.</p>"
+                "<p>To Hazel Strong, Baltimore, <abbr>MD</abbr></p>"
+                "<p>Leopold <span>II</span> of Belgium remained intact.</p>"
+                "<p>The ship <i>Fuwalda</i> stayed inline.</p></body></html>"
+            ),
+            encoding="utf-8",
+        )
+
+        result = self.run_extract("book_9013", source)
+        canonical_txt = self.repo_path(result["canonical_txt"]).read_text(encoding="utf-8")
+
+        self.assertIn("## XVIII", canonical_txt)
+        self.assertIn("under M, in the alphabet.", canonical_txt)
+        self.assertIn("Baltimore, MD", canonical_txt)
+        self.assertIn("Leopold II of Belgium", canonical_txt)
+        self.assertIn("The ship Fuwalda stayed inline.", canonical_txt)
+        self.assertNotIn("\nM\n", canonical_txt)
+        self.assertNotIn("\nMD\n", canonical_txt)
+        self.assertNotIn("\nII\n", canonical_txt)
+        normalized = normalize_text_v2(canonical_txt)
+        self.assertIn("CHAPTER 18", normalized)
+        self.assertNotIn("CHAPTER 1000", normalized)
+        self.assertNotIn("CHAPTER 1500", normalized)
+        self.assertIn("Leopold II of Belgium", normalized)
 
     def test_epub_extract_generates_canonical_outputs_metadata_and_images(self):
         source = Path(self.tempdir.name) / "input.epub"

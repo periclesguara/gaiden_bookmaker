@@ -880,7 +880,7 @@ class BlockZeroTests(TestCase):
         self.assertContains(response, "Enviar para Google Drive")
         self.assertContains(
             response,
-            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean.txt",
+            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
         )
 
         client = FakeHeadingDriveClient()
@@ -902,7 +902,7 @@ class BlockZeroTests(TestCase):
         self.assertEqual(folder, self.batch.drive_relative_path)
         self.assertEqual(
             remote_filename,
-            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean.txt",
+            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
         )
 
     def test_no_drive_subprocess_is_called_by_dashboard_or_upload(self):

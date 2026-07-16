@@ -9,7 +9,6 @@ from gaiden.infrastructure import storage
 
 ROMAN_MAP = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 ROMAN_CANONICAL_RE = re.compile(r"^(?=[MDCLXVI]+$)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$", re.IGNORECASE)
-STANDALONE_CHAPTER_MARKER_RE = re.compile(r"^\s*([IVXLCDM]+|\d+)\.?\s*$", re.IGNORECASE)
 MD_STANDALONE_CHAPTER_MARKER_RE = re.compile(r"^\s*#{1,6}\s+([IVXLCDM]+|\d+)\.?\s*$", re.IGNORECASE)
 EXPLICIT_CHAPTER_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:chapter|part|section|adventure)\s+([IVXLCDM]+|\d+)\b",
@@ -26,7 +25,7 @@ RULE_LINE_RE = re.compile(r"^\s*[-=]{5,}\s*$")
 DIV_MARKER_RE = re.compile(r"^\s*:::(?:\s+.*)?\s*$")
 IMAGE_LINE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]+\)")
 MD_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
-STANDALONE_NUMERIC_RESIDUE_RE = re.compile(r"^\s*(?:#{1,6}\s+)?(?:\d+|[IVXLCDM]+)\.?\s*$", re.IGNORECASE)
+STANDALONE_NUMERIC_RESIDUE_RE = re.compile(r"^\s*#{1,6}\s+(?:\d+|[IVXLCDM]+)\.?\s*$", re.IGNORECASE)
 NORMALIZED_PART_RE = re.compile(r"^\s*PART\s+(\d+)\b", re.IGNORECASE)
 NORMALIZED_CHAPTER_RE = re.compile(r"^\s*CHAPTER\s+(\d+)\b", re.IGNORECASE)
 
@@ -103,7 +102,7 @@ def _collapse_blank(lines: list[str]) -> list[str]:
 
 def _standalone_chapter_token(line: str) -> str | None:
     stripped = (line or "").strip()
-    match = STANDALONE_CHAPTER_MARKER_RE.match(stripped) or MD_STANDALONE_CHAPTER_MARKER_RE.match(stripped)
+    match = MD_STANDALONE_CHAPTER_MARKER_RE.match(stripped)
     return match.group(1) if match else None
 
 
@@ -139,6 +138,8 @@ def _normalize_explicit_chapter_heading(line: str) -> str:
 def _normalize_roman_prefix_heading(line: str) -> str:
     match = ROMAN_PREFIX_HEADING_RE.match(line)
     if not match:
+        return line
+    if not (match.group("prefix") or "").strip():
         return line
     number = roman_to_int(match.group("number"))
     if number is None:
@@ -177,21 +178,7 @@ def _looks_like_body_line(line: str) -> bool:
 
 def _should_promote_standalone_marker(lines: list[str], idx: int) -> bool:
     token = _standalone_chapter_token(lines[idx])
-    if token is None or _chapter_number(token) is None:
-        return False
-    next_nonblank = ""
-    for probe in lines[idx + 1 :]:
-        stripped = probe.strip()
-        if stripped:
-            next_nonblank = stripped
-            break
-    if not next_nonblank:
-        return False
-    if _standalone_chapter_token(next_nonblank) is not None:
-        return False
-    if EXPLICIT_CHAPTER_RE.match(next_nonblank):
-        return False
-    return _looks_like_body_line(next_nonblank)
+    return token is not None and _chapter_number(token) is not None
 
 
 def _find_first_body_index(lines: list[str], before_index: int) -> int | None:
