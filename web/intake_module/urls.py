@@ -29,4 +29,9 @@ urlpatterns = [
     path("items/<int:item_id>/register-return/", views.item_register_return, name="item_register_return"),
     path("items/<int:item_id>/confirm-ready/", views.item_confirm_ready, name="item_confirm_ready"),
     path("items/<int:item_id>/handoff/", views.item_handoff, name="item_handoff"),
+    path(
+        "items/<int:item_id>/open-bookmaker/",
+        views.item_open_bookmaker,
+        name="item_open_bookmaker",
+    ),
 ]

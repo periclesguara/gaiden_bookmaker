@@ -8,6 +8,7 @@ from gaiden.application.intake import (
     discover_drive_folder,
     download_drive_item,
     handoff_to_pipeline,
+    open_in_bookmaker,
     prepare_for_codex,
     reconcile_batch_downloads,
     reconcile_item_download,
@@ -246,6 +247,9 @@ def batch_detail(request, batch_id: int):
                 or reconciliation_preview["interrupted"]
             ),
             "reconcilable_item_ids": reconcilable_item_ids,
+            "bookmaker_item_ids": {
+                item.id for item in items if _can_open_in_bookmaker(item)
+            },
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
         },
     )
@@ -291,7 +295,23 @@ def item_detail(request, item_id: int):
                 item.status == IntakeState.FAILED.value
                 and reconciliation_preview["adoptable"]
             ),
+            "can_open_in_bookmaker": _can_open_in_bookmaker(item),
         },
+    )
+
+
+def _can_open_in_bookmaker(item: IntakeItem) -> bool:
+    return bool(
+        item.status == IntakeState.DOWNLOADED.value
+        and not item.duplicate_of_id
+        and item.batch.author_default
+        and item.confirmed_title
+        and item.original_year
+        and item.book_code
+        and item.batch.source_language
+        and item.target_language
+        and item.original_path
+        and item.source_sha256
     )
 
 
@@ -597,6 +617,19 @@ def item_handoff(request, item_id: int):
     try:
         result = handoff_to_pipeline(item)
         messages.success(request, "Handoff concluído sem reexecutar Translate.")
+        return redirect("edition_steps", edition_id=result.edition.id)
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("intake_module:item_detail", item_id=item.id)
+
+
+def item_open_bookmaker(request, item_id: int):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    item = get_object_or_404(IntakeItem.objects.select_related("batch"), pk=item_id)
+    try:
+        result = open_in_bookmaker(item)
+        messages.success(request, "Livro disponível no Gaiden Bookmaker.")
         return redirect("edition_steps", edition_id=result.edition.id)
     except Exception as exc:
         messages.error(request, str(exc))

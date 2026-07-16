@@ -8,7 +8,7 @@ from .ingestion import (
     store_uploaded_files,
 )
 from .translation import confirm_ready_for_editing, prepare_for_codex, register_translation_return
-from .pipeline_handoff import handoff_to_pipeline
+from .pipeline_handoff import handoff_to_pipeline, open_in_bookmaker
 from .reconciliation import reconcile_batch_downloads, reconcile_item_download
 from .workflow import transition_item
 
@@ -22,6 +22,7 @@ __all__ = [
     "ingest_path",
     "ingest_uploaded_file",
     "handoff_to_pipeline",
+    "open_in_bookmaker",
     "reconcile_batch_downloads",
     "reconcile_item_download",
     "prepare_for_codex",

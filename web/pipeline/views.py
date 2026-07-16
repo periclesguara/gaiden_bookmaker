@@ -4711,6 +4711,23 @@ def edition_steps(request, edition_id: int):
 
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
     raw_name = Path(raw_path).name if raw_path else None
+    book_number_match = re.fullmatch(r"book_(\d+)", book_code, flags=re.IGNORECASE)
+    target_language_label = (
+        pipeline_state.translation_language or edition.language.code or language
+    ).replace("_", "-").upper()
+    source_language_label = (
+        edition.work.original_language.code if edition.work.original_language_id else ""
+    ).replace("_", "-").upper()
+    book_identity = {
+        "number": book_number_match.group(1) if book_number_match else book_code,
+        "source_original_name": source_template.source_original_name,
+        "title": edition.title or edition.work.title,
+        "author": edition.work.author.name,
+        "source_language": source_language_label,
+        "target_language": target_language_label,
+        "original_year": edition.work.year,
+        "collection": source_template.collection_name,
+    }
 
     def _status(flag: bool) -> str:
         return "OK" if flag else "falta"
@@ -4966,6 +4983,7 @@ def edition_steps(request, edition_id: int):
 
     context = {
         "edition": edition,
+        "book_identity": book_identity,
         "edition_steps_action_url": _edition_steps_redirect_url(edition),
         "source_format": source_format,
         "source_upload_url": reverse(

@@ -1,8 +1,10 @@
 import hashlib
+import io
 import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -21,6 +23,7 @@ from gaiden.application.intake.pipeline_handoff import (
     IntakeHandoffConflict,
     IntakeHandoffError,
     handoff_to_pipeline,
+    open_in_bookmaker,
 )
 from gaiden.application.intake.translation import (
     confirm_ready_for_editing,
@@ -116,6 +119,41 @@ class FakeUpload:
         yield self.payload
 
 
+def bookmaker_epub_payload() -> bytes:
+    stream = io.BytesIO()
+    with ZipFile(stream, "w") as archive:
+        archive.writestr("mimetype", "application/epub+zip")
+        archive.writestr(
+            "META-INF/container.xml",
+            """<?xml version="1.0"?>
+            <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+              <rootfiles><rootfile full-path="OPS/content.opf"
+                media-type="application/oebps-package+xml"/></rootfiles>
+            </container>""",
+        )
+        archive.writestr(
+            "OPS/content.opf",
+            """<?xml version="1.0"?>
+            <package xmlns="http://www.idpf.org/2007/opf" version="3.0">
+              <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <dc:title>Tarzan of the Apes</dc:title>
+                <dc:creator>Edgar Rice Burroughs</dc:creator>
+                <dc:language>en</dc:language>
+                <dc:identifier>tarzan-apes</dc:identifier>
+              </metadata>
+              <manifest>
+                <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+              </manifest>
+              <spine><itemref idref="chapter"/></spine>
+            </package>""",
+        )
+        archive.writestr(
+            "OPS/chapter.xhtml",
+            "<html><body><h1>Chapter One</h1><p>Tarzan begins.</p></body></html>",
+        )
+    return stream.getvalue()
+
+
 class BlockZeroTests(TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix="gaiden-intake-block-zero-")
@@ -131,6 +169,7 @@ class BlockZeroTests(TestCase):
             source_language="en",
             imprint_default="RinoBooks",
             editor_default="Gaiden Editor",
+            collection_name="Tarzan",
             public_domain=True,
             drive_relative_path="Edgar_Rice_Burroughs",
         )
@@ -168,6 +207,34 @@ class BlockZeroTests(TestCase):
         )
         confirm_ready_for_editing(item)
         item.refresh_from_db()
+        return item
+
+    def _bookmaker_item(self, *, status=IntakeState.DOWNLOADED.value):
+        result = store_uploaded_files(
+            self.batch,
+            [
+                FakeUpload(
+                    "edgar-rice-burroughs_tarzan-of-the-apes.epub",
+                    bookmaker_epub_payload(),
+                )
+            ],
+        )[0]
+        item = result["item"]
+        item.confirmed_title = "Tarzan of the Apes"
+        item.original_year = 1912
+        item.book_code = "book_0031"
+        item.target_language = "en-us"
+        item.status = status
+        item.save(
+            update_fields=[
+                "confirmed_title",
+                "original_year",
+                "book_code",
+                "target_language",
+                "status",
+                "updated_at",
+            ]
+        )
         return item
 
     def test_dashboard_shows_block_zero_stats_and_current_individual_upload(self):
@@ -647,6 +714,129 @@ class BlockZeroTests(TestCase):
         item.refresh_from_db()
         self.assertEqual(item.confirmed_title, "Tarzan Updated")
         self.assertEqual(item.status, IntakeState.CLEAN_READY.value)
+
+    def test_bookmaker_button_is_shown_only_for_valid_downloaded_canonical_item(self):
+        item = self._bookmaker_item()
+        response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
+        self.assertContains(response, "Abrir no Gaiden Bookmaker")
+
+        item.status = IntakeState.FAILED.value
+        item.save(update_fields=["status", "updated_at"])
+        response = self.client.get(reverse("intake_module:item_detail", args=[item.id]))
+        self.assertNotContains(response, "Abrir no Gaiden Bookmaker")
+
+    def test_duplicate_cannot_open_in_bookmaker(self):
+        canonical = self._bookmaker_item()
+        duplicate = IntakeItem.objects.create(
+            batch=self.batch,
+            duplicate_of=canonical,
+            order_index=canonical.order_index + 1,
+            source_filename="edgar-rice-burroughs_tarzan-of-the-apes (1).epub",
+            source_format="epub",
+            source_size=canonical.source_size,
+            source_sha256=canonical.source_sha256,
+            confirmed_title=canonical.confirmed_title,
+            original_year=canonical.original_year,
+            target_language=canonical.target_language,
+            book_code="book_0032",
+            original_path=canonical.original_path,
+            status=IntakeState.DOWNLOADED.value,
+        )
+        response = self.client.get(reverse("intake_module:item_detail", args=[duplicate.id]))
+        self.assertNotContains(response, "Abrir no Gaiden Bookmaker")
+        with self.assertRaisesRegex(IntakeHandoffError, "canonical item"):
+            open_in_bookmaker(duplicate)
+
+    def test_open_in_bookmaker_creates_source_records_without_translation(self):
+        item = self._bookmaker_item()
+        with patch("pipeline.views.pipeline_translate_run") as translate:
+            result = open_in_bookmaker(item)
+        translate.assert_not_called()
+
+        work = Work.objects.get(code="book_0031")
+        edition = Edition.objects.get(pk=result.edition.pk)
+        template = BookEditionTemplate.objects.get(book_code="book_0031", language="en")
+        texts = EditionText.objects.get(edition=edition)
+        pipeline = EditionPipeline.objects.get(edition=edition)
+        item.refresh_from_db()
+
+        self.assertEqual(work.title, "Tarzan of the Apes")
+        self.assertEqual(work.author.name, "Edgar Rice Burroughs")
+        self.assertEqual(work.year, 1912)
+        self.assertEqual(work.original_language.code, "en")
+        self.assertEqual(edition.title, "Tarzan of the Apes")
+        self.assertEqual(edition.publisher, "RinoBooks")
+        self.assertEqual(edition.editor, "Gaiden Editor")
+        self.assertEqual(template.source_original_name, item.source_filename)
+        self.assertEqual(template.source_file_sha256, item.source_sha256)
+        self.assertEqual(template.collection_name, self.batch.collection_name)
+        self.assertEqual(Path(template.source_saved_path), result.source_original_path)
+        self.assertEqual(Path(edition.raw_source_path), result.canonical_text_path)
+        self.assertEqual(Path(texts.raw_path), result.canonical_text_path)
+        self.assertIn("Tarzan begins", texts.raw_text)
+        self.assertEqual(pipeline.current_stage, "SOURCE_EXTRACTED")
+        self.assertEqual(pipeline.translation_language, "en_us")
+        self.assertIsNone(pipeline.translated_at)
+        self.assertFalse(item.handoff_translated_path)
+        self.assertEqual(item.handoff_edition_id, edition.id)
+
+    def test_open_in_bookmaker_second_click_is_idempotent(self):
+        item = self._bookmaker_item()
+        first = open_in_bookmaker(item)
+        counts = (
+            Work.objects.count(),
+            Edition.objects.count(),
+            BookEditionTemplate.objects.count(),
+            EditionText.objects.count(),
+            EditionPipeline.objects.count(),
+        )
+        with patch(
+            "gaiden.application.intake.pipeline_handoff.run_source_extract"
+        ) as source_extract:
+            second = open_in_bookmaker(item)
+        source_extract.assert_not_called()
+        self.assertEqual(first.edition.id, second.edition.id)
+        self.assertFalse(second.created)
+        self.assertEqual(
+            counts,
+            (
+                Work.objects.count(),
+                Edition.objects.count(),
+                BookEditionTemplate.objects.count(),
+                EditionText.objects.count(),
+                EditionPipeline.objects.count(),
+            ),
+        )
+
+    def test_open_in_bookmaker_redirects_to_steps_and_header_identifies_book(self):
+        item = self._bookmaker_item()
+        response = self.client.post(
+            reverse("intake_module:item_open_bookmaker", args=[item.id])
+        )
+        item.refresh_from_db()
+        self.assertRedirects(
+            response,
+            reverse("edition_steps", kwargs={"edition_id": item.handoff_edition_id}),
+            fetch_redirect_response=False,
+        )
+
+        response = self.client.get(
+            reverse("edition_steps", kwargs={"edition_id": item.handoff_edition_id})
+        )
+        self.assertContains(response, "Livro 0031")
+        self.assertContains(response, item.source_filename)
+        self.assertContains(response, "Tarzan of the Apes")
+        self.assertContains(response, "Edgar Rice Burroughs")
+        self.assertContains(response, "Origem: EN")
+        self.assertContains(response, "Destino: EN-US")
+        self.assertContains(response, "Ano original: 1912")
+        self.assertContains(response, "Coleção: Tarzan")
+        self.assertNotContains(response, str(intake_storage.resolve_stored_path(item.original_path)))
+
+    def test_existing_individual_upload_entrypoint_remains_accessible(self):
+        response = self.client.get(reverse("book_edition_new"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cadastro do livro")
 
     def test_no_drive_subprocess_is_called_by_dashboard_or_upload(self):
         with patch("gaiden.infrastructure.intake_drive.subprocess.run") as run:

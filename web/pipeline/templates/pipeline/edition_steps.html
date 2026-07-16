@@ -244,6 +244,7 @@
     {% endif %}
     {% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang as nav_frontmatter_url %}
     {% include "pipeline/_workspace_nav.html" with nav_active="steps" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=edition_steps_action_url nav_frontmatter_url=nav_frontmatter_url %}
+    {% include "pipeline/_book_identity_header.html" %}
     <h1>Blocos 02-04 — {{ book_code }} ({{ language }})</h1>
     <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
     <div class="actions">

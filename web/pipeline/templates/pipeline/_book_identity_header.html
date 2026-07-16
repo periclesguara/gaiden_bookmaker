@@ -1,0 +1,12 @@
+<section class="book-identity" aria-label="Identificação do livro">
+  <p class="subtitle">Livro {{ book_identity.number }}</p>
+  {% if book_identity.source_original_name %}<p><strong>{{ book_identity.source_original_name }}</strong></p>{% endif %}
+  <h1>{{ book_identity.title }}</h1>
+  <p class="subtitle">
+    Autor: {{ book_identity.author }}
+    · Origem: {{ book_identity.source_language|default:"—" }}
+    · Destino: {{ book_identity.target_language|default:"—" }}
+    · Ano original: {{ book_identity.original_year|default:"—" }}
+    · Coleção: {{ book_identity.collection|default:"—" }}
+  </p>
+</section>
