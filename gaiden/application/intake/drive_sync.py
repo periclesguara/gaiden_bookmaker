@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 from gaiden.infrastructure import intake_storage
@@ -25,6 +26,7 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
     report = {
         "folder": relative_folder,
         "files": [],
+        "format_counts": {},
         "discovered": [],
         "ignored": [],
         "existing": [],
@@ -80,6 +82,9 @@ def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:
             row["state"] = "ERROR"
             report["errors"].append({"filename": drive_file.name, "error": str(exc)[:500]})
         report["files"].append(row)
+    report["format_counts"] = dict(
+        sorted(Counter(row["extension"] for row in report["files"]).items())
+    )
     intake_storage.ensure_batch_layout(batch.code, batch.source_language)
     intake_storage.atomic_write_json(
         intake_storage.drive_audit_path(batch.code, batch.source_language), report, overwrite=True

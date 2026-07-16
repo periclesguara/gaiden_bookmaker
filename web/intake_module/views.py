@@ -8,7 +8,6 @@ from gaiden.application.intake import (
     discover_drive_folder,
     download_drive_item,
     handoff_to_pipeline,
-    ingest_many,
     prepare_for_codex,
     register_translation_return,
     store_uploaded_files,
@@ -17,28 +16,206 @@ from gaiden.domain.intake import IntakeState
 from gaiden.infrastructure.intake_drive import RcloneClient
 
 from .forms import (
-    DriveSyncForm,
     IntakeBatchForm,
     IntakeItemMetadataForm,
     IntakeUploadForm,
+    LocalDirectoryForm,
     PrepareCodexForm,
     TranslationReturnForm,
 )
 from .models import IntakeBatch, IntakeItem
 
 
+DRIVE_LOOKUP_ERROR = (
+    "Não foi possível consultar o Google Drive. "
+    "Verifique a configuração do remote gaiden_drive."
+)
+SELECTED_DRIVE_FOLDER_SESSION_KEY = "intake_selected_drive_folder"
+
+
 def batch_list(request):
     return render(request, "intake_module/batch_list.html", {"batches": IntakeBatch.objects.all()})
 
 
+def _validated_folder_name(value: str) -> str:
+    name = (value or "").strip()
+    if (
+        not name
+        or name in {".", ".."}
+        or "/" in name
+        or "\\" in name
+        or ":" in name
+        or name.startswith("~")
+    ):
+        raise ValueError("Seleção de pasta inválida; caminhos arbitrários não são aceitos.")
+    return name
+
+
+def _drive_client_context():
+    try:
+        client = RcloneClient()
+        return (
+            client,
+            client.remote,
+            getattr(client, "inbox", "01_INBOX_RAW"),
+            client.executable_available,
+            "",
+        )
+    except Exception:
+        return None, "gaiden_drive:", "01_INBOX_RAW", False, DRIVE_LOOKUP_ERROR
+
+
+def _available_drive_folders(client) -> list[str]:
+    client.check_available()
+    return [_validated_folder_name(folder) for folder in client.list_folders("")]
+
+
+def drive_folders(request):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    client, remote_name, inbox_name, rclone_available, configuration_error = _drive_client_context()
+    folders = []
+    try:
+        if client is None:
+            raise RuntimeError("Invalid rclone configuration")
+        folders = _available_drive_folders(client)
+        messages.success(request, f"{len(folders)} pastas encontradas; nenhum arquivo foi baixado.")
+    except Exception:
+        messages.error(request, DRIVE_LOOKUP_ERROR)
+    return render(
+        request,
+        "intake_module/drive_folders.html",
+        {
+            "drive_folders": folders,
+            "remote_name": remote_name,
+            "inbox_name": inbox_name,
+            "rclone_available": rclone_available,
+            "configuration_error": configuration_error,
+        },
+    )
+
+
+def drive_folder_select(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        selected_folder = _validated_folder_name(request.POST.get("drive_folder", ""))
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("intake_module:drive_folders")
+    client, _remote_name, _inbox_name, _rclone_available, _configuration_error = _drive_client_context()
+    try:
+        if client is None:
+            raise RuntimeError("Invalid rclone configuration")
+        if selected_folder not in _available_drive_folders(client):
+            messages.error(request, "A pasta selecionada não existe em gaiden_drive:01_INBOX_RAW.")
+            return redirect("intake_module:drive_folders")
+    except Exception:
+        messages.error(request, DRIVE_LOOKUP_ERROR)
+        return redirect("intake_module:drive_folders")
+    request.session[SELECTED_DRIVE_FOLDER_SESSION_KEY] = selected_folder
+    return redirect("intake_module:batch_create")
+
+
 def batch_create(request):
-    form = IntakeBatchForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        batch = form.save()
-        if "save_only" in request.POST:
-            return redirect("intake_module:batch_detail", batch_id=batch.id)
-        return redirect("intake_module:batch_files", batch_id=batch.id)
-    return render(request, "intake_module/batch_form.html", {"form": form})
+    action = request.POST.get("create_action") if request.method == "POST" else ""
+    data = request.POST.copy() if request.method == "POST" else None
+    selected_drive_folder = request.session.get(SELECTED_DRIVE_FOLDER_SESSION_KEY, "")
+    client, remote_name, inbox_name, rclone_available, configuration_error = _drive_client_context()
+
+    if action in {"select_drive_folder", "save_drive_folder"}:
+        try:
+            if client is None:
+                raise RuntimeError("Invalid rclone configuration")
+            selected_folder = _validated_folder_name(
+                request.POST.get("drive_folder", "") or selected_drive_folder
+            )
+            selected_drive_folder = selected_folder
+            if selected_folder not in _available_drive_folders(client):
+                raise ValueError("A pasta selecionada não pertence a gaiden_drive:01_INBOX_RAW.")
+            data["name"] = selected_folder
+            form = IntakeBatchForm(data)
+            local_form = LocalDirectoryForm(request.POST, request.FILES)
+            if form.is_valid():
+                batch = form.save(commit=False)
+                batch.drive_relative_path = client.stored_folder_path(selected_folder)
+                batch.save()
+                report = discover_drive_folder(batch, batch.drive_relative_path, client=client)
+                request.session[_report_key(batch.id)] = report
+                request.session.pop(SELECTED_DRIVE_FOLDER_SESSION_KEY, None)
+                _store_summary(
+                    request,
+                    batch.id,
+                    found=len(report["files"]),
+                    selected=0,
+                    imported=0,
+                    ignored=len(report["ignored"]),
+                    duplicates=0,
+                    errors=len(report["errors"]),
+                )
+                return redirect("intake_module:batch_files", batch_id=batch.id)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            form = IntakeBatchForm(data)
+            local_form = LocalDirectoryForm(request.POST, request.FILES)
+        except Exception:
+            messages.error(request, DRIVE_LOOKUP_ERROR)
+            form = IntakeBatchForm(data)
+            local_form = LocalDirectoryForm(request.POST, request.FILES)
+    elif action == "select_local_folder":
+        try:
+            local_folder_name = _validated_folder_name(request.POST.get("local_folder_name", ""))
+            data["name"] = local_folder_name
+            form = IntakeBatchForm(data)
+            local_form = LocalDirectoryForm(request.POST, request.FILES)
+            if not local_form.is_valid() or not request.FILES.getlist("folder_files"):
+                raise ValueError("Selecione uma pasta local com arquivos compatíveis.")
+            if form.is_valid():
+                batch = form.save()
+                uploads = request.FILES.getlist("folder_files")
+                results = store_uploaded_files(batch, uploads)
+                imported = sum(not row.get("ignored") and not row.get("error") for row in results)
+                ignored = sum(bool(row.get("ignored")) for row in results)
+                duplicates = sum(bool(row.get("duplicate")) for row in results)
+                errors = sum(bool(row.get("error")) for row in results)
+                _store_summary(
+                    request,
+                    batch.id,
+                    found=len(uploads),
+                    selected=len(uploads),
+                    imported=imported,
+                    ignored=ignored,
+                    duplicates=duplicates,
+                    errors=errors,
+                )
+                return redirect("intake_module:batch_files", batch_id=batch.id)
+        except Exception as exc:
+            messages.error(request, str(exc))
+            form = IntakeBatchForm(data)
+            local_form = LocalDirectoryForm(request.POST, request.FILES)
+    else:
+        initial = {"name": selected_drive_folder} if selected_drive_folder else None
+        form = IntakeBatchForm(data, initial=initial)
+        local_form = LocalDirectoryForm(request.POST or None, request.FILES or None)
+        if request.method == "POST" and form.is_valid():
+            batch = form.save()
+            if "save_only" in request.POST:
+                return redirect("intake_module:batch_detail", batch_id=batch.id)
+            return redirect("intake_module:batch_files", batch_id=batch.id)
+
+    return render(
+        request,
+        "intake_module/batch_form.html",
+        {
+            "form": form,
+            "local_form": local_form,
+            "selected_drive_folder": selected_drive_folder,
+            "remote_name": remote_name,
+            "inbox_name": inbox_name,
+            "rclone_available": rclone_available,
+            "configuration_error": configuration_error,
+        },
+    )
 
 
 def batch_detail(request, batch_id: int):
@@ -123,33 +300,25 @@ def _store_summary(request, batch_id: int, **values) -> dict:
 
 def batch_files(request, batch_id: int):
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
-    form = DriveSyncForm(request.POST or None, initial={"relative_folder": batch.drive_relative_path})
     report = request.session.get(_report_key(batch.id))
-    try:
-        client = RcloneClient()
-        remote_name = client.remote
-        rclone_available = client.executable_available
-        configuration_error = ""
-    except Exception as exc:
-        client = None
-        remote_name = "Configuração inválida"
-        rclone_available = False
-        configuration_error = str(exc)
-    if request.method == "POST" and form.is_valid():
+    client, remote_name, inbox_name, rclone_available, configuration_error = _drive_client_context()
+    if request.method == "POST":
         try:
             if client is None:
                 raise ValueError(configuration_error or "Configuração do rclone inválida")
-            batch.drive_relative_path = form.cleaned_data["relative_folder"]
-            batch.save(update_fields=["drive_relative_path", "updated_at"])
+            if not batch.drive_relative_path:
+                raise ValueError("Nenhuma pasta do Google Drive foi selecionada para este lote.")
             action = request.POST.get("drive_action")
             if action == "verify":
-                client.check_available()
-                client.list_folders(form.cleaned_data["relative_folder"])
+                selected_folder = client.direct_child_name(batch.drive_relative_path)
+                folders = _available_drive_folders(client)
+                if selected_folder not in folders:
+                    raise ValueError("A pasta armazenada não existe em gaiden_drive:01_INBOX_RAW.")
                 messages.success(request, "Pasta verificada com sucesso; nenhum arquivo foi transferido.")
             elif action == "list":
                 report = discover_drive_folder(
                     batch,
-                    form.cleaned_data["relative_folder"],
+                    batch.drive_relative_path,
                     client=client,
                 )
                 request.session[_report_key(batch.id)] = report
@@ -171,17 +340,15 @@ def batch_files(request, batch_id: int):
                 raise ValueError("Ação do Drive inválida.")
         except Exception as exc:
             messages.error(request, str(exc))
-    elif request.method == "POST":
-        messages.error(request, "Informe um caminho relativo válido para o Drive.")
     return render(
         request,
         "intake_module/batch_files.html",
         {
             "batch": batch,
-            "form": form,
             "upload_form": IntakeUploadForm(),
             "report": report,
             "remote_name": remote_name,
+            "inbox_name": inbox_name,
             "rclone_available": rclone_available,
             "configuration_error": configuration_error,
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),

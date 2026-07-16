@@ -17,20 +17,26 @@
   <section class="panel">
     <h2>Painel 1 — Google Drive</h2>
     <dl>
-      <dt>Remote configurado</dt><dd>{{ remote_name }}</dd>
-      <dt>Drive relative path</dt><dd>{{ batch.drive_relative_path|default:"Não informado" }}</dd>
+      <dt>Remote configurado</dt><dd>{{ remote_name }}{{ inbox_name }}</dd>
+      <dt>Pasta selecionada</dt><dd>{{ batch.drive_relative_path|default:"Nenhuma pasta do Drive selecionada" }}</dd>
       <dt>rclone</dt><dd>{% if rclone_available %}Disponível{% else %}<span class="error">Não disponível. Instale ou configure o rclone antes de verificar a pasta.</span>{% endif %}</dd>
     </dl>
     {% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
+    {% if batch.drive_relative_path %}
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
       <button type="submit" name="drive_action" value="verify">Verificar pasta</button>
       <button type="submit" name="drive_action" value="list">Listar arquivos</button>
     </form>
+    {% else %}
+      <p class="muted">Crie um lote selecionando uma pasta do Google Drive para habilitar estas ações.</p>
+    {% endif %}
 
     {% if report %}
       <h3>Arquivos encontrados</h3>
+      <p><strong>Quantidade por formato:</strong>
+      {% for extension, count in report.format_counts.items %}{{ extension }}: {{ count }}{% if not forloop.last %} · {% endif %}{% empty %}nenhum{% endfor %}
+      </p>
       <form method="post" action="{% url 'intake_module:batch_import_selected' batch.id %}">
         {% csrf_token %}
         <p>

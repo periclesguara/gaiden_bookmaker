@@ -1,0 +1,27 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Pastas do Google Drive</h1>
+<p><strong>Remote:</strong> {{ remote_name }}{{ inbox_name }}</p>
+<p class="muted">A consulta apenas lista as pastas diretamente dentro da caixa de entrada. Nenhum arquivo é baixado.</p>
+{% if not rclone_available %}<p class="error">rclone não está disponível.</p>{% endif %}
+{% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
+
+<p><a class="button secondary" href="{% url 'intake_module:drive_folders' %}">Buscar pastas no Google Drive</a></p>
+
+<div class="panels">
+  {% for folder in drive_folders %}
+    <section class="panel">
+      <h2>{{ folder }}</h2>
+      <form method="post" action="{% url 'intake_module:drive_folder_select' %}">
+        {% csrf_token %}
+        <input type="hidden" name="drive_folder" value="{{ folder }}">
+        <button type="submit">Selecionar esta pasta</button>
+      </form>
+    </section>
+  {% empty %}
+    <section class="panel"><p>Nenhuma pasta disponível.</p></section>
+  {% endfor %}
+</div>
+
+<p><a href="{% url 'intake_module:batch_create' %}">Voltar ao cadastro do lote</a></p>
+{% endblock %}

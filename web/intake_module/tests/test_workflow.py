@@ -186,6 +186,22 @@ class IntakeWorkflowTests(TestCase):
         self.assertEqual(arguments[0], ["rclone", "version"])
         self.assertIs(kwargs["shell"], False)
         self.assertEqual(kwargs["timeout"], 7)
+        self.assertEqual(kwargs["env"]["HOME"], os.environ["HOME"])
+
+    def test_rclone_lists_direct_inbox_folders_with_lsd(self):
+        completed = subprocess.CompletedProcess(
+            ["rclone", "lsd", "gaiden_drive:01_INBOX_RAW"],
+            0,
+            stdout="          -1 2026-07-16 10:00:00        -1 Edgar_Rice_borroughs\n",
+            stderr="",
+        )
+        with patch("gaiden.infrastructure.intake_drive.subprocess.run", return_value=completed) as run:
+            folders = RcloneClient(timeout=9).list_folders("")
+        self.assertEqual(folders, ["Edgar_Rice_borroughs"])
+        arguments, kwargs = run.call_args
+        self.assertEqual(arguments[0], ["rclone", "lsd", "gaiden_drive:01_INBOX_RAW"])
+        self.assertIs(kwargs["shell"], False)
+        self.assertEqual(kwargs["timeout"], 9)
 
     @patch("gaiden.infrastructure.converters.markitdown_adapter.MarkItDownAdapter.convert_to_markdown")
     @patch("gaiden.infrastructure.intake_drive.subprocess.run")

@@ -10,6 +10,9 @@
 </head>
 <body>
 <header><strong><a href="{% url 'intake_module:batch_list' %}">Cadastro Geral</a></strong><a href="/">Gaiden</a></header>
-<main>{% block content %}{% endblock %}</main>
+<main>
+{% if messages %}{% for message in messages %}<p class="{% if message.tags == 'error' %}error{% else %}muted{% endif %}">{{ message }}</p>{% endfor %}{% endif %}
+{% block content %}{% endblock %}
+</main>
 </body>
 </html>

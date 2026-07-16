@@ -6,6 +6,8 @@ app_name = "intake_module"
 
 urlpatterns = [
     path("", views.batch_list, name="batch_list"),
+    path("drive/folders/", views.drive_folders, name="drive_folders"),
+    path("drive/folders/select/", views.drive_folder_select, name="drive_folder_select"),
     path("new/", views.batch_create, name="batch_create"),
     path("batches/<int:batch_id>/files/", views.batch_files, name="batch_files"),
     path(

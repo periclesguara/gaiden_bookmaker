@@ -36,6 +36,13 @@ def _safe_relative_path(value: str) -> str:
     return candidate.as_posix().strip("/")
 
 
+def _safe_direct_child_name(value: str) -> str:
+    name = _safe_relative_path(value)
+    if "/" in name or name in {".", ".."}:
+        raise ValueError("Drive folder must be a direct child of the configured inbox")
+    return name
+
+
 class RcloneClient:
     def __init__(self, *, timeout: int = 60):
         self.remote = (os.environ.get("GAIDEN_INTAKE_RCLONE_REMOTE") or DEFAULT_REMOTE).strip()
@@ -55,8 +62,24 @@ class RcloneClient:
 
     def list_folders(self, relative_path: str = "") -> list[str]:
         target = self._remote_path(relative_path)
-        result = self._run(["rclone", "lsf", target, "--dirs-only"])
-        return [line.strip().rstrip("/") for line in result.stdout.splitlines() if line.strip()]
+        result = self._run(["rclone", "lsd", target])
+        folders = []
+        for line in result.stdout.splitlines():
+            columns = line.strip().split(maxsplit=4)
+            if len(columns) < 5:
+                continue
+            folders.append(_safe_direct_child_name(columns[4]))
+        return folders
+
+    def stored_folder_path(self, folder_name: str) -> str:
+        return f"{self.inbox}/{_safe_direct_child_name(folder_name)}"
+
+    def direct_child_name(self, stored_path: str) -> str:
+        safe_path = _safe_relative_path(stored_path)
+        prefix = f"{self.inbox}/"
+        if safe_path.startswith(prefix):
+            safe_path = safe_path[len(prefix) :]
+        return _safe_direct_child_name(safe_path)
 
     def list_files(self, relative_path: str) -> list[DriveFile]:
         target = self._remote_path(relative_path)
@@ -92,10 +115,12 @@ class RcloneClient:
         return destination
 
     def _remote_path(self, relative_path: str) -> str:
-        parts = [self.inbox]
-        if relative_path:
-            parts.append(_safe_relative_path(relative_path))
-        return f"{self.remote}{'/'.join(parts)}"
+        safe_path = _safe_relative_path(relative_path) if relative_path else ""
+        if safe_path == self.inbox or safe_path.startswith(f"{self.inbox}/"):
+            full_path = safe_path
+        else:
+            full_path = "/".join(part for part in (self.inbox, safe_path) if part)
+        return f"{self.remote}{full_path}"
 
     def _run(self, arguments: list[str]) -> subprocess.CompletedProcess[str]:
         try:
@@ -106,6 +131,7 @@ class RcloneClient:
                 text=True,
                 timeout=self.timeout,
                 shell=False,
+                env=os.environ.copy(),
             )
         except subprocess.TimeoutExpired as exc:
             raise RcloneCommandError(f"rclone timed out after {self.timeout}s") from exc

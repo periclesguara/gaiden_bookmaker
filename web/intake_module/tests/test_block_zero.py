@@ -65,6 +65,7 @@ class FakeDiscoveryClient:
 
 class FakeSelectionClient:
     remote = "gaiden_test_drive:"
+    inbox = "01_INBOX_RAW"
     executable_available = True
 
     def __init__(self):
@@ -89,10 +90,16 @@ class FakeSelectionClient:
         self.checked += 1
 
     def list_folders(self, _relative_path):
-        return []
+        return ["Edgar_Rice_Burroughs", "Other_Folder"]
 
     def list_files(self, _relative_path):
         return list(self.files)
+
+    def stored_folder_path(self, folder_name):
+        return f"{self.inbox}/{folder_name}"
+
+    def direct_child_name(self, stored_path):
+        return stored_path.removeprefix(f"{self.inbox}/")
 
     def download_file(self, _folder, drive_file, destination):
         self.downloaded.append(drive_file.name)
@@ -180,21 +187,146 @@ class BlockZeroTests(TestCase):
 
     def _batch_form_data(self, code):
         return {
-            "code": code,
-            "name": "New batch",
+            "name": code,
             "author_default": "Edgar Rice Burroughs",
             "source_language": "en",
             "imprint_default": "RinoBooks",
             "editor_default": "Gaiden Editor",
             "collection_name": "",
             "public_domain": "on",
-            "drive_relative_path": "Edgar_Rice_Burroughs",
         }
 
     def test_create_batch_shows_both_save_actions(self):
         response = self.client.get(reverse("intake_module:batch_create"))
         self.assertContains(response, "Salvar lote e adicionar arquivos")
         self.assertContains(response, "Salvar somente o cadastro")
+        self.assertContains(response, "Buscar pastas no Google Drive")
+        self.assertContains(response, reverse("intake_module:drive_folders"))
+        self.assertContains(response, "Selecionar pasta do computador")
+        self.assertNotContains(response, 'name="code"')
+        self.assertNotContains(response, 'name="drive_relative_path"')
+
+    def test_batch_code_is_generated_and_collision_gets_unique_suffix(self):
+        first = IntakeBatch.objects.create(name="Shared Folder", source_language="en")
+        second = IntakeBatch.objects.create(name="Shared Folder", source_language="en")
+        self.assertEqual(first.code, "shared-folder")
+        self.assertEqual(second.code, "shared-folder-2")
+
+    def test_drive_folder_selection_sets_internal_path_code_and_lists_without_download(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            list_response = self.client.get(reverse("intake_module:drive_folders"))
+            self.assertContains(list_response, "Edgar_Rice_Burroughs")
+            self.assertContains(list_response, "Selecionar esta pasta")
+            select_response = self.client.post(
+                reverse("intake_module:drive_folder_select"),
+                {"drive_folder": "Edgar_Rice_Burroughs"},
+            )
+            self.assertRedirects(
+                select_response,
+                reverse("intake_module:batch_create"),
+                fetch_redirect_response=False,
+            )
+            metadata_response = self.client.get(reverse("intake_module:batch_create"))
+            self.assertContains(metadata_response, 'value="Edgar_Rice_Burroughs"')
+            self.assertContains(metadata_response, "Salvar cadastro e listar arquivos")
+            response = self.client.post(
+                reverse("intake_module:batch_create"),
+                {
+                    **self._batch_form_data("temporary"),
+                    "create_action": "save_drive_folder",
+                    "drive_folder": "Edgar_Rice_Burroughs",
+                },
+            )
+        batch = IntakeBatch.objects.get(name="Edgar_Rice_Burroughs")
+        self.assertEqual(batch.code, "edgar_rice_burroughs")
+        self.assertEqual(batch.drive_relative_path, "01_INBOX_RAW/Edgar_Rice_Burroughs")
+        self.assertEqual(response.url, reverse("intake_module:batch_files", args=[batch.id]))
+        self.assertEqual(batch.items.count(), 2)
+        self.assertFalse(batch.items.exclude(status=IntakeState.DISCOVERED.value).exists())
+        self.assertEqual(client.downloaded, [])
+
+    def test_drive_folder_listing_does_not_download_any_file(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+                response = self.client.get(reverse("intake_module:drive_folders"))
+        self.assertContains(
+            response,
+            "<p><strong>Remote:</strong> gaiden_test_drive:01_INBOX_RAW</p>",
+            html=True,
+        )
+        self.assertContains(response, "Edgar_Rice_Burroughs")
+        self.assertContains(response, "Selecionar esta pasta")
+        self.assertEqual(client.downloaded, [])
+        subprocess_run.assert_not_called()
+
+    def test_drive_folder_selection_rejects_nonexistent_folder(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            response = self.client.post(
+                reverse("intake_module:drive_folder_select"),
+                {"drive_folder": "Missing_Folder"},
+                follow=True,
+            )
+        self.assertContains(response, "A pasta selecionada não existe")
+        self.assertFalse(IntakeBatch.objects.filter(name="Missing_Folder").exists())
+
+    def test_rclone_error_is_safe_on_drive_folder_page(self):
+        client = FakeSelectionClient()
+        client.check_available = lambda: (_ for _ in ()).throw(RuntimeError("secret config path"))
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            response = self.client.get(reverse("intake_module:drive_folders"))
+        self.assertContains(
+            response,
+            "Não foi possível consultar o Google Drive. Verifique a configuração do remote gaiden_drive.",
+        )
+        self.assertNotContains(response, "secret config path")
+
+    def test_local_directory_selection_uses_folder_name_without_local_path(self):
+        response = self.client.post(
+            reverse("intake_module:batch_create"),
+            data={
+                **self._batch_form_data("temporary"),
+                "create_action": "select_local_folder",
+                "local_folder_name": "Tarzan_Local",
+                "folder_files": [
+                    SimpleUploadedFile("tarzan.txt", b"Tarzan local", content_type="text/plain"),
+                    SimpleUploadedFile("notes.html", b"<p>Notes</p>", content_type="text/html"),
+                ],
+            },
+        )
+        batch = IntakeBatch.objects.get(name="Tarzan_Local")
+        self.assertEqual(response.url, reverse("intake_module:batch_files", args=[batch.id]))
+        self.assertEqual(batch.code, "tarzan_local")
+        self.assertEqual(batch.drive_relative_path, "")
+        self.assertEqual(batch.items.count(), 2)
+        self.assertFalse(batch.items.exclude(status=IntakeState.DOWNLOADED.value).exists())
+
+    def test_folder_selection_rejects_path_traversal(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            response = self.client.post(
+                reverse("intake_module:drive_folder_select"),
+                {"drive_folder": "../Edgar_Rice_Burroughs"},
+                follow=True,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "caminhos arbitrários não são aceitos")
+        self.assertFalse(IntakeBatch.objects.filter(name="temporary").exists())
+
+        response = self.client.post(
+            reverse("intake_module:batch_create"),
+            data={
+                **self._batch_form_data("local-temporary"),
+                "create_action": "select_local_folder",
+                "local_folder_name": "/home/user/books",
+                "folder_files": [SimpleUploadedFile("book.txt", b"Book", content_type="text/plain")],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "caminhos arbitrários não são aceitos")
+        self.assertFalse(IntakeBatch.objects.filter(name="local-temporary").exists())
 
     def test_create_batch_redirects_to_file_selection_by_default(self):
         response = self.client.post(
@@ -234,6 +366,8 @@ class BlockZeroTests(TestCase):
         self.assertContains(response, "a-princess-of-mars.epub")
         self.assertContains(response, "cover.jpg")
         self.assertContains(response, "Ignorado nesta etapa")
+        self.assertContains(response, "EPUB: 2")
+        self.assertContains(response, "JPG: 1")
         self.assertEqual(self.batch.items.count(), 2)
         self.assertFalse(self.batch.items.exclude(status=IntakeState.DISCOVERED.value).exists())
         self.assertEqual(client.downloaded, [])

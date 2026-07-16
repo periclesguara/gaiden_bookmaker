@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 from gaiden.domain.intake import IntakeState
 
@@ -27,6 +28,22 @@ class IntakeBatch(models.Model):
 
     def __str__(self) -> str:
         return f"{self.code} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            folder_name = (self.drive_relative_path or "").strip().rstrip("/").rsplit("/", 1)[-1]
+            base = slugify(folder_name or self.name) or "intake"
+            max_length = self._meta.get_field("code").max_length
+            base = base[:max_length]
+            candidate = base
+            suffix = 2
+            queryset = type(self).objects.exclude(pk=self.pk)
+            while queryset.filter(code=candidate).exists():
+                marker = f"-{suffix}"
+                candidate = f"{base[: max_length - len(marker)]}{marker}"
+                suffix += 1
+            self.code = candidate
+        super().save(*args, **kwargs)
 
 
 class IntakeItem(models.Model):

@@ -1,7 +1,5 @@
 {% extends "intake_module/base.html" %}
 {% block content %}
-<h1>Selecionar e sincronizar pasta do Drive</h1><p>{{ batch.name }}</p>
-<p class="muted">Esta ação apenas descobre os arquivos. Downloads e limpezas são iniciados separadamente e em sequência.</p>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Sincronizar lista de arquivos</button></form>
-{% if report %}<h2>Relatório</h2><p>{{ report.discovered|length }} descobertos · {{ report.existing|length }} já cadastrados · {{ report.ignored|length }} ignorados · {{ report.errors|length }} erros</p>{% endif %}
+<h1>Arquivos do Google Drive</h1><p>{{ batch.name }}</p>
+<p>Use a seleção segura de pastas em <a href="{% url 'intake_module:batch_files' batch.id %}">Arquivos do lote</a>.</p>
 {% endblock %}

@@ -7,7 +7,6 @@ class IntakeBatchForm(forms.ModelForm):
     class Meta:
         model = IntakeBatch
         fields = [
-            "code",
             "name",
             "author_default",
             "source_language",
@@ -15,7 +14,6 @@ class IntakeBatchForm(forms.ModelForm):
             "editor_default",
             "collection_name",
             "public_domain",
-            "drive_relative_path",
         ]
 
 
@@ -44,8 +42,19 @@ class IntakeUploadForm(forms.Form):
     files = MultipleFileField(required=True)
 
 
-class DriveSyncForm(forms.Form):
-    relative_folder = forms.CharField(max_length=500, label="Drive relative path")
+class LocalDirectoryForm(forms.Form):
+    local_folder_name = forms.CharField(widget=forms.HiddenInput(), required=False)
+    folder_files = MultipleFileField(
+        required=False,
+        label="Pasta do computador",
+        widget=MultipleFileInput(
+            attrs={
+                "webkitdirectory": True,
+                "directory": True,
+                "accept": ".epub,.txt,.html,.htm",
+            }
+        ),
+    )
 
 
 class PrepareCodexForm(forms.Form):
