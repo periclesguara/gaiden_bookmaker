@@ -1,0 +1,2 @@
+{% extends "intake_module/base.html" %}
+{% block content %}<h1>Criar lote</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Salvar lote</button></form>{% endblock %}

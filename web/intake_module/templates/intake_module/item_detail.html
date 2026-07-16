@@ -1,0 +1,2 @@
+{% extends "intake_module/base.html" %}
+{% block content %}<h1>{{ item.source_filename }}</h1><p>Lote: <a href="{% url 'intake_module:batch_detail' item.batch.id %}">{{ item.batch.name }}</a></p><dl><dt>Status</dt><dd>{{ item.status }}</dd><dt>SHA-256</dt><dd>{{ item.source_sha256|default:"—" }}</dd><dt>Texto limpo</dt><dd>{{ item.clean_path|default:"—" }}</dd><dt>Retorno</dt><dd>{{ item.translation_return_path|default:"—" }}</dd></dl>{% endblock %}
