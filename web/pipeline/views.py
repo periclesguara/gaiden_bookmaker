@@ -5095,6 +5095,7 @@ def edition_steps(request, edition_id: int):
                 kwargs={"edition_id": edition.id},
             ),
             "pending": drive_return_pending,
+            "saved": bool(saved_reference is not None and not drive_return_pending),
             "content": drive_return_content,
             "state": drive_return_state,
             "remote_filename": (
@@ -6441,6 +6442,7 @@ def _resolve_merge_polidor_source(edition: EditorialEdition) -> tuple[Path | Non
 
 MERGE_PREVIEW_OPTIONS = (
     {"value": "latest", "label": "ultimo finalizado"},
+    {"value": "canonical_reference", "label": "referência canônica"},
     {"value": "merge_translate", "label": "merge_translate"},
     {"value": "merge_refine", "label": "merge_refine"},
     {"value": "merge_polidor", "label": "merge_polidor"},
@@ -6464,7 +6466,10 @@ def _resolve_merge_preview_source(edition: EditorialEdition, merge_kind: str | N
 
     book_code, target_base = _merge_preview_target_base(edition)
     build_dir = paths.edition_build_dir_for_language(book_code, target_base)
+    canonical_reference = paths.saved_drive_return_reference_path(edition)
     if kind == "latest":
+        if canonical_reference is not None:
+            return canonical_reference, target_base, kind
         candidates = [
             build_dir / "merge_polidor_fixed.txt",
             build_dir / f"merge_polidor_{target_base}_fixed.txt",
@@ -6484,6 +6489,8 @@ def _resolve_merge_preview_source(edition: EditorialEdition, merge_kind: str | N
             build_dir / "merge_translate.txt",
             build_dir / f"merge_translate_{target_base}.txt",
         ]
+    elif kind == "canonical_reference":
+        return canonical_reference, target_base, kind
     elif kind == "merge_translate":
         candidates = [
             build_dir / "merge_translate_fixed.txt",

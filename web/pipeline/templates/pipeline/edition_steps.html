@@ -454,8 +454,11 @@
             {% csrf_token %}
             <label for="drive_return_text"><strong>Referência retornada</strong></label>
             <textarea id="drive_return_text" rows="24" style="width:100%;" readonly>{{ drive_return.content }}</textarea>
-            <button class="btn secondary" type="submit">Salvar</button>
+            <button class="btn secondary" type="submit">Salvar texto</button>
           </form>
+          {% elif drive_return.saved %}
+          <div class="status">O retorno já está salvo como referência canônica.</div>
+          <a class="btn secondary" href="{% url 'preview_merge_selected' edition_id=edition.id %}?merge_kind=canonical_reference" target="_blank" rel="noopener noreferrer">Visualizar referência canônica</a>
           {% endif %}
           <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
             <select name="merge_kind" aria-label="Arquivo para preview">

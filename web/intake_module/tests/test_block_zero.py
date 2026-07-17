@@ -1054,6 +1054,7 @@ class BlockZeroTests(TestCase):
         )
         self.assertContains(response, hashlib.sha256(client.payload).hexdigest())
         self.assertContains(response, "readonly")
+        self.assertContains(response, "Salvar texto")
 
         superseded = TextSnapshot.objects.create(
             edition=edition,
@@ -1091,7 +1092,16 @@ class BlockZeroTests(TestCase):
 
         response = self.client.get(page_url)
         self.assertContains(response, "Referência canônica salva")
+        self.assertContains(response, "Visualizar referência canônica")
         self.assertNotContains(response, "Retorno importado — aguardando salvar")
+
+        preview = self.client.get(
+            reverse("preview_merge_selected", kwargs={"edition_id": edition.id}),
+            {"merge_kind": "latest"},
+        )
+        self.assertEqual(preview.status_code, 200)
+        self.assertContains(preview, client.payload.decode("utf-8"))
+        self.assertEqual(preview.context["md_path"], str(canonical))
 
     def test_drive_return_import_does_not_accept_unrelated_txt(self):
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
