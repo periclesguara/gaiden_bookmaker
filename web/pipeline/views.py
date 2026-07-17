@@ -37,6 +37,7 @@ from editorial.models import (
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
 from gaiden.application.pipeline import ingest as pipeline_ingest
+from gaiden.application.pipeline import drive_return
 from gaiden.application.pipeline import heading_cleaner_drive
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
@@ -44,7 +45,7 @@ from gaiden.application.pipeline.translation import (
 )
 from gaiden.application.pipeline.gates import preflight_gate as resolve_preflight_gate
 from gaiden.application.pipeline.status import resolve_block_status_map
-from gaiden.infrastructure import storage
+from gaiden.infrastructure import intake_storage, storage
 
 from .models import (
     BookEditionTemplate,
@@ -65,6 +66,7 @@ except ImportError:
 from .forms import BookEditionTemplateForm, BookSourceUploadForm, normalize_book_code_input
 from .services import (
     book_manifest,
+    block_status,
     build_book,
     chapter_agent,
     canonical_merge,
@@ -170,6 +172,7 @@ BLOCK_STATUS_LABELS = {
     "bloco_02_running": "bloco_02_running",
     "bloco_02_done": "bloco_02_done",
     "bloco_03_ready": "bloco_03_ready",
+    "bloco_03_unlocked": "bloco_03_unlocked",
     "bloco_03_done": "bloco_03_done",
     "bloco_04_done": "bloco_04_done",
 }
@@ -1941,16 +1944,33 @@ def _frontmatter_template_defaults(edition, language: str) -> dict[str, object]:
     }
 
 
-def _ensure_editorial_templates_for_all_languages(edition) -> list[BookEditionTemplate]:
+def _ensure_editorial_templates_for_all_languages(
+    edition,
+    *,
+    persist_missing: bool = True,
+) -> list[BookEditionTemplate]:
     templates: list[BookEditionTemplate] = []
-    for lang in EDITORIAL_LANGUAGES:
-        template, created = BookEditionTemplate.objects.get_or_create(
+    existing = {
+        template.language: template
+        for template in BookEditionTemplate.objects.filter(
             book_code=edition.work.code,
-            language=lang,
-            defaults=_frontmatter_template_defaults(edition, lang),
+            language__in=EDITORIAL_LANGUAGES,
         )
-        if created:
-            template.save()
+    }
+    for lang in EDITORIAL_LANGUAGES:
+        template = existing.get(lang)
+        if template is None:
+            defaults = _frontmatter_template_defaults(edition, lang)
+            if persist_missing:
+                template = BookEditionTemplate.objects.create(
+                    book_code=edition.work.code,
+                    **defaults,
+                )
+            else:
+                template = BookEditionTemplate(
+                    book_code=edition.work.code,
+                    **defaults,
+                )
         templates.append(template)
     return templates
 
@@ -1996,23 +2016,23 @@ def _editorial_language_rows(templates: list[BookEditionTemplate]) -> list[dict[
     return rows
 
 
-def _block_status_map(*, pipeline_state, raw_path: str | None, frontmatter_template, md_final_exists: bool, build_exists: bool, epub_exists: bool, pdf_exists: bool) -> dict[str, object]:
+def _block_status_map(*, edition, pipeline_state, raw_path: str | None, frontmatter_template, md_final_exists: bool, build_exists: bool, epub_exists: bool, pdf_exists: bool) -> dict[str, object]:
     block_01_ready = bool(raw_path)
-    block_02_done = bool(
-        pipeline_state.refined_at
-        or pipeline_state.polished_at
-        or pipeline_state.merged_at
-        or pipeline_state.final_md_at
+    block_02_completion = block_status.resolve_block_two_completion(
+        edition,
+        pipeline_state,
     )
-    return resolve_block_status_map(
+    statuses = resolve_block_status_map(
         raw_ready=block_01_ready,
-        block_02_ready=block_02_done,
+        block_02_ready=block_02_completion.done,
         editorial_ready=_editorial_required_fields_ready(frontmatter_template),
         md_final_ready=md_final_exists,
         build_ready=build_exists,
         epub_ready=epub_exists,
         pdf_ready=pdf_exists,
     )
+    statuses["bloco_02_completion"] = block_02_completion
+    return statuses
 
 
 def _next_build_version(edition, language_code: str) -> int:
@@ -4315,21 +4335,6 @@ def edition_steps(request, edition_id: int):
     texts = EditionText.objects.filter(edition=edition).first()
     raw_path = (texts.raw_path if texts else "") or edition.raw_source_path
 
-    def _core_text() -> str:
-        if texts and getattr(texts, "normalized_text", ""):
-            return texts.normalized_text
-        if texts and getattr(texts, "normalized_path", ""):
-            path = Path(texts.normalized_path)
-            if path.exists():
-                return path.read_text(encoding="utf-8")
-        if texts and getattr(texts, "raw_text", ""):
-            return texts.raw_text
-        if raw_path:
-            path = Path(raw_path)
-            if path.exists():
-                return path.read_text(encoding="utf-8")
-        return ""
-
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "run_matrix":
@@ -4539,23 +4544,6 @@ def edition_steps(request, edition_id: int):
                 messages.info(request, f"Consolidado: {result.get('dir')}")
                 messages.info(request, f"Mapeamento: {result.get('manifest_path')}")
             return _redirect_editorial()
-        if action == "save_core_txt":
-            core_text = _core_text()
-            if not core_text.strip():
-                messages.error(request, "Core vazio. Nada para salvar.")
-                return redirect("edition_steps", edition_id=edition.id)
-            out_path = paths.core_last_txt_path(edition)
-            out_path.parent.mkdir(parents=True, exist_ok=True)
-            out_path.write_text(core_text, encoding="utf-8")
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
-            try:
-                rel_path = out_path.relative_to(Path(settings.BASE_DIR).parent)
-                pipeline_state.core_last_txt_path = str(rel_path)
-            except ValueError:
-                pipeline_state.core_last_txt_path = str(out_path)
-            pipeline_state.save(update_fields=["core_last_txt_path"])
-            messages.success(request, f"Core salvo: {pipeline_state.core_last_txt_path}")
-            return redirect("edition_steps", edition_id=edition.id)
         if action == "save_translation_language":
             target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
             target_base = _translate_base_language(target_language)
@@ -4707,10 +4695,13 @@ def edition_steps(request, edition_id: int):
             messages.info(request, f"Fonte das imagens: {images_dir}")
             return _redirect_editorial()
 
-    legacy_merges.sync_legacy_merges_from_translated(edition)
+    if request.method != "GET":
+        legacy_merges.sync_legacy_merges_from_translated(edition)
     sync_log = []
 
-    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    if pipeline_state is None:
+        pipeline_state = EditionPipeline(edition=edition)
     raw_name = Path(raw_path).name if raw_path else None
     book_number_match = re.fullmatch(r"book_(\d+)", book_code, flags=re.IGNORECASE)
     target_language_label = (
@@ -4756,6 +4747,21 @@ def edition_steps(request, edition_id: int):
             kwargs={"edition_id": edition.id},
         ),
     }
+    pending_drive_return = drive_return.read_pending_return(edition)
+    drive_return_path = drive_return.pending_path(edition)
+    drive_return_pending = pending_drive_return is not None
+    drive_return_content = ""
+    if drive_return_pending:
+        try:
+            drive_return_content = drive_return_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            drive_return_pending = False
+    saved_reference = paths.saved_drive_return_reference_path(edition)
+    drive_return_state = ""
+    if drive_return_pending:
+        drive_return_state = "Retorno importado — aguardando salvar"
+    elif saved_reference is not None:
+        drive_return_state = "Referência canônica salva"
     translate_step = next((s for s in pipeline01_steps if s.get("key") == "translate"), None)
     can_translate = bool(translate_step and translate_step.get("can_run"))
 
@@ -4829,7 +4835,6 @@ def edition_steps(request, edition_id: int):
     if frontmatter_lang_param in frontmatter_langs:
         pipeline_state.frontmatter_language = frontmatter_lang_param
         pipeline_state.frontmatter_locked = frontmatter_locked
-        pipeline_state.save(update_fields=["frontmatter_language", "frontmatter_locked"])
 
     frontmatter_lang = (
         frontmatter_lang_param
@@ -4844,16 +4849,26 @@ def edition_steps(request, edition_id: int):
         frontmatter_lang = pipeline_state.frontmatter_language
         frontmatter_locked = True
 
-    editorial_templates = _ensure_editorial_templates_for_all_languages(edition)
-    frontmatter_template, created = BookEditionTemplate.objects.get_or_create(
-        book_code=book_code,
-        language=frontmatter_lang,
-        defaults=_frontmatter_template_defaults(edition, frontmatter_lang),
+    editorial_templates = _ensure_editorial_templates_for_all_languages(
+        edition,
+        persist_missing=request.method != "GET",
     )
-    if created:
-        frontmatter_template.save()
+    frontmatter_template = next(
+        (
+            template
+            for template in editorial_templates
+            if template.language == frontmatter_lang
+        ),
+        None,
+    )
+    if frontmatter_template is None:
+        frontmatter_template = BookEditionTemplate(
+            book_code=book_code,
+            **_frontmatter_template_defaults(edition, frontmatter_lang),
+        )
     editorial_language_rows = _editorial_language_rows(editorial_templates)
     block_statuses = _block_status_map(
+        edition=edition,
         pipeline_state=pipeline_state,
         raw_path=raw_path,
         frontmatter_template=frontmatter_template,
@@ -5070,6 +5085,23 @@ def edition_steps(request, edition_id: int):
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
         "heading_drive_export": heading_drive_export,
+        "drive_return": {
+            "import_url": reverse(
+                "pipeline_drive_return_import",
+                kwargs={"edition_id": edition.id},
+            ),
+            "save_url": reverse(
+                "pipeline_drive_return_save",
+                kwargs={"edition_id": edition.id},
+            ),
+            "pending": drive_return_pending,
+            "content": drive_return_content,
+            "state": drive_return_state,
+            "remote_filename": (
+                pending_drive_return.remote_filename if pending_drive_return else ""
+            ),
+            "sha256": pending_drive_return.sha256 if pending_drive_return else "",
+        },
         "pipeline_prereqs": {
             "normalized_v2_path": str(pipeline_prereqs["normalized_v2_path"]),
             "normalized_v2_exists": bool(pipeline_prereqs["normalized_v2_exists"]),
@@ -5170,6 +5202,98 @@ def pipeline_heading_cleaner_drive_upload(request, edition_id: int):
             request,
             "Não foi possível enviar o arquivo ao Google Drive. Verifique o vínculo do lote e o remote gaiden_drive.",
         )
+    return redirect(_edition_steps_redirect_url(edition))
+
+
+def pipeline_drive_return_import(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        result = drive_return.import_drive_return(edition)
+        messages.success(request, "Retorno importado — aguardando salvar")
+        messages.info(
+            request,
+            f"Arquivo: {result.remote_filename} · SHA-256: {result.sha256}",
+        )
+    except drive_return.DriveReturnError:
+        messages.error(
+            request,
+            "Não foi possível importar o retorno do Google Drive para este livro.",
+        )
+    except Exception:
+        logger.exception("drive_return_import_failed edition_id=%s", edition.id)
+        messages.error(
+            request,
+            "Não foi possível importar o retorno do Google Drive para este livro.",
+        )
+    return redirect(_edition_steps_redirect_url(edition))
+
+
+def pipeline_drive_return_save(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    try:
+        payload, pending_return = drive_return.validated_pending_payload(edition)
+        content = payload.decode("utf-8")
+    except (drive_return.DriveReturnError, UnicodeDecodeError) as exc:
+        messages.error(request, str(exc))
+        return redirect(_edition_steps_redirect_url(edition))
+
+    pending = pending_return.pending_path
+
+    canonical = paths.core_last_txt_path(edition)
+    previous_payload = None
+    if canonical.is_file() and not canonical.is_symlink():
+        previous_payload = canonical.read_bytes()
+    elif canonical.exists() or canonical.is_symlink():
+        messages.error(request, "O destino da referência canônica é inválido.")
+        return redirect(_edition_steps_redirect_url(edition))
+
+    try:
+        with transaction.atomic():
+            pipeline_state, _ = EditionPipeline.objects.select_for_update().get_or_create(
+                edition=edition
+            )
+            intake_storage.atomic_write_text(canonical, content, overwrite=True)
+            try:
+                stored_path = str(canonical.relative_to(storage.repo_root()))
+            except ValueError:
+                stored_path = str(canonical)
+            pipeline_state.core_last_txt_path = stored_path
+            pipeline_state.last_log = (
+                f"{timezone.now().isoformat()} :: DRIVE_RETURN_REFERENCE_SAVED"
+            )
+            pipeline_state.save(update_fields=["core_last_txt_path", "last_log"])
+            TextSnapshot.objects.filter(
+                edition=edition,
+                stage="drive_return_reference",
+            ).update(stage="drive_return_reference_superseded")
+            TextSnapshot.objects.create(
+                edition=edition,
+                language=utils.normalize_lang(edition.language.code),
+                stage="drive_return_reference",
+                source_path=str(canonical),
+                content=content,
+            )
+    except Exception:
+        if previous_payload is None:
+            canonical.unlink(missing_ok=True)
+        else:
+            intake_storage.atomic_write_bytes(
+                canonical,
+                previous_payload,
+                overwrite=True,
+            )
+        logger.exception("drive_return_save_failed edition_id=%s", edition.id)
+        messages.error(request, "Não foi possível salvar a referência canônica.")
+        return redirect(_edition_steps_redirect_url(edition))
+
+    pending.unlink(missing_ok=True)
+    drive_return.pending_metadata_path(edition).unlink(missing_ok=True)
+    messages.success(request, "Referência canônica salva.")
     return redirect(_edition_steps_redirect_url(edition))
 
 

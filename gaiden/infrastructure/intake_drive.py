@@ -44,9 +44,14 @@ def _safe_direct_child_name(value: str) -> str:
 
 
 class RcloneClient:
-    def __init__(self, *, timeout: int = 60):
+    def __init__(self, *, timeout: int = 60, inbox: str | None = None):
         self.remote = (os.environ.get("GAIDEN_INTAKE_RCLONE_REMOTE") or DEFAULT_REMOTE).strip()
-        self.inbox = _safe_relative_path(os.environ.get("GAIDEN_INTAKE_DRIVE_INBOX") or DEFAULT_INBOX)
+        configured_inbox = (
+            inbox
+            if inbox is not None
+            else os.environ.get("GAIDEN_INTAKE_DRIVE_INBOX") or DEFAULT_INBOX
+        )
+        self.inbox = _safe_relative_path(configured_inbox)
         self.timeout = timeout
         if not self.remote.endswith(":") or "/" in self.remote:
             raise ValueError("GAIDEN_INTAKE_RCLONE_REMOTE must be an rclone remote ending in ':'")

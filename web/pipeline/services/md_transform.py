@@ -250,6 +250,18 @@ def _selected_txt_sources(edition):
 def _selected_txt_sources_for_language(edition, language: str):
     from . import text_source
 
+    reference = paths.saved_drive_return_reference_path(edition)
+    edition_language = utils.normalize_lang(edition_meta.language_code(edition))
+    if reference is not None and utils.normalize_lang(language) == edition_language:
+        return [
+            text_source.SelectedTextSource(
+                language=language,
+                path=reference,
+                name=reference.name,
+                label=f"Referência canônica ({language})",
+            )
+        ]
+
     book_code = getattr(edition, "work", None)
     if book_code and getattr(book_code, "code", None):
         book_code = book_code.code

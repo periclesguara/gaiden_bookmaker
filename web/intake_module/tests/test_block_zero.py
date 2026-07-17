@@ -7,8 +7,11 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from editorial.models import Contributor, Edition, EditionPipeline, EditionText, Language, PipelineStage, Work
 from gaiden.application.intake.drive_sync import discover_drive_folder, download_drive_item
@@ -33,7 +36,7 @@ from gaiden.application.intake.translation import (
 from gaiden.domain.intake import IntakeState
 from gaiden.infrastructure import intake_storage, storage
 from gaiden.infrastructure.intake_drive import DriveFile
-from pipeline.models import BookEditionTemplate
+from pipeline.models import BookEditionTemplate, PipelineJob, TextSnapshot
 from web.intake_module.models import IntakeBatch, IntakeItem
 
 
@@ -139,6 +142,41 @@ class FakeHeadingDriveClient:
             "remote_path": f"{folder}/{remote_filename}",
             "no_op": False,
         }
+
+
+class FakeDriveReturnClient:
+    def __init__(self, payload=b"CHAPTER 1\n\nReturned Tarzan text.\n"):
+        self.payload = payload
+        self.checked = 0
+        self.downloads = []
+        self.list_requests = []
+        self.files = [
+            DriveFile("other", "another-book_heading_clean_v2.txt", "another-book_heading_clean_v2.txt", 12),
+            DriveFile(
+                "return",
+                "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+                "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+                len(payload),
+            ),
+        ]
+
+    def check_available(self):
+        self.checked += 1
+
+    def direct_child_name(self, stored_path):
+        return stored_path.rsplit("/", 1)[-1]
+
+    def list_folders(self, _relative_path=""):
+        return ["Edgar_Rice_Burroughs"]
+
+    def list_files(self, _relative_path):
+        self.list_requests.append(_relative_path)
+        return list(self.files)
+
+    def download_file(self, folder, drive_file, destination):
+        self.downloads.append((folder, drive_file.name))
+        destination.write_bytes(self.payload)
+        return destination
 
 
 def bookmaker_epub_payload() -> bytes:
@@ -258,6 +296,46 @@ class BlockZeroTests(TestCase):
             ]
         )
         return item
+
+    def _prepare_normalized_source(self, edition, payload=b"Normalized input text.\n"):
+        normalized = storage.normalized_path(edition.work.code, edition.language.code)
+        normalized.parent.mkdir(parents=True, exist_ok=True)
+        normalized.write_bytes(payload)
+        texts = EditionText.objects.get(edition=edition)
+        texts.normalized_path = str(normalized)
+        texts.normalized_text = payload.decode("utf-8")
+        texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
+        return normalized
+
+    def _block_two_status_fixture(
+        self,
+        *,
+        core_payload=b"Canonical Drive return.\n",
+        snapshot_payload=None,
+        snapshot_stage="drive_return_reference",
+        create_core=True,
+        create_snapshot=True,
+    ):
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        pipeline = EditionPipeline.objects.get(edition=edition)
+        pipeline.current_stage = PipelineStage.NORMALIZED
+        core = storage.editions_dir(edition.id) / "core" / "core_last.txt"
+        if create_core:
+            core.parent.mkdir(parents=True, exist_ok=True)
+            core.write_bytes(core_payload)
+            pipeline.core_last_txt_path = str(core)
+        pipeline.save(update_fields=["current_stage", "core_last_txt_path"])
+        snapshot = None
+        if create_snapshot:
+            snapshot = TextSnapshot.objects.create(
+                edition=edition,
+                language=edition.language.code,
+                stage=snapshot_stage,
+                source_path=str(core),
+                content=(snapshot_payload or core_payload).decode("utf-8"),
+            )
+        return edition, pipeline, core, snapshot
 
     def test_dashboard_shows_block_zero_stats_and_current_individual_upload(self):
         IntakeItem.objects.create(
@@ -903,6 +981,414 @@ class BlockZeroTests(TestCase):
         self.assertEqual(
             remote_filename,
             "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
+        )
+
+    def test_drive_return_is_reviewed_before_becoming_canonical_reference(self):
+        from gaiden.application.pipeline import drive_return
+        from pipeline.services import preflight, text_source
+
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        handoff = open_in_bookmaker(item)
+        edition = handoff.edition
+        self._prepare_normalized_source(edition)
+        page_url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+        import_url = reverse(
+            "pipeline_drive_return_import",
+            kwargs={"edition_id": edition.id},
+        )
+        save_url = reverse(
+            "pipeline_drive_return_save",
+            kwargs={"edition_id": edition.id},
+        )
+
+        response = self.client.get(page_url)
+        html = response.content.decode("utf-8")
+        save_merge_position = html.find("Salvar Merge Polidor")
+        import_position = html.find("Importar retorno do Drive")
+        preview_position = html.find(">Preview<")
+        self.assertGreaterEqual(save_merge_position, 0)
+        self.assertGreater(import_position, save_merge_position)
+        self.assertGreater(preview_position, import_position)
+        self.assertEqual(self.client.get(import_url).status_code, 405)
+        self.assertEqual(self.client.get(save_url).status_code, 405)
+
+        pipeline = EditionPipeline.objects.get(edition=edition)
+        initial_stage = pipeline.current_stage
+        initial_job_count = PipelineJob.objects.count()
+        client = FakeDriveReturnClient()
+        with patch(
+            "gaiden.application.pipeline.drive_return.RcloneClient",
+            return_value=client,
+        ) as rclone_client:
+            response = self.client.post(import_url)
+
+        self.assertRedirects(response, page_url, fetch_redirect_response=False)
+        self.assertEqual(client.checked, 1)
+        rclone_client.assert_called_once_with(inbox="04_TRANSLATION_JOBS")
+        self.assertEqual(
+            client.downloads,
+            [
+                (
+                    "book_0031/en-us/return",
+                    "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+                )
+            ],
+        )
+        self.assertEqual(client.list_requests, ["book_0031/en-us/return"])
+        self.assertNotIn("01_INBOX_RAW", client.list_requests[0])
+        self.assertNotIn(self.batch.drive_relative_path, client.list_requests[0])
+        pending = drive_return.pending_path(edition)
+        self.assertEqual(pending.read_bytes(), client.payload)
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.current_stage, initial_stage)
+        self.assertFalse(pipeline.core_last_txt_path)
+        self.assertEqual(PipelineJob.objects.count(), initial_job_count)
+        self.assertFalse(TextSnapshot.objects.filter(edition=edition).exists())
+
+        response = self.client.get(page_url)
+        self.assertContains(response, "Retorno importado — aguardando salvar")
+        self.assertContains(response, "Returned Tarzan text")
+        self.assertContains(
+            response,
+            "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+        )
+        self.assertContains(response, hashlib.sha256(client.payload).hexdigest())
+        self.assertContains(response, "readonly")
+
+        superseded = TextSnapshot.objects.create(
+            edition=edition,
+            language="en",
+            stage="drive_return_reference",
+            source_path="legacy-reference.txt",
+            content="Incorrect prior reference.",
+        )
+        response = self.client.post(
+            save_url,
+            {"return_text": "A browser edit must not replace imported bytes."},
+        )
+        self.assertRedirects(response, page_url, fetch_redirect_response=False)
+        canonical = storage.editions_dir(edition.id) / "core" / "core_last.txt"
+        self.assertEqual(canonical.read_bytes(), client.payload)
+        self.assertFalse(pending.exists())
+        self.assertFalse(drive_return.pending_metadata_path(edition).exists())
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.current_stage, initial_stage)
+        self.assertEqual(Path(pipeline.core_last_txt_path), canonical)
+        superseded.refresh_from_db()
+        self.assertEqual(
+            superseded.stage,
+            "drive_return_reference_superseded",
+        )
+        snapshot = TextSnapshot.objects.get(
+            edition=edition,
+            stage="drive_return_reference",
+        )
+        self.assertEqual(snapshot.content.encode("utf-8"), client.payload)
+        self.assertEqual(Path(snapshot.source_path), canonical)
+        self.assertEqual(preflight._pick_source_text(edition), canonical)
+        self.assertEqual(text_source.resolve_txt_source(edition).path, canonical)
+        self.assertEqual(text_source.resolve_selected_text_sources(edition)[0].path, canonical)
+
+        response = self.client.get(page_url)
+        self.assertContains(response, "Referência canônica salva")
+        self.assertNotContains(response, "Retorno importado — aguardando salvar")
+
+    def test_drive_return_import_does_not_accept_unrelated_txt(self):
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        self._prepare_normalized_source(edition)
+        client = FakeDriveReturnClient()
+        client.files = [
+            DriveFile("other", "another-book_heading_clean_v2.txt", "another-book_heading_clean_v2.txt", 12)
+        ]
+        import_url = reverse(
+            "pipeline_drive_return_import",
+            kwargs={"edition_id": edition.id},
+        )
+        with patch(
+            "gaiden.application.pipeline.drive_return.RcloneClient",
+            return_value=client,
+        ):
+            response = self.client.post(import_url, follow=True)
+        self.assertContains(
+            response,
+            "Não foi possível importar o retorno do Google Drive para este livro.",
+        )
+        self.assertEqual(client.downloads, [])
+        self.assertFalse(
+            (storage.editions_dir(edition.id) / "core" / "drive_return_pending.txt").exists()
+        )
+
+    def test_drive_return_rejects_heading_clean_and_preserves_editor(self):
+        from gaiden.application.pipeline import drive_return
+
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        self._prepare_normalized_source(edition)
+        pending = drive_return.pending_path(edition)
+        pending.parent.mkdir(parents=True, exist_ok=True)
+        pending.write_text("Editor content must remain intact.", encoding="utf-8")
+        client = FakeDriveReturnClient()
+        client.files = [
+            DriveFile(
+                "wrong",
+                "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
+                "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
+                10,
+            )
+        ]
+
+        with self.assertRaisesRegex(drive_return.DriveReturnError, "exact canonical"):
+            drive_return.import_drive_return(edition, client=client)
+
+        self.assertEqual(client.list_requests, ["book_0031/en-us/return"])
+        self.assertEqual(client.downloads, [])
+        self.assertEqual(
+            pending.read_text(encoding="utf-8"),
+            "Editor content must remain intact.",
+        )
+
+    def test_drive_return_rejects_sha_equal_to_normalized_source(self):
+        from gaiden.application.pipeline import drive_return
+
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        normalized_payload = b"The exact normalized input.\n"
+        self._prepare_normalized_source(edition, normalized_payload)
+        client = FakeDriveReturnClient(payload=normalized_payload)
+
+        with self.assertRaisesRegex(drive_return.DriveReturnError, "identical"):
+            drive_return.import_drive_return(edition, client=client)
+
+        self.assertEqual(
+            client.downloads,
+            [
+                (
+                    "book_0031/en-us/return",
+                    "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+                )
+            ],
+        )
+        self.assertFalse(drive_return.pending_path(edition).exists())
+
+    def test_drive_return_save_rejects_pending_sha_equal_to_normalized_source(self):
+        from gaiden.application.pipeline import drive_return
+
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        normalized_payload = b"Normalized content must never become a Drive reference.\n"
+        self._prepare_normalized_source(edition, normalized_payload)
+        link = drive_return.resolve_drive_return_link(edition)
+        pending = drive_return.pending_path(edition)
+        intake_storage.atomic_write_bytes(pending, normalized_payload)
+        intake_storage.atomic_write_json(
+            drive_return.pending_metadata_path(edition),
+            {
+                "schema": "gaiden_drive_return_pending_v1",
+                "remote_root": "04_TRANSLATION_JOBS",
+                "remote_folder": link.folder,
+                "remote_filename": link.canonical_filename,
+                "target_language": link.target_language,
+                "sha256": hashlib.sha256(normalized_payload).hexdigest(),
+                "size": len(normalized_payload),
+            },
+        )
+
+        response = self.client.post(
+            reverse("pipeline_drive_return_save", kwargs={"edition_id": edition.id}),
+            follow=True,
+        )
+
+        self.assertContains(response, "identical to the normalized input")
+        self.assertFalse(
+            (storage.editions_dir(edition.id) / "core" / "core_last.txt").exists()
+        )
+        self.assertFalse(
+            TextSnapshot.objects.filter(
+                edition=edition,
+                stage="drive_return_reference",
+            ).exists()
+        )
+        self.assertEqual(pending.read_bytes(), normalized_payload)
+
+    def test_legacy_core_is_not_mislabelled_as_a_saved_drive_return(self):
+        item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
+        edition = open_in_bookmaker(item).edition
+        legacy_core = storage.editions_dir(edition.id) / "core" / "core_last.txt"
+        legacy_core.parent.mkdir(parents=True, exist_ok=True)
+        legacy_core.write_text("Legacy core", encoding="utf-8")
+        pipeline = EditionPipeline.objects.get(edition=edition)
+        pipeline.core_last_txt_path = str(legacy_core)
+        pipeline.save(update_fields=["core_last_txt_path"])
+
+        response = self.client.get(
+            reverse("edition_steps", kwargs={"edition_id": edition.id})
+        )
+        self.assertNotContains(response, "Referência canônica salva")
+
+    def test_block_two_normalized_matching_reference_is_done_and_unlocks_block_three(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture()
+        result = resolve_block_two_completion(edition, pipeline)
+        statuses = __import__(
+            "gaiden.application.pipeline.status",
+            fromlist=["resolve_block_status_map"],
+        ).resolve_block_status_map(
+            raw_ready=True,
+            block_02_ready=result.done,
+            editorial_ready=False,
+            md_final_ready=False,
+            build_ready=False,
+            epub_ready=False,
+            pdf_ready=False,
+        )
+
+        self.assertTrue(result.done)
+        self.assertTrue(statuses["bloco_02_done"])
+        self.assertTrue(statuses["bloco_03_unlocked"])
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.current_stage, PipelineStage.NORMALIZED)
+
+    def test_block_two_without_active_snapshot_is_pending(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture(
+            create_snapshot=False
+        )
+        self.assertFalse(resolve_block_two_completion(edition, pipeline).done)
+
+    def test_block_two_pending_snapshot_is_pending(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture(
+            snapshot_stage="drive_return_reference_pending"
+        )
+        self.assertFalse(resolve_block_two_completion(edition, pipeline).done)
+
+    def test_block_two_divergent_snapshot_sha_is_pending(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture(
+            snapshot_payload=b"Different snapshot content.\n"
+        )
+        result = resolve_block_two_completion(edition, pipeline)
+        self.assertFalse(result.done)
+        self.assertEqual(result.reason, "snapshot_sha_mismatch")
+
+    def test_block_two_missing_core_file_is_pending(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture(
+            create_core=False
+        )
+        self.assertFalse(resolve_block_two_completion(edition, pipeline).done)
+
+    def test_legacy_polished_core_without_drive_snapshot_is_pending(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, _core, _snapshot = self._block_two_status_fixture(
+            create_snapshot=False
+        )
+        pipeline.current_stage = PipelineStage.POLISHED
+        pipeline.polished_at = timezone.now()
+        pipeline.save(update_fields=["current_stage", "polished_at"])
+
+        self.assertFalse(resolve_block_two_completion(edition, pipeline).done)
+
+    def test_snapshot_from_another_edition_does_not_complete_block_two(self):
+        from pipeline.services.block_status import resolve_block_two_completion
+
+        edition, pipeline, core, _snapshot = self._block_two_status_fixture(
+            create_snapshot=False
+        )
+        german = Language.objects.create(
+            code="de",
+            name="German",
+            native_name="Deutsch",
+            is_active=True,
+        )
+        other_edition = Edition.objects.create(
+            work=edition.work,
+            language=german,
+            seal=edition.seal,
+        )
+        TextSnapshot.objects.create(
+            edition=other_edition,
+            language="de",
+            stage="drive_return_reference",
+            source_path=str(core),
+            content=core.read_text(encoding="utf-8"),
+        )
+
+        self.assertFalse(resolve_block_two_completion(edition, pipeline).done)
+
+    def test_edition_steps_status_resolution_is_read_only_and_stable(self):
+        edition, pipeline, core, snapshot = self._block_two_status_fixture()
+        url = reverse("edition_steps", kwargs={"edition_id": edition.id})
+        pipeline_before = {
+            field: getattr(pipeline, field)
+            for field in (
+                "current_stage",
+                "normalized_at",
+                "translated_at",
+                "refined_at",
+                "merged_at",
+                "polished_at",
+                "miolo_md_at",
+                "final_md_at",
+                "last_log",
+            )
+        }
+        core_before = (
+            hashlib.sha256(core.read_bytes()).hexdigest(),
+            core.stat().st_mtime_ns,
+        )
+        snapshot_before = (snapshot.stage, snapshot.content, snapshot.created_at)
+
+        with patch("gaiden.infrastructure.intake_drive.subprocess.run") as rclone:
+            with patch("pipeline.views.execute_language_isolated_core_step") as core_step:
+                with patch("pipeline.views.refine_qa.run_refine_qa") as refine:
+                    with patch("pipeline.views.build_book.run_build") as build:
+                        with CaptureQueriesContext(connection) as queries:
+                            first = self.client.get(url)
+                            second = self.client.get(url)
+
+        writes = [
+            query["sql"]
+            for query in queries.captured_queries
+            if query["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE"))
+        ]
+        self.assertEqual(writes, [])
+        self.assertContains(first, "Bloco 02 concluído")
+        self.assertContains(first, "Referência canônica salva")
+        self.assertContains(first, "Bloco 03 liberado")
+        self.assertContains(second, "Bloco 02 concluído")
+        self.assertContains(second, "Bloco 03 liberado")
+        rclone.assert_not_called()
+        core_step.assert_not_called()
+        refine.assert_not_called()
+        build.assert_not_called()
+
+        pipeline.refresh_from_db()
+        snapshot.refresh_from_db()
+        self.assertEqual(
+            {
+                field: getattr(pipeline, field)
+                for field in pipeline_before
+            },
+            pipeline_before,
+        )
+        self.assertEqual(
+            (
+                hashlib.sha256(core.read_bytes()).hexdigest(),
+                core.stat().st_mtime_ns,
+            ),
+            core_before,
+        )
+        self.assertEqual(
+            (snapshot.stage, snapshot.content, snapshot.created_at),
+            snapshot_before,
         )
 
     def test_no_drive_subprocess_is_called_by_dashboard_or_upload(self):

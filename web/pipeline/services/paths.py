@@ -129,6 +129,41 @@ def core_last_txt_path(edition) -> Path:
     return storage.editions_dir(edition.id) / "core" / "core_last.txt"
 
 
+def saved_core_reference_path(edition) -> Path | None:
+    configured = ""
+    try:
+        configured = getattr(edition.pipeline, "core_last_txt_path", "") or ""
+    except Exception:
+        configured = ""
+
+    candidates: list[Path] = []
+    if configured:
+        configured_path = Path(configured)
+        if configured_path.is_absolute():
+            candidates.append(configured_path)
+        else:
+            candidates.append(storage.repo_root() / configured_path)
+            candidates.append(storage.data_dir() / configured_path)
+    candidates.append(core_last_txt_path(edition))
+
+    for candidate in candidates:
+        if candidate.is_file() and not candidate.is_symlink():
+            return candidate
+    return None
+
+
+def saved_drive_return_reference_path(edition) -> Path | None:
+    try:
+        saved_from_drive = edition.text_snapshots.filter(
+            stage="drive_return_reference"
+        ).exists()
+    except Exception:
+        saved_from_drive = False
+    if not saved_from_drive:
+        return None
+    return saved_core_reference_path(edition)
+
+
 def pre_qa_md_path(edition) -> Path:
     return edition_build_dir(edition) / "BOOK.PRE_QA.md"
 

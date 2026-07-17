@@ -262,11 +262,16 @@
         <div class="status">Status: <strong>{{ block_status_labels.bloco_01_ready }}</strong> = {% if block_statuses.bloco_01_ready %}OK{% else %}pendente{% endif %}</div>
       {% elif block.key == core_block_key %}
         <div class="status"><strong>Core oficial do sistema.</strong></div>
+        {% if block_statuses.bloco_02_done %}
+        <div class="status"><strong>Bloco 02 concluído</strong></div>
+        <div class="status"><strong>Referência canônica salva</strong></div>
+        {% else %}
         <div class="status">Status running: {% if block_statuses.bloco_02_running %}<strong>{{ block_status_labels.bloco_02_running }}</strong>{% else %}nao{% endif %}</div>
-        <div class="status">Status done: {% if block_statuses.bloco_02_done %}<strong>{{ block_status_labels.bloco_02_done }}</strong>{% else %}pendente{% endif %}</div>
+        <div class="status">Bloco 02 done: pendente</div>
+        {% endif %}
         <div class="status">Isolamento por idioma: <strong>{% for code in core_isolation_languages %}{% if not forloop.first %}, {% endif %}{{ code|upper }}{% endfor %}</strong></div>
       {% elif block.key == "bloco_03" %}
-        <div class="status">Status ready: {% if block_statuses.bloco_03_ready %}<strong>{{ block_status_labels.bloco_03_ready }}</strong>{% else %}aguardando bloco 02{% endif %}</div>
+        <div class="status">{% if block_statuses.bloco_03_unlocked %}<strong>Bloco 03 liberado</strong>{% else %}Status ready: aguardando bloco 02{% endif %}</div>
         <div class="status">Status done: {% if block_statuses.bloco_03_done %}<strong>{{ block_status_labels.bloco_03_done }}</strong>{% else %}pendente{% endif %}</div>
       {% elif block.key == "bloco_04" %}
         <div class="status">Status done: {% if block_statuses.bloco_04_done %}<strong>{{ block_status_labels.bloco_04_done }}</strong>{% else %}pendente{% endif %}</div>
@@ -431,6 +436,27 @@
             {% csrf_token %}
             <button class="btn danger" type="submit">Salvar Merge Polidor</button>
           </form>
+          <form class="polidor-action" method="post" action="{{ drive_return.import_url }}">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit">Importar retorno do Drive</button>
+          </form>
+          {% if drive_return.state %}
+          <div class="status">
+            <strong>{{ drive_return.state }}</strong>
+          </div>
+          {% endif %}
+          {% if drive_return.pending %}
+          <div class="status">
+            Arquivo: <strong>{{ drive_return.remote_filename }}</strong><br />
+            SHA-256: <strong>{{ drive_return.sha256 }}</strong>
+          </div>
+          <form class="polidor-action" method="post" action="{{ drive_return.save_url }}">
+            {% csrf_token %}
+            <label for="drive_return_text"><strong>Referência retornada</strong></label>
+            <textarea id="drive_return_text" rows="24" style="width:100%;" readonly>{{ drive_return.content }}</textarea>
+            <button class="btn secondary" type="submit">Salvar</button>
+          </form>
+          {% endif %}
           <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
             <select name="merge_kind" aria-label="Arquivo para preview">
               {% for option in merge_preview_options %}
@@ -530,13 +556,6 @@
       </div>
       <div class="status">
         Polish: <strong>{{ status.polish }}</strong>
-      </div>
-      <div class="actions">
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_core_txt" />
-          <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
-        </form>
       </div>
     </article>
 
