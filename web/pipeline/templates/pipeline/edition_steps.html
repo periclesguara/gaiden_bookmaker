@@ -351,6 +351,20 @@
               <code>{{ out }}</code>
             {% endfor %}
           </div>
+          {% if s.key == "translate" %}
+          <form method="post" action="{{ translation_drive_export.run_url }}" onsubmit="return confirm('Criar o job canônico e enviar o texto limpo para tradução no Google Drive?');">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit" {% if not translation_drive_export.available %}disabled{% endif %}>Translate Google Drive</button>
+            {% if translation_drive_export.available %}
+            <span class="status">
+              Entrada: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.input_folder }}/{{ translation_drive_export.input_filename }}</strong><br />
+              Retorno esperado: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.return_folder }}/{{ translation_drive_export.return_filename }}</strong>
+            </span>
+            {% else %}
+            <span class="status">Disponível após HeadingCleaner para livros vinculados ao Intake.</span>
+            {% endif %}
+          </form>
+          {% endif %}
           <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
             {% csrf_token %}
             {% if s.key == "translate" %}
@@ -424,41 +438,24 @@
               {{ s.button_label }}
             </button>
           </form>
-          {% if s.key == "heading_cleaner" and s.done and heading_drive_export.available %}
-          <form method="post" action="{{ heading_drive_export.run_url }}" onsubmit="return confirm('Enviar o arquivo limpo do HeadingCleaner para a pasta vinculada no Google Drive?');">
-            {% csrf_token %}
-            <button class="btn secondary" type="submit">Enviar para Google Drive</button>
-            <span class="status">Arquivo: <strong>{{ heading_drive_export.remote_filename }}</strong></span>
-          </form>
-          {% endif %}
           {% if s.key == "polish_agent" %}
           <form class="polidor-action" method="post" action="{% url 'save_merge_polidor_preview' edition_id=edition.id %}">
             {% csrf_token %}
             <button class="btn danger" type="submit">Salvar Merge Polidor</button>
           </form>
-          <form class="polidor-action" method="post" action="{{ drive_return.import_url }}">
+          <form class="polidor-action" method="post" action="{{ drive_return.promote_url }}" onsubmit="return confirm('Importar o retorno do Google Drive e torná-lo o miolo oficial desta edição?');">
             {% csrf_token %}
-            <button class="btn secondary" type="submit">Importar retorno do Drive</button>
+            <button class="btn secondary" type="submit" {% if not drive_return.available %}disabled{% endif %}>Atualizar miolo oficial pelo Google Drive</button>
+            <span class="status">Localiza, valida e salva automaticamente o retorno canônico antes de frontmatter, capa e imagens.</span>
           </form>
           {% if drive_return.state %}
           <div class="status">
             <strong>{{ drive_return.state }}</strong>
           </div>
           {% endif %}
-          {% if drive_return.pending %}
-          <div class="status">
-            Arquivo: <strong>{{ drive_return.remote_filename }}</strong><br />
-            SHA-256: <strong>{{ drive_return.sha256 }}</strong>
-          </div>
-          <form class="polidor-action" method="post" action="{{ drive_return.save_url }}">
-            {% csrf_token %}
-            <label for="drive_return_text"><strong>Referência retornada</strong></label>
-            <textarea id="drive_return_text" rows="24" style="width:100%;" readonly>{{ drive_return.content }}</textarea>
-            <button class="btn secondary" type="submit">Salvar texto</button>
-          </form>
-          {% elif drive_return.saved %}
-          <div class="status">O retorno já está salvo como referência canônica.</div>
-          <a class="btn secondary" href="{% url 'preview_merge_selected' edition_id=edition.id %}?merge_kind=canonical_reference" target="_blank" rel="noopener noreferrer">Visualizar referência canônica</a>
+          {% if drive_return.saved %}
+          <div class="status">O retorno está salvo como miolo oficial e será a fonte do trabalho editorial.</div>
+          <a class="btn secondary" href="{% url 'preview_merge_selected' edition_id=edition.id %}?merge_kind=canonical_reference" target="_blank" rel="noopener noreferrer">Visualizar miolo oficial</a>
           {% endif %}
           <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
             <select name="merge_kind" aria-label="Arquivo para preview">

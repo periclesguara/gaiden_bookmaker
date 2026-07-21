@@ -125,6 +125,7 @@ class FakeUpload:
 class FakeHeadingDriveClient:
     def __init__(self):
         self.uploads = []
+        self.folders = []
         self.checked = 0
 
     def check_available(self):
@@ -137,6 +138,14 @@ class FakeHeadingDriveClient:
         return ["Edgar_Rice_Burroughs"]
 
     def upload_file(self, source, folder, remote_filename):
+        self.uploads.append((Path(source), folder, remote_filename))
+        return {
+            "remote_path": f"{folder}/{remote_filename}",
+            "no_op": False,
+        }
+
+    def upload_file_to_path(self, source, folder, remote_filename):
+        self.folders.append(folder)
         self.uploads.append((Path(source), folder, remote_filename))
         return {
             "remote_path": f"{folder}/{remote_filename}",
@@ -944,46 +953,56 @@ class BlockZeroTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Cadastro do livro")
 
-    def test_heading_cleaner_drive_button_uses_linked_intake_folder(self):
+    def test_translate_google_drive_button_creates_canonical_job_before_translate(self):
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         handoff = open_in_bookmaker(item)
         page_url = reverse("edition_steps", kwargs={"edition_id": handoff.edition.id})
         response = self.client.get(page_url)
-        self.assertNotContains(response, "Enviar para Google Drive")
+        self.assertContains(response, "Translate Google Drive")
+        self.assertContains(response, "Disponível após HeadingCleaner")
 
         clean_path = storage.heading_cleaner_dir(item.book_code) / "clean.txt"
         clean_path.parent.mkdir(parents=True, exist_ok=True)
         clean_path.write_text("Chapter One\nTarzan begins.\n", encoding="utf-8")
         response = self.client.get(page_url)
-        self.assertContains(response, "Enviar para Google Drive")
+        html = response.content.decode("utf-8")
+        self.assertContains(response, "Translate Google Drive")
         self.assertContains(
             response,
-            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
+            "04_TRANSLATION_JOBS/book_0031/en-us/input/"
+            "book_0031_tarzan_of_the_apes_heading_clean_en-us.txt",
         )
+        self.assertContains(
+            response,
+            "04_TRANSLATION_JOBS/book_0031/en-us/return/"
+            "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+        )
+        self.assertLess(html.find("Translate Google Drive"), html.find("Rodar Translate"))
 
         client = FakeHeadingDriveClient()
         upload_url = reverse(
-            "pipeline_heading_cleaner_drive_upload",
+            "pipeline_translation_drive_upload",
             kwargs={"edition_id": handoff.edition.id},
         )
         self.assertEqual(self.client.get(upload_url).status_code, 405)
         with patch(
-            "gaiden.application.pipeline.heading_cleaner_drive.RcloneClient",
+            "gaiden.application.pipeline.drive_return.RcloneClient",
             return_value=client,
-        ):
+        ) as rclone_client:
             response = self.client.post(upload_url)
         self.assertRedirects(response, page_url, fetch_redirect_response=False)
+        rclone_client.assert_called_once_with(inbox="04_TRANSLATION_JOBS")
         self.assertEqual(client.checked, 1)
         self.assertEqual(len(client.uploads), 1)
         source, folder, remote_filename = client.uploads[0]
         self.assertEqual(source, clean_path)
-        self.assertEqual(folder, self.batch.drive_relative_path)
+        self.assertEqual(folder, "book_0031/en-us/input")
         self.assertEqual(
             remote_filename,
-            "edgar-rice-burroughs_tarzan-of-the-apes_heading_clean_v2.txt",
+            "book_0031_tarzan_of_the_apes_heading_clean_en-us.txt",
         )
 
-    def test_drive_return_is_reviewed_before_becoming_canonical_reference(self):
+    def test_drive_return_is_promoted_to_official_body_in_one_action(self):
         from gaiden.application.pipeline import drive_return
         from pipeline.services import preflight, text_source
 
@@ -992,35 +1011,37 @@ class BlockZeroTests(TestCase):
         edition = handoff.edition
         self._prepare_normalized_source(edition)
         page_url = reverse("edition_steps", kwargs={"edition_id": edition.id})
-        import_url = reverse(
-            "pipeline_drive_return_import",
-            kwargs={"edition_id": edition.id},
-        )
-        save_url = reverse(
-            "pipeline_drive_return_save",
+        promote_url = reverse(
+            "pipeline_drive_return_promote",
             kwargs={"edition_id": edition.id},
         )
 
         response = self.client.get(page_url)
         html = response.content.decode("utf-8")
         save_merge_position = html.find("Salvar Merge Polidor")
-        import_position = html.find("Importar retorno do Drive")
+        promote_position = html.find("Atualizar miolo oficial pelo Google Drive")
         preview_position = html.find(">Preview<")
         self.assertGreaterEqual(save_merge_position, 0)
-        self.assertGreater(import_position, save_merge_position)
-        self.assertGreater(preview_position, import_position)
-        self.assertEqual(self.client.get(import_url).status_code, 405)
-        self.assertEqual(self.client.get(save_url).status_code, 405)
+        self.assertGreater(promote_position, save_merge_position)
+        self.assertGreater(preview_position, promote_position)
+        self.assertEqual(self.client.get(promote_url).status_code, 405)
 
         pipeline = EditionPipeline.objects.get(edition=edition)
         initial_stage = pipeline.current_stage
         initial_job_count = PipelineJob.objects.count()
+        superseded = TextSnapshot.objects.create(
+            edition=edition,
+            language="en",
+            stage="drive_return_reference",
+            source_path="legacy-reference.txt",
+            content="Incorrect prior reference.",
+        )
         client = FakeDriveReturnClient()
         with patch(
             "gaiden.application.pipeline.drive_return.RcloneClient",
             return_value=client,
         ) as rclone_client:
-            response = self.client.post(import_url)
+            response = self.client.post(promote_url)
 
         self.assertRedirects(response, page_url, fetch_redirect_response=False)
         self.assertEqual(client.checked, 1)
@@ -1038,43 +1059,15 @@ class BlockZeroTests(TestCase):
         self.assertNotIn("01_INBOX_RAW", client.list_requests[0])
         self.assertNotIn(self.batch.drive_relative_path, client.list_requests[0])
         pending = drive_return.pending_path(edition)
-        self.assertEqual(pending.read_bytes(), client.payload)
-        pipeline.refresh_from_db()
-        self.assertEqual(pipeline.current_stage, initial_stage)
-        self.assertFalse(pipeline.core_last_txt_path)
-        self.assertEqual(PipelineJob.objects.count(), initial_job_count)
-        self.assertFalse(TextSnapshot.objects.filter(edition=edition).exists())
-
-        response = self.client.get(page_url)
-        self.assertContains(response, "Retorno importado — aguardando salvar")
-        self.assertContains(response, "Returned Tarzan text")
-        self.assertContains(
-            response,
-            "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
-        )
-        self.assertContains(response, hashlib.sha256(client.payload).hexdigest())
-        self.assertContains(response, "readonly")
-        self.assertContains(response, "Salvar texto")
-
-        superseded = TextSnapshot.objects.create(
-            edition=edition,
-            language="en",
-            stage="drive_return_reference",
-            source_path="legacy-reference.txt",
-            content="Incorrect prior reference.",
-        )
-        response = self.client.post(
-            save_url,
-            {"return_text": "A browser edit must not replace imported bytes."},
-        )
-        self.assertRedirects(response, page_url, fetch_redirect_response=False)
-        canonical = storage.editions_dir(edition.id) / "core" / "core_last.txt"
+        canonical = drive_return.miolo_oficial_path(edition)
         self.assertEqual(canonical.read_bytes(), client.payload)
         self.assertFalse(pending.exists())
         self.assertFalse(drive_return.pending_metadata_path(edition).exists())
         pipeline.refresh_from_db()
         self.assertEqual(pipeline.current_stage, initial_stage)
         self.assertEqual(Path(pipeline.core_last_txt_path), canonical)
+        self.assertIn("DRIVE_RETURN_MIOLO_OFICIAL_SAVED", pipeline.last_log)
+        self.assertEqual(PipelineJob.objects.count(), initial_job_count)
         superseded.refresh_from_db()
         self.assertEqual(
             superseded.stage,
@@ -1091,8 +1084,8 @@ class BlockZeroTests(TestCase):
         self.assertEqual(text_source.resolve_selected_text_sources(edition)[0].path, canonical)
 
         response = self.client.get(page_url)
-        self.assertContains(response, "Referência canônica salva")
-        self.assertContains(response, "Visualizar referência canônica")
+        self.assertContains(response, "miolo oficial")
+        self.assertContains(response, "Visualizar miolo oficial")
         self.assertNotContains(response, "Retorno importado — aguardando salvar")
 
         preview = self.client.get(

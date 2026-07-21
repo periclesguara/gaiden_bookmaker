@@ -55,6 +55,11 @@ urlpatterns = [
         name="pipeline_heading_cleaner_drive_upload",
     ),
     path(
+        "editions/<int:edition_id>/translate/send-drive/",
+        views.pipeline_translation_drive_upload,
+        name="pipeline_translation_drive_upload",
+    ),
+    path(
         "editions/<int:edition_id>/drive-return/import/",
         views.pipeline_drive_return_import,
         name="pipeline_drive_return_import",
@@ -63,6 +68,11 @@ urlpatterns = [
         "editions/<int:edition_id>/drive-return/save/",
         views.pipeline_drive_return_save,
         name="pipeline_drive_return_save",
+    ),
+    path(
+        "editions/<int:edition_id>/drive-return/promote/",
+        views.pipeline_drive_return_promote,
+        name="pipeline_drive_return_promote",
     ),
     path(
         "editions/<int:edition_id>/translate/run/",

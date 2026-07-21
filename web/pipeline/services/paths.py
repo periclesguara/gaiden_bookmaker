@@ -130,11 +130,14 @@ def core_last_txt_path(edition) -> Path:
 
 
 def saved_core_reference_path(edition) -> Path | None:
-    configured = ""
-    try:
-        configured = getattr(edition.pipeline, "core_last_txt_path", "") or ""
-    except Exception:
-        configured = ""
+    from editorial.models import EditionPipeline
+
+    configured = (
+        EditionPipeline.objects.filter(edition_id=edition.id)
+        .values_list("core_last_txt_path", flat=True)
+        .first()
+        or ""
+    )
 
     candidates: list[Path] = []
     if configured:

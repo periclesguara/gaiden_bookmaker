@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from django.apps import apps
+from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 
 from gaiden.infrastructure import intake_storage, storage
@@ -50,12 +52,34 @@ class PendingDriveReturn:
     size: int
 
 
+@dataclass(frozen=True)
+class TranslationDriveExportResult:
+    source_path: Path
+    remote_path: str
+    return_folder: str
+    return_filename: str
+    no_op: bool
+
+
+@dataclass(frozen=True)
+class OfficialBodyResult:
+    path: Path
+    snapshot_id: int
+    sha256: str
+    size: int
+    no_op: bool
+
+
 def pending_path(edition) -> Path:
     return storage.editions_dir(edition.id) / "core" / "drive_return_pending.txt"
 
 
 def pending_metadata_path(edition) -> Path:
     return storage.editions_dir(edition.id) / "core" / "drive_return_pending.json"
+
+
+def miolo_oficial_path(edition) -> Path:
+    return storage.editions_dir(edition.id) / "core" / "miolo_oficial.txt"
 
 
 def _canonical_language(value: str) -> str:
@@ -94,7 +118,7 @@ def _normalized_source_sha256(edition) -> str:
     raise DriveReturnError("The normalized input is unavailable for SHA validation")
 
 
-def resolve_drive_return_link(edition) -> DriveReturnLink:
+def resolve_drive_return_link(edition, *, require_normalized: bool = True) -> DriveReturnLink:
     IntakeItem = apps.get_model("intake_module", "IntakeItem")
     queryset = (
         IntakeItem.objects.filter(duplicate_of__isnull=True)
@@ -137,7 +161,41 @@ def resolve_drive_return_link(edition) -> DriveReturnLink:
         title_slug=title_slug,
         target_language=edition_target,
         canonical_filename=canonical_filename,
-        normalized_sha256=_normalized_source_sha256(edition),
+        normalized_sha256=(
+            _normalized_source_sha256(edition) if require_normalized else ""
+        ),
+    )
+
+
+def translation_input_folder(edition) -> str:
+    link = resolve_drive_return_link(edition, require_normalized=False)
+    return f"{link.book_code}/{link.target_language}/input"
+
+
+def translation_input_filename(edition) -> str:
+    link = resolve_drive_return_link(edition, require_normalized=False)
+    return f"{link.book_code}_{link.title_slug}_heading_clean_{link.target_language}.txt"
+
+
+def export_translation_job(edition, *, client=None) -> TranslationDriveExportResult:
+    link = resolve_drive_return_link(edition, require_normalized=False)
+    source_path = storage.heading_cleaner_dir(link.book_code) / "clean.txt"
+    if source_path.is_symlink() or not source_path.is_file():
+        raise DriveReturnError("HeadingCleaner output is not available")
+    if not source_path.read_text(encoding="utf-8").strip():
+        raise DriveReturnError("HeadingCleaner output is empty")
+
+    folder = translation_input_folder(edition)
+    filename = translation_input_filename(edition)
+    drive_client = client or RcloneClient(inbox=TRANSLATION_JOBS_ROOT)
+    drive_client.check_available()
+    result = drive_client.upload_file_to_path(source_path, folder, filename)
+    return TranslationDriveExportResult(
+        source_path=source_path,
+        remote_path=result["remote_path"],
+        return_folder=link.folder,
+        return_filename=link.canonical_filename,
+        no_op=bool(result["no_op"]),
     )
 
 
@@ -302,3 +360,85 @@ def import_drive_return(edition, *, client=None) -> DriveReturnResult:
         sha256=sha256,
         size=len(payload),
     )
+
+
+def save_pending_as_official(edition) -> OfficialBodyResult:
+    payload, pending = validated_pending_payload(edition)
+    content = payload.decode("utf-8")
+    digest = hashlib.sha256(payload).hexdigest()
+    canonical = miolo_oficial_path(edition)
+    if canonical.exists() and (canonical.is_symlink() or not canonical.is_file()):
+        raise DriveReturnError("The official body destination is invalid")
+
+    EditionPipeline = apps.get_model("editorial", "EditionPipeline")
+    TextSnapshot = apps.get_model("pipeline", "TextSnapshot")
+    active = (
+        TextSnapshot.objects.filter(edition=edition, stage="drive_return_reference")
+        .order_by("-id")
+        .first()
+    )
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+    if (
+        canonical.is_file()
+        and hashlib.sha256(canonical.read_bytes()).hexdigest() == digest
+        and active is not None
+        and hashlib.sha256(active.content.encode("utf-8")).hexdigest() == digest
+        and Path(pipeline_state.core_last_txt_path or "") == canonical
+    ):
+        pending.pending_path.unlink(missing_ok=True)
+        pending_metadata_path(edition).unlink(missing_ok=True)
+        return OfficialBodyResult(
+            path=canonical,
+            snapshot_id=active.id,
+            sha256=digest,
+            size=len(payload),
+            no_op=True,
+        )
+
+    previous_payload = canonical.read_bytes() if canonical.is_file() else None
+    try:
+        with transaction.atomic():
+            pipeline_state, _ = EditionPipeline.objects.select_for_update().get_or_create(
+                edition=edition
+            )
+            intake_storage.atomic_write_text(canonical, content, overwrite=True)
+            pipeline_state.core_last_txt_path = str(canonical)
+            pipeline_state.last_log = (
+                f"{timezone.now().isoformat()} :: DRIVE_RETURN_MIOLO_OFICIAL_SAVED"
+            )
+            pipeline_state.save(update_fields=["core_last_txt_path", "last_log"])
+            TextSnapshot.objects.filter(
+                edition=edition,
+                stage="drive_return_reference",
+            ).update(stage="drive_return_reference_superseded")
+            snapshot = TextSnapshot.objects.create(
+                edition=edition,
+                language=resolve_drive_return_link(edition).target_language,
+                stage="drive_return_reference",
+                source_path=str(canonical),
+                content=content,
+            )
+    except Exception:
+        if previous_payload is None:
+            canonical.unlink(missing_ok=True)
+        else:
+            intake_storage.atomic_write_bytes(canonical, previous_payload, overwrite=True)
+        raise
+
+    if hasattr(edition, "_state"):
+        edition._state.fields_cache["pipeline"] = pipeline_state
+
+    pending.pending_path.unlink(missing_ok=True)
+    pending_metadata_path(edition).unlink(missing_ok=True)
+    return OfficialBodyResult(
+        path=canonical,
+        snapshot_id=snapshot.id,
+        sha256=digest,
+        size=len(payload),
+        no_op=False,
+    )
+
+
+def import_and_promote_drive_return(edition, *, client=None) -> OfficialBodyResult:
+    import_drive_return(edition, client=client)
+    return save_pending_as_official(edition)

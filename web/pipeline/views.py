@@ -4734,8 +4734,9 @@ def edition_steps(request, edition_id: int):
         str(pipeline_prereqs["book_code"])
     )
     heading_cleaner_done = bool(pipeline_prereqs["heading_clean_exists"])
+    core_edition = _processing_base_edition(edition)
     heading_drive_destination = heading_cleaner_drive.resolve_heading_cleaner_destination(
-        _processing_base_edition(edition)
+        core_edition
     )
     heading_drive_export = {
         "available": bool(heading_cleaner_done and heading_drive_destination),
@@ -4747,6 +4748,34 @@ def edition_steps(request, edition_id: int):
             kwargs={"edition_id": edition.id},
         ),
     }
+    translation_drive_export = {
+        "available": False,
+        "input_folder": "",
+        "input_filename": "",
+        "return_folder": "",
+        "return_filename": "",
+        "run_url": reverse(
+            "pipeline_translation_drive_upload",
+            kwargs={"edition_id": edition.id},
+        ),
+    }
+    if heading_cleaner_done:
+        try:
+            translation_link = drive_return.resolve_drive_return_link(
+                core_edition,
+                require_normalized=False,
+            )
+            translation_drive_export.update(
+                {
+                    "available": True,
+                    "input_folder": drive_return.translation_input_folder(core_edition),
+                    "input_filename": drive_return.translation_input_filename(core_edition),
+                    "return_folder": translation_link.folder,
+                    "return_filename": translation_link.canonical_filename,
+                }
+            )
+        except drive_return.DriveReturnError:
+            pass
     pending_drive_return = drive_return.read_pending_return(edition)
     drive_return_path = drive_return.pending_path(edition)
     drive_return_pending = pending_drive_return is not None
@@ -5085,13 +5114,19 @@ def edition_steps(request, edition_id: int):
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
         "heading_drive_export": heading_drive_export,
+        "translation_drive_export": translation_drive_export,
         "drive_return": {
+            "available": bool(translation_drive_export["available"]),
             "import_url": reverse(
                 "pipeline_drive_return_import",
                 kwargs={"edition_id": edition.id},
             ),
             "save_url": reverse(
                 "pipeline_drive_return_save",
+                kwargs={"edition_id": edition.id},
+            ),
+            "promote_url": reverse(
+                "pipeline_drive_return_promote",
                 kwargs={"edition_id": edition.id},
             ),
             "pending": drive_return_pending,
@@ -5206,6 +5241,34 @@ def pipeline_heading_cleaner_drive_upload(request, edition_id: int):
     return redirect(_edition_steps_redirect_url(edition))
 
 
+def pipeline_translation_drive_upload(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    core_edition = _processing_base_edition(edition)
+    try:
+        result = drive_return.export_translation_job(core_edition)
+        if result.no_op:
+            messages.info(request, "O texto de tradução já existe no Google Drive.")
+        else:
+            messages.success(request, "Texto enviado para tradução no Google Drive.")
+        messages.info(request, f"Entrada: {result.remote_path}")
+        messages.info(
+            request,
+            f"Retorno esperado: {result.return_folder}/{result.return_filename}",
+        )
+    except Exception:
+        logger.exception(
+            "translation_drive_upload_failed edition_id=%s",
+            core_edition.id,
+        )
+        messages.error(
+            request,
+            "Não foi possível preparar a tradução no Google Drive.",
+        )
+    return redirect(_edition_steps_redirect_url(edition))
+
+
 def pipeline_drive_return_import(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     if request.method != "POST":
@@ -5295,6 +5358,31 @@ def pipeline_drive_return_save(request, edition_id: int):
     pending.unlink(missing_ok=True)
     drive_return.pending_metadata_path(edition).unlink(missing_ok=True)
     messages.success(request, "Referência canônica salva.")
+    return redirect(_edition_steps_redirect_url(edition))
+
+
+def pipeline_drive_return_promote(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        result = drive_return.import_and_promote_drive_return(edition)
+        if result.no_op:
+            messages.info(request, "O retorno do Drive já é o miolo oficial.")
+        else:
+            messages.success(request, "Retorno do Drive salvo como miolo oficial.")
+        messages.info(
+            request,
+            f"Miolo oficial: {result.path} · SHA-256: {result.sha256}",
+        )
+    except drive_return.DriveReturnError as exc:
+        messages.error(request, str(exc))
+    except Exception:
+        logger.exception("drive_return_promote_failed edition_id=%s", edition.id)
+        messages.error(
+            request,
+            "Não foi possível atualizar o miolo oficial com o retorno do Google Drive.",
+        )
     return redirect(_edition_steps_redirect_url(edition))
 
 
