@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import html
 import re
@@ -1373,13 +1374,32 @@ def _miolo_candidates(edition: Edition) -> list[Path]:
 
 
 def resolve_miolo_source_path(edition: Edition) -> Path:
-    from gaiden.application.pipeline.official_body import resolve_official_body
+    from gaiden.application.pipeline.official_body import active_snapshot, resolve_official_body
 
     official = resolve_official_body(edition)
     if official is None:
         raise FileNotFoundError(
             "Miolo oficial ativo e íntegro não encontrado; EPUB/PDF não podem usar fallback."
         )
+    final_path = builds_dir(edition) / "BOOK.MD_FINAL"
+    manifest_path = final_path.with_name(f"{final_path.name}.source.json")
+    if any(path.is_symlink() or not path.is_file() for path in (final_path, manifest_path)):
+        return official
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        snapshot = active_snapshot(edition)
+        final_sha256 = hashlib.sha256(final_path.read_bytes()).hexdigest()
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return official
+    if (
+        snapshot is not None
+        and manifest.get("schema") == "gaiden_final_md_derivation_v1"
+        and manifest.get("edition_id") == edition.id
+        and manifest.get("official_snapshot_id") == snapshot.id
+        and manifest.get("official_sha256") == snapshot.sha256
+        and manifest.get("final_sha256") == final_sha256
+    ):
+        return final_path
     return official
 
 

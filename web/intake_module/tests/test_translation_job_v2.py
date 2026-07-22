@@ -374,6 +374,7 @@ class TranslationJobV2Tests(TestCase):
 
     def test_kdp_build_source_requires_the_official_body(self):
         from editorial.kdp_mode import resolve_miolo_source_path
+        from pipeline.services import md_quality
 
         fallback = storage.builds_dir(self.item.book_code, "en-us") / "BOOK.MD_FINAL"
         fallback.parent.mkdir(parents=True, exist_ok=True)
@@ -386,6 +387,18 @@ class TranslationJobV2Tests(TestCase):
             provenance="internal_polish",
             source_stage="polish",
         )
+        self.assertEqual(resolve_miolo_source_path(self.edition), official_body.canonical_path(self.edition))
+
+        pre_edition = storage.builds_dir(self.item.book_code, "en") / "BOOK.PRE_EDITION.md"
+        pre_edition.parent.mkdir(parents=True, exist_ok=True)
+        pre_edition.write_text(
+            "# Chapter 01\n\n![](assets/images/ch01_01.jpg)\n\nOfficial source.\n",
+            encoding="utf-8",
+        )
+        approved = md_quality.approve_md_final(self.edition)
+        final_path = Path(approved["path"])
+        self.assertEqual(resolve_miolo_source_path(self.edition), final_path)
+        final_path.write_text("tampered derivative", encoding="utf-8")
         self.assertEqual(resolve_miolo_source_path(self.edition), official_body.canonical_path(self.edition))
 
     def test_db_committed_failure_is_reconciled(self):

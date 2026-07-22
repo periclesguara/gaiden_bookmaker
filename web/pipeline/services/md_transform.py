@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
-from . import paths
+from . import edition_meta, paths, utils
 
 PAGE_MARKER_RE = re.compile(r"@@P\d{4}@@\s*")
 IMAGE_PLACEHOLDER_RE = re.compile(r"\{\{IMAGE:CH\d{2}:\d{2}\}\}")
