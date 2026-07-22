@@ -1373,14 +1373,14 @@ def _miolo_candidates(edition: Edition) -> list[Path]:
 
 
 def resolve_miolo_source_path(edition: Edition) -> Path:
-    for candidate in _miolo_candidates(edition):
-        if candidate.exists() and candidate.stat().st_size > 0:
-            return candidate
-    candidates = "\n".join(f"- {p}" for p in _miolo_candidates(edition))
-    raise FileNotFoundError(
-        "Miolo traduzido nao encontrado. Nenhuma fonte de miolo disponivel.\n"
-        f"Candidatos verificados:\n{candidates}"
-    )
+    from gaiden.application.pipeline.official_body import resolve_official_body
+
+    official = resolve_official_body(edition)
+    if official is None:
+        raise FileNotFoundError(
+            "Miolo oficial ativo e íntegro não encontrado; EPUB/PDF não podem usar fallback."
+        )
+    return official
 
 
 def _publish_legacy_miolo_snapshot(edition: Edition, source_path: Path) -> Path:

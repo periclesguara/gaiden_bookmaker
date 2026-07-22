@@ -65,6 +65,16 @@ urlpatterns = [
         name="pipeline_drive_return_import",
     ),
     path(
+        "editions/<int:edition_id>/drive-return/import-translated/",
+        views.pipeline_drive_translated_import,
+        name="pipeline_drive_translated_import",
+    ),
+    path(
+        "editions/<int:edition_id>/drive-return/confirm-warning/",
+        views.pipeline_drive_return_confirm_warning,
+        name="pipeline_drive_return_confirm_warning",
+    ),
+    path(
         "editions/<int:edition_id>/drive-return/save/",
         views.pipeline_drive_return_save,
         name="pipeline_drive_return_save",

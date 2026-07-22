@@ -108,7 +108,7 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
         )
 
     def resolve_auto() -> list[SelectedTextSource]:
-        reference = paths.saved_drive_return_reference_path(edition)
+        reference = paths.saved_core_reference_path(edition)
         if reference is not None:
             return [
                 SelectedTextSource(
@@ -199,7 +199,7 @@ def resolve_txt_source(edition) -> SelectedTextSource:
     normalized_lang = utils.normalize_lang(lang_code)
     policy = stage_policy.POLICY
 
-    reference = paths.saved_drive_return_reference_path(edition)
+    reference = paths.saved_core_reference_path(edition)
     if reference is not None:
         return SelectedTextSource(
             language=normalized_lang,

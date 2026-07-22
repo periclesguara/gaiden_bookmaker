@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -36,8 +37,8 @@ from gaiden.application.intake.translation import (
 from gaiden.domain.intake import IntakeState
 from gaiden.infrastructure import intake_storage, storage
 from gaiden.infrastructure.intake_drive import DriveFile
-from pipeline.models import BookEditionTemplate, PipelineJob, TextSnapshot
-from web.intake_module.models import IntakeBatch, IntakeItem
+from pipeline.models import BookEditionTemplate, OfficialBodySnapshot, PipelineJob, TextSnapshot
+from web.intake_module.models import IntakeBatch, IntakeItem, TranslationJob
 
 
 class FakeConverter:
@@ -154,19 +155,28 @@ class FakeHeadingDriveClient:
 
 
 class FakeDriveReturnClient:
-    def __init__(self, payload=b"CHAPTER 1\n\nReturned Tarzan text.\n"):
+    def __init__(self, payload=b"CHAPTER 1\n\nReturned Tarzan text with enough editorial detail.\n"):
         self.payload = payload
+        self.payloads = {}
         self.checked = 0
         self.downloads = []
         self.list_requests = []
+        self.files = []
+
+    def configure_job(self, job, *, completed_stages=None):
+        from gaiden.application.pipeline import drive_return
+
+        manifest = drive_return._job_manifest(job)
+        if completed_stages is not None:
+            manifest["completed_stages"] = completed_stages
+        manifest_payload = (json.dumps(manifest) + "\n").encode("utf-8")
+        self.payloads = {
+            job.expected_return_filename: self.payload,
+            job.manifest_filename: manifest_payload,
+        }
         self.files = [
-            DriveFile("other", "another-book_heading_clean_v2.txt", "another-book_heading_clean_v2.txt", 12),
-            DriveFile(
-                "return",
-                "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
-                "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
-                len(payload),
-            ),
+            DriveFile("return", job.expected_return_filename, job.expected_return_filename, len(self.payload)),
+            DriveFile("manifest", job.manifest_filename, job.manifest_filename, len(manifest_payload)),
         ]
 
     def check_available(self):
@@ -184,7 +194,7 @@ class FakeDriveReturnClient:
 
     def download_file(self, folder, drive_file, destination):
         self.downloads.append((folder, drive_file.name))
-        destination.write_bytes(self.payload)
+        destination.write_bytes(self.payloads.get(drive_file.name, self.payload))
         return destination
 
 
@@ -228,7 +238,16 @@ class BlockZeroTests(TestCase):
         temporary = tempfile.TemporaryDirectory(prefix="gaiden-intake-block-zero-")
         self.addCleanup(temporary.cleanup)
         self.storage_root = Path(temporary.name) / "data"
-        environment = patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}, clear=False)
+        environment = patch.dict(
+            os.environ,
+            {
+                "GAIDEN_STORAGE_ROOT": str(self.storage_root),
+                "GAIDEN_RETURN_MIN_BYTES": "1",
+                "GAIDEN_RETURN_WARN_MIN_RATIO": "0.1",
+                "GAIDEN_RETURN_WARN_MAX_RATIO": "10",
+            },
+            clear=False,
+        )
         environment.start()
         self.addCleanup(environment.stop)
         self.batch = IntakeBatch.objects.create(
@@ -316,6 +335,20 @@ class BlockZeroTests(TestCase):
         texts.save(update_fields=["normalized_path", "normalized_text", "updated_at"])
         return normalized
 
+    def _export_drive_job(self, edition, *, output_stage="translated"):
+        from gaiden.application.pipeline import drive_return
+
+        clean = storage.heading_cleaner_dir(edition.work.code) / "clean.txt"
+        clean.parent.mkdir(parents=True, exist_ok=True)
+        clean.write_text("CHAPTER 1\n\nTarzan begins in the jungle.\n", encoding="utf-8")
+        client = FakeHeadingDriveClient()
+        drive_return.export_translation_job(
+            edition,
+            client=client,
+            output_stage=output_stage,
+        )
+        return TranslationJob.objects.get(edition=edition, output_stage=output_stage)
+
     def _block_two_status_fixture(
         self,
         *,
@@ -329,21 +362,39 @@ class BlockZeroTests(TestCase):
         edition = open_in_bookmaker(item).edition
         pipeline = EditionPipeline.objects.get(edition=edition)
         pipeline.current_stage = PipelineStage.NORMALIZED
-        core = storage.editions_dir(edition.id) / "core" / "core_last.txt"
-        if create_core:
-            core.parent.mkdir(parents=True, exist_ok=True)
-            core.write_bytes(core_payload)
-            pipeline.core_last_txt_path = str(core)
-        pipeline.save(update_fields=["current_stage", "core_last_txt_path"])
+        from gaiden.application.pipeline import official_body
+
+        core = official_body.canonical_path(edition)
+        pipeline.save(update_fields=["current_stage"])
         snapshot = None
         if create_snapshot:
-            snapshot = TextSnapshot.objects.create(
-                edition=edition,
-                language=edition.language.code,
-                stage=snapshot_stage,
-                source_path=str(core),
-                content=(snapshot_payload or core_payload).decode("utf-8"),
-            )
+            if snapshot_stage == "drive_return_reference_pending":
+                payload = snapshot_payload or core_payload
+                snapshot = OfficialBodySnapshot.objects.create(
+                    edition=edition,
+                    sha256=hashlib.sha256(payload).hexdigest(),
+                    size=len(payload),
+                    relative_path="editions/pending.txt",
+                    provenance="drive_official",
+                    source_stage="official",
+                    is_active=False,
+                )
+            else:
+                result = official_body.promote(
+                    edition,
+                    snapshot_payload or core_payload,
+                    provenance="drive_official",
+                    source_stage="official",
+                )
+                snapshot = OfficialBodySnapshot.objects.get(pk=result.snapshot_id)
+                if snapshot_payload is not None:
+                    core.write_bytes(core_payload)
+        if create_snapshot and not create_core:
+            core.unlink(missing_ok=True)
+        elif create_core and not create_snapshot:
+            core.parent.mkdir(parents=True, exist_ok=True)
+            core.write_bytes(core_payload)
+        pipeline.refresh_from_db()
         return edition, pipeline, core, snapshot
 
     def test_dashboard_shows_block_zero_stats_and_current_individual_upload(self):
@@ -391,6 +442,8 @@ class BlockZeroTests(TestCase):
     def test_drive_folder_selection_sets_internal_path_code_and_lists_without_download(self):
         client = FakeSelectionClient()
         with patch("web.intake_module.views.RcloneClient", return_value=client):
+            self.client.get(reverse("intake_module:drive_folders"))
+            self.client.post(reverse("intake_module:drive_folders"))
             list_response = self.client.get(reverse("intake_module:drive_folders"))
             self.assertContains(list_response, "Edgar_Rice_Burroughs")
             self.assertContains(list_response, "Selecionar esta pasta")
@@ -426,6 +479,9 @@ class BlockZeroTests(TestCase):
         client = FakeSelectionClient()
         with patch("web.intake_module.views.RcloneClient", return_value=client):
             with patch("gaiden.infrastructure.intake_drive.subprocess.run") as subprocess_run:
+                initial = self.client.get(reverse("intake_module:drive_folders"))
+                self.assertNotContains(initial, "Edgar_Rice_Burroughs")
+                self.client.post(reverse("intake_module:drive_folders"))
                 response = self.client.get(reverse("intake_module:drive_folders"))
         self.assertContains(
             response,
@@ -452,7 +508,7 @@ class BlockZeroTests(TestCase):
         client = FakeSelectionClient()
         client.check_available = lambda: (_ for _ in ()).throw(RuntimeError("secret config path"))
         with patch("web.intake_module.views.RcloneClient", return_value=client):
-            response = self.client.get(reverse("intake_module:drive_folders"))
+            response = self.client.post(reverse("intake_module:drive_folders"), follow=True)
         self.assertContains(
             response,
             "Não foi possível consultar o Google Drive. Verifique a configuração do remote gaiden_drive.",
@@ -716,7 +772,7 @@ class BlockZeroTests(TestCase):
         self.assertEqual(Path(texts.raw_path), expected_raw)
         self.assertEqual(Path(template.source_saved_path), expected_raw)
         self.assertEqual(pipeline.current_stage, PipelineStage.TRANSLATED)
-        self.assertEqual(Path(pipeline.core_last_txt_path), expected_translated)
+        self.assertFalse(pipeline.core_last_txt_path)
         self.assertEqual(pipeline.translation_language, "de")
         self.assertEqual(expected_raw.read_text(encoding="utf-8"), "Chapter One\nTarzan begins.\n")
         self.assertEqual(
@@ -975,7 +1031,7 @@ class BlockZeroTests(TestCase):
         self.assertContains(
             response,
             "04_TRANSLATION_JOBS/book_0031/en-us/return/"
-            "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
+            "book_0031_tarzan_of_the_apes_translated_en-us.txt",
         )
         self.assertLess(html.find("Translate Google Drive"), html.find("Rodar Translate"))
 
@@ -993,7 +1049,7 @@ class BlockZeroTests(TestCase):
         self.assertRedirects(response, page_url, fetch_redirect_response=False)
         rclone_client.assert_called_once_with(inbox="04_TRANSLATION_JOBS")
         self.assertEqual(client.checked, 1)
-        self.assertEqual(len(client.uploads), 1)
+        self.assertEqual(len(client.uploads), 2)
         source, folder, remote_filename = client.uploads[0]
         self.assertEqual(source, clean_path)
         self.assertEqual(folder, "book_0031/en-us/input")
@@ -1001,15 +1057,19 @@ class BlockZeroTests(TestCase):
             remote_filename,
             "book_0031_tarzan_of_the_apes_heading_clean_en-us.txt",
         )
+        job = TranslationJob.objects.get(edition=handoff.edition)
+        self.assertEqual(job.output_stage, "translated")
+        self.assertEqual(client.uploads[1][2], job.manifest_filename)
 
     def test_drive_return_is_promoted_to_official_body_in_one_action(self):
-        from gaiden.application.pipeline import drive_return
+        from gaiden.application.pipeline import drive_return, official_body
         from pipeline.services import preflight, text_source
 
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         handoff = open_in_bookmaker(item)
         edition = handoff.edition
         self._prepare_normalized_source(edition)
+        job = self._export_drive_job(edition, output_stage="official")
         page_url = reverse("edition_steps", kwargs={"edition_id": edition.id})
         promote_url = reverse(
             "pipeline_drive_return_promote",
@@ -1029,14 +1089,14 @@ class BlockZeroTests(TestCase):
         pipeline = EditionPipeline.objects.get(edition=edition)
         initial_stage = pipeline.current_stage
         initial_job_count = PipelineJob.objects.count()
-        superseded = TextSnapshot.objects.create(
-            edition=edition,
-            language="en",
-            stage="drive_return_reference",
-            source_path="legacy-reference.txt",
-            content="Incorrect prior reference.",
+        prior = official_body.promote(
+            edition,
+            b"CHAPTER 1\n\nPrior official reference.\n",
+            provenance="manual_editorial_approval",
+            source_stage="manual",
         )
         client = FakeDriveReturnClient()
+        client.configure_job(job, completed_stages=["translation", "refine", "polish"])
         with patch(
             "gaiden.application.pipeline.drive_return.RcloneClient",
             return_value=client,
@@ -1046,39 +1106,24 @@ class BlockZeroTests(TestCase):
         self.assertRedirects(response, page_url, fetch_redirect_response=False)
         self.assertEqual(client.checked, 1)
         rclone_client.assert_called_once_with(inbox="04_TRANSLATION_JOBS")
-        self.assertEqual(
-            client.downloads,
-            [
-                (
-                    "book_0031/en-us/return",
-                    "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
-                )
-            ],
-        )
+        self.assertEqual({name for _folder, name in client.downloads}, {job.manifest_filename, job.expected_return_filename})
         self.assertEqual(client.list_requests, ["book_0031/en-us/return"])
         self.assertNotIn("01_INBOX_RAW", client.list_requests[0])
         self.assertNotIn(self.batch.drive_relative_path, client.list_requests[0])
-        pending = drive_return.pending_path(edition)
+        pending = drive_return.pending_path(edition, job)
         canonical = drive_return.miolo_oficial_path(edition)
         self.assertEqual(canonical.read_bytes(), client.payload)
         self.assertFalse(pending.exists())
-        self.assertFalse(drive_return.pending_metadata_path(edition).exists())
+        self.assertFalse(drive_return.pending_metadata_path(edition, job).exists())
         pipeline.refresh_from_db()
         self.assertEqual(pipeline.current_stage, initial_stage)
-        self.assertEqual(Path(pipeline.core_last_txt_path), canonical)
-        self.assertIn("DRIVE_RETURN_MIOLO_OFICIAL_SAVED", pipeline.last_log)
+        self.assertEqual(official_body.resolve_official_body(edition), canonical)
+        self.assertIn("OFFICIAL_BODY_DB_COMMITTED", pipeline.last_log)
         self.assertEqual(PipelineJob.objects.count(), initial_job_count)
-        superseded.refresh_from_db()
-        self.assertEqual(
-            superseded.stage,
-            "drive_return_reference_superseded",
-        )
-        snapshot = TextSnapshot.objects.get(
-            edition=edition,
-            stage="drive_return_reference",
-        )
-        self.assertEqual(snapshot.content.encode("utf-8"), client.payload)
-        self.assertEqual(Path(snapshot.source_path), canonical)
+        prior_snapshot = OfficialBodySnapshot.objects.get(pk=prior.snapshot_id)
+        self.assertFalse(prior_snapshot.is_active)
+        snapshot = OfficialBodySnapshot.objects.get(edition=edition, is_active=True)
+        self.assertEqual(snapshot.sha256, hashlib.sha256(client.payload).hexdigest())
         self.assertEqual(preflight._pick_source_text(edition), canonical)
         self.assertEqual(text_source.resolve_txt_source(edition).path, canonical)
         self.assertEqual(text_source.resolve_selected_text_sources(edition)[0].path, canonical)
@@ -1100,6 +1145,7 @@ class BlockZeroTests(TestCase):
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         edition = open_in_bookmaker(item).edition
         self._prepare_normalized_source(edition)
+        self._export_drive_job(edition, output_stage="official")
         client = FakeDriveReturnClient()
         client.files = [
             DriveFile("other", "another-book_heading_clean_v2.txt", "another-book_heading_clean_v2.txt", 12)
@@ -1128,7 +1174,8 @@ class BlockZeroTests(TestCase):
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         edition = open_in_bookmaker(item).edition
         self._prepare_normalized_source(edition)
-        pending = drive_return.pending_path(edition)
+        job = self._export_drive_job(edition, output_stage="official")
+        pending = drive_return.pending_path(edition, job)
         pending.parent.mkdir(parents=True, exist_ok=True)
         pending.write_text("Editor content must remain intact.", encoding="utf-8")
         client = FakeDriveReturnClient()
@@ -1141,8 +1188,8 @@ class BlockZeroTests(TestCase):
             )
         ]
 
-        with self.assertRaisesRegex(drive_return.DriveReturnError, "exact canonical"):
-            drive_return.import_drive_return(edition, client=client)
+        with self.assertRaisesRegex(drive_return.DriveReturnError, "Exactly one return TXT"):
+            drive_return.import_drive_return(edition, client=client, output_stage="official")
 
         self.assertEqual(client.list_requests, ["book_0031/en-us/return"])
         self.assertEqual(client.downloads, [])
@@ -1156,44 +1203,53 @@ class BlockZeroTests(TestCase):
 
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         edition = open_in_bookmaker(item).edition
-        normalized_payload = b"The exact normalized input.\n"
-        self._prepare_normalized_source(edition, normalized_payload)
-        client = FakeDriveReturnClient(payload=normalized_payload)
+        self._prepare_normalized_source(edition)
+        job = self._export_drive_job(edition, output_stage="official")
+        input_payload = (storage.heading_cleaner_dir(item.book_code) / "clean.txt").read_bytes()
+        client = FakeDriveReturnClient(payload=input_payload)
+        client.configure_job(job, completed_stages=["translation", "refine", "polish"])
 
         with self.assertRaisesRegex(drive_return.DriveReturnError, "identical"):
-            drive_return.import_drive_return(edition, client=client)
+            drive_return.import_drive_return(edition, client=client, output_stage="official")
 
         self.assertEqual(
             client.downloads,
             [
-                (
-                    "book_0031/en-us/return",
-                    "book_0031_tarzan_of_the_apes_clean_translate_en-us.txt",
-                )
+                ("book_0031/en-us/return", job.manifest_filename),
+                ("book_0031/en-us/return", job.expected_return_filename),
             ],
         )
-        self.assertFalse(drive_return.pending_path(edition).exists())
+        self.assertFalse(drive_return.pending_path(edition, job).exists())
 
     def test_drive_return_save_rejects_pending_sha_equal_to_normalized_source(self):
         from gaiden.application.pipeline import drive_return
 
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
         edition = open_in_bookmaker(item).edition
-        normalized_payload = b"Normalized content must never become a Drive reference.\n"
-        self._prepare_normalized_source(edition, normalized_payload)
-        link = drive_return.resolve_drive_return_link(edition)
-        pending = drive_return.pending_path(edition)
-        intake_storage.atomic_write_bytes(pending, normalized_payload)
+        self._prepare_normalized_source(edition)
+        job = self._export_drive_job(edition, output_stage="official")
+        frozen_payload = (storage.heading_cleaner_dir(item.book_code) / "clean.txt").read_bytes()
+        link = drive_return.resolve_drive_return_link(edition, output_stage="official")
+        digest = hashlib.sha256(frozen_payload).hexdigest()
+        job.status = TranslationJob.STATUS_VALIDATED
+        job.return_sha256 = digest
+        job.validation_status = "PASS"
+        job.save(update_fields=["status", "return_sha256", "validation_status", "updated_at"])
+        pending = drive_return.pending_path(edition, job)
+        intake_storage.atomic_write_bytes(pending, frozen_payload)
         intake_storage.atomic_write_json(
-            drive_return.pending_metadata_path(edition),
+            drive_return.pending_metadata_path(edition, job),
             {
-                "schema": "gaiden_drive_return_pending_v1",
+                "schema": "gaiden_drive_return_pending_v2",
+                "job_id": str(job.job_id),
                 "remote_root": "04_TRANSLATION_JOBS",
                 "remote_folder": link.folder,
                 "remote_filename": link.canonical_filename,
                 "target_language": link.target_language,
-                "sha256": hashlib.sha256(normalized_payload).hexdigest(),
-                "size": len(normalized_payload),
+                "output_stage": "official",
+                "sha256": digest,
+                "size": len(frozen_payload),
+                "validation_status": "PASS",
             },
         )
 
@@ -1202,17 +1258,10 @@ class BlockZeroTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(response, "identical to the normalized input")
-        self.assertFalse(
-            (storage.editions_dir(edition.id) / "core" / "core_last.txt").exists()
-        )
-        self.assertFalse(
-            TextSnapshot.objects.filter(
-                edition=edition,
-                stage="drive_return_reference",
-            ).exists()
-        )
-        self.assertEqual(pending.read_bytes(), normalized_payload)
+        self.assertContains(response, "identical to the frozen input")
+        self.assertFalse(drive_return.miolo_oficial_path(edition).exists())
+        self.assertFalse(OfficialBodySnapshot.objects.filter(edition=edition).exists())
+        self.assertEqual(pending.read_bytes(), frozen_payload)
 
     def test_legacy_core_is_not_mislabelled_as_a_saved_drive_return(self):
         item = self._bookmaker_item(status=IntakeState.CLEAN_READY.value)
@@ -1277,7 +1326,7 @@ class BlockZeroTests(TestCase):
         )
         result = resolve_block_two_completion(edition, pipeline)
         self.assertFalse(result.done)
-        self.assertEqual(result.reason, "snapshot_sha_mismatch")
+        self.assertEqual(result.reason, "official_body_missing_or_invalid")
 
     def test_block_two_missing_core_file_is_pending(self):
         from pipeline.services.block_status import resolve_block_two_completion
@@ -1347,7 +1396,12 @@ class BlockZeroTests(TestCase):
             hashlib.sha256(core.read_bytes()).hexdigest(),
             core.stat().st_mtime_ns,
         )
-        snapshot_before = (snapshot.stage, snapshot.content, snapshot.created_at)
+        snapshot_before = (
+            snapshot.sha256,
+            snapshot.relative_path,
+            snapshot.is_active,
+            snapshot.created_at,
+        )
 
         with patch("gaiden.infrastructure.intake_drive.subprocess.run") as rclone:
             with patch("pipeline.views.execute_language_isolated_core_step") as core_step:
@@ -1390,7 +1444,12 @@ class BlockZeroTests(TestCase):
             core_before,
         )
         self.assertEqual(
-            (snapshot.stage, snapshot.content, snapshot.created_at),
+            (
+                snapshot.sha256,
+                snapshot.relative_path,
+                snapshot.is_active,
+                snapshot.created_at,
+            ),
             snapshot_before,
         )
 

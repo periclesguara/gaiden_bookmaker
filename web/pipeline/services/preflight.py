@@ -27,7 +27,7 @@ def _pick_source_text(edition) -> Path:
     book_code = edition.work.code
     translated_merge = paths.data_dir() / "translated" / book_code / "merge_refine_clean.txt"
     candidates = [
-        paths.saved_drive_return_reference_path(edition),
+        paths.saved_core_reference_path(edition),
         paths.merge_polidor_path(edition),
         translated_merge,
         paths.merge_refine_path(edition),

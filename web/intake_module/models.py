@@ -1,4 +1,7 @@
+import uuid
+
 from django.db import models
+from django.db.models import Q
 from django.utils.text import slugify
 
 from gaiden.domain.intake import IntakeState
@@ -84,7 +87,17 @@ class IntakeItem(models.Model):
     class Meta:
         ordering = ["order_index", "id"]
         constraints = [
-            models.UniqueConstraint(fields=["batch", "order_index"], name="intake_unique_item_order_per_batch")
+            models.UniqueConstraint(fields=["batch", "order_index"], name="intake_unique_item_order_per_batch"),
+            models.UniqueConstraint(
+                fields=["book_code"],
+                condition=~Q(book_code=""),
+                name="intake_unique_nonempty_book_code",
+            ),
+            models.UniqueConstraint(
+                fields=["handoff_edition_id"],
+                condition=Q(handoff_edition_id__isnull=False),
+                name="intake_unique_handoff_edition",
+            ),
         ]
 
     @property
@@ -93,3 +106,84 @@ class IntakeItem(models.Model):
 
     def __str__(self) -> str:
         return f"{self.batch.code} #{self.order_index}: {self.source_filename}"
+
+
+class TranslationJob(models.Model):
+    STAGE_TRANSLATED = "translated"
+    STAGE_OFFICIAL = "official"
+    OUTPUT_STAGE_CHOICES = [
+        (STAGE_TRANSLATED, "Translated intermediate"),
+        (STAGE_OFFICIAL, "Editorial final"),
+    ]
+
+    STATUS_EXPORTED = "EXPORTED"
+    STATUS_RETURN_PENDING = "RETURN_PENDING"
+    STATUS_VALIDATED = "VALIDATED"
+    STATUS_COMPLETED = "COMPLETED"
+    STATUS_SUPERSEDED = "SUPERSEDED"
+    STATUS_FAILED = "FAILED"
+    STATUS_CHOICES = [
+        (STATUS_EXPORTED, "Exported"),
+        (STATUS_RETURN_PENDING, "Return pending"),
+        (STATUS_VALIDATED, "Validated"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_SUPERSEDED, "Superseded"),
+        (STATUS_FAILED, "Failed"),
+    ]
+
+    job_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    edition = models.ForeignKey(
+        "editorial.Edition",
+        on_delete=models.PROTECT,
+        related_name="translation_jobs",
+    )
+    intake_item = models.ForeignKey(
+        IntakeItem,
+        on_delete=models.PROTECT,
+        related_name="translation_jobs",
+    )
+    schema_version = models.PositiveSmallIntegerField(default=2)
+    source_language = models.CharField(max_length=10)
+    target_language = models.CharField(max_length=10)
+    output_stage = models.CharField(max_length=16, choices=OUTPUT_STAGE_CHOICES)
+    confirmed_title = models.CharField(max_length=255)
+    frozen_title_slug = models.SlugField(max_length=255)
+    input_folder = models.CharField(max_length=500)
+    input_filename = models.CharField(max_length=255)
+    input_sha256 = models.CharField(max_length=64)
+    expected_return_folder = models.CharField(max_length=500)
+    expected_return_filename = models.CharField(max_length=255)
+    manifest_filename = models.CharField(max_length=255)
+    manifest_path = models.CharField(max_length=500)
+    status = models.CharField(
+        max_length=24,
+        choices=STATUS_CHOICES,
+        default=STATUS_EXPORTED,
+    )
+    return_sha256 = models.CharField(max_length=64, blank=True)
+    validation_status = models.CharField(max_length=32, blank=True)
+    validation_report_path = models.CharField(max_length=500, blank=True)
+    warning_confirmed_at = models.DateTimeField(null=True, blank=True)
+    warning_confirmed_by = models.CharField(max_length=255, blank=True)
+    warning_confirmation_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    superseded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "edition",
+                    "intake_item",
+                    "target_language",
+                    "output_stage",
+                    "input_sha256",
+                ],
+                name="intake_unique_translation_job_input",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.job_id} {self.edition_id} {self.target_language} {self.output_stage}"

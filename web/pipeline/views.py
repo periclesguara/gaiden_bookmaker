@@ -37,7 +37,7 @@ from editorial.models import (
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
 from gaiden.application.pipeline import ingest as pipeline_ingest
-from gaiden.application.pipeline import drive_return
+from gaiden.application.pipeline import drive_return, official_body
 from gaiden.application.pipeline import heading_cleaner_drive
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
@@ -1611,9 +1611,8 @@ def pipeline_html_convert_run(request, edition_id: int):
 
     pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
     pipeline_state.current_stage = STAGE_MD_SOURCE_READY
-    pipeline_state.core_last_txt_path = str(md_path)
     pipeline_state.last_log = f"{timezone.now().isoformat()} :: MD_SOURCE_READY :: {md_path} [{engine}]"
-    pipeline_state.save(update_fields=["current_stage", "core_last_txt_path", "last_log"])
+    pipeline_state.save(update_fields=["current_stage", "last_log"])
 
     messages.success(request, f"Conversao HTML->MD OK ({engine}): {md_path}")
     return redirect(f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}?allow_html_to_common=1")
@@ -2392,11 +2391,16 @@ def _edition_steps_redirect_url(
 
 
 def _rel_project_path(path: Path) -> str:
+    path = Path(path)
     root = Path(settings.BASE_DIR).parent
     try:
         return str(path.relative_to(root))
     except ValueError:
-        return str(path)
+        try:
+            return str(Path("data") / path.relative_to(storage.storage_root()))
+        except ValueError:
+            # UI responses must not disclose host-specific absolute directories.
+            return path.name
 
 
 def _count_non_merged_txt_files(directory: Path | None) -> int:
@@ -4754,6 +4758,9 @@ def edition_steps(request, edition_id: int):
         "input_filename": "",
         "return_folder": "",
         "return_filename": "",
+        "manifest_filename": "",
+        "job_id": "",
+        "output_stage": "translated",
         "run_url": reverse(
             "pipeline_translation_drive_upload",
             kwargs={"edition_id": edition.id},
@@ -4761,10 +4768,10 @@ def edition_steps(request, edition_id: int):
     }
     if heading_cleaner_done:
         try:
-            translation_link = drive_return.resolve_drive_return_link(
-                core_edition,
-                require_normalized=False,
-            )
+            try:
+                translation_link = drive_return.resolve_drive_return_link(core_edition)
+            except drive_return.DriveReturnError:
+                translation_link = drive_return.preview_translation_job(core_edition)
             translation_drive_export.update(
                 {
                     "available": True,
@@ -4772,12 +4779,15 @@ def edition_steps(request, edition_id: int):
                     "input_filename": drive_return.translation_input_filename(core_edition),
                     "return_folder": translation_link.folder,
                     "return_filename": translation_link.canonical_filename,
+                    "manifest_filename": translation_link.manifest_filename,
+                    "job_id": translation_link.job_id,
+                    "output_stage": translation_link.output_stage,
                 }
             )
         except drive_return.DriveReturnError:
             pass
     pending_drive_return = drive_return.read_pending_return(edition)
-    drive_return_path = drive_return.pending_path(edition)
+    drive_return_path = pending_drive_return.pending_path if pending_drive_return else None
     drive_return_pending = pending_drive_return is not None
     drive_return_content = ""
     if drive_return_pending:
@@ -4785,7 +4795,7 @@ def edition_steps(request, edition_id: int):
             drive_return_content = drive_return_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             drive_return_pending = False
-    saved_reference = paths.saved_drive_return_reference_path(edition)
+    saved_reference = paths.saved_core_reference_path(edition)
     drive_return_state = ""
     if drive_return_pending:
         drive_return_state = "Retorno importado — aguardando salvar"
@@ -4810,7 +4820,7 @@ def edition_steps(request, edition_id: int):
         miolo_paths.append(
             {
                 "language": language,
-                "path": str(miolo_path),
+                "path": _rel_project_path(miolo_path),
                 "label": miolo_path.name,
             }
         )
@@ -5035,9 +5045,18 @@ def edition_steps(request, edition_id: int):
     internal_images_end_only = _internal_images_end_only_for_edition(edition)
     polish_agent_default = _default_polish_agent_for_language(edition.language.code)
     polish_agent_options = _polish_agent_options_for_language(edition.language.code)
-    build_history = list(
-        EditionBuild.objects.filter(edition=edition, language_code=frontmatter_lang).order_by("-build_version", "-created_at")
-    )
+    build_history = [
+        {
+            "build_version": item.build_version,
+            "created_at": item.created_at,
+            "build_path": _rel_project_path(Path(item.build_path)) if item.build_path else "",
+            "epub_path": _rel_project_path(Path(item.epub_path)) if item.epub_path else "",
+            "pdf_path": _rel_project_path(Path(item.pdf_path)) if item.pdf_path else "",
+        }
+        for item in EditionBuild.objects.filter(
+            edition=edition, language_code=frontmatter_lang
+        ).order_by("-build_version", "-created_at")
+    ]
 
     context = {
         "edition": edition,
@@ -5059,7 +5078,7 @@ def edition_steps(request, edition_id: int):
             "qa_refine": refine_qa_status,
             "polish": _status(bool(pipeline_state.polished_at)),
         },
-        "raw_path": raw_path,
+        "raw_path": _rel_project_path(Path(raw_path)) if raw_path else None,
         "raw_name": raw_name,
         "translate_language": selected_translate_variant,
         "selected_translate_agent": selected_translate_agent,
@@ -5074,16 +5093,16 @@ def edition_steps(request, edition_id: int):
         "sync_log": sync_log,
         "md_status": md_status,
         "md_preview": md_preview,
-        "md_pre_edition_path": str(pre_edition_path) if pre_edition_path.exists() else None,
-        "md_pre_qa_path": str(pre_qa_path) if pre_qa_path.exists() else None,
-        "md_final_path": str(final_md_path) if final_md_path.exists() else None,
+        "md_pre_edition_path": _rel_project_path(pre_edition_path) if pre_edition_path.exists() else None,
+        "md_pre_qa_path": _rel_project_path(pre_qa_path) if pre_qa_path.exists() else None,
+        "md_final_path": _rel_project_path(final_md_path) if final_md_path.exists() else None,
         "miolo_paths": miolo_paths,
         "miolo_filename": paths.miolo_md_filename(),
         "qa_issues": issues,
         "build_status": "DONE" if build_md_path.exists() else "NONE",
-        "build_path": str(build_md_path) if build_md_path.exists() else None,
-        "epub_path": str(epub_path) if epub_path.exists() else None,
-        "pdf_path": str(pdf_path) if pdf_path.exists() else None,
+        "build_path": _rel_project_path(build_md_path) if build_md_path.exists() else None,
+        "epub_path": _rel_project_path(epub_path) if epub_path.exists() else None,
+        "pdf_path": _rel_project_path(pdf_path) if pdf_path.exists() else None,
         "editorial_changed": bool(getattr(pipeline_state, "editorial_changed", False)),
         "build_outdated": bool(getattr(pipeline_state, "build_outdated", False)),
         "last_editorial_update_at": getattr(pipeline_state, "last_editorial_update_at", None),
@@ -5112,11 +5131,14 @@ def edition_steps(request, edition_id: int):
         "translate_agent_choices_map": translate_agent_choices_map_json,
         "translate_agent_options": translate_agent_options,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
-        "heading_clean_path": str(heading_clean_path) if heading_cleaner_done else None,
+        "heading_clean_path": _rel_project_path(heading_clean_path) if heading_cleaner_done else None,
         "heading_drive_export": heading_drive_export,
         "translation_drive_export": translation_drive_export,
         "drive_return": {
-            "available": bool(translation_drive_export["available"]),
+            "available": bool(
+                translation_drive_export["job_id"]
+                and translation_drive_export["output_stage"] == "official"
+            ),
             "import_url": reverse(
                 "pipeline_drive_return_import",
                 kwargs={"edition_id": edition.id},
@@ -5129,7 +5151,26 @@ def edition_steps(request, edition_id: int):
                 "pipeline_drive_return_promote",
                 kwargs={"edition_id": edition.id},
             ),
+            "translated_import_url": reverse(
+                "pipeline_drive_translated_import",
+                kwargs={"edition_id": edition.id},
+            ),
+            "confirm_warning_url": reverse(
+                "pipeline_drive_return_confirm_warning",
+                kwargs={"edition_id": edition.id},
+            ),
             "pending": drive_return_pending,
+            "warning_requires_confirmation": bool(
+                pending_drive_return
+                and pending_drive_return.validation_status == drive_return.WARNING
+                and not getattr(
+                    core_edition.translation_jobs.filter(
+                        job_id=pending_drive_return.job_id
+                    ).first(),
+                    "warning_confirmed_at",
+                    None,
+                )
+            ),
             "saved": bool(saved_reference is not None and not drive_return_pending),
             "content": drive_return_content,
             "state": drive_return_state,
@@ -5139,12 +5180,12 @@ def edition_steps(request, edition_id: int):
             "sha256": pending_drive_return.sha256 if pending_drive_return else "",
         },
         "pipeline_prereqs": {
-            "normalized_v2_path": str(pipeline_prereqs["normalized_v2_path"]),
+            "normalized_v2_path": _rel_project_path(pipeline_prereqs["normalized_v2_path"]),
             "normalized_v2_exists": bool(pipeline_prereqs["normalized_v2_exists"]),
-            "split_01_dir": str(pipeline_prereqs["split_01_dir"]),
+            "split_01_dir": _rel_project_path(pipeline_prereqs["split_01_dir"]),
             "split_01_count": int(pipeline_prereqs["split_01_count"]),
             "split_01_exists": bool(pipeline_prereqs["split_01_exists"]),
-            "heading_clean_dir": str(pipeline_prereqs["heading_clean_dir"]),
+            "heading_clean_dir": _rel_project_path(pipeline_prereqs["heading_clean_dir"]),
             "heading_clean_count": int(pipeline_prereqs["heading_clean_count"]),
             "heading_clean_exists": bool(pipeline_prereqs["heading_clean_exists"]),
             "can_translate": bool(pipeline_prereqs["can_translate"]),
@@ -5153,16 +5194,16 @@ def edition_steps(request, edition_id: int):
         "can_translate": can_translate,
         "refine_qa_status": refine_qa_status,
         "refine_qa_summary": refine_qa_summary,
-        "refine_qa_json_path": str(refine_qa_json_path) if refine_qa_json_path.exists() else None,
-        "refine_qa_md_path": str(refine_qa_md_path) if refine_qa_md_path.exists() else None,
+        "refine_qa_json_path": _rel_project_path(refine_qa_json_path) if refine_qa_json_path.exists() else None,
+        "refine_qa_md_path": _rel_project_path(refine_qa_md_path) if refine_qa_md_path.exists() else None,
         "cover_filepath": edition.cover_filepath,
         "internal_images_disabled": internal_images_disabled,
         "internal_images_end_only": internal_images_end_only,
-        "images_dir_path": str(images_dir) if images_dir.exists() else None,
+        "images_dir_path": _rel_project_path(images_dir) if images_dir.exists() else None,
         "images_count": images_count,
-        "images_consolidated_dir_path": str(consolidated_images_dir) if consolidated_images_dir.exists() else None,
+        "images_consolidated_dir_path": _rel_project_path(consolidated_images_dir) if consolidated_images_dir.exists() else None,
         "images_consolidated_count": consolidated_images_count,
-        "images_consolidated_map_path": str(consolidated_images_map) if consolidated_images_map.exists() else None,
+        "images_consolidated_map_path": _rel_project_path(consolidated_images_map) if consolidated_images_map.exists() else None,
         "matrix_runs": matrix_runs,
         "preflight_step": preflight_step,
     }
@@ -5247,12 +5288,17 @@ def pipeline_translation_drive_upload(request, edition_id: int):
         return HttpResponseNotAllowed(["POST"])
     core_edition = _processing_base_edition(edition)
     try:
-        result = drive_return.export_translation_job(core_edition)
+        output_stage = (request.POST.get("output_stage") or "translated").strip().lower()
+        result = drive_return.export_translation_job(
+            core_edition,
+            output_stage=output_stage,
+        )
         if result.no_op:
             messages.info(request, "O texto de tradução já existe no Google Drive.")
         else:
             messages.success(request, "Texto enviado para tradução no Google Drive.")
         messages.info(request, f"Entrada: {result.remote_path}")
+        messages.info(request, f"Manifest: {result.manifest_remote_path} · Job: {result.job_id}")
         messages.info(
             request,
             f"Retorno esperado: {result.return_folder}/{result.return_filename}",
@@ -5274,11 +5320,18 @@ def pipeline_drive_return_import(request, edition_id: int):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
     try:
-        result = drive_return.import_drive_return(edition)
-        messages.success(request, "Retorno importado — aguardando salvar")
+        output_stage = (request.POST.get("output_stage") or "").strip().lower() or None
+        result = drive_return.import_drive_return(edition, output_stage=output_stage)
+        if result.validation_status == drive_return.WARNING:
+            messages.warning(
+                request,
+                "Retorno importado com WARNING_REQUIRES_CONFIRMATION; confirme editorialmente antes de processar.",
+            )
+        else:
+            messages.success(request, "Retorno validado e importado — aguardando processamento")
         messages.info(
             request,
-            f"Arquivo: {result.remote_filename} · SHA-256: {result.sha256}",
+            f"Arquivo: {result.remote_filename} · Job: {result.job_id} · validação: {result.validation_status}",
         )
     except drive_return.DriveReturnError:
         messages.error(
@@ -5294,70 +5347,60 @@ def pipeline_drive_return_import(request, edition_id: int):
     return redirect(_edition_steps_redirect_url(edition))
 
 
+def pipeline_drive_return_confirm_warning(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        if not getattr(request.user, "is_authenticated", False):
+            raise drive_return.DriveReturnError(
+                "Autenticação editorial é obrigatória para confirmar WARNING"
+            )
+        output_stage = (request.POST.get("output_stage") or "").strip().lower() or None
+        actor = str(request.user.get_username())
+        job = drive_return.confirm_warning(
+            edition,
+            actor=actor,
+            note=request.POST.get("confirmation_note", ""),
+            output_stage=output_stage,
+        )
+        messages.success(request, f"Aviso confirmado editorialmente para o job {job.job_id}.")
+    except drive_return.DriveReturnError as exc:
+        messages.error(request, str(exc))
+    return redirect(_edition_steps_redirect_url(edition))
+
+
+def pipeline_drive_translated_import(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        destination = drive_return.import_translated_return(edition)
+        messages.success(
+            request,
+            f"Tradução intermediária importada para Refine/Polish: {destination.name}",
+        )
+    except drive_return.DriveReturnError as exc:
+        messages.error(request, str(exc))
+    except Exception:
+        logger.exception("drive_translated_import_failed edition_id=%s", edition.id)
+        messages.error(request, "Não foi possível importar a tradução intermediária.")
+    return redirect(_edition_steps_redirect_url(edition))
+
+
 def pipeline_drive_return_save(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
 
     try:
-        payload, pending_return = drive_return.validated_pending_payload(edition)
-        content = payload.decode("utf-8")
-    except (drive_return.DriveReturnError, UnicodeDecodeError) as exc:
+        result = drive_return.save_pending_as_official(
+            edition,
+            actor=str(getattr(request.user, "pk", "anonymous")),
+        )
+        messages.success(request, f"Miolo oficial publicado: snapshot {result.snapshot_id}.")
+    except (drive_return.DriveReturnError, official_body.OfficialBodyError) as exc:
         messages.error(request, str(exc))
-        return redirect(_edition_steps_redirect_url(edition))
-
-    pending = pending_return.pending_path
-
-    canonical = paths.core_last_txt_path(edition)
-    previous_payload = None
-    if canonical.is_file() and not canonical.is_symlink():
-        previous_payload = canonical.read_bytes()
-    elif canonical.exists() or canonical.is_symlink():
-        messages.error(request, "O destino da referência canônica é inválido.")
-        return redirect(_edition_steps_redirect_url(edition))
-
-    try:
-        with transaction.atomic():
-            pipeline_state, _ = EditionPipeline.objects.select_for_update().get_or_create(
-                edition=edition
-            )
-            intake_storage.atomic_write_text(canonical, content, overwrite=True)
-            try:
-                stored_path = str(canonical.relative_to(storage.repo_root()))
-            except ValueError:
-                stored_path = str(canonical)
-            pipeline_state.core_last_txt_path = stored_path
-            pipeline_state.last_log = (
-                f"{timezone.now().isoformat()} :: DRIVE_RETURN_REFERENCE_SAVED"
-            )
-            pipeline_state.save(update_fields=["core_last_txt_path", "last_log"])
-            TextSnapshot.objects.filter(
-                edition=edition,
-                stage="drive_return_reference",
-            ).update(stage="drive_return_reference_superseded")
-            TextSnapshot.objects.create(
-                edition=edition,
-                language=utils.normalize_lang(edition.language.code),
-                stage="drive_return_reference",
-                source_path=str(canonical),
-                content=content,
-            )
-    except Exception:
-        if previous_payload is None:
-            canonical.unlink(missing_ok=True)
-        else:
-            intake_storage.atomic_write_bytes(
-                canonical,
-                previous_payload,
-                overwrite=True,
-            )
-        logger.exception("drive_return_save_failed edition_id=%s", edition.id)
-        messages.error(request, "Não foi possível salvar a referência canônica.")
-        return redirect(_edition_steps_redirect_url(edition))
-
-    pending.unlink(missing_ok=True)
-    drive_return.pending_metadata_path(edition).unlink(missing_ok=True)
-    messages.success(request, "Referência canônica salva.")
     return redirect(_edition_steps_redirect_url(edition))
 
 
@@ -5366,7 +5409,10 @@ def pipeline_drive_return_promote(request, edition_id: int):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
     try:
-        result = drive_return.import_and_promote_drive_return(edition)
+        result = drive_return.import_and_promote_drive_return(
+            edition,
+            actor=str(getattr(request.user, "pk", "anonymous")),
+        )
         if result.no_op:
             messages.info(request, "O retorno do Drive já é o miolo oficial.")
         else:
@@ -6554,7 +6600,7 @@ def _resolve_merge_preview_source(edition: EditorialEdition, merge_kind: str | N
 
     book_code, target_base = _merge_preview_target_base(edition)
     build_dir = paths.edition_build_dir_for_language(book_code, target_base)
-    canonical_reference = paths.saved_drive_return_reference_path(edition)
+    canonical_reference = paths.saved_core_reference_path(edition)
     if kind == "latest":
         if canonical_reference is not None:
             return canonical_reference, target_base, kind
@@ -6643,7 +6689,7 @@ def preview_merge_polidor(request, edition_id: int):
 
 def save_merge_polidor_preview(request, edition_id: int):
     if request.method != "POST":
-        return redirect("edition_steps", edition_id=edition_id)
+        return HttpResponseNotAllowed(["POST"])
 
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, _language = _edition_codes(edition)
@@ -6656,7 +6702,7 @@ def save_merge_polidor_preview(request, edition_id: int):
     build_dir = paths.edition_build_dir_for_language(book_code, target_base)
     build_dir.mkdir(parents=True, exist_ok=True)
     saved_path = build_dir / "merge_polidor.txt"
-    saved_path.write_text(content, encoding="utf-8")
+    intake_storage.atomic_write_text(saved_path, content, overwrite=True)
 
     TextSnapshot.objects.create(
         edition=edition,
@@ -6676,7 +6722,20 @@ def save_merge_polidor_preview(request, edition_id: int):
         message="Saved preview merge polidor to build dir.",
     )
 
-    messages.success(request, f"Arquivo salvo: {saved_path}")
+    try:
+        official_result = official_body.promote_internal_polish(
+            edition,
+            saved_path,
+            actor=str(getattr(request.user, "pk", "anonymous")),
+        )
+    except official_body.OfficialBodyError as exc:
+        messages.error(request, f"Merge salvo, mas o miolo oficial não foi promovido: {exc}")
+        return redirect("edition_steps", edition_id=edition_id)
+
+    messages.success(
+        request,
+        f"Arquivo salvo e promovido como miolo oficial (snapshot {official_result.snapshot_id}).",
+    )
     return redirect("edition_steps", edition_id=edition_id)
 
 

@@ -354,16 +354,29 @@
           {% if s.key == "translate" %}
           <form method="post" action="{{ translation_drive_export.run_url }}" onsubmit="return confirm('Criar o job canônico e enviar o texto limpo para tradução no Google Drive?');">
             {% csrf_token %}
+            <label for="drive_output_stage">Tipo de retorno</label>
+            <select id="drive_output_stage" name="output_stage">
+              <option value="translated">Tradução intermediária (segue para Refine/Polish)</option>
+              <option value="official">Editorial final (tradução + refine + polish externos)</option>
+            </select>
             <button class="btn secondary" type="submit" {% if not translation_drive_export.available %}disabled{% endif %}>Translate Google Drive</button>
             {% if translation_drive_export.available %}
             <span class="status">
               Entrada: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.input_folder }}/{{ translation_drive_export.input_filename }}</strong><br />
-              Retorno esperado: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.return_folder }}/{{ translation_drive_export.return_filename }}</strong>
+              Retorno esperado: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.return_folder }}/{{ translation_drive_export.return_filename }}</strong><br />
+              Manifesto: <strong>{{ translation_drive_export.manifest_filename }}</strong>
             </span>
             {% else %}
             <span class="status">Disponível após HeadingCleaner para livros vinculados ao Intake.</span>
             {% endif %}
           </form>
+          {% if translation_drive_export.job_id and translation_drive_export.output_stage == "translated" %}
+          <form method="post" action="{{ drive_return.translated_import_url }}" onsubmit="return confirm('Validar e importar o retorno traduzido para Refine/Polish?');">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit">Importar tradução do Google Drive</button>
+            <span class="status">Job {{ translation_drive_export.job_id }}. Não promove diretamente para miolo oficial.</span>
+          </form>
+          {% endif %}
           {% endif %}
           <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
             {% csrf_token %}
@@ -452,6 +465,15 @@
           <div class="status">
             <strong>{{ drive_return.state }}</strong>
           </div>
+          {% endif %}
+          {% if drive_return.warning_requires_confirmation %}
+          <form class="polidor-action" method="post" action="{{ drive_return.confirm_warning_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="output_stage" value="official" />
+            <label for="drive_warning_confirmation_note">Justificativa editorial obrigatória</label>
+            <textarea id="drive_warning_confirmation_note" name="confirmation_note" required></textarea>
+            <button class="btn secondary" type="submit">Confirmar WARNING editorialmente</button>
+          </form>
           {% endif %}
           {% if drive_return.saved %}
           <div class="status">O retorno está salvo como miolo oficial e será a fonte do trabalho editorial.</div>
