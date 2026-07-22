@@ -6,7 +6,10 @@
 {% if not rclone_available %}<p class="error">rclone não está disponível.</p>{% endif %}
 {% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
 
-<p><a class="button secondary" href="{% url 'intake_module:drive_folders' %}">Buscar pastas no Google Drive</a></p>
+<form method="post" action="{% url 'intake_module:drive_folders' %}">
+  {% csrf_token %}
+  <button class="button secondary" type="submit">Buscar pastas no Google Drive</button>
+</form>
 
 <div class="panels">
   {% for folder in drive_folders %}

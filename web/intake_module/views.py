@@ -15,6 +15,7 @@ from gaiden.application.intake import (
     register_translation_return,
     store_uploaded_files,
 )
+from gaiden.application.intake.book_codes import assign_book_code
 from gaiden.domain.intake import IntakeState
 from gaiden.infrastructure.intake_drive import RcloneClient
 
@@ -34,6 +35,7 @@ DRIVE_LOOKUP_ERROR = (
     "Verifique a configuração do remote gaiden_drive."
 )
 SELECTED_DRIVE_FOLDER_SESSION_KEY = "intake_selected_drive_folder"
+DRIVE_FOLDER_CACHE_SESSION_KEY = "intake_drive_folder_cache"
 
 
 def batch_list(request):
@@ -74,17 +76,23 @@ def _available_drive_folders(client) -> list[str]:
 
 
 def drive_folders(request):
-    if request.method != "GET":
-        return HttpResponseNotAllowed(["GET"])
+    if request.method not in {"GET", "POST"}:
+        return HttpResponseNotAllowed(["GET", "POST"])
     client, remote_name, inbox_name, rclone_available, configuration_error = _drive_client_context()
-    folders = []
-    try:
-        if client is None:
-            raise RuntimeError("Invalid rclone configuration")
-        folders = _available_drive_folders(client)
-        messages.success(request, f"{len(folders)} pastas encontradas; nenhum arquivo foi baixado.")
-    except Exception:
-        messages.error(request, DRIVE_LOOKUP_ERROR)
+    if request.method == "POST":
+        try:
+            if client is None:
+                raise RuntimeError("Invalid rclone configuration")
+            folders = _available_drive_folders(client)
+            request.session[DRIVE_FOLDER_CACHE_SESSION_KEY] = folders
+            messages.success(request, f"{len(folders)} pastas encontradas; nenhum arquivo foi baixado.")
+        except Exception:
+            messages.error(request, DRIVE_LOOKUP_ERROR)
+        return redirect("intake_module:drive_folders")
+    folders = [
+        _validated_folder_name(folder)
+        for folder in request.session.get(DRIVE_FOLDER_CACHE_SESSION_KEY, [])
+    ]
     return render(
         request,
         "intake_module/drive_folders.html",
@@ -508,7 +516,8 @@ def item_update_metadata(request, item_id: int):
     item = get_object_or_404(IntakeItem.objects.select_related("batch"), pk=item_id)
     form = IntakeItemMetadataForm(request.POST, instance=item)
     if form.is_valid():
-        form.save()
+        saved = form.save()
+        assign_book_code(saved)
         messages.success(request, "Metadados individuais salvos.")
     else:
         messages.error(request, "Revise os metadados obrigatórios do item.")

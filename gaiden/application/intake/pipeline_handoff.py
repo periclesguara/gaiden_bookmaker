@@ -338,7 +338,6 @@ def _persist_handoff(
             f"Edition pipeline is already beyond the intake handoff stage: {pipeline.current_stage}"
         )
     pipeline.current_stage = PipelineStage.TRANSLATED
-    pipeline.core_last_txt_path = str(translated_path)
     pipeline.translation_language = target_language_code
     pipeline.md_language = target_language_code
     pipeline.raw_at = pipeline.raw_at or now
@@ -350,7 +349,6 @@ def _persist_handoff(
     pipeline.save(
         update_fields=[
             "current_stage",
-            "core_last_txt_path",
             "translation_language",
             "md_language",
             "raw_at",
@@ -472,13 +470,27 @@ def _existing_bookmaker_handoff(item: IntakeItem) -> BookmakerHandoffResult | No
     )
     if edition is None or edition.work.code != item.book_code:
         raise IntakeHandoffConflict("Stored IntakeItem edition link is invalid")
-    pipeline, _ = _get_or_create_pipeline(edition)
+    pipeline = EditionPipeline.objects.filter(edition=edition).first()
     source_template = BookEditionTemplate.objects.filter(
         book_code=item.book_code,
         language=edition.language.code,
     ).first()
-    source_original_path = Path(source_template.source_saved_path) if source_template else Path()
-    canonical_text_path = Path(edition.raw_source_path) if edition.raw_source_path else Path()
+    edition_text = EditionText.objects.filter(edition=edition).first()
+    if pipeline is None or source_template is None or edition_text is None:
+        raise IntakeHandoffConflict(
+            "Partial Bookmaker handoff detected; reconciliation is required"
+        )
+    source_original_path = Path(source_template.source_saved_path)
+    canonical_text_path = Path(edition.raw_source_path)
+    if any(
+        path.is_symlink() or not path.is_file()
+        for path in (source_original_path, canonical_text_path)
+    ):
+        raise IntakeHandoffConflict(
+            "Partial Bookmaker handoff artifacts are missing; reconciliation is required"
+        )
+    if _sha256(source_original_path.read_bytes()) != item.source_sha256:
+        raise IntakeHandoffConflict("Bookmaker source artifact SHA mismatch")
     return BookmakerHandoffResult(
         edition=edition,
         pipeline=pipeline,
