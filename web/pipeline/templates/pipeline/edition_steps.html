@@ -624,18 +624,6 @@
           <button class="btn secondary" type="submit">Atualizar</button>
         </noscript>
       </form>
-      <form method="post" class="actions" action="{% url 'editorial_frontmatter_actions' edition.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
-        <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
-          Regerar Frontmatter (.md)
-        </button>
-        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
-          Frontmatter + BOOK.BUILD.MD
-        </button>
-      </form>
       {% if editorial_optional_warnings %}
       <div class="status">
         Avisos do idioma atual: {{ editorial_optional_warnings|join:" | " }}
@@ -653,64 +641,6 @@
         Bloco 03 aguardando a conclusao textual do bloco 02.
       </div>
       {% endif %}
-      <section class="pipeline-step">
-        <div class="status">
-          <strong>{{ preflight_step.title }}</strong>
-          {% if preflight_step.done %}
-            <span class="badge {% if preflight_step.status_tone %}{{ preflight_step.status_tone }}{% else %}ok{% endif %}">
-              {% if preflight_step.status_label %}{{ preflight_step.status_label }}{% else %}OK{% endif %}
-            </span>
-          {% elif preflight_step.can_run %}
-            <span class="badge">pronto</span>
-          {% else %}
-            <span class="badge warn">bloqueado</span>
-          {% endif %}
-          {% if preflight_step.block_reason %}
-            {{ preflight_step.block_reason }}
-          {% endif %}
-        </div>
-        <div class="status">
-          {% if preflight_step.notes %}{{ preflight_step.notes }}{% endif %}
-        </div>
-        <div class="status">
-          Saidas:
-          {% for out in preflight_step.outputs %}
-            <code>{{ out }}</code>
-          {% endfor %}
-        </div>
-        <form method="post" action="{{ preflight_step.run_url }}">
-          {% csrf_token %}
-          <button class="btn" type="submit" {% if not preflight_step.can_run %}disabled{% endif %}>
-            {{ preflight_step.button_label }}
-          </button>
-        </form>
-      </section>
-      <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
-      <p>
-        A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
-      </p>
-      <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
-          {% csrf_token %}
-          <label for="md_language">Idioma</label>
-          <select id="md_language" name="md_language">
-            <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
-            <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE</option>
-            <option value="fr" {% if md_language_default == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if md_language_default == "it" %}selected{% endif %}>IT</option>
-          </select>
-          <button class="btn" type="submit">Convert TXT to MD</button>
-        </form>
-        <div class="status">
-          Arquivo selecionado:
-          <strong id="md_source_path"></strong>
-        </div>
-        <a class="btn secondary" href="{% url 'preview_book_md' book_code=book_code language=md_language_default|default:language %}">
-          Preview MD
-        </a>
-      </div>
       <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_cover" />
