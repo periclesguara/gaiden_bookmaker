@@ -1,0 +1,24 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  repository-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject tracked secrets and runtime artifacts
+        run: bash scripts/ci/check_repo_hygiene.sh
+
+  secret-scan-current-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan tracked files without exposing matched values
+        run: python3 scripts/ci/scan_tracked_secrets.py

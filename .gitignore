@@ -17,6 +17,11 @@ htmlcov/
 .venv/
 .env
 .env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
 
 # OS / IDE
 .DS_Store
@@ -54,6 +59,7 @@ exports/
 *.azw3
 *.pdf
 *.sqlite3
+*.sqlite
 *.db
 
 # generated artifacts
