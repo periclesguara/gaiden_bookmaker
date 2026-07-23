@@ -191,6 +191,31 @@ class BookCodeAllocationTests(TestCase):
         self.assertEqual(payload["updated_by"], "operator")
         self.assertEqual(list(path.parent.glob(f".{path.name}.*.tmp")), [])
 
+    def test_manifest_projection_failure_does_not_rollback_reservation(self):
+        batch = self.create_batch()
+        item = self.create_item(batch, 1)
+        plan = preview_book_code_allocation(batch)
+
+        with patch(
+            "gaiden.infrastructure.intake_storage.atomic_write_json",
+            side_effect=OSError("disk unavailable"),
+        ):
+            with self.captureOnCommitCallbacks(execute=True):
+                result = reserve_book_codes(
+                    batch,
+                    plan_sha256=plan["plan_sha256"],
+                )
+
+        item.refresh_from_db()
+        batch.refresh_from_db()
+        self.assertEqual(result["allocated"], ["book_0033"])
+        self.assertEqual(item.book_code, "book_0033")
+        self.assertEqual(
+            batch.book_code_manifest["items"][0]["book_code"],
+            "book_0033",
+        )
+        self.assertIn("disk unavailable", batch.book_code_manifest_projection_error)
+
     def test_reservation_does_not_call_drive_download_or_cleaning(self):
         batch = self.create_batch()
         self.create_item(batch, 1)
