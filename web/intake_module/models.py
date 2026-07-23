@@ -27,6 +27,9 @@ class IntakeBatch(models.Model):
     book_codes_end = models.SlugField(blank=True)
     book_codes_allocated_count = models.PositiveIntegerField(default=0)
     book_code_plan_sha256 = models.CharField(max_length=64, blank=True)
+    book_code_manifest = models.JSONField(default=dict, blank=True)
+    book_code_manifest_projected_at = models.DateTimeField(null=True, blank=True)
+    book_code_manifest_projection_error = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
