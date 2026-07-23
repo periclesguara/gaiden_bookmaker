@@ -1,0 +1,49 @@
+{% extends "intake_module/base.html" %}
+{% block title %}Reservar sequência · {{ batch.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'intake_module:batch_detail' batch.id %}">← Voltar ao lote</a></p>
+<h1>Reservar sequência de livros</h1>
+<p><strong>{{ batch.code }}</strong> · {{ batch.name }}</p>
+<p class="muted">Esta pré-visualização é somente leitura. Ela não transfere arquivos, não executa limpeza e não altera o Google Drive.</p>
+
+<section class="summary" aria-label="Resumo da sequência">
+  <span><strong>{{ plan.total_count }}</strong> itens</span>
+  <span><strong>{{ plan.eligible_count }}</strong> elegíveis</span>
+  <span><strong>{{ plan.numbered_count }}</strong> já numerados</span>
+  <span><strong>{{ plan.duplicate_count }}</strong> duplicatas</span>
+  <span><strong>{{ plan.start_code|default:"—" }}</strong> primeiro</span>
+  <span><strong>{{ plan.end_code|default:"—" }}</strong> último</span>
+</section>
+
+{% if plan.conflicts %}
+<p class="error"><strong>A confirmação está bloqueada.</strong> Corrija os conflitos de identidade editorial e gere uma nova pré-visualização.</p>
+{% elif plan.eligible_count %}
+<form method="post" action="{% url 'intake_module:batch_book_codes_confirm' batch.id %}">
+  {% csrf_token %}
+  <input type="hidden" name="plan_sha256" value="{{ plan.plan_sha256 }}">
+  <button type="submit">Confirmar reserva de {{ plan.start_code }} a {{ plan.end_code }}</button>
+</form>
+{% else %}
+<p><strong>Todos os livros elegíveis já possuem código.</strong></p>
+{% endif %}
+
+{% if plan.manifest_exists %}<p><a class="button secondary" href="{% url 'intake_module:batch_book_codes_manifest' batch.id %}">Exportar manifesto da sequência</a></p>{% endif %}
+
+<table>
+  <thead><tr><th>Ordem</th><th>Arquivo</th><th>Título</th><th>Situação</th><th>Código atual</th><th>Código proposto</th></tr></thead>
+  <tbody>
+  {% for row in plan.rows %}
+    <tr>
+      <td>{{ row.order_index }}</td>
+      <td>{{ row.source_filename }}</td>
+      <td>{{ row.title|default:"—" }}</td>
+      <td class="{% if row.status == 'conflict' %}error{% endif %}">{{ row.status_label }}{% if row.reason %}<br><span class="muted">{{ row.reason }}</span>{% endif %}</td>
+      <td>{{ row.current_code|default:"—" }}</td>
+      <td>{{ row.proposed_code|default:"—" }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">Nenhum item no lote.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils.text import slugify
 
 from gaiden.domain.intake import IntakeState
@@ -20,6 +21,12 @@ class IntakeBatch(models.Model):
     drive_relative_path = models.CharField(max_length=500, blank=True)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=IntakeState.DISCOVERED.value)
     last_error = models.TextField(blank=True)
+    book_codes_reserved_at = models.DateTimeField(null=True, blank=True)
+    book_codes_reserved_by = models.CharField(max_length=150, blank=True)
+    book_codes_start = models.SlugField(blank=True)
+    book_codes_end = models.SlugField(blank=True)
+    book_codes_allocated_count = models.PositiveIntegerField(default=0)
+    book_code_plan_sha256 = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -66,6 +73,8 @@ class IntakeItem(models.Model):
     original_year = models.PositiveIntegerField(null=True, blank=True)
     target_language = models.CharField(max_length=20, blank=True)
     book_code = models.SlugField(blank=True)
+    book_code_reserved_at = models.DateTimeField(null=True, blank=True)
+    book_code_reserved_by = models.CharField(max_length=150, blank=True)
     original_path = models.CharField(max_length=500, blank=True)
     clean_path = models.CharField(max_length=500, blank=True)
     translation_input_path = models.CharField(max_length=500, blank=True)
@@ -84,7 +93,15 @@ class IntakeItem(models.Model):
     class Meta:
         ordering = ["order_index", "id"]
         constraints = [
-            models.UniqueConstraint(fields=["batch", "order_index"], name="intake_unique_item_order_per_batch")
+            models.UniqueConstraint(
+                fields=["batch", "order_index"],
+                name="intake_unique_item_order_per_batch",
+            ),
+            models.UniqueConstraint(
+                fields=["book_code"],
+                condition=~Q(book_code=""),
+                name="intake_unique_nonempty_book_code",
+            ),
         ]
 
     @property
@@ -93,3 +110,15 @@ class IntakeItem(models.Model):
 
     def __str__(self) -> str:
         return f"{self.batch.code} #{self.order_index}: {self.source_filename}"
+
+
+class BookCodeSequence(models.Model):
+    name = models.SlugField(primary_key=True, default="book", editable=False)
+    next_number = models.PositiveIntegerField(default=33)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "intake_book_code_sequence"
+
+    def __str__(self) -> str:
+        return f"{self.name}: {self.next_number}"

@@ -11,6 +11,22 @@
   <span><strong>{{ file_summary.duplicates }}</strong> duplicados</span>
   <span><strong>{{ file_summary.errors }}</strong> erros</span>
 </section>
+<h2>Identidade editorial</h2>
+<section class="summary" aria-label="Resumo da identidade editorial">
+  <span><strong>{{ allocation_plan.total_count }}</strong> itens</span>
+  <span><strong>{{ allocation_plan.eligible_count }}</strong> elegíveis</span>
+  <span><strong>{{ allocation_plan.numbered_count }}</strong> numerados</span>
+  <span><strong>{{ allocation_plan.duplicate_count }}</strong> duplicatas</span>
+  <span><strong>{{ allocation_plan.start_code|default:"—" }}</strong> primeiro proposto</span>
+  <span><strong>{{ allocation_plan.end_code|default:"—" }}</strong> último proposto</span>
+</section>
+{% if batch.book_codes_reserved_at %}
+<p class="muted">Última reserva: {{ batch.book_codes_start }} a {{ batch.book_codes_end }} · {{ batch.book_codes_allocated_count }} atribuídos · {{ batch.book_codes_reserved_at }}{% if batch.book_codes_reserved_by %} · {{ batch.book_codes_reserved_by }}{% endif %}</p>
+{% endif %}
+<p>
+  <a class="button" href="{% url 'intake_module:batch_book_codes_preview' batch.id %}">Visualizar sequência</a>
+  {% if allocation_plan.manifest_exists %}<a class="button secondary" href="{% url 'intake_module:batch_book_codes_manifest' batch.id %}">Exportar manifesto da sequência</a>{% endif %}
+</p>
 <h2>Processamento sequencial</h2>
 <p class="muted">Cada clique processa somente o próximo item elegível; nenhuma ação roda em paralelo.</p>
 {% if can_download_next %}
@@ -20,7 +36,17 @@
 <form class="inline" method="post" action="{% url 'intake_module:batch_process_next' batch.id %}">{% csrf_token %}<input type="hidden" name="action" value="clean"><button type="submit">Limpar próximo DOWNLOADED</button></form>
 {% endif %}
 <h2>Itens</h2>
-<table><thead><tr><th>Ordem</th><th>Arquivo</th><th>Formato</th><th>Tamanho</th><th>Título sugerido</th><th>Destino</th><th>Status</th><th>Duplicata</th><th>Último erro</th><th>Ação</th></tr></thead><tbody>
-{% for item in items %}<tr><td>{{ item.order_index }}</td><td>{{ item.source_filename }}</td><td>{{ item.source_format }}</td><td>{{ item.source_size }}</td><td>{{ item.suggested_title|default:"—" }}</td><td>{{ item.target_language|default:"—" }}</td><td>{{ item.status }}</td><td>{% if item.duplicate_of_id %}Duplicata do item {{ item.duplicate_of.order_index }}{% else %}Não{% endif %}</td><td class="error">{{ item.last_error }}</td><td><a href="{% url 'intake_module:item_detail' item.id %}">Abrir</a>{% if item.id in reconcilable_item_ids %} <a class="button secondary" href="{% url 'intake_module:item_reconcile' item.id %}">Reconciliar</a>{% elif not item.duplicate_of_id %}{% if item.id in bookmaker_item_ids %}<form method="post" action="{% url 'intake_module:item_open_bookmaker' item.id %}">{% csrf_token %}<button type="submit">Abrir no Gaiden Bookmaker</button></form>{% endif %}{% if item.status == "DISCOVERED" %}<form method="post" action="{% url 'intake_module:item_download' item.id %}">{% csrf_token %}<button type="submit">Baixar</button></form>{% elif item.status == "DOWNLOADED" %}<form method="post" action="{% url 'intake_module:item_clean' item.id %}">{% csrf_token %}<button type="submit">Limpar</button></form>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="10">Nenhum item importado.</td></tr>{% endfor %}
+<form method="get">
+  <label for="book-code-filter">Filtrar por book_code</label>
+  <select id="book-code-filter" name="book_code_filter" onchange="this.form.submit()">
+    <option value=""{% if not book_code_filter %} selected{% endif %}>Todos</option>
+    <option value="without"{% if book_code_filter == "without" %} selected{% endif %}>Sem book_code</option>
+    <option value="numbered"{% if book_code_filter == "numbered" %} selected{% endif %}>Numerados</option>
+    <option value="duplicates"{% if book_code_filter == "duplicates" %} selected{% endif %}>Duplicatas</option>
+    <option value="handed_off"{% if book_code_filter == "handed_off" %} selected{% endif %}>Já enviados ao Bookmaker</option>
+  </select>
+</form>
+<table><thead><tr><th>Ordem</th><th>Identidade editorial</th><th>Arquivo</th><th>Formato</th><th>Tamanho</th><th>Destino</th><th>Status</th><th>Duplicata</th><th>Último erro</th><th>Ação</th></tr></thead><tbody>
+{% for item in items %}<tr><td>{{ item.order_index }}</td><td>{% if item.book_code %}<strong>{{ item.book_code }}</strong> — {% endif %}{{ item.confirmed_title|default:item.suggested_title|default:"—" }}</td><td>{{ item.source_filename }}</td><td>{{ item.source_format }}</td><td>{{ item.source_size }}</td><td>{{ item.target_language|default:"—" }}</td><td>{{ item.status }}</td><td>{% if item.duplicate_of_id %}Duplicata do item {{ item.duplicate_of.order_index }}{% else %}Não{% endif %}</td><td class="error">{{ item.last_error }}</td><td><a href="{% url 'intake_module:item_detail' item.id %}">Abrir</a>{% if item.id in reconcilable_item_ids %} <a class="button secondary" href="{% url 'intake_module:item_reconcile' item.id %}">Reconciliar</a>{% elif not item.duplicate_of_id %}{% if item.id in bookmaker_item_ids %}<form method="post" action="{% url 'intake_module:item_open_bookmaker' item.id %}">{% csrf_token %}<button type="submit">Abrir no Gaiden Bookmaker</button></form>{% endif %}{% if item.status == "DISCOVERED" %}<form method="post" action="{% url 'intake_module:item_download' item.id %}">{% csrf_token %}<button type="submit">Baixar</button></form>{% elif item.status == "DOWNLOADED" %}<form method="post" action="{% url 'intake_module:item_clean' item.id %}">{% csrf_token %}<button type="submit">Limpar</button></form>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="10">Nenhum item encontrado neste filtro.</td></tr>{% endfor %}
 </tbody></table>
 {% endblock %}
