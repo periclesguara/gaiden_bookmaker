@@ -1,5 +1,6 @@
-from django.db import models
-from django.utils.text import slugify
+import uuid
+
+from django.db import models, transaction
 
 from gaiden.domain.intake import IntakeState
 
@@ -30,20 +31,26 @@ class IntakeBatch(models.Model):
         return f"{self.code} - {self.name}"
 
     def save(self, *args, **kwargs):
-        if not self.code:
-            folder_name = (self.drive_relative_path or "").strip().rstrip("/").rsplit("/", 1)[-1]
-            base = slugify(folder_name or self.name) or "intake"
-            max_length = self._meta.get_field("code").max_length
-            base = base[:max_length]
+        if self.code:
+            super().save(*args, **kwargs)
+            return
+
+        # Allocate the database identity first, then derive an immutable,
+        # operator-friendly batch code from it. The provisional value stays
+        # invisible to other transactions.
+        with transaction.atomic():
+            self.code = f"pending-{uuid.uuid4().hex}"
+            super().save(*args, **kwargs)
+
+            base = f"batch_{self.pk:04d}"
             candidate = base
             suffix = 2
             queryset = type(self).objects.exclude(pk=self.pk)
             while queryset.filter(code=candidate).exists():
-                marker = f"-{suffix}"
-                candidate = f"{base[: max_length - len(marker)]}{marker}"
+                candidate = f"{base}-{suffix}"
                 suffix += 1
+            type(self).objects.filter(pk=self.pk).update(code=candidate)
             self.code = candidate
-        super().save(*args, **kwargs)
 
 
 class IntakeItem(models.Model):

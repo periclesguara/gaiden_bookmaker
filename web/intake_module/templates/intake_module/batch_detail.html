@@ -1,6 +1,13 @@
 {% extends "intake_module/base.html" %}
 {% block content %}
 <h1>{{ batch.name }}</h1><p><strong>{{ batch.code }}</strong> · {{ batch.source_language }} · {{ batch.status }}</p>
+<p><strong>Google Drive:</strong> {{ batch.drive_relative_path|default:"Pasta ainda não criada" }}</p>
+{% if can_provision_drive %}
+<form method="post" action="{% url 'intake_module:batch_provision_drive' batch.id %}">
+  {% csrf_token %}
+  <button type="submit">Criar pasta no Google Drive</button>
+</form>
+{% endif %}
 <p><a class="button" href="{% url 'intake_module:batch_files' batch.id %}">Adicionar ou selecionar arquivos</a></p>
 {% if show_reconciliation %}<p><a class="button secondary" href="{% url 'intake_module:batch_reconcile' batch.id %}">Reconciliar arquivos importados</a></p>{% endif %}
 <section class="summary" aria-label="Resumo dos arquivos">

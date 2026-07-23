@@ -17,6 +17,11 @@ urlpatterns = [
         name="batch_import_selected",
     ),
     path("<int:batch_id>/", views.batch_detail, name="batch_detail"),
+    path(
+        "<int:batch_id>/provision-drive/",
+        views.batch_provision_drive,
+        name="batch_provision_drive",
+    ),
     path("<int:batch_id>/upload/", views.batch_upload, name="batch_upload"),
     path("<int:batch_id>/drive/", views.batch_drive, name="batch_drive"),
     path("<int:batch_id>/process-next/", views.batch_process_next, name="batch_process_next"),

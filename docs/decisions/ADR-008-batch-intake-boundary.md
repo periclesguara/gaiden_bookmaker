@@ -32,3 +32,17 @@ compartilham o mesmo ciclo operacional.
   APIs de modelos.
 - O retorno traduzido precisa corresponder ao item e ao idioma registrados no
   manifesto antes da confirmação editorial.
+
+
+## Canonical batch identity and Drive provisioning
+
+- New batches receive an immutable database-derived code such as `batch_0004`.
+- A Drive-backed batch uses `<batch_code>__<author-or-name-slug>` as its
+  direct child folder under the configured Intake inbox.
+- Folder creation is an explicit POST action and never happens during page
+  rendering, listing, or status resolution.
+- Provisioning uses idempotent `rclone mkdir`; retrying recreates a folder
+  removed outside Gaiden without allocating a second path.
+- Existing batches already bound to a Drive folder keep that binding.
+- A Drive failure does not discard the database batch. The error is recorded
+  and the same provisioning action can be retried safely.

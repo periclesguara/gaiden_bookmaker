@@ -5,6 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from django.db import transaction
+from django.utils.text import slugify
 
 from gaiden.infrastructure import intake_storage
 from gaiden.infrastructure.intake_drive import RcloneClient
@@ -24,6 +25,43 @@ from .reconciliation import (
     inspect_original_artifact,
 )
 from .workflow import transition_item
+
+
+def canonical_drive_folder_name(batch) -> str:
+    """Return the stable, human-readable Drive folder name for a batch."""
+    if not batch.pk or not batch.code:
+        raise ValueError("Batch must be saved before its Drive folder is provisioned")
+    label = slugify(batch.author_default or batch.name) or "intake"
+    prefix = f"{batch.code}__"
+    return f"{prefix}{label[: 255 - len(prefix)]}"
+
+
+def provision_drive_batch_folder(batch, *, client=None) -> dict:
+    """Create the canonical inbox folder and persist the binding idempotently."""
+    client = client or RcloneClient()
+    client.check_available()
+
+    if batch.drive_relative_path:
+        # rclone mkdir is idempotent. Re-ensuring the persisted path also
+        # repairs a folder that was removed outside Gaiden.
+        client.ensure_folder(batch.drive_relative_path)
+        return {
+            "folder_name": client.direct_child_name(batch.drive_relative_path),
+            "relative_path": batch.drive_relative_path,
+            "no_op": True,
+        }
+
+    folder_name = canonical_drive_folder_name(batch)
+    relative_path = client.stored_folder_path(folder_name)
+    client.ensure_folder(relative_path)
+    batch.drive_relative_path = relative_path
+    batch.last_error = ""
+    batch.save(update_fields=["drive_relative_path", "last_error", "updated_at"])
+    return {
+        "folder_name": folder_name,
+        "relative_path": relative_path,
+        "no_op": False,
+    }
 
 
 def discover_drive_folder(batch, relative_folder: str, *, client=None) -> dict:

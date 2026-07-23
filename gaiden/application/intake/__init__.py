@@ -1,4 +1,10 @@
-from .drive_sync import discover_drive_folder, download_drive_item, synchronize_drive_folder
+from .drive_sync import (
+    canonical_drive_folder_name,
+    discover_drive_folder,
+    download_drive_item,
+    provision_drive_batch_folder,
+    synchronize_drive_folder,
+)
 from .ingestion import (
     clean_downloaded_item,
     discover_item,
@@ -15,6 +21,7 @@ from .workflow import transition_item
 __all__ = [
     "confirm_ready_for_editing",
     "clean_downloaded_item",
+    "canonical_drive_folder_name",
     "discover_drive_folder",
     "discover_item",
     "download_drive_item",
@@ -26,6 +33,7 @@ __all__ = [
     "reconcile_batch_downloads",
     "reconcile_item_download",
     "prepare_for_codex",
+    "provision_drive_batch_folder",
     "register_translation_return",
     "store_uploaded_files",
     "synchronize_drive_folder",
