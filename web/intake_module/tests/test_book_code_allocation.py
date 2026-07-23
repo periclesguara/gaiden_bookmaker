@@ -165,17 +165,30 @@ class BookCodeAllocationTests(TestCase):
             reserve_book_codes(batch, plan_sha256=plan["plan_sha256"])
         self.assertEqual(IntakeItem.objects.get(pk=item.pk).book_code, "")
 
-    def test_manifest_is_atomic_and_contains_confirmed_allocation(self):
+    def test_manifest_is_projected_only_after_database_commit(self):
         batch = self.create_batch()
         self.create_item(batch, 1)
         plan = preview_book_code_allocation(batch)
-        reserve_book_codes(batch, plan_sha256=plan["plan_sha256"], actor="operator")
-
         path = allocation_manifest_path(batch)
+        with self.captureOnCommitCallbacks(execute=False) as callbacks:
+            result = reserve_book_codes(
+                batch,
+                plan_sha256=plan["plan_sha256"],
+                actor="operator",
+            )
+            self.assertFalse(path.exists())
+        batch.refresh_from_db()
+        self.assertEqual(
+            batch.book_code_manifest["items"][0]["book_code"],
+            "book_0033",
+        )
+        self.assertEqual(result["manifest"], batch.book_code_manifest)
+        for callback in callbacks:
+            callback()
         payload = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(payload["start_code"], "book_0033")
         self.assertEqual(payload["items"][0]["book_code"], "book_0033")
-        self.assertEqual(payload["created_by"], "operator")
+        self.assertEqual(payload["updated_by"], "operator")
         self.assertEqual(list(path.parent.glob(f".{path.name}.*.tmp")), [])
 
     def test_reservation_does_not_call_drive_download_or_cleaning(self):
@@ -192,23 +205,64 @@ class BookCodeAllocationTests(TestCase):
         download.assert_not_called()
         clean.assert_not_called()
 
-    def test_divergent_manifest_fails_closed_without_partial_assignment(self):
+    def test_stale_filesystem_manifest_is_replaced_after_commit(self):
         batch = self.create_batch()
         first = self.create_item(batch, 1)
         second = self.create_item(batch, 2)
         plan = preview_book_code_allocation(batch)
         path = allocation_manifest_path(batch)
         path.parent.mkdir(parents=True)
-        path.write_text('{"batch_code":"another"}', encoding="utf-8")
+        path.write_text('{"batch_code":"stale"}', encoding="utf-8")
 
-        with self.assertRaises(BookCodeManifestConflict):
+        with self.captureOnCommitCallbacks(execute=True):
             reserve_book_codes(batch, plan_sha256=plan["plan_sha256"])
 
         first.refresh_from_db()
         second.refresh_from_db()
-        self.assertEqual(first.book_code, "")
-        self.assertEqual(second.book_code, "")
-        self.assertEqual(BookCodeSequence.objects.get(name="book").next_number, 33)
+        self.assertEqual(first.book_code, "book_0033")
+        self.assertEqual(second.book_code, "book_0034")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(payload["batch_code"], batch.code)
+        self.assertEqual(payload["allocated_count"], 2)
+
+    def test_incremental_allocation_rebuilds_consolidated_manifest(self):
+        batch = self.create_batch()
+        self.create_item(batch, 1)
+        first_plan = preview_book_code_allocation(batch)
+        reserve_book_codes(batch, plan_sha256=first_plan["plan_sha256"])
+
+        self.create_item(batch, 2)
+        second_plan = preview_book_code_allocation(batch)
+        result = reserve_book_codes(batch, plan_sha256=second_plan["plan_sha256"])
+
+        batch.refresh_from_db()
+        self.assertEqual(result["allocated"], ["book_0034"])
+        self.assertEqual(batch.book_codes_start, "book_0033")
+        self.assertEqual(batch.book_codes_end, "book_0034")
+        self.assertEqual(batch.book_codes_allocated_count, 2)
+        self.assertEqual(
+            [row["book_code"] for row in batch.book_code_manifest["items"]],
+            ["book_0033", "book_0034"],
+        )
+
+    def test_registered_work_is_linked_without_advancing_sequence(self):
+        work = self.create_work("book_0040", "Existing Work")
+        batch = self.create_batch()
+        item = self.create_item(
+            batch,
+            1,
+            suggested_title=work.title,
+        )
+        plan = preview_book_code_allocation(batch)
+        self.assertEqual(plan["rows"][0]["action"], "link")
+        before = BookCodeSequence.objects.get(name="book").next_number
+
+        result = reserve_book_codes(batch, plan_sha256=plan["plan_sha256"])
+
+        item.refresh_from_db()
+        self.assertEqual(result["allocated"], ["book_0040"])
+        self.assertEqual(item.book_code, "book_0040")
+        self.assertEqual(BookCodeSequence.objects.get(name="book").next_number, before)
 
     def test_nonempty_book_code_is_unique(self):
         first_batch = self.create_batch("batch_0004")
