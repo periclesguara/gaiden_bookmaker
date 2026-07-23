@@ -91,6 +91,7 @@ class FakeSelectionClient:
         }
         self.checked = 0
         self.downloaded = []
+        self.created_folders = []
 
     def check_available(self):
         self.checked += 1
@@ -106,6 +107,10 @@ class FakeSelectionClient:
 
     def direct_child_name(self, stored_path):
         return stored_path.removeprefix(f"{self.inbox}/")
+
+    def ensure_folder(self, relative_path):
+        self.created_folders.append(relative_path)
+        return relative_path
 
     def download_file(self, _folder, drive_file, destination):
         self.downloaded.append(drive_file.name)
@@ -376,17 +381,60 @@ class BlockZeroTests(TestCase):
         response = self.client.get(reverse("intake_module:batch_create"))
         self.assertContains(response, "Salvar lote e adicionar arquivos")
         self.assertContains(response, "Salvar somente o cadastro")
-        self.assertContains(response, "Buscar pastas no Google Drive")
+        self.assertContains(response, "Criar lote e pasta no Google Drive")
+        self.assertContains(response, "Vincular uma pasta já existente")
         self.assertContains(response, reverse("intake_module:drive_folders"))
         self.assertContains(response, "Selecionar pasta do computador")
         self.assertNotContains(response, 'name="code"')
         self.assertNotContains(response, 'name="drive_relative_path"')
 
-    def test_batch_code_is_generated_and_collision_gets_unique_suffix(self):
+    def test_batch_code_is_generated_from_database_identity(self):
         first = IntakeBatch.objects.create(name="Shared Folder", source_language="en")
         second = IntakeBatch.objects.create(name="Shared Folder", source_language="en")
-        self.assertEqual(first.code, "shared-folder")
-        self.assertEqual(second.code, "shared-folder-2")
+        self.assertEqual(first.code, f"batch_{first.pk:04d}")
+        self.assertEqual(second.code, f"batch_{second.pk:04d}")
+        self.assertNotEqual(first.code, second.code)
+
+    def test_create_batch_provisions_canonical_drive_folder(self):
+        client = FakeSelectionClient()
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            response = self.client.post(
+                reverse("intake_module:batch_create"),
+                {
+                    **self._batch_form_data("Tarzan books"),
+                    "create_action": "provision_drive",
+                },
+            )
+        batch = IntakeBatch.objects.get(name="Tarzan books")
+        expected = f"01_INBOX_RAW/{batch.code}__edgar-rice-burroughs"
+        self.assertEqual(batch.code, f"batch_{batch.pk:04d}")
+        self.assertEqual(batch.drive_relative_path, expected)
+        self.assertEqual(client.created_folders, [expected])
+        self.assertEqual(client.downloaded, [])
+        self.assertEqual(response.url, reverse("intake_module:batch_files", args=[batch.id]))
+
+    def test_drive_provisioning_retry_is_idempotent(self):
+        client = FakeSelectionClient()
+        batch = IntakeBatch.objects.create(
+            name="Tarzan books",
+            author_default="Edgar Rice Burroughs",
+            source_language="en",
+        )
+        with patch("web.intake_module.views.RcloneClient", return_value=client):
+            first = self.client.post(
+                reverse("intake_module:batch_provision_drive", args=[batch.id])
+            )
+            second = self.client.post(
+                reverse("intake_module:batch_provision_drive", args=[batch.id])
+            )
+        batch.refresh_from_db()
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(
+            batch.drive_relative_path,
+            f"01_INBOX_RAW/{batch.code}__edgar-rice-burroughs",
+        )
+        self.assertEqual(len(client.created_folders), 1)
 
     def test_drive_folder_selection_sets_internal_path_code_and_lists_without_download(self):
         client = FakeSelectionClient()
@@ -415,7 +463,7 @@ class BlockZeroTests(TestCase):
                 },
             )
         batch = IntakeBatch.objects.get(name="Edgar_Rice_Burroughs")
-        self.assertEqual(batch.code, "edgar_rice_burroughs")
+        self.assertEqual(batch.code, f"batch_{batch.pk:04d}")
         self.assertEqual(batch.drive_relative_path, "01_INBOX_RAW/Edgar_Rice_Burroughs")
         self.assertEqual(response.url, reverse("intake_module:batch_files", args=[batch.id]))
         self.assertEqual(batch.items.count(), 2)
