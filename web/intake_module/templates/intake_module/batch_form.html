@@ -9,7 +9,9 @@
     <section class="panel">
       <h2>Google Drive</h2>
       <p><strong>Remote:</strong> {{ remote_name }}{{ inbox_name }}</p>
-      <p><a class="button" href="{% url 'intake_module:drive_folders' %}">Buscar pastas no Google Drive</a></p>
+      <p class="muted">O Gaiden gera um código imutável e cria a pasta canônica automaticamente.</p>
+      <p><button type="submit" name="create_action" value="provision_drive">Criar lote e pasta no Google Drive</button></p>
+      <p><a class="button secondary" href="{% url 'intake_module:drive_folders' %}">Vincular uma pasta já existente</a></p>
       {% if not rclone_available %}<p class="error">rclone não está disponível.</p>{% endif %}
       {% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
       {% if selected_drive_folder %}
