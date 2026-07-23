@@ -126,39 +126,22 @@ def merge_polidor_path(edition) -> Path:
 
 
 def core_last_txt_path(edition) -> Path:
-    return storage.editions_dir(edition.id) / "core" / "core_last.txt"
+    from gaiden.application.pipeline.official_body import canonical_path
+
+    return canonical_path(edition)
 
 
 def saved_core_reference_path(edition) -> Path | None:
-    from editorial.models import EditionPipeline
+    from gaiden.application.pipeline.official_body import resolve_official_body
 
-    configured = (
-        EditionPipeline.objects.filter(edition_id=edition.id)
-        .values_list("core_last_txt_path", flat=True)
-        .first()
-        or ""
-    )
-
-    candidates: list[Path] = []
-    if configured:
-        configured_path = Path(configured)
-        if configured_path.is_absolute():
-            candidates.append(configured_path)
-        else:
-            candidates.append(storage.repo_root() / configured_path)
-            candidates.append(storage.data_dir() / configured_path)
-    candidates.append(core_last_txt_path(edition))
-
-    for candidate in candidates:
-        if candidate.is_file() and not candidate.is_symlink():
-            return candidate
-    return None
+    return resolve_official_body(edition)
 
 
 def saved_drive_return_reference_path(edition) -> Path | None:
     try:
-        saved_from_drive = edition.text_snapshots.filter(
-            stage="drive_return_reference"
+        saved_from_drive = edition.official_body_snapshots.filter(
+            is_active=True,
+            provenance="drive_official",
         ).exists()
     except Exception:
         saved_from_drive = False

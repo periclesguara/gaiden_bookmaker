@@ -1,6 +1,8 @@
+import uuid
 from pathlib import Path
 
 from django.db import connection, models
+from django.db.models import Q
 from django.db.utils import OperationalError
 
 from editorial.models import Edition as EditorialEdition
@@ -57,6 +59,110 @@ class TextSnapshot(models.Model):
 
     def __str__(self) -> str:
         return f"Snapshot({self.edition} [{self.language}] - {self.stage})"
+
+
+class OfficialBodySnapshot(models.Model):
+    PROVENANCE_INTERNAL_POLISH = "internal_polish"
+    PROVENANCE_DRIVE_OFFICIAL = "drive_official"
+    PROVENANCE_MANUAL = "manual_editorial_approval"
+    PROVENANCE_CHOICES = [
+        (PROVENANCE_INTERNAL_POLISH, "Internal polish"),
+        (PROVENANCE_DRIVE_OFFICIAL, "Drive official"),
+        (PROVENANCE_MANUAL, "Manual editorial approval"),
+    ]
+
+    edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="official_body_snapshots",
+    )
+    translation_job = models.ForeignKey(
+        "intake_module.TranslationJob",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="official_snapshots",
+    )
+    sha256 = models.CharField(max_length=64)
+    size = models.PositiveBigIntegerField()
+    relative_path = models.CharField(max_length=500)
+    provenance = models.CharField(max_length=40, choices=PROVENANCE_CHOICES)
+    source_stage = models.CharField(max_length=40)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    superseded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["edition"],
+                condition=Q(is_active=True),
+                name="pipeline_one_active_official_body",
+            ),
+            models.UniqueConstraint(
+                fields=["edition", "sha256"],
+                name="pipeline_unique_official_body_sha",
+            ),
+        ]
+
+
+class OfficialBodyPromotion(models.Model):
+    PREPARED = "PREPARED"
+    FILE_STAGED = "FILE_STAGED"
+    DB_COMMITTED = "DB_COMMITTED"
+    CANONICAL_PUBLISHED = "CANONICAL_PUBLISHED"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    STATE_CHOICES = [
+        (PREPARED, PREPARED),
+        (FILE_STAGED, FILE_STAGED),
+        (DB_COMMITTED, DB_COMMITTED),
+        (CANONICAL_PUBLISHED, CANONICAL_PUBLISHED),
+        (COMPLETED, COMPLETED),
+        (FAILED, FAILED),
+    ]
+
+    operation_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="official_body_promotions",
+    )
+    translation_job = models.ForeignKey(
+        "intake_module.TranslationJob",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="promotion_operations",
+    )
+    previous_snapshot = models.ForeignKey(
+        OfficialBodySnapshot,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="superseded_by_operations",
+    )
+    new_snapshot = models.ForeignKey(
+        OfficialBodySnapshot,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="promotion_operation",
+    )
+    state = models.CharField(max_length=32, choices=STATE_CHOICES, default=PREPARED)
+    input_sha256 = models.CharField(max_length=64, blank=True)
+    return_sha256 = models.CharField(max_length=64)
+    staged_path = models.CharField(max_length=500, blank=True)
+    previous_canonical_sha256 = models.CharField(max_length=64, blank=True)
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
 
 
 LANGUAGE_DEFAULT_TEMPLATES = {

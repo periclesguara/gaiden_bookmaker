@@ -37,7 +37,7 @@ def _chapter_number_from_heading(line: str) -> int | None:
 def _pick_source_text(edition) -> Path:
     build_dir = paths.edition_build_dir(edition)
     candidates = [
-        paths.saved_drive_return_reference_path(edition),
+        paths.saved_core_reference_path(edition),
         build_dir / "merge_refine.txt",
         build_dir / "merge_polish.txt",
         build_dir / "merge_translate.txt",

@@ -2817,7 +2817,7 @@ class HeadingCleanerGateTests(TestCase):
         joined_light = "\n".join(report["light"])
         self.assertIn("Pre-flight AI fallback acionado", joined_light)
 
-    def test_preflight_step_marks_warning_reports_as_review(self):
+    def test_obsolete_manual_editorial_controls_are_hidden(self):
         self.split_dir.mkdir(parents=True, exist_ok=True)
         (self.split_dir / "0001.txt").write_text("chunk 1", encoding="utf-8")
         self.translated_dir.mkdir(parents=True, exist_ok=True)
@@ -2848,12 +2848,13 @@ class HeadingCleanerGateTests(TestCase):
 
         response = self.client.get(self.steps_url)
 
-        self.assertContains(response, 'class="pipeline-step"')
-        self.assertContains(response, "Pre-producao (Pre-flight)")
-        self.assertContains(response, "Rerodar Pre-flight")
-        self.assertContains(response, "revisar")
-        self.assertContains(response, "Relatorio com alertas: 1 leve(s); houve fallback/timeout da IA.")
-        self.assertContains(response, "Nao tratar como aprovacao silenciosa.")
+        self.assertNotContains(response, "Regerar Frontmatter (.md)")
+        self.assertNotContains(response, "Frontmatter + BOOK.BUILD.MD")
+        self.assertNotContains(response, "Rerodar Pre-flight")
+        self.assertNotContains(response, "Convert TXT to MD")
+        self.assertNotContains(response, "Preview MD")
+        self.assertContains(response, "Frontmatter por Idioma")
+        self.assertContains(response, "Salvar capa (JPG)")
 
     def test_merge_refine_blocks_truncated_refine_chunk(self):
         self.split_dir.mkdir(parents=True, exist_ok=True)

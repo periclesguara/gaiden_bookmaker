@@ -128,23 +128,25 @@ def adopt_existing_artifact(item, inspection: ArtifactInspection | None = None) 
 def update_duplicate_group(batch, digest: str) -> int | None:
     if not digest:
         return None
-    items = list(
-        batch.items.select_for_update()
-        .filter(source_sha256=digest)
-        .order_by("order_index", "id")
-    )
-    if not items:
-        return None
-    canonical = min(items, key=_canonical_sort_key)
-    now = timezone.now()
-    for candidate in items:
-        duplicate_of_id = None if candidate.id == canonical.id else canonical.id
-        if candidate.duplicate_of_id != duplicate_of_id:
-            type(candidate).objects.filter(pk=candidate.pk).update(
-                duplicate_of_id=duplicate_of_id,
-                updated_at=now,
-            )
-    return canonical.id
+    item_model = batch.items.model
+    with transaction.atomic():
+        items = list(
+            item_model.objects.select_for_update()
+            .filter(source_sha256=digest)
+            .order_by("created_at", "id")
+        )
+        if not items:
+            return None
+        canonical = min(items, key=_canonical_sort_key)
+        now = timezone.now()
+        for candidate in items:
+            duplicate_of_id = None if candidate.id == canonical.id else canonical.id
+            if candidate.duplicate_of_id != duplicate_of_id:
+                type(candidate).objects.filter(pk=candidate.pk).update(
+                    duplicate_of_id=duplicate_of_id,
+                    updated_at=now,
+                )
+        return canonical.id
 
 
 def reconcile_batch_downloads(
@@ -191,7 +193,12 @@ def _build_reconciliation_report(
         if inspection.valid:
             valid_groups.setdefault(inspection.sha256, []).append(item)
     for digest, group in valid_groups.items():
-        canonical_by_digest[digest] = min(group, key=_canonical_sort_key)
+        persisted_query = type(group[0]).objects.filter(source_sha256=digest)
+        if apply:
+            persisted_query = persisted_query.select_for_update()
+        persisted = list(persisted_query)
+        candidates = {candidate.id: candidate for candidate in [*persisted, *group]}
+        canonical_by_digest[digest] = min(candidates.values(), key=_canonical_sort_key)
 
     report = {
         "dry_run": not apply,
@@ -285,6 +292,9 @@ def _build_reconciliation_report(
                 )
         else:
             report["unchanged"].append({**base, "reason": inspection.reason})
+    if apply:
+        for digest in valid_groups:
+            update_duplicate_group(items[0].batch, digest)
     return report
 
 
@@ -294,9 +304,9 @@ def _mark_conflict(item, reason: str) -> None:
     item.save(update_fields=["status", "last_error", "updated_at"])
 
 
-def _canonical_sort_key(item) -> tuple[int, int, int]:
+def _canonical_sort_key(item) -> tuple[int, object, int]:
     has_copy_suffix = bool(COPY_SUFFIX.search(item.source_filename))
-    return (int(has_copy_suffix), item.order_index, item.id)
+    return (int(has_copy_suffix), item.created_at, item.id)
 
 
 def _sha256(path: Path) -> str:

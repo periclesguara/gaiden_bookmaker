@@ -199,6 +199,27 @@ class RcloneClient:
             "no_op": False,
         }
 
+    def archive_file(
+        self,
+        relative_folder: str,
+        filename: str,
+        archive_folder: str,
+    ) -> bool:
+        safe_folder = _safe_relative_path(relative_folder)
+        safe_filename = _safe_relative_path(filename)
+        if "/" in safe_filename:
+            raise ValueError("Drive archive filename must not contain directories")
+        existing = [row for row in self.list_files(safe_folder) if row.name == safe_filename]
+        if not existing:
+            return False
+        if len(existing) != 1:
+            raise RcloneCommandError("Drive archive source is ambiguous")
+        safe_archive = self.ensure_folder(archive_folder)
+        source = self._remote_path(f"{safe_folder}/{safe_filename}")
+        destination = self._remote_path(f"{safe_archive}/{safe_filename}")
+        self._run(["rclone", "moveto", source, destination, "--no-traverse", "--immutable"])
+        return True
+
     def _remote_path(self, relative_path: str) -> str:
         safe_path = _safe_relative_path(relative_path) if relative_path else ""
         if safe_path == self.inbox or safe_path.startswith(f"{self.inbox}/"):

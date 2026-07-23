@@ -17,6 +17,10 @@ venv/
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
 
 # Local databases
 *.sqlite3
