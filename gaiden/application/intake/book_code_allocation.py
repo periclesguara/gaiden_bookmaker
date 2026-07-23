@@ -333,7 +333,7 @@ def preview_book_code_allocation(
         "conflicts": conflicts,
         "no_op": not proposals and not conflicts,
         "manifest_path": allocation_manifest_path(batch),
-        "manifest_exists": allocation_manifest_path(batch).is_file(),
+        "manifest_exists": bool(batch.book_code_manifest),
     }
 
 
@@ -399,9 +399,16 @@ def _project_manifest_safely(batch_id: int) -> None:
     try:
         _project_manifest(batch_id)
     except Exception as exc:
-        IntakeBatch.objects.filter(pk=batch_id).update(
-            book_code_manifest_projection_error=f"{type(exc).__name__}: {exc}"[:2000],
-        )
+        try:
+            IntakeBatch.objects.filter(pk=batch_id).update(
+                book_code_manifest_projection_error=(
+                    f"{type(exc).__name__}: {exc}"[:2000]
+                ),
+            )
+        except Exception:
+            # The database commit already succeeded. Projection is recoverable
+            # from book_code_manifest on the next request or reconciliation run.
+            pass
 
 def reserve_book_codes(batch: IntakeBatch, *, plan_sha256: str, actor: str = "") -> dict:
     try:
