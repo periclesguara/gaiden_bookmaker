@@ -16,11 +16,16 @@ class CollectionModuleTests(TestCase):
         base = f"collection_test_{Collection.objects.count() + 1:04d}"
         return f"{base}_{suffix}" if suffix else base
 
-    def test_root_shows_choice_between_book_and_collection(self):
+    def test_root_always_shows_the_three_entry_flows(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Book")
+        self.assertContains(response, "Bloco 00 — Cadastro Geral")
+        self.assertContains(response, "Upload individual — método atual")
         self.assertContains(response, "Collection")
+        self.assertContains(response, reverse("intake_module:batch_list"))
+        self.assertContains(response, reverse("book_edition_new"))
+        self.assertContains(response, reverse("collection_new"))
+        self.assertContains(response, 'class="option ', count=3)
 
     def test_create_collection(self):
         response = self.client.post(

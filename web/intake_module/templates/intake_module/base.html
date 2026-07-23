@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cadastro Geral{% endblock %}</title>
+  <style>
+    body{margin:0;background:#f4f1ec;color:#20282b;font-family:system-ui,sans-serif}header,main{width:min(1120px,calc(100% - 32px));margin:auto}header{display:flex;justify-content:space-between;padding:24px 0}a{color:#85351f}main{background:#fff;padding:28px;border-radius:10px;box-sizing:border-box}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}.button,button{display:inline-block;padding:10px 14px;border:0;border-radius:6px;background:#85351f;color:#fff;text-decoration:none}.secondary{background:#667074}label{display:block;font-weight:700;margin-top:12px}input,select{width:100%;padding:9px;box-sizing:border-box}input[type=checkbox]{width:auto}.muted{color:#667074}.error{color:#a12622}.inline{display:inline-block;margin:0 8px 12px 0}td form{margin-top:6px}dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px}dt{font-weight:700}dd{margin:0;overflow-wrap:anywhere}.panels{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:20px}.panel{border:1px solid #ddd;border-radius:8px;padding:18px;overflow:auto}.summary{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.summary span{padding:8px 10px;border:1px solid #ddd;border-radius:6px}.summary strong{font-size:1.15rem}@media(max-width:800px){.panels{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header><strong><a href="{% url 'intake_module:batch_list' %}">Cadastro Geral</a></strong><a href="/">Gaiden</a></header>
+<main>
+{% if messages %}{% for message in messages %}<p class="{% if message.tags == 'error' %}error{% else %}muted{% endif %}">{{ message }}</p>{% endfor %}{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

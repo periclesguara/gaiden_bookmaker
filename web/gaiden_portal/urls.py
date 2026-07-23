@@ -10,5 +10,6 @@ urlpatterns = [
     path("pipeline/", include("pipeline.urls")),
     path("editorial/", include("editorial.urls")),
     path("author-studio/", include("web.author_studio.urls")),
+    path("intake/", include("web.intake_module.urls")),
     path("", include("pipeline.urls")),
 ]

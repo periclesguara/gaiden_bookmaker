@@ -37,12 +37,13 @@ def _chapter_number_from_heading(line: str) -> int | None:
 def _pick_source_text(edition) -> Path:
     build_dir = paths.edition_build_dir(edition)
     candidates = [
+        paths.saved_core_reference_path(edition),
         build_dir / "merge_refine.txt",
         build_dir / "merge_polish.txt",
         build_dir / "merge_translate.txt",
     ]
     for candidate in candidates:
-        if candidate.exists():
+        if candidate is not None and candidate.exists():
             return candidate
     for candidate in sorted(build_dir.glob("merge_*.txt")):
         if candidate.exists():
@@ -183,4 +184,3 @@ def run_refine_qa(edition) -> dict[str, object]:
         "json_path": str(json_path),
         "md_path": str(md_path),
     }
-

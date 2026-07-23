@@ -1,0 +1,49 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Criar lote</h1>
+<p class="muted">Os campos técnicos são gerados pelo Gaiden. Não informe caminhos locais.</p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="panels">
+    <section class="panel">
+      <h2>Google Drive</h2>
+      <p><strong>Remote:</strong> {{ remote_name }}{{ inbox_name }}</p>
+      <p><a class="button" href="{% url 'intake_module:drive_folders' %}">Buscar pastas no Google Drive</a></p>
+      {% if not rclone_available %}<p class="error">rclone não está disponível.</p>{% endif %}
+      {% if configuration_error %}<p class="error">{{ configuration_error }}</p>{% endif %}
+      {% if selected_drive_folder %}
+        <p><strong>Pasta selecionada:</strong> {{ selected_drive_folder }}</p>
+        <input type="hidden" name="drive_folder" value="{{ selected_drive_folder }}">
+        <p class="muted">Complete os dados compartilhados abaixo. Code e caminho do Drive serão gerados internamente.</p>
+        <button type="submit" name="create_action" value="save_drive_folder">Salvar cadastro e listar arquivos</button>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Computador</h2>
+      {{ local_form.local_folder_name }}
+      <label class="button" for="{{ local_form.folder_files.id_for_label }}">Selecionar pasta do computador</label>
+      {{ local_form.folder_files }}
+      {% for error in local_form.folder_files.errors %}<p class="error">{{ error }}</p>{% endfor %}
+      <button type="submit" name="create_action" value="select_local_folder">Usar pasta local selecionada</button>
+      <p class="muted">O navegador envia os arquivos selecionados; nenhum caminho como /home/... é solicitado ou aceito.</p>
+    </section>
+  </div>
+  <p>
+    <button type="submit" name="save_and_files" value="1">Salvar lote e adicionar arquivos</button>
+    <button class="secondary" type="submit" name="save_only" value="1">Salvar somente o cadastro</button>
+  </p>
+</form>
+<script>
+  const nameInput = document.getElementById('id_name');
+  const folderInput = document.getElementById('{{ local_form.folder_files.id_for_label }}');
+  const folderName = document.getElementById('id_local_folder_name');
+  folderInput?.addEventListener('change', () => {
+    const first = folderInput.files[0];
+    const selected = first?.webkitRelativePath?.split('/')[0] || '';
+    if (folderName) folderName.value = selected;
+    if (nameInput && selected) nameInput.value = selected;
+  });
+</script>
+{% endblock %}

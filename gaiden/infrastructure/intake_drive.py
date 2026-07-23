@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
+
+
+DEFAULT_REMOTE = "gaiden_drive:"
+DEFAULT_INBOX = "01_INBOX_RAW"
+
+
+class RcloneUnavailableError(RuntimeError):
+    pass
+
+
+class RcloneCommandError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class DriveFile:
+    file_id: str
+    name: str
+    relative_path: str
+    size: int
+    mime_type: str = ""
+
+
+def _safe_relative_path(value: str) -> str:
+    candidate = PurePosixPath((value or "").strip())
+    if not value or candidate.is_absolute() or ".." in candidate.parts or ":" in value or "\\" in value:
+        raise ValueError(f"Unsafe Drive path: {value!r}")
+    return candidate.as_posix().strip("/")
+
+
+def _safe_direct_child_name(value: str) -> str:
+    name = _safe_relative_path(value)
+    if "/" in name or name in {".", ".."}:
+        raise ValueError("Drive folder must be a direct child of the configured inbox")
+    return name
+
+
+class RcloneClient:
+    def __init__(self, *, timeout: int = 60, inbox: str | None = None):
+        self.remote = (os.environ.get("GAIDEN_INTAKE_RCLONE_REMOTE") or DEFAULT_REMOTE).strip()
+        configured_inbox = (
+            inbox
+            if inbox is not None
+            else os.environ.get("GAIDEN_INTAKE_DRIVE_INBOX") or DEFAULT_INBOX
+        )
+        self.inbox = _safe_relative_path(configured_inbox)
+        self.timeout = timeout
+        if not self.remote.endswith(":") or "/" in self.remote:
+            raise ValueError("GAIDEN_INTAKE_RCLONE_REMOTE must be an rclone remote ending in ':'")
+
+    def check_available(self) -> None:
+        if not shutil.which("rclone"):
+            raise RcloneUnavailableError("rclone executable is not available")
+        self._run(["rclone", "version"])
+
+    @property
+    def executable_available(self) -> bool:
+        return bool(shutil.which("rclone"))
+
+    def list_folders(self, relative_path: str = "") -> list[str]:
+        target = self._remote_path(relative_path)
+        result = self._run(["rclone", "lsd", target])
+        folders = []
+        for line in result.stdout.splitlines():
+            columns = line.strip().split(maxsplit=4)
+            if len(columns) < 5:
+                continue
+            folders.append(_safe_direct_child_name(columns[4]))
+        return folders
+
+    def stored_folder_path(self, folder_name: str) -> str:
+        return f"{self.inbox}/{_safe_direct_child_name(folder_name)}"
+
+    def direct_child_name(self, stored_path: str) -> str:
+        safe_path = _safe_relative_path(stored_path)
+        prefix = f"{self.inbox}/"
+        if safe_path.startswith(prefix):
+            safe_path = safe_path[len(prefix) :]
+        return _safe_direct_child_name(safe_path)
+
+    def list_files(self, relative_path: str) -> list[DriveFile]:
+        target = self._remote_path(relative_path)
+        result = self._run(["rclone", "lsjson", target, "--files-only"])
+        try:
+            payload = json.loads(result.stdout or "[]")
+        except json.JSONDecodeError as exc:
+            raise RcloneCommandError("rclone returned invalid JSON") from exc
+        files: list[DriveFile] = []
+        for row in payload:
+            name = Path(row.get("Name") or row.get("Path") or "").name
+            if not name:
+                continue
+            files.append(
+                DriveFile(
+                    file_id=str(row.get("ID") or ""),
+                    name=name,
+                    relative_path=str(row.get("Path") or name),
+                    size=max(0, int(row.get("Size") or 0)),
+                    mime_type=str(row.get("MimeType") or ""),
+                )
+            )
+        return files
+
+    def download_file(self, folder: str, drive_file: DriveFile, destination: Path) -> Path:
+        if destination.exists() or destination.is_symlink():
+            raise FileExistsError(f"Download destination already exists: {destination}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        source = self._remote_path(f"{_safe_relative_path(folder)}/{_safe_relative_path(drive_file.relative_path)}")
+        self._run(["rclone", "copyto", source, str(destination), "--no-traverse"])
+        if not destination.is_file() or destination.is_symlink():
+            raise RcloneCommandError("rclone did not produce a regular downloaded file")
+        return destination
+
+    def upload_file(self, source: Path, folder: str, remote_filename: str) -> dict:
+        source_path = Path(source)
+        if source_path.is_symlink() or not source_path.is_file():
+            raise ValueError("Upload source must be an existing regular file")
+        safe_folder = self.stored_folder_path(self.direct_child_name(folder))
+        safe_filename = _safe_relative_path(remote_filename)
+        if "/" in safe_filename:
+            raise ValueError("Drive upload filename must not contain directories")
+        existing = next(
+            (drive_file for drive_file in self.list_files(safe_folder) if drive_file.name == safe_filename),
+            None,
+        )
+        if existing is not None:
+            if existing.size == source_path.stat().st_size:
+                return {
+                    "remote_path": f"{safe_folder}/{safe_filename}",
+                    "no_op": True,
+                }
+            raise FileExistsError("A different Drive artifact already uses the destination name")
+        target = self._remote_path(f"{safe_folder}/{safe_filename}")
+        self._run(
+            [
+                "rclone",
+                "copyto",
+                str(source_path),
+                target,
+                "--no-traverse",
+                "--immutable",
+            ]
+        )
+        return {
+            "remote_path": f"{safe_folder}/{safe_filename}",
+            "no_op": False,
+        }
+
+    def ensure_folder(self, relative_path: str) -> str:
+        safe_folder = _safe_relative_path(relative_path)
+        self._run(["rclone", "mkdir", self._remote_path(safe_folder)])
+        return safe_folder
+
+    def upload_file_to_path(
+        self,
+        source: Path,
+        relative_folder: str,
+        remote_filename: str,
+    ) -> dict:
+        source_path = Path(source)
+        if source_path.is_symlink() or not source_path.is_file():
+            raise ValueError("Upload source must be an existing regular file")
+        safe_folder = self.ensure_folder(relative_folder)
+        safe_filename = _safe_relative_path(remote_filename)
+        if "/" in safe_filename:
+            raise ValueError("Drive upload filename must not contain directories")
+        existing = next(
+            (drive_file for drive_file in self.list_files(safe_folder) if drive_file.name == safe_filename),
+            None,
+        )
+        if existing is not None:
+            if existing.size == source_path.stat().st_size:
+                return {
+                    "remote_path": f"{safe_folder}/{safe_filename}",
+                    "no_op": True,
+                }
+            raise FileExistsError("A different Drive artifact already uses the destination name")
+        target = self._remote_path(f"{safe_folder}/{safe_filename}")
+        self._run(
+            [
+                "rclone",
+                "copyto",
+                str(source_path),
+                target,
+                "--no-traverse",
+                "--immutable",
+            ]
+        )
+        return {
+            "remote_path": f"{safe_folder}/{safe_filename}",
+            "no_op": False,
+        }
+
+    def archive_file(
+        self,
+        relative_folder: str,
+        filename: str,
+        archive_folder: str,
+    ) -> bool:
+        safe_folder = _safe_relative_path(relative_folder)
+        safe_filename = _safe_relative_path(filename)
+        if "/" in safe_filename:
+            raise ValueError("Drive archive filename must not contain directories")
+        existing = [row for row in self.list_files(safe_folder) if row.name == safe_filename]
+        if not existing:
+            return False
+        if len(existing) != 1:
+            raise RcloneCommandError("Drive archive source is ambiguous")
+        safe_archive = self.ensure_folder(archive_folder)
+        source = self._remote_path(f"{safe_folder}/{safe_filename}")
+        destination = self._remote_path(f"{safe_archive}/{safe_filename}")
+        self._run(["rclone", "moveto", source, destination, "--no-traverse", "--immutable"])
+        return True
+
+    def _remote_path(self, relative_path: str) -> str:
+        safe_path = _safe_relative_path(relative_path) if relative_path else ""
+        if safe_path == self.inbox or safe_path.startswith(f"{self.inbox}/"):
+            full_path = safe_path
+        else:
+            full_path = "/".join(part for part in (self.inbox, safe_path) if part)
+        return f"{self.remote}{full_path}"
+
+    def _run(self, arguments: list[str]) -> subprocess.CompletedProcess[str]:
+        try:
+            result = subprocess.run(
+                arguments,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout,
+                shell=False,
+                env=os.environ.copy(),
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RcloneCommandError(f"rclone timed out after {self.timeout}s") from exc
+        if result.returncode != 0:
+            safe_error = (result.stderr or "rclone command failed").strip().replace("\n", " ")[:500]
+            raise RcloneCommandError(f"rclone failed with exit {result.returncode}: {safe_error}")
+        return result

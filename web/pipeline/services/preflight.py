@@ -27,6 +27,7 @@ def _pick_source_text(edition) -> Path:
     book_code = edition.work.code
     translated_merge = paths.data_dir() / "translated" / book_code / "merge_refine_clean.txt"
     candidates = [
+        paths.saved_core_reference_path(edition),
         paths.merge_polidor_path(edition),
         translated_merge,
         paths.merge_refine_path(edition),
@@ -34,7 +35,7 @@ def _pick_source_text(edition) -> Path:
         paths.merge_translate_path(edition),
     ]
     for candidate in candidates:
-        if candidate.exists():
+        if candidate is not None and candidate.exists():
             return candidate
     raise FileNotFoundError(
         f"No canonical merge text found for pre-flight: book_code={book_code}"

@@ -126,7 +126,28 @@ def merge_polidor_path(edition) -> Path:
 
 
 def core_last_txt_path(edition) -> Path:
-    return storage.editions_dir(edition.id) / "core" / "core_last.txt"
+    from gaiden.application.pipeline.official_body import canonical_path
+
+    return canonical_path(edition)
+
+
+def saved_core_reference_path(edition) -> Path | None:
+    from gaiden.application.pipeline.official_body import resolve_official_body
+
+    return resolve_official_body(edition)
+
+
+def saved_drive_return_reference_path(edition) -> Path | None:
+    try:
+        saved_from_drive = edition.official_body_snapshots.filter(
+            is_active=True,
+            provenance="drive_official",
+        ).exists()
+    except Exception:
+        saved_from_drive = False
+    if not saved_from_drive:
+        return None
+    return saved_core_reference_path(edition)
 
 
 def pre_qa_md_path(edition) -> Path:

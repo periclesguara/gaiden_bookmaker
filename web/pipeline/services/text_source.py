@@ -108,6 +108,16 @@ def _resolve_selected_sources(edition) -> list[SelectedTextSource]:
         )
 
     def resolve_auto() -> list[SelectedTextSource]:
+        reference = paths.saved_core_reference_path(edition)
+        if reference is not None:
+            return [
+                SelectedTextSource(
+                    language=language_code,
+                    path=reference,
+                    name=reference.name,
+                    label=f"Referência canônica ({language_code})",
+                )
+            ]
         for name in paths.merge_priority_names(edition):
             p = build_dir / name
             if p.exists():
@@ -188,6 +198,15 @@ def resolve_txt_source(edition) -> SelectedTextSource:
     lang_code = edition_meta.language_code(edition)
     normalized_lang = utils.normalize_lang(lang_code)
     policy = stage_policy.POLICY
+
+    reference = paths.saved_core_reference_path(edition)
+    if reference is not None:
+        return SelectedTextSource(
+            language=normalized_lang,
+            path=reference,
+            name=reference.name,
+            label=f"Referência canônica ({normalized_lang})",
+        )
 
     def pick(candidates: list[str]) -> Path | None:
         for name in candidates:

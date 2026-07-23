@@ -1,0 +1,12 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>{{ item.source_filename }}</h1><p>Lote: <a href="{% url 'intake_module:batch_detail' item.batch.id %}">{{ item.batch.name }}</a></p><dl><dt>Status</dt><dd>{{ item.status }}</dd><dt>Duplicidade</dt><dd>{% if item.duplicate_of_id %}Duplicata do item {{ item.duplicate_of.order_index }}{% else %}Arquivo canônico{% endif %}</dd><dt>SHA-256</dt><dd>{{ item.source_sha256|default:"—" }}</dd><dt>Texto limpo</dt><dd>{{ item.clean_path|default:"—" }}</dd><dt>Retorno</dt><dd>{{ item.translation_return_path|default:"—" }}</dd><dt>Handoff</dt><dd>{{ item.handoff_translated_path|default:"—" }}</dd></dl>
+<h2>Metadados individuais</h2><form method="post" action="{% url 'intake_module:item_update_metadata' item.id %}">{% csrf_token %}{{ metadata_form.as_p }}<button type="submit">Salvar metadados</button></form>
+{% if can_reconcile_item %}<p><a class="button secondary" href="{% url 'intake_module:item_reconcile' item.id %}">Reconciliar este item</a></p>{% endif %}
+{% if can_open_in_bookmaker %}<form method="post" action="{% url 'intake_module:item_open_bookmaker' item.id %}">{% csrf_token %}<button type="submit">Abrir no Gaiden Bookmaker</button></form>{% endif %}
+{% if item.status == "DISCOVERED" %}<form method="post" action="{% url 'intake_module:item_download' item.id %}">{% csrf_token %}<button type="submit">Baixar do Drive</button></form>{% endif %}
+{% if item.status == "DOWNLOADED" and not item.duplicate_of_id %}<form method="post" action="{% url 'intake_module:item_clean' item.id %}">{% csrf_token %}<button type="submit">Limpar e gerar clean.txt</button></form>{% endif %}
+{% if item.status == "READY_FOR_CODEX" or item.status == "TRANSLATING" %}<h2>Registrar retorno</h2><form method="post" enctype="multipart/form-data" action="{% url 'intake_module:item_register_return' item.id %}">{% csrf_token %}{{ return_form.as_p }}<button type="submit">Registrar retorno</button></form>{% endif %}
+{% if item.status == "TRANSLATION_RETURNED" %}<form method="post" action="{% url 'intake_module:item_confirm_ready' item.id %}">{% csrf_token %}<button type="submit">Confirmar READY_FOR_EDITING</button></form>{% endif %}
+{% if item.status == "READY_FOR_EDITING" %}<form method="post" action="{% url 'intake_module:item_handoff' item.id %}">{% csrf_token %}<button type="submit">Enviar ao pipeline editorial</button></form>{% endif %}
+{% endblock %}

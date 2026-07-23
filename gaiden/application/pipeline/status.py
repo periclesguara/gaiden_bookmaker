@@ -104,6 +104,7 @@ def resolve_block_status_map(
         "bloco_02_running": block_02_running,
         "bloco_02_done": block_02_ready,
         "bloco_03_ready": block_03_ready,
+        "bloco_03_unlocked": block_03_ready,
         "bloco_03_done": block_03_done,
         "bloco_04_done": block_04_done,
         "block_04_ready": bool(block_03_done and md_final_ready),

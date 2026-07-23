@@ -1,0 +1,9 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Cadastro Geral</h1>
+<p class="muted">Lotes de livros independentes para preparação editorial.</p>
+<p><a class="button" href="{% url 'intake_module:batch_create' %}">Criar lote</a></p>
+<table><thead><tr><th>Código</th><th>Nome</th><th>Idioma</th><th>Status</th><th>Itens</th></tr></thead><tbody>
+{% for batch in batches %}<tr><td><a href="{% url 'intake_module:batch_detail' batch.id %}">{{ batch.code }}</a></td><td>{{ batch.name }}</td><td>{{ batch.source_language }}</td><td>{{ batch.status }}</td><td>{{ batch.items.count }}</td></tr>{% empty %}<tr><td colspan="5">Nenhum lote cadastrado.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

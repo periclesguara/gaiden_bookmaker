@@ -1,0 +1,5 @@
+{% extends "intake_module/base.html" %}
+{% block content %}
+<h1>Arquivos do Google Drive</h1><p>{{ batch.name }}</p>
+<p>Use a seleção segura de pastas em <a href="{% url 'intake_module:batch_files' batch.id %}">Arquivos do lote</a>.</p>
+{% endblock %}

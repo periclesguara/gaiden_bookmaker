@@ -12,17 +12,58 @@ except ImportError:  # pragma: no cover
     BeautifulSoup = None
 
 
+BLOCK_TAGS = {
+    "address",
+    "article",
+    "aside",
+    "blockquote",
+    "div",
+    "figcaption",
+    "figure",
+    "footer",
+    "header",
+    "hgroup",
+    "li",
+    "main",
+    "nav",
+    "ol",
+    "p",
+    "section",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "ul",
+}
+
+
 def html_to_text(raw_html: str) -> str:
     if BeautifulSoup is not None:
         soup = BeautifulSoup(raw_html, "html.parser")
         for tag in soup(["script", "style"]):
             tag.decompose()
-        text = soup.get_text("\n")
+        for tag in soup.find_all("br"):
+            tag.replace_with("\n")
+        for level in range(1, 7):
+            for tag in soup.find_all(f"h{level}"):
+                tag.insert(0, f"{'#' * level} ")
+        for tag in soup.find_all([*BLOCK_TAGS, *(f"h{level}" for level in range(1, 7))]):
+            tag.insert_before("\n")
+            tag.insert_after("\n")
+        text = soup.get_text("")
     else:
         text = re.sub(r"(?is)<script\b[^>]*>.*?</script>", "", raw_html)
         text = re.sub(r"(?is)<style\b[^>]*>.*?</style>", "", text)
         text = re.sub(r"(?s)<!--.*?-->", "", text)
         text = re.sub(r"(?i)<br\s*/?>", "\n", text)
+        text = re.sub(
+            r"(?is)<h([1-6])\b[^>]*>(.*?)</h\1>",
+            lambda match: f"\n{'#' * int(match.group(1))} {match.group(2)}\n",
+            text,
+        )
         text = re.sub(r"(?i)</(p|div|li|h[1-6]|section|article|blockquote|tr|td|th|ul|ol)>", "\n", text)
         text = re.sub(r"(?s)<[^>]+>", "", text)
         text = unescape(text)

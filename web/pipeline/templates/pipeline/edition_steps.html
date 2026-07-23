@@ -244,6 +244,7 @@
     {% endif %}
     {% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang as nav_frontmatter_url %}
     {% include "pipeline/_workspace_nav.html" with nav_active="steps" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=edition_steps_action_url nav_frontmatter_url=nav_frontmatter_url %}
+    {% include "pipeline/_book_identity_header.html" %}
     <h1>Blocos 02-04 — {{ book_code }} ({{ language }})</h1>
     <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
     <div class="actions">
@@ -261,11 +262,16 @@
         <div class="status">Status: <strong>{{ block_status_labels.bloco_01_ready }}</strong> = {% if block_statuses.bloco_01_ready %}OK{% else %}pendente{% endif %}</div>
       {% elif block.key == core_block_key %}
         <div class="status"><strong>Core oficial do sistema.</strong></div>
+        {% if block_statuses.bloco_02_done %}
+        <div class="status"><strong>Bloco 02 concluído</strong></div>
+        <div class="status"><strong>Referência canônica salva</strong></div>
+        {% else %}
         <div class="status">Status running: {% if block_statuses.bloco_02_running %}<strong>{{ block_status_labels.bloco_02_running }}</strong>{% else %}nao{% endif %}</div>
-        <div class="status">Status done: {% if block_statuses.bloco_02_done %}<strong>{{ block_status_labels.bloco_02_done }}</strong>{% else %}pendente{% endif %}</div>
+        <div class="status">Bloco 02 done: pendente</div>
+        {% endif %}
         <div class="status">Isolamento por idioma: <strong>{% for code in core_isolation_languages %}{% if not forloop.first %}, {% endif %}{{ code|upper }}{% endfor %}</strong></div>
       {% elif block.key == "bloco_03" %}
-        <div class="status">Status ready: {% if block_statuses.bloco_03_ready %}<strong>{{ block_status_labels.bloco_03_ready }}</strong>{% else %}aguardando bloco 02{% endif %}</div>
+        <div class="status">{% if block_statuses.bloco_03_unlocked %}<strong>Bloco 03 liberado</strong>{% else %}Status ready: aguardando bloco 02{% endif %}</div>
         <div class="status">Status done: {% if block_statuses.bloco_03_done %}<strong>{{ block_status_labels.bloco_03_done }}</strong>{% else %}pendente{% endif %}</div>
       {% elif block.key == "bloco_04" %}
         <div class="status">Status done: {% if block_statuses.bloco_04_done %}<strong>{{ block_status_labels.bloco_04_done }}</strong>{% else %}pendente{% endif %}</div>
@@ -345,6 +351,33 @@
               <code>{{ out }}</code>
             {% endfor %}
           </div>
+          {% if s.key == "translate" %}
+          <form method="post" action="{{ translation_drive_export.run_url }}" onsubmit="return confirm('Criar o job canônico e enviar o texto limpo para tradução no Google Drive?');">
+            {% csrf_token %}
+            <label for="drive_output_stage">Tipo de retorno</label>
+            <select id="drive_output_stage" name="output_stage">
+              <option value="translated">Tradução intermediária (segue para Refine/Polish)</option>
+              <option value="official">Editorial final (tradução + refine + polish externos)</option>
+            </select>
+            <button class="btn secondary" type="submit" {% if not translation_drive_export.available %}disabled{% endif %}>Translate Google Drive</button>
+            {% if translation_drive_export.available %}
+            <span class="status">
+              Entrada: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.input_folder }}/{{ translation_drive_export.input_filename }}</strong><br />
+              Retorno esperado: <strong>04_TRANSLATION_JOBS/{{ translation_drive_export.return_folder }}/{{ translation_drive_export.return_filename }}</strong><br />
+              Manifesto: <strong>{{ translation_drive_export.manifest_filename }}</strong>
+            </span>
+            {% else %}
+            <span class="status">Disponível após HeadingCleaner para livros vinculados ao Intake.</span>
+            {% endif %}
+          </form>
+          {% if translation_drive_export.job_id and translation_drive_export.output_stage == "translated" %}
+          <form method="post" action="{{ drive_return.translated_import_url }}" onsubmit="return confirm('Validar e importar o retorno traduzido para Refine/Polish?');">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit">Importar tradução do Google Drive</button>
+            <span class="status">Job {{ translation_drive_export.job_id }}. Não promove diretamente para miolo oficial.</span>
+          </form>
+          {% endif %}
+          {% endif %}
           <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
             {% csrf_token %}
             {% if s.key == "translate" %}
@@ -423,6 +456,29 @@
             {% csrf_token %}
             <button class="btn danger" type="submit">Salvar Merge Polidor</button>
           </form>
+          <form class="polidor-action" method="post" action="{{ drive_return.promote_url }}" onsubmit="return confirm('Importar o retorno do Google Drive e torná-lo o miolo oficial desta edição?');">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit" {% if not drive_return.available %}disabled{% endif %}>Atualizar miolo oficial pelo Google Drive</button>
+            <span class="status">Localiza, valida e salva automaticamente o retorno canônico antes de frontmatter, capa e imagens.</span>
+          </form>
+          {% if drive_return.state %}
+          <div class="status">
+            <strong>{{ drive_return.state }}</strong>
+          </div>
+          {% endif %}
+          {% if drive_return.warning_requires_confirmation %}
+          <form class="polidor-action" method="post" action="{{ drive_return.confirm_warning_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="output_stage" value="official" />
+            <label for="drive_warning_confirmation_note">Justificativa editorial obrigatória</label>
+            <textarea id="drive_warning_confirmation_note" name="confirmation_note" required></textarea>
+            <button class="btn secondary" type="submit">Confirmar WARNING editorialmente</button>
+          </form>
+          {% endif %}
+          {% if drive_return.saved %}
+          <div class="status">O retorno está salvo como miolo oficial e será a fonte do trabalho editorial.</div>
+          <a class="btn secondary" href="{% url 'preview_merge_selected' edition_id=edition.id %}?merge_kind=canonical_reference" target="_blank" rel="noopener noreferrer">Visualizar miolo oficial</a>
+          {% endif %}
           <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
             <select name="merge_kind" aria-label="Arquivo para preview">
               {% for option in merge_preview_options %}
@@ -523,13 +579,6 @@
       <div class="status">
         Polish: <strong>{{ status.polish }}</strong>
       </div>
-      <div class="actions">
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_core_txt" />
-          <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
-        </form>
-      </div>
     </article>
 
     <article class="card" id="transformacao-editorial">
@@ -575,18 +624,6 @@
           <button class="btn secondary" type="submit">Atualizar</button>
         </noscript>
       </form>
-      <form method="post" class="actions" action="{% url 'editorial_frontmatter_actions' edition.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
-        <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
-          Regerar Frontmatter (.md)
-        </button>
-        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
-          Frontmatter + BOOK.BUILD.MD
-        </button>
-      </form>
       {% if editorial_optional_warnings %}
       <div class="status">
         Avisos do idioma atual: {{ editorial_optional_warnings|join:" | " }}
@@ -604,64 +641,6 @@
         Bloco 03 aguardando a conclusao textual do bloco 02.
       </div>
       {% endif %}
-      <section class="pipeline-step">
-        <div class="status">
-          <strong>{{ preflight_step.title }}</strong>
-          {% if preflight_step.done %}
-            <span class="badge {% if preflight_step.status_tone %}{{ preflight_step.status_tone }}{% else %}ok{% endif %}">
-              {% if preflight_step.status_label %}{{ preflight_step.status_label }}{% else %}OK{% endif %}
-            </span>
-          {% elif preflight_step.can_run %}
-            <span class="badge">pronto</span>
-          {% else %}
-            <span class="badge warn">bloqueado</span>
-          {% endif %}
-          {% if preflight_step.block_reason %}
-            {{ preflight_step.block_reason }}
-          {% endif %}
-        </div>
-        <div class="status">
-          {% if preflight_step.notes %}{{ preflight_step.notes }}{% endif %}
-        </div>
-        <div class="status">
-          Saidas:
-          {% for out in preflight_step.outputs %}
-            <code>{{ out }}</code>
-          {% endfor %}
-        </div>
-        <form method="post" action="{{ preflight_step.run_url }}">
-          {% csrf_token %}
-          <button class="btn" type="submit" {% if not preflight_step.can_run %}disabled{% endif %}>
-            {{ preflight_step.button_label }}
-          </button>
-        </form>
-      </section>
-      <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
-      <p>
-        A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
-      </p>
-      <div class="actions">
-        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
-          {% csrf_token %}
-          <label for="md_language">Idioma</label>
-          <select id="md_language" name="md_language">
-            <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
-            <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
-            <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
-            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE</option>
-            <option value="fr" {% if md_language_default == "fr" %}selected{% endif %}>FR</option>
-            <option value="it" {% if md_language_default == "it" %}selected{% endif %}>IT</option>
-          </select>
-          <button class="btn" type="submit">Convert TXT to MD</button>
-        </form>
-        <div class="status">
-          Arquivo selecionado:
-          <strong id="md_source_path"></strong>
-        </div>
-        <a class="btn secondary" href="{% url 'preview_book_md' book_code=book_code language=md_language_default|default:language %}">
-          Preview MD
-        </a>
-      </div>
       <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_cover" />

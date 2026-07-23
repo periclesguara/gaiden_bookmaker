@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "editorial",
     "pipeline",
     "web.author_studio.apps.AuthorStudioConfig",
+    "web.intake_module.apps.IntakeModuleConfig",
 ]
 
 MIDDLEWARE = [

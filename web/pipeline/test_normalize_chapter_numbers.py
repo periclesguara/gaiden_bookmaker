@@ -41,9 +41,9 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
     def test_normalize_promoted_standalone_markers_use_arabic_numbers(self):
         raw = (
             "I speak now because no one listened.\n\n"
-            "II.\n\n"
+            "## II.\n\n"
             "The second chapter starts here.\n\n"
-            "III.\n\n"
+            "## III.\n\n"
             "The third chapter starts here.\n"
         )
 
@@ -97,15 +97,15 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
         self.assertIn("PART 1\n\nCHAPTER 1", normalized)
         self.assertIn("PART 2\n\nCHAPTER 1", normalized)
 
-    def test_normalize_removes_isolated_numeric_residue_before_chunk(self):
+    def test_normalize_removes_only_heading_numeric_residue_before_chunk(self):
         raw = (
             "Chapter I\n\n"
             "The Warning\n\n"
-            "1\n\n"
+            "## 1\n\n"
             "Body paragraph.\n\n"
-            "23\n\n"
+            "## 23\n\n"
             "More body.\n\n"
-            "IX\n\n"
+            "## IX\n\n"
             "Final body.\n"
         )
 
@@ -120,19 +120,19 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
 
     def test_normalize_converts_roman_prefix_headings_to_arabic(self):
         raw = (
-            "I. The First Case\n\n"
+            "## I. The First Case\n\n"
             "Body.\n\n"
             "## II: The Second Case\n\n"
             "More body.\n\n"
-            "III—The Third Case\n\n"
+            "## III—The Third Case\n\n"
             "Final body.\n"
         )
 
         normalized = normalize_text_v2(raw)
 
-        self.assertIn("1. The First Case", normalized)
+        self.assertIn("## 1. The First Case", normalized)
         self.assertIn("## 2: The Second Case", normalized)
-        self.assertIn("3—The Third Case", normalized)
+        self.assertIn("## 3—The Third Case", normalized)
         self.assertNotIn("I. The First Case", normalized)
         self.assertNotIn("II: The Second Case", normalized)
         self.assertNotIn("III—The Third Case", normalized)
@@ -151,3 +151,20 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
         self.assertIn("IIII. Invalid Heading", normalized)
         self.assertNotIn("CHAPTER 99", normalized)
         self.assertNotIn("4. Invalid Heading", normalized)
+
+    def test_normalize_never_converts_roman_tokens_in_body_text(self):
+        raw = (
+            "There were monkeys under M, in the illustrated alphabet.\n\n"
+            "To Hazel Strong, Baltimore, MD\n\n"
+            "Leopold II of Belgium remained in the sentence.\n\n"
+            "II. This is plain body text, not a Markdown heading.\n"
+        )
+
+        normalized = normalize_text_v2(raw)
+
+        self.assertIn("under M, in the illustrated alphabet", normalized)
+        self.assertIn("Baltimore, MD", normalized)
+        self.assertIn("Leopold II of Belgium", normalized)
+        self.assertIn("II. This is plain body text", normalized)
+        self.assertNotIn("CHAPTER 1000", normalized)
+        self.assertNotIn("CHAPTER 1500", normalized)

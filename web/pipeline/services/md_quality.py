@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -136,11 +137,37 @@ def approve_md_final(edition) -> Dict[str, str]:
         if pre_edition_images > selected_images:
             source_path = pre_edition_path
 
+    from gaiden.application.pipeline import official_body
+
+    snapshot = official_body.active_snapshot(edition)
+    official_path = official_body.resolve_official_body(edition)
+    if snapshot is None or official_path is None:
+        raise FileNotFoundError("A valid official body is required to approve BOOK.MD_FINAL.")
+
     final_path = paths.final_md_path(edition)
     final_path.parent.mkdir(parents=True, exist_ok=True)
     final_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
+    final_payload = final_path.read_bytes()
+    manifest_path = final_path.with_name(f"{final_path.name}.source.json")
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "gaiden_final_md_derivation_v1",
+                "edition_id": edition.id,
+                "official_snapshot_id": snapshot.id,
+                "official_sha256": snapshot.sha256,
+                "final_sha256": hashlib.sha256(final_payload).hexdigest(),
+                "source_filename": source_path.name,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
     return {
         "path": str(final_path),
         "source": str(source_path),
+        "manifest": str(manifest_path),
     }

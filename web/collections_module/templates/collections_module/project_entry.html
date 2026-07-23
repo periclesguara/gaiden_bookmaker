@@ -253,6 +253,15 @@
         line-height: 1.45;
       }
 
+      .intake-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 10px;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
       .arrow {
         display: grid;
         place-items: center;
@@ -361,7 +370,7 @@
       <main>
         <section class="intro" aria-labelledby="page-title">
           <p class="eyebrow">Nova producao</p>
-          <h1 id="page-title">Criar projeto editorial</h1>
+          <h1 id="page-title">Criar novo projeto editorial</h1>
           <p class="lead">
             Inicie uma edicao individual ou organize uma collection com multiplas obras
             antes de seguir para o pipeline de preparacao, revisao e publicacao.
@@ -371,11 +380,28 @@
         <section class="workspace" aria-labelledby="workspace-title">
           <p class="section-label" id="workspace-title">Escolha o fluxo</p>
           <div class="actions">
+            <a class="option collection" href="{% url 'intake_module:batch_list' %}">
+              <span class="icon" aria-hidden="true">00</span>
+              <span>
+                <strong class="option-title">Bloco 00 — Cadastro Geral</strong>
+                <span class="option-copy">Cadastrar lotes, descobrir livros e preparar cada item individualmente para o pipeline.</span>
+                <span class="intake-stats">
+                  <span>Lotes: {{ intake_stats.active_batches }}</span>
+                  <span>Descobertos: {{ intake_stats.discovered }}</span>
+                  <span>Limpos: {{ intake_stats.clean_ready }}</span>
+                  <span>Codex: {{ intake_stats.awaiting_codex }}</span>
+                  <span>Retornos: {{ intake_stats.returned }}</span>
+                  <span>Prontos: {{ intake_stats.ready }}</span>
+                  <span>Erros: {{ intake_stats.errors }}</span>
+                </span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
             <a class="option book" href="{% url 'book_edition_new' %}">
               <span class="icon" aria-hidden="true">B</span>
               <span>
-                <strong class="option-title">Book</strong>
-                <span class="option-copy">Criar uma edicao de livro com arquivo fonte, metadados e etapas do pipeline.</span>
+                <strong class="option-title">Upload individual — método atual</strong>
+                <span class="option-copy">Fluxo Book atual para criar uma edicao com arquivo fonte, metadados e etapas do pipeline.</span>
               </span>
               <span class="arrow" aria-hidden="true">&rsaquo;</span>
             </a>
