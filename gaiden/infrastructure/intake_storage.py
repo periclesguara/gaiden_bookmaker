@@ -87,6 +87,10 @@ def manifest_path(batch_code: str, source_language: str) -> Path:
     return batch_root(batch_code, source_language) / "manifest.json"
 
 
+def book_code_allocation_manifest_path(batch_code: str, source_language: str) -> Path:
+    return batch_root(batch_code, source_language) / "manifests" / "book_code_allocation.json"
+
+
 def audit_path(batch_code: str, source_language: str, order_index: int) -> Path:
     return batch_root(batch_code, source_language) / "audit" / f"{item_code(order_index)}_cleaning.json"
 

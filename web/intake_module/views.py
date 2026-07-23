@@ -1,18 +1,24 @@
 from django.contrib import messages
-from django.http import HttpResponseNotAllowed
+from django.db.models import Q
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from gaiden.application.intake import (
+    BookCodeAllocationConflict,
+    BookCodeManifestConflict,
+    StaleBookCodePlan,
     clean_downloaded_item,
     confirm_ready_for_editing,
     discover_drive_folder,
     download_drive_item,
     handoff_to_pipeline,
     open_in_bookmaker,
+    preview_book_code_allocation,
     prepare_for_codex,
     reconcile_batch_downloads,
     reconcile_item_download,
     register_translation_return,
+    reserve_book_codes,
     store_uploaded_files,
 )
 from gaiden.application.intake.book_codes import assign_book_code
@@ -231,7 +237,24 @@ def batch_create(request):
 
 def batch_detail(request, batch_id: int):
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
-    items = batch.items.select_related("duplicate_of").all()
+    all_items = batch.items.select_related("duplicate_of").order_by(
+        "order_index", "id"
+    )
+    allocation_plan = preview_book_code_allocation(batch, items=list(all_items))
+    book_code_filter = request.GET.get("book_code_filter", "").strip()
+    items = all_items
+    if book_code_filter == "without":
+        items = items.filter(book_code="")
+    elif book_code_filter == "numbered":
+        items = items.exclude(book_code="")
+    elif book_code_filter == "duplicates":
+        items = items.filter(duplicate_of__isnull=False)
+    elif book_code_filter == "handed_off":
+        items = items.filter(
+            Q(handoff_edition_id__isnull=False) | Q(handed_off_at__isnull=False)
+        )
+    else:
+        book_code_filter = ""
     reconciliation_preview = reconcile_batch_downloads(batch, dry_run=True)
     reconcilable_item_ids = {
         row["item_id"]
@@ -244,6 +267,8 @@ def batch_detail(request, batch_id: int):
         {
             "batch": batch,
             "items": items,
+            "allocation_plan": allocation_plan,
+            "book_code_filter": book_code_filter,
             "upload_form": IntakeUploadForm(),
             "can_download_next": items.filter(status=IntakeState.DISCOVERED.value).exists(),
             "can_clean_next": items.filter(
@@ -261,6 +286,62 @@ def batch_detail(request, batch_id: int):
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
         },
     )
+
+
+def batch_book_codes_preview(request, batch_id: int):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    plan = preview_book_code_allocation(batch)
+    return render(
+        request,
+        "intake_module/book_code_allocation_preview.html",
+        {"batch": batch, "plan": plan},
+    )
+
+
+def batch_book_codes_confirm(request, batch_id: int):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    actor = request.user.get_username() if request.user.is_authenticated else ""
+    try:
+        result = reserve_book_codes(
+            batch,
+            plan_sha256=request.POST.get("plan_sha256", ""),
+            actor=actor,
+        )
+    except StaleBookCodePlan as exc:
+        messages.error(request, str(exc))
+    except (BookCodeAllocationConflict, BookCodeManifestConflict) as exc:
+        messages.error(request, str(exc))
+    else:
+        if result["no_op"]:
+            messages.success(request, "Todos os livros elegíveis já possuem código.")
+        else:
+            allocated = result["allocated"]
+            messages.success(
+                request,
+                f"Reserva concluída: {len(allocated)} livros, "
+                f"de {allocated[0]} a {allocated[-1]}.",
+            )
+    return redirect("intake_module:batch_book_codes_preview", batch_id=batch.id)
+
+
+def batch_book_codes_manifest(request, batch_id: int):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    if not batch.book_code_manifest:
+        raise Http404("Manifesto da sequência ainda não foi gerado.")
+    response = JsonResponse(
+        batch.book_code_manifest,
+        json_dumps_params={"ensure_ascii": False, "indent": 2},
+    )
+    response["Content-Disposition"] = (
+        'attachment; filename="book_code_allocation.json"'
+    )
+    return response
 
 
 def batch_reconcile(request, batch_id: int):

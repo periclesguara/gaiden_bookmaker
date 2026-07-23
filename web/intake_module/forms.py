@@ -1,5 +1,7 @@
 from django import forms
 
+from gaiden.application.intake.book_code_allocation import BOOK_CODE_PATTERN
+
 from .models import IntakeBatch, IntakeItem
 
 
@@ -66,6 +68,26 @@ class TranslationReturnForm(forms.Form):
 
 
 class IntakeItemMetadataForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["book_code"].help_text = (
+            "Use book_ seguido de ao menos quatro dígitos. "
+            "Após atribuído, o código é imutável."
+        )
+        if self.instance and self.instance.pk and self.instance.book_code:
+            self.fields["book_code"].disabled = True
+
+    def clean_book_code(self):
+        existing = self.instance.book_code if self.instance and self.instance.pk else ""
+        if existing:
+            return existing
+        value = (self.cleaned_data.get("book_code") or "").strip()
+        if value and not BOOK_CODE_PATTERN.fullmatch(value):
+            raise forms.ValidationError(
+                "Use o formato book_0033 (mínimo de quatro dígitos)."
+            )
+        return value
+
     class Meta:
         model = IntakeItem
         fields = ["confirmed_title", "original_year", "book_code", "target_language"]
