@@ -1,5 +1,6 @@
-from django.db import models
 import uuid
+
+from django.db import models, transaction
 
 from gaiden.domain.intake import IntakeState
 
@@ -35,20 +36,21 @@ class IntakeBatch(models.Model):
             return
 
         # Allocate the database identity first, then derive an immutable,
-        # operator-friendly batch code from it. The temporary value is never
-        # exposed outside this transaction-sized save operation.
-        self.code = f"pending-{uuid.uuid4().hex}"
-        super().save(*args, **kwargs)
+        # operator-friendly batch code from it. The provisional value stays
+        # invisible to other transactions.
+        with transaction.atomic():
+            self.code = f"pending-{uuid.uuid4().hex}"
+            super().save(*args, **kwargs)
 
-        base = f"batch_{self.pk:04d}"
-        candidate = base
-        suffix = 2
-        queryset = type(self).objects.exclude(pk=self.pk)
-        while queryset.filter(code=candidate).exists():
-            candidate = f"{base}-{suffix}"
-            suffix += 1
-        type(self).objects.filter(pk=self.pk).update(code=candidate)
-        self.code = candidate
+            base = f"batch_{self.pk:04d}"
+            candidate = base
+            suffix = 2
+            queryset = type(self).objects.exclude(pk=self.pk)
+            while queryset.filter(code=candidate).exists():
+                candidate = f"{base}-{suffix}"
+                suffix += 1
+            type(self).objects.filter(pk=self.pk).update(code=candidate)
+            self.code = candidate
 
 
 class IntakeItem(models.Model):
