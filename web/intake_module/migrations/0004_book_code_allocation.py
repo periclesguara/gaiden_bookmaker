@@ -38,6 +38,21 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="intakebatch",
+            name="book_code_manifest",
+            field=models.JSONField(blank=True, default=dict),
+        ),
+        migrations.AddField(
+            model_name="intakebatch",
+            name="book_code_manifest_projected_at",
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="intakebatch",
+            name="book_code_manifest_projection_error",
+            field=models.TextField(blank=True),
+        ),
+        migrations.AddField(
+            model_name="intakebatch",
             name="book_codes_allocated_count",
             field=models.PositiveIntegerField(default=0),
         ),
