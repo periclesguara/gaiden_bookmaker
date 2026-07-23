@@ -42,6 +42,9 @@ def provision_drive_batch_folder(batch, *, client=None) -> dict:
     client.check_available()
 
     if batch.drive_relative_path:
+        # rclone mkdir is idempotent. Re-ensuring the persisted path also
+        # repairs a folder that was removed outside Gaiden.
+        client.ensure_folder(batch.drive_relative_path)
         return {
             "folder_name": client.direct_child_name(batch.drive_relative_path),
             "relative_path": batch.drive_relative_path,
