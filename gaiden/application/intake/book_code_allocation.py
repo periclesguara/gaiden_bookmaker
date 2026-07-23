@@ -199,6 +199,7 @@ def preview_book_code_allocation(
             "title": title,
             "status": "",
             "status_label": "",
+            "action": "",
             "current_code": item.book_code,
             "proposed_code": "",
             "reason": "",
@@ -225,6 +226,7 @@ def preview_book_code_allocation(
                     status="numbered",
                     status_label="Já numerado",
                     proposed_code="Preservar",
+                    action="preserve",
                 )
         elif item.handoff_edition_id or item.handed_off_at:
             row.update(
@@ -283,10 +285,15 @@ def preview_book_code_allocation(
                         status="registered",
                         status_label="Já cadastrado",
                         current_code=registered_codes[0],
-                        proposed_code="Preservar",
+                        proposed_code=registered_codes[0],
+                        action="link",
                     )
                 else:
-                    row.update(status="eligible", status_label="Elegível")
+                    row.update(
+                        status="eligible",
+                        status_label="Elegível",
+                        action="reserve",
+                    )
                     eligible_rows.append(row)
         rows.append(row)
 
@@ -330,54 +337,71 @@ def preview_book_code_allocation(
     }
 
 
-def _manifest_payload(batch: IntakeBatch, plan: dict, allocated_at, actor: str) -> dict:
-    allocated_rows = [
-        row for row in plan["rows"] if row["proposed_code"].startswith("book_")
-    ]
+def _manifest_payload(
+    batch: IntakeBatch,
+    plan: dict,
+    allocated_at,
+    actor: str,
+    items: list[IntakeItem],
+) -> dict:
+    reserved_items = sorted(
+        (
+            item
+            for item in items
+            if item.book_code and item.book_code_reserved_at is not None
+        ),
+        key=lambda item: (item.order_index, item.id),
+    )
+    codes = sorted(
+        (item.book_code for item in reserved_items),
+        key=lambda code: int(code.split("_", 1)[1]),
+    )
     return {
         "batch_code": batch.code,
-        "start_code": plan["start_code"],
-        "end_code": plan["end_code"],
-        "allocated_count": len(allocated_rows),
+        "start_code": codes[0] if codes else "",
+        "end_code": codes[-1] if codes else "",
+        "allocated_count": len(reserved_items),
         "plan_sha256": plan["plan_sha256"],
-        "created_at": allocated_at.isoformat(),
-        "created_by": actor,
+        "updated_at": allocated_at.isoformat(),
+        "updated_by": actor,
         "items": [
             {
-                "item_id": row["item_id"],
-                "order_index": row["order_index"],
-                "source_filename": row["source_filename"],
-                "source_sha256": row["source_sha256"],
-                "book_code": row["proposed_code"],
+                "item_id": item.id,
+                "order_index": item.order_index,
+                "source_filename": item.source_filename,
+                "source_sha256": item.source_sha256,
+                "book_code": item.book_code,
+                "reserved_at": item.book_code_reserved_at.isoformat(),
+                "reserved_by": item.book_code_reserved_by,
             }
-            for row in allocated_rows
+            for item in reserved_items
         ],
     }
 
 
-def _persist_manifest(path: Path, payload: dict) -> None:
-    if path.exists():
-        try:
-            existing = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise BookCodeManifestConflict("Existing allocation manifest is invalid") from exc
-        comparable_keys = {
-            "batch_code",
-            "start_code",
-            "end_code",
-            "allocated_count",
-            "plan_sha256",
-            "items",
-        }
-        if {key: existing.get(key) for key in comparable_keys} == {
-            key: payload.get(key) for key in comparable_keys
-        }:
-            return
-        raise BookCodeManifestConflict(
-            "Existing book_code_allocation.json diverges from the confirmed plan"
-        )
-    intake_storage.atomic_write_json(path, payload)
+def _project_manifest(batch_id: int) -> None:
+    batch = IntakeBatch.objects.get(pk=batch_id)
+    payload = batch.book_code_manifest
+    if not payload:
+        return
+    intake_storage.atomic_write_json(
+        allocation_manifest_path(batch),
+        payload,
+        overwrite=True,
+    )
+    IntakeBatch.objects.filter(pk=batch_id).update(
+        book_code_manifest_projected_at=timezone.now(),
+        book_code_manifest_projection_error="",
+    )
 
+
+def _project_manifest_safely(batch_id: int) -> None:
+    try:
+        _project_manifest(batch_id)
+    except Exception as exc:
+        IntakeBatch.objects.filter(pk=batch_id).update(
+            book_code_manifest_projection_error=f"{type(exc).__name__}: {exc}"[:2000],
+        )
 
 def reserve_book_codes(batch: IntakeBatch, *, plan_sha256: str, actor: str = "") -> dict:
     try:
@@ -407,14 +431,18 @@ def reserve_book_codes(batch: IntakeBatch, *, plan_sha256: str, actor: str = "")
                     "A reserva foi bloqueada por conflitos de identidade editorial."
                 )
             proposed_rows = [
-                row for row in plan["rows"] if row["proposed_code"].startswith("book_")
+                row for row in plan["rows"] if row["action"] == "reserve"
             ]
-            if not proposed_rows:
+            linked_rows = [
+                row for row in plan["rows"] if row["action"] == "link"
+            ]
+            changed_rows = proposed_rows + linked_rows
+            if not changed_rows:
                 return {"before": plan, "after": plan, "no_op": True, "allocated": []}
 
             allocated_at = timezone.now()
             items_by_id = {item.id: item for item in locked_items}
-            for row in proposed_rows:
+            for row in changed_rows:
                 item = items_by_id[row["item_id"]]
                 if item.book_code:
                     raise BookCodeAllocationConflict(
@@ -436,15 +464,26 @@ def reserve_book_codes(batch: IntakeBatch, *, plan_sha256: str, actor: str = "")
                     ]
                 )
 
-            last_number = int(proposed_rows[-1]["proposed_code"].split("_", 1)[1])
-            sequence.next_number = last_number + 1
-            sequence.save(update_fields=["next_number", "updated_at"])
+            if proposed_rows:
+                last_number = int(proposed_rows[-1]["proposed_code"].split("_", 1)[1])
+                sequence.next_number = last_number + 1
+                sequence.save(update_fields=["next_number", "updated_at"])
+
+            manifest = _manifest_payload(
+                locked_batch,
+                plan,
+                allocated_at,
+                actor,
+                locked_items,
+            )
             locked_batch.book_codes_reserved_at = allocated_at
             locked_batch.book_codes_reserved_by = actor
-            locked_batch.book_codes_start = plan["start_code"]
-            locked_batch.book_codes_end = plan["end_code"]
-            locked_batch.book_codes_allocated_count = len(proposed_rows)
+            locked_batch.book_codes_start = manifest["start_code"]
+            locked_batch.book_codes_end = manifest["end_code"]
+            locked_batch.book_codes_allocated_count = manifest["allocated_count"]
             locked_batch.book_code_plan_sha256 = plan["plan_sha256"]
+            locked_batch.book_code_manifest = manifest
+            locked_batch.book_code_manifest_projection_error = ""
             locked_batch.save(
                 update_fields=[
                     "book_codes_reserved_at",
@@ -453,23 +492,26 @@ def reserve_book_codes(batch: IntakeBatch, *, plan_sha256: str, actor: str = "")
                     "book_codes_end",
                     "book_codes_allocated_count",
                     "book_code_plan_sha256",
+                    "book_code_manifest",
+                    "book_code_manifest_projection_error",
                     "updated_at",
                 ]
             )
-            manifest = _manifest_payload(locked_batch, plan, allocated_at, actor)
-            _persist_manifest(allocation_manifest_path(locked_batch), manifest)
+            transaction.on_commit(
+                lambda batch_id=locked_batch.id: _project_manifest_safely(batch_id)
+            )
             after = {
                 **plan,
-                "numbered_count": plan["numbered_count"] + len(proposed_rows),
+                "numbered_count": plan["numbered_count"] + len(changed_rows),
                 "eligible_count": 0,
                 "no_op": False,
-                "manifest_exists": True,
+                "manifest_exists": False,
             }
             return {
                 "before": plan,
                 "after": after,
                 "no_op": False,
-                "allocated": [row["proposed_code"] for row in proposed_rows],
+                "allocated": [row["proposed_code"] for row in changed_rows],
                 "manifest": manifest,
             }
     except IntegrityError as exc:
