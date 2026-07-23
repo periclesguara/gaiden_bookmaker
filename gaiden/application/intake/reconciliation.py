@@ -193,9 +193,10 @@ def _build_reconciliation_report(
         if inspection.valid:
             valid_groups.setdefault(inspection.sha256, []).append(item)
     for digest, group in valid_groups.items():
-        persisted = list(
-            type(group[0]).objects.select_for_update().filter(source_sha256=digest)
-        )
+        persisted_query = type(group[0]).objects.filter(source_sha256=digest)
+        if apply:
+            persisted_query = persisted_query.select_for_update()
+        persisted = list(persisted_query)
         candidates = {candidate.id: candidate for candidate in [*persisted, *group]}
         canonical_by_digest[digest] = min(candidates.values(), key=_canonical_sort_key)
 

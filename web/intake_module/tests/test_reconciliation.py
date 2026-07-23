@@ -6,7 +6,7 @@ from unittest.mock import patch
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.db import connection
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
@@ -36,6 +36,54 @@ class NeverDownloadClient:
     def check_available(self):
         self.calls += 1
         raise AssertionError("Drive must not be called when the final artifact is valid")
+
+
+class IntakeReconciliationAutocommitTests(TransactionTestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix="gaiden-intake-autocommit-")
+        self.addCleanup(temporary.cleanup)
+        self.storage_root = Path(temporary.name) / "data"
+        environment = patch.dict(
+            os.environ,
+            {"GAIDEN_STORAGE_ROOT": str(self.storage_root)},
+            clear=False,
+        )
+        environment.start()
+        self.addCleanup(environment.stop)
+        self.batch = IntakeBatch.objects.create(
+            code="autocommit_batch",
+            name="Autocommit batch",
+            source_language="en",
+        )
+
+    def test_batch_detail_dry_run_does_not_lock_rows_outside_transaction(self):
+        payload = epub_payload("autocommit preview")
+        item = IntakeItem.objects.create(
+            batch=self.batch,
+            order_index=1,
+            source_filename="book.epub",
+            source_format="epub",
+            source_size=len(payload),
+            status=IntakeState.FAILED.value,
+        )
+        path = intake_storage.original_path(
+            self.batch.code,
+            self.batch.source_language,
+            item.order_index,
+            ".epub",
+        )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(payload)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse("intake_module:batch_detail", args=[self.batch.id])
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            any("FOR UPDATE" in query["sql"].upper() for query in queries.captured_queries)
+        )
 
 
 class IntakeReconciliationTests(TestCase):
