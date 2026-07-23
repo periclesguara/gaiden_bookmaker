@@ -10,6 +10,7 @@ from gaiden.application.intake import (
     handoff_to_pipeline,
     open_in_bookmaker,
     prepare_for_codex,
+    provision_drive_batch_folder,
     reconcile_batch_downloads,
     reconcile_item_download,
     register_translation_return,
@@ -126,7 +127,30 @@ def batch_create(request):
     selected_drive_folder = request.session.get(SELECTED_DRIVE_FOLDER_SESSION_KEY, "")
     client, remote_name, inbox_name, rclone_available, configuration_error = _drive_client_context()
 
-    if action in {"select_drive_folder", "save_drive_folder"}:
+    if action == "provision_drive":
+        form = IntakeBatchForm(data)
+        local_form = LocalDirectoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            batch = form.save()
+            try:
+                if client is None:
+                    raise RuntimeError(configuration_error or "Configuração do rclone inválida")
+                result = provision_drive_batch_folder(batch, client=client)
+                messages.success(
+                    request,
+                    f"Lote {batch.code} criado com a pasta {result['relative_path']}.",
+                )
+                return redirect("intake_module:batch_files", batch_id=batch.id)
+            except Exception as exc:
+                batch.last_error = str(exc)[:500]
+                batch.save(update_fields=["last_error", "updated_at"])
+                messages.error(
+                    request,
+                    "O lote foi salvo, mas a pasta do Drive não pôde ser criada. "
+                    "Use 'Criar pasta no Drive' para tentar novamente.",
+                )
+                return redirect("intake_module:batch_detail", batch_id=batch.id)
+    elif action in {"select_drive_folder", "save_drive_folder"}:
         try:
             if client is None:
                 raise RuntimeError("Invalid rclone configuration")
@@ -251,8 +275,26 @@ def batch_detail(request, batch_id: int):
                 item.id for item in items if _can_open_in_bookmaker(item)
             },
             "file_summary": request.session.get(_summary_key(batch.id), _empty_summary()),
+            "can_provision_drive": not bool(batch.drive_relative_path),
         },
     )
+
+
+def batch_provision_drive(request, batch_id: int):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    batch = get_object_or_404(IntakeBatch, pk=batch_id)
+    try:
+        result = provision_drive_batch_folder(batch)
+        if result["no_op"]:
+            messages.success(request, f"Pasta já vinculada: {result['relative_path']}.")
+        else:
+            messages.success(request, f"Pasta criada: {result['relative_path']}.")
+    except Exception as exc:
+        batch.last_error = str(exc)[:500]
+        batch.save(update_fields=["last_error", "updated_at"])
+        messages.error(request, f"Não foi possível criar a pasta do Drive: {exc}")
+    return redirect("intake_module:batch_detail", batch_id=batch.id)
 
 
 def batch_reconcile(request, batch_id: int):
