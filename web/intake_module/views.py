@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.db.models import Q
-from django.http import FileResponse, Http404, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from gaiden.application.intake import (
@@ -324,15 +324,16 @@ def batch_book_codes_manifest(request, batch_id: int):
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET"])
     batch = get_object_or_404(IntakeBatch, pk=batch_id)
-    path = preview_book_code_allocation(batch)["manifest_path"]
-    if not path.is_file():
+    if not batch.book_code_manifest:
         raise Http404("Manifesto da sequência ainda não foi gerado.")
-    return FileResponse(
-        path.open("rb"),
-        content_type="application/json",
-        as_attachment=True,
-        filename="book_code_allocation.json",
+    response = JsonResponse(
+        batch.book_code_manifest,
+        json_dumps_params={"ensure_ascii": False, "indent": 2},
     )
+    response["Content-Disposition"] = (
+        'attachment; filename="book_code_allocation.json"'
+    )
+    return response
 
 
 def batch_reconcile(request, batch_id: int):
