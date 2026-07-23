@@ -434,7 +434,7 @@ class BlockZeroTests(TestCase):
             batch.drive_relative_path,
             f"01_INBOX_RAW/{batch.code}__edgar-rice-burroughs",
         )
-        self.assertEqual(len(client.created_folders), 1)
+        self.assertEqual(client.created_folders, [batch.drive_relative_path] * 2)
 
     def test_drive_folder_selection_sets_internal_path_code_and_lists_without_download(self):
         client = FakeSelectionClient()
