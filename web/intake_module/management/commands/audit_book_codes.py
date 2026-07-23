@@ -58,8 +58,21 @@ class Command(BaseCommand):
             ),
         }
         all_codes = sorted({code for codes in sources.values() for code in codes if code})
+        source_usage = {
+            code: sorted(
+                source_name
+                for source_name, codes in sources.items()
+                if code in codes
+            )
+            for code in all_codes
+        }
         report = {
             "duplicates": duplicates,
+            "cross_source_usage": {
+                code: source_names
+                for code, source_names in source_usage.items()
+                if len(source_names) > 1
+            },
             "legacy_nonmatching": [
                 code for code in all_codes if not BOOK_CODE_PATTERN.fullmatch(code)
             ],
