@@ -1,6 +1,7 @@
 import uuid
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db import connection, models
 from django.db.models import Q
 from django.db.utils import OperationalError
@@ -680,26 +681,17 @@ class BookEditionTemplate(models.Model):
 
 
 def ensure_bookeditiontemplate_runtime_columns() -> None:
+    """Fail clearly on schema drift without attempting runtime DDL.
+
+    Schema changes belong to migrations.  This compatibility hook is retained
+    because existing callers use it as a preflight check, but it must remain
+    read-only so evaluating a queryset or serving a GET can never alter the
+    database.
+    """
     table_name = BookEditionTemplate._meta.db_table
-    datetime_column_type = _runtime_datetime_column_type()
-    columns_sql = {
-        "original_publication_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_publication_date date NULL",
-        "original_author_death_date": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN original_author_death_date date NULL",
-        "work_kind": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN work_kind varchar(20) NOT NULL DEFAULT 'AUTHORIAL'",
-        "registration_status": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN registration_status varchar(30) NOT NULL DEFAULT 'DRAFT'",
-        "has_preface": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_preface boolean NOT NULL DEFAULT FALSE",
-        "preface_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN preface_text text NOT NULL DEFAULT ''",
-        "has_introduction": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_introduction boolean NOT NULL DEFAULT FALSE",
-        "introduction_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN introduction_text text NOT NULL DEFAULT ''",
-        "has_epilogue": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN has_epilogue boolean NOT NULL DEFAULT FALSE",
-        "epilogue_text": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN epilogue_text text NOT NULL DEFAULT ''",
-        "source_file_type": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_type varchar(10) NOT NULL DEFAULT ''",
-        "source_original_name": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_original_name varchar(255) NOT NULL DEFAULT ''",
-        "source_saved_path": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_saved_path varchar(500) NOT NULL DEFAULT ''",
-        "source_file_size": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_size bigint NULL",
-        "source_uploaded_at": f"ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_at {datetime_column_type} NULL",
-        "source_file_sha256": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_file_sha256 varchar(64) NOT NULL DEFAULT ''",
-        "source_uploaded_by": "ALTER TABLE pipeline_bookeditiontemplate ADD COLUMN source_uploaded_by varchar(150) NOT NULL DEFAULT ''",
+    required_columns = {
+        field.column
+        for field in BookEditionTemplate._meta.local_concrete_fields
     }
 
     with connection.cursor() as cursor:
@@ -708,13 +700,17 @@ def ensure_bookeditiontemplate_runtime_columns() -> None:
             return
         description = connection.introspection.get_table_description(cursor, table_name)
         existing_columns = {getattr(col, "name", col[0]) for col in description}
-        for column_name, sql in columns_sql.items():
-            if column_name in existing_columns:
-                continue
-            cursor.execute(sql)
+    missing_columns = sorted(required_columns - existing_columns)
+    if missing_columns:
+        raise ImproperlyConfigured(
+            "pipeline_bookeditiontemplate schema is incomplete; run the "
+            "reconciled migrations before serving requests. Missing columns: "
+            + ", ".join(missing_columns)
+        )
 
 
 def _runtime_datetime_column_type(vendor: str | None = None) -> str:
+    """Retained for callers that inspect backend-compatible migration types."""
     vendor = vendor or connection.vendor
     if vendor == "postgresql":
         return "timestamp with time zone"

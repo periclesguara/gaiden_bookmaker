@@ -1,0 +1,258 @@
+{
+  "database": "gaiden_phase0_empty_20260729_a2",
+  "vendor": "postgresql",
+  "models": [
+    {
+      "model": "admin.LogEntry",
+      "table": "django_admin_log",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.Group",
+      "table": "auth_group",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.Permission",
+      "table": "auth_permission",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.User",
+      "table": "auth_user",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.Author",
+      "table": "author_studio_author",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.CanonicalText",
+      "table": "author_studio_canonicaltext",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.Work",
+      "table": "author_studio_work",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkChunk",
+      "table": "author_studio_workchunk",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSource",
+      "table": "author_studio_worksource",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSplit",
+      "table": "author_studio_worksplit",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSplitRun",
+      "table": "author_studio_worksplitrun",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.Collection",
+      "table": "collections_module_collection",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionArtifact",
+      "table": "collections_module_collectionartifact",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionItem",
+      "table": "collections_module_collectionitem",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionRunState",
+      "table": "collections_module_collectionrunstate",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "contenttypes.ContentType",
+      "table": "django_content_type",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Contributor",
+      "table": "contributor",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Edition",
+      "table": "edition",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.EditionBuild",
+      "table": "edition_build",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.EditionPipeline",
+      "table": "edition_pipeline",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.EditionText",
+      "table": "edition_text",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Language",
+      "table": "language",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.PipelineArtifact",
+      "table": "editorial_pipelineartifact",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Seal",
+      "table": "seal",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Work",
+      "table": "work",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.BookCodeSequence",
+      "table": "intake_book_code_sequence",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.IntakeBatch",
+      "table": "intake_module_intakebatch",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.IntakeItem",
+      "table": "intake_module_intakeitem",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.TranslationJob",
+      "table": "intake_module_translationjob",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.BookEditionTemplate",
+      "table": "pipeline_bookeditiontemplate",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.OfficialBodyPromotion",
+      "table": "pipeline_officialbodypromotion",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.OfficialBodySnapshot",
+      "table": "pipeline_officialbodysnapshot",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.PipelineJob",
+      "table": "pipeline_pipelinejob",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.TextSnapshot",
+      "table": "pipeline_textsnapshot",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "sessions.Session",
+      "table": "django_session",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    }
+  ],
+  "extra_tables": [],
+  "summary": {
+    "missing_tables": 0,
+    "models_with_missing_columns": 0,
+    "models_with_extra_columns": 0,
+    "extra_table_count": 0
+  }
+}

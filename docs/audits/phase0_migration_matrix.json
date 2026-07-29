@@ -1,0 +1,1802 @@
+{
+  "scope": [
+    "editorial",
+    "intake_module",
+    "pipeline"
+  ],
+  "canonical_database_read_only": true,
+  "rows": [
+    {
+      "app": "editorial",
+      "migration": "0001_initial",
+      "applied_at": "2026-01-31T23:25:55.668751+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0001_initial.py",
+        "dependencies": [],
+        "operations": [
+          "AddField",
+          "AlterUniqueTogether",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0001_initial.py",
+      "source_sha256": "b2ee583d04804c622cf12e0db6b6555aa6fb972e5cbdf00f1808971a8b19d565",
+      "dependencies": [],
+      "state_or_models": [
+        "Contributor",
+        "Edition",
+        "EditionPipeline",
+        "EditionText",
+        "ID",
+        "Language",
+        "Seal",
+        "Work",
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0002_editionpipeline_translation_language",
+      "applied_at": "2026-01-31T23:25:55.714251+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0002_editionpipeline_translation_language.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0001_initial"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0002_editionpipeline_translation_language.py",
+      "source_sha256": "6205f3739fcab0a55d488630e61d5f64f66c34b58b978f7a45be66f11d5b9da7",
+      "dependencies": [
+        [
+          "editorial",
+          "0001_initial"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0003_edition_frontmatter_fields",
+      "applied_at": "2026-01-31T23:25:55.834542+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0003_edition_frontmatter_fields.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0002_editionpipeline_translation_language"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0003_edition_frontmatter_fields.py",
+      "source_sha256": "f311ef87e44694dffb8c95c42e8008454613086429256c125f0a4dd53e7e0d48",
+      "dependencies": [
+        [
+          "editorial",
+          "0002_editionpipeline_translation_language"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0004_alter_edition_country",
+      "applied_at": "2026-01-31T23:25:55.856197+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0004_alter_edition_country.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0003_edition_frontmatter_fields"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0004_alter_edition_country.py",
+      "source_sha256": "37b17371a6d0d5be6b7d6bd6560b811de122412f6273ca048fb25ccdef6846ab",
+      "dependencies": [
+        [
+          "editorial",
+          "0003_edition_frontmatter_fields"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0005_edition_about_edition_text",
+      "applied_at": "2026-01-31T23:25:55.878048+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0005_edition_about_edition_text.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0004_alter_edition_country"
+          ]
+        ],
+        "operations": []
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0005_edition_about_edition_text.py",
+      "source_sha256": "a26db9ac11df19e3e0c25d5631361df7f549cc8ab4dd2d4a3fef4d71993642ce",
+      "dependencies": [
+        [
+          "editorial",
+          "0004_alter_edition_country"
+        ]
+      ],
+      "state_or_models": [],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0006_editionpipeline_core_last_txt_path",
+      "applied_at": "2026-01-31T23:25:55.900557+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0006_editionpipeline_core_last_txt_path.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0005_edition_about_edition_text"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0006_editionpipeline_core_last_txt_path.py",
+      "source_sha256": "8aa01face436d5ba468c66d99ac6ea21bd3d618208e4e5339477e16866ba524f",
+      "dependencies": [
+        [
+          "editorial",
+          "0005_edition_about_edition_text"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0007_editionpipeline_md_language",
+      "applied_at": "2026-01-31T23:25:55.931464+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0007_editionpipeline_md_language.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0006_editionpipeline_core_last_txt_path"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0007_editionpipeline_md_language.py",
+      "source_sha256": "25272598ccb889a7a63ee68626cb34ae4bc88e7469de5b0e0713efdf49098bf4",
+      "dependencies": [
+        [
+          "editorial",
+          "0006_editionpipeline_core_last_txt_path"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0008_edition_cover_filepath",
+      "applied_at": "2026-01-31T23:25:55.957970+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0008_edition_cover_filepath.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0007_editionpipeline_md_language"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0008_edition_cover_filepath.py",
+      "source_sha256": "6a03240964300736b31113b5824dbebf7317fb45f2f8fde0c0f7c8cb07167d63",
+      "dependencies": [
+        [
+          "editorial",
+          "0007_editionpipeline_md_language"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0009_editionpipeline_frontmatter_language_and_more",
+      "applied_at": "2026-01-31T23:25:55.994576+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0009_editionpipeline_frontmatter_language_and_more.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0008_edition_cover_filepath"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0009_editionpipeline_frontmatter_language_and_more.py",
+      "source_sha256": "6f405151cc89c8eb3e78e0d8792833a0460a14ae7489a172ea4412c7c5af1b26",
+      "dependencies": [
+        [
+          "editorial",
+          "0008_edition_cover_filepath"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0010_edition_about_contributor_template_and_more",
+      "applied_at": "2026-01-31T23:25:56.050919+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0010_edition_about_contributor_template_and_more.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0009_editionpipeline_frontmatter_language_and_more"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0010_edition_about_contributor_template_and_more.py",
+      "source_sha256": "a5bcbefdfe651ea5975320d05ad8c22a2f8b3c58ad66f5acf0afe01e2b7bd7ff",
+      "dependencies": [
+        [
+          "editorial",
+          "0009_editionpipeline_frontmatter_language_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0011_edition_lock_polish_edition_lock_refine_and_more",
+      "applied_at": "2026-01-31T23:25:56.097992+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0011_edition_lock_polish_edition_lock_refine_and_more.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0010_edition_about_contributor_template_and_more"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0011_edition_lock_polish_edition_lock_refine_and_more.py",
+      "source_sha256": "38e10221546756ec154235c127f8b3425508691de790f82af5e6124b97676d5b",
+      "dependencies": [
+        [
+          "editorial",
+          "0010_edition_about_contributor_template_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0012_pipelineartifact",
+      "applied_at": "2026-01-31T23:25:56.985323+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0012_pipelineartifact.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0011_edition_lock_polish_edition_lock_refine_and_more"
+          ]
+        ],
+        "operations": [
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0012_pipelineartifact.py",
+      "source_sha256": "cf5b4b4c890693eed290bea831accb8d2247defb7e75e5649246ecb7888649d7",
+      "dependencies": [
+        [
+          "editorial",
+          "0011_edition_lock_polish_edition_lock_refine_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "PipelineArtifact"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0013_alter_edition_copyright_template",
+      "applied_at": "2026-03-13T18:04:55.368906+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0013_alter_edition_copyright_template.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0012_pipelineartifact"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0013_alter_edition_copyright_template.py",
+      "source_sha256": "7c40c7b09ae2b8df33ddcab27d7115a31371588629b3c3eed4f851533d969abd",
+      "dependencies": [
+        [
+          "editorial",
+          "0012_pipelineartifact"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0013_edition_introduction_epilogue_text",
+      "applied_at": "2026-01-31T23:25:57.042510+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "22ea7008ab35d84a296e131686835bcaeb327cee",
+      "source_path": "web/editorial/migrations/0013_edition_introduction_epilogue_text.py",
+      "source_sha256": "e265c6cf30afa67e2139874758b4b7a5b78fa352107827033e8b1ec182dd6232",
+      "dependencies": [
+        [
+          "editorial",
+          "0012_pipelineartifact"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0013_pipelineartifact_status_sha256",
+      "applied_at": "2026-01-31T23:25:57.101742+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "43638afb41c190f86a76c2e9fe43a8c21dcebf89",
+      "source_path": "web/editorial/migrations/0013_pipelineartifact_status_sha256.py",
+      "source_sha256": "060d359579cc63bcff489b2a4358e9f404a85e17d7acb4c8ffb49cdf6d5d42a1",
+      "dependencies": [
+        [
+          "editorial",
+          "0012_pipelineartifact"
+        ]
+      ],
+      "state_or_models": [
+        "pipelineartifact"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0014_edition_language_variant",
+      "applied_at": "2026-01-31T23:25:57.070373+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "ba5d724fd86c006c1c5d9274638e8d12e5d6eb9e",
+      "source_path": "web/editorial/migrations/0014_edition_language_variant.py",
+      "source_sha256": "0558dbd51d10ac6ba7d99e95cfccc70d82d37493b5d7dace9abfb4a7ac6f105b",
+      "dependencies": [
+        [
+          "editorial",
+          "0013_edition_introduction_epilogue_text"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0014_editionpipeline_refine_profile",
+      "applied_at": "2026-03-13T21:22:27.901217+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0014_editionpipeline_refine_profile.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0013_alter_edition_copyright_template"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0014_editionpipeline_refine_profile.py",
+      "source_sha256": "c5e10c612888821535ff0d5c232a7404eb7f3e962af1e0d0fe3e7374d475ad5c",
+      "dependencies": [
+        [
+          "editorial",
+          "0013_alter_edition_copyright_template"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0015_alter_edition_copyright_template_labels",
+      "applied_at": "2026-03-17T14:56:36.550867+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0015_alter_edition_copyright_template_labels.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0014_editionpipeline_refine_profile"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0015_alter_edition_copyright_template_labels.py",
+      "source_sha256": "e2cbcc440c0e80eea70ec2885e74ded22a3857f581d593c83d3bd1d990f32a7d",
+      "dependencies": [
+        [
+          "editorial",
+          "0014_editionpipeline_refine_profile"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0015_merge_20260127_1950",
+      "applied_at": "2026-01-31T23:25:57.118862+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "43638afb41c190f86a76c2e9fe43a8c21dcebf89",
+      "source_path": "web/editorial/migrations/0015_merge_20260127_1950.py",
+      "source_sha256": "346f9fa970dae2b631b5d896e70379d20a96318bf4adc4457cc7afd2b41b96f2",
+      "dependencies": [
+        [
+          "editorial",
+          "0013_pipelineartifact_status_sha256"
+        ],
+        [
+          "editorial",
+          "0014_edition_language_variant"
+        ]
+      ],
+      "state_or_models": [],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0016_editionpipeline_build_outdated_and_more",
+      "applied_at": "2026-03-27T15:15:58.066444+00:00",
+      "file": {
+        "path": "web/editorial/migrations/0016_editionpipeline_build_outdated_and_more.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0015_alter_edition_copyright_template_labels"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "AlterField",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/editorial/migrations/0016_editionpipeline_build_outdated_and_more.py",
+      "source_sha256": "a2c078abbcbf9b989a790e26797f7cc4fdc3c131d820ed056369173068b7bd38",
+      "dependencies": [
+        [
+          "editorial",
+          "0015_alter_edition_copyright_template_labels"
+        ]
+      ],
+      "state_or_models": [
+        "EditionBuild",
+        "ID",
+        "edition",
+        "editionpipeline"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "editorial",
+      "migration": "0016_pipelineartifact_merge_translate_stage",
+      "applied_at": "2026-01-31T23:25:57.144480+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "43638afb41c190f86a76c2e9fe43a8c21dcebf89",
+      "source_path": "web/editorial/migrations/0016_pipelineartifact_merge_translate_stage.py",
+      "source_sha256": "d36921d6a292b8d0ed56a8c9569f0f5cd30129d147cf042ba7d872d4fb59b644",
+      "dependencies": [
+        [
+          "editorial",
+          "0015_merge_20260127_1950"
+        ]
+      ],
+      "state_or_models": [
+        "pipelineartifact"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0017_edition_copyright_editorial_fields",
+      "applied_at": "2026-01-31T23:25:57.202257+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "43638afb41c190f86a76c2e9fe43a8c21dcebf89",
+      "source_path": "web/editorial/migrations/0017_edition_copyright_editorial_fields.py",
+      "source_sha256": "e3e6e60bd43e553d273575cf1c0672eef0be5da92443ff2f27bfb8e1f6d439be",
+      "dependencies": [
+        [
+          "editorial",
+          "0016_pipelineartifact_merge_translate_stage"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0017_editionpipeline_last_version",
+      "applied_at": "2026-07-03T19:20:15.574963+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "preserved_main_untracked",
+      "source_ref": null,
+      "source_path": "preservation/main_worktree/untracked_files/web/editorial/migrations/0017_editionpipeline_last_version.py",
+      "source_sha256": "d9be9415ca45d1ac4cb4b65e003d480998884c1ece329e0be996efeb36e97566",
+      "dependencies": [
+        [
+          "editorial",
+          "0016_editionpipeline_build_outdated_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0017_editionpipeline_markitdown_stages",
+      "applied_at": "2026-05-16T01:54:47.849446+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "not_found",
+      "source_ref": null,
+      "source_path": null,
+      "source_sha256": null,
+      "dependencies": [],
+      "state_or_models": [],
+      "action": "BLOCKED_SOURCE_REQUIRED_OR_CONTROLLED_BASELINE_DECISION"
+    },
+    {
+      "app": "editorial",
+      "migration": "0018_edition_copyright_holder_fields",
+      "applied_at": "2026-01-31T23:25:57.231259+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "43638afb41c190f86a76c2e9fe43a8c21dcebf89",
+      "source_path": "web/editorial/migrations/0018_edition_copyright_holder_fields.py",
+      "source_sha256": "ad025bdad0a5d7e5108aeb67c53b7195da8384ab2030523e4517ff1eed33d063",
+      "dependencies": [
+        [
+          "editorial",
+          "0017_edition_copyright_editorial_fields"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0019_editionblock",
+      "applied_at": "2026-01-31T23:25:58.002831+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "509e89c433e9a0b2da834731308e2df88b33f278",
+      "source_path": "web/editorial/migrations/0019_editionblock.py",
+      "source_sha256": "f9052bcb2fbb19f8cef240cad80552f3eff2cf8d7fc88f12e86c453c21b99247",
+      "dependencies": [
+        [
+          "editorial",
+          "0018_edition_copyright_holder_fields"
+        ]
+      ],
+      "state_or_models": [
+        "EditionBlock",
+        "ID"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0020_work_projects_fields",
+      "applied_at": "2026-02-06T20:37:47.372045+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "9f17867ae38c37f74c3937e228990900dcace8a5",
+      "source_path": "web/editorial/migrations/0020_work_projects_fields.py",
+      "source_sha256": "7d2ac2b683eda7ecedb2b7e28d0b4e56edb770777b3d29b092fe97f6ef21d395",
+      "dependencies": [
+        [
+          "editorial",
+          "0019_editionblock"
+        ]
+      ],
+      "state_or_models": [
+        "work"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0021_alter_edition_language_code_and_more",
+      "applied_at": "2026-02-06T22:55:46.171219+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "f6f761d7ab3837a11cc6d653a7fafdfe5c32510b",
+      "source_path": "web/editorial/migrations/0021_alter_edition_language_code_and_more.py",
+      "source_sha256": "476e3267f885e9140d104f2ce4872787b84a35908c889d36824d2eb46d9e1e5c",
+      "dependencies": [
+        [
+          "editorial",
+          "0020_work_projects_fields"
+        ]
+      ],
+      "state_or_models": [
+        "edition",
+        "editionpipeline",
+        "pipelineartifact"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0022_edition_book_id_edition_canonical_official_tag_and_more",
+      "applied_at": "2026-02-26T16:40:39.352043+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "b06df54dce311e2d00ab63f334870e498a23d436",
+      "source_path": "web/editorial/migrations/0022_edition_book_id_edition_canonical_official_tag_and_more.py",
+      "source_sha256": "145085e8df403e75cedaab3c494f7a5919afe93f70a0e13bffe9b42c77f33a83",
+      "dependencies": [
+        [
+          "editorial",
+          "0021_alter_edition_language_code_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0023_alter_edition_status",
+      "applied_at": "2026-02-26T16:40:39.439954+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "b06df54dce311e2d00ab63f334870e498a23d436",
+      "source_path": "web/editorial/migrations/0023_alter_edition_status.py",
+      "source_sha256": "786cc9003fe3205d7856ddf5228255107978b8fac1cf7e035a5e41cc88484984",
+      "dependencies": [
+        [
+          "editorial",
+          "0022_edition_book_id_edition_canonical_official_tag_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0024_alter_edition_status",
+      "applied_at": "2026-02-26T16:40:39.482800+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "d962ef77703188e3b806a95a275d83d1d6eea9df",
+      "source_path": "web/editorial/migrations/0024_alter_edition_status.py",
+      "source_sha256": "f31f49a9150d6837962c8875c2a88b4b744ef2b3cf54ee5b2abe5f428f06119f",
+      "dependencies": [
+        [
+          "editorial",
+          "0023_alter_edition_status"
+        ]
+      ],
+      "state_or_models": [
+        "edition"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "editorial",
+      "migration": "0025_alter_editionpipeline_current_stage",
+      "applied_at": "2026-02-26T16:40:39.510885+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "d962ef77703188e3b806a95a275d83d1d6eea9df",
+      "source_path": "web/editorial/migrations/0025_alter_editionpipeline_current_stage.py",
+      "source_sha256": "b7f7e9987347a7569a8324d6c34ed551ae47a74a8315e622a75f709b5ab66752",
+      "dependencies": [
+        [
+          "editorial",
+          "0024_alter_edition_status"
+        ]
+      ],
+      "state_or_models": [
+        "editionpipeline"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0001_initial",
+      "applied_at": "2026-07-16T20:29:03.803934+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0001_initial.py",
+        "dependencies": [],
+        "operations": [
+          "AddConstraint",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0001_initial.py",
+      "source_sha256": "20a631adc768fd227d28715a1327c0e6b63efb5fbb16938a3b09661dc7c0d942",
+      "dependencies": [],
+      "state_or_models": [
+        "ID",
+        "IntakeBatch",
+        "IntakeItem",
+        "intakeitem"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0002_intakeitem_pipeline_handoff",
+      "applied_at": "2026-07-16T20:29:03.893835+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0002_intakeitem_pipeline_handoff.py",
+        "dependencies": [
+          [
+            "intake_module",
+            "0001_initial"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0002_intakeitem_pipeline_handoff.py",
+      "source_sha256": "f6c7ee046bb73877ea24f7e8e3670cd7400c946c285be763442e6650568935a2",
+      "dependencies": [
+        [
+          "intake_module",
+          "0001_initial"
+        ]
+      ],
+      "state_or_models": [
+        "intakeitem"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0003_intakeitem_duplicate_of",
+      "applied_at": "2026-07-16T21:30:43.243576+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0003_intakeitem_duplicate_of.py",
+        "dependencies": [
+          [
+            "intake_module",
+            "0002_intakeitem_pipeline_handoff"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0003_intakeitem_duplicate_of.py",
+      "source_sha256": "09914dca2ab56b35cf621d291362d545989fa07a47d64416dd8000375f84514b",
+      "dependencies": [
+        [
+          "intake_module",
+          "0002_intakeitem_pipeline_handoff"
+        ]
+      ],
+      "state_or_models": [
+        "intakeitem"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0004_translationjob_and_identity_constraints",
+      "applied_at": "2026-07-22T20:14:35.109132+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0004_translationjob_and_identity_constraints.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0016_editionpipeline_build_outdated_and_more"
+          ],
+          [
+            "intake_module",
+            "0003_intakeitem_duplicate_of"
+          ]
+        ],
+        "operations": [
+          "AddConstraint",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0004_translationjob_and_identity_constraints.py",
+      "source_sha256": "600000aab4de653fbe7f1d1f786af99aa20bd2a6f45eab5993bee8c3c92ce579",
+      "dependencies": [
+        [
+          "editorial",
+          "0016_editionpipeline_build_outdated_and_more"
+        ],
+        [
+          "intake_module",
+          "0003_intakeitem_duplicate_of"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "TranslationJob",
+        "intakeitem",
+        "translationjob"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0005_translationjob_warning_confirmation",
+      "applied_at": "2026-07-22T20:14:35.236402+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0005_translationjob_warning_confirmation.py",
+        "dependencies": [
+          [
+            "intake_module",
+            "0004_translationjob_and_identity_constraints"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0005_translationjob_warning_confirmation.py",
+      "source_sha256": "c0937cb50af987d5c0225553f881bf0ceba6cd9d7b334e5e18f9111c778a6281",
+      "dependencies": [
+        [
+          "intake_module",
+          "0004_translationjob_and_identity_constraints"
+        ]
+      ],
+      "state_or_models": [
+        "translationjob"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "intake_module",
+      "migration": "0006_book_code_allocation",
+      "applied_at": "2026-07-23T20:40:42.418629+00:00",
+      "file": {
+        "path": "web/intake_module/migrations/0006_book_code_allocation.py",
+        "dependencies": [
+          [
+            "intake_module",
+            "0005_translationjob_warning_confirmation"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "CreateModel",
+          "RunPython"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/intake_module/migrations/0006_book_code_allocation.py",
+      "source_sha256": "4e2a24b89854164031ac7d5695e60835e2a28e366164ddee9e8bbcf8738f7302",
+      "dependencies": [
+        [
+          "intake_module",
+          "0005_translationjob_warning_confirmation"
+        ]
+      ],
+      "state_or_models": [
+        "BookCodeSequence",
+        "intakebatch",
+        "intakeitem"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0001_initial",
+      "applied_at": "2026-01-31T23:25:58.207163+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0001_initial.py",
+        "dependencies": [],
+        "operations": [
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0001_initial.py",
+      "source_sha256": "c947cb7ecd03495cf326e3d681f120538afb5ae63062a113b6ced9aa66cc051d",
+      "dependencies": [],
+      "state_or_models": [
+        "ID",
+        "PipelineJob"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0002_alter_pipelinejob_options_and_more",
+      "applied_at": "2026-01-31T23:25:58.284411+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0002_alter_pipelinejob_options_and_more.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0001_initial"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "AlterField",
+          "AlterModelOptions",
+          "RenameField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0002_alter_pipelinejob_options_and_more.py",
+      "source_sha256": "fa5ec169b14a771b09ce56dacd784d9d7cbf28701469c0a884a3306ed5141ce4",
+      "dependencies": [
+        [
+          "pipeline",
+          "0001_initial"
+        ]
+      ],
+      "state_or_models": [
+        "pipelinejob"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0003_alter_pipelinejob_stage_bookeditiontemplate",
+      "applied_at": "2026-01-31T23:25:58.780203+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0003_alter_pipelinejob_stage_bookeditiontemplate.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0002_alter_pipelinejob_options_and_more"
+          ]
+        ],
+        "operations": [
+          "AlterField",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0003_alter_pipelinejob_stage_bookeditiontemplate.py",
+      "source_sha256": "c9439957cc7732c5526b0403eb3c90663b9af8e63261ce70904553f9abd464bb",
+      "dependencies": [
+        [
+          "pipeline",
+          "0002_alter_pipelinejob_options_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "BookEditionTemplate",
+        "ID",
+        "pipelinejob"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0004_bookeditiontemplate_collection_name_and_more",
+      "applied_at": "2026-01-31T23:25:58.843517+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0004_bookeditiontemplate_collection_name_and_more.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0003_alter_pipelinejob_stage_bookeditiontemplate"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0004_bookeditiontemplate_collection_name_and_more.py",
+      "source_sha256": "b80cf746ff33a6c9fecd32a64b1b84a3ccae78ae8c0c4d40740daf7a402765e7",
+      "dependencies": [
+        [
+          "pipeline",
+          "0003_alter_pipelinejob_stage_bookeditiontemplate"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0005_alter_bookeditiontemplate_collaborator_roles",
+      "applied_at": "2026-01-31T23:25:58.874243+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0005_alter_bookeditiontemplate_collaborator_roles.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0004_bookeditiontemplate_collection_name_and_more"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0005_alter_bookeditiontemplate_collaborator_roles.py",
+      "source_sha256": "cd20e36d3a1651d37195e4d63538ca62eaab3070669374985390a1fbb619d489",
+      "dependencies": [
+        [
+          "pipeline",
+          "0004_bookeditiontemplate_collection_name_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0006_alter_bookeditiontemplate_collaborator_roles",
+      "applied_at": "2026-01-31T23:25:58.906761+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0006_alter_bookeditiontemplate_collaborator_roles.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0005_alter_bookeditiontemplate_collaborator_roles"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0006_alter_bookeditiontemplate_collaborator_roles.py",
+      "source_sha256": "5864ff068e9d58740edf407b89254c05bbe202599344bc5d044ed27458dd7831",
+      "dependencies": [
+        [
+          "pipeline",
+          "0005_alter_bookeditiontemplate_collaborator_roles"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0007_bookeditiontemplate_text_source_mode",
+      "applied_at": "2026-01-31T23:25:58.929570+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0007_bookeditiontemplate_text_source_mode.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0006_alter_bookeditiontemplate_collaborator_roles"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0007_bookeditiontemplate_text_source_mode.py",
+      "source_sha256": "89415b2b1b6735861e86dee5e1e0a4c18c36dea16d97db1b05e01557a3ca74c8",
+      "dependencies": [
+        [
+          "pipeline",
+          "0006_alter_bookeditiontemplate_collaborator_roles"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0008_textsnapshot",
+      "applied_at": "2026-01-31T23:25:59.264808+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0008_textsnapshot.py",
+        "dependencies": [
+          [
+            "editorial",
+            "0001_initial"
+          ],
+          [
+            "pipeline",
+            "0007_bookeditiontemplate_text_source_mode"
+          ]
+        ],
+        "operations": [
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0008_textsnapshot.py",
+      "source_sha256": "b82306d7d5b994a6031cb96f090d492f71a31e907b770fe3005ac0343c605eab",
+      "dependencies": [
+        [
+          "editorial",
+          "0001_initial"
+        ],
+        [
+          "pipeline",
+          "0007_bookeditiontemplate_text_source_mode"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "TextSnapshot"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0009_bookeditiontemplate_frontmatter_fields",
+      "applied_at": "2026-01-31T23:25:59.320030+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0009_bookeditiontemplate_frontmatter_fields.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0008_textsnapshot"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0009_bookeditiontemplate_frontmatter_fields.py",
+      "source_sha256": "d404684da5b03aefaf9b2829098ff1cf6a542ce150527a70e7030ec936d3d0b9",
+      "dependencies": [
+        [
+          "pipeline",
+          "0008_textsnapshot"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0010_bookeditiontemplate_city_country",
+      "applied_at": "2026-01-31T23:26:05.514602+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0010_bookeditiontemplate_city_country.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0009_bookeditiontemplate_frontmatter_fields"
+          ]
+        ],
+        "operations": [
+          "AddField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0010_bookeditiontemplate_city_country.py",
+      "source_sha256": "1553b3b43e8cedeb8fa16e10d4e26248123dc7fe5565550b8b560690d00d1eea",
+      "dependencies": [
+        [
+          "pipeline",
+          "0009_bookeditiontemplate_frontmatter_fields"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0011_alter_bookeditiontemplate_language",
+      "applied_at": "2026-01-31T23:26:05.537146+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0011_alter_bookeditiontemplate_language.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0010_bookeditiontemplate_city_country"
+          ]
+        ],
+        "operations": [
+          "AlterField"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0011_alter_bookeditiontemplate_language.py",
+      "source_sha256": "4b87a3dd0e2b44bdff209e626d6f8626e5c31e3eb0353e50a491aeb23c791274",
+      "dependencies": [
+        [
+          "pipeline",
+          "0010_bookeditiontemplate_city_country"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0012_align_bookeditiontemplate_schema",
+      "applied_at": "2026-03-05T18:24:20.958477+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0012_align_bookeditiontemplate_schema.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0011_alter_bookeditiontemplate_language"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "RunPython",
+          "SeparateDatabaseAndState"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0012_align_bookeditiontemplate_schema.py",
+      "source_sha256": "cf6352d2ab071936990795b24bbe10ee1cbf39ac60e92b8a9c7ce56f3132b25f",
+      "dependencies": [
+        [
+          "pipeline",
+          "0011_alter_bookeditiontemplate_language"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0012_bookeditiontemplate_editorial_name",
+      "applied_at": "2026-01-31T23:26:05.557258+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0012_bookeditiontemplate_editorial_name.py",
+      "source_sha256": "d992b38aac042c4e56794614bb2ee5125f66bd58ca53cb76b3cc3195bd589258",
+      "dependencies": [
+        [
+          "pipeline",
+          "0011_alter_bookeditiontemplate_language"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0013_bookeditiontemplate_copyright_fields",
+      "applied_at": "2026-01-31T23:26:05.583496+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0013_bookeditiontemplate_copyright_fields.py",
+      "source_sha256": "2c83d31d19b9d3af4a7e66038f6823c8b8e11ee39a288c2933db5ec70e255d9a",
+      "dependencies": [
+        [
+          "pipeline",
+          "0012_bookeditiontemplate_editorial_name"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0013_ensure_bookeditiontemplate_columns",
+      "applied_at": "2026-03-11T19:30:10.290218+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0013_ensure_bookeditiontemplate_columns.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0012_align_bookeditiontemplate_schema"
+          ]
+        ],
+        "operations": [
+          "RunPython"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0013_ensure_bookeditiontemplate_columns.py",
+      "source_sha256": "d0c3194f0ceb0f9785dd38170a90f027936df36c358b9cf991a46475cbc908ae",
+      "dependencies": [
+        [
+          "pipeline",
+          "0012_align_bookeditiontemplate_schema"
+        ]
+      ],
+      "state_or_models": [
+        "RunPython"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0014_bookeditiontemplate_registration_upload_fields",
+      "applied_at": "2026-03-26T00:38:27.821547+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0014_bookeditiontemplate_registration_upload_fields.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0013_ensure_bookeditiontemplate_columns"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "RunPython",
+          "SeparateDatabaseAndState"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0014_bookeditiontemplate_registration_upload_fields.py",
+      "source_sha256": "44d0b6f182a3fcfec16fcd910f68db619917382982c0ba219c36042e3a9d986b",
+      "dependencies": [
+        [
+          "pipeline",
+          "0013_ensure_bookeditiontemplate_columns"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0014_pipelinerun",
+      "applied_at": "2026-02-06T18:58:24.820410+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0014_pipelinerun.py",
+      "source_sha256": "fd3e78b6e34620c0b9585d826dfe4cc207fa872bae7f3504e3e1e2c3d64e679a",
+      "dependencies": [
+        [
+          "pipeline",
+          "0013_bookeditiontemplate_copyright_fields"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "PipelineRun",
+        "PipelineRunItem"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0015_alter_bookeditiontemplate_language_and_more",
+      "applied_at": "2026-02-06T22:55:46.197394+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0015_alter_bookeditiontemplate_language_and_more.py",
+      "source_sha256": "2c4060af864cd6b0ab4e8ef943631814db2a274c44d00825b1b9eca8f422a37b",
+      "dependencies": [
+        [
+          "pipeline",
+          "0014_pipelinerun"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate",
+        "pipelinejob",
+        "pipelinerun"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0015_bookeditiontemplate_epilogue_text_and_more",
+      "applied_at": "2026-04-01T14:18:33.718845+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0015_bookeditiontemplate_epilogue_text_and_more.py",
+        "dependencies": [
+          [
+            "pipeline",
+            "0014_bookeditiontemplate_registration_upload_fields"
+          ]
+        ],
+        "operations": [
+          "AddField",
+          "AlterField",
+          "RunPython",
+          "SeparateDatabaseAndState"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0015_bookeditiontemplate_epilogue_text_and_more.py",
+      "source_sha256": "bb5e676d678bbe2073d20262a9e6159fa0ce710d9c74d25d9ed685c5752eede6",
+      "dependencies": [
+        [
+          "pipeline",
+          "0014_bookeditiontemplate_registration_upload_fields"
+        ]
+      ],
+      "state_or_models": [
+        "bookeditiontemplate"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0016_alter_pipelinerun_action",
+      "applied_at": "2026-02-07T22:56:05.387914+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0016_alter_pipelinerun_action.py",
+      "source_sha256": "0134156374f79231188a18c86df3ee52ff18f9b4d5e30c109775f43f56cee3fd",
+      "dependencies": [
+        [
+          "pipeline",
+          "0015_alter_bookeditiontemplate_language_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "pipelinerun"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0016_official_body_models",
+      "applied_at": "2026-07-22T20:14:35.920861+00:00",
+      "file": {
+        "path": "web/pipeline/migrations/0016_official_body_models.py",
+        "dependencies": [
+          [
+            "intake_module",
+            "0004_translationjob_and_identity_constraints"
+          ],
+          [
+            "pipeline",
+            "0015_bookeditiontemplate_epilogue_text_and_more"
+          ]
+        ],
+        "operations": [
+          "AddConstraint",
+          "CreateModel"
+        ]
+      },
+      "classification": "PRESENT_AND_MATCHING",
+      "source_kind": "integration_worktree",
+      "source_ref": null,
+      "source_path": "web/pipeline/migrations/0016_official_body_models.py",
+      "source_sha256": "7a1b9eaa6c2cc193c6e6cdf4e0edc4e9e44ef71c1f6254c1c50afdccf8283967",
+      "dependencies": [
+        [
+          "intake_module",
+          "0004_translationjob_and_identity_constraints"
+        ],
+        [
+          "pipeline",
+          "0015_bookeditiontemplate_epilogue_text_and_more"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "OfficialBodyPromotion",
+        "OfficialBodySnapshot",
+        "officialbodysnapshot"
+      ],
+      "action": "KEEP_ACTIVE"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0016_pipelinejob_markitdown_stages",
+      "applied_at": "2026-05-16T01:54:46.575490+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "not_found",
+      "source_ref": null,
+      "source_path": null,
+      "source_sha256": null,
+      "dependencies": [],
+      "state_or_models": [],
+      "action": "BLOCKED_SOURCE_REQUIRED_OR_CONTROLLED_BASELINE_DECISION"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0017_bookeditiontemplate_historic_fields",
+      "applied_at": "2026-05-16T01:56:03.826885+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "not_found",
+      "source_ref": null,
+      "source_path": null,
+      "source_sha256": null,
+      "dependencies": [],
+      "state_or_models": [],
+      "action": "BLOCKED_SOURCE_REQUIRED_OR_CONTROLLED_BASELINE_DECISION"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0017_pipelinerunstate",
+      "applied_at": "2026-02-16T17:03:07.080278+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "63feed2732fa8c6d0a566dbd73bdaa02b1f92ec2",
+      "source_path": "web/pipeline/migrations/0017_pipelinerunstate.py",
+      "source_sha256": "a014f59836de3403748132084e52f32881daa69f5bef80ad60b1fe12f9177075",
+      "dependencies": [
+        [
+          "editorial",
+          "0012_pipelineartifact"
+        ],
+        [
+          "pipeline",
+          "0016_alter_pipelinerun_action"
+        ]
+      ],
+      "state_or_models": [
+        "ID",
+        "PipelineRunState"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0018_pipelinerunstate_modes_and_md_fields",
+      "applied_at": "2026-02-16T17:03:07.243254+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0018_pipelinerunstate_modes_and_md_fields.py",
+      "source_sha256": "665aa3f52a876e6cffe3ac27c3cabe70a40e9a5120091bedc833e7a5cb66ea3b",
+      "dependencies": [
+        [
+          "pipeline",
+          "0017_pipelinerunstate"
+        ]
+      ],
+      "state_or_models": [
+        "pipelinerunstate"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    },
+    {
+      "app": "pipeline",
+      "migration": "0019_alter_pipelinerun_action",
+      "applied_at": "2026-02-26T16:40:39.532320+00:00",
+      "file": null,
+      "classification": "APPLIED_FILE_MISSING",
+      "source_kind": "local_git_object",
+      "source_ref": "78a254f34c8810c6609ace5a293f546e0bbfa375",
+      "source_path": "web/pipeline/migrations/0019_alter_pipelinerun_action.py",
+      "source_sha256": "302c0cb462b663fb6bb60411d1b21b73ded1190890027741bd7f766b6303d51e",
+      "dependencies": [
+        [
+          "pipeline",
+          "0018_pipelinerunstate_modes_and_md_fields"
+        ]
+      ],
+      "state_or_models": [
+        "pipelinerun"
+      ],
+      "action": "PRESERVE_AS_EVIDENCE_DO_NOT_ACTIVATE_PARTIAL_BRANCH"
+    }
+  ]
+}
