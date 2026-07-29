@@ -3,7 +3,7 @@
 <h1>Automated editorial intake</h1>
 <p><a href="{% url 'intake_module:item_detail' item.id %}">← Voltar ao item</a></p>
 <p><strong>{{ item.book_code|default:"Sem book_code" }}</strong> · {{ item.confirmed_title|default:item.suggested_title|default:"Sem título" }}</p>
-<p class="muted">Esta etapa é uma prévia somente leitura. Nenhum livro, edição, tradução, arquivo ou registro é criado aqui.</p>
+<p class="muted">Piloto bilíngue: inglês do Reino Unido e português do Brasil. Esta prévia é somente leitura; nenhum livro, edição, tradução, arquivo ou registro é criado aqui.</p>
 
 {% if plan.status == "ready" %}
 <p><strong>Preflight aprovado.</strong> O item está pronto para uma futura confirmação transacional.</p>
@@ -27,17 +27,24 @@
   <dt>Título</dt><dd>{{ plan.source.title|default:"—" }}</dd>
   <dt>Ano</dt><dd>{{ plan.source.original_year|default:"—" }}</dd>
   <dt>Idioma</dt><dd>{{ plan.source.source_language|default:"—" }}</dd>
+  <dt>Estado</dt><dd>{{ plan.source.source_status|default:"—" }}</dd>
   <dt>SHA-256</dt><dd>{{ plan.source.source_sha256|default:"—" }}</dd>
   <dt>Plano</dt><dd>{{ plan.plan_sha256 }}</dd>
 </dl>
 
-<h2>Seis edições planejadas</h2>
+{% if plan.preparation_stages %}
+<h2>Preparação da fonte</h2>
+<ul>{% for stage in plan.preparation_stages %}<li>{{ stage.name }}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>Duas edições planejadas</h2>
 <table>
-  <thead><tr><th>Idioma</th><th>Ação inicial</th><th>Fecho</th><th>Etapas</th></tr></thead>
+  <thead><tr><th>Locale</th><th>Código interno</th><th>Ação inicial</th><th>Fecho</th><th>Etapas</th></tr></thead>
   <tbody>
   {% for edition in plan.editions %}
     <tr>
-      <td><strong>{{ edition.language }}</strong><br>{{ edition.label }}</td>
+      <td><strong>{{ edition.locale }}</strong><br>{{ edition.label }}</td>
+      <td>{{ edition.language }} / {{ edition.pipeline_language }}</td>
       <td>{{ edition.source_action }}</td>
       <td>{{ edition.end_marker }}</td>
       <td>{% for stage in edition.stages %}{{ stage.name }}{% if not forloop.last %} → {% endif %}{% endfor %}</td>
