@@ -1,3 +1,4 @@
+from .automated import build_automated_editorial_plan
 from .drive_sync import discover_drive_folder, download_drive_item, synchronize_drive_folder
 from .ingestion import (
     clean_downloaded_item,
@@ -21,6 +22,7 @@ from .book_code_allocation import (
 )
 
 __all__ = [
+    "build_automated_editorial_plan",
     "confirm_ready_for_editing",
     "clean_downloaded_item",
     "discover_drive_folder",
