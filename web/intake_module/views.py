@@ -7,6 +7,7 @@ from gaiden.application.intake import (
     BookCodeAllocationConflict,
     BookCodeManifestConflict,
     StaleBookCodePlan,
+    build_automated_editorial_plan,
     clean_downloaded_item,
     confirm_ready_for_editing,
     discover_drive_folder,
@@ -387,6 +388,40 @@ def item_detail(request, item_id: int):
             "can_open_in_bookmaker": _can_open_in_bookmaker(item),
         },
     )
+
+
+def item_automated_preview(request, item_id: int):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch", "duplicate_of"),
+        pk=item_id,
+    )
+    plan = build_automated_editorial_plan(item)
+    return render(
+        request,
+        "intake_module/automated_preview.html",
+        {"item": item, "plan": plan},
+    )
+
+
+def item_automated_plan(request, item_id: int):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch", "duplicate_of"),
+        pk=item_id,
+    )
+    plan = build_automated_editorial_plan(item)
+    response = JsonResponse(
+        plan,
+        json_dumps_params={"ensure_ascii": False, "indent": 2},
+    )
+    book_code = item.book_code or f"intake_item_{item.id}"
+    response["Content-Disposition"] = (
+        f'attachment; filename="{book_code}_automated_editorial_plan.json"'
+    )
+    return response
 
 
 def _can_open_in_bookmaker(item: IntakeItem) -> bool:
