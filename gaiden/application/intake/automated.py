@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 
 AUTOMATED_SCHEMA_VERSION = 1
-BOOK_CODE_PATTERN = re.compile(r"^book_(\\d{4,})$")
+BOOK_CODE_PATTERN = re.compile(r"^book_([0-9]{4,})$")
 ELIGIBLE_SOURCE_STATES = frozenset(
     {
         "DOWNLOADED",
