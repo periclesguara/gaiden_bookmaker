@@ -1,0 +1,296 @@
+{
+  "audit": "phase05_missing_migrations_forensics",
+  "generated_at": "2026-07-29T13:11:12-03:00",
+  "base_commit": "591973ffa616ce22b96b6537d98974bea160358d",
+  "integration_worktree": "/home/periclesguara/Projetos/gaiden_bookmaker_phase0_integration",
+  "activation_performed": false,
+  "baseline_created": false,
+  "canonical_database_modified": false,
+  "candidate_directory": "/tmp/gaiden_phase05_recovery_20260729",
+  "forensic_search": {
+    "direct_git_path_log_matches": 0,
+    "reachable_object_path_matches": 0,
+    "exact_source_content_matches_in_all_git_blobs": 0,
+    "exact_filesystem_filename_matches": 0,
+    "local_branches_inspected": 39,
+    "remote_refs_inspected": 34,
+    "tags_inspected": 24,
+    "stashes_inspected": 3,
+    "worktrees_inspected": 6,
+    "unreachable_objects_inspected": {
+      "blobs": 3547,
+      "commits": 33,
+      "trees": 920,
+      "tags": 1
+    },
+    "other_sources": [
+      "VS Code local history",
+      "shell history filtered to migration commands",
+      "repository backup directories",
+      "SQLite backups",
+      "PostgreSQL logical backup from 2026-07-15",
+      "Phase 0 manifests and preserved migrations",
+      "read-only django_migrations and PostgreSQL catalog metadata"
+    ],
+    "original_source_recovered": false
+  },
+  "canonical_read_only_evidence": {
+    "default_transaction_read_only": true,
+    "migration_records": [
+      {
+        "app": "pipeline",
+        "name": "0016_pipelinejob_markitdown_stages",
+        "applied_utc": "2026-05-16T01:54:46.575490Z"
+      },
+      {
+        "app": "editorial",
+        "name": "0017_editionpipeline_markitdown_stages",
+        "applied_utc": "2026-05-16T01:54:47.849446Z"
+      },
+      {
+        "app": "pipeline",
+        "name": "0017_bookeditiontemplate_historic_fields",
+        "applied_utc": "2026-05-16T01:56:03.826885Z"
+      }
+    ],
+    "columns": [
+      {
+        "table": "edition_pipeline",
+        "column": "current_stage",
+        "type": "varchar(20)",
+        "nullable": false,
+        "database_default": null
+      },
+      {
+        "table": "pipeline_pipelinejob",
+        "column": "stage",
+        "type": "varchar(50)",
+        "nullable": false,
+        "database_default": null
+      },
+      {
+        "table": "pipeline_bookeditiontemplate",
+        "column": "original_publication_historic",
+        "type": "varchar(32)",
+        "nullable": false,
+        "database_default": ""
+      },
+      {
+        "table": "pipeline_bookeditiontemplate",
+        "column": "original_author_death_historic",
+        "type": "varchar(32)",
+        "nullable": false,
+        "database_default": ""
+      }
+    ],
+    "observed_candidate_stage_values": {
+      "pipeline.PipelineJob.stage": {
+        "raw_uploaded": 1,
+        "markitdown_inspected": 2,
+        "markitdown_extracted": 2,
+        "md_ready": 2
+      },
+      "editorial.EditionPipeline.current_stage": {
+        "MD_SOURCE_READY": 1
+      }
+    },
+    "historic_field_rows": {
+      "total": 159,
+      "nonempty_original_publication_historic": 2,
+      "nonempty_original_author_death_historic": 1,
+      "null_original_publication_historic": 0,
+      "null_original_author_death_historic": 0
+    }
+  },
+  "candidates": [
+    {
+      "migration": "editorial.0017_editionpipeline_markitdown_stages",
+      "classification": "C",
+      "classification_label": "reconstrucao_parcial_ou_nao_verificavel",
+      "source_recovered": false,
+      "candidate_path": "/tmp/gaiden_phase05_recovery_20260729/web/editorial/migrations/0017_editionpipeline_markitdown_stages.py",
+      "sha256": "1ecd181df618e7cb9e5defe3af24b18c65555de1b94fb19eb9b98360f6d85aec",
+      "probable_dependencies": [
+        "editorial.0016_editionpipeline_build_outdated_and_more"
+      ],
+      "operations": [
+        {
+          "type": "AlterField",
+          "model": "EditionPipeline",
+          "field": "current_stage",
+          "probable_added_values": [
+            "HTML_UPLOADED",
+            "HTML_PREPROD_READY",
+            "MD_SOURCE_READY"
+          ],
+          "unverifiable_parts": [
+            "exact labels",
+            "exact ordering",
+            "whether additional zero-row choices existed"
+          ]
+        }
+      ],
+      "schema_impact": "none; varchar(20) is unchanged and PostgreSQL has no choice constraint",
+      "project_state_impact": "changes serialized choices for EditionPipeline.current_stage",
+      "data_impact": "none expected",
+      "special_operations": {
+        "RunPython": false,
+        "RunSQL": false,
+        "SeparateDatabaseAndState": false,
+        "choices_changed": true,
+        "defaults_changed": false,
+        "data_movement_or_preservation": false,
+        "cross_app_dependency": false
+      },
+      "confidence": 0.66,
+      "activation_recommendation": "do_not_activate"
+    },
+    {
+      "migration": "pipeline.0016_pipelinejob_markitdown_stages",
+      "classification": "C",
+      "classification_label": "reconstrucao_parcial_ou_nao_verificavel",
+      "source_recovered": false,
+      "candidate_path": "/tmp/gaiden_phase05_recovery_20260729/web/pipeline/migrations/0016_pipelinejob_markitdown_stages.py",
+      "sha256": "0c37594ae409c000aedd0d3118c85b2f94a2475539be26f3d0bf246f8e02bf84",
+      "probable_dependencies": [
+        "pipeline.0015_bookeditiontemplate_epilogue_text_and_more"
+      ],
+      "operations": [
+        {
+          "type": "AlterField",
+          "model": "PipelineJob",
+          "field": "stage",
+          "probable_added_values": [
+            "raw_uploaded",
+            "markitdown_inspected",
+            "markitdown_extracted",
+            "md_ready"
+          ],
+          "unverifiable_parts": [
+            "exact labels",
+            "exact ordering",
+            "whether additional zero-row choices existed"
+          ]
+        }
+      ],
+      "schema_impact": "none; varchar(50) is unchanged and PostgreSQL has no choice constraint",
+      "project_state_impact": "changes serialized choices for PipelineJob.stage",
+      "data_impact": "none expected",
+      "special_operations": {
+        "RunPython": false,
+        "RunSQL": false,
+        "SeparateDatabaseAndState": false,
+        "choices_changed": true,
+        "defaults_changed": false,
+        "data_movement_or_preservation": false,
+        "cross_app_dependency": false
+      },
+      "confidence": 0.72,
+      "activation_recommendation": "do_not_activate"
+    },
+    {
+      "migration": "pipeline.0017_bookeditiontemplate_historic_fields",
+      "classification": "B",
+      "classification_label": "reconstrucao_semanticamente_deterministica",
+      "source_recovered": false,
+      "candidate_path": "/tmp/gaiden_phase05_recovery_20260729/web/pipeline/migrations/0017_bookeditiontemplate_historic_fields.py",
+      "sha256": "a98c611fe0d5b6d6140fe1b93930917d523def2a862b3a41f96d49c449077ab5",
+      "probable_dependencies": [
+        "pipeline.0016_pipelinejob_markitdown_stages"
+      ],
+      "operations": [
+        {
+          "type": "SeparateDatabaseAndState",
+          "database_operations": [
+            {
+              "type": "RunPython",
+              "behavior": "conditionally add both varchar(32) NOT NULL DEFAULT '' columns; reverse is noop"
+            }
+          ],
+          "state_operations": [
+            {
+              "type": "AddField",
+              "model": "BookEditionTemplate",
+              "field": "original_publication_historic",
+              "definition": "CharField(max_length=32, blank=True, default='')"
+            },
+            {
+              "type": "AddField",
+              "model": "BookEditionTemplate",
+              "field": "original_author_death_historic",
+              "definition": "CharField(max_length=32, blank=True, default='')"
+            }
+          ]
+        }
+      ],
+      "schema_impact": "adds the two canonical varchar(32) NOT NULL DEFAULT '' columns in canonical ordinal order",
+      "project_state_impact": "adds two optional CharFields with empty-string defaults",
+      "data_impact": "existing rows receive empty strings on first creation; existing nonempty historical strings are preserved; reverse is intentionally non-destructive",
+      "special_operations": {
+        "RunPython": true,
+        "RunSQL": false,
+        "raw_sql_inside_RunPython": true,
+        "SeparateDatabaseAndState": true,
+        "choices_changed": false,
+        "defaults_changed": true,
+        "data_movement_or_preservation": true,
+        "cross_app_dependency": false
+      },
+      "confidence": 0.93,
+      "activation_recommendation": "do_not_activate_until_pipeline_0016_is_class_A_or_B"
+    }
+  ],
+  "validation": {
+    "scope": "class B candidate; the class C pipeline.0016 candidate was present only as the declared predecessor in the isolated graph",
+    "temporary_test_graph_join": "pipeline.0018_phase05_test_merge, operations=[]; never copied to the active line",
+    "empty_postgresql": {
+      "database": "gaiden_phase05_empty_20260729_b1",
+      "migrate": "passed",
+      "migration_records": 67,
+      "makemigrations_check": "no changes detected before and after migrate",
+      "migrate_plan_after": "no planned operations",
+      "schema_summary": {
+        "missing_tables": 0,
+        "models_with_missing_columns": 0,
+        "models_with_extra_columns": 0,
+        "extra_table_count": 0
+      }
+    },
+    "canonical_clone": {
+      "database": "gaiden_phase05_clone_20260729_b1",
+      "target_migrations_already_recorded": true,
+      "migrate_plan_before": "only test-only merge node",
+      "migrate_plan_after": "no planned operations",
+      "candidate_model_missing_columns": 0,
+      "candidate_model_extra_columns": 0,
+      "historic_rows_preserved": {
+        "total": 159,
+        "nonempty_publication": 2,
+        "nonempty_author_death": 1
+      }
+    },
+    "project_state": "both CharFields present with CharField, max_length=32, blank=true, default=''",
+    "related_tests": "4 passed",
+    "query_ddl_check": "no ALTER, CREATE, DROP or TRUNCATE during BookEditionTemplate queryset",
+    "idempotency": "second migrate plan empty; conditional RunPython invoked twice after application without error",
+    "schema_evidence": [
+      {
+        "path": "/tmp/gaiden_phase05_recovery_20260729/schema_empty_candidate.json",
+        "sha256": "4663f75e8b2431062d97a39810718029260d123e5b60d46c7d8cb834aab26c8f"
+      },
+      {
+        "path": "/tmp/gaiden_phase05_recovery_20260729/schema_clone_candidate.json",
+        "sha256": "ad7232ee5addb99591a57e508a93939d118598b0362924ce092a54e9b75f8b7a"
+      }
+    ],
+    "cleanup": {
+      "temporary_databases_removed": [
+        "gaiden_phase05_empty_20260729_b1",
+        "gaiden_phase05_clone_20260729_b1",
+        "test_gaiden_phase05_empty_20260729_b1"
+      ],
+      "test_harness": "moved to desktop trash; recovery directory and hashed evidence retained"
+    }
+  },
+  "overall_recommendation": "Do not activate any candidate and do not create a baseline. Recover exact source for both class C choice migrations, or obtain an explicit risk acceptance that defines their exact ProjectState, before any graph reconciliation."
+}

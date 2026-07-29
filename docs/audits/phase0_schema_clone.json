@@ -1,0 +1,296 @@
+{
+  "database": "gaiden_phase0_clone_20260729_a1",
+  "vendor": "postgresql",
+  "models": [
+    {
+      "model": "admin.LogEntry",
+      "table": "django_admin_log",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.Group",
+      "table": "auth_group",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.Permission",
+      "table": "auth_permission",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "auth.User",
+      "table": "auth_user",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.Author",
+      "table": "author_studio_author",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.CanonicalText",
+      "table": "author_studio_canonicaltext",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.Work",
+      "table": "author_studio_work",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkChunk",
+      "table": "author_studio_workchunk",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSource",
+      "table": "author_studio_worksource",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSplit",
+      "table": "author_studio_worksplit",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "author_studio.WorkSplitRun",
+      "table": "author_studio_worksplitrun",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.Collection",
+      "table": "collections_module_collection",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionArtifact",
+      "table": "collections_module_collectionartifact",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionItem",
+      "table": "collections_module_collectionitem",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "collections_module.CollectionRunState",
+      "table": "collections_module_collectionrunstate",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "contenttypes.ContentType",
+      "table": "django_content_type",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Contributor",
+      "table": "contributor",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Edition",
+      "table": "edition",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": [
+        "book_id",
+        "canonical_official_tag",
+        "canonical_run_dir",
+        "copyright_text",
+        "edition_copyright_holder",
+        "editorial_name",
+        "epilogue_text",
+        "introduction_text",
+        "lang",
+        "language_variant",
+        "raw_materialized_at",
+        "raw_materialized_path",
+        "raw_sha256",
+        "raw_upload",
+        "status",
+        "truth_frozen_at",
+        "truth_path",
+        "truth_sha256"
+      ]
+    },
+    {
+      "model": "editorial.EditionBuild",
+      "table": "edition_build",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.EditionPipeline",
+      "table": "edition_pipeline",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": [
+        "last_version_filename",
+        "last_version_path"
+      ]
+    },
+    {
+      "model": "editorial.EditionText",
+      "table": "edition_text",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Language",
+      "table": "language",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.PipelineArtifact",
+      "table": "editorial_pipelineartifact",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": [
+        "sha256",
+        "status"
+      ]
+    },
+    {
+      "model": "editorial.Seal",
+      "table": "seal",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "editorial.Work",
+      "table": "work",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": [
+        "enabled_languages",
+        "notes",
+        "source_format",
+        "subtitle"
+      ]
+    },
+    {
+      "model": "intake_module.BookCodeSequence",
+      "table": "intake_book_code_sequence",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.IntakeBatch",
+      "table": "intake_module_intakebatch",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.IntakeItem",
+      "table": "intake_module_intakeitem",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "intake_module.TranslationJob",
+      "table": "intake_module_translationjob",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.BookEditionTemplate",
+      "table": "pipeline_bookeditiontemplate",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": [
+        "original_author_death_historic",
+        "original_publication_historic"
+      ]
+    },
+    {
+      "model": "pipeline.OfficialBodyPromotion",
+      "table": "pipeline_officialbodypromotion",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.OfficialBodySnapshot",
+      "table": "pipeline_officialbodysnapshot",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.PipelineJob",
+      "table": "pipeline_pipelinejob",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "pipeline.TextSnapshot",
+      "table": "pipeline_textsnapshot",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    },
+    {
+      "model": "sessions.Session",
+      "table": "django_session",
+      "table_present": true,
+      "missing_columns": [],
+      "extra_columns": []
+    }
+  ],
+  "extra_tables": [
+    "editorial_editionblock",
+    "pipeline_pipelinerun",
+    "pipeline_pipelinerunitem",
+    "pipeline_pipelinerunstate"
+  ],
+  "summary": {
+    "missing_tables": 0,
+    "models_with_missing_columns": 0,
+    "models_with_extra_columns": 5,
+    "extra_table_count": 4
+  }
+}
