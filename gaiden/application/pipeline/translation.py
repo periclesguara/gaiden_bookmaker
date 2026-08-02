@@ -176,7 +176,10 @@ _META_OUTPUT_PATTERNS = [
 ]
 _CHUNK_COMPLETE_END_PATTERNS = [
     re.compile(r"^#{1,6}\s+\S"),
-    re.compile(r"^(chapter|book|part)\b", re.IGNORECASE),
+    re.compile(
+        r"^(chapter|book|part|chapitre|livre|partie|cap[ií]tulo|libro|parte|kapitel|buch|teil|capitolo)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"^[IVXLC0-9]+[.)]?$"),
 ]
 _CHUNK_COMPLETE_END_CHARS = set('.!?…:;"”“’‘‚«»›‹\')]}')

@@ -177,5 +177,22 @@ class BookSourceUploadForm(forms.Form):
         return cleaned_data
 
 
+class ManualTranslationUploadForm(forms.Form):
+    translated_file = forms.FileField(
+        label="Arquivo traduzido",
+        help_text="Selecione o TXT ou Markdown retornado pelo agente de tradução.",
+        widget=forms.ClearableFileInput(attrs={"accept": ".txt,.md,text/plain,text/markdown"}),
+    )
+
+    def clean_translated_file(self):
+        uploaded = self.cleaned_data["translated_file"]
+        extension = normalize_upload_ext(uploaded.name)
+        if extension not in {".txt", ".md"}:
+            raise ValidationError("Envie um arquivo .txt ou .md.")
+        if uploaded.size > 100 * 1024 * 1024:
+            raise ValidationError("O arquivo traduzido excede 100 MB.")
+        return uploaded
+
+
 def normalize_upload_ext(filename: str) -> str:
     return f".{filename.rsplit('.', 1)[-1].lower()}" if "." in filename else ""

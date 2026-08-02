@@ -1,7 +1,12 @@
+import json
+import mimetypes
+
 from django.contrib import messages
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from pathlib import Path
 from django.utils import timezone
 
@@ -21,6 +26,7 @@ from editorial.frontmatter import (
     optional_section_warnings,
 )
 from editorial import kdp_mode
+from editorial.edition_renderer import EditionRenderer, invalidate_premium_render
 from gaiden.infrastructure import storage
 from .forms import FrontmatterTemplateForm
 
@@ -94,6 +100,7 @@ def _default_country(language: str) -> str:
 
 
 def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialEdition) -> None:
+    edition.language_code = getattr(getattr(edition, "language", None), "code", "") or edition.language_code
     edition.title = template.title
     edition.subtitle = template.subtitle
     edition.author = template.author_name
@@ -114,6 +121,7 @@ def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialE
     edition.save(
         update_fields=[
             "title",
+            "language_code",
             "subtitle",
             "author",
             "adapter",
@@ -278,7 +286,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
     updated_fields = []
     if created:
         template.apply_language_defaults_if_empty()
-        template.save()
+        template.save(apply_defaults=False)
     else:
         language_overrides = BOOK_LANGUAGE_DEFAULTS.get(book_code, {})
         title_candidates = [item["title"] for item in language_overrides.values() if item.get("title")]
@@ -333,7 +341,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                 updated_fields.extend(default_updates)
 
         if updated_fields:
-            template.save(update_fields=updated_fields)
+            template.save(apply_defaults=False, update_fields=updated_fields)
     files_exist = _frontmatter_files_exist(book_code, language)
     warning = ""
 
@@ -376,11 +384,14 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                     ],
                 }
                 update_fields = block_fields_map.get(save_block, block_fields_map["all"])
+                instance.book_code = book_code
+                instance.language = language
                 instance.save(apply_defaults=False, update_fields=update_fields)
                 if edition:
                     _sync_template_to_edition(template, edition)
                     _write_frontmatter_files(edition)
                     _mark_editorial_changed(edition)
+                    invalidate_premium_render(edition, "frontmatter_changed")
                 return redirect("frontmatter_template_edit", book_code=book_code, language=language)
     else:
         form = FrontmatterTemplateForm(instance=template)
@@ -582,3 +593,57 @@ def frontispiece_preview(request, edition_id: int):
             "frontispiece_md": frontispiece_md,
         },
     )
+
+
+def premium_epub_preview(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    renderer = EditionRenderer(edition)
+    try:
+        result = renderer.render()
+    except Exception as exc:
+        messages.error(request, f"Premium EPUB render failed: {exc}")
+        return redirect("edition_steps", edition_id=edition.id)
+    state = renderer._load_state()
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    pages = [
+        path.removeprefix("text/")
+        for path in result.spine
+        if path.startswith("text/")
+    ]
+    return render(
+        request,
+        "editorial/premium_epub_preview.html",
+        {
+            "edition": edition,
+            "render_result": result,
+            "render_state": state,
+            "manifest": manifest,
+            "pages": pages,
+            "first_page": pages[0],
+        },
+    )
+
+
+@xframe_options_sameorigin
+def premium_epub_asset(request, edition_id: int, relative_path: str):
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    root = EditionRenderer(edition).preview_root.resolve()
+    path = (root / relative_path).resolve()
+    if root not in path.parents or not path.exists() or not path.is_file():
+        raise Http404("Premium preview artifact not found")
+    return FileResponse(
+        path.open("rb"),
+        content_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+    )
+
+
+@require_POST
+def premium_epub_approve(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    try:
+        EditionRenderer(edition).approve_preview()
+    except Exception as exc:
+        messages.error(request, f"Premium preview approval failed: {exc}")
+    else:
+        messages.success(request, "Premium EPUB preview approved. The exact rendered artifacts are locked for packaging.")
+    return redirect("premium_epub_preview", edition_id=edition.id)

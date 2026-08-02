@@ -1,0 +1,9 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>Autores</h1>
+<p><a class="button" href="{% url 'author_studio:author_create' %}">Novo autor</a></p>
+<table><thead><tr><th>Código</th><th>Autor</th><th>Obras</th><th>Status geral</th><th>Ações</th></tr></thead><tbody>
+{% for author in authors %}<tr><td>{{ author.code }}</td><td><a href="{% url 'author_studio:author_detail' author.slug %}">{{ author.name }}</a></td><td>{{ author.work_count }}</td><td>{% if author.work_count %}Em produção{% else %}Sem obras{% endif %}</td><td><a class="button" href="{% url 'author_studio:work_create' author.slug %}">Adicionar obra</a></td></tr>
+{% empty %}<tr><td colspan="5">Nenhum autor cadastrado.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

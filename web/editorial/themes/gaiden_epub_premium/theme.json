@@ -1,0 +1,19 @@
+{
+  "name": "gaiden_epub_premium",
+  "theme": "gaiden_epub_premium",
+  "version": 1,
+  "paragraph_indent": "1.25em",
+  "body_line_height": 1.5,
+  "text_alignment": "justify",
+  "first_paragraph_no_indent": true,
+  "chapter_page_break": true,
+  "chapter_title_centered": true,
+  "chapter_title_bold": true,
+  "chapter_ornament_enabled": false,
+  "visible_contents": true,
+  "include_ncx": true,
+  "include_the_end": true,
+  "illustration_opening_separate_xhtml": true,
+  "show_illustration_captions": false,
+  "about_page_type": "about_this_edition"
+}

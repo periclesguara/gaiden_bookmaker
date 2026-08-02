@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Automated Intake — importação editorial</title>
+  <style>
+    :root{--bg:#f4f1ec;--panel:#fffdf9;--ink:#20272a;--muted:#667074;--line:#d9d2c8;--accent:#a84628;--ok:#226f54;--bad:#a1262b;--blue:#285f94;--soft-blue:#edf4fb;--soft-green:#eaf5ef}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}main{width:min(1280px,calc(100% - 30px));margin:24px auto 48px}h1,h2{font-family:Georgia,serif}h2{margin-top:0}.hero,.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}.hero{background:#202c31;color:#fff}.hero p{color:#d8e0e2}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.metric{border:1px solid var(--line);border-radius:10px;padding:12px}.metric small{display:block;color:var(--muted)}label{display:block;font-weight:750;margin-top:14px}input[type=file],input[type=text],select{width:100%;max-width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}.helptext,.muted{display:block;color:var(--muted)}code,h1,h2,h3,th,td{overflow-wrap:anywhere}button,.button{display:inline-block;margin-top:16px;padding:10px 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:750;cursor:pointer}button:hover,.button:hover{filter:brightness(.94)}button.confirm{background:var(--ok)}button.secondary{background:var(--blue);margin:0}table{width:100%;border-collapse:collapse}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#eee8df}.scroll{overflow:auto}.chip{display:inline-block;padding:3px 8px;border-radius:999px;color:#fff;font-size:12px}.CREATE{background:var(--ok)}.UPDATE{background:var(--blue)}.NOOP,.NO_OP{background:#666}.CONFLICT{background:var(--bad)}.messages{list-style:none;padding:0}.messages li{background:#fff;border:1px solid var(--line);padding:10px;border-radius:8px;margin-bottom:8px}.errorlist,.conflicts{color:var(--bad)}pre{overflow:auto;background:#eee8df;padding:12px;border-radius:8px;white-space:pre-wrap}.select-item{width:auto}.eyebrow{margin:0 0 6px;color:var(--blue);font-size:12px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.source-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.source-option{display:block;min-width:0;border:1px solid var(--line);border-radius:12px;padding:16px;color:var(--ink);text-decoration:none;background:#fff;overflow-wrap:anywhere}.source-option:hover{border-color:var(--blue);background:var(--soft-blue)}.source-option strong{display:block;font-size:17px}.source-option span{color:var(--muted)}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:18px 0}.steps li{position:relative;min-width:0;border-top:3px solid var(--line);padding:10px 8px 0;color:var(--muted)}.steps li::before{content:attr(data-step);display:inline-grid;place-items:center;width:25px;height:25px;margin-right:7px;border-radius:50%;background:var(--line);color:var(--ink);font-weight:850}.steps li.active{border-color:var(--blue);color:var(--ink);font-weight:750}.steps li.active::before{background:var(--blue);color:#fff}.location{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;background:var(--soft-blue);margin:12px 0}.location code{overflow-wrap:anywhere}.status-dot{width:10px;height:10px;border-radius:50%;background:var(--ok);flex:0 0 auto}.drive-table button{white-space:normal}.selected-source{padding:10px 12px;border-left:4px solid var(--blue);background:var(--soft-blue);margin:14px 0}.upload-table{table-layout:fixed}.upload-table .order{width:54px;text-align:center}.upload-table .kind{width:25%}.upload-table .state{width:22%}.step-number{display:inline-grid;place-items:center;width:31px;height:31px;border-radius:50%;background:#e4e0da;font-weight:850}.file-state{display:flex;align-items:flex-start;gap:8px;color:var(--muted)}.file-state::before{content:'○';font-size:20px;line-height:1}.file-state.ready{color:var(--ok);font-weight:750}.file-state.ready::before{content:'●'}.upload-table input[type=file]{padding:9px;background:#fff}.destination-field{padding:16px;border:1px dashed var(--line);border-radius:10px;margin-top:14px}.destination-field label{margin-top:0}.action-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px}.action-bar p{margin:0;color:var(--muted)}
+    @media(max-width:760px){main{width:min(100% - 18px,1280px);margin-top:10px}.hero,.card{padding:16px}.source-options,.steps{grid-template-columns:1fr}.steps li{border-top:0;border-left:3px solid var(--line);padding:6px 0 6px 10px}.scroll{overflow:visible}.drive-table thead,.upload-table thead{display:none}.drive-table,.drive-table tbody,.drive-table tr,.drive-table td,.upload-table,.upload-table tbody,.upload-table tr,.upload-table td{display:block;width:100%}.drive-table tr,.upload-table tr{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;padding:10px;background:#fff}.drive-table td,.upload-table td{border:0;padding:6px}.drive-table td::before,.upload-table td::before{content:attr(data-label);display:block;color:var(--muted);font-size:12px;font-weight:750;text-transform:uppercase}.upload-table .order,.upload-table .kind,.upload-table .state{width:100%;text-align:left}.action-bar{align-items:stretch;flex-direction:column}.action-bar button{width:100%;margin-top:0}}
+  </style>
+</head>
+<body><main>
+  <section class="hero">
+    <a class="button" href="{% url 'root' %}">Voltar ao Gaiden</a>
+    <h1>Automated Intake</h1>
+    <p>Importação editorial genérica em duas fases: prévia somente leitura e confirmação transacional.</p>
+    <div class="source-options" aria-label="Escolha a origem da importação">
+      <a class="source-option" href="#importar-drive"><strong>Opção A · Google Drive</strong><span>Escolha uma pasta já enviada para 01_INBOX_RAW.</span></a>
+      <a class="source-option" href="#importar-manual"><strong>Opção B · Arquivos deste computador</strong><span>Envie o pacote, o manifesto e a pasta de artefatos na ordem guiada.</span></a>
+    </div>
+  </section>
+  {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+
+  <section class="card" id="importar-drive">
+    <p class="eyebrow">Opção A · arquivos já enviados</p>
+    <h2>Importar pasta existente do Google Drive</h2>
+    <p class="muted">Navegação restrita a <code>01_INBOX_RAW</code>. Listagem e prévia não baixam arquivos nem reservam códigos.</p>
+    <ol class="steps" aria-label="Etapas da importação pelo Drive"><li class="active" data-step="1">Selecionar pasta</li><li data-step="2">Informar padrões</li><li data-step="3">Revisar arquivos</li><li data-step="4">Confirmar</li></ol>
+    <div class="location"><span class="status-dot" aria-hidden="true"></span><strong>Google Drive conectado</strong><code>{{ drive_location }}</code></div>
+    {% if drive_browse_error %}<p class="conflicts">{{ drive_browse_error }}</p>{% endif %}
+    {% if drive_folders %}
+      <h3>Pastas disponíveis para importar</h3>
+      <div class="scroll"><table class="drive-table"><thead><tr><th>Pasta</th><th>Caminho no Drive</th><th>Ação</th></tr></thead><tbody>
+        {% for folder in drive_folders %}<tr><td data-label="Pasta"><strong>{{ folder.name }}</strong></td><td data-label="Caminho"><code>{{ folder.path }}</code></td><td data-label="Ação"><button class="secondary choose-drive-folder" type="button" data-folder-path="{{ folder.path }}" data-folder-name="{{ folder.name }}">Selecionar esta pasta</button></td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="selected-source" id="selected-drive-source" role="status">Nenhuma pasta selecionada. Escolha uma opção na tabela.</p>
+    {% else %}
+      <p class="muted">Nenhuma subpasta foi encontrada em <code>01_INBOX_RAW</code>.</p>
+    {% endif %}
+    <form method="post" action="{% url 'automated_drive_folder_preview' %}">
+      {% csrf_token %}
+      {{ drive_preview_form.non_field_errors }}
+      <div class="grid">
+        {% for field in drive_preview_form %}<div><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</div>{% endfor %}
+      </div>
+      <button type="submit">Gerar prévia somente leitura</button>
+    </form>
+  </section>
+
+  {% if drive_preview %}
+  <section class="card">
+    <h2>Prévia da pasta · {{ drive_preview.batch_code }}</h2>
+    <div class="grid">
+      <div class="metric"><small>Pasta original</small>{{ drive_preview.source_path }}</div>
+      <div class="metric"><small>Arquivos editoriais</small>{{ drive_preview.items|length }}</div>
+      <div class="metric"><small>CREATE</small>{{ drive_preview.counts.CREATE }}</div>
+      <div class="metric"><small>UPDATE</small>{{ drive_preview.counts.UPDATE }}</div>
+      <div class="metric"><small>NO_OP</small>{{ drive_preview.counts.NO_OP }}</div>
+      <div class="metric"><small>CONFLICT</small>{{ drive_preview.counts.CONFLICT }}</div>
+    </div>
+    <p><small>Snapshot: <code>{{ drive_preview.snapshot_sha256 }}</code></small></p>
+    {% if drive_preview.warnings %}<ul>{% for warning in drive_preview.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>{% endif %}
+    <form method="post" action="{% url 'automated_drive_folder_confirm' %}">
+      {% csrf_token %}{{ drive_confirm_form }}
+      <div class="scroll"><table>
+        <thead><tr><th>Incluir</th><th>Caminho</th><th>Tipo</th><th>Tamanho</th><th>Título</th><th>Autor</th><th>Idioma</th><th>Book code</th><th>Ação</th><th>Motivo</th></tr></thead>
+        <tbody>{% for item in drive_preview.items %}<tr>
+          <td>{% if item.operation != 'CONFLICT' %}<input class="select-item" type="checkbox" name="selected_paths" value="{{ item.relative_path }}" checked>{% else %}—{% endif %}</td>
+          <td>{{ item.relative_path }}</td><td>{{ item.extension }}{% if item.mime_type %}<br><small>{{ item.mime_type }}</small>{% endif %}</td><td>{{ item.size }}</td>
+          <td>{{ item.title }}</td><td>{{ item.author|default:"—" }}</td><td>{{ item.source_language }}</td><td><code>{{ item.book_code }}</code><br><small>{{ item.code_source }}</small></td>
+          <td><span class="chip {{ item.operation }}">{{ item.operation }}</span></td><td>{{ item.reason }}</td>
+        </tr>{% empty %}<tr><td colspan="10">Nenhum arquivo editorial permitido.</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if drive_preview.can_confirm %}<button class="confirm" type="submit">Confirmar vínculo e importação</button>{% else %}<p class="conflicts"><strong>Não há itens sem conflito para confirmar.</strong></p>{% endif %}
+    </form>
+  </section>
+  {% endif %}
+
+  {% if drive_import_result %}
+  <section class="card"><h2>Resultado da importação do Drive</h2>
+    <div class="grid"><div class="metric"><small>Lote</small>{{ drive_import_result.batch_code }}</div><div class="metric"><small>Estado</small>{{ drive_import_result.status }}</div>{% if drive_import_result.counts %}<div class="metric"><small>Criados</small>{{ drive_import_result.counts.created }}</div><div class="metric"><small>NO_OP</small>{{ drive_import_result.counts.noop }}</div><div class="metric"><small>Conflitos</small>{{ drive_import_result.counts.conflicts }}</div><div class="metric"><small>Falhas</small>{{ drive_import_result.counts.failed }}</div>{% endif %}</div>
+    <pre>{{ drive_import_result }}</pre>
+  </section>
+  {% endif %}
+
+  <section class="card" id="importar-manual">
+    <p class="eyebrow">Opção B · arquivos deste computador</p>
+    <h2>Importar pacote editorial manual</h2>
+    <p class="muted">Siga a ordem abaixo. Os marcadores verdes confirmam o que já foi selecionado; a prévia continua sem alterar o banco ou acessar o Drive.</p>
+    <ol class="steps" aria-label="Etapas da importação manual"><li class="active" data-step="1">Pacote editorial</li><li class="active" data-step="2">Manifesto</li><li class="active" data-step="3">Pasta de arquivos</li><li data-step="4">Prévia e confirmação</li></ol>
+    <form method="post" enctype="multipart/form-data" action="{% url 'automated_editorial_import_preview' %}">
+      {% csrf_token %}
+      {{ preview_form.non_field_errors }}
+      <div class="scroll"><table class="upload-table"><thead><tr><th class="order">Ordem</th><th class="kind">Arquivo necessário</th><th>Selecionar</th><th class="state">Marcador</th></tr></thead><tbody>
+        <tr data-upload-row><td class="order" data-label="Ordem"><span class="step-number">1</span></td><td data-label="Arquivo"><strong>{{ preview_form.package_file.label }}</strong><span class="helptext">{{ preview_form.package_file.help_text }}</span></td><td data-label="Selecionar">{{ preview_form.package_file }}{{ preview_form.package_file.errors }}</td><td data-label="Marcador"><span class="file-state" data-file-state>Aguardando import-package.json</span></td></tr>
+        <tr data-upload-row><td class="order" data-label="Ordem"><span class="step-number">2</span></td><td data-label="Arquivo"><strong>{{ preview_form.manifest_file.label }}</strong><span class="helptext">{{ preview_form.manifest_file.help_text }}</span></td><td data-label="Selecionar">{{ preview_form.manifest_file }}{{ preview_form.manifest_file.errors }}</td><td data-label="Marcador"><span class="file-state" data-file-state>Aguardando manifest.json</span></td></tr>
+        <tr data-upload-row><td class="order" data-label="Ordem"><span class="step-number">3</span></td><td data-label="Arquivo"><strong>{{ preview_form.artifact_files.label }}</strong><span class="helptext">{{ preview_form.artifact_files.help_text }}</span></td><td data-label="Selecionar">{{ preview_form.artifact_files }}{{ preview_form.artifact_files.errors }}</td><td data-label="Marcador"><span class="file-state" data-file-state>Aguardando a pasta completa</span></td></tr>
+      </tbody></table></div>
+      <div class="destination-field"><label for="{{ preview_form.drive_destination.id_for_label }}">4 · {{ preview_form.drive_destination.label }} <span class="muted">(opcional)</span></label>{{ preview_form.drive_destination }}{% if preview_form.drive_destination.help_text %}<span class="helptext">{{ preview_form.drive_destination.help_text }}</span>{% endif %}{{ preview_form.drive_destination.errors }}</div>
+      <div class="action-bar"><p id="manual-selection-summary" role="status">0 de 3 seleções obrigatórias concluídas.</p><button type="submit">Pré-visualizar importação</button></div>
+    </form>
+  </section>
+
+  {% if preview %}
+  <section class="card">
+    <h2>2. Prévia somente leitura</h2>
+    <div class="grid">
+      <div class="metric"><small>Livro</small>{{ preview.book_code }}</div>
+      <div class="metric"><small>Estado editorial</small>{{ preview.status }}</div>
+      <div class="metric"><small>Blocos encontrados</small>{{ preview.incremental.found_count }}</div>
+      <div class="metric"><small>Novos</small>{{ preview.block_counts.CREATE }}</div>
+      <div class="metric"><small>Alterados</small>{{ preview.block_counts.UPDATE }}</div>
+      <div class="metric"><small>Existentes</small>{{ preview.block_counts.NOOP }}</div>
+      <div class="metric"><small>Conflitos</small>{{ preview.block_counts.CONFLICT }}</div>
+      <div class="metric"><small>Última sequência após confirmar</small>{{ preview.proposed_last_contiguous_sequence }}</div>
+      <div class="metric"><small>Próxima sequência após confirmar</small>{{ preview.proposed_next_sequence|default:"Concluído" }}</div>
+      <div class="metric"><small>Ausentes no lote</small>{{ preview.missing_sequences|length }}</div>
+    </div>
+    <p><small>Pacote SHA-256: <code>{{ preview.package_sha256 }}</code><br>Manifesto SHA-256: <code>{{ preview.manifest_sha256 }}</code></small></p>
+    {% if preview.conflicts %}<div class="conflicts"><h3>Conflitos bloqueantes</h3><ul>{% for conflict in preview.conflicts %}<li>{{ conflict }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if preview.warnings %}<h3>Avisos</h3><ul>{% for warning in preview.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>{% endif %}
+    <h3>Catálogo e frontmatter</h3>
+    <div class="scroll"><table><thead><tr><th>Entidade</th><th>Identidade</th><th>Ação</th><th>Campos</th></tr></thead><tbody>{% for operation in preview.operations %}<tr><td>{{ operation.entity }}</td><td>{{ operation.identity }}</td><td><span class="chip {{ operation.action }}">{{ operation.action }}</span></td><td>{{ operation.fields|join:", " }}</td></tr>{% endfor %}</tbody></table></div>
+    <h3>Blocos</h3>
+    <div class="scroll"><table><thead><tr><th>Seq.</th><th>Bloco</th><th>Versão</th><th>Arquivo</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>{% for row in preview.incremental.rows %}<tr><td>{{ row.sequence }}</td><td>{{ row.block_id }}</td><td>{{ row.version }}</td><td>{{ row.file_name }}</td><td><span class="chip {{ row.action }}">{{ row.action }}</span></td><td>{{ row.detail }}</td></tr>{% endfor %}</tbody></table></div>
+    {% if preview.can_confirm %}<form method="post" action="{% url 'automated_editorial_import_confirm' %}">{% csrf_token %}{{ confirm_form }}<button class="confirm" type="submit">Confirmar importação</button></form>{% else %}<p class="conflicts"><strong>A confirmação está bloqueada até a correção dos conflitos.</strong></p>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if import_result %}<section class="card"><h2>Resultado final</h2><div class="grid"><div class="metric"><small>Estado</small>{{ import_result.status }}</div><div class="metric"><small>Criados</small>{{ import_result.blocks.created|length }}</div><div class="metric"><small>Atualizados</small>{{ import_result.blocks.updated|length }}</div><div class="metric"><small>Ignorados</small>{{ import_result.blocks.noop|length }}</div><div class="metric"><small>Última sequência</small>{{ import_result.blocks.last_contiguous_sequence }}</div><div class="metric"><small>Próxima sequência</small>{{ import_result.blocks.next_sequence|default:"Concluído" }}</div><div class="metric"><small>Drive</small>{{ import_result.drive.status }}</div><div class="metric"><small>Publicação/build</small>Não executados</div></div><pre>{{ import_result }}</pre></section>{% endif %}
+
+  <section class="card"><h2>Lotes de entrada e retomada</h2><div class="scroll"><table><thead><tr><th>Lote</th><th>Origem</th><th>Pasta</th><th>Itens</th><th>Estado</th><th>Retomar</th></tr></thead><tbody>{% for batch in intake_batches %}<tr><td>{{ batch.batch_code }}</td><td>{{ batch.get_source_display }}</td><td>{{ batch.drive_source_path }}</td><td>{{ batch.items.count }}</td><td>{{ batch.get_status_display }}</td><td>{% if batch.status == 'FAILED_RETRYABLE' or batch.status == 'STAGED' %}<form method="post" action="{% url 'automated_drive_import_retry' %}">{% csrf_token %}<input type="hidden" name="batch_code" value="{{ batch.batch_code }}"><button type="submit">Retry</button></form>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="6">Nenhum lote de pasta registrado.</td></tr>{% endfor %}</tbody></table></div></section>
+
+  <section class="card"><h2>Retomar importação incompleta</h2><div class="scroll"><table><thead><tr><th>Edição</th><th>Idioma</th><th>Progresso</th><th>Próxima</th><th>Estado</th></tr></thead><tbody>{% for edition in incremental_editions %}<tr><td>{{ edition.edition_id }}</td><td>{{ edition.locale }}</td><td>{{ edition.last_contiguous_sequence }}/{{ edition.expected_block_count }}</td><td>{{ edition.next_sequence|default:"—" }}</td><td>{{ edition.status }}</td></tr>{% empty %}<tr><td colspan="5">Nenhuma importação registrada.</td></tr>{% endfor %}</tbody></table></div></section>
+</main>
+<script>
+  document.querySelectorAll('.choose-drive-folder').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var pathInput = document.getElementById('id_folder_path');
+      var nameInput = document.getElementById('id_batch_name');
+      var status = document.getElementById('selected-drive-source');
+      pathInput.value = button.dataset.folderPath;
+      nameInput.value = button.dataset.folderName;
+      status.textContent = 'Pasta selecionada: ' + button.dataset.folderName + '. Complete os campos abaixo e gere a prévia.';
+      pathInput.focus();
+    });
+  });
+
+  var uploadRows = Array.from(document.querySelectorAll('[data-upload-row]'));
+  var selectionSummary = document.getElementById('manual-selection-summary');
+  function updateUploadMarkers() {
+    var ready = 0;
+    uploadRows.forEach(function (row) {
+      var input = row.querySelector('input[type="file"]');
+      var state = row.querySelector('[data-file-state]');
+      var count = input && input.files ? input.files.length : 0;
+      state.classList.toggle('ready', count > 0);
+      if (!count) return;
+      ready += 1;
+      if (input.dataset.fileRole === 'artifacts') {
+        state.textContent = count + (count === 1 ? ' arquivo selecionado' : ' arquivos selecionados');
+      } else {
+        state.textContent = input.files[0].name + ' selecionado';
+      }
+    });
+    if (selectionSummary) selectionSummary.textContent = ready + ' de 3 seleções obrigatórias concluídas.';
+  }
+  uploadRows.forEach(function (row) {
+    var input = row.querySelector('input[type="file"]');
+    if (input) input.addEventListener('change', updateUploadMarkers);
+  });
+</script>
+</body></html>

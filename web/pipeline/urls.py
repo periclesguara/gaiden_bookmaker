@@ -1,8 +1,14 @@
 from django.urls import path
 from . import views
+from . import views_incremental
 
 urlpatterns = [
     path("", views.pipeline_dashboard, name="pipeline_dashboard"),
+    path(
+        "incremental-import/",
+        views_incremental.incremental_import_dashboard,
+        name="pipeline_incremental_import",
+    ),
     path("html/<int:edition_id>/", views.pipeline_html_dashboard, name="pipeline_html_dashboard"),
     path(
         "html/<int:edition_id>/reupload/run/",
@@ -26,6 +32,38 @@ urlpatterns = [
     ),
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("editions/", views.book_edition_list, name="book_edition_list"),
+    path("editions/imported/", views.imported_book_list, name="imported_book_list"),
+    path("editions/dashboard/", views.production_dashboard, name="production_dashboard"),
+    path(
+        "editions/imported/<int:item_id>/select/",
+        views.imported_book_select,
+        name="imported_book_select",
+    ),
+    path(
+        "editions/<int:edition_id>/production/",
+        views.post_intake_workflow,
+        name="post_intake_workflow",
+    ),
+    path(
+        "editions/<int:edition_id>/production/save/",
+        views.save_production_bookmark,
+        name="save_production_bookmark",
+    ),
+    path(
+        "editions/<int:edition_id>/production/google-drive/export/",
+        views.manual_translation_export,
+        name="manual_translation_export",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/import-drive/",
+        views.manual_translation_import_drive,
+        name="manual_translation_import_drive",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/import-upload/",
+        views.manual_translation_import_upload,
+        name="manual_translation_import_upload",
+    ),
     path("editions/edit/", views.book_edition_edit, name="book_edition_new"),
     path("editions/edit/<str:book_code>/<str:language>/", views.book_edition_edit, name="book_edition_edit"),
     path(
@@ -73,6 +111,16 @@ urlpatterns = [
         "editions/<int:edition_id>/steps/run/<str:step>/",
         views.run_edition_step,
         name="pipeline_run_edition_step",
+    ),
+    path(
+        "editions/<int:edition_id>/download-last-version/",
+        views.download_last_version,
+        name="pipeline_download_last_version",
+    ),
+    path(
+        "editions/<int:edition_id>/cover/",
+        views.edition_cover_file,
+        name="pipeline_edition_cover",
     ),
     path(
         "editions/<int:edition_id>/preview-merge-translate/",

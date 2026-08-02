@@ -1,0 +1,2 @@
+{% extends "author_studio/base.html" %}
+{% block content %}<h1>{{ canonical.work.title }} — texto canônico</h1><p>{{ canonical.code }} · {{ canonical.get_status_display }}</p><pre>{{ text }}</pre>{% endblock %}

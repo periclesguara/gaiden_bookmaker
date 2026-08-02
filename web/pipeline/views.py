@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import os
 import subprocess
 import sys
@@ -10,13 +11,14 @@ from datetime import datetime
 import hashlib
 import re
 import zipfile
+import uuid
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.contrib import messages
-from django.http import Http404, HttpResponse, HttpResponseBadRequest
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest
 from django.db import IntegrityError, connection, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -36,6 +38,7 @@ from editorial.models import (
 )
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
+from editorial.edition_renderer import invalidate_premium_render
 from gaiden.application.pipeline import ingest as pipeline_ingest
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
@@ -44,12 +47,18 @@ from gaiden.application.pipeline.translation import (
 from gaiden.application.pipeline.gates import preflight_gate as resolve_preflight_gate
 from gaiden.application.pipeline.status import resolve_block_status_map
 from gaiden.infrastructure import storage
+from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
 
 from .models import (
     BookEditionTemplate,
     CORE_BLOCK_KEY,
     CORE_ISOLATION_LANGUAGES,
     EDITORIAL_LANGUAGES,
+    IncrementalEdition,
+    IntakeAuditEvent,
+    IntakeItem,
+    ManualTranslationJob,
+    ProductionBookmark,
     PipelineJob,
     SYSTEM_BLOCKS,
     TextSnapshot,
@@ -61,7 +70,12 @@ try:
 except ImportError:
     PipelineRun = None
     PipelineRunItem = None
-from .forms import BookEditionTemplateForm, BookSourceUploadForm, normalize_book_code_input
+from .forms import (
+    BookEditionTemplateForm,
+    BookSourceUploadForm,
+    ManualTranslationUploadForm,
+    normalize_book_code_input,
+)
 from .services import (
     book_manifest,
     build_book,
@@ -75,6 +89,7 @@ from .services import (
     legacy_merges,
     md_quality,
     md_transform,
+    manual_translation,
     miolo_transform,
     paths,
     preflight,
@@ -156,6 +171,16 @@ REFINE_PROFILES = {
         "label": "FR_REFINE_UNIVERSAL",
         "agent_name": "FR_REFINE_UNIVERSAL",
         "description": "Refine universal frances JSON-first via contrato fr_refine_universal_2026.",
+        "style_directive": (
+            "Target profile: universal modern literary French editorial refinement. Preserve structure, meaning, "
+            "paragraph order, headings, numbering, and links. Improve rhythm, cadence, musicality, fluency, "
+            "sentence architecture, and readability without translating from scratch."
+        ),
+    },
+    "refine_fr": {
+        "label": "refine_FR",
+        "agent_name": "FR_REFINE_UNIVERSAL",
+        "description": "Opcao curta para enviar o texto frances para o Refine FR universal.",
         "style_directive": (
             "Target profile: universal modern literary French editorial refinement. Preserve structure, meaning, "
             "paragraph order, headings, numbering, and links. Improve rhythm, cadence, musicality, fluency, "
@@ -376,7 +401,7 @@ def _default_refine_profile_for_language(language: str | None) -> str:
     if normalized == "de":
         return "de_kaiser"
     if normalized == "fr":
-        return "fr_refine_universal_2026"
+        return "refine_fr"
     if normalized == "it":
         return "italiano_neutro"
     if normalized == "ptbr":
@@ -391,12 +416,19 @@ def _refine_profile_keys_for_language(language: str | None) -> tuple[str, ...]:
     if normalized == "de":
         return ("de_kaiser",)
     if normalized == "fr":
-        return ("fr_refine_universal_2026",)
+        return ("refine_fr",)
     if normalized == "it":
         return ("italiano_neutro",)
     if normalized == "ptbr":
         return ("ptbr_cacique_tibirica",)
     return ("refine_en_us_2026",)
+
+
+def _refine_profile_option_keys_for_language(language: str | None) -> tuple[str, ...]:
+    keys = list(_refine_profile_keys_for_language(language))
+    if "refine_fr" not in keys:
+        keys.append("refine_fr")
+    return tuple(keys)
 
 
 def _normalized_refine_profile_for_language(value: str | None, language: str | None) -> str:
@@ -512,10 +544,39 @@ def _canonicalize_ingest_post_data(post_data):
         normalized["publication_year"] = "2026"
     posted_book_code = (normalized.get("book_code") or "").strip()
     if posted_book_code:
-        normalized["book_code"] = normalize_book_code_input(posted_book_code)
+        normalized["book_code"] = _resolve_existing_book_code_alias(
+            normalize_book_code_input(posted_book_code)
+        )
     posted_language = (normalized.get("language") or "").strip()
     normalized["language"] = utils.normalize_lang(posted_language) if posted_language else ""
     return normalized
+
+
+def _resolve_existing_book_code_alias(book_code: str) -> str:
+    normalized = normalize_book_code_input((book_code or "").strip())
+    if not normalized:
+        return ""
+    if BookEditionTemplate.objects.filter(book_code=normalized).exists():
+        return normalized
+    if EditorialEdition.objects.filter(work__code=normalized).exists():
+        return normalized
+
+    parsed = _parse_book_id(normalized)
+    if parsed is None:
+        return normalized
+
+    known_codes = set(BookEditionTemplate.objects.values_list("book_code", flat=True))
+    known_codes.update(
+        EditorialEdition.objects.values_list("work__code", flat=True).distinct()
+    )
+    numeric_matches = [
+        code
+        for code in known_codes
+        if code and code != normalized and _parse_book_id(code) == parsed
+    ]
+    if not numeric_matches:
+        return normalized
+    return sorted(numeric_matches, key=lambda code: (len(code), code), reverse=True)[0]
 
 
 def _allowed_upload_exts(source_format: str) -> set[str]:
@@ -1078,6 +1139,592 @@ def _registration_status_label(template: BookEditionTemplate | None) -> str:
     return dict(BookEditionTemplate.REGISTRATION_STATUS_CHOICES).get(template.registration_status, template.registration_status)
 
 
+def _imported_book_rows() -> list[dict[str, object]]:
+    ensure_bookeditiontemplate_runtime_columns()
+    items = list(
+        IntakeItem.objects.select_related("batch")
+        .filter(
+            batch__source="GOOGLE_DRIVE",
+            status="REGISTERED",
+        )
+        .exclude(canonical_path="")
+        .order_by("book_code", "source_language", "id")
+    )
+    templates = {
+        (row.book_code, utils.normalize_lang(row.language)): row
+        for row in BookEditionTemplate.objects.filter(
+            book_code__in=[item.book_code for item in items]
+        )
+    }
+    editions = {
+        (row.work.code, utils.normalize_lang(row.language.code)): row
+        for row in EditorialEdition.objects.select_related("work", "language").filter(
+            work__code__in=[item.book_code for item in items]
+        )
+    }
+    supported_extensions = pipeline_ingest.source_extract_supported_extensions()
+    rows: list[dict[str, object]] = []
+    for item in items:
+        language = utils.normalize_lang(item.source_language)
+        template = templates.get((item.book_code, language))
+        edition = editions.get((item.book_code, language))
+        source_info = _existing_source_info(template, edition)
+        extension_supported = item.extension.lower() in supported_extensions
+        ready = bool(edition and source_info["path"] and source_info["exists"])
+        rows.append(
+            {
+                "item": item,
+                "batch_code": item.batch.batch_code,
+                "book_code": item.book_code,
+                "language": language,
+                "title": item.title,
+                "author": item.author_name,
+                "file_name": Path(item.canonical_path).name,
+                "canonical_path": item.canonical_path,
+                "extension_supported": extension_supported,
+                "ready": ready,
+                "edition": edition,
+                "action_label": "Abrir produção" if ready else "Editar",
+            }
+        )
+    return rows
+
+
+def imported_book_list(request):
+    if request.method != "GET":
+        return redirect("imported_book_list")
+    return render(
+        request,
+        "pipeline/imported_book_list.html",
+        {"imported_books": _imported_book_rows()},
+    )
+
+
+def _activate_intake_item_for_production(item: IntakeItem, request) -> EditorialEdition:
+    language = utils.normalize_lang(item.source_language)
+    template = BookEditionTemplate.objects.filter(
+        book_code=item.book_code,
+        language=language,
+    ).first()
+    edition = (
+        EditorialEdition.objects.select_related("work", "language", "seal")
+        .filter(work__code=item.book_code, language__code=language)
+        .first()
+    )
+    existing_source = _existing_source_info(template, edition)
+    if edition and existing_source["path"] and existing_source["exists"]:
+        return edition
+
+    extension = item.extension.lower()
+    if extension not in pipeline_ingest.source_extract_supported_extensions():
+        raise ValueError(f"Formato {extension or '(sem extensão)'} não pode iniciar o pipeline.")
+    if not item.sha256 or not item.canonical_path:
+        raise ValueError("O item importado não possui origem canônica com SHA-256.")
+
+    drive_storage = RcloneDriveStorage(remote=item.batch.remote)
+    with drive_storage.staging_directory() as staging_name:
+        staged_path = Path(staging_name) / f"{item.book_code}{extension}"
+        drive_storage.download_imported_to(item.canonical_path, staged_path)
+        downloaded_sha256 = hashlib.sha256(staged_path.read_bytes()).hexdigest()
+        if downloaded_sha256 != item.sha256:
+            raise ValueError("O SHA-256 do arquivo importado diverge do registro do Intake.")
+        extract_result = pipeline_ingest.run_source_extract(item.book_code, language, staged_path)
+
+    original_path = storage.resolve_repo_path(extract_result["original_file"])
+    canonical_txt_path = storage.resolve_repo_path(extract_result["canonical_txt"])
+    canonical_html_path = storage.resolve_repo_path(extract_result["canonical_html"])
+    selected_source_format = SOURCE_FORMAT_HTML if extension in {".html", ".htm"} else (
+        SOURCE_FORMAT_EPUB if extension == ".epub" else SOURCE_FORMAT_TXT
+    )
+    raw_path = canonical_html_path if selected_source_format == SOURCE_FORMAT_HTML else canonical_txt_path
+    correlation_id = uuid.uuid4().hex
+
+    with transaction.atomic():
+        template, _ = BookEditionTemplate.objects.select_for_update().get_or_create(
+            book_code=item.book_code,
+            language=language,
+            defaults={
+                "title": item.title,
+                "author_name": item.author_name or "Unknown Author",
+                "publication_year": timezone.now().year,
+            },
+        )
+        template.title = template.title or item.title
+        template.author_name = template.author_name or item.author_name or "Unknown Author"
+        template.publication_year = template.publication_year or timezone.now().year
+        template.text_source_mode = selected_source_format
+        template.registration_status = BookEditionTemplate.STATUS_READY_FOR_BLOCK_02
+        template.source_file_type = str(extract_result["input_format"])
+        template.source_original_name = item.original_name
+        template.source_saved_path = str(original_path)
+        template.source_file_size = item.size_bytes
+        template.source_uploaded_at = timezone.now()
+        template.source_file_sha256 = item.sha256
+        template.source_uploaded_by = "Automated Intake"
+        edition, _ = _save_template_and_edition_metadata(template)
+
+        edition.raw_source_path = str(raw_path)
+        edition.save(update_fields=["raw_source_path", "updated_at"])
+        texts, _ = EditionText.objects.get_or_create(edition=edition)
+        texts.raw_path = str(raw_path)
+        texts.save(update_fields=["raw_path", "updated_at"])
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+        pipeline_state.raw_at = timezone.now()
+        pipeline_state.current_stage = STAGE_SOURCE_EXTRACTED
+        pipeline_state.last_log = (
+            f"{timezone.now().isoformat()} :: {STAGE_SOURCE_EXTRACTED} :: "
+            f"intake={item.batch.batch_code}/{item.book_code} :: {raw_path}"
+        )
+        pipeline_state.save(update_fields=["raw_at", "current_stage", "last_log"])
+
+        metadata = dict(item.metadata or {})
+        metadata["production"] = {
+            "edition_id": edition.id,
+            "selected_at": timezone.now().isoformat(),
+            "source_saved_path": str(original_path),
+        }
+        item.metadata = metadata
+        item.save(update_fields=["metadata", "updated_at"])
+        IntakeAuditEvent.objects.create(
+            batch=item.batch,
+            item=item,
+            correlation_id=correlation_id,
+            operation="SELECT_FOR_PRODUCTION",
+            previous_status=item.status,
+            new_status=item.status,
+            attempt=item.attempt_count,
+            detail={"edition_id": edition.id, "raw_path": str(raw_path)},
+        )
+        kdp_mode.build_frontmatter_files(edition, storage.frontmatter_dir())
+    return edition
+
+
+def imported_book_select(request, item_id: int):
+    if request.method != "POST":
+        return redirect("imported_book_list")
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch"),
+        pk=item_id,
+        batch__source="GOOGLE_DRIVE",
+        status="REGISTERED",
+    )
+    try:
+        edition = _activate_intake_item_for_production(item, request)
+    except (DrivePathError, DriveStorageError, OSError, ValueError) as exc:
+        messages.error(request, f"Não foi possível selecionar {item.book_code}: {exc}")
+        return redirect("imported_book_list")
+    messages.success(
+        request,
+        f"{item.book_code} selecionado. O arquivo do Intake está pronto para iniciar o Normalize.",
+    )
+    return redirect("post_intake_workflow", edition_id=edition.id)
+
+
+def _ensure_manual_target_edition(source_edition: EditorialEdition, target_language: str) -> EditorialEdition:
+    target_variant = _normalize_translate_variant(target_language)
+    target_base = _translate_base_language(target_variant)
+    try:
+        return _edition_for_language(source_edition, target_base)
+    except ValueError:
+        template, _ = BookEditionTemplate.objects.get_or_create(
+            book_code=source_edition.work.code,
+            language=target_base,
+            defaults=_frontmatter_template_defaults(source_edition, target_base),
+        )
+        template.text_source_mode = SOURCE_FORMAT_TXT
+        target_edition, _ = _save_template_and_edition_metadata(template)
+        return target_edition
+
+
+def _post_intake_url(edition_id: int, target_language: str | None = None) -> str:
+    url = reverse("post_intake_workflow", kwargs={"edition_id": edition_id})
+    return f"{url}?{urlencode({'target': target_language})}" if target_language else url
+
+
+def _dashboard_code_sort(value: str) -> tuple[int, str]:
+    match = re.search(r"(?:book[_-]?)?(\d+)", value or "", flags=re.IGNORECASE)
+    return (int(match.group(1)) if match else 10**9, (value or "").casefold())
+
+
+def save_production_bookmark(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition.objects.select_related("work", "language"), id=edition_id)
+    if request.method != "POST":
+        return redirect(_post_intake_url(edition.id, request.GET.get("target") or None))
+    target_language = _normalize_translate_variant(request.POST.get("target_language") or "")
+    if target_language not in _TRANSLATE_VARIANT_LABELS:
+        state = EditionPipeline.objects.filter(edition=edition).first()
+        target_language = _normalize_translate_variant(
+            state.translation_language if state else "en_us"
+        )
+    if target_language not in _TRANSLATE_VARIANT_LABELS:
+        target_language = "en_us"
+    ProductionBookmark.objects.create(edition=edition, target_language=target_language)
+    messages.success(
+        request,
+        f"{edition.work.code} salvo como edição em trabalho. O dashboard retomará este livro.",
+    )
+    return redirect("production_dashboard")
+
+
+def production_dashboard(request):
+    if request.method != "GET":
+        return redirect("production_dashboard")
+    bookmark_history = list(
+        ProductionBookmark.objects.select_related(
+            "edition__work__author", "edition__language", "edition__seal"
+        )
+        .order_by("-saved_at", "-id")
+    )
+    bookmark = bookmark_history[0] if bookmark_history else None
+    intake_items = list(
+        IntakeItem.objects.select_related("batch")
+        .filter(status="REGISTERED")
+        .order_by("book_code")
+    )
+    activated_by_edition_id: dict[int, IntakeItem] = {}
+    reserved_rows: list[dict[str, object]] = []
+    for item in intake_items:
+        production = item.metadata.get("production") if isinstance(item.metadata, dict) else None
+        edition_id = production.get("edition_id") if isinstance(production, dict) else None
+        try:
+            normalized_edition_id = int(edition_id) if edition_id else None
+        except (TypeError, ValueError):
+            normalized_edition_id = None
+        if normalized_edition_id:
+            activated_by_edition_id[normalized_edition_id] = item
+            continue
+        reserved_rows.append(
+            {
+                "item": item,
+                "book_code": item.book_code,
+                "title": item.title,
+                "author": item.author_name,
+                "language": item.source_language,
+                "batch_code": item.batch.batch_code,
+                "updated_at": item.updated_at,
+            }
+        )
+
+    editions = list(
+        EditorialEdition.objects.select_related("work__author", "language", "seal")
+        .order_by("work__code", "language__code")
+    )
+    pipeline_map = {
+        state.edition_id: state
+        for state in EditionPipeline.objects.filter(edition_id__in=[edition.id for edition in editions])
+    }
+    template_map = {
+        (template.book_code, utils.normalize_lang(template.language)): template
+        for template in BookEditionTemplate.objects.filter(
+            book_code__in=[edition.work.code for edition in editions]
+        )
+    }
+    done_rows: list[dict[str, object]] = []
+    edited_rows: list[dict[str, object]] = []
+    current_edition_id = bookmark.edition_id if bookmark else None
+    for edition in editions:
+        pipeline_state = pipeline_map.get(edition.id)
+        stage = pipeline_state.current_stage if pipeline_state else "SEM_ETAPA"
+        language = utils.normalize_lang(edition.language.code)
+        template = template_map.get((edition.work.code, language))
+        source_ready = bool(template and _existing_source_info(template, edition)["path"])
+        open_url = (
+            _post_intake_url(
+                edition.id,
+                bookmark.target_language if bookmark and bookmark.edition_id == edition.id else None,
+            )
+            if source_ready
+            else reverse("edition_steps", kwargs={"edition_id": edition.id})
+        )
+        row = {
+            "edition": edition,
+            "book_code": edition.work.code,
+            "title": edition.title or edition.work.title,
+            "author": edition.author or edition.work.author.name,
+            "language": edition.language.code,
+            "stage": stage,
+            "updated_at": edition.updated_at,
+            "open_url": open_url,
+            "is_current": edition.id == current_edition_id,
+            "from_intake": edition.id in activated_by_edition_id,
+        }
+        if stage == PipelineStage.DONE:
+            done_rows.append(row)
+        else:
+            edited_rows.append(row)
+
+    done_rows.sort(key=lambda row: (*_dashboard_code_sort(str(row["book_code"])), str(row["language"])))
+    edited_rows.sort(key=lambda row: (*_dashboard_code_sort(str(row["book_code"])), str(row["language"])))
+    reserved_rows.sort(key=lambda row: _dashboard_code_sort(str(row["book_code"])))
+    current_url = ""
+    if bookmark:
+        current_url = _post_intake_url(bookmark.edition_id, bookmark.target_language or None)
+    return render(
+        request,
+        "pipeline/production_dashboard.html",
+        {
+            "bookmark": bookmark,
+            "bookmark_history": bookmark_history,
+            "current_url": current_url,
+            "done_rows": done_rows,
+            "edited_rows": edited_rows,
+            "reserved_rows": reserved_rows,
+            "total_count": len(done_rows) + len(edited_rows) + len(reserved_rows),
+        },
+    )
+
+
+def post_intake_workflow(request, edition_id: int):
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related("work__author", "language", "seal"),
+        id=edition_id,
+    )
+    if request.method != "GET":
+        return redirect("post_intake_workflow", edition_id=edition.id)
+    source_template = BookEditionTemplate.objects.filter(
+        book_code=edition.work.code,
+        language=utils.normalize_lang(edition.language.code),
+    ).first()
+    if source_template is None or not _existing_source_info(source_template, edition)["path"]:
+        messages.error(request, "Selecione primeiro um arquivo confirmado pelo Intake.")
+        return redirect("imported_book_list")
+
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    selected_target = _normalize_translate_variant(
+        request.GET.get("target")
+        or (pipeline_state.translation_language if pipeline_state else "")
+        or "en_us"
+    )
+    if selected_target not in _TRANSLATE_VARIANT_LABELS:
+        selected_target = "en_us"
+    jobs = list(
+        ManualTranslationJob.objects.select_related("target_edition", "target_edition__language")
+        .filter(edition=edition)
+        .order_by("target_language")
+    )
+    job = next((row for row in jobs if row.target_language == selected_target), None)
+    target_base = _translate_base_language(selected_target)
+    target_edition = job.target_edition if job and job.target_edition else None
+    if target_edition is None:
+        target_edition = EditorialEdition.objects.filter(
+            work=edition.work,
+            language__code=target_base,
+        ).first()
+    target_template = (
+        BookEditionTemplate.objects.filter(book_code=edition.work.code, language=target_base).first()
+        if target_edition else None
+    )
+    build_dir = paths.edition_build_dir(target_edition) if target_edition else None
+    normalized_path = _normalized_v2_path(edition.work.code, edition.language.code)
+    heading_path = heading_cleaner.clean_path_for_book_code(edition.work.code)
+    return render(
+        request,
+        "pipeline/post_intake_workflow.html",
+        {
+            "edition": edition,
+            "book_code": edition.work.code,
+            "source_template": source_template,
+            "pipeline_state": pipeline_state,
+            "normalized_path": normalized_path,
+            "normalize_done": normalized_path.exists(),
+            "heading_path": heading_path,
+            "heading_done": heading_path.exists(),
+            "translation_options": TRANSLATE_VARIANT_OPTIONS,
+            "selected_target": selected_target,
+            "selected_target_label": _translate_variant_label(selected_target),
+            "jobs": jobs,
+            "job": job,
+            "translation_imported": bool(job and job.status == ManualTranslationJob.STATUS_IMPORTED),
+            "translation_upload_form": ManualTranslationUploadForm(),
+            "target_edition": target_edition,
+            "target_template": target_template,
+            "target_base": target_base,
+            "frontmatter_url": (
+                reverse("frontmatter_template_edit", kwargs={"book_code": edition.work.code, "language": target_base})
+                if target_template else ""
+            ),
+            "pre_qa_exists": bool(build_dir and any(build_dir.glob("BOOK.PRE_QA*.md"))),
+            "final_md_exists": bool(build_dir and (build_dir / "BOOK.MD_FINAL").exists()),
+            "epub_exists": bool(build_dir and any(build_dir.glob("*.epub"))),
+            "pdf_exists": bool(build_dir and any(build_dir.glob("*.pdf"))),
+            "cover_ready": bool(target_edition and target_edition.cover_filepath),
+        },
+    )
+
+
+def manual_translation_export(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition.objects.select_related("work__author", "language"), id=edition_id)
+    if request.method != "POST":
+        return redirect("post_intake_workflow", edition_id=edition.id)
+    target_language = _normalize_translate_variant(request.POST.get("target_language") or "")
+    if target_language not in _TRANSLATE_VARIANT_LABELS:
+        messages.error(request, "Selecione um idioma de tradução válido.")
+        return redirect("post_intake_workflow", edition_id=edition.id)
+    existing_job = ManualTranslationJob.objects.filter(
+        edition=edition,
+        target_language=target_language,
+    ).first()
+    if existing_job is not None and request.POST.get("confirm_replace") != "1":
+        messages.warning(
+            request,
+            "Já existe um job para este livro e idioma. Confirme a substituição no botão da etapa 03.",
+        )
+        return redirect(_post_intake_url(edition.id, target_language))
+    try:
+        target_edition = _ensure_manual_target_edition(edition, target_language)
+        result = manual_translation.export_job(
+            book_code=edition.work.code,
+            title=edition.title or edition.work.title,
+            author=edition.author or edition.work.author.name,
+            source_language=utils.normalize_lang(edition.language.code),
+            target_language=target_language,
+            source_path=heading_cleaner.clean_path_for_book_code(edition.work.code),
+        )
+        job, _ = ManualTranslationJob.objects.update_or_create(
+            edition=edition,
+            target_language=target_language,
+            defaults={
+                "target_edition": target_edition,
+                "source_language": utils.normalize_lang(edition.language.code),
+                "drive_path": result["drive_path"],
+                "source_path": result["source_path"],
+                "source_sha256": result["source_sha256"],
+                "expected_return_name": result["expected_return_name"],
+                "status": ManualTranslationJob.STATUS_EXPORTED,
+                "return_source": "",
+                "return_sha256": "",
+                "last_error": "",
+                "imported_at": None,
+            },
+        )
+        state, _ = EditionPipeline.objects.get_or_create(edition=edition)
+        state.translation_language = target_language
+        state.md_language = _translate_base_language(target_language)
+        state.last_log = f"{timezone.now().isoformat()} :: GOOGLE_DRIVE_TRANSLATION_EXPORTED :: {job.drive_path}"
+        state.save(update_fields=["translation_language", "md_language", "last_log"])
+        messages.success(request, f"Job criado no Drive: {job.drive_path}")
+    except (OSError, ValueError) as exc:
+        messages.error(request, f"Falha ao criar o job de tradução: {exc}")
+    return redirect(_post_intake_url(edition.id, target_language))
+
+
+def _write_bytes_atomic(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_name, path)
+    finally:
+        Path(temp_name).unlink(missing_ok=True)
+
+
+def _register_manual_translation_return(job: ManualTranslationJob, data: bytes, source_label: str) -> EditorialEdition:
+    try:
+        text = data.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise ValueError("O arquivo retornado precisa estar em UTF-8.") from exc
+    if not text.strip():
+        raise ValueError("O arquivo traduzido está vazio.")
+    if len(data) > 100 * 1024 * 1024:
+        raise ValueError("O arquivo traduzido excede 100 MB.")
+    target_edition = job.target_edition or _ensure_manual_target_edition(job.edition, job.target_language)
+    out_dir = _agent_translate_out_dir(job.edition.work.code, job.target_language)
+    return_path = out_dir / job.expected_return_name
+    merge_translate_path = paths.merge_translate_path(target_edition)
+    merge_refine_clean_path = out_dir / "merge_refine_clean.txt"
+    return_sha256 = hashlib.sha256(data).hexdigest()
+    _write_bytes_atomic(return_path, data)
+    _write_bytes_atomic(merge_translate_path, data)
+    _write_bytes_atomic(merge_refine_clean_path, data)
+    (out_dir / "manual_translation_import.json").write_text(
+        json.dumps(
+            {
+                "schema": "gaiden_manual_translation_import_v1",
+                "book_code": job.edition.work.code,
+                "target_language": job.target_language,
+                "source": source_label,
+                "sha256": return_sha256,
+                "imported_at": timezone.now().isoformat(),
+            },
+            ensure_ascii=False,
+            indent=2,
+        ) + "\n",
+        encoding="utf-8",
+    )
+    with transaction.atomic():
+        pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+        pipeline_state.current_stage = PipelineStage.MERGED
+        pipeline_state.translation_language = job.target_language
+        pipeline_state.md_language = _translate_base_language(job.target_language)
+        pipeline_state.translated_at = timezone.now()
+        pipeline_state.merged_at = timezone.now()
+        pipeline_state.last_log = (
+            f"{timezone.now().isoformat()} :: MANUAL_TRANSLATION_IMPORTED :: {source_label} :: {merge_translate_path}"
+        )
+        pipeline_state.save(update_fields=[
+            "current_stage", "translation_language", "md_language", "translated_at", "merged_at", "last_log"
+        ])
+        job.target_edition = target_edition
+        job.status = ManualTranslationJob.STATUS_IMPORTED
+        job.return_source = source_label
+        job.return_sha256 = return_sha256
+        job.last_error = ""
+        job.imported_at = timezone.now()
+        job.save(update_fields=[
+            "target_edition", "status", "return_source", "return_sha256", "last_error", "imported_at", "updated_at"
+        ])
+        PipelineJob.objects.create(
+            book_code=job.edition.work.code,
+            book_title=job.edition.work.title,
+            language=_translate_base_language(job.target_language),
+            stage="translate",
+            status="SUCCESS",
+            filepath=str(merge_translate_path),
+            message=f"Manual translation imported from {source_label}.",
+        )
+    return target_edition
+
+
+def manual_translation_import_drive(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        returned = manual_translation.read_drive_return(job.drive_path)
+        _register_manual_translation_return(job, returned["data"], str(returned["remote_path"]))
+        messages.success(request, f"Tradução importada do Google Drive: {returned['name']}")
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        job.status = ManualTranslationJob.STATUS_FAILED
+        job.last_error = str(exc)
+        job.save(update_fields=["status", "last_error", "updated_at"])
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def manual_translation_import_upload(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    form = ManualTranslationUploadForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, "Selecione um arquivo traduzido TXT ou Markdown válido.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    uploaded = form.cleaned_data["translated_file"]
+    try:
+        data = b"".join(uploaded.chunks())
+        _register_manual_translation_return(job, data, f"upload:{uploaded.name}")
+        messages.success(request, f"Tradução importada do computador: {uploaded.name}")
+    except (OSError, ValueError) as exc:
+        job.status = ManualTranslationJob.STATUS_FAILED
+        job.last_error = str(exc)
+        job.save(update_fields=["status", "last_error", "updated_at"])
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
 def _book_registration_rows() -> list[dict[str, object]]:
     ensure_bookeditiontemplate_runtime_columns()
     editions = list(
@@ -1114,28 +1761,101 @@ def _book_registration_rows() -> list[dict[str, object]]:
         rows.append(
             {
                 "edition": edition,
+                "book_code": book_code,
+                "language": language,
+                "title": edition.title or edition.work.title,
+                "author": edition.author or edition.work.author.name,
                 "template": template,
                 "status_label": _registration_status_label(template),
                 "source_info": _existing_source_info(template, edition),
-                "edit_url": reverse("edition_steps", kwargs={"edition_id": edition.id}),
+                "action_label": "Editar",
+                "edit_url": steps_url,
+                "registration_edit_url": (
+                    reverse(
+                        "book_edition_edit",
+                        kwargs={"book_code": template.book_code, "language": language},
+                    )
+                    if template
+                    else ""
+                ),
                 "upload_url": _template_upload_url(template),
                 "reedit_html_url": _template_reedit_html_url(template, edition),
                 "steps_url": steps_url,
             }
         )
+
+    intake_works = (
+        Work.objects.select_related("original_language", "author")
+        .filter(editions__isnull=True)
+        .order_by("code")
+    )
+    for work in intake_works:
+        language = utils.normalize_lang(work.original_language.code)
+        rows.append(
+            {
+                "edition": None,
+                "book_code": work.code,
+                "language": language,
+                "title": work.title,
+                "author": work.author.name,
+                "template": None,
+                "status_label": "Intake · Aguardando cadastro da edição",
+                "source_info": {"path": "", "exists": False, "name": ""},
+                "action_label": "Cadastrar edição",
+                "edit_url": reverse("book_edition_new"),
+                "registration_edit_url": "",
+                "upload_url": "",
+                "reedit_html_url": "",
+                "steps_url": "",
+            }
+        )
+    # An incremental intake can be confirmed before a canonical EditorialEdition
+    # exists. Keep those codes visible on Page 01 so the intake never becomes an
+    # isolated catalog that users cannot find from the main book registration UI.
+    registered_keys = {
+        (row["book_code"], row["language"])
+        for row in rows
+    }
+    intake_editions = IncrementalEdition.objects.order_by("book_code", "locale", "edition_id")
+    for intake in intake_editions:
+        language = utils.normalize_lang(intake.locale)
+        key = (intake.book_code, language)
+        if key in registered_keys:
+            continue
+        rows.append(
+            {
+                "edition": None,
+                "book_code": intake.book_code,
+                "language": language,
+                "title": "Cadastro recebido pelo Intake",
+                "author": "",
+                "template": None,
+                "status_label": f"Intake · {intake.get_status_display()}",
+                "source_info": {"path": "", "exists": False, "name": ""},
+                "action_label": "Abrir Intake",
+                "edit_url": reverse("pipeline_incremental_import"),
+                "registration_edit_url": "",
+                "upload_url": "",
+                "reedit_html_url": "",
+                "steps_url": reverse("pipeline_incremental_import"),
+            }
+        )
+        registered_keys.add(key)
+
+    rows.sort(key=lambda row: (str(row["book_code"]), str(row["language"])))
     return rows
 
 
 def _registration_book_options(rows: list[dict[str, object]]) -> list[dict[str, str]]:
     options: list[dict[str, str]] = []
     for row in rows:
-        edition = row["edition"]
-        parsed = _parse_book_id(edition.work.code)
-        book_number = f"{parsed:02d}" if parsed is not None else edition.work.code
+        book_code = str(row["book_code"])
+        parsed = _parse_book_id(book_code)
+        book_number = f"{parsed:02d}" if parsed is not None else book_code
         options.append(
             {
-                "value": edition.work.code,
-                "label": f"{book_number} - {edition.work.code} [{utils.normalize_lang(edition.language.code)}] - {edition.title or edition.work.title}",
+                "value": book_code,
+                "label": f"{book_number} - {book_code} [{row['language']}] - {row['title']}",
             }
         )
     return options
@@ -1149,7 +1869,7 @@ def _filter_registration_rows(
     book_value = normalize_book_code_input((book_filter or "").strip())
     if not book_value:
         return [], False
-    filtered = [row for row in rows if row["edition"].work.code == book_value]
+    filtered = [row for row in rows if row["book_code"] == book_value]
     return filtered, True
 
 
@@ -1158,7 +1878,7 @@ def _render_registration_page(request, form, *, template=None, status=200):
         template.text_source_mode if template else SOURCE_FORMAT_TXT
     )
     all_rows = _book_registration_rows()
-    book_filter = (request.GET.get("book") or "").strip()
+    book_filter = _resolve_existing_book_code_alias((request.GET.get("book") or "").strip())
     filtered_rows, show_rows_table = _filter_registration_rows(
         all_rows,
         book_filter=book_filter,
@@ -1631,7 +2351,7 @@ def book_edition_edit(request, book_code=None, language=None):
         return postgres_guard
     ensure_bookeditiontemplate_runtime_columns()
 
-    initial_book_code = (book_code or request.GET.get("book_code") or "").strip()
+    initial_book_code = _resolve_existing_book_code_alias((book_code or request.GET.get("book_code") or "").strip())
     initial_language = utils.normalize_lang((language or request.GET.get("language") or "en").strip())
     canonical_post_data = _canonicalize_ingest_post_data(request.POST) if request.method == "POST" else None
 
@@ -1967,7 +2687,10 @@ def _editorial_required_fields_ready(template: BookEditionTemplate | None) -> bo
 def _preflight_gate(target_edition, frontmatter_template: BookEditionTemplate | None) -> tuple[bool, str]:
     gate = resolve_preflight_gate(
         editorial_ready=_editorial_required_fields_ready(frontmatter_template),
-        merge_refine_clean_path=storage.translated_dir(target_edition.work.code) / "merge_refine_clean.txt",
+        merge_refine_clean_path=_resolve_merge_refine_clean_path(
+            target_edition.work.code,
+            target_edition.language.code,
+        ),
     )
     return gate.ok, gate.reason
 
@@ -2031,6 +2754,57 @@ def _archive_build_artifact(path: Path, version: int, suffix_label: str) -> str:
     archive_path = archive_dir / f"{path.stem}.v{version}.{suffix_label}{path.suffix}"
     archive_path.write_bytes(path.read_bytes())
     return str(archive_path)
+
+
+def _safe_project_file(path_value: str | Path) -> Path:
+    if not path_value:
+        raise Http404("Arquivo nao informado.")
+    try:
+        path = storage.resolve_repo_path(path_value).resolve()
+        path.relative_to(storage.repo_root().resolve())
+    except Exception as exc:
+        raise Http404("Arquivo fora da raiz do projeto.") from exc
+    if not path.exists() or not path.is_file():
+        raise Http404("Arquivo nao encontrado.")
+    return path
+
+
+def _latest_version_path_for_edition(edition, pipeline_state: EditionPipeline | None = None) -> Path | None:
+    state = pipeline_state or EditionPipeline.objects.filter(edition=edition).first()
+    if state and state.last_version_path:
+        try:
+            path = _safe_project_file(state.last_version_path)
+            if path.exists():
+                return path
+        except Http404:
+            pass
+
+    latest = (
+        EditionBuild.objects.filter(edition=edition, language_code=edition.language.code)
+        .exclude(epub_path="")
+        .order_by("-build_version", "-created_at")
+        .first()
+    )
+    if latest and latest.epub_path:
+        try:
+            return _safe_project_file(latest.epub_path)
+        except Http404:
+            pass
+
+    active_epub = paths.epub_path(edition)
+    if active_epub.exists():
+        return active_epub
+    return None
+
+
+def _set_pipeline_last_version(pipeline_state: EditionPipeline, path: Path | str) -> None:
+    resolved = storage.resolve_repo_path(path).resolve()
+    try:
+        rel_path = str(resolved.relative_to(storage.repo_root().resolve()))
+    except ValueError:
+        rel_path = str(resolved)
+    pipeline_state.last_version_path = rel_path
+    pipeline_state.last_version_filename = resolved.name
 
 
 def _record_build_history(edition, *, language_code: str, build_path: Path | None = None, epub_path: Path | None = None, pdf_path: Path | None = None, notes: str = "") -> EditionBuild:
@@ -2740,14 +3514,6 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
     core_edition = _processing_base_edition(edition)
     core_book_code, core_lang = _edition_codes(core_edition)
     core_lang = utils.normalize_lang(core_lang)
-    refine_profile = _normalized_refine_profile_for_language(
-        (
-            getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
-        )
-        or _default_refine_profile_for_language(edition.language.code),
-        edition.language.code,
-    )
-    refine_profile_cfg = _refine_profile_config(refine_profile)
 
     source_md = html_preprod.artifact_paths(core_book_code, core_lang)["md_source"]
     normalized_path = _normalized_v2_path(core_book_code, core_lang)
@@ -2768,6 +3534,15 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         target_edition = edition
         target_lang = utils.normalize_lang(edition.language.code)
         target_variant = target_lang
+
+    refine_profile = _normalized_refine_profile_for_language(
+        (
+            getattr(pipeline_state, "refine_profile", "") if pipeline_state is not None else ""
+        )
+        or _default_refine_profile_for_language(target_lang),
+        target_lang,
+    )
+    refine_profile_cfg = _refine_profile_config(refine_profile)
 
     contract_exists = False
     contract_exists = True
@@ -2802,7 +3577,7 @@ def build_pipeline01_steps(edition, pipeline_state: EditionPipeline | None = Non
         refine_profile=refine_profile,
         target_language=target_lang,
     )
-    latest_refine_run_dir = _latest_refine_run_dir(core_book_code, "en_us") if target_variant == "en_us" else None
+    latest_refine_run_dir = _latest_refine_run_dir(core_book_code, target_lang)
     if latest_refine_run_dir is not None:
         refine_dir = latest_refine_run_dir
     refine_outputs_count = _count_non_merged_txt_files(refine_dir)
@@ -4292,6 +5067,10 @@ def edition_steps(request, edition_id: int):
             return redirect("pipeline_html_dashboard", edition_id=edition.id)
 
     def _redirect_editorial():
+        if request.POST.get("return_to") == "post_intake":
+            workflow_edition_id = request.POST.get("workflow_edition_id") or edition.id
+            target_variant = request.POST.get("target_variant") or request.POST.get("target_language") or ""
+            return redirect(_post_intake_url(int(workflow_edition_id), target_variant or None))
         state = EditionPipeline.objects.filter(edition=edition).first()
         current_lang = utils.normalize_lang(
             request.POST.get("target_lang")
@@ -4446,6 +5225,7 @@ def edition_steps(request, edition_id: int):
             except ValueError:
                 edition.cover_filepath = str(cover_path)
             edition.save(update_fields=["cover_filepath"])
+            invalidate_premium_render(edition, "cover_changed")
             messages.success(request, f"Capa salva: {edition.cover_filepath}")
             return _redirect_editorial()
         if action in {"upload_images_zip", "upload_gallery_zip"}:
@@ -4473,6 +5253,7 @@ def edition_steps(request, edition_id: int):
                 messages.warning(request, "ZIP processado, mas nenhuma imagem valida foi encontrada.")
             else:
                 messages.success(request, f"Imagens importadas: {extracted}")
+                invalidate_premium_render(edition, "images_changed")
             messages.info(request, f"Diretorio de imagens: {images_dir}")
             return _redirect_editorial()
         if action in {"upload_images_files", "upload_gallery_files"}:
@@ -4501,6 +5282,7 @@ def edition_steps(request, edition_id: int):
                 return _redirect_editorial()
 
             messages.success(request, f"Imagens convertidas para JPG: {converted}")
+            invalidate_premium_render(edition, "images_changed")
             if skipped_cover:
                 messages.info(
                     request,
@@ -4537,6 +5319,7 @@ def edition_steps(request, edition_id: int):
                 )
                 messages.info(request, f"Consolidado: {result.get('dir')}")
                 messages.info(request, f"Mapeamento: {result.get('manifest_path')}")
+                invalidate_premium_render(edition, "image_order_changed")
             return _redirect_editorial()
         if action == "save_core_txt":
             core_text = _core_text()
@@ -4888,9 +5671,13 @@ def edition_steps(request, edition_id: int):
         or pipeline_state.md_language
         or language
     )
+    selected_translate_variant = _normalize_translate_variant(
+        pipeline_state.translation_language or pipeline_state.md_language or language
+    )
+    selected_refine_language = _translate_base_language(selected_translate_variant)
     refine_profile = _normalized_refine_profile_for_language(
-        pipeline_state.refine_profile or _default_refine_profile_for_language(edition.language.code),
-        edition.language.code,
+        pipeline_state.refine_profile or _default_refine_profile_for_language(selected_refine_language),
+        selected_refine_language,
     )
     refine_profile_options = [
         {
@@ -4899,7 +5686,7 @@ def edition_steps(request, edition_id: int):
             "agent_name": REFINE_PROFILES[key]["agent_name"],
             "description": REFINE_PROFILES[key]["description"],
         }
-        for key in _refine_profile_keys_for_language(edition.language.code)
+        for key in _refine_profile_option_keys_for_language(selected_refine_language)
     ]
     md_source_map = {
         lang: _resolve_md_source_path(lang)
@@ -4907,9 +5694,6 @@ def edition_steps(request, edition_id: int):
     }
     md_source_map_json = json.dumps(md_source_map)
     translate_variant_options = list(TRANSLATE_VARIANT_OPTIONS)
-    selected_translate_variant = _normalize_translate_variant(
-        pipeline_state.translation_language or pipeline_state.md_language or language
-    )
     selected_translate_agent = _translate_agent_name(selected_translate_variant)
     translate_agent_choices = [
         {"value": agent, "label": _translate_agent_display(agent)}
@@ -4963,6 +5747,18 @@ def edition_steps(request, edition_id: int):
     build_history = list(
         EditionBuild.objects.filter(edition=edition, language_code=frontmatter_lang).order_by("-build_version", "-created_at")
     )
+    cover_preview_url = ""
+    if edition.cover_filepath:
+        try:
+            _safe_project_file(edition.cover_filepath)
+            cover_preview_url = reverse("pipeline_edition_cover", kwargs={"edition_id": edition.id})
+        except Http404:
+            cover_preview_url = ""
+    latest_version_path = _latest_version_path_for_edition(edition, pipeline_state)
+    latest_version_filename = (
+        pipeline_state.last_version_filename
+        or (latest_version_path.name if latest_version_path else "")
+    )
 
     context = {
         "edition": edition,
@@ -5007,6 +5803,13 @@ def edition_steps(request, edition_id: int):
         "build_status": "DONE" if build_md_path.exists() else "NONE",
         "build_path": str(build_md_path) if build_md_path.exists() else None,
         "epub_path": str(epub_path) if epub_path.exists() else None,
+        "last_version_path": str(latest_version_path) if latest_version_path else None,
+        "last_version_filename": latest_version_filename,
+        "last_version_download_url": (
+            reverse("pipeline_download_last_version", kwargs={"edition_id": edition.id})
+            if latest_version_path
+            else ""
+        ),
         "pdf_path": str(pdf_path) if pdf_path.exists() else None,
         "editorial_changed": bool(getattr(pipeline_state, "editorial_changed", False)),
         "build_outdated": bool(getattr(pipeline_state, "build_outdated", False)),
@@ -5055,6 +5858,7 @@ def edition_steps(request, edition_id: int):
         "refine_qa_json_path": str(refine_qa_json_path) if refine_qa_json_path.exists() else None,
         "refine_qa_md_path": str(refine_qa_md_path) if refine_qa_md_path.exists() else None,
         "cover_filepath": edition.cover_filepath,
+        "cover_preview_url": cover_preview_url,
         "internal_images_disabled": internal_images_disabled,
         "internal_images_end_only": internal_images_end_only,
         "images_dir_path": str(images_dir) if images_dir.exists() else None,
@@ -5245,20 +6049,35 @@ def _run_refine_step_local(edition, pipeline_state, *, refine_profile: str | Non
             (refine_step or {}).get("block_reason") or "Prerequisito para Refine: rode Translate."
         )
 
-    target_edition = edition
-    stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
-    target_language = utils.normalize_lang(target_edition.language.code)
-    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+    base_pipeline_state = pipeline_state
     translate_variant = _normalize_translate_variant(
-        pipeline_state.translation_language or target_edition.language.code
+        (base_pipeline_state.translation_language if base_pipeline_state and base_pipeline_state.translation_language else "")
+        or (base_pipeline_state.md_language if base_pipeline_state and base_pipeline_state.md_language else "")
+        or edition.language.code
     )
+    target_language = _translate_base_language(translate_variant)
+    target_edition = _edition_for_language(edition, target_language)
+    stage_policy.POLICY.assert_stage_allowed(target_edition, "refine")
+    pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
     refine_profile = _normalized_refine_profile_for_language(
-        refine_profile or pipeline_state.refine_profile or _default_refine_profile_for_language(target_language),
+        refine_profile
+        or pipeline_state.refine_profile
+        or (base_pipeline_state.refine_profile if base_pipeline_state else "")
+        or _default_refine_profile_for_language(target_language),
         target_language,
     )
+    update_fields = []
+    if pipeline_state.translation_language != translate_variant:
+        pipeline_state.translation_language = translate_variant
+        update_fields.append("translation_language")
+    if pipeline_state.md_language != target_language:
+        pipeline_state.md_language = target_language
+        update_fields.append("md_language")
     if pipeline_state.refine_profile != refine_profile:
         pipeline_state.refine_profile = refine_profile
-        pipeline_state.save(update_fields=["refine_profile"])
+        update_fields.append("refine_profile")
+    if update_fields:
+        pipeline_state.save(update_fields=update_fields)
     source_dir, refine_source_label, out_dir_path, refine_profile_cfg, refine_profile = _prepare_refine_agent_handoff(
         target_edition,
         translate_variant,
@@ -5442,6 +6261,10 @@ def run_edition_step(request, edition_id: int, step: str):
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
 
     def _redirect_after_step() -> str:
+        if request.POST.get("return_to") == "post_intake":
+            workflow_edition_id = request.POST.get("workflow_edition_id") or edition.id
+            target_variant = request.POST.get("target_variant") or request.POST.get("target_language") or ""
+            return _post_intake_url(int(workflow_edition_id), target_variant or None)
         fresh_state = EditionPipeline.objects.filter(edition=edition).first()
         target_lang = utils.normalize_lang(
             request.POST.get("target_language")
@@ -5692,15 +6515,36 @@ def run_edition_step(request, edition_id: int, step: str):
                     messages.info(request, item)
 
         elif step == "refine":
-            target_language = utils.normalize_lang(edition.language.code)
+            translate_variant = _normalize_translate_variant(
+                (pipeline_state.translation_language if pipeline_state and pipeline_state.translation_language else "")
+                or (pipeline_state.md_language if pipeline_state and pipeline_state.md_language else "")
+                or edition.language.code
+            )
+            target_language = _translate_base_language(translate_variant)
+            target_edition = _edition_for_language(edition, target_language)
+            target_pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
             refine_profile = _normalized_refine_profile_for_language(
-                request.POST.get("refine_profile") or (pipeline_state.refine_profile if pipeline_state else ""),
+                request.POST.get("refine_profile")
+                or target_pipeline_state.refine_profile
+                or (pipeline_state.refine_profile if pipeline_state else ""),
                 target_language,
             )
+            update_fields = []
+            if target_pipeline_state.translation_language != translate_variant:
+                target_pipeline_state.translation_language = translate_variant
+                update_fields.append("translation_language")
+            if target_pipeline_state.md_language != target_language:
+                target_pipeline_state.md_language = target_language
+                update_fields.append("md_language")
+            if target_pipeline_state.refine_profile != refine_profile:
+                target_pipeline_state.refine_profile = refine_profile
+                update_fields.append("refine_profile")
+            if update_fields:
+                target_pipeline_state.save(update_fields=update_fields)
             if core_docker.should_run_in_docker(step, target_language):
                 result = core_docker.run_docker_core_step(
                     project_root=Path(settings.BASE_DIR).parent,
-                    edition_id=edition.id,
+                    edition_id=target_edition.id,
                     step=step,
                     language=target_language,
                     refine_profile=refine_profile,
@@ -5710,7 +6554,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     messages.info(request, result.stdout.strip())
             else:
                 result_payload = execute_language_isolated_core_step(
-                    edition_id=edition.id,
+                    edition_id=target_edition.id,
                     step=step,
                     refine_profile=refine_profile,
                 )
@@ -5734,18 +6578,12 @@ def run_edition_step(request, edition_id: int, step: str):
                 target_language=target_language,
             )
             merge_refine_build = paths.merge_refine_path(target_edition)
-            merge_refine_clean = (
-                Path(settings.BASE_DIR).parent
-                / "data"
-                / "translated"
-                / target_edition.work.code
-                / "merge_refine_clean.txt"
+            merge_refine_clean = _resolve_merge_refine_clean_path(
+                target_edition.work.code,
+                target_language,
             )
-            latest_run_dir = (
-                _latest_refine_run_dir(target_edition.work.code, "en_us")
-                if translate_variant == "en_us"
-                else None
-            )
+            refine_run_language = "en_us" if translate_variant == "en_us" else target_language
+            latest_run_dir = _latest_refine_run_dir(target_edition.work.code, refine_run_language)
             if latest_run_dir is not None:
                 chunks = refine_ordering.load_chunks_for_existing_run(latest_run_dir)
                 refine_ordering.merge_refine_run_by_manifest(
@@ -5973,8 +6811,18 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.editorial_changed = False
             pipeline_state.build_outdated = False
             pipeline_state.last_built_at = timezone.now()
+            _set_pipeline_last_version(pipeline_state, epub_output)
             pipeline_state.last_log = ""
-            pipeline_state.save(update_fields=["miolo_md_at", "editorial_changed", "build_outdated", "last_built_at", "current_stage", "last_log"])
+            pipeline_state.save(update_fields=[
+                "miolo_md_at",
+                "editorial_changed",
+                "build_outdated",
+                "last_built_at",
+                "current_stage",
+                "last_version_path",
+                "last_version_filename",
+                "last_log",
+            ])
             _record_build_history(
                 target_edition,
                 language_code=utils.normalize_lang(_target_lang()),
@@ -5982,6 +6830,29 @@ def run_edition_step(request, edition_id: int, step: str):
                 notes="EPUB gerado a partir do bloco 04.",
             )
             messages.success(request, f"EPUB OK: {result['path']}")
+
+        elif step == "done":
+            target_edition = _target_edition()
+            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            latest_path = _latest_version_path_for_edition(target_edition, pipeline_state)
+            if latest_path is None:
+                raise FileNotFoundError("Nenhuma versao EPUB encontrada para marcar como DONE.")
+            pipeline_state.current_stage = PipelineStage.DONE
+            pipeline_state.editorial_changed = False
+            pipeline_state.build_outdated = False
+            pipeline_state.last_built_at = timezone.now()
+            _set_pipeline_last_version(pipeline_state, latest_path)
+            pipeline_state.last_log = "DONE: versao oficial marcada no Bloco 04."
+            pipeline_state.save(update_fields=[
+                "current_stage",
+                "editorial_changed",
+                "build_outdated",
+                "last_built_at",
+                "last_version_path",
+                "last_version_filename",
+                "last_log",
+            ])
+            messages.success(request, f"0 DONE (FEITO): versao oficial marcada ({pipeline_state.last_version_filename}).")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
@@ -6066,6 +6937,33 @@ def run_edition_step(request, edition_id: int, step: str):
         pipeline_state.save()
 
     return redirect(_redirect_after_step())
+
+
+def download_last_version(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    path = _latest_version_path_for_edition(edition, pipeline_state)
+    if path is None:
+        raise Http404("Ultima versao nao encontrada.")
+    filename = (
+        getattr(pipeline_state, "last_version_filename", "")
+        if pipeline_state is not None
+        else ""
+    ) or path.name
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return FileResponse(
+        path.open("rb"),
+        as_attachment=True,
+        filename=filename,
+        content_type=content_type,
+    )
+
+
+def edition_cover_file(request, edition_id: int):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    path = _safe_project_file(edition.cover_filepath)
+    content_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    return FileResponse(path.open("rb"), content_type=content_type)
 
 
 def build_book_md(request, book_code, language):

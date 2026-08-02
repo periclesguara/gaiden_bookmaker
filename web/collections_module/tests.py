@@ -21,6 +21,7 @@ class CollectionModuleTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Book")
         self.assertContains(response, "Collection")
+        self.assertContains(response, "Dashboard de edições")
 
     def test_create_collection(self):
         response = self.client.post(

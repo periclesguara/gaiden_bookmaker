@@ -239,6 +239,11 @@
         color: var(--green);
       }
 
+      .option.dashboard .icon {
+        background: #dce8f5;
+        color: #285f94;
+      }
+
       .option-title {
         display: block;
         margin: 0 0 5px;
@@ -371,6 +376,14 @@
         <section class="workspace" aria-labelledby="workspace-title">
           <p class="section-label" id="workspace-title">Escolha o fluxo</p>
           <div class="actions">
+            <a class="option dashboard" href="{% url 'production_dashboard' %}">
+              <span class="icon" aria-hidden="true">D</span>
+              <span>
+                <strong class="option-title">Dashboard de edições</strong>
+                <span class="option-copy">Retomar a edição salva e consultar registros permanentes, edições DONE e reservas do Intake.</span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
             <a class="option book" href="{% url 'book_edition_new' %}">
               <span class="icon" aria-hidden="true">B</span>
               <span>
@@ -384,6 +397,14 @@
               <span>
                 <strong class="option-title">Collection</strong>
                 <span class="option-copy">Montar uma coletanea, registrar itens e preparar o handoff para o pipeline padrao.</span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
+            <a class="option automated" href="{% url 'automated_editorial_import' %}">
+              <span class="icon" aria-hidden="true">A</span>
+              <span>
+                <strong class="option-title">Automated</strong>
+                <span class="option-copy">Pré-visualizar e confirmar pacotes editoriais incrementais, com retomada por blocos.</span>
               </span>
               <span class="arrow" aria-hidden="true">&rsaquo;</span>
             </a>

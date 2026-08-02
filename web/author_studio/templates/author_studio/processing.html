@@ -1,0 +1,17 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>Processamento — {{ author.name }}</h1>
+{% include "author_studio/_author_tabs.html" with active_tab="processing" %}
+<div class="summary-grid">
+  <div class="card"><span class="summary-value">{{ author.works.count }}</span>obras salvas</div>
+  <div class="card"><span class="summary-value">{{ completed_work_count }}</span>splits concluídos</div>
+  <div class="card"><span class="summary-value">{{ total_chunks }}</span>chunks persistidos</div>
+</div>
+<div class="card"><h2>Etapas</h2><div class="pipeline">
+  <div class="stage done"><div class="stage-title"><span>00 — Obras salvas</span><span>OK</span></div></div>
+  <div class="stage {% if all_split_complete %}done{% else %}active{% endif %}"><div class="stage-title"><span>01 — Split/Chunks</span><span>{{ completed_work_count }}/{{ author.works.count }} obras</span></div></div>
+  <div class="stage {% if all_split_complete %}active{% else %}locked{% endif %}"><div class="stage-title"><span>02 — Embeddings</span><span>{% if all_split_complete %}Pronta{% else %}Bloqueada{% endif %}</span></div></div>
+  <div class="stage locked"><div class="stage-title"><span>03 — Índice vetorial</span><span>Bloqueada</span></div></div>
+</div></div>
+{% if all_split_complete %}<a class="button" href="{% url 'author_studio:author_embeddings' author.slug %}">Prosseguir para etapa 02 — Embeddings →</a>{% else %}<form method="post" action="{% url 'author_studio:author_split' author.slug %}">{% csrf_token %}<button type="submit">Etapa 01 — Executar Split/Chunks pendentes</button></form>{% endif %}
+{% endblock %}

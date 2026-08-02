@@ -1,0 +1,59 @@
+from enum import Enum
+
+
+class WorkStatus(str, Enum):
+    CREATED = "CREATED"
+    SOURCE_UPLOADED = "SOURCE_UPLOADED"
+    EXTRACTING = "EXTRACTING"
+    EXTRACTED = "EXTRACTED"
+    CANONICAL_READY = "CANONICAL_READY"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    FAILED = "FAILED"
+    FROZEN = "FROZEN"
+
+
+class SourceStatus(str, Enum):
+    PENDING = "PENDING"
+    STORED = "STORED"
+    EXTRACTING = "EXTRACTING"
+    EXTRACTED = "EXTRACTED"
+    FAILED = "FAILED"
+    UNSUPPORTED_EXTRACTION = "UNSUPPORTED_EXTRACTION"
+
+
+class CanonicalTextStatus(str, Enum):
+    DRAFT = "DRAFT"
+    READY = "READY"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    FROZEN = "FROZEN"
+    SUPERSEDED = "SUPERSEDED"
+
+
+class SourceProvider(str, Enum):
+    STANDARD_EBOOKS = "STANDARD_EBOOKS"
+    PROJECT_GUTENBERG = "PROJECT_GUTENBERG"
+    INTERNET_ARCHIVE = "INTERNET_ARCHIVE"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+class SplitStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    STALE = "STALE"
+
+
+class SplitRunStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class SplitOutcome(str, Enum):
+    CREATED = "CREATED"
+    REPROCESSED = "REPROCESSED"
+    ALREADY_CURRENT = "ALREADY_CURRENT"
+    FAILED = "FAILED"

@@ -1,0 +1,6 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>Editar obra</h1>
+<p><strong>{{ work.code }}</strong> · o código editorial permanecerá inalterado.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Salvar alterações</button> <a class="button secondary" href="{% url 'author_studio:work_detail' work.code %}">Cancelar</a></form>
+{% endblock %}

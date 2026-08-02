@@ -1,0 +1,2 @@
+{% extends "author_studio/base.html" %}
+{% block content %}<h1>Novo autor</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Criar autor</button></form>{% endblock %}

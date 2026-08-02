@@ -278,6 +278,8 @@ class EditionPipeline(models.Model):
     build_outdated = models.BooleanField(default=False)
     last_editorial_update_at = models.DateTimeField(null=True, blank=True)
     last_built_at = models.DateTimeField(null=True, blank=True)
+    last_version_path = models.CharField(max_length=500, blank=True, default="")
+    last_version_filename = models.CharField(max_length=255, blank=True, default="")
     last_log = models.TextField(blank=True)
 
     class Meta:

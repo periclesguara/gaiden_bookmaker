@@ -18,7 +18,7 @@ from django.utils import timezone
 
 from editorial.models import Contributor, Edition, EditionBuild, EditionPipeline, EditionText, Language, Seal, Work
 from pipeline.forms import normalize_book_code_input
-from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, SYSTEM_BLOCKS
+from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, IncrementalEdition, SYSTEM_BLOCKS
 
 
 class _FakeResponsesAPI:
@@ -128,9 +128,15 @@ class FrenchRefineRoutingTests(TestCase):
     def test_french_refine_defaults_to_universal_agent(self):
         from pipeline.views import _default_refine_profile_for_language, _refine_profile_config, _refine_profile_keys_for_language
 
-        self.assertEqual(_default_refine_profile_for_language("fr"), "fr_refine_universal_2026")
-        self.assertEqual(_refine_profile_keys_for_language("fr"), ("fr_refine_universal_2026",))
-        self.assertEqual(_refine_profile_config("fr_refine_universal_2026")["agent_name"], "FR_REFINE_UNIVERSAL")
+        self.assertEqual(_default_refine_profile_for_language("fr"), "refine_fr")
+        self.assertEqual(_refine_profile_keys_for_language("fr"), ("refine_fr",))
+        self.assertEqual(_refine_profile_config("refine_fr")["agent_name"], "FR_REFINE_UNIVERSAL")
+
+    def test_french_refine_option_is_always_available(self):
+        from pipeline.views import _refine_profile_keys_for_language, _refine_profile_option_keys_for_language
+
+        self.assertEqual(_refine_profile_keys_for_language("en"), ("refine_en_us_2026",))
+        self.assertIn("refine_fr", _refine_profile_option_keys_for_language("en"))
 
     def test_french_refine_output_dir_uses_agent_slug(self):
         from pipeline.views import _resolve_refine_output_dir
@@ -258,6 +264,49 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "01 - book_0001 [en] - Continue Book")
         self.assertContains(response, 'name="book"', html=False)
         self.assertNotContains(response, reverse("edition_steps", kwargs={"edition_id": edition.id}))
+
+    def test_cadastro_shows_book_code_received_only_by_intake(self):
+        IncrementalEdition.objects.create(
+            edition_id="book_0042:en-US:1",
+            work_id="book_0042",
+            book_code="book_0042",
+            locale="en-US",
+            expected_block_count=12,
+            status="IMPORTED",
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "42 - book_0042 [en] - Cadastro recebido pelo Intake",
+        )
+
+        report = self.client.get(self.cadastro_url, {"book": "book_0042"})
+
+        self.assertEqual(report.status_code, 200)
+        self.assertContains(report, "Intake · Imported")
+        self.assertContains(report, reverse("pipeline_incremental_import"))
+
+    def test_cadastro_shows_intake_work_without_editorial_edition(self):
+        Work.objects.create(
+            code="book_7000",
+            title="Intake Work",
+            original_language=self.language,
+            author=self.author,
+        )
+
+        response = self.client.get(self.cadastro_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "7000 - book_7000 [en] - Intake Work")
+
+        report = self.client.get(self.cadastro_url, {"book": "book_7000"})
+
+        self.assertEqual(report.status_code, 200)
+        self.assertContains(report, "Intake · Aguardando cadastro da edição")
+        self.assertContains(report, "Cadastrar edição")
 
     def test_cadastro_hides_existing_books_table_until_book_is_selected(self):
         work = Work.objects.create(
@@ -577,6 +626,54 @@ class CadastroSourceFormatRoutingTests(TestCase):
         self.assertContains(response, "PT-BR")
         self.assertContains(response, "Français")
         self.assertContains(response, "Italiano")
+
+    def test_editorial_inputs_are_available_before_block_03_is_ready(self):
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="txt",
+        )
+        response = self.client.get(
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}"
+            "?allow_html_to_common=1",
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '<button class="btn secondary" type="submit" name="action" '
+            'value="rebuild_frontmatter">Regerar Frontmatter (.md)</button>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<button type="submit" class="btn btn-sm btn-secondary">'
+            'Salvar capa (JPG)</button>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<button type="submit" class="btn btn-sm btn-secondary">'
+            'Salvar e converter imagens</button>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<button type="submit" class="btn btn-sm btn-secondary">'
+            'Upload ZIP images</button>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<button class="btn secondary" type="submit" name="action" '
+            'value="build_frontmatter_and_merged" disabled>'
+            'Frontmatter + BOOK.BUILD.MD</button>',
+            html=True,
+        )
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     @patch("pipeline.views.kdp_mode.build_merged_kdp_source")
@@ -2574,7 +2671,8 @@ class HeadingCleanerGateTests(TestCase):
         )
 
         self.assertContains(response, 'name="refine_profile"')
-        self.assertContains(response, "FR_REFINE_UNIVERSAL - FR_REFINE_UNIVERSAL")
+        self.assertContains(response, "refine_FR - FR_REFINE_UNIVERSAL")
+        self.assertNotContains(response, "FR_REFINE_UNIVERSAL - FR_REFINE_UNIVERSAL")
         self.assertNotContains(response, "Francais Le Grand Coulhon - Le Grand Coulhon")
         self.assertNotContains(response, "Francais Le Gran Colhoun - Le_Gran_Colhoun")
         self.assertNotContains(response, "Ingles neutro - Aldebaran")

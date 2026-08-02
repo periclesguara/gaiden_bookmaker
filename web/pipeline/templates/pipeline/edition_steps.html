@@ -191,6 +191,21 @@
       color: var(--accent-dark);
       text-decoration: none;
     }
+    .cover-preview {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: minmax(82px, 120px) 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .cover-preview img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
     .meta-row {
       display: flex;
       flex-wrap: wrap;
@@ -579,11 +594,9 @@
         {% csrf_token %}
         <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
         <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
           Regerar Frontmatter (.md)
         </button>
-        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged">
-          {% if not block_statuses.bloco_03_ready %}disabled{% endif %}
+        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
           Frontmatter + BOOK.BUILD.MD
         </button>
       </form>
@@ -667,11 +680,16 @@
         <input type="hidden" name="action" value="upload_cover" />
         <label for="cover_file">Cover</label>
         <input id="cover_file" type="file" name="cover_file" accept="image/*" />
-        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>Salvar capa (JPG)</button>
+        <button type="submit" class="btn btn-sm btn-secondary">Salvar capa (JPG)</button>
         {% if cover_filepath %}
-        <p class="form-text">
-          Capa atual: <strong>{{ cover_filepath }}</strong>
-        </p>
+        <div class="cover-preview">
+          {% if cover_preview_url %}
+          <img src="{{ cover_preview_url }}" alt="Capa atual de {{ book_code }}" />
+          {% endif %}
+          <p class="form-text">
+            Capa atual: <strong>{{ cover_filepath }}</strong>
+          </p>
+        </div>
         {% endif %}
       </form>
       {% if internal_images_end_only %}
@@ -686,7 +704,7 @@
         <input type="hidden" name="action" value="upload_gallery_files" />
         <label for="gallery_files">Image Gallery files</label>
         <input id="gallery_files" type="file" name="images_files" accept="image/*" multiple />
-        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
         <p class="form-text">
           Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
         </p>
@@ -707,7 +725,7 @@
         <input type="hidden" name="action" value="upload_gallery_zip" />
         <label for="gallery_zip">ZIP da Image Gallery</label>
         <input id="gallery_zip" type="file" name="images_zip" accept=".zip,application/zip" />
-        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
       </form>
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_gallery_v1" data-contract-step="consolidate_gallery_images">
         {% csrf_token %}
@@ -733,7 +751,7 @@
         <input type="hidden" name="action" value="upload_images_files" />
         <label for="images_files">Insert multiple images</label>
         <input id="images_files" type="file" name="images_files" accept="image/*" multiple />
-        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
         <p class="form-text">
           Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
         </p>
@@ -761,7 +779,7 @@
         <input type="hidden" name="action" value="upload_images_zip" />
         <label for="images_zip">ZIP de imagens</label>
         <input id="images_zip" type="file" name="images_zip" accept=".zip,application/zip" />
-        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
       </form>
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="consolidate_images">
         {% csrf_token %}
@@ -895,6 +913,7 @@
       <h2>Bloco 04 · Finalizacao</h2>
       <div class="status">Montagem final, EPUB e PDF dependem do bloco 03 pronto e de <strong>BOOK.MD_FINAL</strong>.</div>
       <div class="actions">
+        <a class="btn secondary" href="{% url 'premium_epub_preview' edition.id %}">Preview EPUB Premium</a>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">
           {% csrf_token %}
           <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Build (Cover + Edition + Miolo)</button>
@@ -911,6 +930,15 @@
           {% csrf_token %}
           <button class="btn ghost" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Run epubcheck</button>
         </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'done' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not last_version_download_url %}disabled{% endif %}>0 DONE (FEITO)</button>
+        </form>
+        {% if last_version_download_url %}
+        <a class="btn secondary" href="{{ last_version_download_url }}">DOWNLOAD LAST VERSION</a>
+        {% else %}
+        <span class="badge">DOWNLOAD LAST VERSION</span>
+        {% endif %}
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
           {% csrf_token %}
           <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Gaiden: Montar Livro Completo</button>
@@ -924,6 +952,15 @@
       {% endif %}
       <div class="status">
         Build status: <strong>{{ build_status }}</strong>
+      </div>
+      <div class="status">
+        Ultima versao oficial:
+        {% if last_version_filename %}
+          <strong>{{ last_version_filename }}</strong>
+          {% if last_version_path %}<code>{{ last_version_path }}</code>{% endif %}
+        {% else %}
+          <strong>nao registrada</strong>
+        {% endif %}
       </div>
       <div class="links">
         {% if build_path %}

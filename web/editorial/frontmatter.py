@@ -28,8 +28,8 @@ def language_display(code: str) -> str:
 
 
 def build_context(edition: Edition) -> dict:
-    language_code = getattr(edition, "language_code", None) or getattr(
-        getattr(edition, "language", None), "code", ""
+    language_code = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", None
     )
     imprint = edition.imprint_name or edition.seal_name
     publisher = edition.publisher or edition.imprint_name or ""
@@ -92,6 +92,15 @@ def frontmatter_headings(language: str) -> dict[str, str]:
             "introduction": "Introducción",
             "epilogue": "Epílogo",
             "about_contributor": "Sobre el autor",
+        },
+        "fr": {
+            "frontispiece": "Frontispice",
+            "copyright": "Copyright",
+            "about_edition": "À propos de ce livre",
+            "preface": "Préface",
+            "introduction": "Introduction",
+            "epilogue": "Épilogue",
+            "about_contributor": "À propos de l’auteur",
         },
         "it": {
             "frontispiece": "Frontespizio",
@@ -253,8 +262,8 @@ def _section_file_name(section_name: str) -> str:
 
 def _resolve_template(edition: Edition) -> BookEditionTemplate | None:
     book_code = getattr(getattr(edition, "work", None), "code", "")
-    language_code = getattr(edition, "language_code", None) or getattr(
-        getattr(edition, "language", None), "code", ""
+    language_code = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", None
     )
     if not book_code or not language_code:
         return None
@@ -322,8 +331,8 @@ def render_frontmatter(edition: Edition) -> Dict[str, str]:
 
 def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
     book_code = getattr(getattr(edition, "work", None), "code", "")
-    language_code = getattr(edition, "language_code", None) or getattr(
-        getattr(edition, "language", None), "code", ""
+    language_code = getattr(getattr(edition, "language", None), "code", "") or getattr(
+        edition, "language_code", None
     )
     out_dir = base_dir / book_code / language_code
     out_dir.mkdir(parents=True, exist_ok=True)
