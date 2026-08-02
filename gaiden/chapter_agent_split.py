@@ -43,8 +43,8 @@ _ORDINAL_WORD_MAP = {
 }
 _ORDINAL_WORD_RE = "|".join(sorted(_ORDINAL_WORD_MAP, key=len, reverse=True))
 _CHAPTER_LINE_PATTERNS = [
-    re.compile(r"^#{1,6}\s*(chapter|part|book|adventure|cap[ií]tulo|kapitel)\b.*$", re.IGNORECASE),
-    re.compile(r"^(chapter|part|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b.*$", re.IGNORECASE),
+    re.compile(r"^#{1,6}\s*(chapter|part|book|adventure|chapitre|partie|livre|cap[ií]tulo|kapitel)\b.*$", re.IGNORECASE),
+    re.compile(r"^(chapter|part|book|adventure|chapitre|partie|livre|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b.*$", re.IGNORECASE),
     re.compile(r"^#{1,6}\s*([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", re.IGNORECASE),
     re.compile(r"^([ivxlcdm]+|\d+)[\.\):\-]\s+.+$", re.IGNORECASE),
     re.compile(
@@ -107,7 +107,7 @@ def _parse_heading_number(line: str) -> int | None:
     stripped = line.strip().lstrip("#").strip()
     number: int | None = None
     match = re.match(
-        r"^(chapter|part|book|adventure|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b",
+        r"^(chapter|part|book|adventure|chapitre|partie|livre|cap[ií]tulo|kapitel)\s+([ivxlcdm]+|\d+)\b",
         stripped,
         re.IGNORECASE,
     )
@@ -151,7 +151,7 @@ def _normalize_heading_line(line: str) -> str:
         return stripped
 
     match = re.match(
-        r"^(?P<prefix>#{1,6}\s*)?(?P<label>chapter|part|book|adventure|cap[ií]tulo|kapitel)\s+"
+        r"^(?P<prefix>#{1,6}\s*)?(?P<label>chapter|part|book|adventure|chapitre|partie|livre|cap[ií]tulo|kapitel)\s+"
         r"(?P<number>[ivxlcdm]+|\d+)(?P<suffix>\b.*)$",
         stripped,
         re.IGNORECASE,

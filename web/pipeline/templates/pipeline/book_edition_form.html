@@ -168,7 +168,10 @@
     </div>
 
     <div class="card">
-      <h2>Livros existentes</h2>
+      <div class="actions" style="justify-content: space-between;">
+        <h2 style="margin: 0;">Livros existentes</h2>
+        <div class="actions"><a class="btn secondary" href="{% url 'production_dashboard' %}">Dashboard de edições</a><a class="btn" href="{% url 'imported_book_list' %}">Selecionar livros importados</a></div>
+      </div>
       <p class="muted">Selecione um livro do sistema e clique em Estado do livro para abrir o relatorio.</p>
 
       <form method="get" id="registration_report_form" class="card" style="padding:16px; margin-top: 12px;">
@@ -215,10 +218,10 @@
         <tbody>
           {% for row in edition_rows %}
           <tr>
-            <td>{{ row.edition.work.code }}</td>
-            <td>{{ row.edition.language.code }}</td>
-            <td>{{ row.edition.title|default:row.edition.work.title }}</td>
-            <td>{{ row.edition.author|default:row.edition.work.author.name }}</td>
+            <td>{{ row.book_code }}</td>
+            <td>{{ row.language }}</td>
+            <td>{{ row.title }}</td>
+            <td>{{ row.author|default:"-" }}</td>
             <td>{{ row.status_label }}</td>
             <td>
               {% if row.source_info.path %}
@@ -230,7 +233,10 @@
             </td>
             <td>
               <div class="row-actions">
-                <a class="btn secondary" href="{{ row.edit_url }}">Editar</a>
+                <a class="btn secondary" href="{{ row.edit_url }}">{{ row.action_label }}</a>
+                {% if row.registration_edit_url %}
+                  <a class="btn secondary" href="{{ row.registration_edit_url }}">Cadastro</a>
+                {% endif %}
                 {% if row.reedit_html_url %}
                   <a class="btn secondary" href="{{ row.reedit_html_url }}">Reeditar (HTML)</a>
                 {% endif %}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gaiden.local/schemas/incremental-block-manifest-v1.json",
+  "title": "Gaiden Incremental Block Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "work_id",
+    "edition_id",
+    "book_code",
+    "locale",
+    "status",
+    "expected_block_count",
+    "last_contiguous_sequence",
+    "next_sequence",
+    "blocks"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "job_id": {"type": "string", "minLength": 1},
+    "work_id": {"type": "string", "minLength": 1},
+    "edition_id": {"type": "string", "minLength": 1},
+    "book_code": {"type": "string", "pattern": "^book_[0-9]{4,}$"},
+    "locale": {"type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$"},
+    "status": {
+      "enum": ["DRAFT", "READY", "IMPORTED", "IN_PROGRESS", "RETURNED", "APPROVED", "FAILED"]
+    },
+    "expected_block_count": {"type": "integer", "minimum": 1},
+    "last_contiguous_sequence": {"type": "integer", "minimum": 0},
+    "next_sequence": {"type": ["integer", "null"], "minimum": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "blocks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/block"}
+    }
+  },
+  "$defs": {
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "block_id",
+        "file_name",
+        "content_sha256",
+        "size_bytes",
+        "status",
+        "version"
+      ],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 1},
+        "block_id": {"type": "string", "minLength": 1},
+        "file_name": {"type": "string", "minLength": 1},
+        "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "status": {
+          "enum": ["DRAFT", "READY", "IMPORTED", "IN_PROGRESS", "RETURNED", "APPROVED", "FAILED", "SUPERSEDED"]
+        },
+        "version": {"type": "integer", "minimum": 1},
+        "source_block_id": {"type": ["string", "null"]},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

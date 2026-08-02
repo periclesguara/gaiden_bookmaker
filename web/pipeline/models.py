@@ -1,4 +1,5 @@
 from pathlib import Path
+import uuid
 
 from django.db import connection, models
 from django.db.utils import OperationalError
@@ -615,3 +616,385 @@ def _runtime_datetime_column_type(vendor: str | None = None) -> str:
     if vendor == "mysql":
         return "datetime(6)"
     return "datetime"
+
+
+INCREMENTAL_EDITORIAL_STATUS = (
+    ("DRAFT", "Draft"),
+    ("READY", "Ready"),
+    ("IMPORTED", "Imported"),
+    ("IN_PROGRESS", "In progress"),
+    ("RETURNED", "Returned"),
+    ("APPROVED", "Approved"),
+    ("FAILED", "Failed"),
+    ("SUPERSEDED", "Superseded"),
+)
+
+
+class IncrementalEdition(models.Model):
+    """Persistent resume cursor for one manifest-defined edition."""
+
+    edition_id = models.CharField(max_length=255, unique=True)
+    editorial_edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.SET_NULL,
+        related_name="incremental_editions",
+        null=True,
+        blank=True,
+    )
+    work_id = models.CharField(max_length=255)
+    book_code = models.CharField(max_length=64, db_index=True)
+    locale = models.CharField(max_length=16)
+    expected_block_count = models.PositiveIntegerField()
+    status = models.CharField(
+        max_length=20,
+        choices=INCREMENTAL_EDITORIAL_STATUS,
+        default="DRAFT",
+    )
+    last_contiguous_sequence = models.PositiveIntegerField(default=0)
+    next_sequence = models.PositiveIntegerField(null=True, blank=True)
+    confirmed_block_id = models.CharField(max_length=255, blank=True, default="")
+    manifest_sha256 = models.CharField(max_length=64, blank=True, default="")
+    last_import_run_id = models.CharField(max_length=64, blank=True, default="")
+    drive_destination = models.CharField(max_length=1000, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["edition_id"]
+
+    def __str__(self) -> str:
+        return self.edition_id
+
+
+class IncrementalBlock(models.Model):
+    """Immutable content version; prior versions remain queryable."""
+
+    edition = models.ForeignKey(
+        IncrementalEdition,
+        on_delete=models.CASCADE,
+        related_name="blocks",
+    )
+    block_id = models.CharField(max_length=500)
+    sequence = models.PositiveIntegerField()
+    version = models.PositiveIntegerField(default=1)
+    file_name = models.CharField(max_length=500)
+    content = models.TextField()
+    content_sha256 = models.CharField(max_length=64)
+    size_bytes = models.PositiveBigIntegerField()
+    status = models.CharField(
+        max_length=20,
+        choices=INCREMENTAL_EDITORIAL_STATUS,
+        default="IMPORTED",
+    )
+    source_block_id = models.CharField(max_length=500, blank=True, default="")
+    source_updated_at = models.DateTimeField(null=True, blank=True)
+    is_current = models.BooleanField(default=True)
+    exported_sha256 = models.CharField(max_length=64, blank=True, default="")
+    exported_status = models.CharField(max_length=20, blank=True, default="")
+    exported_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["edition_id", "sequence", "version"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("edition", "block_id", "version"),
+                name="pipeline_incremental_block_version_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("edition", "sequence", "version"),
+                name="pipeline_incremental_sequence_version_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("edition", "block_id"),
+                condition=models.Q(is_current=True),
+                name="pipeline_incremental_current_block_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("edition", "sequence"),
+                condition=models.Q(is_current=True),
+                name="pipeline_incremental_current_sequence_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.block_id}@{self.version}"
+
+
+class IncrementalImportRun(models.Model):
+    STATUS_CHOICES = (
+        ("RUNNING", "Running"),
+        ("SUCCESS", "Success"),
+        ("PARTIAL", "Partial"),
+        ("FAILED", "Failed"),
+    )
+
+    run_id = models.CharField(max_length=64, unique=True)
+    edition = models.ForeignKey(
+        IncrementalEdition,
+        on_delete=models.CASCADE,
+        related_name="import_runs",
+    )
+    job_id = models.CharField(max_length=255)
+    manifest_sha256 = models.CharField(max_length=64)
+    import_attempt = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="RUNNING")
+    manifest = models.JSONField(default=dict)
+    result = models.JSONField(default=dict)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("job_id", "manifest_sha256", "import_attempt"),
+                name="pipeline_incremental_import_idempotency_unique",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.run_id
+
+
+class IncrementalImportEvent(models.Model):
+    run = models.ForeignKey(
+        IncrementalImportRun,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    block_version = models.ForeignKey(
+        IncrementalBlock,
+        on_delete=models.SET_NULL,
+        related_name="import_events",
+        null=True,
+        blank=True,
+    )
+    sequence = models.PositiveIntegerField()
+    block_id = models.CharField(max_length=500)
+    action = models.CharField(max_length=40)
+    detail = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["run_id", "sequence", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.run_id}:{self.sequence}:{self.action}"
+
+
+INTAKE_STATUS_CHOICES = (
+    ("DISCOVERED", "Discovered"),
+    ("PREVIEWED", "Previewed"),
+    ("STAGED", "Staged"),
+    ("IMPORTED_RAW", "Imported raw"),
+    ("REGISTERED", "Registered"),
+    ("FAILED_RETRYABLE", "Failed — retryable"),
+    ("CONFLICT", "Conflict"),
+    ("REJECTED", "Rejected"),
+)
+
+
+class IntakeCounter(models.Model):
+    """Database-locked allocator used for immutable batch and book codes."""
+
+    key = models.CharField(max_length=32, unique=True)
+    next_value = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["key"]
+
+
+class IntakeBatch(models.Model):
+    SOURCE_CHOICES = (
+        ("UPLOAD", "Upload"),
+        ("GOOGLE_DRIVE", "Google Drive"),
+        ("LOCAL_WATCH", "Local monitored folder"),
+    )
+
+    batch_code = models.CharField(max_length=32, unique=True, editable=False)
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255)
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
+    remote = models.CharField(max_length=100, blank=True, default="")
+    drive_source_path = models.CharField(max_length=1000, blank=True, default="")
+    recursive = models.BooleanField(default=True)
+    defaults = models.JSONField(default=dict)
+    status = models.CharField(max_length=24, choices=INTAKE_STATUS_CHOICES, default="DISCOVERED")
+    last_error = models.TextField(blank=True, default="")
+    last_summary = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("source", "remote", "drive_source_path"),
+                name="pipeline_intake_batch_source_path_unique",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original = type(self).objects.only("batch_code").get(pk=self.pk)
+            if original.batch_code != self.batch_code:
+                raise ValueError("batch_code is immutable after confirmation.")
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.batch_code} — {self.name}"
+
+
+class IntakeItem(models.Model):
+    batch = models.ForeignKey(IntakeBatch, on_delete=models.CASCADE, related_name="items")
+    remote_file_id = models.CharField(max_length=255, blank=True, default="")
+    remote_path = models.CharField(max_length=1000)
+    relative_path = models.CharField(max_length=1000)
+    original_name = models.CharField(max_length=500)
+    size_bytes = models.PositiveBigIntegerField()
+    mime_type = models.CharField(max_length=255, blank=True, default="")
+    extension = models.CharField(max_length=20)
+    remote_version = models.CharField(max_length=255, blank=True, default="")
+    sha256 = models.CharField(max_length=64, blank=True, default="")
+    title = models.CharField(max_length=500)
+    author_name = models.CharField(max_length=255, blank=True, default="")
+    source_language = models.CharField(max_length=16)
+    target_language = models.CharField(max_length=16, blank=True, default="")
+    book_code = models.CharField(max_length=64, blank=True, default="", editable=False)
+    preview_operation = models.CharField(max_length=16)
+    status = models.CharField(max_length=24, choices=INTAKE_STATUS_CHOICES, default="DISCOVERED")
+    canonical_path = models.CharField(max_length=1200, blank=True, default="")
+    last_error = models.TextField(blank=True, default="")
+    attempt_count = models.PositiveIntegerField(default=0)
+    metadata = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["batch_id", "relative_path"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("batch", "relative_path"),
+                name="pipeline_intake_item_batch_path_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("batch", "remote_file_id"),
+                condition=~models.Q(remote_file_id=""),
+                name="pipeline_intake_item_batch_remote_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("book_code",),
+                condition=~models.Q(book_code=""),
+                name="pipeline_intake_item_book_code_unique",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original = type(self).objects.only("book_code").get(pk=self.pk)
+            if original.book_code and original.book_code != self.book_code:
+                raise ValueError("book_code is immutable after confirmation.")
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.batch.batch_code}:{self.book_code or self.relative_path}"
+
+
+class IntakeAuditEvent(models.Model):
+    batch = models.ForeignKey(IntakeBatch, on_delete=models.CASCADE, related_name="audit_events")
+    item = models.ForeignKey(
+        IntakeItem,
+        on_delete=models.SET_NULL,
+        related_name="audit_events",
+        null=True,
+        blank=True,
+    )
+    correlation_id = models.CharField(max_length=64, db_index=True)
+    operation = models.CharField(max_length=32)
+    previous_status = models.CharField(max_length=24, blank=True, default="")
+    new_status = models.CharField(max_length=24)
+    attempt = models.PositiveIntegerField(default=1)
+    detail = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+
+class ManualTranslationJob(models.Model):
+    STATUS_EXPORTED = "EXPORTED"
+    STATUS_IMPORTED = "IMPORTED"
+    STATUS_FAILED = "FAILED"
+    STATUS_CHOICES = (
+        (STATUS_EXPORTED, "Aguardando retorno"),
+        (STATUS_IMPORTED, "Tradução importada"),
+        (STATUS_FAILED, "Falha recuperável"),
+    )
+
+    edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.CASCADE,
+        related_name="manual_translation_jobs",
+    )
+    target_edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.SET_NULL,
+        related_name="manual_translation_returns",
+        null=True,
+        blank=True,
+    )
+    source_language = models.CharField(max_length=16)
+    target_language = models.CharField(max_length=16)
+    drive_path = models.CharField(max_length=1000)
+    source_path = models.CharField(max_length=1200)
+    source_sha256 = models.CharField(max_length=64)
+    expected_return_name = models.CharField(max_length=500)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_EXPORTED)
+    return_source = models.CharField(max_length=1200, blank=True, default="")
+    return_sha256 = models.CharField(max_length=64, blank=True, default="")
+    last_error = models.TextField(blank=True, default="")
+    exported_at = models.DateTimeField(auto_now_add=True)
+    imported_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("edition", "target_language"),
+                name="pipeline_manual_translation_edition_target_unique",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.edition.work.code} → {self.target_language} ({self.status})"
+
+
+class ProductionBookmark(models.Model):
+    """Append-only audit record used to resume editorial work safely."""
+
+    key = models.CharField(max_length=64, unique=True, default=uuid.uuid4, editable=False)
+    edition = models.ForeignKey(
+        EditorialEdition,
+        on_delete=models.PROTECT,
+        related_name="production_bookmarks",
+    )
+    target_language = models.CharField(max_length=16, blank=True, default="")
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-saved_at"]
+
+    def __str__(self) -> str:
+        return f"{self.key}: {self.edition.work.code} ({self.target_language or self.edition.language.code})"
+
+    def save(self, *args, **kwargs):
+        if self.pk and type(self).objects.filter(pk=self.pk).exists():
+            raise ValueError("ProductionBookmark é imutável; crie um novo registro de retomada.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError("ProductionBookmark é imutável e não pode ser apagado.")

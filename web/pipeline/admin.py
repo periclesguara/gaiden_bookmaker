@@ -9,6 +9,18 @@ from editorial.models import (
     Seal,
     Work,
 )
+from pipeline.models import (
+    IncrementalBlock,
+    IncrementalEdition,
+    IncrementalImportEvent,
+    IncrementalImportRun,
+    IntakeAuditEvent,
+    IntakeBatch,
+    IntakeCounter,
+    IntakeItem,
+    ManualTranslationJob,
+    ProductionBookmark,
+)
 
 
 @admin.register(Language)
@@ -51,3 +63,85 @@ class EditionPipelineAdmin(admin.ModelAdmin):
 @admin.register(EditionText)
 class EditionTextAdmin(admin.ModelAdmin):
     list_display = ("edition", "raw_path", "normalized_path", "updated_at")
+
+
+@admin.register(IncrementalEdition)
+class IncrementalEditionAdmin(admin.ModelAdmin):
+    list_display = (
+        "edition_id",
+        "locale",
+        "last_contiguous_sequence",
+        "next_sequence",
+        "status",
+        "updated_at",
+    )
+    search_fields = ("edition_id", "work_id", "book_code")
+    list_filter = ("locale", "status")
+
+
+@admin.register(IncrementalBlock)
+class IncrementalBlockAdmin(admin.ModelAdmin):
+    list_display = ("block_id", "sequence", "version", "status", "is_current", "updated_at")
+    search_fields = ("edition__edition_id", "block_id", "file_name", "content_sha256")
+    list_filter = ("status", "is_current", "edition__locale")
+
+
+@admin.register(IncrementalImportRun)
+class IncrementalImportRunAdmin(admin.ModelAdmin):
+    list_display = ("run_id", "job_id", "import_attempt", "status", "started_at", "completed_at")
+    search_fields = ("run_id", "job_id", "edition__edition_id", "manifest_sha256")
+    list_filter = ("status",)
+
+
+@admin.register(IncrementalImportEvent)
+class IncrementalImportEventAdmin(admin.ModelAdmin):
+    list_display = ("run", "sequence", "block_id", "action", "created_at")
+    search_fields = ("run__run_id", "block_id")
+    list_filter = ("action",)
+
+
+@admin.register(IntakeBatch)
+class IntakeBatchAdmin(admin.ModelAdmin):
+    list_display = ("batch_code", "name", "source", "drive_source_path", "status", "updated_at")
+    search_fields = ("batch_code", "name", "drive_source_path")
+    list_filter = ("source", "status")
+
+
+@admin.register(IntakeItem)
+class IntakeItemAdmin(admin.ModelAdmin):
+    list_display = ("book_code", "batch", "relative_path", "preview_operation", "status", "attempt_count")
+    search_fields = ("book_code", "original_name", "relative_path", "sha256")
+    list_filter = ("status", "preview_operation", "extension")
+
+
+@admin.register(ManualTranslationJob)
+class ManualTranslationJobAdmin(admin.ModelAdmin):
+    list_display = ("edition", "target_language", "status", "drive_path", "updated_at")
+    search_fields = ("edition__work__code", "drive_path", "expected_return_name")
+    list_filter = ("status", "target_language")
+
+
+@admin.register(ProductionBookmark)
+class ProductionBookmarkAdmin(admin.ModelAdmin):
+    list_display = ("key", "edition", "target_language", "saved_at")
+    search_fields = ("edition__work__code", "edition__work__title")
+    readonly_fields = ("key", "edition", "target_language", "saved_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(IntakeAuditEvent)
+class IntakeAuditEventAdmin(admin.ModelAdmin):
+    list_display = ("batch", "item", "operation", "previous_status", "new_status", "attempt", "created_at")
+    search_fields = ("correlation_id", "batch__batch_code", "item__book_code")
+    list_filter = ("operation", "new_status")
+
+
+admin.site.register(IntakeCounter)

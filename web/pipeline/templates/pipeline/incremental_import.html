@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Importação editorial incremental — Gaiden</title>
+  <style>
+    :root { --bg:#f5f2ec; --card:#fffdf9; --ink:#1e1b17; --muted:#6e665d; --line:#ded7cd; --accent:#9f3e24; --ok:#1d7138; --warn:#986000; --bad:#a31e22; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:1280px; margin:28px auto; padding:0 18px 48px; }
+    h1,h2 { margin-top:0; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:0 0 18px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+    .metric { border:1px solid var(--line); border-radius:9px; padding:12px; }
+    .metric small,.helptext { color:var(--muted); display:block; }
+    label { display:block; font-weight:650; margin-top:12px; }
+    input[type=text],input[type=number] { width:100%; padding:9px; border:1px solid #bbb2a7; border-radius:7px; background:white; }
+    input[type=checkbox] { margin-right:7px; }
+    button,.button { display:inline-block; border:1px solid var(--accent); border-radius:8px; padding:9px 14px; margin:14px 8px 0 0; background:var(--accent); color:#fff; text-decoration:none; cursor:pointer; }
+    button.secondary,.button.secondary { color:var(--accent); background:#fff; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border:1px solid var(--line); padding:8px; vertical-align:top; text-align:left; }
+    th { background:#eee8df; }
+    .scroll { overflow:auto; }
+    .chip { display:inline-block; border-radius:999px; padding:3px 8px; color:#fff; font-size:12px; }
+    .CREATE { background:var(--ok); } .UPDATE { background:#285fa0; } .NOOP { background:#666; } .CONFLICT { background:var(--bad); }
+    .message { padding:10px 12px; margin:0 0 10px; border-radius:8px; background:#fff; border:1px solid var(--line); }
+    .errorlist { color:var(--bad); }
+    code,pre { background:#eee9e1; border-radius:5px; }
+    code { padding:2px 4px; }
+    pre { padding:12px; overflow:auto; white-space:pre-wrap; }
+  </style>
+</head>
+<body>
+<main>
+  <a class="button secondary" href="{% url 'pipeline_dashboard' %}">Voltar ao pipeline</a>
+  <h1>Importação editorial incremental</h1>
+  <p>Valida o contrato, calcula a ação de cada bloco e persiste a retomada pela primeira lacuna real.</p>
+
+  {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+
+  <section class="card">
+    <h2>Pacote</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+        {{ field.errors }}
+      {% endfor %}
+      <button class="secondary" type="submit" name="action" value="preview">Gerar prévia</button>
+      {% if preview %}
+        <button type="submit" name="action" value="import">Importar lote e salvar retomada</button>
+      {% endif %}
+    </form>
+  </section>
+
+  {% if preview %}
+  <section class="card">
+    <h2>Prévia: {{ preview.manifest.edition_id }}</h2>
+    <div class="grid">
+      <div class="metric"><small>Idioma</small>{{ preview.manifest.locale }}</div>
+      <div class="metric"><small>Esperados</small>{{ preview.manifest.expected_block_count }}</div>
+      <div class="metric"><small>Encontrados neste lote</small>{{ preview.found_count }}</div>
+      <div class="metric"><small>Confirmados contíguos no Gaiden</small>{{ preview.current_last_contiguous_sequence }}</div>
+      <div class="metric"><small>Ponto atual de retomada</small>{{ preview.current_next_sequence }}</div>
+      <div class="metric"><small>Intervalo do lote</small>{% if preview.rows %}{{ preview.batch_start }}–{{ preview.batch_end }}{% else %}—{% endif %}</div>
+    </div>
+    <p><small>SHA-256 canônico do manifesto: <code>{{ preview.manifest_sha256 }}</code></small></p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Seq.</th><th>Bloco</th><th>Versão</th><th>Arquivo</th><th>Ação</th><th>Detalhe</th></tr></thead>
+        <tbody>
+          {% for row in preview.rows %}
+          <tr>
+            <td>{{ row.sequence }}</td>
+            <td><code>{{ row.block_id }}</code></td>
+            <td>{{ row.version }}</td>
+            <td>{{ row.file_name }}</td>
+            <td><span class="chip {{ row.action }}">{{ row.action }}</span></td>
+            <td>{{ row.detail }}</td>
+          </tr>
+          {% empty %}<tr><td colspan="6">Nenhum bloco no lote.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if import_result %}
+  <section class="card">
+    <h2>Resultado da importação</h2>
+    <div class="grid">
+      <div class="metric"><small>Criados</small>{{ import_result.created|length }}</div>
+      <div class="metric"><small>Novas versões</small>{{ import_result.updated|length }}</div>
+      <div class="metric"><small>Idempotentes</small>{{ import_result.noop|length }}</div>
+      <div class="metric"><small>Conflitos</small>{{ import_result.conflicts|length }}</div>
+      <div class="metric"><small>Última sequência contígua</small>{{ import_result.last_contiguous_sequence }}</div>
+      <div class="metric"><small>Próxima sequência</small>{{ import_result.next_sequence|default:"Concluído" }}</div>
+    </div>
+    <pre>{{ import_result }}</pre>
+  </section>
+  {% endif %}
+
+  <section class="card">
+    <h2>Edições incrementais registradas</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Edição</th><th>Idioma</th><th>Progresso</th><th>Próxima</th><th>Estado</th><th>Destino</th></tr></thead>
+        <tbody>
+        {% for edition in incremental_editions %}
+          <tr><td>{{ edition.edition_id }}</td><td>{{ edition.locale }}</td><td>{{ edition.last_contiguous_sequence }}/{{ edition.expected_block_count }}</td><td>{{ edition.next_sequence|default:"—" }}</td><td>{{ edition.status }}</td><td>{{ edition.drive_destination|default:"—" }}</td></tr>
+        {% empty %}<tr><td colspan="6">Nenhuma edição incremental registrada.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

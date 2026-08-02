@@ -142,6 +142,22 @@ from gaiden.infrastructure.storage import storage_root
 MEDIA_ROOT = storage_root()
 MEDIA_URL = "/media/"
 
+# Automated Intake Google Drive boundary. The configured rclone remote already
+# points at the allowed "Gaiden Bookmaker" root in local development.
+GAIDEN_DRIVE_REMOTE = os.environ.get("GAIDEN_DRIVE_REMOTE", "gaiden_drive")
+GAIDEN_DRIVE_ROOT = os.environ.get("GAIDEN_DRIVE_ROOT", "").strip("/")
+GAIDEN_DRIVE_INBOX = os.environ.get("GAIDEN_DRIVE_INBOX", "01_INBOX_RAW").strip("/")
+GAIDEN_DRIVE_IMPORTED = os.environ.get("GAIDEN_DRIVE_IMPORTED", "02_IMPORTED_RAW").strip("/")
+GAIDEN_INTAKE_ALLOWED_EXTENSIONS = tuple(
+    value.strip().lower()
+    for value in os.environ.get(
+        "GAIDEN_INTAKE_ALLOWED_EXTENSIONS",
+        ".epub,.txt,.md,.html,.htm,.docx,.rtf",
+    ).split(",")
+    if value.strip()
+)
+GAIDEN_INTAKE_MAX_FILE_SIZE = int(os.environ.get("GAIDEN_INTAKE_MAX_FILE_SIZE", str(100 * 1024 * 1024)))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
