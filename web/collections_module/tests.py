@@ -16,12 +16,12 @@ class CollectionModuleTests(TestCase):
         base = f"collection_test_{Collection.objects.count() + 1:04d}"
         return f"{base}_{suffix}" if suffix else base
 
-    def test_root_shows_choice_between_book_and_collection(self):
+    def test_root_shows_modular_home(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Book")
-        self.assertContains(response, "Collection")
-        self.assertContains(response, "Dashboard de edições")
+        self.assertContains(response, "Bookmaker — Manual / AI")
+        self.assertContains(response, "Collections")
+        self.assertContains(response, "Projetos Finalizados")
 
     def test_create_collection(self):
         response = self.client.post(

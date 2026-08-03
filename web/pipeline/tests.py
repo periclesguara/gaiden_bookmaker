@@ -1679,7 +1679,7 @@ class EnglishPhilosoferTranslateTests(TestCase):
         response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "EN (modern)")
+        self.assertContains(response, "EN-US (Modernize 2026)")
         self.assertContains(response, "PT-BR (portugues)")
         self.assertContains(response, "translate_pt_br_2026")
         self.assertNotContains(response, "English-Philosofer")
