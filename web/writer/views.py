@@ -46,7 +46,16 @@ def promote(request, manuscript_id, version_id):
         return redirect("writer:version_preview", manuscript_id=manuscript_id, version_id=version_id)
     form = PromotionForm(request.POST)
     if form.is_valid():
-        event = promote_version(version, editor_approval=form.cleaned_data["editor_approval"])
+        try:
+            event = promote_version(
+                version,
+                editor_approval=form.cleaned_data["editor_approval"],
+                reason=form.cleaned_data["reason"],
+                actor=str(request.user) if request.user.is_authenticated else "anonymous",
+            )
+        except ValueError as exc:
+            form.add_error(None, str(exc))
+            return render(request, "writer/version_preview.html", {"version": version, "form": form})
         messages.success(request, f"Official body promotion: {event.outcome}.")
         return redirect("writer:manuscript", manuscript_id=manuscript_id)
     return render(request, "writer/version_preview.html", {"version": version, "form": form})
