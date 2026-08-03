@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "web.writer.apps.WriterConfig",
     "web.intake.apps.IntakeConfig",
     "web.manual_ai.apps.ManualAIConfig",
+    "web.finalized_projects.apps.FinalizedProjectsConfig",
 ]
 
 MIDDLEWARE = [
@@ -62,7 +63,7 @@ ROOT_URLCONF = 'gaiden_portal.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "gaiden_portal" / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

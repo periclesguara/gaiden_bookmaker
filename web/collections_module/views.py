@@ -9,7 +9,7 @@ from .services import workflow
 
 
 def project_entry(request):
-    return render(request, "collections_module/project_entry.html")
+    return redirect("root")
 
 
 def collection_create(request):
