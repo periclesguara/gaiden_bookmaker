@@ -1,4 +1,11 @@
-# Writer, Intake, Manual / AI and Production boundaries
+# Gaiden modular home, Writer, Intake, Manual / AI and Production boundaries
+
+## Official home
+
+`/` is the read-only Gaiden home. It exposes five independent cards with live,
+read-only counters: Intake, Collections, Bookmaker — Manual / AI, Writer, and
+Projetos Finalizados. Each card opens the owning module. Home and dashboard GET
+requests are covered by side-effect tests.
 
 ## Ownership
 
@@ -8,6 +15,7 @@
 | Intake | Deterministic discovery, hashing, staging, validation, normalization, headings and external handoffs | Import OpenAI/agent/prompt modules or execute Translate, Refine or Polish |
 | Manual / AI | Explicit Translate, Refine, Polish and agent jobs | Start implicitly from Intake or Writer |
 | Production Dashboard | Read projections and navigation; final download/details/history | Mutate state on GET or infer DONE from file existence |
+| Projetos Finalizados | Read the latest valid final `EditionBuild` projection | Duplicate build state or run editorial production |
 
 The canonical `editorial.Work`, `editorial.Edition`, `EditionPipeline` and
 `EditionBuild` remain the production identities. Writer deliberately layers on
@@ -26,6 +34,8 @@ the existing Author Studio catalog and does not introduce another `book_code`.
   implementations and model choices are preserved.
 - `/pipeline/editions/dashboard/` is a read-only projection on GET. Mutating
   final-artifact state uses CSRF-protected POST endpoints.
+- `/finalized-projects/` is the canonical finalized-project projection. It has
+  no persistence table and therefore cannot diverge from `EditionBuild`.
 
 No module imports another module's views, forms or templates. Shared behavior
 belongs in `gaiden.application`, `gaiden.domain`, `gaiden.infrastructure`, or
@@ -49,10 +59,40 @@ latest build has all of the following:
 
 The generic `import_final_epub` management command validates the requested
 edition and locale, ZIP structure, EPUB mimetype ordering/compression, XML/XHTML,
-internal links and EPUBCheck (when installed). It copies through a temporary file
-and atomic rename, verifies the destination SHA, preserves prior builds, records
-audit events and refuses filename collisions with different bytes. Repeating an
-edition/SHA pair returns `NO_OP`.
+internal links and mandatory EPUBCheck. Missing EPUBCheck fails closed; only the
+isolated unit-test settings may explicitly skip it. The validation audit stores
+tool/version, timestamps, result, error/warning counts and output summary.
+
+The importer copies to a temporary file, verifies size and SHA-256, validates
+that temporary artifact, writes the locked database state, promotes through an
+atomic rename and compensates the filesystem if the database transaction fails.
+It refuses path escapes and filename/version collisions. `NO_OP` requires exact
+edition, locale, version, SHA-256, size, source and a still-valid final build.
+
+`sync_finalized_projects` reconciles any edition or `--book-code` explicitly.
+It is idempotent, reports every unmet requirement, revalidates legacy final
+records lacking EPUBCheck evidence and records a single synchronization event.
+Marking a build OUTDATED requires confirmed POST plus reason, locks the build,
+preserves its bytes/history and downgrades contradictory pipeline DONE state.
+
+Final downloads require `qualifies_as_done`, canonical path containment, `.epub`
+extension, registered byte size and streaming SHA-256 equality. Integrity
+failures are denied and audited without loading the complete EPUB into memory.
+
+Writer promotion requires an explicit `EditorialWorkLink`; textual code equality
+is not an identity contract. Missing or inconsistent mappings fail closed before
+canonical files or builds change. Successful promotion stores actor, reason,
+previous/new paths and hashes and invalidates mapped final builds transactionally.
+
+## CI and PostgreSQL
+
+`.github/workflows/architecture-ci.yml` runs with PostgreSQL 16 and the pgvector
+image, prepares the extension before migrations, installs pinned CI dependencies,
+runs system/migration/compile checks and the Intake, Writer, Manual AI,
+Collections, Dashboard, final import, architecture, security and Premium EPUB
+suites. Local PostgreSQL users still need an administrator to install `vector`
+in the disposable test database before the PostgreSQL suite can run; this
+dependency must never be hidden by switching that suite to SQLite.
 
 Approved external EPUBs remain canonical-storage artifacts and must never be
 added to Git. Recovery scripts for individual books are not imported by runtime
