@@ -65,12 +65,15 @@ class RcloneDriveStorage:
 
     @staticmethod
     def _run(args: list[str]) -> bytes:
-        completed = subprocess.run(
-            ["rclone", *args],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
+        try:
+            completed = subprocess.run(
+                ["rclone", *args],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+        except FileNotFoundError as exc:
+            raise DriveStorageError("rclone não está instalado ou não está disponível no PATH.") from exc
         if completed.returncode:
             detail = completed.stderr.decode("utf-8", errors="replace").strip()
             raise DriveStorageError(f"rclone falhou ({' '.join(args[:2])}): {detail}")

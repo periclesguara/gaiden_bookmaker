@@ -61,6 +61,8 @@ jobs:
       - name: Compile Python
         run: python -m compileall -q gaiden web scripts
       - name: Intake, Writer, Dashboard, final build and security tests
+        env:
+          DJANGO_SETTINGS_MODULE: gaiden_portal.settings_ci
         run: >-
           python web/manage.py test
           pipeline.test_drive_intake
@@ -69,10 +71,16 @@ jobs:
           pipeline.test_module_boundaries
           --noinput
       - name: Premium EPUB tests
+        env:
+          DJANGO_SETTINGS_MODULE: gaiden_portal.settings_ci
         run: python web/manage.py test editorial.test_premium_epub --noinput
       - name: Collections tests
+        env:
+          DJANGO_SETTINGS_MODULE: gaiden_portal.settings_ci
         run: python web/manage.py test collections_module.tests --noinput
       - name: Manual AI routing tests
+        env:
+          DJANGO_SETTINGS_MODULE: gaiden_portal.settings_ci
         run: >-
           python web/manage.py test
           pipeline.tests.TranslateAgentRoutingTests
