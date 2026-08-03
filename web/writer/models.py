@@ -14,6 +14,21 @@ class Manuscript(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class EditorialWorkLink(models.Model):
+    author_work = models.OneToOneField(
+        "author_studio.Work", on_delete=models.PROTECT, related_name="editorial_identity_link"
+    )
+    editorial_work = models.OneToOneField(
+        "editorial.Work", on_delete=models.PROTECT, related_name="writer_identity_link"
+    )
+    linked_by = models.CharField(max_length=150)
+    reason = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.author_work_id} -> {self.editorial_work_id}"
+
+
 class ManuscriptVersion(models.Model):
     manuscript = models.ForeignKey(Manuscript, on_delete=models.PROTECT, related_name="versions")
     version = models.PositiveIntegerField()
@@ -35,6 +50,9 @@ class WriterPromotionEvent(models.Model):
     previous_canonical_sha256 = models.CharField(max_length=64, blank=True, default="")
     previous_canonical_path = models.CharField(max_length=500, blank=True, default="")
     outcome = models.CharField(max_length=20, default="PROMOTED")
+    actor = models.CharField(max_length=150, default="system")
+    reason = models.CharField(max_length=500, blank=True, default="")
+    new_canonical_path = models.CharField(max_length=500, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

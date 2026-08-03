@@ -1,4 +1,9 @@
+import hashlib
+from pathlib import Path
+
 from django.db import models
+
+from gaiden.infrastructure import storage
 
 
 class Language(models.Model):
@@ -337,6 +342,7 @@ class EditionBuild(models.Model):
     validated_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    validation_report = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -348,8 +354,12 @@ class EditionBuild(models.Model):
         return f"Build({self.edition} [{self.language_code}] v{self.build_version})"
 
     @property
+    def epub_filename(self) -> str:
+        return Path(self.epub_path).name if self.epub_path else ""
+
+    @property
     def qualifies_as_done(self) -> bool:
-        return bool(
+        metadata_ready = bool(
             self.status == self.STATUS_DONE
             and self.is_final
             and self.validation_passed
@@ -363,6 +373,45 @@ class EditionBuild(models.Model):
             and self.approved_at
             and self.completed_at
         )
+        return metadata_ready and not self.integrity_errors()
+
+    @staticmethod
+    def _stream_sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _safe_existing_path(value: str, *, require_epub: bool = False) -> Path | None:
+        if not value:
+            return None
+        candidate = Path(value).expanduser()
+        candidate = candidate.resolve() if candidate.is_absolute() else storage.resolve_repo_path(candidate).resolve()
+        allowed_roots = (storage.storage_root().resolve(), storage.repo_root().resolve())
+        if not any(candidate.is_relative_to(root) for root in allowed_roots):
+            return None
+        if not candidate.is_file() or (require_epub and candidate.suffix.casefold() != ".epub"):
+            return None
+        return candidate
+
+    def integrity_errors(self) -> list[str]:
+        errors: list[str] = []
+        epub = self._safe_existing_path(self.epub_path, require_epub=True)
+        body = self._safe_existing_path(self.official_body_path)
+        if epub is None:
+            errors.append("final EPUB is missing, outside canonical storage, or has an invalid extension")
+        else:
+            if epub.stat().st_size != self.artifact_size_bytes:
+                errors.append("final EPUB size differs from the registered size")
+            elif self._stream_sha256(epub) != self.artifact_sha256:
+                errors.append("final EPUB SHA-256 differs from the registered hash")
+        if body is None:
+            errors.append("official body is missing or outside canonical storage")
+        elif self._stream_sha256(body) != self.official_body_sha256:
+            errors.append("official body SHA-256 differs from the registered hash")
+        return errors
 
 
 class EditionBuildAuditEvent(models.Model):
