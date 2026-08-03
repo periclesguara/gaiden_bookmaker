@@ -6,6 +6,7 @@ from django.db import transaction
 
 from editorial.models import EditionBuild, EditionPipeline, Work as EditorialWork
 from author_studio.models import CanonicalText
+from gaiden.domain.author_studio.enums import CanonicalTextStatus
 
 from .models import Manuscript, ManuscriptVersion, WriterPromotionEvent, WriterStatus
 
@@ -47,7 +48,7 @@ def promote_version(version: ManuscriptVersion, *, editor_approval: str) -> Writ
     previous.sha256 = version.sha256
     previous.character_count = len(version.content)
     previous.word_count = len(version.content.split())
-    previous.status = "APPROVED"
+    previous.status = CanonicalTextStatus.READY.value
     previous.save()
     version.manuscript.status = WriterStatus.PROMOTED
     version.manuscript.save(update_fields=["status", "updated_at"])
