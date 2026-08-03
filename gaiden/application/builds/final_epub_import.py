@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import posixpath
+import re
 import shutil
 import subprocess
 import tempfile
@@ -43,6 +44,11 @@ def _normalize_locale(value: str) -> str:
     if not parts or not parts[0]:
         raise FinalEpubImportError("Locale is required.")
     return parts[0].lower() + (f"-{parts[1].upper()}" if len(parts) > 1 else "")
+
+
+def _version_from_filename(filename: str) -> int | None:
+    match = re.search(r"(?:^|[_-])v(\d+)(?:[_\.-]|$)", filename, flags=re.IGNORECASE)
+    return int(match.group(1)) if match else None
 
 
 def _validate_internal_links(archive: zipfile.ZipFile) -> None:
@@ -195,17 +201,25 @@ def import_final_epub(
             details={"replacement_sha256": actual_sha},
         )
     latest_version = (
-        EditionBuild.objects.filter(edition=edition, language_code=requested_locale)
+        EditionBuild.objects.filter(edition=edition)
         .order_by("-build_version")
         .values_list("build_version", flat=True)
         .first()
         or 0
     )
+    requested_version = _version_from_filename(source_file.name)
+    build_version = max(latest_version + 1, requested_version or 0)
+    if EditionBuild.objects.filter(
+        edition=edition,
+        language_code=requested_locale,
+        build_version=build_version,
+    ).exists():
+        raise FinalEpubImportError(f"Build version V{build_version} already exists for {requested_locale}.")
     build = EditionBuild.objects.create(
         edition=edition,
         language_code=requested_locale,
         locale=requested_locale,
-        build_version=latest_version + 1,
+        build_version=build_version,
         build_type=EditionBuild.BUILD_TYPE_INITIAL if latest_version == 0 else EditionBuild.BUILD_TYPE_REBUILD,
         epub_path=str(destination),
         status=EditionBuild.STATUS_DONE,
