@@ -1,0 +1,80 @@
+name: Modular architecture CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - refactor/module-boundaries-writer-manual-intake-v1
+
+jobs:
+  django-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: gaiden
+          POSTGRES_USER: gaiden
+          POSTGRES_PASSWORD: gaiden
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gaiden -d gaiden"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: gaiden
+      PGUSER: gaiden
+      PGPASSWORD: gaiden
+      GAIDEN_STORAGE_ROOT: ${{ github.workspace }}/.ci-data
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install deterministic dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ci.txt
+          python -m pip install --no-deps -e .
+          sudo apt-get update
+          sudo apt-get install -y epubcheck postgresql-client
+      - name: Prepare PostgreSQL and pgvector
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+          psql -v ON_ERROR_STOP=1 -c "SELECT extversion FROM pg_extension WHERE extname = 'vector';"
+      - name: Migration and configuration checks
+        run: |
+          python web/manage.py migrate --noinput
+          python web/manage.py check
+          python web/manage.py makemigrations --check --dry-run
+          python web/manage.py migrate --plan
+          epubcheck --version
+      - name: Compile Python
+        run: python -m compileall -q gaiden web scripts
+      - name: Intake, Writer, Dashboard, final build and security tests
+        run: >-
+          python web/manage.py test
+          pipeline.test_drive_intake
+          pipeline.test_editorial_import
+          pipeline.test_incremental_import
+          pipeline.test_module_boundaries
+          --noinput
+      - name: Premium EPUB tests
+        run: python web/manage.py test editorial.test_premium_epub --noinput
+      - name: Collections tests
+        run: python web/manage.py test collections_module.tests --noinput
+      - name: Manual AI routing tests
+        run: >-
+          python web/manage.py test
+          pipeline.tests.TranslateAgentRoutingTests
+          pipeline.tests.FrenchRefineRoutingTests
+          pipeline.tests.FrenchPolishRoutingTests
+          pipeline.tests.EnglishPhilosoferTranslateTests
+          --noinput
