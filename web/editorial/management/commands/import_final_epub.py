@@ -16,7 +16,6 @@ class Command(BaseCommand):
         parser.add_argument("--actor", default="management-command")
         parser.add_argument("--official-body")
         parser.add_argument("--approve", action="store_true")
-        parser.add_argument("--skip-epubcheck", action="store_true")
 
     def handle(self, *args, **options):
         try:
@@ -30,7 +29,6 @@ class Command(BaseCommand):
                 actor=options["actor"],
                 official_body_path=options.get("official_body"),
                 approved=options["approve"],
-                run_epubcheck=not options["skip_epubcheck"],
             )
         except FinalEpubImportError as exc:
             raise CommandError(str(exc)) from exc

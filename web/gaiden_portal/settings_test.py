@@ -22,3 +22,5 @@ MIGRATION_MODULES = {
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
+
+GAIDEN_ALLOW_EPUBCHECK_SKIP_FOR_TESTS = True
