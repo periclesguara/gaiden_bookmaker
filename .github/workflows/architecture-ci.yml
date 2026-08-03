@@ -55,7 +55,9 @@ jobs:
           python web/manage.py check
           python web/manage.py makemigrations --check --dry-run
           python web/manage.py migrate --plan
-          epubcheck --version
+          epubcheck_output="$(epubcheck --version 2>&1 || true)"
+          printf '%s\n' "$epubcheck_output"
+          grep -q 'EPUBCheck v' <<< "$epubcheck_output"
       - name: Compile Python
         run: python -m compileall -q gaiden web scripts
       - name: Intake, Writer, Dashboard, final build and security tests
