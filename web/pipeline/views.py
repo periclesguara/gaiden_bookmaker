@@ -1413,6 +1413,11 @@ def production_dashboard(request):
         state.edition_id: state
         for state in EditionPipeline.objects.filter(edition_id__in=[edition.id for edition in editions])
     }
+    latest_build_map = {}
+    for build in EditionBuild.objects.filter(edition_id__in=[edition.id for edition in editions]).order_by(
+        "edition_id", "-build_version", "-created_at"
+    ):
+        latest_build_map.setdefault(build.edition_id, build)
     template_map = {
         (template.book_code, utils.normalize_lang(template.language)): template
         for template in BookEditionTemplate.objects.filter(
@@ -1424,6 +1429,8 @@ def production_dashboard(request):
     current_edition_id = bookmark.edition_id if bookmark else None
     for edition in editions:
         pipeline_state = pipeline_map.get(edition.id)
+        final_build = latest_build_map.get(edition.id)
+        build_done = bool(final_build and final_build.qualifies_as_done)
         stage = pipeline_state.current_stage if pipeline_state else "SEM_ETAPA"
         language = utils.normalize_lang(edition.language.code)
         template = template_map.get((edition.work.code, language))
@@ -1447,8 +1454,11 @@ def production_dashboard(request):
             "open_url": open_url,
             "is_current": edition.id == current_edition_id,
             "from_intake": edition.id in activated_by_edition_id,
+            "final_build": final_build if build_done else None,
+            "build_status": final_build.status if final_build else EditionBuild.STATUS_NOT_STARTED,
         }
-        if stage == PipelineStage.DONE:
+        if build_done:
+            row["open_url"] = reverse("final_build_detail", kwargs={"build_id": final_build.id})
             done_rows.append(row)
         else:
             edited_rows.append(row)
@@ -1472,6 +1482,44 @@ def production_dashboard(request):
             "total_count": len(done_rows) + len(edited_rows) + len(reserved_rows),
         },
     )
+
+
+def final_build_detail(request, build_id: int):
+    build = get_object_or_404(
+        EditionBuild.objects.select_related("edition__work__author", "edition__language", "edition__seal"),
+        pk=build_id,
+    )
+    history = EditionBuild.objects.filter(edition=build.edition).order_by("-build_version", "-created_at")
+    return render(request, "pipeline/final_build_detail.html", {"build": build, "history": history})
+
+
+def download_final_build(request, build_id: int):
+    build = get_object_or_404(EditionBuild, pk=build_id)
+    if not build.qualifies_as_done:
+        raise Http404("Final EPUB is not approved for download.")
+    candidate = Path(build.epub_path).expanduser().resolve()
+    allowed_roots = (storage.storage_root().resolve(), storage.repo_root().resolve())
+    if not candidate.is_file() or not any(candidate.is_relative_to(root) for root in allowed_roots):
+        raise Http404("Final EPUB is outside canonical storage or does not exist.")
+    if hashlib.sha256(candidate.read_bytes()).hexdigest() != build.artifact_sha256:
+        raise Http404("Final EPUB failed its stored SHA-256 verification.")
+    return FileResponse(candidate.open("rb"), as_attachment=True, filename=candidate.name, content_type="application/epub+zip")
+
+
+def mark_final_build_outdated(request, build_id: int):
+    build = get_object_or_404(EditionBuild, pk=build_id)
+    if request.method != "POST" or request.POST.get("confirm") != "yes":
+        return redirect("final_build_detail", build_id=build.id)
+    build.status = EditionBuild.STATUS_OUTDATED
+    build.is_final = False
+    build.save(update_fields=["status", "is_final"])
+    EditionPipeline.objects.filter(edition=build.edition).update(build_outdated=True)
+    from editorial.models import EditionBuildAuditEvent
+    EditionBuildAuditEvent.objects.create(
+        build=build, event_type="FINAL_ARTIFACT_MARKED_OUTDATED", actor=str(request.user or "dashboard")
+    )
+    messages.success(request, "Final build marked OUTDATED.")
+    return redirect("production_dashboard")
 
 
 def post_intake_workflow(request, edition_id: int):
