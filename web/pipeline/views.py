@@ -46,6 +46,7 @@ from gaiden.application.pipeline.translation import (
 )
 from gaiden.application.pipeline.gates import preflight_gate as resolve_preflight_gate
 from gaiden.application.pipeline.status import resolve_block_status_map
+from gaiden.application.builds.finalized_projects import mark_build_outdated
 from gaiden.infrastructure import storage
 from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
 
@@ -1496,13 +1497,18 @@ def final_build_detail(request, build_id: int):
 def download_final_build(request, build_id: int):
     build = get_object_or_404(EditionBuild, pk=build_id)
     if not build.qualifies_as_done:
+        from editorial.models import EditionBuildAuditEvent
+
+        EditionBuildAuditEvent.objects.create(
+            build=build,
+            event_type="FINAL_ARTIFACT_DOWNLOAD_INTEGRITY_FAILED",
+            actor=str(request.user) if request.user.is_authenticated else "anonymous",
+            details={"errors": build.integrity_errors(), "artifact_sha256": build.artifact_sha256},
+        )
         raise Http404("Final EPUB is not approved for download.")
-    candidate = Path(build.epub_path).expanduser().resolve()
-    allowed_roots = (storage.storage_root().resolve(), storage.repo_root().resolve())
-    if not candidate.is_file() or not any(candidate.is_relative_to(root) for root in allowed_roots):
+    candidate = EditionBuild._safe_existing_path(build.epub_path, require_epub=True)
+    if candidate is None:
         raise Http404("Final EPUB is outside canonical storage or does not exist.")
-    if hashlib.sha256(candidate.read_bytes()).hexdigest() != build.artifact_sha256:
-        raise Http404("Final EPUB failed its stored SHA-256 verification.")
     return FileResponse(candidate.open("rb"), as_attachment=True, filename=candidate.name, content_type="application/epub+zip")
 
 
@@ -1510,14 +1516,15 @@ def mark_final_build_outdated(request, build_id: int):
     build = get_object_or_404(EditionBuild, pk=build_id)
     if request.method != "POST" or request.POST.get("confirm") != "yes":
         return redirect("final_build_detail", build_id=build.id)
-    build.status = EditionBuild.STATUS_OUTDATED
-    build.is_final = False
-    build.save(update_fields=["status", "is_final"])
-    EditionPipeline.objects.filter(edition=build.edition).update(build_outdated=True)
-    from editorial.models import EditionBuildAuditEvent
-    EditionBuildAuditEvent.objects.create(
-        build=build, event_type="FINAL_ARTIFACT_MARKED_OUTDATED", actor=str(request.user or "dashboard")
-    )
+    try:
+        mark_build_outdated(
+            build.id,
+            actor=str(request.user) if request.user.is_authenticated else "anonymous",
+            reason=(request.POST.get("reason") or "").strip(),
+        )
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("final_build_detail", build_id=build.id)
     messages.success(request, "Final build marked OUTDATED.")
     return redirect("production_dashboard")
 
