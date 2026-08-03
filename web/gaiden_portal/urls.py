@@ -8,6 +8,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", collection_views.project_entry, name="root"),
     path("collections/", include("collections_module.urls")),
+    path("writer/", include("web.writer.urls")),
+    path("intake/", include("web.intake.urls")),
+    path("manual/", include("web.manual_ai.urls")),
     path(
         "intake/automated/",
         views_incremental.automated_editorial_import_dashboard,

@@ -365,46 +365,46 @@
 
       <main>
         <section class="intro" aria-labelledby="page-title">
-          <p class="eyebrow">Nova producao</p>
-          <h1 id="page-title">Criar projeto editorial</h1>
+          <p class="eyebrow">Editorial workspace</p>
+          <h1 id="page-title">Choose a module</h1>
           <p class="lead">
-            Inicie uma edicao individual ou organize uma collection com multiplas obras
-            antes de seguir para o pipeline de preparacao, revisao e publicacao.
+            Writer, Intake and Manual / AI are independent contexts. The production
+            dashboard consolidates their read-only publishing status.
           </p>
         </section>
 
         <section class="workspace" aria-labelledby="workspace-title">
           <p class="section-label" id="workspace-title">Escolha o fluxo</p>
           <div class="actions">
+            <a class="option book" href="{% url 'writer:home' %}">
+              <span class="icon" aria-hidden="true">W</span>
+              <span>
+                <strong class="option-title">WRITER</strong>
+                <span class="option-copy">Write, organize and version manuscripts.</span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
+            <a class="option automated" href="{% url 'intake:home' %}">
+              <span class="icon" aria-hidden="true">I</span>
+              <span>
+                <strong class="option-title">INTAKE</strong>
+                <span class="option-copy">Import sources, manage Drive handoffs and promote official bodies.</span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
+            <a class="option collection" href="{% url 'manual_ai:home' %}">
+              <span class="icon" aria-hidden="true">M</span>
+              <span>
+                <strong class="option-title">MANUAL / AI</strong>
+                <span class="option-copy">Run Translate, Refine and Polish with internal or external AI agents.</span>
+              </span>
+              <span class="arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
             <a class="option dashboard" href="{% url 'production_dashboard' %}">
               <span class="icon" aria-hidden="true">D</span>
               <span>
-                <strong class="option-title">Dashboard de edições</strong>
-                <span class="option-copy">Retomar a edição salva e consultar registros permanentes, edições DONE e reservas do Intake.</span>
-              </span>
-              <span class="arrow" aria-hidden="true">&rsaquo;</span>
-            </a>
-            <a class="option book" href="{% url 'book_edition_new' %}">
-              <span class="icon" aria-hidden="true">B</span>
-              <span>
-                <strong class="option-title">Book</strong>
-                <span class="option-copy">Criar uma edicao de livro com arquivo fonte, metadados e etapas do pipeline.</span>
-              </span>
-              <span class="arrow" aria-hidden="true">&rsaquo;</span>
-            </a>
-            <a class="option collection" href="{% url 'collection_new' %}">
-              <span class="icon" aria-hidden="true">C</span>
-              <span>
-                <strong class="option-title">Collection</strong>
-                <span class="option-copy">Montar uma coletanea, registrar itens e preparar o handoff para o pipeline padrao.</span>
-              </span>
-              <span class="arrow" aria-hidden="true">&rsaquo;</span>
-            </a>
-            <a class="option automated" href="{% url 'automated_editorial_import' %}">
-              <span class="icon" aria-hidden="true">A</span>
-              <span>
-                <strong class="option-title">Automated</strong>
-                <span class="option-copy">Pré-visualizar e confirmar pacotes editoriais incrementais, com retomada por blocos.</span>
+                <strong class="option-title">PRODUCTION DASHBOARD</strong>
+                <span class="option-copy">Track editions, final artifacts and publishing status.</span>
               </span>
               <span class="arrow" aria-hidden="true">&rsaquo;</span>
             </a>
