@@ -249,34 +249,43 @@ def _next_pipeline_book_code() -> str:
 def _ensure_pipeline_runtime_defaults() -> None:
     if connection.vendor != "postgresql":
         return
+    defaults_by_table = {
+        "work": {
+            "subtitle": "''",
+            "enabled_languages": "'[]'::jsonb",
+            "source_format": "'txt'",
+            "notes": "''",
+        },
+        "edition": {
+            "language_variant": "''",
+            "copyright_text": "''",
+            "editorial_name": "''",
+            "edition_copyright_holder": "''",
+            "book_id": "''",
+            "canonical_official_tag": "''",
+            "canonical_run_dir": "''",
+            "lang": "''",
+            "raw_materialized_path": "''",
+            "raw_sha256": "''",
+            "status": "''",
+            "truth_path": "''",
+            "truth_sha256": "''",
+        },
+    }
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            ALTER TABLE work
-              ALTER COLUMN subtitle SET DEFAULT '',
-              ALTER COLUMN enabled_languages SET DEFAULT '[]'::jsonb,
-              ALTER COLUMN source_format SET DEFAULT 'txt',
-              ALTER COLUMN notes SET DEFAULT ''
-            """
-        )
-        cursor.execute(
-            """
-            ALTER TABLE edition
-              ALTER COLUMN language_variant SET DEFAULT '',
-              ALTER COLUMN copyright_text SET DEFAULT '',
-              ALTER COLUMN editorial_name SET DEFAULT '',
-              ALTER COLUMN edition_copyright_holder SET DEFAULT '',
-              ALTER COLUMN book_id SET DEFAULT '',
-              ALTER COLUMN canonical_official_tag SET DEFAULT '',
-              ALTER COLUMN canonical_run_dir SET DEFAULT '',
-              ALTER COLUMN lang SET DEFAULT '',
-              ALTER COLUMN raw_materialized_path SET DEFAULT '',
-              ALTER COLUMN raw_sha256 SET DEFAULT '',
-              ALTER COLUMN status SET DEFAULT '',
-              ALTER COLUMN truth_path SET DEFAULT '',
-              ALTER COLUMN truth_sha256 SET DEFAULT ''
-            """
-        )
+        quote = connection.ops.quote_name
+        for table_name, defaults in defaults_by_table.items():
+            existing_columns = {
+                column.name
+                for column in connection.introspection.get_table_description(cursor, table_name)
+            }
+            clauses = [
+                f"ALTER COLUMN {quote(column_name)} SET DEFAULT {expression}"
+                for column_name, expression in defaults.items()
+                if column_name in existing_columns
+            ]
+            if clauses:
+                cursor.execute(f"ALTER TABLE {quote(table_name)} {', '.join(clauses)}")
 
 
 def handoff_to_pipeline(collection, items):

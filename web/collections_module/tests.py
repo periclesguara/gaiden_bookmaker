@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from django.test import TestCase
 from django.urls import reverse
@@ -222,8 +223,10 @@ class CollectionModuleTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         item.refresh_from_db()
-        self.assertIn(f"/data/collections/{collection.code}/en/uploads/", item.source_original_path)
-        self.assertNotIn("/data/raw/", item.source_original_path)
+        self.assertEqual(
+            Path(item.source_original_path).parent,
+            collections_storage.uploads_dir(collection.code, "en"),
+        )
         self.assertEqual(item.upload_status, "completed")
 
     def test_upload_page_has_txt_html_epub_format_options(self):
