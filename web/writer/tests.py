@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -136,6 +137,10 @@ class ProjectAndChapterTests(TestCase):
 
 class WriterViewTests(TestCase):
     def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="writer-editor", password="test-password", is_staff=True
+        )
+        self.client.force_login(self.user)
         self.project = StoryProject.objects.create(title="Book", chapter_count=2)
         synchronize_chapters(self.project)
 
@@ -165,6 +170,7 @@ class WriterViewTests(TestCase):
 
     def test_critical_writer_post_requires_csrf(self):
         client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
         chapter = self.project.chapters.first()
         self.assertEqual(
             client.post(reverse("writer:generate", args=[chapter.id])).status_code, 403
