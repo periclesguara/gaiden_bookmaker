@@ -15,6 +15,10 @@ while IFS= read -r -d '' path; do
       printf 'forbidden tracked runtime/binary artifact: %s\n' "$path" >&2
       violations=1
       ;;
+    data/chunks/*|data/builds/*|data/covers/*|data/images/*|data/translated/*)
+      printf 'forbidden tracked generated editorial artifact: %s\n' "$path" >&2
+      violations=1
+      ;;
     *.pem|*.key|credentials*.json|service-account*.json)
       printf 'forbidden tracked credential file: %s\n' "$path" >&2
       violations=1
