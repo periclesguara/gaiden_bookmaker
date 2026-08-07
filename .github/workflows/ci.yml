@@ -92,15 +92,15 @@ jobs:
 
           from django.test.runner import DiscoverRunner
 
-          suite = DiscoverRunner(verbosity=0).build_suite(["editorial", "pipeline"])
+          suite = DiscoverRunner(verbosity=0).build_suite(["editorial", "pipeline", "writer"])
           count = suite.countTestCases()
           print(f"Discovered {count} Django tests")
-          if count < 12:
-              raise SystemExit("Django test baseline fell below 12 tests")
+          if count < 20:
+              raise SystemExit("Django test baseline fell below 20 tests")
           PY
 
       - name: Run tests
-        run: python web/manage.py test editorial pipeline --noinput --verbosity 2
+        run: python web/manage.py test editorial pipeline writer --noinput --verbosity 2
 
       - name: Audit Python dependencies
         run: python -m pip_audit -r requirements-ci.txt --progress-spinner=off
