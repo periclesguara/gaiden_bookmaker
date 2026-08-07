@@ -78,8 +78,29 @@ jobs:
       - name: Compile source
         run: python -m compileall -q gaiden web scripts
 
+      - name: Require a meaningful Django test baseline
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+
+          sys.path.insert(0, "web")
+          os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gaiden_portal.settings")
+
+          import django
+          django.setup()
+
+          from django.test.runner import DiscoverRunner
+
+          suite = DiscoverRunner(verbosity=0).build_suite(["editorial", "pipeline"])
+          count = suite.countTestCases()
+          print(f"Discovered {count} Django tests")
+          if count < 12:
+              raise SystemExit("Django test baseline fell below 12 tests")
+          PY
+
       - name: Run tests
-        run: python web/manage.py test --noinput
+        run: python web/manage.py test editorial pipeline --noinput --verbosity 2
 
       - name: Audit Python dependencies
         run: python -m pip_audit -r requirements-ci.txt --progress-spinner=off
