@@ -29,7 +29,7 @@ def get_openai_key() -> str | None:
     """
     Lê OPENAI_API_KEY do arquivo .gaiden_secrets.
     Formato esperado:
-        OPENAI_API_KEY=sk-xxxxx
+        OPENAI_API_KEY=replace-me
     """
     global _cache
     if _cache is None:
