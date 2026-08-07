@@ -7,7 +7,7 @@ from .clients import Embedder, Generator
 from .index import VectorIndex
 from .rag import retrieve
 
-TOKEN = re.compile(r"\b[\w’'-]+\b", re.UNICODE)
+WORD_PATTERN = re.compile(r"\b[\w’'-]+\b", re.UNICODE)
 
 
 @dataclass(frozen=True)
@@ -43,7 +43,7 @@ class GenerationResult:
 
 
 def _words(text: str) -> list[str]:
-    return [match.group(0).casefold() for match in TOKEN.finditer(text)]
+    return [match.group(0).casefold() for match in WORD_PATTERN.finditer(text)]
 
 
 def reject_long_exact_overlap(draft: str, sources: list[str], *, phrase_words: int = 14) -> None:
