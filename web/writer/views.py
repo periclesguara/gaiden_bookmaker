@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +16,7 @@ from writer.services.sources import discover_source_documents
 from writer.services.vectorization import vectorize_project
 
 
+@staff_member_required
 @require_GET
 def home(request: HttpRequest) -> HttpResponse:
     projects = StoryProject.objects.prefetch_related("chapters")
@@ -24,11 +26,13 @@ def home(request: HttpRequest) -> HttpResponse:
     })
 
 
+@staff_member_required
 @require_GET
 def sources(request: HttpRequest) -> HttpResponse:
     return render(request, "writer/sources.html", {"documents": SourceDocument.objects.all()})
 
 
+@staff_member_required
 @require_POST
 def scan_sources(request: HttpRequest) -> HttpResponse:
     try:
@@ -39,6 +43,7 @@ def scan_sources(request: HttpRequest) -> HttpResponse:
     return redirect("writer:sources")
 
 
+@staff_member_required
 @require_POST
 def normalize_sources(request: HttpRequest) -> HttpResponse:
     raw_ids = request.POST.getlist("documents")
@@ -60,6 +65,7 @@ def normalize_sources(request: HttpRequest) -> HttpResponse:
     return redirect("writer:sources")
 
 
+@staff_member_required
 @require_http_methods(["GET", "POST"])
 def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id) if project_id else StoryProject()
@@ -73,6 +79,7 @@ def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpRes
     return render(request, "writer/project_form.html", {"form": form, "project": project})
 
 
+@staff_member_required
 @require_GET
 def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(
@@ -84,6 +91,7 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     })
 
 
+@staff_member_required
 @require_POST
 def project_sources(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
@@ -102,6 +110,7 @@ def project_sources(request: HttpRequest, project_id: int) -> HttpResponse:
     return redirect("writer:project_detail", project_id=project.id)
 
 
+@staff_member_required
 @require_POST
 def vectorize(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
@@ -113,6 +122,7 @@ def vectorize(request: HttpRequest, project_id: int) -> HttpResponse:
     return redirect("writer:project_detail", project_id=project.id)
 
 
+@staff_member_required
 @require_GET
 def chapter_detail(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(
@@ -121,6 +131,7 @@ def chapter_detail(request: HttpRequest, chapter_id: int) -> HttpResponse:
     return render(request, "writer/chapter_detail.html", {"chapter": chapter})
 
 
+@staff_member_required
 @require_http_methods(["GET", "POST"])
 def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
@@ -134,6 +145,7 @@ def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
     return render(request, "writer/chapter_form.html", {"chapter": chapter, "form": form})
 
 
+@staff_member_required
 @require_POST
 def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
@@ -145,6 +157,7 @@ def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
 
 
+@staff_member_required
 @require_POST
 def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter, pk=chapter_id)
