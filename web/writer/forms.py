@@ -86,4 +86,9 @@ class ChapterForm(forms.ModelForm):
                 "target_words",
                 f"Use pelo menos {sessions * 400} palavras para {sessions} sessões.",
             )
+        if self.instance.pk and self.instance.sessions.exists() and self.changed_data:
+            raise forms.ValidationError(
+                "Parâmetros e roteiro ficam imutáveis após a primeira sessão. "
+                "Crie um novo capítulo ou uma futura revisão versionada."
+            )
         return cleaned
