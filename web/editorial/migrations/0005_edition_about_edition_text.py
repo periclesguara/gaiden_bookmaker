@@ -6,10 +6,4 @@ class Migration(migrations.Migration):
         ("editorial", "0004_alter_edition_country"),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name="edition",
-            name="about_edition_text",
-            field=models.TextField(blank=True),
-        ),
-    ]
+    operations = []
