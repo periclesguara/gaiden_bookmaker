@@ -71,3 +71,9 @@ kdp_merged/
 
 # django runtime artifacts (do not commit)
 web/data/
+
+# Local Writer models, indexes, requests, drafts, and audits
+models/
+data/writer/
+writer-index*.jsonl
+*.audit.json
