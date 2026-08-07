@@ -121,8 +121,11 @@ def writer_storage_root() -> Path:
 
 
 def normalize_document(document: SourceDocument) -> SourceDocument:
-    source = Path(document.source_path).expanduser().resolve(strict=True)
-    if source.is_symlink() or source.suffix.casefold() not in {".txt", ".md"}:
+    configured_source = Path(document.source_path).expanduser()
+    if configured_source.is_symlink():
+        raise ValueError("symlink sources are forbidden")
+    source = configured_source.resolve(strict=True)
+    if source.suffix.casefold() not in {".txt", ".md"}:
         raise ValueError("only direct .txt and .md source files are supported")
     raw = source.read_text(encoding="utf-8", errors="strict")
     result = normalize_text(raw)
