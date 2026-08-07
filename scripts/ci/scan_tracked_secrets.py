@@ -54,8 +54,8 @@ SAFE_MARKERS = {
 }
 
 ASSIGNMENT = re.compile(
-    rb"(?im)^[ \\t]*(?:export[ \\t]+)?"
-    rb"(?P<name>[A-Z][A-Z0-9_]*)[ \\t]*=[ \\t]*(?P<value>[^\\r\\n#]*)"
+    rb"(?im)^[ \t]*(?:export[ \t]+)?"
+    rb"(?P<name>[A-Z][A-Z0-9_]*)[ \t]*=[ \t]*(?P<value>[^\r\n#]*)"
 )
 
 
