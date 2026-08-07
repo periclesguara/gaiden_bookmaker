@@ -78,6 +78,8 @@ and approved recovery sequence are documented in
   provenance, data-preserving reconciliation, deployment, and rollback.
 - `docs/writer-qwen-rag.md`: phase-1 Writer rules, Qwen model operation,
   complete Sherlock indexing, RAG, draft generation, and the phase-2 gate.
+- `docs/writer-workflow.md`: staff-only deployment, file treatment, bibles,
+  chapter parameters, four-session generation, review, and finalization.
 
 Architecture-specific documents must be updated in the same pull request as the
 behavior they describe.
