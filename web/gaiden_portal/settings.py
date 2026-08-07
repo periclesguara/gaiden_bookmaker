@@ -21,12 +21,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)xkvqv2orvj!r)yisuq#-iisc4lrb_b#-676rwjz1*+0k=dw@&'
+_secret_key = os.environ.get("DJANGO_SECRET_KEY", "").strip()
+if not _secret_key:
+    raise RuntimeError(
+        "DJANGO_SECRET_KEY is required. Copy .env.example to a local, ignored "
+        ".env file and provide a unique value."
+    )
+SECRET_KEY = _secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,[::1]",
+    ).split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -80,7 +98,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("PGDATABASE", "gaiden_django"),
         "USER": os.environ.get("PGUSER", "gaiden"),
-        "PASSWORD": os.environ.get("PGPASSWORD", "gaiden"),
+        "PASSWORD": os.environ.get("PGPASSWORD", ""),
         "HOST": os.environ.get("PGHOST", "127.0.0.1"),
         "PORT": os.environ.get("PGPORT", "5432"),
     }
@@ -127,3 +145,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Baseline HTTP security. Deployments behind TLS can additionally enable
+# DJANGO_SECURE_SSL_REDIRECT after the reverse proxy forwards the correct scheme.
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+SECURE_SSL_REDIRECT = (
+    os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "0").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
