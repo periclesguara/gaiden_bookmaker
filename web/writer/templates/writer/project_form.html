@@ -1,0 +1,5 @@
+{% extends "writer/base.html" %}
+{% block title %}{% if project.pk %}Editar projeto{% else %}Novo projeto{% endif %}{% endblock %}
+{% block content %}<section class="card"><h1>{% if project.pk %}Bíblias e direção{% else %}Novo projeto{% endif %}</h1><form method="post">{% csrf_token %}{{ form.non_field_errors }}
+{% for field in form %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}{% if field.help_text %}<div class="muted">{{ field.help_text }}</div>{% endif %}</div>{% endfor %}
+<button type="submit">Salvar e criar tabela de capítulos</button></form></section>{% endblock %}
