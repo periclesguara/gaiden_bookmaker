@@ -36,9 +36,11 @@ PGPASSWORD
 OPENAI_API_KEY
 ```
 
-Then load the non-secret runtime defaults:
+Install the declared environment and then load the non-secret runtime defaults:
 
 ```bash
+python -m pip install -r requirements-ci.txt
+python -m pip install --no-deps -e .
 source scripts/ops/env_gaiden.sh
 ```
 
