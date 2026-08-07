@@ -42,13 +42,15 @@ class ModuleEntrypointTests(TestCase):
         self.assertContains(response, "Writer")
 
     def test_dashboards_link_to_home_and_writer(self):
-        for name in ("production_dashboard", "pipeline_dashboard"):
-            response = self.client.get(reverse(name))
-            self.assertEqual(response.status_code, 200)
-            self.assertContains(response, reverse("root"))
-            self.assertContains(response, "Página inicial")
-            self.assertContains(response, reverse("writer:home"))
-            self.assertContains(response, "Writer")
+        dashboard_urls = (reverse("production_dashboard"), "/pipeline/")
+        for dashboard_url in dashboard_urls:
+            with self.subTest(dashboard_url=dashboard_url):
+                response = self.client.get(dashboard_url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, reverse("root"))
+                self.assertContains(response, "Página inicial")
+                self.assertContains(response, reverse("writer:home"))
+                self.assertContains(response, "Writer")
 
     def test_module_routes_are_independent(self):
         for name in ("writer:home", "intake:home", "manual_ai:home"):
