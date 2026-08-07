@@ -2,7 +2,15 @@ from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 
 from .frontmatter import build_context, language_display, render_frontmatter, render_template
-from .models import (\n    Contributor,\n    ContributorRole,\n    Edition,\n    Language,\n    PipelineArtifact,\n    Seal,\n    Work,\n)
+from .models import (
+    Contributor,
+    ContributorRole,
+    Edition,
+    Language,
+    PipelineArtifact,
+    Seal,
+    Work,
+)
 
 
 class FrontmatterUtilityTests(SimpleTestCase):
