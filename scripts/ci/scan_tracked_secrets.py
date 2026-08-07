@@ -54,8 +54,8 @@ SAFE_MARKERS = {
 }
 
 ASSIGNMENT = re.compile(
-    rb"(?im)^\s*(?:export\s+)?"
-    rb"(?P<name>[A-Z][A-Z0-9_]*)\s*=\s*(?P<value>[^\r\n#]*)"
+    rb"(?im)^[ \\t]*(?:export[ \\t]+)?"
+    rb"(?P<name>[A-Z][A-Z0-9_]*)[ \\t]*=[ \\t]*(?P<value>[^\\r\\n#]*)"
 )
 
 
@@ -89,7 +89,10 @@ def is_safe_example(value: str) -> bool:
     lowered = value.lower()
     return (
         lowered in SAFE_MARKERS
+        or any(marker and marker in lowered for marker in SAFE_MARKERS)
+        or "replace_me" in lowered
         or lowered.startswith("$")
+        or lowered.startswith("_")
         or "os.environ" in lowered
         or "os.getenv" in lowered
         or lowered.startswith("_required_env(")
@@ -117,7 +120,7 @@ def main() -> int:
         for match in ASSIGNMENT.finditer(payload):
             name = match.group("name").decode("ascii", errors="ignore")
             if name not in SENSITIVE_NAMES and not any(
-                marker in name
+                name.endswith(marker)
                 for marker in ("_API_KEY", "_PASSWORD", "_SECRET", "_TOKEN")
             ):
                 continue
