@@ -16,6 +16,20 @@ The Django project is `web/gaiden_portal` and installs two first-party apps:
 Reusable business logic belongs in service modules. Views should coordinate
 HTTP input and output rather than implement filesystem or editorial rules.
 
+### Writer engine phase 1
+
+`gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
+It owns deterministic corpus discovery and chunking, atomic vector-index
+serialization, retrieval, prompt boundaries, Qwen client coordination, and
+originality checks. It does not own canonical promotion or final builds.
+
+Generation and embeddings use separate configurable OpenAI-compatible local
+services. Qwen3.5-9B is the default generation model and
+Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
+weights, indexes, requests, drafts, and audit sidecars remain external runtime
+artifacts. Phase 1 introduces no Django models or migrations; those are gated
+on operator acceptance described in `docs/writer-qwen-rag.md`.
+
 ## Runtime data boundary
 
 Git is the source-of-truth for code, migrations, tests, small fixtures,
