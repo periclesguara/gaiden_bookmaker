@@ -1,0 +1,83 @@
+name: Main CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  django-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: gaiden
+          POSTGRES_USER: gaiden
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gaiden -d gaiden"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      DJANGO_SECRET_KEY: ci-only-django-secret-not-used-outside-actions
+      DJANGO_DEBUG: "0"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: gaiden
+      PGUSER: gaiden
+      PGPASSWORD: ci-only-password
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ci.txt
+          python -m pip install --no-deps -e .
+
+      - name: Prepare PostgreSQL and pgvector
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+          psql -v ON_ERROR_STOP=1 -c "SELECT extversion FROM pg_extension WHERE extname = 'vector';"
+
+      - name: Validate Django and migrations
+        run: |
+          python web/manage.py check
+          python web/manage.py makemigrations --check --dry-run
+          python web/manage.py migrate --plan
+
+      - name: Compile source
+        run: python -m compileall -q gaiden web scripts
+
+      - name: Run tests
+        run: python web/manage.py test --noinput
+
+      - name: Audit Python dependencies
+        run: python -m pip_audit -r requirements-ci.txt --progress-spinner=off
