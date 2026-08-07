@@ -21,6 +21,20 @@ Ten original migration sources were recovered verbatim from the repository's
 No empty migration, `--fake`, dependency rewrite, or
 `continue-on-error` was used.
 
+
+## Clean-bootstrap repair
+
+Full migration application exposed a second historical inconsistency:
+`editorial.0005_edition_about_edition_text` attempted to add
+`about_edition_text`, although the checked-in `0001_initial` already created
+that field. The canonical `0005` source on `integrate/runner` has an empty
+operation list and a distinct blob identity. The branch version was restored
+verbatim from that trusted repository source.
+
+After restoration, a clean PostgreSQL 16 database successfully applies the
+complete graph, `migrate --check` reports no pending migration, and the
+dependency audit reports no known vulnerability in the declared requirements.
+
 ## Active-model reconciliation
 
 The recovered historical state contains columns and the `EditionBlock` table
