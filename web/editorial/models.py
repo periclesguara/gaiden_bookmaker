@@ -52,6 +52,14 @@ class Contributor(models.Model):
 class Work(models.Model):
     code = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, blank=True)
+    enabled_languages = models.JSONField(blank=True, default=list)
+    source_format = models.CharField(
+        max_length=10,
+        choices=[("TXT", "TXT"), ("MD", "MD")],
+        default="TXT",
+    )
+    notes = models.TextField(blank=True)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,
@@ -127,6 +135,16 @@ class Edition(models.Model):
     translator = models.CharField(max_length=255, blank=True)
     editor = models.CharField(max_length=255, blank=True)
     about_edition_text = models.TextField(blank=True)
+    introduction_text = models.TextField(blank=True, default="", null=True)
+    epilogue_text = models.TextField(blank=True, default="", null=True)
+    language_variant = models.CharField(max_length=20, blank=True, default="")
+    copyright_text = models.TextField(blank=True, default="")
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
+    edition_copyright_holder = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+    )
     publication_year = models.IntegerField(default=2026)
     city = models.CharField(max_length=100, default="Rio de Janeiro")
     country = models.CharField(
@@ -311,6 +329,8 @@ class PipelineArtifact(models.Model):
     mtime_iso = models.CharField(max_length=40, default="")
     exists = models.BooleanField(default=True)
     is_candidate = models.BooleanField(default=True)
+    status = models.CharField(max_length=16, default="OK")
+    sha256 = models.CharField(max_length=64, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
