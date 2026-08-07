@@ -4,7 +4,7 @@ Date: 2026-08-07
 
 ## Scope
 
-This cleanup removes 300 generated text chunks under
+This cleanup removes 427 generated text chunks under
 `data/chunks/book_0001/` from the current Git tree. It does not delete source
 code, migrations, tests, documentation, database files, or configured external
 storage.
