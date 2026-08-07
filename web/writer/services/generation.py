@@ -48,6 +48,19 @@ def _session_role(number: int, total: int) -> str:
 def generate_chapter(chapter: Chapter) -> Chapter:
     if chapter.status == Chapter.Status.FINAL:
         raise ValueError("a finalized chapter cannot be regenerated")
+    required = {
+        "bíblia do personagem": chapter.project.character_bible,
+        "bíblia do antagonista": chapter.project.antagonist_bible,
+        "cenários e locais": chapter.project.scenario_bible,
+        "mundo, época, clima e referências": chapter.project.world_bible,
+        "direção da história": chapter.project.story_direction,
+        "roteiro geral": chapter.project.story_outline,
+        "direção do capítulo": chapter.direction,
+        "roteiro do capítulo": chapter.script,
+    }
+    missing = [label for label, value in required.items() if not value.strip()]
+    if missing:
+        raise ValueError("complete before generation: " + ", ".join(missing))
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
     engine = _engine(chapter)
