@@ -8,7 +8,8 @@ vectorization, story bibles, chapter planning, generation sessions, and explicit
 editorial finalization.
 
 It does not store model weights, source manuscripts, normalized bodies, vector
-indexes, or generated files in Git.
+indexes, or generated files in Git. Every Writer route requires an authenticated
+Django staff user; anonymous operators are redirected to the admin login.
 
 ## Deployment rule
 
