@@ -36,9 +36,11 @@ PGPASSWORD
 OPENAI_API_KEY
 ```
 
-Then load the non-secret runtime defaults:
+Install the declared environment and then load the non-secret runtime defaults:
 
 ```bash
+python -m pip install -r requirements-ci.txt
+python -m pip install --no-deps -e .
 source scripts/ops/env_gaiden.sh
 ```
 
@@ -65,6 +67,7 @@ and approved recovery sequence are documented in
 
 - `docs/repository-governance.md`: branch, pull request, and artifact policy.
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
+- `docs/audits/main-migration-reconciliation.md`: recovered migration provenance, data-preserving reconciliation, deployment, and rollback.
 - Architecture-specific documents live under `docs/` and should be updated in
   the same pull request as the behavior they describe.
 
