@@ -72,6 +72,8 @@ jobs:
           python web/manage.py check
           python web/manage.py makemigrations --check --dry-run
           python web/manage.py migrate --plan
+          python web/manage.py migrate --noinput
+          python web/manage.py migrate --check
 
       - name: Compile source
         run: python -m compileall -q gaiden web scripts
