@@ -2,7 +2,7 @@ from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 
 from .frontmatter import build_context, language_display, render_frontmatter, render_template
-from .models import Contributor, ContributorRole, Edition, Language, Seal, Work
+from .models import (\n    Contributor,\n    ContributorRole,\n    Edition,\n    Language,\n    PipelineArtifact,\n    Seal,\n    Work,\n)
 
 
 class FrontmatterUtilityTests(SimpleTestCase):
@@ -70,6 +70,23 @@ class EditorialModelTests(TestCase):
                     language=self.language,
                     seal=self.seal,
                 )
+
+    def test_preserved_work_fields_receive_safe_defaults(self):
+        self.assertEqual(self.work.subtitle, "")
+        self.assertEqual(self.work.enabled_languages, [])
+        self.assertEqual(self.work.source_format, "TXT")
+        self.assertEqual(self.work.notes, "")
+
+    def test_pipeline_artifact_write_populates_preserved_fields(self):
+        artifact = PipelineArtifact.objects.create(
+            work_code="book_0001",
+            language_code="en",
+            stage="raw",
+            relpath="book_0001/en/raw.txt",
+            filename="raw.txt",
+        )
+        self.assertEqual(artifact.status, "OK")
+        self.assertEqual(artifact.sha256, "")
 
     def test_frontmatter_context_uses_canonical_metadata(self):
         context = build_context(self.edition)
