@@ -361,6 +361,13 @@ class BookEditionTemplate(models.Model):
     subtitle = models.CharField(max_length=255, blank=True)
     author_name = models.CharField(max_length=255)
     publication_year = models.IntegerField()
+    edition_year = models.IntegerField(blank=True, null=True)
+    edition_copyright_holder = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+    )
+    editorial_name = models.CharField(max_length=120, blank=True, default="")
     imprint_name = models.CharField(max_length=255, blank=True)
     collection_name = models.CharField(max_length=255, blank=True)
     collaborator_name = models.CharField(max_length=255, blank=True)
