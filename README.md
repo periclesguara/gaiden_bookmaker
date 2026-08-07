@@ -6,15 +6,17 @@ editorial metadata, image assets, and validated digital book builds.
 
 ## Repository status
 
-- The default branch is the protected integration baseline.
+- The default branch is the stable integration baseline.
 - Feature work is reviewed through pull requests.
 - Generated books, local databases, credentials, backups, and operator data do
   not belong in Git.
 - Canonical editorial artifacts live in the configured external storage, not in
   repository history.
 
-The active architecture is evolving through stacked pull requests. See
-`docs/repository-governance.md` before retargeting or merging a branch.
+The application has a reusable editorial core in `gaiden/` and a Django
+operator interface in `web/`. See `docs/architecture.md` for ownership and
+runtime-data boundaries. See `docs/repository-governance.md` before
+retargeting or merging a branch.
 
 ## Local environment
 
@@ -51,11 +53,14 @@ Before merging:
 ```bash
 bash scripts/ci/check_repo_hygiene.sh
 python3 scripts/ci/scan_tracked_secrets.py
-python3 -m py_compile scripts/ci/scan_tracked_secrets.py
+python web/manage.py check
+python web/manage.py makemigrations --check --dry-run
+python web/manage.py test editorial pipeline
 ```
 
-Feature branches must additionally run their relevant Django, PostgreSQL,
-migration, and EPUB validation suites.
+The GitHub Actions application workflow additionally provisions PostgreSQL 16
+with pgvector, applies the complete migration graph, enforces a minimum Django
+test baseline, and audits pinned dependencies.
 
 ## Security
 
@@ -65,11 +70,15 @@ and approved recovery sequence are documented in
 
 ## Documentation
 
+- `docs/architecture.md`: active modules, compatibility boundary, runtime data,
+  and quality gates.
 - `docs/repository-governance.md`: branch, pull request, and artifact policy.
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
-- `docs/audits/main-migration-reconciliation.md`: recovered migration provenance, data-preserving reconciliation, deployment, and rollback.
-- Architecture-specific documents live under `docs/` and should be updated in
-  the same pull request as the behavior they describe.
+- `docs/audits/main-migration-reconciliation.md`: recovered migration
+  provenance, data-preserving reconciliation, deployment, and rollback.
+
+Architecture-specific documents must be updated in the same pull request as the
+behavior they describe.
 
 ## Ownership
 
