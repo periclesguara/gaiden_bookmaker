@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from django.test import SimpleTestCase, TestCase, override_settings
 
-from .models import PipelineJob, PipelineRun, PipelineRunItem
+from .models import BookEditionTemplate, PipelineJob, PipelineRun, PipelineRunItem
 from .services import paths, text_source
 
 
@@ -19,6 +19,18 @@ class PipelineModelTests(TestCase):
         self.assertEqual(job.status, "PENDING")
         self.assertIn("book_0042", str(job))
         self.assertIn("translate", str(job))
+
+    def test_book_template_write_populates_preserved_fields(self):
+        template = BookEditionTemplate.objects.create(
+            book_code="book_0042",
+            language="en",
+            title="The Phoenix on the Sword",
+            author_name="Robert E. Howard",
+            publication_year=2026,
+        )
+        self.assertIsNone(template.edition_year)
+        self.assertEqual(template.edition_copyright_holder, "")
+        self.assertEqual(template.editorial_name, "")
 
     def test_run_item_is_deleted_with_its_run(self):
         run = PipelineRun.objects.create(action="BUILD")
