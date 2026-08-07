@@ -96,7 +96,10 @@
   <header>
     <h1>Gaiden Pipeline - Visao Geral</h1>
     <p>Resumo por edicao com status das etapas.</p>
-    <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>
+    <div class="actions">
+      <a href="{% url 'book_edition_list' %}">Edições</a>
+      <a href="{% url 'writer:home' %}">Writer</a>
+    </div>
   </header>
   <section class="grid">
     {% for pipeline in pipelines %}
