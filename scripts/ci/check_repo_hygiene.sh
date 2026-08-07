@@ -11,12 +11,20 @@ while IFS= read -r -d '' path; do
         violations=1
       fi
       ;;
-    *.sqlite|*.sqlite3|*.db|*.epub)
+    *.sqlite|*.sqlite3|*.db|*.epub|*.mobi|*.azw3)
       printf 'forbidden tracked runtime/binary artifact: %s\n' "$path" >&2
       violations=1
       ;;
     *.pem|*.key|credentials*.json|service-account*.json)
       printf 'forbidden tracked credential file: %s\n' "$path" >&2
+      violations=1
+      ;;
+    *.bak|*.bak.*|*~)
+      printf 'forbidden tracked backup file: %s\n' "$path" >&2
+      violations=1
+      ;;
+    __pycache__/*|*/__pycache__/*|*.pyc|*.pyo)
+      printf 'forbidden tracked Python cache: %s\n' "$path" >&2
       violations=1
       ;;
   esac
