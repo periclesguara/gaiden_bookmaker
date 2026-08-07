@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Writer{% endblock %} · Gaiden</title>
+  <style>
+    :root{--bg:#f2eee7;--panel:#fffdf9;--ink:#20272a;--muted:#667074;--line:#d8d0c5;--accent:#a84628;--blue:#285f94;--green:#226f54;--red:#a52d2d}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+    .shell{width:min(1280px,calc(100% - 28px));margin:22px auto 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    nav,.actions{display:flex;gap:8px;flex-wrap:wrap}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+    h1,h2,h3{font-family:Georgia,serif;margin-top:0}.muted{color:var(--muted)}.btn,button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:9px 14px;background:var(--accent);color:#fff;text-decoration:none;font-weight:800;cursor:pointer}
+    .btn.secondary,button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.green,button.green{background:var(--green)}button.danger{background:var(--red)}
+    table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid var(--line);vertical-align:top;text-align:left}th{background:#eee8df}.table{overflow:auto}
+    input,textarea,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit}input[type=checkbox]{width:auto}
+    label{font-weight:750}.field{margin-bottom:15px}.errors,.messages{list-style:none;padding:0}.errors{color:var(--red)}.messages li{padding:10px 14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:8px;margin-bottom:8px}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.step{padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;text-align:center;font-size:12px;font-weight:800}
+    .status{display:inline-block;padding:3px 8px;border-radius:999px;background:#e9ecee;font-size:12px}.status.FINAL,.status.VECTORIZED{background:#dcefe5;color:var(--green)}.status.FAILED{background:#f5dddd;color:var(--red)}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.source-list label{display:block;padding:6px}
+    @media(max-width:800px){.top,.cols{display:block}.steps{grid-template-columns:repeat(2,1fr)}.table table,.table tbody,.table tr,.table td{display:block;width:100%}.table thead{display:none}.table tr{margin-bottom:12px;border:1px solid var(--line)}.table td{border:0}.actions .btn,.actions button{width:100%}}
+  </style>
+</head>
+<body><main class="shell">
+  <header class="top"><div><strong>Gaiden Writer</strong><div class="muted">RAG local · Qwen · aprovação editorial</div></div>
+    <nav><a class="btn secondary" href="{% url 'pipeline_dashboard' %}">← Página inicial</a><a class="btn secondary" href="{% url 'writer:home' %}">Writer</a><a class="btn secondary" href="{% url 'writer:sources' %}">Arquivos</a></nav>
+  </header>
+  <div class="steps"><span class="step">1 · Normalizar</span><span class="step">2 · Vetorizar</span><span class="step">3 · Bíblias</span><span class="step">4 · Roteiro</span><span class="step">5 · Parâmetros</span><span class="step">6 · Gerar</span></div>
+  {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+  {% block content %}{% endblock %}
+</main></body></html>

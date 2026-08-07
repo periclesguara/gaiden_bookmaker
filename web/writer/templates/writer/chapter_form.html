@@ -1,0 +1,5 @@
+{% extends "writer/base.html" %}
+{% block title %}Capítulo {{ chapter.number|stringformat:"02d" }}{% endblock %}
+{% block content %}<section class="card"><h1>Capítulo {{ chapter.number|stringformat:"02d" }} · Parâmetros</h1><p class="muted">{{ chapter.project.title }}</p><form method="post">{% csrf_token %}{{ form.non_field_errors }}
+{% for field in form %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+<button type="submit">Salvar parâmetros</button></form></section>{% endblock %}
