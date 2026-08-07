@@ -1,0 +1,10 @@
+{% extends "writer/base.html" %}
+{% block title %}{{ chapter.title }}{% endblock %}
+{% block content %}
+<section class="card"><h1>Capítulo {{ chapter.number|stringformat:"02d" }} · {{ chapter.title }}</h1><p><span class="status {{ chapter.status }}">{{ chapter.get_status_display }}</span> · Meta {{ chapter.target_words }} palavras · {{ chapter.session_count }} sessão(ões) · ≈ {{ chapter.estimated_tokens }} tokens</p>
+<div class="actions"><a class="btn secondary" href="{% url 'writer:project_detail' chapter.project.id %}">Voltar ao projeto</a>{% if chapter.status != "FINAL" %}<a class="btn secondary" href="{% url 'writer:chapter_edit' chapter.id %}">Editar parâmetros</a><form method="post" action="{% url 'writer:generate' chapter.id %}">{% csrf_token %}<button type="submit">Gerar capítulo</button></form>{% endif %}</div>
+{% if chapter.error_message %}<p class="errors">{{ chapter.error_message }}</p>{% endif %}</section>
+{% for session in chapter.sessions.all %}<section class="card"><h2>Sessão {{ session.number }} · {{ session.word_count }} palavras</h2><p class="muted">Modelo {{ session.model }} · fontes auditadas {{ session.source_chunk_ids|length }}</p><div style="white-space:pre-wrap">{{ session.content }}</div></section>{% empty %}<section class="card"><p>Nenhuma sessão gerada.</p></section>{% endfor %}
+{% if chapter.status == "GENERATION_COMPLETE" %}<section class="card"><h2>Finalização editorial</h2><p>Revise todas as sessões. Esta ação concatena o texto e torna o capítulo imutável na interface.</p><form method="post" action="{% url 'writer:finalize' chapter.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="green" type="submit">Finalizar capítulo</button></form></section>{% endif %}
+{% if chapter.status == "FINAL" %}<section class="card"><h2>Texto final</h2><div style="white-space:pre-wrap">{{ chapter.final_text }}</div></section>{% endif %}
+{% endblock %}

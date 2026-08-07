@@ -53,7 +53,8 @@ class ModuleEntrypointTests(TestCase):
                 self.assertContains(response, "Writer")
 
     def test_module_routes_are_independent(self):
-        for name in ("writer:home", "intake:home", "manual_ai:home"):
+        self.assertEqual(self.client.get(reverse("writer:home")).status_code, 302)
+        for name in ("intake:home", "manual_ai:home"):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200)
 
     def test_manual_ai_stages_remain_accessible_without_running_agents(self):

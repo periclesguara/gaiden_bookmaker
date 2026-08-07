@@ -1,0 +1,10 @@
+{% extends "writer/base.html" %}
+{% block title %}Arquivos{% endblock %}
+{% block content %}
+<section class="card"><h1>1 · Seleção e normalização</h1><p class="muted">A normalização remove contratos e material editorial de Project Gutenberg, Internet Archive, Standard Ebooks e frontmatter técnico. Epílogos narrativos são preservados.</p>
+<form method="post" action="{% url 'writer:scan_sources' %}">{% csrf_token %}<button type="submit">Localizar arquivos</button></form></section>
+<form method="post" action="{% url 'writer:normalize_sources' %}">{% csrf_token %}
+<section class="card"><div class="actions"><button type="submit">Enviar selecionados para Normalize</button></div><div class="table"><table><thead><tr><th></th><th>Arquivo</th><th>Origem detectada</th><th>Status</th><th>Tratamento</th></tr></thead><tbody>
+{% for document in documents %}<tr><td><input type="checkbox" name="documents" value="{{ document.id }}" aria-label="Selecionar {{ document.filename }}"></td><td><strong>{{ document.filename }}</strong>{% if document.error_message %}<br><span class="errors">{{ document.error_message }}</span>{% endif %}</td><td>{{ document.provider|default:"—" }}</td><td><span class="status {{ document.status }}">{{ document.get_status_display }}</span></td><td>{% if document.normalization_report %}{{ document.normalization_report.removed_characters }} caracteres removidos<br><span class="muted">{{ document.normalization_report.rules|join:", " }}</span>{% else %}—{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5">Configure GAIDEN_WRITER_SOURCE_ROOT e clique em Localizar arquivos.</td></tr>{% endfor %}</tbody></table></div></section></form>
+{% endblock %}

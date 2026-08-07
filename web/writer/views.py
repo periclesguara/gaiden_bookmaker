@@ -1,68 +1,172 @@
+from __future__ import annotations
+
 from django.contrib import messages
-from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from author_studio.models import Work
-
-from .forms import PromotionForm, VersionForm
-from .models import Manuscript, ManuscriptVersion
-from .services import create_version, promote_version
-
-
-def home(request):
-    manuscripts = Manuscript.objects.select_related("work", "work__author").prefetch_related("versions")
-    return render(request, "writer/home.html", {"manuscripts": manuscripts})
+from .forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
+from .models import Chapter, SourceDocument, StoryProject
+from .services.generation import generate_chapter
+from .services.normalization import normalize_document
+from .services.projects import synchronize_chapters
+from .services.sources import discover_source_documents
+from .services.vectorization import vectorize_project
 
 
-def works(request):
-    return render(request, "writer/works.html", {"works": Work.objects.select_related("author")})
+@staff_member_required
+@require_GET
+def home(request: HttpRequest) -> HttpResponse:
+    projects = StoryProject.objects.prefetch_related("chapters")
+    return render(request, "writer/home.html", {
+        "projects": projects,
+        "source_count": SourceDocument.objects.count(),
+    })
 
 
-def work_detail(request, work_id):
-    work = get_object_or_404(Work.objects.select_related("author"), pk=work_id)
-    manuscript, _ = Manuscript.objects.get_or_create(work=work)
-    return redirect("writer:manuscript", manuscript_id=manuscript.id)
+@staff_member_required
+@require_GET
+def sources(request: HttpRequest) -> HttpResponse:
+    return render(request, "writer/sources.html", {"documents": SourceDocument.objects.all()})
 
 
-def manuscript_detail(request, manuscript_id):
-    manuscript = get_object_or_404(Manuscript.objects.select_related("work", "work__author"), pk=manuscript_id)
-    latest = manuscript.versions.first()
-    form = VersionForm(request.POST or None, initial={"content": latest.content if latest else ""})
-    if request.method == "POST" and form.is_valid():
-        version = create_version(manuscript, **form.cleaned_data)
-        messages.success(request, f"Version {version.version} saved. The official body was not changed.")
-        return redirect("writer:manuscript", manuscript_id=manuscript.id)
-    return render(request, "writer/manuscript.html", {"manuscript": manuscript, "versions": manuscript.versions.all(), "form": form})
+@staff_member_required
+@require_POST
+def scan_sources(request: HttpRequest) -> HttpResponse:
+    try:
+        created = discover_source_documents()
+        messages.success(request, f"{created} novo(s) arquivo(s) localizado(s).")
+    except Exception as exc:
+        messages.error(request, f"Falha ao localizar arquivos: {exc}")
+    return redirect("writer:sources")
 
 
-def version_preview(request, manuscript_id, version_id):
-    version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
-    return render(request, "writer/version_preview.html", {"version": version, "form": PromotionForm()})
-
-
-def promote(request, manuscript_id, version_id):
-    version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
-    if request.method != "POST":
-        return redirect("writer:version_preview", manuscript_id=manuscript_id, version_id=version_id)
-    form = PromotionForm(request.POST)
-    if form.is_valid():
+@staff_member_required
+@require_POST
+def normalize_sources(request: HttpRequest) -> HttpResponse:
+    raw_ids = request.POST.getlist("documents")
+    if not raw_ids:
+        messages.error(request, "Selecione ao menos um arquivo.")
+        return redirect("writer:sources")
+    documents = list(SourceDocument.objects.filter(id__in=raw_ids))
+    for document in documents:
         try:
-            event = promote_version(
-                version,
-                editor_approval=form.cleaned_data["editor_approval"],
-                reason=form.cleaned_data["reason"],
-                actor=str(request.user) if request.user.is_authenticated else "anonymous",
-            )
-        except ValueError as exc:
-            form.add_error(None, str(exc))
-            return render(request, "writer/version_preview.html", {"version": version, "form": form})
-        messages.success(request, f"Official body promotion: {event.outcome}.")
-        return redirect("writer:manuscript", manuscript_id=manuscript_id)
-    return render(request, "writer/version_preview.html", {"version": version, "form": form})
+            normalize_document(document)
+        except Exception as exc:
+            document.status = SourceDocument.Status.FAILED
+            document.error_message = str(exc)[:2000]
+            document.save(update_fields=("status", "error_message"))
+            messages.error(request, f"{document.filename}: {exc}")
+    successful = sum(document.status == SourceDocument.Status.NORMALIZED for document in documents)
+    if successful:
+        messages.success(request, f"{successful} arquivo(s) normalizado(s).")
+    return redirect("writer:sources")
 
 
-def export_version(request, manuscript_id, version_id):
-    version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
-    response = HttpResponse(version.content, content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="{version.manuscript.work.code}_writer_v{version.version}.txt"'
-    return response
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id) if project_id else StoryProject()
+    form = StoryProjectForm(request.POST or None, instance=project)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            project = form.save()
+            synchronize_chapters(project)
+        messages.success(request, "Projeto e tabela de capítulos salvos.")
+        return redirect("writer:project_detail", project_id=project.id)
+    return render(request, "writer/project_form.html", {"form": form, "project": project})
+
+
+@staff_member_required
+@require_GET
+def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(
+        StoryProject.objects.prefetch_related("chapters__sessions", "sources"), pk=project_id
+    )
+    return render(request, "writer/project_detail.html", {
+        "project": project,
+        "source_form": ProjectSourcesForm(project=project),
+    })
+
+
+@staff_member_required
+@require_POST
+def project_sources(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    form = ProjectSourcesForm(request.POST, project=project)
+    if form.is_valid():
+        selected = form.cleaned_data["sources"]
+        old_ids = set(project.sources.values_list("id", flat=True))
+        new_ids = set(selected.values_list("id", flat=True))
+        project.sources.set(selected)
+        if old_ids != new_ids:
+            project.vector_index_path = ""
+            project.save(update_fields=("vector_index_path", "updated_at"))
+        messages.success(request, "Fontes do projeto atualizadas.")
+    else:
+        messages.error(request, "Seleção de fontes inválida.")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@staff_member_required
+@require_POST
+def vectorize(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    try:
+        vectorize_project(project)
+        messages.success(request, "Fontes vetorizadas e índice RAG atualizado.")
+    except Exception as exc:
+        messages.error(request, f"Falha na vetorização: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@staff_member_required
+@require_GET
+def chapter_detail(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(
+        Chapter.objects.select_related("project").prefetch_related("sessions"), pk=chapter_id
+    )
+    return render(request, "writer/chapter_detail.html", {"chapter": chapter})
+
+
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
+    if chapter.status == Chapter.Status.FINAL:
+        raise Http404("finalized chapters are immutable")
+    form = ChapterForm(request.POST or None, instance=chapter)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Parâmetros do capítulo salvos.")
+        return redirect("writer:project_detail", project_id=chapter.project_id)
+    return render(request, "writer/chapter_form.html", {"chapter": chapter, "form": form})
+
+
+@staff_member_required
+@require_POST
+def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
+    try:
+        generate_chapter(chapter)
+        messages.success(request, "Todas as sessões configuradas foram geradas.")
+    except Exception as exc:
+        messages.error(request, f"Falha na geração: {exc}")
+    return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@staff_member_required
+@require_POST
+def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    if request.POST.get("confirm") != "yes":
+        messages.error(request, "Confirmação editorial obrigatória.")
+        return redirect("writer:chapter_detail", chapter_id=chapter.id)
+    try:
+        chapter.finalize()
+        messages.success(request, "Capítulo finalizado após confirmação editorial.")
+    except Exception as exc:
+        messages.error(request, f"Não foi possível finalizar: {exc}")
+    return redirect("writer:chapter_detail", chapter_id=chapter.id)
