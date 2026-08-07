@@ -1,0 +1,171 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from gaiden.writer_engine.engine import GenerationResult
+from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
+from writer.services.generation import generate_chapter
+from writer.services.normalization import normalize_document, normalize_text
+from writer.services.projects import synchronize_chapters
+from writer.services.sources import discover_source_documents
+
+
+class NormalizationTests(TestCase):
+    def test_gutenberg_contract_is_removed_and_narrative_epilogue_is_preserved(self):
+        raw = (
+            "Project Gutenberg metadata and legal terms\n"
+            "*** START OF THE PROJECT GUTENBERG EBOOK A TEST ***\n\n"
+            "TITLE PAGE\n\nCHAPTER I\n\n" + ("The narrative begins here. " * 30)
+            + "\n\nEPILOGUE\n\n" + ("The narrative closes here. " * 25)
+            + "\n*** END OF THE PROJECT GUTENBERG EBOOK A TEST ***\n"
+            "Project Gutenberg license"
+        )
+        result = normalize_text(raw)
+        self.assertNotIn("legal terms", result.text)
+        self.assertNotIn("Project Gutenberg license", result.text)
+        self.assertIn("CHAPTER I", result.text)
+        self.assertIn("EPILOGUE", result.text)
+        self.assertEqual(result.provider, "PROJECT_GUTENBERG")
+
+    def test_unknown_source_is_not_cut_at_arbitrary_heading(self):
+        raw = ("Authorial opening material. " * 30) + "\n\nCHAPTER I\n\n" + ("Body. " * 100)
+        result = normalize_text(raw)
+        self.assertTrue(result.text.startswith("Authorial opening material"))
+
+    def test_normalized_file_is_external_and_audited(self):
+        with TemporaryDirectory() as temporary:
+            source = Path(temporary) / "input.txt"
+            source.write_text("CHAPTER I\n\n" + ("Body text. " * 100), encoding="utf-8")
+            document = SourceDocument.objects.create(filename=source.name, source_path=str(source))
+            storage = Path(temporary) / "writer-storage"
+            with patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": str(storage)}):
+                normalize_document(document)
+            document.refresh_from_db()
+            self.assertEqual(document.status, SourceDocument.Status.NORMALIZED)
+            self.assertTrue(Path(document.normalized_path).is_file())
+            self.assertEqual(len(document.normalized_sha256), 64)
+            self.assertIn("normalized_characters", document.normalization_report)
+
+
+class SourceDiscoveryTests(TestCase):
+    def test_discovery_registers_supported_files_only(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "sherlock.md").write_text("text", encoding="utf-8")
+            (root / "cover.jpg").write_bytes(b"not indexed")
+            with patch.dict(os.environ, {"GAIDEN_WRITER_SOURCE_ROOT": str(root)}):
+                self.assertEqual(discover_source_documents(), 1)
+                self.assertEqual(discover_source_documents(), 0)
+            self.assertEqual(SourceDocument.objects.get().filename, "sherlock.md")
+
+
+class ProjectAndChapterTests(TestCase):
+    def _project(self, **overrides):
+        values = {
+            "title": "New Mystery",
+            "character_bible": "Detective character facts",
+            "antagonist_bible": "Antagonist character facts",
+            "scenario_bible": "London locations",
+            "world_bible": "Victorian period, cold climate",
+            "story_direction": "A fair-play investigation",
+            "story_outline": "Ten chapter causal outline",
+            "chapter_count": 10,
+        }
+        values.update(overrides)
+        return StoryProject.objects.create(**values)
+
+    def test_project_creates_ten_parameter_rows_without_deleting_existing_chapters(self):
+        project = self._project()
+        synchronize_chapters(project)
+        self.assertEqual(project.chapters.count(), 10)
+        self.assertEqual(project.chapters.get(number=1).target_words, 2500)
+        self.assertEqual(project.chapters.get(number=1).session_count, 4)
+        project.chapter_count = 12
+        project.save()
+        synchronize_chapters(project)
+        self.assertEqual(project.chapters.count(), 12)
+
+    @patch("writer.services.generation._engine")
+    def test_generation_runs_four_sessions_then_requires_explicit_finalization(self, engine_factory):
+        project = self._project(chapter_count=1, vector_index_path="/runtime/index.jsonl")
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate the locked room"
+        chapter.script = "Opening, clue, confrontation, resolution"
+        chapter.save()
+
+        class FakeEngine:
+            def create_chapter(self, request, *, top_k):
+                number = len(engine_factory.return_value.calls) + 1
+                engine_factory.return_value.calls.append(request)
+                return GenerationResult(
+                    text=(f"Original session {number}. " * 220),
+                    model="test/qwen",
+                    source_chunk_ids=(f"source-{number}",),
+                    source_scores=(0.9,),
+                )
+
+        engine_factory.return_value = FakeEngine()
+        engine_factory.return_value.calls = []
+        generate_chapter(chapter)
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.GENERATION_COMPLETE)
+        self.assertEqual(chapter.sessions.count(), 4)
+        self.assertFalse(chapter.final_text)
+        chapter.finalize()
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.FINAL)
+        self.assertIn("Original session 1", chapter.final_text)
+
+    def test_finalize_rejects_incomplete_sessions(self):
+        project = self._project(chapter_count=1)
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        ChapterSession.objects.create(
+            chapter=chapter, number=1, status=ChapterSession.Status.COMPLETE, content="draft"
+        )
+        with self.assertRaisesMessage(ValueError, "all configured sessions"):
+            chapter.finalize()
+
+
+class WriterViewTests(TestCase):
+    def setUp(self):
+        self.project = StoryProject.objects.create(title="Book", chapter_count=2)
+        synchronize_chapters(self.project)
+
+    def test_writer_pages_are_reachable_without_side_effects(self):
+        before = (StoryProject.objects.count(), Chapter.objects.count())
+        for name, args in (
+            ("writer:home", ()),
+            ("writer:sources", ()),
+            ("writer:project_detail", (self.project.id,)),
+        ):
+            response = self.client.get(reverse(name, args=args))
+            self.assertEqual(response.status_code, 200)
+        self.assertEqual((StoryProject.objects.count(), Chapter.objects.count()), before)
+
+    def test_normalize_and_generate_actions_require_post(self):
+        document = SourceDocument.objects.create(filename="x.txt", source_path="/missing/x.txt")
+        chapter = self.project.chapters.first()
+        self.assertEqual(
+            self.client.get(reverse("writer:normalize_sources")).status_code, 405
+        )
+        self.assertEqual(
+            self.client.get(reverse("writer:generate", args=[chapter.id])).status_code, 405
+        )
+        self.assertEqual(
+            self.client.get(reverse("writer:finalize", args=[chapter.id])).status_code, 405
+        )
+
+    def test_critical_writer_post_requires_csrf(self):
+        client = Client(enforce_csrf_checks=True)
+        chapter = self.project.chapters.first()
+        self.assertEqual(
+            client.post(reverse("writer:generate", args=[chapter.id])).status_code, 403
+        )
