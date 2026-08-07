@@ -5,8 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gaiden-bookmaker"
 version = "0.1.0"
-description = "Gaiden BookMaker"
+description = "Private editorial production platform for RinoBooks"
 requires-python = ">=3.10"
+dependencies = [
+    "Django==5.2.11",
+    "beautifulsoup4==4.14.3",
+    "lxml==6.1.0",
+    "markitdown[all]==0.1.5",
+    "openai==2.24.0",
+    "pgvector==0.5.0",
+    "pillow==12.1.1",
+    "psycopg2-binary==2.9.11",
+    "requests==2.33.1",
+    "tiktoken==0.13.0",
+]
+
+[project.optional-dependencies]
+audit = [
+    "pip-audit==2.10.1",
+]
 
 [tool.setuptools]
 packages = ["gaiden"]
