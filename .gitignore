@@ -103,3 +103,9 @@ translate_book.sh
 *.out
 *.lof
 *.lot
+
+# Local Writer models, indexes, requests, drafts, and audits
+models/
+data/writer/
+writer-index*.jsonl
+*.audit.json
