@@ -36,7 +36,9 @@ class SourceDocument(models.Model):
 
 class StoryProject(models.Model):
     class Language(models.TextChoices):
-        EN_US = "en-US", "Inglês americano contemporâneo"
+        EN_US = "en-US", "EN-US — Inglês americano"
+        EN_GB = "en-GB", "EN-UK — Inglês britânico"
+        PT_BR = "pt-BR", "PT-BR — Português brasileiro"
 
     title = models.CharField(max_length=255)
     language = models.CharField(
