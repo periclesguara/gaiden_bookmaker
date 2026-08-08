@@ -15,27 +15,45 @@ _MAX_TERM_LENGTH = 160
 
 _DEFAULT_CONTRACT: dict[str, Any] = {
     "schema_version": _SCHEMA_VERSION,
-    "source_language": "pt-BR",
-    "target_language": "pt-BR",
-    "target_variant": "Português brasileiro contemporâneo",
-    "operation": "modernize",
+    "source_language": "en-GB",
+    "target_language": "en-US",
+    "target_variant": "Contemporary American English",
+    "operation": "original",
     "preserve": [
-        "meaning",
+        "semantic_meaning",
         "proper_names",
+        "characters",
         "plot_facts",
         "chronology",
+        "causal_logic",
         "point_of_view",
         "dialogue_intent",
-        "period_atmosphere",
     ],
+    "reference_policy": {
+        "semantic_content_only": True,
+        "preserve_source_wording": False,
+        "imitate_source_style": False,
+        "preserve_victorianism": False,
+    },
     "deleted_terms": [],
-    "forbidden_terms": [],
+    "forbidden_terms": [
+        "thou",
+        "thee",
+        "thy",
+        "thine",
+        "hath",
+        "doth",
+    ],
     "replacements": {},
     "style": {
-        "reduce_archaisms": "moderate",
-        "fluency": "literary",
+        "reduce_archaisms": "strong",
+        "fluency": "natural",
         "avoid_repetition": True,
-        "preserve_authorial_voice": True,
+        "preserve_authorial_voice": False,
+        "american_english_only": True,
+        "remove_obsolete_connectors": True,
+        "avoid_long_sentences": True,
+        "max_sentence_words": 32,
     },
     "constraints": {
         "no_summary": True,
@@ -50,6 +68,7 @@ _DEFAULT_CONTRACT: dict[str, Any] = {
 }
 
 _REQUIRED_KEYS = set(_DEFAULT_CONTRACT)
+_REQUIRED_REFERENCE_POLICY_KEYS = set(_DEFAULT_CONTRACT["reference_policy"])
 _REQUIRED_STYLE_KEYS = set(_DEFAULT_CONTRACT["style"])
 _REQUIRED_CONSTRAINT_KEYS = set(_DEFAULT_CONTRACT["constraints"])
 _REQUIRED_VALIDATION_KEYS = set(_DEFAULT_CONTRACT["validation"])
@@ -117,6 +136,15 @@ def validate_language_contract(contract: Any) -> None:
     if not preserve:
         _error("preserve deve declarar ao menos uma característica a conservar.")
 
+    reference_policy = _validate_exact_keys(
+        contract["reference_policy"],
+        _REQUIRED_REFERENCE_POLICY_KEYS,
+        "reference_policy",
+    )
+    for key, value in reference_policy.items():
+        if not isinstance(value, bool):
+            _error(f"reference_policy.{key} deve ser booleano.")
+
     deleted = _validate_term_list(contract["deleted_terms"], "deleted_terms")
     forbidden = _validate_term_list(contract["forbidden_terms"], "forbidden_terms")
 
@@ -146,9 +174,22 @@ def validate_language_contract(contract: Any) -> None:
         _error("style.reduce_archaisms deve ser none, light, moderate ou strong.")
     if style["fluency"] not in _ALLOWED_FLUENCY_LEVELS:
         _error("style.fluency deve ser literal, natural ou literary.")
-    for key in ("avoid_repetition", "preserve_authorial_voice"):
+    for key in (
+        "avoid_repetition",
+        "preserve_authorial_voice",
+        "american_english_only",
+        "remove_obsolete_connectors",
+        "avoid_long_sentences",
+    ):
         if not isinstance(style[key], bool):
             _error(f"style.{key} deve ser booleano.")
+    max_sentence_words = style["max_sentence_words"]
+    if (
+        isinstance(max_sentence_words, bool)
+        or not isinstance(max_sentence_words, int)
+        or not 12 <= max_sentence_words <= 60
+    ):
+        _error("style.max_sentence_words deve ser um inteiro entre 12 e 60.")
 
     constraints = _validate_exact_keys(
         contract["constraints"], _REQUIRED_CONSTRAINT_KEYS, "constraints"
@@ -239,6 +280,26 @@ def generated_text_violations(
         violations.append(
             "regras determinísticas não aplicadas: " + ", ".join(leftovers[:10])
         )
+
+    if contract["style"]["avoid_long_sentences"]:
+        maximum_sentence_words = contract["style"]["max_sentence_words"]
+        sentences = [
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", text)
+            if sentence.strip()
+        ]
+        longest_sentence = max(
+            (
+                len(re.findall(r"\b[\w’'-]+\b", sentence, re.UNICODE))
+                for sentence in sentences
+            ),
+            default=0,
+        )
+        if longest_sentence > maximum_sentence_words:
+            violations.append(
+                "frase excessivamente longa: "
+                f"{longest_sentence} palavras; máximo {maximum_sentence_words}"
+            )
 
     actual_words = len(text.split())
     allowed_percent = contract["validation"]["max_word_variation_percent"]
