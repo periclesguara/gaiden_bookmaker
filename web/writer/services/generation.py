@@ -81,6 +81,17 @@ def generate_chapter(chapter: Chapter) -> Chapter:
         session.number: session
         for session in chapter.sessions.filter(status=ChapterSession.Status.COMPLETE)
     }
+    incompatible = [
+        session.number
+        for session in completed.values()
+        if session.language_contract_sha256 != contract_hash
+    ]
+    if incompatible:
+        numbers = ", ".join(str(number) for number in sorted(incompatible))
+        raise ValueError(
+            "completed sessions use a different or legacy language contract "
+            f"(sessions: {numbers}); create a versioned chapter revision"
+        )
     try:
         for number in range(1, chapter.session_count + 1):
             if number in completed:
