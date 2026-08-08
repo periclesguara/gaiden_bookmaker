@@ -13,13 +13,12 @@
     "dialogue_intent",
     "period_atmosphere"
   ],
-  "deleted_terms": [
-    "ejaculated"
-  ],
+  "deleted_terms": [],
   "forbidden_terms": [
     "very unique"
   ],
   "replacements": {
+    "ejaculated": "said",
     "connexion": "connection",
     "to-day": "today",
     "to-morrow": "tomorrow"
