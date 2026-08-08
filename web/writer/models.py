@@ -35,8 +35,15 @@ class SourceDocument(models.Model):
 
 
 class StoryProject(models.Model):
+    class Language(models.TextChoices):
+        EN_US = "en-US", "Inglês americano contemporâneo"
+
     title = models.CharField(max_length=255)
-    language = models.CharField(max_length=40, default="pt-BR")
+    language = models.CharField(
+        max_length=40,
+        choices=Language.choices,
+        default=Language.EN_US,
+    )
     language_contract = models.JSONField(
         default=default_language_contract, validators=[validate_language_contract]
     )
