@@ -12,7 +12,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="storyproject",
             name="language",
-            field=models.CharField(choices=[("en-US", "Inglês americano contemporâneo")], default="en-US", max_length=40),
+            field=models.CharField(
+                choices=[
+                    ("en-US", "EN-US — Inglês americano"),
+                    ("en-GB", "EN-UK — Inglês britânico"),
+                    ("pt-BR", "PT-BR — Português brasileiro"),
+                ],
+                default="en-US",
+                max_length=40,
+            ),
         ),
         migrations.AddField(
             model_name="storyproject",
