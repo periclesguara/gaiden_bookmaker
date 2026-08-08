@@ -148,10 +148,15 @@ def validate_language_contract(contract: Any) -> None:
         _error(f"schema_version deve ser {_SCHEMA_VERSION}.")
 
     _validate_string(contract["source_language"], "source_language", maximum=40)
-    _validate_string(contract["target_language"], "target_language", maximum=40)
+    target_language = _validate_string(
+        contract["target_language"], "target_language", maximum=40
+    )
     _validate_string(contract["target_variant"], "target_variant")
+    if target_language not in SUPPORTED_OUTPUT_LANGUAGES:
+        _error("target_language deve ser en-US, en-GB ou pt-BR.")
 
-    if contract["operation"] not in _ALLOWED_OPERATIONS:
+    operation = _validate_string(contract["operation"], "operation", maximum=40)
+    if operation not in _ALLOWED_OPERATIONS:
         _error("operation deve ser modernize, translate_and_modernize ou original.")
 
     preserve = _validate_term_list(contract["preserve"], "preserve")
@@ -188,13 +193,24 @@ def validate_language_contract(contract: Any) -> None:
     forbidden_folded = {term.casefold() for term in forbidden}
     if deleted_folded & replacement_sources:
         _error("Um termo não pode estar simultaneamente em deleted_terms e replacements.")
-    if forbidden_folded & {str(value).casefold() for value in replacements.values()}:
+    replacement_targets = {
+        str(value).casefold() for value in replacements.values()
+    }
+    if forbidden_folded & replacement_targets:
         _error("Um texto substituto não pode estar em forbidden_terms.")
+    if deleted_folded & replacement_targets:
+        _error("Um texto substituto não pode estar em deleted_terms.")
+    if replacement_sources & replacement_targets:
+        _error("Substituições encadeadas ou circulares não são permitidas.")
 
     style = _validate_exact_keys(contract["style"], _REQUIRED_STYLE_KEYS, "style")
-    if style["reduce_archaisms"] not in _ALLOWED_ARCHAISM_LEVELS:
+    archaism_level = _validate_string(
+        style["reduce_archaisms"], "style.reduce_archaisms", maximum=20
+    )
+    if archaism_level not in _ALLOWED_ARCHAISM_LEVELS:
         _error("style.reduce_archaisms deve ser none, light, moderate ou strong.")
-    if style["fluency"] not in _ALLOWED_FLUENCY_LEVELS:
+    fluency = _validate_string(style["fluency"], "style.fluency", maximum=20)
+    if fluency not in _ALLOWED_FLUENCY_LEVELS:
         _error("style.fluency deve ser literal, natural ou literary.")
     for key in (
         "avoid_repetition",
