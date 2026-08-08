@@ -9,7 +9,6 @@ from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
 from writer.language_contract import (
     apply_deterministic_rules,
-    canonical_contract_json,
     contract_sha256,
     generated_text_violations,
     validate_language_contract,
@@ -70,7 +69,6 @@ def generate_chapter(chapter: Chapter) -> Chapter:
         raise ValueError("complete before generation: " + ", ".join(missing))
     contract = chapter.project.language_contract
     validate_language_contract(contract)
-    serialized_contract = canonical_contract_json(contract)
     contract_hash = contract_sha256(contract)
     output_language = contract["target_language"]
     if chapter.target_words < chapter.session_count * 400:
@@ -121,7 +119,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                         brief=brief,
                         continuity=continuity,
                         point_of_view="Follow the project and chapter direction exactly",
-                        language_contract=serialized_contract,
+                        language_contract=contract,
                         target_words=chapter.words_per_session,
                     ),
                     top_k=chapter.retrieval_top_k,
