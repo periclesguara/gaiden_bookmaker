@@ -4,6 +4,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
+from writer.language_contract import default_language_contract, validate_language_contract
+
 
 class SourceDocument(models.Model):
     class Status(models.TextChoices):
@@ -34,7 +36,10 @@ class SourceDocument(models.Model):
 
 class StoryProject(models.Model):
     title = models.CharField(max_length=255)
-    language = models.CharField(max_length=40, default="Português (Brasil)")
+    language = models.CharField(max_length=40, default="pt-BR")
+    language_contract = models.JSONField(
+        default=default_language_contract, validators=[validate_language_contract]
+    )
     premise = models.TextField(blank=True)
     character_bible = models.TextField(blank=True)
     antagonist_bible = models.TextField(blank=True)
@@ -131,6 +136,8 @@ class ChapterSession(models.Model):
     source_chunk_ids = models.JSONField(default=list, blank=True)
     source_scores = models.JSONField(default=list, blank=True)
     generation_parameters = models.JSONField(default=dict, blank=True)
+    language_contract = models.JSONField(default=dict)
+    language_contract_sha256 = models.CharField(max_length=64)
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
