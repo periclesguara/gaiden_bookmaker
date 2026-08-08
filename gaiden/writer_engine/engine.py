@@ -5,7 +5,12 @@ from dataclasses import dataclass
 
 from .clients import Embedder, Generator
 from .index import VectorIndex
-from .language_contract import contract_prompt, validate_language_contract
+from .language_contract import (
+    apply_deterministic_rules,
+    contract_prompt,
+    generated_text_violations,
+    validate_language_contract,
+)
 from .rag import retrieve
 
 WORD_PATTERN = re.compile(r"\b[\w’'-]+\b", re.UNICODE)
@@ -45,6 +50,7 @@ class GenerationResult:
     model: str
     source_chunk_ids: tuple[str, ...]
     source_scores: tuple[float, ...]
+    attempts: int = 1
 
 
 def _words(text: str) -> list[str]:
@@ -107,11 +113,32 @@ class WriterEngine:
             f"<reference_context>\n{retrieval.context}\n</reference_context>"
         )
         max_tokens = min(32768, max(1024, int(request.target_words * 1.8)))
-        draft = self.generator.generate(system=system, user=user, max_tokens=max_tokens)
-        reject_long_exact_overlap(draft, [hit.chunk.text for hit in retrieval.hits])
-        return GenerationResult(
-            text=draft,
-            model=self.generator.model,
-            source_chunk_ids=tuple(hit.chunk.chunk_id for hit in retrieval.hits),
-            source_scores=tuple(hit.score for hit in retrieval.hits),
+        maximum_attempts = request.language_contract["validation"]["retry_attempts"] + 1
+        sources = [hit.chunk.text for hit in retrieval.hits]
+        violations: list[str] = []
+        draft = ""
+        for attempt in range(1, maximum_attempts + 1):
+            raw_draft = self.generator.generate(
+                system=system,
+                user=user,
+                max_tokens=max_tokens,
+            )
+            draft = apply_deterministic_rules(raw_draft, request.language_contract)
+            reject_long_exact_overlap(draft, sources)
+            violations = generated_text_violations(
+                draft,
+                request.language_contract,
+                target_words=request.target_words,
+            )
+            if not violations:
+                return GenerationResult(
+                    text=draft,
+                    model=self.generator.model,
+                    source_chunk_ids=tuple(hit.chunk.chunk_id for hit in retrieval.hits),
+                    source_scores=tuple(hit.score for hit in retrieval.hits),
+                    attempts=attempt,
+                )
+        raise ValueError(
+            "language contract validation failed after "
+            f"{maximum_attempts} attempt(s): " + "; ".join(violations)
         )
