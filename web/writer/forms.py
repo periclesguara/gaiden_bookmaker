@@ -1,5 +1,6 @@
 from django import forms
 
+from writer.language_contract import language_contract_for, validate_language_contract
 from writer.models import Chapter, SourceDocument, StoryProject
 
 
@@ -13,7 +14,7 @@ class StoryProjectForm(forms.ModelForm):
         )
         labels = {
             "title": "Título do projeto",
-            "language": "Idioma de escrita",
+            "language": "Idioma de criação",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
@@ -30,6 +31,32 @@ class StoryProjectForm(forms.ModelForm):
                 "world_bible", "story_direction", "story_outline",
             )
         }
+        widgets["language"] = forms.Select()
+        help_texts = {
+            "language": (
+                "Selecione EN-US, EN-UK ou PT-BR. O Writer carrega automaticamente "
+                "o contrato correspondente antes de enviar o contexto RAG ao Qwen."
+            ),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        language = cleaned.get("language")
+        if (
+            language
+            and self.instance.pk
+            and "language" in self.changed_data
+            and self.instance.chapters.filter(sessions__isnull=False).exists()
+        ):
+            self.add_error(
+                "language",
+                "O idioma fica imutável após a primeira sessão. Crie uma revisão versionada.",
+            )
+        elif language:
+            contract = language_contract_for(language)
+            validate_language_contract(contract)
+            self.instance.language_contract = contract
+        return cleaned
 
     def clean_chapter_count(self):
         value = self.cleaned_data["chapter_count"]

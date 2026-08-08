@@ -7,6 +7,7 @@ from django.db import transaction
 from gaiden.writer_engine.clients import OpenAIEmbeddingClient, QwenGenerator
 from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
+from writer.language_contract import contract_sha256, validate_language_contract
 from writer.models import Chapter, ChapterSession
 
 
@@ -61,16 +62,31 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     missing = [label for label, value in required.items() if not value.strip()]
     if missing:
         raise ValueError("complete before generation: " + ", ".join(missing))
+    contract = chapter.project.language_contract
+    validate_language_contract(contract)
+    contract_hash = contract_sha256(contract)
+    output_language = contract["target_language"]
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
     engine = _engine(chapter)
-    chapter.status = Chapter.Status.GENERATING
-    chapter.error_message = ""
-    chapter.save(update_fields=("status", "error_message", "updated_at"))
     completed = {
         session.number: session
         for session in chapter.sessions.filter(status=ChapterSession.Status.COMPLETE)
     }
+    incompatible = [
+        session.number
+        for session in completed.values()
+        if session.language_contract_sha256 != contract_hash
+    ]
+    if incompatible:
+        numbers = ", ".join(str(number) for number in sorted(incompatible))
+        raise ValueError(
+            "completed sessions use a different or legacy language contract "
+            f"(sessions: {numbers}); create a versioned chapter revision"
+        )
+    chapter.status = Chapter.Status.GENERATING
+    chapter.error_message = ""
+    chapter.save(update_fields=("status", "error_message", "updated_at"))
     try:
         for number in range(1, chapter.session_count + 1):
             if number in completed:
@@ -100,21 +116,23 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             result = engine.create_chapter(
                 ChapterRequest(
                     title=f"{chapter.title or f'Chapter {chapter.number:02d}'} — session {number}",
-                    language=project.language,
+                    language=output_language,
                     brief=brief,
                     continuity=continuity,
                     point_of_view="Follow the project and chapter direction exactly",
+                    language_contract=contract,
                     target_words=chapter.words_per_session,
                 ),
                 top_k=chapter.retrieval_top_k,
             )
+            content = result.text
             with transaction.atomic():
                 ChapterSession.objects.create(
                     chapter=chapter,
                     number=number,
                     status=ChapterSession.Status.COMPLETE,
-                    content=result.text,
-                    word_count=len(result.text.split()),
+                    content=content,
+                    word_count=len(content.split()),
                     model=result.model,
                     source_chunk_ids=list(result.source_chunk_ids),
                     source_scores=list(result.source_scores),
@@ -123,7 +141,10 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                         "chapter_target_words": chapter.target_words,
                         "session_count": chapter.session_count,
                         "retrieval_top_k": chapter.retrieval_top_k,
+                        "validation_attempts": result.attempts,
                     },
+                    language_contract=contract,
+                    language_contract_sha256=contract_hash,
                 )
         chapter.status = Chapter.Status.GENERATION_COMPLETE
         chapter.error_message = ""

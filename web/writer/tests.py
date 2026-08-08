@@ -10,6 +10,15 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from gaiden.writer_engine.engine import GenerationResult
+from writer.forms import StoryProjectForm
+from writer.language_contract import (
+    apply_deterministic_rules,
+    contract_sha256,
+    default_language_contract,
+    generated_text_violations,
+    language_contract_for,
+    validate_language_contract,
+)
 from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document, normalize_text
@@ -54,6 +63,124 @@ class NormalizationTests(TestCase):
             self.assertIn("normalized_characters", document.normalization_report)
 
 
+class LanguageContractTests(TestCase):
+    def test_default_contract_is_first_en_us_semantic_creation_profile(self):
+        contract = default_language_contract()
+        self.assertEqual(contract["source_language"], "en-GB")
+        self.assertEqual(contract["target_language"], "en-US")
+        self.assertEqual(contract["operation"], "original")
+        self.assertTrue(contract["reference_policy"]["semantic_content_only"])
+        self.assertFalse(contract["reference_policy"]["imitate_source_style"])
+        self.assertFalse(contract["reference_policy"]["preserve_victorianism"])
+        self.assertTrue(contract["style"]["american_english_only"])
+        self.assertEqual(contract["style"]["reduce_archaisms"], "strong")
+
+    def test_selector_contracts_cover_all_three_languages(self):
+        en_us = language_contract_for("en-US")
+        en_gb = language_contract_for("en-GB")
+        pt_br = language_contract_for("pt-BR")
+        self.assertTrue(en_us["style"]["american_english_only"])
+        self.assertEqual(en_gb["target_variant"], "Contemporary British English")
+        self.assertEqual(pt_br["operation"], "translate_and_modernize")
+        self.assertEqual(pt_br["target_language"], "pt-BR")
+
+    def test_project_form_loads_contract_from_language_selector(self):
+        form = StoryProjectForm(data={
+            "title": "Portuguese edition",
+            "language": "pt-BR",
+            "premise": "",
+            "character_bible": "",
+            "antagonist_bible": "",
+            "scenario_bible": "",
+            "world_bible": "",
+            "story_direction": "",
+            "story_outline": "",
+            "chapter_count": 1,
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        project = form.save()
+        self.assertEqual(project.language, "pt-BR")
+        self.assertEqual(project.language_contract["target_language"], "pt-BR")
+        self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
+
+    def test_language_selector_is_immutable_after_first_session(self):
+        project = StoryProject.objects.create(title="Started book", chapter_count=1)
+        chapter = Chapter.objects.create(project=project, number=1)
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Draft",
+        )
+        form = StoryProjectForm(
+            instance=project,
+            data={
+                "title": project.title,
+                "language": "en-GB",
+                "premise": "",
+                "character_bible": "",
+                "antagonist_bible": "",
+                "scenario_bible": "",
+                "world_bible": "",
+                "story_direction": "",
+                "story_outline": "",
+                "chapter_count": 1,
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("language", form.errors)
+
+    def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
+        contract = default_language_contract()
+        contract["deleted_terms"] = ["decerto"]
+        contract["forbidden_terms"] = ["amiúde"]
+        contract["replacements"] = {"deveras": "realmente"}
+        validate_language_contract(contract)
+
+        result = apply_deterministic_rules(
+            "Deveras, isto decerto flui. Amiúde retorna.", contract
+        )
+        self.assertIn("Realmente, isto flui.", result)
+        violations = generated_text_violations(result, contract, target_words=5)
+        self.assertTrue(any("amiúde" in violation.casefold() for violation in violations))
+        self.assertEqual(len(contract_sha256(contract)), 64)
+
+    def test_contract_rejects_unknown_fields(self):
+        contract = default_language_contract()
+        contract["regra_digitada_errada"] = True
+        with self.assertRaisesMessage(Exception, "campos desconhecidos"):
+            validate_language_contract(contract)
+
+    def test_contract_rejects_wrong_enum_types(self):
+        contract = default_language_contract()
+        contract["operation"] = []
+        with self.assertRaisesMessage(Exception, "operation deve ser um texto"):
+            validate_language_contract(contract)
+
+        contract = default_language_contract()
+        contract["style"]["fluency"] = []
+        with self.assertRaisesMessage(Exception, "style.fluency deve ser um texto"):
+            validate_language_contract(contract)
+
+    def test_contract_rejects_replacement_cascades(self):
+        contract = default_language_contract()
+        contract["replacements"] = {"archaic": "modern"}
+        contract["deleted_terms"] = ["modern"]
+        with self.assertRaisesMessage(Exception, "deleted_terms"):
+            validate_language_contract(contract)
+
+        contract = default_language_contract()
+        contract["replacements"] = {"archaic": "modern", "modern": "plain"}
+        with self.assertRaisesMessage(Exception, "encadeadas"):
+            validate_language_contract(contract)
+
+    def test_contract_rejects_unsupported_output_language(self):
+        contract = default_language_contract()
+        contract["target_language"] = "ja-JP"
+        with self.assertRaisesMessage(Exception, "en-US, en-GB ou pt-BR"):
+            validate_language_contract(contract)
+
+
 class SourceDiscoveryTests(TestCase):
     def test_discovery_registers_supported_files_only(self):
         with TemporaryDirectory() as temporary:
@@ -94,7 +221,13 @@ class ProjectAndChapterTests(TestCase):
 
     @patch("writer.services.generation._engine")
     def test_generation_runs_four_sessions_then_requires_explicit_finalization(self, engine_factory):
-        project = self._project(chapter_count=1, vector_index_path="/runtime/index.jsonl")
+        contract = default_language_contract()
+        contract["replacements"] = {"Original": "Modernized"}
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+            language_contract=contract,
+        )
         synchronize_chapters(project)
         chapter = project.chapters.get()
         chapter.direction = "Investigate the locked room"
@@ -106,7 +239,7 @@ class ProjectAndChapterTests(TestCase):
                 number = len(engine_factory.return_value.calls) + 1
                 engine_factory.return_value.calls.append(request)
                 return GenerationResult(
-                    text=(f"Original session {number}. " * 220),
+                    text=(f"Modernized session {number}. " * 208),
                     model="test/qwen",
                     source_chunk_ids=(f"source-{number}",),
                     source_scores=(0.9,),
@@ -122,7 +255,41 @@ class ProjectAndChapterTests(TestCase):
         chapter.finalize()
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.FINAL)
-        self.assertIn("Original session 1", chapter.final_text)
+        self.assertIn("Modernized session 1", chapter.final_text)
+        self.assertNotIn("Original session", chapter.final_text)
+        first_session = chapter.sessions.get(number=1)
+        self.assertEqual(first_session.language_contract, contract)
+        self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
+        self.assertEqual(
+            engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
+        )
+
+    @patch("writer.services.generation._engine")
+    def test_incompatible_session_does_not_leave_chapter_generating(self, engine_factory):
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate"
+        chapter.script = "Opening and resolution"
+        chapter.save()
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Legacy draft",
+            language_contract={},
+            language_contract_sha256="",
+        )
+
+        with self.assertRaisesMessage(ValueError, "different or legacy"):
+            generate_chapter(chapter)
+
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.PLANNED)
+        engine_factory.return_value.create_chapter.assert_not_called()
 
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)

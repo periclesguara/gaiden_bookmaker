@@ -4,8 +4,8 @@
 
 This is the phase-2 operator workflow layered on the local Qwen/RAG engine.
 It adds Django records and controls for source selection, normalization,
-vectorization, story bibles, chapter planning, generation sessions, and explicit
-editorial finalization.
+vectorization, story bibles, a versioned JSON language contract, chapter planning, generation
+sessions, and explicit editorial finalization.
 
 It does not store model weights, source manuscripts, normalized bodies, vector
 indexes, or generated files in Git. Every Writer route requires an authenticated
@@ -23,7 +23,7 @@ Before deployment:
    to the web process;
 4. verify the separate loopback Qwen generation and embedding services;
 5. review `python web/manage.py migrate --plan`;
-6. apply `writer.0001_initial`;
+6. apply `writer.0001_initial` and `writer.0002_language_contract`;
 7. run `python web/manage.py check` and the protected test suite;
 8. open `/writer/`, but do not trigger paid or GPU work during deployment
    smoke tests.
@@ -74,9 +74,53 @@ the selected set through Qwen3-Embedding-0.6B.
 All selected files must be represented. The index is an external, derived,
 atomic artifact and can be rebuilt from normalized sources.
 
-### 3. Fill the creative bibles
+### 3. Define the language contract and creative bibles
 
-Each project has explicit fields for:
+Each project has a mandatory, validated JSON language contract. It is separate
+from the story bibles: bibles define people, facts and events; the contract
+defines how every session must express them.
+
+The project form exposes one language selector inside the Writer flow:
+
+- `EN-US`: contemporary American English creation;
+- `EN-UK` (stored as `en-GB`): contemporary British English creation;
+- `PT-BR`: Brazilian Portuguese translation and modernization.
+
+The Writer loads the matching contract automatically; operators do not edit the
+contract JSON in the form. The selected language and the contract's
+`target_language` must match. The language becomes immutable after the first
+generation session.
+
+The contracts declare:
+
+- British English source references and American English output;
+- original-fiction generation from semantic reference content only;
+- preservation of meaning, characters, plot facts, chronology, causal logic,
+  point of view and dialogue intent;
+- rejection of source wording, source style, Victorianism and British usage;
+- strong archaicism reduction, obsolete-connector removal, repetition control
+  and a maximum sentence-length target;
+- terms to delete, terms to reject, and exact replacement mappings;
+- no-summary, no-commentary and no-new-facts constraints;
+- accepted word-count variation and zero to three bounded retries.
+
+The versioned presets are:
+
+- `docs/examples/language-contract.en-us-original.json`;
+- `docs/examples/language-contract.en-gb-original.json`;
+- `docs/examples/language-contract.pt-br-translation.json`.
+
+Unknown keys, missing keys, duplicate terms, conflicting delete and replacement
+rules, and invalid ranges block saving. The contract's `target_language` is
+the authoritative output language.
+
+Exact replacements and deletions are applied deterministically after Qwen
+returns text. The resulting session is rejected when a forbidden term remains
+or word count is outside the configured range. Fluency, meaning preservation
+and archaicism reduction remain model/editorial judgements and therefore still
+require human review.
+
+Each project also has explicit fields for:
 
 - character bible;
 - antagonist bible;
@@ -121,7 +165,8 @@ words per session. The model may vary naturally; actual word count is recorded.
 
 The Generate chapter button is POST-only and CSRF-protected. It generates the
 configured sessions in order and records immutable session rows containing
-content, actual word count, model, retrieval IDs, scores, and parameters.
+content, actual word count, model, retrieval IDs, scores, parameters, the complete
+language contract, and its canonical SHA-256.
 
 A retry resumes missing sessions and does not overwrite completed ones. After
 all sessions, status becomes `GENERATION_COMPLETE`, not `FINAL`.
