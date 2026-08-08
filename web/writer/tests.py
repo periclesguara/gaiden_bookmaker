@@ -62,6 +62,17 @@ class NormalizationTests(TestCase):
 
 
 class LanguageContractTests(TestCase):
+    def test_default_contract_is_first_en_us_semantic_creation_profile(self):
+        contract = default_language_contract()
+        self.assertEqual(contract["source_language"], "en-GB")
+        self.assertEqual(contract["target_language"], "en-US")
+        self.assertEqual(contract["operation"], "original")
+        self.assertTrue(contract["reference_policy"]["semantic_content_only"])
+        self.assertFalse(contract["reference_policy"]["imitate_source_style"])
+        self.assertFalse(contract["reference_policy"]["preserve_victorianism"])
+        self.assertTrue(contract["style"]["american_english_only"])
+        self.assertEqual(contract["style"]["reduce_archaisms"], "strong")
+
     def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
         contract = default_language_contract()
         contract["deleted_terms"] = ["decerto"]
@@ -164,7 +175,7 @@ class ProjectAndChapterTests(TestCase):
         self.assertEqual(first_session.language_contract, contract)
         self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
         self.assertEqual(
-            engine_factory.return_value.calls[0].language_contract["target_language"], "pt-BR"
+            engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
         )
 
     def test_finalize_rejects_incomplete_sessions(self):
