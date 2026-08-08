@@ -112,10 +112,45 @@ Create a request outside Git:
 ```json
 {
   "title": "The Locked Observatory",
-  "language": "English",
+  "language": "en-GB",
   "brief": "A fair-play mystery driven by one physical clue.",
   "continuity": "Watson narrates. Holmes has not met the suspect before.",
   "point_of_view": "First-person Watson",
+  "language_contract": {
+    "schema_version": 1,
+    "source_language": "en-GB",
+    "target_language": "en-GB",
+    "target_variant": "Contemporary British literary English",
+    "operation": "modernize",
+    "preserve": [
+      "meaning",
+      "proper_names",
+      "plot_facts",
+      "chronology",
+      "point_of_view",
+      "dialogue_intent",
+      "period_atmosphere"
+    ],
+    "deleted_terms": [],
+    "forbidden_terms": [],
+    "replacements": {},
+    "style": {
+      "reduce_archaisms": "moderate",
+      "fluency": "literary",
+      "avoid_repetition": true,
+      "preserve_authorial_voice": true
+    },
+    "constraints": {
+      "no_summary": true,
+      "no_commentary": true,
+      "no_new_facts": true
+    },
+    "validation": {
+      "reject_forbidden_terms": true,
+      "max_word_variation_percent": 20,
+      "retry_attempts": 1
+    }
+  },
   "target_words": 2500
 }
 ```
@@ -134,8 +169,9 @@ python -m gaiden.writer_engine chapter \
   --output /srv/gaiden/writer/drafts/chapter-01.md
 ```
 
-The command refuses to overwrite an existing draft or audit sidecar and rejects
-an exact 14-word sequence copied from retrieved material.
+The command refuses to overwrite an existing draft or audit sidecar, requires a
+JSON language contract whose target language matches `language`, and rejects an
+exact 14-word sequence copied from retrieved material.
 
 ## Acceptance gate before phase 2
 
