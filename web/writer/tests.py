@@ -264,6 +264,33 @@ class ProjectAndChapterTests(TestCase):
             engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
         )
 
+    @patch("writer.services.generation._engine")
+    def test_incompatible_session_does_not_leave_chapter_generating(self, engine_factory):
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate"
+        chapter.script = "Opening and resolution"
+        chapter.save()
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Legacy draft",
+            language_contract={},
+            language_contract_sha256="",
+        )
+
+        with self.assertRaisesMessage(ValueError, "different or legacy"):
+            generate_chapter(chapter)
+
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.PLANNED)
+        engine_factory.return_value.create_chapter.assert_not_called()
+
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
         synchronize_chapters(project)
