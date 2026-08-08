@@ -49,6 +49,15 @@ class StoryProjectForm(forms.ModelForm):
         if contract:
             validate_language_contract(contract)
             self.instance.language = contract["target_language"]
+        if (
+            self.instance.pk
+            and "language_contract" in self.changed_data
+            and self.instance.chapters.filter(sessions__isnull=False).exists()
+        ):
+            self.add_error(
+                "language_contract",
+                "O contrato fica imutável após a primeira sessão. Crie uma revisão versionada.",
+            )
         return cleaned
 
     def clean_chapter_count(self):
