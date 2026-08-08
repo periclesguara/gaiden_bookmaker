@@ -11,6 +11,7 @@ from gaiden.writer_engine.language_contract import (
     contract_sha256,
     default_language_contract,
     generated_text_violations,
+    language_contract_for,
     validate_language_contract as validate_engine_language_contract,
 )
 
@@ -29,5 +30,6 @@ __all__ = [
     "contract_sha256",
     "default_language_contract",
     "generated_text_violations",
+    "language_contract_for",
     "validate_language_contract",
 ]
