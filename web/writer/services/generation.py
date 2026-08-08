@@ -7,12 +7,7 @@ from django.db import transaction
 from gaiden.writer_engine.clients import OpenAIEmbeddingClient, QwenGenerator
 from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
-from writer.language_contract import (
-    apply_deterministic_rules,
-    contract_sha256,
-    generated_text_violations,
-    validate_language_contract,
-)
+from writer.language_contract import contract_sha256, validate_language_contract
 from writer.models import Chapter, ChapterSession
 
 
@@ -74,9 +69,6 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
     engine = _engine(chapter)
-    chapter.status = Chapter.Status.GENERATING
-    chapter.error_message = ""
-    chapter.save(update_fields=("status", "error_message", "updated_at"))
     completed = {
         session.number: session
         for session in chapter.sessions.filter(status=ChapterSession.Status.COMPLETE)
@@ -92,6 +84,9 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             "completed sessions use a different or legacy language contract "
             f"(sessions: {numbers}); create a versioned chapter revision"
         )
+    chapter.status = Chapter.Status.GENERATING
+    chapter.error_message = ""
+    chapter.save(update_fields=("status", "error_message", "updated_at"))
     try:
         for number in range(1, chapter.session_count + 1):
             if number in completed:
@@ -118,35 +113,19 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                 f"{_session_role(number, chapter.session_count)} "
                 "Do not repeat previous sessions and do not close the chapter before the final session."
             )
-            result = None
-            content = ""
-            violations: list[str] = []
-            maximum_attempts = contract["validation"]["retry_attempts"] + 1
-            for attempt in range(1, maximum_attempts + 1):
-                result = engine.create_chapter(
-                    ChapterRequest(
-                        title=f"{chapter.title or f'Chapter {chapter.number:02d}'} — session {number}",
-                        language=output_language,
-                        brief=brief,
-                        continuity=continuity,
-                        point_of_view="Follow the project and chapter direction exactly",
-                        language_contract=contract,
-                        target_words=chapter.words_per_session,
-                    ),
-                    top_k=chapter.retrieval_top_k,
-                )
-                content = apply_deterministic_rules(result.text, contract)
-                violations = generated_text_violations(
-                    content, contract, target_words=chapter.words_per_session
-                )
-                if not violations:
-                    break
-            if violations:
-                raise ValueError(
-                    "language contract validation failed after "
-                    f"{maximum_attempts} attempt(s): " + "; ".join(violations)
-                )
-            assert result is not None
+            result = engine.create_chapter(
+                ChapterRequest(
+                    title=f"{chapter.title or f'Chapter {chapter.number:02d}'} — session {number}",
+                    language=output_language,
+                    brief=brief,
+                    continuity=continuity,
+                    point_of_view="Follow the project and chapter direction exactly",
+                    language_contract=contract,
+                    target_words=chapter.words_per_session,
+                ),
+                top_k=chapter.retrieval_top_k,
+            )
+            content = result.text
             with transaction.atomic():
                 ChapterSession.objects.create(
                     chapter=chapter,
@@ -162,7 +141,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                         "chapter_target_words": chapter.target_words,
                         "session_count": chapter.session_count,
                         "retrieval_top_k": chapter.retrieval_top_k,
-                        "validation_attempts": attempt,
+                        "validation_attempts": result.attempts,
                     },
                     language_contract=contract,
                     language_contract_sha256=contract_hash,
