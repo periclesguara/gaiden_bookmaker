@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="chaptersession",
             name="language_contract_sha256",
-            field=models.CharField(default="", max_length=64),
+            field=models.CharField(blank=True, default="", max_length=64),
             preserve_default=False,
         ),
     ]
