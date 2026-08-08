@@ -239,7 +239,7 @@ class ProjectAndChapterTests(TestCase):
                 number = len(engine_factory.return_value.calls) + 1
                 engine_factory.return_value.calls.append(request)
                 return GenerationResult(
-                    text=(f"Modernized session {number}. " * 155),
+                    text=(f"Modernized session {number}. " * 208),
                     model="test/qwen",
                     source_chunk_ids=(f"source-{number}",),
                     source_scores=(0.9,),
