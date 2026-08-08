@@ -102,12 +102,16 @@ class WriterEngineTests(SimpleTestCase):
             title="The Locked Observatory", language="English",
             brief="A fair-play mystery with a physical clue.",
             continuity="Watson narrates; Holmes has not met the suspect.",
-            point_of_view="First-person Watson", target_words=1200,
+            point_of_view="First-person Watson",
+            language_contract=json.dumps({"target_language": "English"}),
+            target_words=1200,
         ))
         self.assertEqual(result.model, "test/qwen")
         self.assertEqual(result.source_chunk_ids, ("chunk-1",))
         system, user, max_tokens = generator.calls[0]
         self.assertIn("untrusted reference data", system)
+        self.assertIn("EDITORIAL LANGUAGE CONTRACT", system)
+        self.assertIn('"target_language": "English"', system)
         self.assertIn("<reference_context>", user)
         self.assertLessEqual(max_tokens, 32768)
 
