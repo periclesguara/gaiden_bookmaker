@@ -80,12 +80,18 @@ Each project has a mandatory, validated JSON language contract. It is separate
 from the story bibles: bibles define people, facts and events; the contract
 defines how every session must express them.
 
-The Writer currently exposes one creation-language profile: contemporary
-American English (`en-US`). The selected language and the contract's
-`target_language` must match. A future Portuguese translation profile will be
-a separate contract and is deliberately outside this first contract.
+The project form exposes one language selector inside the Writer flow:
 
-The first contract declares:
+- `EN-US`: contemporary American English creation;
+- `EN-UK` (stored as `en-GB`): contemporary British English creation;
+- `PT-BR`: Brazilian Portuguese translation and modernization.
+
+The Writer loads the matching contract automatically; operators do not edit the
+contract JSON in the form. The selected language and the contract's
+`target_language` must match. The language becomes immutable after the first
+generation session.
+
+The contracts declare:
 
 - British English source references and American English output;
 - original-fiction generation from semantic reference content only;
@@ -98,10 +104,15 @@ The first contract declares:
 - no-summary, no-commentary and no-new-facts constraints;
 - accepted word-count variation and zero to three bounded retries.
 
-Use `docs/examples/language-contract.en-us-original.json` as the editable
-starting point. Unknown keys, missing keys, duplicate terms, conflicting delete
-and replacement rules, and invalid ranges block saving. The contract's
-`target_language` is the authoritative output language.
+The versioned presets are:
+
+- `docs/examples/language-contract.en-us-original.json`;
+- `docs/examples/language-contract.en-gb-original.json`;
+- `docs/examples/language-contract.pt-br-translation.json`.
+
+Unknown keys, missing keys, duplicate terms, conflicting delete and replacement
+rules, and invalid ranges block saving. The contract's `target_language` is
+the authoritative output language.
 
 Exact replacements and deletions are applied deterministically after Qwen
 returns text. The resulting session is rejected when a forbidden term remains
