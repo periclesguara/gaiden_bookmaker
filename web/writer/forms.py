@@ -1,5 +1,6 @@
 from django import forms
 
+from writer.language_contract import validate_language_contract
 from writer.models import Chapter, SourceDocument, StoryProject
 
 
@@ -7,13 +8,13 @@ class StoryProjectForm(forms.ModelForm):
     class Meta:
         model = StoryProject
         fields = (
-            "title", "language", "premise", "character_bible", "antagonist_bible",
+            "title", "language_contract", "premise", "character_bible", "antagonist_bible",
             "scenario_bible", "world_bible", "story_direction", "story_outline",
             "chapter_count",
         )
         labels = {
             "title": "Título do projeto",
-            "language": "Idioma de escrita",
+            "language_contract": "Contrato JSON de linguagem e modernização",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
@@ -30,6 +31,25 @@ class StoryProjectForm(forms.ModelForm):
                 "world_bible", "story_direction", "story_outline",
             )
         }
+        widgets["language_contract"] = forms.Textarea(attrs={
+            "rows": 24,
+            "spellcheck": "false",
+            "style": "font-family: monospace",
+        })
+        help_texts = {
+            "language_contract": (
+                "JSON obrigatório: idiomas de origem e destino, modernização, termos apagados, "
+                "termos proibidos, substituições, preservação, fluidez e validação."
+            )
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        contract = cleaned.get("language_contract")
+        if contract:
+            validate_language_contract(contract)
+            self.instance.language = contract["target_language"]
+        return cleaned
 
     def clean_chapter_count(self):
         value = self.cleaned_data["chapter_count"]
