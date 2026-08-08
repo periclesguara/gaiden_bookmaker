@@ -103,7 +103,7 @@ def _validate_term_list(value: Any, label: str) -> list[str]:
 
 def validate_language_contract(contract: Any) -> None:
     contract = _validate_exact_keys(contract, _REQUIRED_KEYS, "Contrato de linguagem")
-    if contract["schema_version"] != _SCHEMA_VERSION:
+    if isinstance(contract["schema_version"], bool) or contract["schema_version"] != _SCHEMA_VERSION:
         _error(f"schema_version deve ser {_SCHEMA_VERSION}.")
 
     _validate_string(contract["source_language"], "source_language", maximum=40)
@@ -129,7 +129,10 @@ def validate_language_contract(contract: Any) -> None:
     for source, target in replacements.items():
         source = _validate_string(source, "replacements (origem)", maximum=_MAX_TERM_LENGTH)
         _validate_string(target, f"replacements[{source}]", maximum=_MAX_TERM_LENGTH)
-        replacement_sources.add(source.casefold())
+        folded_source = source.casefold()
+        if folded_source in replacement_sources:
+            _error(f"replacements contém origem duplicada: {source}.")
+        replacement_sources.add(folded_source)
 
     deleted_folded = {term.casefold() for term in deleted}
     forbidden_folded = {term.casefold() for term in forbidden}
