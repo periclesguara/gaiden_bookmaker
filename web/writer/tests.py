@@ -151,6 +151,35 @@ class LanguageContractTests(TestCase):
         with self.assertRaisesMessage(Exception, "campos desconhecidos"):
             validate_language_contract(contract)
 
+    def test_contract_rejects_wrong_enum_types(self):
+        contract = default_language_contract()
+        contract["operation"] = []
+        with self.assertRaisesMessage(ValueError, "operation deve ser um texto"):
+            validate_language_contract(contract)
+
+        contract = default_language_contract()
+        contract["style"]["fluency"] = []
+        with self.assertRaisesMessage(ValueError, "style.fluency deve ser um texto"):
+            validate_language_contract(contract)
+
+    def test_contract_rejects_replacement_cascades(self):
+        contract = default_language_contract()
+        contract["replacements"] = {"archaic": "modern"}
+        contract["deleted_terms"] = ["modern"]
+        with self.assertRaisesMessage(ValueError, "deleted_terms"):
+            validate_language_contract(contract)
+
+        contract = default_language_contract()
+        contract["replacements"] = {"archaic": "modern", "modern": "plain"}
+        with self.assertRaisesMessage(ValueError, "encadeadas"):
+            validate_language_contract(contract)
+
+    def test_contract_rejects_unsupported_output_language(self):
+        contract = default_language_contract()
+        contract["target_language"] = "ja-JP"
+        with self.assertRaisesMessage(ValueError, "en-US, en-GB ou pt-BR"):
+            validate_language_contract(contract)
+
 
 class SourceDiscoveryTests(TestCase):
     def test_discovery_registers_supported_files_only(self):
