@@ -103,6 +103,33 @@ class LanguageContractTests(TestCase):
         self.assertEqual(project.language_contract["target_language"], "pt-BR")
         self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
 
+    def test_language_selector_is_immutable_after_first_session(self):
+        project = StoryProject.objects.create(title="Started book", chapter_count=1)
+        chapter = Chapter.objects.create(project=project, number=1)
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Draft",
+        )
+        form = StoryProjectForm(
+            instance=project,
+            data={
+                "title": project.title,
+                "language": "en-GB",
+                "premise": "",
+                "character_bible": "",
+                "antagonist_bible": "",
+                "scenario_bible": "",
+                "world_bible": "",
+                "story_direction": "",
+                "story_outline": "",
+                "chapter_count": 1,
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("language", form.errors)
+
     def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
         contract = default_language_contract()
         contract["deleted_terms"] = ["decerto"]
