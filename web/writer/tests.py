@@ -10,6 +10,13 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from gaiden.writer_engine.engine import GenerationResult
+from writer.language_contract import (
+    apply_deterministic_rules,
+    contract_sha256,
+    default_language_contract,
+    generated_text_violations,
+    validate_language_contract,
+)
 from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document, normalize_text
@@ -54,6 +61,29 @@ class NormalizationTests(TestCase):
             self.assertIn("normalized_characters", document.normalization_report)
 
 
+class LanguageContractTests(TestCase):
+    def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
+        contract = default_language_contract()
+        contract["deleted_terms"] = ["decerto"]
+        contract["forbidden_terms"] = ["amiúde"]
+        contract["replacements"] = {"deveras": "realmente"}
+        validate_language_contract(contract)
+
+        result = apply_deterministic_rules(
+            "Deveras, isto decerto flui. Amiúde retorna.", contract
+        )
+        self.assertIn("Realmente, isto flui.", result)
+        violations = generated_text_violations(result, contract, target_words=5)
+        self.assertTrue(any("amiúde" in violation.casefold() for violation in violations))
+        self.assertEqual(len(contract_sha256(contract)), 64)
+
+    def test_contract_rejects_unknown_fields(self):
+        contract = default_language_contract()
+        contract["regra_digitada_errada"] = True
+        with self.assertRaisesMessage(Exception, "campos desconhecidos"):
+            validate_language_contract(contract)
+
+
 class SourceDiscoveryTests(TestCase):
     def test_discovery_registers_supported_files_only(self):
         with TemporaryDirectory() as temporary:
@@ -94,7 +124,13 @@ class ProjectAndChapterTests(TestCase):
 
     @patch("writer.services.generation._engine")
     def test_generation_runs_four_sessions_then_requires_explicit_finalization(self, engine_factory):
-        project = self._project(chapter_count=1, vector_index_path="/runtime/index.jsonl")
+        contract = default_language_contract()
+        contract["replacements"] = {"Original": "Modernized"}
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+            language_contract=contract,
+        )
         synchronize_chapters(project)
         chapter = project.chapters.get()
         chapter.direction = "Investigate the locked room"
@@ -122,7 +158,12 @@ class ProjectAndChapterTests(TestCase):
         chapter.finalize()
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.FINAL)
-        self.assertIn("Original session 1", chapter.final_text)
+        self.assertIn("Modernized session 1", chapter.final_text)
+        self.assertNotIn("Original session", chapter.final_text)
+        first_session = chapter.sessions.get(number=1)
+        self.assertEqual(first_session.language_contract, contract)
+        self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
+        self.assertIn('"target_language":"pt-BR"', engine_factory.return_value.calls[0].language_contract)
 
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
