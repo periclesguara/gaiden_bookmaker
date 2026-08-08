@@ -1,6 +1,6 @@
 from django import forms
 
-from writer.language_contract import validate_language_contract
+from writer.language_contract import language_contract_for, validate_language_contract
 from writer.models import Chapter, SourceDocument, StoryProject
 
 
@@ -8,14 +8,13 @@ class StoryProjectForm(forms.ModelForm):
     class Meta:
         model = StoryProject
         fields = (
-            "title", "language", "language_contract", "premise", "character_bible", "antagonist_bible",
+            "title", "language", "premise", "character_bible", "antagonist_bible",
             "scenario_bible", "world_bible", "story_direction", "story_outline",
             "chapter_count",
         )
         labels = {
             "title": "Título do projeto",
             "language": "Idioma de criação",
-            "language_contract": "Contrato JSON aplicado ao Qwen",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
@@ -32,43 +31,31 @@ class StoryProjectForm(forms.ModelForm):
                 "world_bible", "story_direction", "story_outline",
             )
         }
-        widgets["language_contract"] = forms.Textarea(attrs={
-            "rows": 24,
-            "spellcheck": "false",
-            "style": "font-family: monospace",
-        })
+        widgets["language"] = forms.Select()
         help_texts = {
             "language": (
-                "Primeiro perfil disponível: inglês americano contemporâneo. "
-                "Português será acrescentado depois como contrato de tradução separado."
-            ),
-            "language_contract": (
-                "Contrato obrigatório enviado ao Qwen depois da recuperação RAG. "
-                "Define uso semântico das fontes, idioma americano, remoção de arcaísmos, "
-                "redundâncias, vitorianismo e frases excessivamente longas."
+                "Selecione EN-US, EN-UK ou PT-BR. O Writer carrega automaticamente "
+                "o contrato correspondente antes de enviar o contexto RAG ao Qwen."
             ),
         }
 
     def clean(self):
         cleaned = super().clean()
-        contract = cleaned.get("language_contract")
         language = cleaned.get("language")
-        if contract:
-            validate_language_contract(contract)
-            if language and contract["target_language"] != language:
-                self.add_error(
-                    "language_contract",
-                    "O target_language do contrato deve corresponder ao idioma de criação.",
-                )
         if (
-            self.instance.pk
-            and "language_contract" in self.changed_data
+            language
+            and self.instance.pk
+            and "language" in self.changed_data
             and self.instance.chapters.filter(sessions__isnull=False).exists()
         ):
             self.add_error(
-                "language_contract",
-                "O contrato fica imutável após a primeira sessão. Crie uma revisão versionada.",
+                "language",
+                "O idioma fica imutável após a primeira sessão. Crie uma revisão versionada.",
             )
+        elif language:
+            contract = language_contract_for(language)
+            validate_language_contract(contract)
+            self.instance.language_contract = contract
         return cleaned
 
     def clean_chapter_count(self):
