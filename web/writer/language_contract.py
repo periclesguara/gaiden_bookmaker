@@ -47,6 +47,7 @@ _DEFAULT_CONTRACT: dict[str, Any] = {
     "validation": {
         "reject_forbidden_terms": True,
         "max_word_variation_percent": 20,
+        "retry_attempts": 1,
     },
 }
 
@@ -160,6 +161,9 @@ def validate_language_contract(contract: Any) -> None:
     )
     if not isinstance(validation["reject_forbidden_terms"], bool):
         _error("validation.reject_forbidden_terms deve ser booleano.")
+    retries = validation["retry_attempts"]
+    if isinstance(retries, bool) or not isinstance(retries, int) or not 0 <= retries <= 3:
+        _error("validation.retry_attempts deve ser um inteiro entre 0 e 3.")
     variation = validation["max_word_variation_percent"]
     if isinstance(variation, bool) or not isinstance(variation, int) or not 0 <= variation <= 100:
         _error("validation.max_word_variation_percent deve ser um inteiro entre 0 e 100.")
