@@ -10,11 +10,13 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from gaiden.writer_engine.engine import GenerationResult
+from writer.forms import StoryProjectForm
 from writer.language_contract import (
     apply_deterministic_rules,
     contract_sha256,
     default_language_contract,
     generated_text_violations,
+    language_contract_for,
     validate_language_contract,
 )
 from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
@@ -72,6 +74,34 @@ class LanguageContractTests(TestCase):
         self.assertFalse(contract["reference_policy"]["preserve_victorianism"])
         self.assertTrue(contract["style"]["american_english_only"])
         self.assertEqual(contract["style"]["reduce_archaisms"], "strong")
+
+    def test_selector_contracts_cover_all_three_languages(self):
+        en_us = language_contract_for("en-US")
+        en_gb = language_contract_for("en-GB")
+        pt_br = language_contract_for("pt-BR")
+        self.assertTrue(en_us["style"]["american_english_only"])
+        self.assertEqual(en_gb["target_variant"], "Contemporary British English")
+        self.assertEqual(pt_br["operation"], "translate_and_modernize")
+        self.assertEqual(pt_br["target_language"], "pt-BR")
+
+    def test_project_form_loads_contract_from_language_selector(self):
+        form = StoryProjectForm(data={
+            "title": "Portuguese edition",
+            "language": "pt-BR",
+            "premise": "",
+            "character_bible": "",
+            "antagonist_bible": "",
+            "scenario_bible": "",
+            "world_bible": "",
+            "story_direction": "",
+            "story_outline": "",
+            "chapter_count": 1,
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        project = form.save()
+        self.assertEqual(project.language, "pt-BR")
+        self.assertEqual(project.language_contract["target_language"], "pt-BR")
+        self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
 
     def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
         contract = default_language_contract()
