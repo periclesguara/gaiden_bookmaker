@@ -137,7 +137,7 @@ class ChapterSession(models.Model):
     source_scores = models.JSONField(default=list, blank=True)
     generation_parameters = models.JSONField(default=dict, blank=True)
     language_contract = models.JSONField(default=dict)
-    language_contract_sha256 = models.CharField(max_length=64)
+    language_contract_sha256 = models.CharField(max_length=64, blank=True)
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
