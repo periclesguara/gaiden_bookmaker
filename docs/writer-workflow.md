@@ -80,18 +80,25 @@ Each project has a mandatory, validated JSON language contract. It is separate
 from the story bibles: bibles define people, facts and events; the contract
 defines how every session must express them.
 
-The contract declares:
+The Writer currently exposes one creation-language profile: contemporary
+American English (`en-US`). The selected language and the contract's
+`target_language` must match. A future Portuguese translation profile will be
+a separate contract and is deliberately outside this first contract.
 
-- source language, target language and target variant;
-- operation: original writing, modernization, or translation plus modernization;
-- meaning, proper names, plot, chronology, point of view, dialogue intent and
-  period atmosphere that must be preserved;
+The first contract declares:
+
+- British English source references and American English output;
+- original-fiction generation from semantic reference content only;
+- preservation of meaning, characters, plot facts, chronology, causal logic,
+  point of view and dialogue intent;
+- rejection of source wording, source style, Victorianism and British usage;
+- strong archaicism reduction, obsolete-connector removal, repetition control
+  and a maximum sentence-length target;
 - terms to delete, terms to reject, and exact replacement mappings;
-- archaicism reduction, fluency, repetition and authorial-voice rules;
 - no-summary, no-commentary and no-new-facts constraints;
 - accepted word-count variation and zero to three bounded retries.
 
-Use `docs/examples/language-contract.modernization.json` as the editable
+Use `docs/examples/language-contract.en-us-original.json` as the editable
 starting point. Unknown keys, missing keys, duplicate terms, conflicting delete
 and replacement rules, and invalid ranges block saving. The contract's
 `target_language` is the authoritative output language.
