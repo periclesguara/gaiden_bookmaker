@@ -163,7 +163,9 @@ class ProjectAndChapterTests(TestCase):
         first_session = chapter.sessions.get(number=1)
         self.assertEqual(first_session.language_contract, contract)
         self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
-        self.assertIn('"target_language":"pt-BR"', engine_factory.return_value.calls[0].language_contract)
+        self.assertEqual(
+            engine_factory.return_value.calls[0].language_contract["target_language"], "pt-BR"
+        )
 
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
