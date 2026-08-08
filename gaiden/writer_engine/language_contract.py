@@ -74,8 +74,30 @@ _REQUIRED_CONSTRAINT_KEYS = set(_DEFAULT_CONTRACT["constraints"])
 _REQUIRED_VALIDATION_KEYS = set(_DEFAULT_CONTRACT["validation"])
 
 
+SUPPORTED_OUTPUT_LANGUAGES = ("en-US", "en-GB", "pt-BR")
+
+
+def language_contract_for(output_language: str) -> dict[str, Any]:
+    if output_language not in SUPPORTED_OUTPUT_LANGUAGES:
+        raise ValueError(
+            "Idioma de saída não suportado. Use en-US, en-GB ou pt-BR."
+        )
+
+    contract = deepcopy(_DEFAULT_CONTRACT)
+    if output_language == "en-GB":
+        contract["target_language"] = "en-GB"
+        contract["target_variant"] = "Contemporary British English"
+        contract["style"]["american_english_only"] = False
+    elif output_language == "pt-BR":
+        contract["target_language"] = "pt-BR"
+        contract["target_variant"] = "Português brasileiro contemporâneo"
+        contract["operation"] = "translate_and_modernize"
+        contract["style"]["american_english_only"] = False
+    return contract
+
+
 def default_language_contract() -> dict[str, Any]:
-    return deepcopy(_DEFAULT_CONTRACT)
+    return language_contract_for("en-US")
 
 
 def _error(message: str) -> None:
