@@ -8,13 +8,14 @@ class StoryProjectForm(forms.ModelForm):
     class Meta:
         model = StoryProject
         fields = (
-            "title", "language_contract", "premise", "character_bible", "antagonist_bible",
+            "title", "language", "language_contract", "premise", "character_bible", "antagonist_bible",
             "scenario_bible", "world_bible", "story_direction", "story_outline",
             "chapter_count",
         )
         labels = {
             "title": "Título do projeto",
-            "language_contract": "Contrato JSON de linguagem e modernização",
+            "language": "Idioma de criação",
+            "language_contract": "Contrato JSON aplicado ao Qwen",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
@@ -37,18 +38,28 @@ class StoryProjectForm(forms.ModelForm):
             "style": "font-family: monospace",
         })
         help_texts = {
+            "language": (
+                "Primeiro perfil disponível: inglês americano contemporâneo. "
+                "Português será acrescentado depois como contrato de tradução separado."
+            ),
             "language_contract": (
-                "JSON obrigatório: idiomas de origem e destino, modernização, termos apagados, "
-                "termos proibidos, substituições, preservação, fluidez e validação."
-            )
+                "Contrato obrigatório enviado ao Qwen depois da recuperação RAG. "
+                "Define uso semântico das fontes, idioma americano, remoção de arcaísmos, "
+                "redundâncias, vitorianismo e frases excessivamente longas."
+            ),
         }
 
     def clean(self):
         cleaned = super().clean()
         contract = cleaned.get("language_contract")
+        language = cleaned.get("language")
         if contract:
             validate_language_contract(contract)
-            self.instance.language = contract["target_language"]
+            if language and contract["target_language"] != language:
+                self.add_error(
+                    "language_contract",
+                    "O target_language do contrato deve corresponder ao idioma de criação.",
+                )
         if (
             self.instance.pk
             and "language_contract" in self.changed_data
