@@ -103,7 +103,7 @@ class WriterEngineTests(SimpleTestCase):
             brief="A fair-play mystery with a physical clue.",
             continuity="Watson narrates; Holmes has not met the suspect.",
             point_of_view="First-person Watson",
-            language_contract=json.dumps({"target_language": "English"}),
+            language_contract={"target_language": "English"},
             target_words=1200,
         ))
         self.assertEqual(result.model, "test/qwen")
