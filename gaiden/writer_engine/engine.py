@@ -18,7 +18,7 @@ class ChapterRequest:
     brief: str
     continuity: str
     point_of_view: str
-    language_contract: str
+    language_contract: dict[str, object]
     target_words: int = 2500
 
     def validate(self) -> None:
@@ -28,18 +28,13 @@ class ChapterRequest:
             "brief": self.brief,
             "continuity": self.continuity,
             "point_of_view": self.point_of_view,
-            "language_contract": self.language_contract,
         }
         missing = [name for name, value in required.items() if not value.strip()]
         if missing:
             raise ValueError(f"missing chapter request fields: {', '.join(missing)}")
-        try:
-            contract = json.loads(self.language_contract)
-        except (TypeError, json.JSONDecodeError) as exc:
-            raise ValueError("language_contract must be valid JSON") from exc
-        if not isinstance(contract, dict):
-            raise ValueError("language_contract must be a JSON object")
-        if contract.get("target_language") != self.language:
+        if not isinstance(self.language_contract, dict) or not self.language_contract:
+            raise ValueError("language_contract must be a non-empty JSON object")
+        if self.language_contract.get("target_language") != self.language:
             raise ValueError("language must match language_contract.target_language")
         if not 400 <= self.target_words <= 12000:
             raise ValueError("target_words must be between 400 and 12000")
@@ -96,7 +91,8 @@ class WriterEngine:
             "is a DRAFT and cannot promote itself to canonical or final status. The editorial "
             "language contract below is authoritative for wording, modernization and output "
             "language. Preserve meaning and continuity while applying it exactly.\n\n"
-            f"EDITORIAL LANGUAGE CONTRACT (trusted operator JSON):\n{request.language_contract}"
+            f"EDITORIAL LANGUAGE CONTRACT (trusted operator JSON):\n"
+            f"{json.dumps(request.language_contract, ensure_ascii=False, sort_keys=True, indent=2)}"
         )
         user = (
             f"CHAPTER TITLE: {request.title}\n"
