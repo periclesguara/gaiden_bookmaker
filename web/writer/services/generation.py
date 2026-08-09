@@ -102,6 +102,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             supporting_context = supporting_characters_context(
                 project.supporting_characters_bible,
                 chapter_number=chapter.number,
+                chapter_count=project.chapter_count,
             )
             continuity = (
                 f"Character bible:\n{project.character_bible}\n\n"
