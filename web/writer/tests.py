@@ -342,3 +342,50 @@ class WriterViewTests(TestCase):
         self.assertEqual(
             client.post(reverse("writer:generate", args=[chapter.id])).status_code, 403
         )
+
+
+    def test_project_form_renders_each_editorial_field_in_its_own_box(self):
+        response = self.client.get(reverse("writer:project_new"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bíblias e direção")
+        self.assertContains(response, "Título do projeto")
+        self.assertContains(response, "Idioma de escrita")
+        self.assertContains(response, "Premissa")
+        self.assertContains(response, "Bíblia do personagem")
+        self.assertContains(response, "Bíblia do antagonista")
+        self.assertContains(response, "Cenários e locais")
+        self.assertContains(response, "Mundo, época, clima e referências")
+        self.assertContains(response, "Direção da história")
+        self.assertContains(response, "Roteiro geral")
+        self.assertContains(response, "Quantidade de capítulos")
+        self.assertContains(response, "Salvar e criar tabela de capítulos")
+        self.assertEqual(response.content.count(b'class="field-box'), 10)
+
+    def test_project_form_saves_bibles_and_creates_chapter_table(self):
+        response = self.client.post(
+            reverse("writer:project_new"),
+            {
+                "title": "Sherlock Holmes — The Devil in Paris",
+                "language": "en-US",
+                "premise": "A Paris mystery.",
+                "character_bible": "Holmes and Watson continuity.",
+                "antagonist_bible": "The Devil's motive and method.",
+                "scenario_bible": "Paris locations.",
+                "world_bible": "Contemporary historical frame.",
+                "story_direction": "A concise fair-play investigation.",
+                "story_outline": "Clues, reversal, confrontation, resolution.",
+                "chapter_count": 12,
+            },
+        )
+
+        project = StoryProject.objects.get(title="Sherlock Holmes — The Devil in Paris")
+        self.assertRedirects(
+            response, reverse("writer:project_detail", args=[project.id])
+        )
+        self.assertEqual(project.language, "en-US")
+        self.assertEqual(project.chapters.count(), 12)
+        self.assertEqual(
+            list(project.chapters.values_list("number", flat=True)),
+            list(range(1, 13)),
+        )
