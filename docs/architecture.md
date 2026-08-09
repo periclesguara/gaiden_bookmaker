@@ -30,7 +30,10 @@ weights, indexes, requests, drafts, and audit sidecars remain external runtime
 artifacts. The reusable engine remains independent of Django. The staff-only `writer`
 application adds source manifests, story projects, creative bibles, chapter
 parameters, immutable generation sessions, and explicit editorial finalization.
-Its external file-treatment and deployment contract is defined in
+Supporting-cast continuity is versioned: RAG-assisted updates create immutable
+revision records, while each generation session stores the exact cast snapshot
+and hash that governed its output. Its external file-treatment and deployment
+contract is defined in
 `docs/writer-workflow.md`.
 
 ## Runtime data boundary
