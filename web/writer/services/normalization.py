@@ -151,7 +151,11 @@ def normalize_document(document: SourceDocument) -> SourceDocument:
     document.source_sha256 = source_sha
     document.normalized_path = str(destination)
     document.normalized_sha256 = normalized_sha
-    document.provider = result.provider
+    # Author Studio is the provenance of canonical texts; content inspection
+    # must not erase that origin when an operator explicitly renormalizes them.
+    document.provider = (
+        document.provider if document.provider == "AUTHOR_STUDIO" else result.provider
+    )
     document.normalization_report = result.report
     document.status = SourceDocument.Status.NORMALIZED
     document.normalized_at = timezone.now()

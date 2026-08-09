@@ -87,6 +87,7 @@ class QwenGenerator:
             temperature=self.temperature,
             top_p=self.top_p,
             presence_penalty=1.5,
+            reasoning_effort="medium" if self.thinking else "none",
             extra_body={
                 "top_k": 20,
                 "chat_template_kwargs": {"enable_thinking": self.thinking},

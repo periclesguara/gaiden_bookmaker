@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -10,19 +9,16 @@ from .models import Manuscript, ManuscriptVersion
 from .legacy_services import create_version, promote_version
 
 
-@staff_member_required
 def works(request):
     return render(request, "writer/works.html", {"works": Work.objects.select_related("author")})
 
 
-@staff_member_required
 def work_detail(request, work_id):
     work = get_object_or_404(Work.objects.select_related("author"), pk=work_id)
     manuscript, _ = Manuscript.objects.get_or_create(work=work)
     return redirect("writer:manuscript", manuscript_id=manuscript.id)
 
 
-@staff_member_required
 def manuscript_detail(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript.objects.select_related("work", "work__author"), pk=manuscript_id)
     latest = manuscript.versions.first()
@@ -34,13 +30,11 @@ def manuscript_detail(request, manuscript_id):
     return render(request, "writer/manuscript.html", {"manuscript": manuscript, "versions": manuscript.versions.all(), "form": form})
 
 
-@staff_member_required
 def version_preview(request, manuscript_id, version_id):
     version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
     return render(request, "writer/version_preview.html", {"version": version, "form": PromotionForm()})
 
 
-@staff_member_required
 def promote(request, manuscript_id, version_id):
     version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
     if request.method != "POST":
@@ -62,7 +56,6 @@ def promote(request, manuscript_id, version_id):
     return render(request, "writer/version_preview.html", {"version": version, "form": form})
 
 
-@staff_member_required
 def export_version(request, manuscript_id, version_id):
     version = get_object_or_404(ManuscriptVersion, pk=version_id, manuscript_id=manuscript_id)
     response = HttpResponse(version.content, content_type="text/plain; charset=utf-8")

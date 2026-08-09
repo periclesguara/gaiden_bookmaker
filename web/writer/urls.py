@@ -11,6 +11,11 @@ urlpatterns = [
     path("sources/normalize/", views.normalize_sources, name="normalize_sources"),
     path("projects/new/", views.project_edit, name="project_new"),
     path("projects/<int:project_id>/", views.project_detail, name="project_detail"),
+    path(
+        "projects/<int:project_id>/stages/<int:stage_number>/status/",
+        views.stage_status,
+        name="stage_status",
+    ),
     path("projects/<int:project_id>/edit/", views.project_edit, name="project_edit"),
     path("projects/<int:project_id>/sources/", views.project_sources, name="project_sources"),
     path("projects/<int:project_id>/vectorize/", views.vectorize, name="vectorize"),

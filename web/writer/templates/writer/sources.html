@@ -2,9 +2,27 @@
 {% block title %}Arquivos{% endblock %}
 {% block content %}
 <section class="card"><h1>1 · Seleção e normalização</h1><p class="muted">A normalização remove contratos e material editorial de Project Gutenberg, Internet Archive, Standard Ebooks e frontmatter técnico. Epílogos narrativos são preservados.</p>
+{% if normalization_complete %}<div class="notice ok"><strong>✓ Normalização concluída</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos. O botão continua clicável para confirmar este estado.</div>{% else %}<div class="notice"><strong>Normalização pendente</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos.</div>{% endif %}
 <form method="post" action="{% url 'writer:scan_sources' %}">{% csrf_token %}<button type="submit">Localizar arquivos</button></form></section>
 <form method="post" action="{% url 'writer:normalize_sources' %}">{% csrf_token %}
-<section class="card"><div class="actions"><button type="submit">Enviar selecionados para Normalize</button></div><div class="table"><table><thead><tr><th></th><th>Arquivo</th><th>Origem detectada</th><th>Status</th><th>Tratamento</th></tr></thead><tbody>
+<section class="card"><div class="actions"><button type="button" data-dialog-open="normalize-dialog">{% if normalization_complete %}Normalização concluída · opções{% else %}Normalizar arquivos selecionados{% endif %}</button></div>
+<dialog class="confirm-dialog" id="normalize-dialog">
+  <div class="dialog-body">
+    {% if normalization_complete %}
+      <h2>Normalização já concluída</h2>
+      <p>{{ normalized_count }} de {{ documents|length }} arquivos estão prontos.</p>
+      <p class="impact"><strong>Refazer?</strong> Os arquivos marcados serão normalizados novamente. Se nenhum estiver marcado, todos serão refeitos. Os índices RAG relacionados serão invalidados e precisarão de nova vetorização.</p>
+    {% else %}
+      <h2>Confirmar normalização</h2>
+      <p>Os arquivos marcados serão lidos e uma versão normalizada derivada será criada. As fontes originais não serão sobrescritas.</p>
+    {% endif %}
+  </div>
+  <div class="dialog-actions">
+    <button class="secondary" type="button" data-dialog-close>Cancelar</button>
+    {% if normalization_complete %}<button type="submit" name="remake" value="yes">Refazer normalização</button>{% else %}<button type="submit" name="confirm" value="yes">Confirmar e executar</button>{% endif %}
+  </div>
+</dialog>
+<div class="table"><table><thead><tr><th></th><th>Arquivo</th><th>Origem detectada</th><th>Status</th><th>Tratamento</th></tr></thead><tbody>
 {% for document in documents %}<tr><td><input type="checkbox" name="documents" value="{{ document.id }}" aria-label="Selecionar {{ document.filename }}"></td><td><strong>{{ document.filename }}</strong>{% if document.error_message %}<br><span class="errors">{{ document.error_message }}</span>{% endif %}</td><td>{{ document.provider|default:"—" }}</td><td><span class="status {{ document.status }}">{{ document.get_status_display }}</span></td><td>{% if document.normalization_report %}{{ document.normalization_report.removed_characters }} caracteres removidos<br><span class="muted">{{ document.normalization_report.rules|join:", " }}</span>{% else %}—{% endif %}</td></tr>
-{% empty %}<tr><td colspan="5">Configure GAIDEN_WRITER_SOURCE_ROOT e clique em Localizar arquivos.</td></tr>{% endfor %}</tbody></table></div></section></form>
+{% empty %}<tr><td colspan="5">Clique em Localizar arquivos para carregar os textos canônicos do Author Studio e, se configuradas, fontes adicionais de GAIDEN_WRITER_SOURCE_ROOT.</td></tr>{% endfor %}</tbody></table></div></section></form>
 {% endblock %}

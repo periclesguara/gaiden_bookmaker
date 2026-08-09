@@ -16,7 +16,9 @@ discovered text source produces no chunk.
 
 - Qwen3.5-9B creates chapter drafts.
 - Qwen3-Embedding-0.6B creates multilingual retrieval vectors.
-- Separate OpenAI-compatible loopback endpoints serve generation and embeddings.
+- OpenAI-compatible loopback APIs serve generation and embeddings. The
+  workloads may use separate services or one Ollama service with separate
+  model names.
 - Gaiden writes an atomic JSONL vector index under external storage. Phase 2 may
   move the same contract to PostgreSQL/pgvector after retrieval is accepted.
 - Every output remains DRAFT and receives an audit sidecar with the model,
@@ -76,6 +78,39 @@ Keep endpoints on loopback unless TLS, authentication, firewall policy, and
 real API keys are configured. The client refuses placeholder keys for a
 non-loopback endpoint.
 
+### Local Ollama workstation
+
+The currently verified workstation uses the official Ollama container pinned
+to digest
+`sha256:b88c73ace3e115f8ec53dc8761ae1c0aabfa675406e3681786b98757ce050f42`.
+It publishes only `127.0.0.1:8001`, persists weights in the named Docker volume
+`gaiden_ollama_models`, and keeps all model data outside the repository.
+
+The installed model tags are:
+
+- `qwen3-embedding:0.6b` for vectors;
+- `qwen3.5:9b-q4_K_M` for chapter generation.
+
+Configure both clients against the same loopback API:
+
+```bash
+export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
+export GAIDEN_EMBEDDING_API_KEY=ollama
+export GAIDEN_EMBEDDING_MODEL=qwen3-embedding:0.6b
+export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8001/v1
+export GAIDEN_QWEN_API_KEY=ollama
+export GAIDEN_QWEN_MODEL=qwen3.5:9b-q4_K_M
+export GAIDEN_QWEN_THINKING=0
+```
+
+The local API key is a client compatibility value, not a credential, and is
+safe only because the port is restricted to loopback. The GTX 1060 has enough
+VRAM for the embedding model, while the 9B writing model may split layers
+between GPU and system memory. Expect a model reload when alternating between
+retrieval and generation. Recreate or upgrade the container only after checking
+that the named volume exists; deleting that volume removes the downloaded
+weights but not manuscripts, indexes, or database records.
+
 ## Complete Sherlock indexing
 
 The source root contains only operator-approved canonical Sherlock UTF-8
@@ -84,8 +119,8 @@ belong in the index.
 
 ```bash
 export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_EMBEDDING_API_KEY=placeholder
-export GAIDEN_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
+export GAIDEN_EMBEDDING_API_KEY=ollama
+export GAIDEN_EMBEDDING_MODEL=qwen3-embedding:0.6b
 
 python -m gaiden.writer_engine index \
   --source-root /srv/gaiden/corpora/sherlock-canon \
@@ -123,9 +158,9 @@ Create a request outside Git:
 Run:
 
 ```bash
-export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8000/v1
-export GAIDEN_QWEN_API_KEY=placeholder
-export GAIDEN_QWEN_MODEL=Qwen/Qwen3.5-9B
+export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8001/v1
+export GAIDEN_QWEN_API_KEY=ollama
+export GAIDEN_QWEN_MODEL=qwen3.5:9b-q4_K_M
 export GAIDEN_QWEN_THINKING=0
 
 python -m gaiden.writer_engine chapter \

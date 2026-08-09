@@ -8,8 +8,13 @@ vectorization, story bibles, chapter planning, generation sessions, and explicit
 editorial finalization.
 
 It does not store model weights, source manuscripts, normalized bodies, vector
-indexes, or generated files in Git. Every Writer route requires an authenticated
-Django staff user; anonymous operators are redirected to the admin login.
+indexes, or generated files in Git. Writer routes open directly without Django
+authentication. Generation and finalization remain POST-only, and Django CSRF
+validation remains active for form submissions.
+
+Because Writer has no application-level login, deploy it only on loopback or a
+trusted private network with access control at the host or reverse proxy. Never
+expose Writer directly to the public internet.
 
 ## Deployment rule
 
@@ -21,14 +26,16 @@ Before deployment:
    storage;
 3. verify ownership and permissions without making the source corpus writable
    to the web process;
-4. verify the separate loopback Qwen generation and embedding services;
+4. verify the loopback Qwen generation and embedding APIs (the verified local
+   Ollama setup serves both on `127.0.0.1:8001` with separate model names);
 5. review `python web/manage.py migrate --plan`;
 6. apply the Writer migration shown by `migrate --plan`; on this stacked branch,
    the verified PR #18 operations are preserved in the forward migration
    `writer.0003_writer_workflow` after the existing manuscript migrations;
 7. run `python web/manage.py check` and the protected test suite;
-8. open `/writer/`, but do not trigger paid or GPU work during deployment
-   smoke tests.
+8. confirm that `/writer/` opens directly in an anonymous browser session, but
+   do not trigger paid or GPU work during deployment smoke tests;
+9. verify that the host firewall or reverse proxy prevents untrusted access.
 
 The migration creates new Writer tables only. It does not alter editorial or
 pipeline tables and does not touch files.
@@ -44,10 +51,29 @@ Rollback:
 
 ## Six-stage operator flow
 
+The project page is the operational dashboard for this flow. It validates the
+selected-source counts, the on-disk index header, configured embedding model,
+local model availability, required creative fields, chapter parameters, session
+counts, and chapter status. Green stages are complete, the amber stage is the
+next operator action, and gray stages are waiting on earlier prerequisites.
+Stage and action buttons remain clickable in every state. Processing actions
+open an in-page confirmation dialog before POST. A first run offers Confirm or
+Cancel; a completed normalization or vectorization offers Remake or Cancel and
+explains the impact. Remaking normalization invalidates related derived indexes;
+remaking vectorization atomically rebuilds the derived index. Direct POSTs that
+omit the required confirmation are rejected without processing. Pending actions
+report their exact prerequisites.
+The model availability probe runs only for a loopback OpenAI-compatible endpoint
+and uses a short timeout; non-loopback services are not contacted by a page view.
+
 ### 1. Select and normalize files
 
-The Files page discovers UTF-8 `.txt` and `.md` files below the configured
-source root. The operator checks rows and sends them to Normalize.
+The Files page first discovers `READY` canonical texts from Author Studio and
+registers them by work code and title without copying or rewriting their files.
+These canonical texts are immediately selectable as normalized RAG sources.
+When `GAIDEN_WRITER_SOURCE_ROOT` is configured, the same action also discovers
+additional UTF-8 `.txt` and `.md` files below that directory; the operator
+checks those additional rows and sends them to Normalize.
 
 Normalization is deterministic and records source SHA-256, normalized SHA-256,
 provider, applied rules, character counts, output path, timestamp, and errors.
@@ -71,7 +97,8 @@ never overwritten.
 
 A project selects only normalized files. Changing that selection invalidates
 the previous index path. The Vectorize button creates a complete new index for
-the selected set through Qwen3-Embedding-0.6B.
+the selected set through Qwen3-Embedding-0.6B. The verified local Ollama tag is
+`qwen3-embedding:0.6b`; chapter writing uses `qwen3.5:9b-q4_K_M`.
 
 All selected files must be represented. The index is an external, derived,
 atomic artifact and can be rebuilt from normalized sources.

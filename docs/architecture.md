@@ -27,9 +27,10 @@ Generation and embeddings use separate configurable OpenAI-compatible local
 services. Qwen3.5-9B is the default generation model and
 Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
 weights, indexes, requests, drafts, and audit sidecars remain external runtime
-artifacts. The reusable engine remains independent of Django. The staff-only `writer`
-application adds source manifests, story projects, creative bibles, chapter
-parameters, immutable generation sessions, and explicit editorial finalization.
+artifacts. The reusable engine remains independent of Django. The `writer`
+application opens without Django authentication and adds source manifests,
+story projects, creative bibles, chapter parameters, immutable generation
+sessions, and explicit editorial finalization.
 Its external file-treatment and deployment contract is defined in
 `docs/writer-workflow.md`.
 
