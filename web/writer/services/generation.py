@@ -9,7 +9,10 @@ from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
 from writer.language_contract import contract_sha256, validate_language_contract
 from writer.models import Chapter, ChapterSession
-from writer.services.supporting_characters import supporting_characters_context
+from writer.services.supporting_characters import (
+    cast_snapshot_for_generation,
+    supporting_characters_context,
+)
 
 
 def _engine(chapter: Chapter) -> WriterEngine:
@@ -67,6 +70,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     contract = chapter.project.language_contract
     validate_language_contract(contract)
     contract_hash = contract_sha256(contract)
+    cast_snapshot = cast_snapshot_for_generation(chapter.project)
     output_language = contract["target_language"]
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
@@ -85,6 +89,17 @@ def generate_chapter(chapter: Chapter) -> Chapter:
         raise ValueError(
             "completed sessions use a different or legacy language contract "
             f"(sessions: {numbers}); create a versioned chapter revision"
+        )
+    incompatible_cast = [
+        session.number
+        for session in completed.values()
+        if session.supporting_cast_sha256 != cast_snapshot.sha256
+    ]
+    if incompatible_cast:
+        numbers = ", ".join(str(number) for number in sorted(incompatible_cast))
+        raise ValueError(
+            "completed sessions use a different or legacy supporting-cast revision "
+            f"(sessions: {numbers}); start a versioned chapter revision"
         )
     chapter.status = Chapter.Status.GENERATING
     chapter.error_message = ""
@@ -153,6 +168,9 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                     },
                     language_contract=contract,
                     language_contract_sha256=contract_hash,
+                    supporting_cast_revision=cast_snapshot.revision,
+                    supporting_cast_snapshot=cast_snapshot.registry,
+                    supporting_cast_sha256=cast_snapshot.sha256,
                 )
         chapter.status = Chapter.Status.GENERATION_COMPLETE
         chapter.error_message = ""
