@@ -9,6 +9,7 @@ from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
 from writer.language_contract import contract_sha256, validate_language_contract
 from writer.models import Chapter, ChapterSession
+from writer.services.supporting_characters import supporting_characters_context
 
 
 def _engine(chapter: Chapter) -> WriterEngine:
@@ -98,11 +99,14 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                 ).order_by("number")
             )
             project = chapter.project
+            supporting_context = supporting_characters_context(
+                project.supporting_characters_bible,
+                chapter_number=chapter.number,
+            )
             continuity = (
                 f"Character bible:\n{project.character_bible}\n\n"
                 f"Antagonist bible:\n{project.antagonist_bible}\n\n"
-                f"Supporting characters bible:\n"
-                f"{project.supporting_characters_bible}\n\n"
+                f"{supporting_context}\n\n"
                 f"Scenario and locations:\n{project.scenario_bible}\n\n"
                 f"World, period, climate and references:\n{project.world_bible}\n\n"
                 f"Story direction:\n{project.story_direction}\n\n"
