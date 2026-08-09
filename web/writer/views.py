@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from writer.forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
-from writer.models import Chapter, SourceDocument, StoryProject
+from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document
 from writer.services.projects import synchronize_chapters
@@ -89,6 +89,9 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     return render(request, "writer/project_detail.html", {
         "project": project,
         "source_form": ProjectSourcesForm(project=project),
+        "supporting_characters_locked": ChapterSession.objects.filter(
+            chapter__project=project
+        ).exists(),
     })
 
 
