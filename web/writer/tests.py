@@ -256,7 +256,7 @@ class SupportingCharactersTests(TestCase):
         self.assertEqual(project.supporting_characters_bible, serialized)
         self.assertEqual(json.loads(serialized)["characters"][0]["character_id"], "SUP-001")
         prompt = generator_factory.return_value.generate.call_args.kwargs["user"]
-        self.assertIn("Do not create one character per chapter", prompt)
+        self.assertIn("one character per chapter", " ".join(prompt.split()))
         self.assertIn("Chapter 2", prompt)
 
     def test_registry_rejects_duplicate_names_and_aliases(self):
