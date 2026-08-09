@@ -28,6 +28,7 @@ from writer.services.sources import discover_source_documents
 from writer.services.supporting_characters import (
     generate_supporting_characters_bible,
     supporting_characters_context,
+    update_supporting_characters_bible,
     validate_supporting_characters_registry,
 )
 
@@ -141,6 +142,38 @@ class LanguageContractTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("language", form.errors)
 
+    def test_direct_cast_edit_is_blocked_after_first_session(self):
+        project = StoryProject.objects.create(
+            title="Started book",
+            supporting_characters_bible="Original cast",
+            chapter_count=1,
+        )
+        chapter = Chapter.objects.create(project=project, number=1)
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Draft",
+        )
+        form = StoryProjectForm(
+            instance=project,
+            data={
+                "title": project.title,
+                "language": project.language,
+                "premise": "",
+                "character_bible": "",
+                "antagonist_bible": "",
+                "supporting_characters_bible": "Silently changed cast",
+                "scenario_bible": "",
+                "world_bible": "",
+                "story_direction": "",
+                "story_outline": "",
+                "chapter_count": 1,
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("supporting_characters_bible", form.errors)
+
     def test_contract_applies_exact_rules_and_rejects_forbidden_terms(self):
         contract = default_language_contract()
         contract["deleted_terms"] = ["decerto"]
@@ -222,6 +255,9 @@ class SupportingCharactersTests(TestCase):
                     "knowledge_limits": [f"limit {number}"],
                     "continuity_rules": [f"lock {number}"],
                     "chapters": chapters,
+                    "identity_type": "original",
+                    "canonical_source": None,
+                    "reference_anchors": [],
                 }
                 for number, (name, role, chapters) in enumerate(
                     (
@@ -275,6 +311,90 @@ class SupportingCharactersTests(TestCase):
         detailed = context.split("authorized for chapter 1:", 1)[1]
         self.assertNotIn('"name": "Émile Roy"', detailed)
 
+    @patch("writer.services.supporting_characters._rag_reference_context")
+    @patch("writer.services.supporting_characters._generator")
+    def test_update_uses_rag_and_creates_a_new_revision(
+        self, generator_factory, rag_context
+    ):
+        project = StoryProject.objects.create(
+            title="The Devil in Paris",
+            premise="A financial criminal draws a detective to Paris.",
+            character_bible="Sherlock Holmes",
+            antagonist_bible="The Devil",
+            supporting_characters_bible=json.dumps(self._registry()),
+            scenario_bible="Paris",
+            world_bible="Europe in 1913",
+            story_direction="Investigation",
+            story_outline="A complete outline",
+            chapter_count=2,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        synchronize_chapters(project)
+        updated = self._registry()
+        updated["characters"][0]["reference_anchors"] = [
+            {
+                "work": "The Adventures of Sherlock Holmes",
+                "chapter": "The Greek Interpreter",
+                "character": "Mycroft Holmes",
+                "traits_used": ["strategic intelligence"],
+                "differences": ["keeps a separate narrative role"],
+            }
+        ]
+        updated["characters"][0]["chapters"] = [1, 2]
+        generator_factory.return_value.generate.return_value = json.dumps(updated)
+        rag_context.return_value = (
+            "<reference>semantic facts</reference>",
+            ["chunk-1"],
+            [0.91],
+        )
+
+        revision = update_supporting_characters_bible(
+            project, "Add a verified Mycroft reference to chapter two."
+        )
+
+        project.refresh_from_db()
+        self.assertEqual(revision.version, 1)
+        self.assertEqual(revision.source_chunk_ids, ["chunk-1"])
+        self.assertEqual(revision.source_scores, [0.91])
+        saved = json.loads(project.supporting_characters_bible)
+        self.assertEqual(saved["schema_version"], 2)
+        self.assertEqual(
+            saved["characters"][0]["reference_anchors"][0]["chapter"],
+            "The Greek Interpreter",
+        )
+        prompt = generator_factory.return_value.generate.call_args.kwargs["user"]
+        self.assertIn("RAG REFERENCES", prompt)
+        self.assertIn("Mycroft reference", prompt)
+
+    @patch("writer.services.supporting_characters._rag_reference_context")
+    @patch("writer.services.supporting_characters._generator")
+    def test_update_rejects_renaming_an_existing_identity(
+        self, generator_factory, rag_context
+    ):
+        project = StoryProject.objects.create(
+            title="Book",
+            premise="Premise",
+            character_bible="Protagonist",
+            antagonist_bible="Antagonist",
+            supporting_characters_bible=json.dumps(self._registry()),
+            scenario_bible="Scenario",
+            world_bible="World",
+            story_direction="Direction",
+            story_outline="Outline",
+            chapter_count=2,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        updated = self._registry()
+        updated["characters"][0]["name"] = "A different person"
+        generator_factory.return_value.generate.return_value = json.dumps(updated)
+        rag_context.return_value = ("references", [], [])
+
+        with self.assertRaisesMessage(ValueError, "renamed SUP-001"):
+            update_supporting_characters_bible(
+                project, "Rename the first character and break continuity."
+            )
+        self.assertFalse(project.supporting_cast_revisions.exists())
+
     @patch("writer.services.supporting_characters._generator")
     def test_registry_cannot_change_after_generation_starts(self, generator_factory):
         project = StoryProject.objects.create(
@@ -295,7 +415,7 @@ class SupportingCharactersTests(TestCase):
             status=ChapterSession.Status.COMPLETE,
             content="Draft",
         )
-        with self.assertRaisesMessage(ValueError, "cannot be regenerated"):
+        with self.assertRaisesMessage(ValueError, "versioned update tool"):
             generate_supporting_characters_bible(project)
         generator_factory.assert_not_called()
 
@@ -382,6 +502,11 @@ class ProjectAndChapterTests(TestCase):
         first_session = chapter.sessions.get(number=1)
         self.assertEqual(first_session.language_contract, contract)
         self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
+        self.assertTrue(first_session.supporting_cast_sha256)
+        self.assertIsNotNone(first_session.supporting_cast_revision_id)
+        self.assertEqual(
+            first_session.supporting_cast_snapshot["schema_version"], 0
+        )
         self.assertEqual(
             engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
         )
@@ -416,6 +541,32 @@ class ProjectAndChapterTests(TestCase):
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.PLANNED)
         engine_factory.return_value.create_chapter.assert_not_called()
+
+    @patch("writer.services.generation._engine")
+    def test_partial_chapter_rejects_a_different_cast_revision(self, engine_factory):
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate"
+        chapter.script = "Opening and resolution"
+        chapter.save()
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Existing session",
+            language_contract=project.language_contract,
+            language_contract_sha256=contract_sha256(project.language_contract),
+            supporting_cast_sha256="legacy-or-different-cast",
+        )
+
+        with self.assertRaisesMessage(ValueError, "supporting-cast revision"):
+            generate_chapter(chapter)
+
+        engine_factory.assert_not_called()
 
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
@@ -466,6 +617,12 @@ class WriterViewTests(TestCase):
             ).status_code,
             405,
         )
+        self.assertEqual(
+            self.client.get(
+                reverse("writer:update_supporting_characters", args=[self.project.id])
+            ).status_code,
+            405,
+        )
 
     @patch("writer.views.generate_supporting_characters_bible")
     def test_supporting_cast_action_calls_ai_service(self, generate_bible):
@@ -477,6 +634,22 @@ class WriterViewTests(TestCase):
         )
         generate_bible.assert_called_once()
 
+    @patch("writer.views.update_supporting_characters_bible")
+    def test_cast_update_action_passes_operator_instruction(self, update_bible):
+        update_bible.return_value.version = 2
+        response = self.client.post(
+            reverse("writer:update_supporting_characters", args=[self.project.id]),
+            {"instruction": "Add a new witness to chapter two."},
+        )
+        self.assertRedirects(
+            response, reverse("writer:project_detail", args=[self.project.id])
+        )
+        update_bible.assert_called_once_with(
+            self.project,
+            "Add a new witness to chapter two.",
+            created_by=self.user,
+        )
+
     def test_critical_writer_post_requires_csrf(self):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.user)
@@ -487,6 +660,13 @@ class WriterViewTests(TestCase):
         self.assertEqual(
             client.post(
                 reverse("writer:generate_supporting_characters", args=[self.project.id])
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            client.post(
+                reverse("writer:update_supporting_characters", args=[self.project.id]),
+                {"instruction": "Add a properly described supporting character."},
             ).status_code,
             403,
         )

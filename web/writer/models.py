@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -70,6 +71,40 @@ class StoryProject(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class SupportingCastRevision(models.Model):
+    project = models.ForeignKey(
+        StoryProject,
+        on_delete=models.CASCADE,
+        related_name="supporting_cast_revisions",
+    )
+    version = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    instruction = models.TextField()
+    registry = models.JSONField(default=dict)
+    registry_sha256 = models.CharField(max_length=64)
+    source_chunk_ids = models.JSONField(default=list, blank=True)
+    source_scores = models.JSONField(default=list, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="writer_supporting_cast_revisions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("project_id", "-version")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("project", "version"),
+                name="writer_unique_supporting_cast_revision",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.project.title} — Coadjuvantes v{self.version}"
 
 
 class Chapter(models.Model):
@@ -148,6 +183,15 @@ class ChapterSession(models.Model):
     generation_parameters = models.JSONField(default=dict, blank=True)
     language_contract = models.JSONField(default=dict)
     language_contract_sha256 = models.CharField(max_length=64, blank=True)
+    supporting_cast_revision = models.ForeignKey(
+        SupportingCastRevision,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="sessions",
+    )
+    supporting_cast_snapshot = models.JSONField(default=dict, blank=True)
+    supporting_cast_sha256 = models.CharField(max_length=64, blank=True)
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

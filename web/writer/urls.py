@@ -18,6 +18,11 @@ urlpatterns = [
         views.generate_supporting_characters,
         name="generate_supporting_characters",
     ),
+    path(
+        "projects/<int:project_id>/supporting-characters/update/",
+        views.update_supporting_characters,
+        name="update_supporting_characters",
+    ),
     path("projects/<int:project_id>/vectorize/", views.vectorize, name="vectorize"),
     path("chapters/<int:chapter_id>/", views.chapter_detail, name="chapter_detail"),
     path("chapters/<int:chapter_id>/edit/", views.chapter_edit, name="chapter_edit"),

@@ -24,13 +24,15 @@ Before deployment:
 4. verify the separate loopback Qwen generation and embedding services;
 5. review `python web/manage.py migrate --plan`;
 6. apply Writer migrations through
-   `writer.0003_storyproject_supporting_characters_bible`;
+   `writer.0004_supporting_cast_revisions`;
 7. run `python web/manage.py check` and the protected test suite;
 8. open `/writer/`, but do not trigger paid or GPU work during deployment
    smoke tests.
 
-The migration creates new Writer tables only. It does not alter editorial or
-pipeline tables and does not touch files.
+The Writer migrations create the cast-revision table and add nullable/defaulted
+cast-audit fields to chapter sessions. They do not alter editorial or pipeline
+tables, delete operator data, or touch files. Existing sessions retain blank
+cast-audit fields and are treated as legacy when a partial chapter is resumed.
 
 Rollback:
 
@@ -146,10 +148,35 @@ field before chapter generation starts.
 Every generation session receives a compact global identity map and the complete
 records only for supporting characters authorized for that chapter. The prompt
 forbids merging identities or transferring aliases, traits, relationships,
-roles, goals, or knowledge. After the first chapter session exists, AI
-regeneration of the registry is blocked so an in-progress book cannot silently
-change its cast. Legacy free-text supporting-character bibles remain accepted
-and receive the same identity-separation instruction.
+roles, goals, or knowledge. Legacy free-text supporting-character bibles remain
+accepted and receive the same identity-separation instruction.
+
+After the first cast exists, the project page exposes **Update Bible with AI +
+RAG** and an operator textarea for a new character, reference, or continuity
+gap. The update retrieves eight semantic reference chunks from the project's
+approved vector index, sends them to Qwen as untrusted reference data, validates
+the complete returned registry, and creates an immutable numbered
+`SupportingCastRevision`. Updating requires a vectorized project.
+
+Schema version 2 distinguishes an actual canonical identity from an original
+character inspired by semantic traits. A canonical source records work,
+chapter/story, and canonical character. A reference anchor records work,
+chapter/story, reference character, traits used, and required differences.
+References never authorize copying source wording or style.
+
+Updates may add characters, aliases, traits, relationships, knowledge limits,
+continuity rules, references, and future chapter appearances. They cannot
+delete or rename an existing identity, remove an alias, or remove a previous
+chapter appearance. New IDs remain sequential. The registry supports up to 24
+characters while chapter prompts still include full records only for the
+relevant chapter.
+
+Each new chapter session stores the exact cast snapshot, SHA-256, and revision
+used for generation. Existing sessions remain unchanged after a later cast
+revision. Resuming a partially generated chapter with a different cast revision
+is rejected; the operator must create a versioned chapter revision. Direct
+editing of the cast field is blocked after the first session so in-progress
+changes pass through the audited update tool.
 
 ### 4. Direct and script the story
 
@@ -185,7 +212,8 @@ words per session. The model may vary naturally; actual word count is recorded.
 The Generate chapter button is POST-only and CSRF-protected. It generates the
 configured sessions in order and records immutable session rows containing
 content, actual word count, model, retrieval IDs, scores, parameters, the complete
-language contract, and its canonical SHA-256.
+language contract and SHA-256, plus the supporting-cast revision, snapshot, and
+SHA-256.
 
 A retry resumes missing sessions and does not overwrite completed ones. After
 all sessions, status becomes `GENERATION_COMPLETE`, not `FINAL`.

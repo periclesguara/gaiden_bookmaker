@@ -59,6 +59,15 @@ class StoryProjectForm(forms.ModelForm):
             contract = language_contract_for(language)
             validate_language_contract(contract)
             self.instance.language_contract = contract
+        if (
+            self.instance.pk
+            and "supporting_characters_bible" in self.changed_data
+            and self.instance.chapters.filter(sessions__isnull=False).exists()
+        ):
+            self.add_error(
+                "supporting_characters_bible",
+                "Após a primeira sessão, use a atualização versionada dos coadjuvantes.",
+            )
         return cleaned
 
     def clean_chapter_count(self):
@@ -85,6 +94,28 @@ class ProjectSourcesForm(forms.Form):
             status__in=(SourceDocument.Status.NORMALIZED, SourceDocument.Status.VECTORIZED)
         )
         self.fields["sources"].initial = project.sources.all()
+
+
+class SupportingCastUpdateForm(forms.Form):
+    instruction = forms.CharField(
+        min_length=10,
+        max_length=6000,
+        label="Atualização ou gap de continuidade",
+        help_text=(
+            "Descreva o novo personagem, a inconsistência a corrigir e, se houver, "
+            "a obra, o capítulo e o personagem usados como referência semântica."
+        ),
+        widget=forms.Textarea(
+            attrs={
+                "rows": 6,
+                "placeholder": (
+                    "Ex.: Adicionar Mycroft ao capítulo 6. Consultar as aparições "
+                    "canônicas no RAG, registrar os traços aproveitados e preservar "
+                    "as diferenças desta versão."
+                ),
+            }
+        ),
+    )
 
 
 class ChapterForm(forms.ModelForm):
