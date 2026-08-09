@@ -7,13 +7,21 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from writer.forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
-from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
+from writer.forms import (
+    ChapterForm,
+    ProjectSourcesForm,
+    StoryProjectForm,
+    SupportingCastUpdateForm,
+)
+from writer.models import Chapter, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document
 from writer.services.projects import synchronize_chapters
 from writer.services.sources import discover_source_documents
-from writer.services.supporting_characters import generate_supporting_characters_bible
+from writer.services.supporting_characters import (
+    generate_supporting_characters_bible,
+    update_supporting_characters_bible,
+)
 from writer.services.vectorization import vectorize_project
 
 
@@ -89,9 +97,10 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     return render(request, "writer/project_detail.html", {
         "project": project,
         "source_form": ProjectSourcesForm(project=project),
-        "supporting_characters_locked": ChapterSession.objects.filter(
-            chapter__project=project
-        ).exists(),
+        "supporting_cast_update_form": SupportingCastUpdateForm(),
+        "supporting_cast_revisions": project.supporting_cast_revisions.select_related(
+            "created_by"
+        )[:10],
     })
 
 
@@ -106,13 +115,36 @@ def generate_supporting_characters(request: HttpRequest, project_id: int) -> Htt
         )
         return redirect("writer:project_detail", project_id=project.id)
     try:
-        generate_supporting_characters_bible(project)
+        generate_supporting_characters_bible(project, created_by=request.user)
         messages.success(
             request,
             "Bíblia estruturada dos coadjuvantes criada pela IA e salva no projeto.",
         )
     except Exception as exc:
         messages.error(request, f"Falha ao gerar coadjuvantes: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@staff_member_required
+@require_POST
+def update_supporting_characters(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    form = SupportingCastUpdateForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Descreva a atualização ou o gap de continuidade.")
+        return redirect("writer:project_detail", project_id=project.id)
+    try:
+        revision = update_supporting_characters_bible(
+            project,
+            form.cleaned_data["instruction"],
+            created_by=request.user,
+        )
+        messages.success(
+            request,
+            f"Bíblia dos coadjuvantes atualizada para a revisão v{revision.version}.",
+        )
+    except Exception as exc:
+        messages.error(request, f"Falha ao atualizar coadjuvantes: {exc}")
     return redirect("writer:project_detail", project_id=project.id)
 
 
