@@ -52,6 +52,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     required = {
         "bíblia do personagem": chapter.project.character_bible,
         "bíblia do antagonista": chapter.project.antagonist_bible,
+        "bíblia dos coadjuvantes": chapter.project.supporting_characters_bible,
         "cenários e locais": chapter.project.scenario_bible,
         "mundo, época, clima e referências": chapter.project.world_bible,
         "direção da história": chapter.project.story_direction,
@@ -100,6 +101,8 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             continuity = (
                 f"Character bible:\n{project.character_bible}\n\n"
                 f"Antagonist bible:\n{project.antagonist_bible}\n\n"
+                f"Supporting characters bible:\n"
+                f"{project.supporting_characters_bible}\n\n"
                 f"Scenario and locations:\n{project.scenario_bible}\n\n"
                 f"World, period, climate and references:\n{project.world_bible}\n\n"
                 f"Story direction:\n{project.story_direction}\n\n"

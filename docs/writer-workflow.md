@@ -23,7 +23,8 @@ Before deployment:
    to the web process;
 4. verify the separate loopback Qwen generation and embedding services;
 5. review `python web/manage.py migrate --plan`;
-6. apply `writer.0001_initial` and `writer.0002_language_contract`;
+6. apply Writer migrations through
+   `writer.0003_storyproject_supporting_characters_bible`;
 7. run `python web/manage.py check` and the protected test suite;
 8. open `/writer/`, but do not trigger paid or GPU work during deployment
    smoke tests.
@@ -124,6 +125,7 @@ Each project also has explicit fields for:
 
 - character bible;
 - antagonist bible;
+- supporting characters bible;
 - scenarios and locations;
 - world, period, climate and references;
 - premise;
@@ -131,6 +133,9 @@ Each project also has explicit fields for:
 - general story outline.
 
 Generation is blocked while any required bible or direction field is empty.
+The supporting characters bible is included in every Qwen generation session so
+recurring allies, witnesses, police officers, and other secondary characters
+remain consistent across chapters.
 
 ### 4. Direct and script the story
 

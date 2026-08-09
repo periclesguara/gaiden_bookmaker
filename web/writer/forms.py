@@ -9,7 +9,8 @@ class StoryProjectForm(forms.ModelForm):
         model = StoryProject
         fields = (
             "title", "language", "premise", "character_bible", "antagonist_bible",
-            "scenario_bible", "world_bible", "story_direction", "story_outline",
+            "supporting_characters_bible", "scenario_bible", "world_bible",
+            "story_direction", "story_outline",
             "chapter_count",
         )
         labels = {
@@ -18,6 +19,7 @@ class StoryProjectForm(forms.ModelForm):
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
+            "supporting_characters_bible": "Bíblia dos coadjuvantes",
             "scenario_bible": "Cenários e locais",
             "world_bible": "Mundo, época, clima e referências",
             "story_direction": "Direção da história",
@@ -27,8 +29,9 @@ class StoryProjectForm(forms.ModelForm):
         widgets = {
             field: forms.Textarea(attrs={"rows": 5})
             for field in (
-                "premise", "character_bible", "antagonist_bible", "scenario_bible",
-                "world_bible", "story_direction", "story_outline",
+                "premise", "character_bible", "antagonist_bible",
+                "supporting_characters_bible", "scenario_bible", "world_bible",
+                "story_direction", "story_outline",
             )
         }
         widgets["language"] = forms.Select()
