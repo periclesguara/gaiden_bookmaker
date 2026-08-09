@@ -273,6 +273,7 @@ def _persist_revision(
     source_chunk_ids: list[str] | None = None,
     source_scores: list[float] | None = None,
     created_by: Any = None,
+    replace_project_field: bool = True,
 ) -> SupportingCastRevision:
     serialized = _serialized(registry)
     registry_hash = _registry_sha256(registry)
@@ -293,9 +294,11 @@ def _persist_revision(
             source_scores=source_scores or [],
             created_by=created_by,
         )
-        locked.supporting_characters_bible = serialized
-        locked.save(update_fields=("supporting_characters_bible", "updated_at"))
-    project.supporting_characters_bible = serialized
+        if replace_project_field:
+            locked.supporting_characters_bible = serialized
+            locked.save(update_fields=("supporting_characters_bible", "updated_at"))
+    if replace_project_field:
+        project.supporting_characters_bible = serialized
     return revision
 
 
@@ -517,6 +520,7 @@ def cast_snapshot_for_generation(project: StoryProject) -> CastSnapshot:
             expected_raw=raw,
             registry=registry,
             instruction="Snapshot of manually edited supporting cast",
+            replace_project_field=False,
         )
     return CastSnapshot(registry=registry, sha256=registry_hash, revision=revision)
 
