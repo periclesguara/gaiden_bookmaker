@@ -132,6 +132,13 @@ Each project also has explicit fields for:
 
 Generation is blocked while any required bible or direction field is empty.
 
+The project screen presents the title, writing language, premise, each bible,
+story direction, general outline, and chapter count in separate visual panels.
+The title field suggests `Sherlock Holmes — The Devil in Paris` as an example
+without persisting it automatically. The **Save and create chapter table**
+action saves the project and creates every missing chapter row in one
+transaction.
+
 ### 4. Direct and script the story
 
 Every chapter has its own title, direction, and script. Project bibles and the
