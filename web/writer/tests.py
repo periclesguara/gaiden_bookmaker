@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -24,6 +25,11 @@ from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document, normalize_text
 from writer.services.projects import synchronize_chapters
 from writer.services.sources import discover_source_documents
+from writer.services.supporting_characters import (
+    generate_supporting_characters_bible,
+    supporting_characters_context,
+    validate_supporting_characters_registry,
+)
 
 
 class NormalizationTests(TestCase):
@@ -198,6 +204,102 @@ class SourceDiscoveryTests(TestCase):
             self.assertEqual(SourceDocument.objects.get().filename, "sherlock.md")
 
 
+class SupportingCharactersTests(TestCase):
+    def _registry(self):
+        return {
+            "schema_version": 1,
+            "characters": [
+                {
+                    "character_id": f"SUP-{number:03d}",
+                    "name": name,
+                    "aliases": [],
+                    "role": role,
+                    "physical_markers": [f"marker {number}"],
+                    "traits": [f"trait {number}"],
+                    "voice": f"voice {number}",
+                    "goal": f"goal {number}",
+                    "relationships": [f"relationship {number}"],
+                    "knowledge_limits": [f"limit {number}"],
+                    "continuity_rules": [f"lock {number}"],
+                    "chapters": chapters,
+                }
+                for number, (name, role, chapters) in enumerate(
+                    (
+                        ("Inspector Vale", "police liaison", [1, 2]),
+                        ("Émile Roy", "bank clerk", [2]),
+                        ("Clara Moss", "witness", [1]),
+                    ),
+                    start=1,
+                )
+            ],
+        }
+
+    @patch("writer.services.supporting_characters._generator")
+    def test_qwen_creates_one_structured_project_registry(self, generator_factory):
+        project = StoryProject.objects.create(
+            title="The Devil in Paris",
+            premise="A financial criminal draws an older detective to Paris.",
+            character_bible="The detective is logical and forensic.",
+            antagonist_bible="The Devil is a financial forger.",
+            scenario_bible="Paris and nearby towns.",
+            world_bible="Europe in 1913.",
+            story_direction="A restrained investigation.",
+            story_outline="Clues lead to the fraud and its architect.",
+            chapter_count=2,
+        )
+        synchronize_chapters(project)
+        generator_factory.return_value.generate.return_value = json.dumps(self._registry())
+
+        serialized = generate_supporting_characters_bible(project)
+
+        project.refresh_from_db()
+        self.assertEqual(project.supporting_characters_bible, serialized)
+        self.assertEqual(json.loads(serialized)["characters"][0]["character_id"], "SUP-001")
+        prompt = generator_factory.return_value.generate.call_args.kwargs["user"]
+        self.assertIn("Do not create one character per chapter", prompt)
+        self.assertIn("Chapter 2", prompt)
+
+    def test_registry_rejects_duplicate_names_and_aliases(self):
+        registry = self._registry()
+        registry["characters"][1]["aliases"] = ["Inspector Vale"]
+        with self.assertRaisesMessage(ValueError, "duplicate supporting character"):
+            validate_supporting_characters_registry(registry, chapter_count=2)
+
+    def test_chapter_context_keeps_global_identity_map_and_filters_details(self):
+        context = supporting_characters_context(
+            json.dumps(self._registry()), chapter_number=1
+        )
+        self.assertIn("Inspector Vale", context)
+        self.assertIn("Émile Roy", context)
+        self.assertIn("Clara Moss", context)
+        detailed = context.split("authorized for chapter 1:", 1)[1]
+        self.assertNotIn('"name": "Émile Roy"', detailed)
+
+    @patch("writer.services.supporting_characters._generator")
+    def test_registry_cannot_change_after_generation_starts(self, generator_factory):
+        project = StoryProject.objects.create(
+            title="Started",
+            premise="Premise",
+            character_bible="Protagonist",
+            antagonist_bible="Antagonist",
+            scenario_bible="Scenario",
+            world_bible="World",
+            story_direction="Direction",
+            story_outline="Outline",
+            chapter_count=1,
+        )
+        synchronize_chapters(project)
+        ChapterSession.objects.create(
+            chapter=project.chapters.get(),
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Draft",
+        )
+        with self.assertRaisesMessage(ValueError, "cannot be regenerated"):
+            generate_supporting_characters_bible(project)
+        generator_factory.assert_not_called()
+
+
 class ProjectAndChapterTests(TestCase):
     def _project(self, **overrides):
         values = {
@@ -284,7 +386,7 @@ class ProjectAndChapterTests(TestCase):
             engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
         )
         self.assertIn(
-            "Supporting characters bible:\nSupporting cast facts",
+            "Supporting characters (legacy free text):\nSupporting cast facts",
             engine_factory.return_value.calls[0].continuity,
         )
 
@@ -358,6 +460,22 @@ class WriterViewTests(TestCase):
         self.assertEqual(
             self.client.get(reverse("writer:finalize", args=[chapter.id])).status_code, 405
         )
+        self.assertEqual(
+            self.client.get(
+                reverse("writer:generate_supporting_characters", args=[self.project.id])
+            ).status_code,
+            405,
+        )
+
+    @patch("writer.views.generate_supporting_characters_bible")
+    def test_supporting_cast_action_calls_ai_service(self, generate_bible):
+        response = self.client.post(
+            reverse("writer:generate_supporting_characters", args=[self.project.id])
+        )
+        self.assertRedirects(
+            response, reverse("writer:project_detail", args=[self.project.id])
+        )
+        generate_bible.assert_called_once()
 
     def test_critical_writer_post_requires_csrf(self):
         client = Client(enforce_csrf_checks=True)
@@ -365,4 +483,10 @@ class WriterViewTests(TestCase):
         chapter = self.project.chapters.first()
         self.assertEqual(
             client.post(reverse("writer:generate", args=[chapter.id])).status_code, 403
+        )
+        self.assertEqual(
+            client.post(
+                reverse("writer:generate_supporting_characters", args=[self.project.id])
+            ).status_code,
+            403,
         )
