@@ -74,7 +74,6 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     output_language = contract["target_language"]
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
-    engine = _engine(chapter)
     completed = {
         session.number: session
         for session in chapter.sessions.filter(status=ChapterSession.Status.COMPLETE)
@@ -101,6 +100,7 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             "completed sessions use a different or legacy supporting-cast revision "
             f"(sessions: {numbers}); start a versioned chapter revision"
         )
+    engine = _engine(chapter)
     chapter.status = Chapter.Status.GENERATING
     chapter.error_message = ""
     chapter.save(update_fields=("status", "error_message", "updated_at"))
