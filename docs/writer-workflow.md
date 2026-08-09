@@ -29,8 +29,10 @@ Before deployment:
 8. open `/writer/`, but do not trigger paid or GPU work during deployment
    smoke tests.
 
-The migration creates new Writer tables only. It does not alter editorial or
-pipeline tables and does not touch files.
+The Writer migrations create the cast-revision table and add nullable/defaulted
+cast-audit fields to chapter sessions. They do not alter editorial or pipeline
+tables, delete operator data, or touch files. Existing sessions retain blank
+cast-audit fields and are treated as legacy when a partial chapter is resumed.
 
 Rollback:
 
