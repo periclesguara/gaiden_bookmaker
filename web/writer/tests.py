@@ -225,6 +225,20 @@ class ProjectAndChapterTests(TestCase):
         synchronize_chapters(project)
         self.assertEqual(project.chapters.count(), 12)
 
+    def test_generation_requires_supporting_characters_bible(self):
+        project = self._project(
+            chapter_count=1,
+            supporting_characters_bible="",
+        )
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate"
+        chapter.script = "Opening and resolution"
+        chapter.save()
+
+        with self.assertRaisesMessage(ValueError, "bíblia dos coadjuvantes"):
+            generate_chapter(chapter)
+
     @patch("writer.services.generation._engine")
     def test_generation_runs_four_sessions_then_requires_explicit_finalization(self, engine_factory):
         contract = default_language_contract()
