@@ -91,6 +91,7 @@ class LanguageContractTests(TestCase):
             "premise": "",
             "character_bible": "",
             "antagonist_bible": "",
+            "supporting_characters_bible": "Inspector and witnesses",
             "scenario_bible": "",
             "world_bible": "",
             "story_direction": "",
@@ -100,6 +101,9 @@ class LanguageContractTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         project = form.save()
         self.assertEqual(project.language, "pt-BR")
+        self.assertEqual(
+            project.supporting_characters_bible, "Inspector and witnesses"
+        )
         self.assertEqual(project.language_contract["target_language"], "pt-BR")
         self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
 
@@ -120,6 +124,7 @@ class LanguageContractTests(TestCase):
                 "premise": "",
                 "character_bible": "",
                 "antagonist_bible": "",
+                "supporting_characters_bible": "",
                 "scenario_bible": "",
                 "world_bible": "",
                 "story_direction": "",
@@ -199,6 +204,7 @@ class ProjectAndChapterTests(TestCase):
             "title": "New Mystery",
             "character_bible": "Detective character facts",
             "antagonist_bible": "Antagonist character facts",
+            "supporting_characters_bible": "Supporting cast facts",
             "scenario_bible": "London locations",
             "world_bible": "Victorian period, cold climate",
             "story_direction": "A fair-play investigation",
@@ -262,6 +268,10 @@ class ProjectAndChapterTests(TestCase):
         self.assertEqual(first_session.language_contract_sha256, contract_sha256(contract))
         self.assertEqual(
             engine_factory.return_value.calls[0].language_contract["target_language"], "en-US"
+        )
+        self.assertIn(
+            "Supporting characters bible:\nSupporting cast facts",
+            engine_factory.return_value.calls[0].continuity,
         )
 
     @patch("writer.services.generation._engine")
