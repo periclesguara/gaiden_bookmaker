@@ -542,6 +542,32 @@ class ProjectAndChapterTests(TestCase):
         self.assertEqual(chapter.status, Chapter.Status.PLANNED)
         engine_factory.return_value.create_chapter.assert_not_called()
 
+    @patch("writer.services.generation._engine")
+    def test_partial_chapter_rejects_a_different_cast_revision(self, engine_factory):
+        project = self._project(
+            chapter_count=1,
+            vector_index_path="/runtime/index.jsonl",
+        )
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate"
+        chapter.script = "Opening and resolution"
+        chapter.save()
+        ChapterSession.objects.create(
+            chapter=chapter,
+            number=1,
+            status=ChapterSession.Status.COMPLETE,
+            content="Existing session",
+            language_contract=project.language_contract,
+            language_contract_sha256=contract_sha256(project.language_contract),
+            supporting_cast_sha256="legacy-or-different-cast",
+        )
+
+        with self.assertRaisesMessage(ValueError, "supporting-cast revision"):
+            generate_chapter(chapter)
+
+        engine_factory.assert_not_called()
+
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
         synchronize_chapters(project)
