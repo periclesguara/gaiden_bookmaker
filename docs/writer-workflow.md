@@ -133,9 +133,23 @@ Each project also has explicit fields for:
 - general story outline.
 
 Generation is blocked while any required bible or direction field is empty.
-The supporting characters bible is included in every Qwen generation session so
-recurring allies, witnesses, police officers, and other secondary characters
-remain consistent across chapters.
+
+The supporting cast uses one project-level field, not one field per character or
+chapter. The **Generate supporting-characters bible with AI** action is POST-only
+and asks Qwen for a JSON registry of 3–12 narratively necessary characters. Each
+record has a stable `SUP-NNN` ID, canonical name, aliases, role, physical
+markers, traits, voice, goal, relationships, knowledge limits, continuity rules,
+and authorized chapters. The service rejects invalid chapter numbers and
+duplicate IDs, names, or aliases before saving. Operators can edit the generated
+field before chapter generation starts.
+
+Every generation session receives a compact global identity map and the complete
+records only for supporting characters authorized for that chapter. The prompt
+forbids merging identities or transferring aliases, traits, relationships,
+roles, goals, or knowledge. After the first chapter session exists, AI
+regeneration of the registry is blocked so an in-progress book cannot silently
+change its cast. Legacy free-text supporting-character bibles remain accepted
+and receive the same identity-separation instruction.
 
 ### 4. Direct and script the story
 

@@ -8,11 +8,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from writer.forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
-from writer.models import Chapter, SourceDocument, StoryProject
+from writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.normalization import normalize_document
 from writer.services.projects import synchronize_chapters
 from writer.services.sources import discover_source_documents
+from writer.services.supporting_characters import generate_supporting_characters_bible
 from writer.services.vectorization import vectorize_project
 
 
@@ -88,7 +89,31 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     return render(request, "writer/project_detail.html", {
         "project": project,
         "source_form": ProjectSourcesForm(project=project),
+        "supporting_characters_locked": ChapterSession.objects.filter(
+            chapter__project=project
+        ).exists(),
     })
+
+
+@staff_member_required
+@require_POST
+def generate_supporting_characters(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    if project.supporting_characters_bible.strip() and request.POST.get("confirm") != "yes":
+        messages.error(
+            request,
+            "A bíblia dos coadjuvantes já existe. Confirme explicitamente para substituí-la.",
+        )
+        return redirect("writer:project_detail", project_id=project.id)
+    try:
+        generate_supporting_characters_bible(project)
+        messages.success(
+            request,
+            "Bíblia estruturada dos coadjuvantes criada pela IA e salva no projeto.",
+        )
+    except Exception as exc:
+        messages.error(request, f"Falha ao gerar coadjuvantes: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
 
 
 @staff_member_required
