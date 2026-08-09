@@ -14,7 +14,7 @@ class StoryProjectForm(forms.ModelForm):
         )
         labels = {
             "title": "Título do projeto",
-            "language": "Idioma de criação",
+            "language": "Idioma de escrita",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
             "antagonist_bible": "Bíblia do antagonista",
@@ -25,17 +25,82 @@ class StoryProjectForm(forms.ModelForm):
             "chapter_count": "Quantidade de capítulos",
         }
         widgets = {
-            field: forms.Textarea(attrs={"rows": 5})
-            for field in (
-                "premise", "character_bible", "antagonist_bible", "scenario_bible",
-                "world_bible", "story_direction", "story_outline",
-            )
+            "title": forms.TextInput(
+                attrs={"placeholder": "Sherlock Holmes — The Devil in Paris"}
+            ),
+            "language": forms.Select(),
+            "premise": forms.Textarea(
+                attrs={
+                    "rows": 5,
+                    "placeholder": (
+                        "Resuma o conflito central, o mistério e o que está em jogo."
+                    ),
+                }
+            ),
+            "character_bible": forms.Textarea(
+                attrs={
+                    "rows": 8,
+                    "placeholder": (
+                        "Defina Holmes, Watson e os demais personagens: voz, objetivos, "
+                        "limites, relações e fatos de continuidade."
+                    ),
+                }
+            ),
+            "antagonist_bible": forms.Textarea(
+                attrs={
+                    "rows": 8,
+                    "placeholder": (
+                        "Defina o antagonista: identidade, motivação, método, recursos, "
+                        "segredos e relação com o mistério."
+                    ),
+                }
+            ),
+            "scenario_bible": forms.Textarea(
+                attrs={
+                    "rows": 7,
+                    "placeholder": (
+                        "Liste os cenários de Paris e outros locais relevantes, com a "
+                        "função dramática de cada um."
+                    ),
+                }
+            ),
+            "world_bible": forms.Textarea(
+                attrs={
+                    "rows": 7,
+                    "placeholder": (
+                        "Registre época, clima, costumes, tecnologia e referências "
+                        "históricas necessárias à consistência."
+                    ),
+                }
+            ),
+            "story_direction": forms.Textarea(
+                attrs={
+                    "rows": 7,
+                    "placeholder": (
+                        "Descreva tom, ritmo, ponto de vista, progressão da investigação "
+                        "e limites criativos."
+                    ),
+                }
+            ),
+            "story_outline": forms.Textarea(
+                attrs={
+                    "rows": 10,
+                    "placeholder": (
+                        "Organize os principais acontecimentos, pistas, viradas, "
+                        "confronto e resolução."
+                    ),
+                }
+            ),
+            "chapter_count": forms.NumberInput(attrs={"min": 1, "max": 100}),
         }
-        widgets["language"] = forms.Select()
         help_texts = {
             "language": (
                 "Selecione EN-US, EN-UK ou PT-BR. O Writer carrega automaticamente "
                 "o contrato correspondente antes de enviar o contexto RAG ao Qwen."
+            ),
+            "chapter_count": (
+                "Ao salvar, o Writer cria as linhas que faltam na tabela de capítulos "
+                "sem apagar capítulos existentes."
             ),
         }
 
