@@ -267,7 +267,7 @@ class SupportingCharactersTests(TestCase):
 
     def test_chapter_context_keeps_global_identity_map_and_filters_details(self):
         context = supporting_characters_context(
-            json.dumps(self._registry()), chapter_number=1
+            json.dumps(self._registry()), chapter_number=1, chapter_count=2
         )
         self.assertIn("Inspector Vale", context)
         self.assertIn("Émile Roy", context)
