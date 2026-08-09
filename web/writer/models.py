@@ -52,6 +52,7 @@ class StoryProject(models.Model):
     premise = models.TextField(blank=True)
     character_bible = models.TextField(blank=True)
     antagonist_bible = models.TextField(blank=True)
+    supporting_characters_bible = models.TextField(blank=True)
     scenario_bible = models.TextField(blank=True)
     world_bible = models.TextField(blank=True)
     story_direction = models.TextField(blank=True)
