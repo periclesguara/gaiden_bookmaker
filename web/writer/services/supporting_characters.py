@@ -109,8 +109,15 @@ def validate_supporting_characters_registry(
         if not isinstance(raw_character, dict):
             raise ValueError(f"supporting character {position} must be an object")
         character_id = raw_character.get("character_id")
-        if not isinstance(character_id, str) or not _CHARACTER_ID.fullmatch(character_id):
-            raise ValueError(f"supporting character {position} has an invalid character_id")
+        expected_id = f"SUP-{position:03d}"
+        if (
+            not isinstance(character_id, str)
+            or not _CHARACTER_ID.fullmatch(character_id)
+            or character_id != expected_id
+        ):
+            raise ValueError(
+                f"supporting character {position} must use sequential ID {expected_id}"
+            )
         if character_id in ids:
             raise ValueError(f"duplicate supporting character ID: {character_id}")
         ids.add(character_id)
@@ -192,7 +199,7 @@ Return exactly:
       "relationships": ["explicit relationship to a named character"],
       "knowledge_limits": ["what this character knows or must not know"],
       "continuity_rules": ["facts that must never change or be confused"],
-      "chapters": [1, 2]
+      "chapters": [1]
     }}
   ]
 }}
@@ -217,19 +224,20 @@ PROJECT:
     return serialized
 
 
-def supporting_characters_context(raw: str, *, chapter_number: int) -> str:
-    try:
-        registry = _parse_json_object(raw)
-        characters = registry.get("characters")
-        if not isinstance(characters, list):
-            raise ValueError
-    except (ValueError, TypeError):
+def supporting_characters_context(
+    raw: str, *, chapter_number: int, chapter_count: int
+) -> str:
+    if not raw.lstrip().startswith("{"):
         return (
             "Supporting characters (legacy free text):\n"
             f"{raw}\n\n"
             "Continuity lock: never merge identities or transfer names, traits, "
             "relationships, roles, or knowledge between supporting characters."
         )
+    registry = validate_supporting_characters_registry(
+        _parse_json_object(raw), chapter_count=chapter_count
+    )
+    characters = registry["characters"]
 
     identity_map = []
     relevant = []
