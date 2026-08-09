@@ -1,5 +1,97 @@
 {% extends "writer/base.html" %}
 {% block title %}{% if project.pk %}Editar projeto{% else %}Novo projeto{% endif %}{% endblock %}
-{% block content %}<section class="card"><h1>{% if project.pk %}Bíblias e direção{% else %}Novo projeto{% endif %}</h1><form method="post">{% csrf_token %}{{ form.non_field_errors }}
-{% for field in form %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}{% if field.help_text %}<div class="muted">{{ field.help_text }}</div>{% endif %}</div>{% endfor %}
-<button type="submit">Salvar e criar tabela de capítulos</button></form></section>{% endblock %}
+{% block content %}
+<section class="card project-editor">
+  <header class="project-editor__header">
+    <div>
+      <p class="eyebrow">{% if project.pk %}Editar projeto{% else %}Novo projeto{% endif %}</p>
+      <h1>Bíblias e direção</h1>
+      <p class="muted">
+        Defina o contrato editorial de Sherlock Holmes — The Devil in Paris antes
+        de montar a tabela de capítulos.
+      </p>
+    </div>
+  </header>
+
+  <form method="post" class="project-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="project-form__identity">
+      <div class="field-box">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {{ form.title.errors }}
+        {% if form.title.help_text %}<div class="muted">{{ form.title.help_text }}</div>{% endif %}
+      </div>
+
+      <div class="field-box">
+        {{ form.language.label_tag }}
+        {{ form.language }}
+        {{ form.language.errors }}
+        {% if form.language.help_text %}<div class="muted">{{ form.language.help_text }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-box">
+      {{ form.premise.label_tag }}
+      {{ form.premise }}
+      {{ form.premise.errors }}
+      {% if form.premise.help_text %}<div class="muted">{{ form.premise.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.character_bible.label_tag }}
+      {{ form.character_bible }}
+      {{ form.character_bible.errors }}
+      {% if form.character_bible.help_text %}<div class="muted">{{ form.character_bible.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.antagonist_bible.label_tag }}
+      {{ form.antagonist_bible }}
+      {{ form.antagonist_bible.errors }}
+      {% if form.antagonist_bible.help_text %}<div class="muted">{{ form.antagonist_bible.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.scenario_bible.label_tag }}
+      {{ form.scenario_bible }}
+      {{ form.scenario_bible.errors }}
+      {% if form.scenario_bible.help_text %}<div class="muted">{{ form.scenario_bible.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.world_bible.label_tag }}
+      {{ form.world_bible }}
+      {{ form.world_bible.errors }}
+      {% if form.world_bible.help_text %}<div class="muted">{{ form.world_bible.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.story_direction.label_tag }}
+      {{ form.story_direction }}
+      {{ form.story_direction.errors }}
+      {% if form.story_direction.help_text %}<div class="muted">{{ form.story_direction.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box">
+      {{ form.story_outline.label_tag }}
+      {{ form.story_outline }}
+      {{ form.story_outline.errors }}
+      {% if form.story_outline.help_text %}<div class="muted">{{ form.story_outline.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="field-box field-box--compact">
+      {{ form.chapter_count.label_tag }}
+      {{ form.chapter_count }}
+      {{ form.chapter_count.errors }}
+      {% if form.chapter_count.help_text %}<div class="muted">{{ form.chapter_count.help_text }}</div>{% endif %}
+    </div>
+
+    <div class="project-form__actions">
+      <button type="submit">Salvar e criar tabela de capítulos</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
