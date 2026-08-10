@@ -76,6 +76,8 @@ and approved recovery sequence are documented in
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
 - `docs/audits/main-migration-reconciliation.md`: recovered migration
   provenance, data-preserving reconciliation, deployment, and rollback.
+- `docs/rinobooks-publication.md`: validated EPUB delivery from Gaiden to a
+  private RinoBooks storefront draft.
 - `docs/writer-qwen-rag.md`: phase-1 Writer rules, Qwen model operation,
   complete Sherlock indexing, RAG, draft generation, and the phase-2 gate.
 - `docs/writer-workflow.md`: staff-only deployment, file treatment, bibles,
