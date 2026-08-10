@@ -108,7 +108,10 @@ class RinoBooksPublishTests(SimpleTestCase):
             "pipeline.services.rinobooks_publish.kdp_mode.run_epubcheck_for_edition",
             side_effect=RuntimeError("EPUBCheck failed"),
         ):
-            with self.assertRaisesRegex(RuntimeError, "EPUBCheck failed"):
+            with self.assertRaisesRegex(
+                RinoBooksPublishError,
+                "EPUB validation failed",
+            ):
                 publish_edition(edition, session=session)
 
         session.post.assert_not_called()
