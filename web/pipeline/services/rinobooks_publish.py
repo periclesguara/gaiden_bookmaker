@@ -90,7 +90,10 @@ def _storefront_payload(edition) -> dict[str, Any]:
 def publish_edition(edition, *, session: requests.Session | None = None) -> RinoBooksDraft:
     """Run EPUBCheck and send one immutable edition package as a RinoBooks draft."""
 
-    epub_path = Path(kdp_mode.run_epubcheck_for_edition(edition)).resolve()
+    try:
+        epub_path = Path(kdp_mode.run_epubcheck_for_edition(edition)).resolve()
+    except (OSError, RuntimeError) as exc:
+        raise RinoBooksPublishError(f"EPUB validation failed: {exc}") from exc
     if not epub_path.is_file():
         raise RinoBooksPublishError(f"Validated EPUB not found: {epub_path}")
 
@@ -121,7 +124,7 @@ def publish_edition(edition, *, session: requests.Session | None = None) -> Rino
             )
         response.raise_for_status()
         payload = response.json()
-    except (requests.RequestException, ValueError) as exc:
+    except (requests.RequestException, OSError, ValueError) as exc:
         raise RinoBooksPublishError(f"RinoBooks delivery failed: {exc}") from exc
 
     draft_id = payload.get("edition_id")
