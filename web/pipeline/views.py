@@ -5,6 +5,7 @@ from datetime import datetime
 import re
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 from django.contrib import messages
 from django.http import Http404, HttpResponse
@@ -19,6 +20,7 @@ from editorial.models import (
     PipelineStage,
 )
 from editorial import kdp_mode
+from editorial.services.metadata import validate_metadata
 
 from .models import BookEditionTemplate, PipelineJob, TextSnapshot, get_book_md_path
 from .services import (
@@ -80,6 +82,19 @@ def _parse_book_id(book_code: str) -> int | None:
 
 def _edition_codes(edition) -> tuple[str, str]:
     return edition.work.code, edition.language.code
+
+
+def _assert_metadata_ready(edition) -> None:
+    try:
+        metadata = edition.metadata
+    except ObjectDoesNotExist:
+        metadata = None
+    validation = validate_metadata(metadata)
+    if not validation.is_valid:
+        raise ValueError(
+            "Metadados e SEO bloqueiam a exportação: "
+            + " | ".join(validation.errors)
+        )
 
 
 def _global_core_edition(edition) -> EditorialEdition:
@@ -573,6 +588,14 @@ def edition_steps(request, edition_id: int):
         "md_source_map": md_source_map_json,
         "core_last_txt_path": pipeline_state.core_last_txt_path,
         "cover_filepath": edition.cover_filepath,
+        "metadata": (
+            edition.metadata
+            if EditorialEdition.objects.filter(
+                pk=edition.pk,
+                metadata__isnull=False,
+            ).exists()
+            else None
+        ),
     }
 
     return render(request, "pipeline/edition_steps.html", context)
@@ -904,11 +927,13 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "export_epub":
             target_edition = _target_edition()
+            _assert_metadata_ready(target_edition)
             result = {"path": str(kdp_mode.build_epub_for_edition(target_edition))}
             messages.success(request, f"EPUB OK: {result['path']}")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
+            _assert_metadata_ready(target_edition)
             result = {"path": str(kdp_mode.build_print_pdf_for_edition(target_edition))}
             messages.success(request, f"PDF OK: {result['path']}")
 
@@ -920,6 +945,7 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "gaiden":
             target_lang = _target_lang()
             target_edition = _target_edition()
+            _assert_metadata_ready(target_edition)
 
             build_dir = (
                 paths.edition_build_dir_for_language(book_code, target_lang)

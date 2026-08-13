@@ -80,6 +80,8 @@ and approved recovery sequence are documented in
   complete Sherlock indexing, RAG, draft generation, and the phase-2 gate.
 - `docs/writer-workflow.md`: staff-only deployment, file treatment, bibles,
   chapter parameters, four-session generation, review, and finalization.
+- `docs/rinobooks-publication.md`: canonical metadata, manifest v2, draft-only
+  delivery contract, receiver requirements, and recovery.
 
 Architecture-specific documents must be updated in the same pull request as the
 behavior they describe.

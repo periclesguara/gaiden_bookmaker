@@ -16,6 +16,27 @@ The Django project is `web/gaiden_portal` and installs two first-party apps:
 Reusable business logic belongs in service modules. Views should coordinate
 HTTP input and output rather than implement filesystem or editorial rules.
 
+### Metadata and RinoBooks boundary
+
+`editorial.EditionMetadata` is the canonical source for storefront, SEO,
+rights, and commercial metadata for one edition. The relation is one-to-one
+with `editorial.Edition`; `Work.code` remains the canonical `book_code` and is
+displayed read-only instead of being duplicated. Draft rows may be incomplete,
+while normalized `slug` and `edition_code` values become database-unique as
+soon as they are supplied.
+
+Metadata validation is a service-layer rule. Critical errors block EPUB/PDF
+export, full Gaiden export, manifest generation, and RinoBooks delivery. SEO
+length recommendations are warnings and do not block. A separate package
+preflight runs EPUBCheck and resolves the cover before writing
+`BOOK.MANIFEST.json` or making an outbound request.
+
+The RinoBooks bridge sends a multipart HTTPS request only after an explicit
+operator action. It carries manifest v2 plus the validated EPUB and cover, and
+accepts only a receiver response whose status is `DRAFT`. The bridge has no
+publication action and does not control public pages, sitemap submission, or
+indexing. See `docs/rinobooks-publication.md` for the full contract.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.

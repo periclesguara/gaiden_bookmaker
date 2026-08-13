@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Metadados e SEO — {{ edition.work.code }}</title>
+  <style>
+    :root { --bg:#f7f2ea; --card:#fffaf3; --ink:#1c1a16; --muted:#6c5f54; --accent:#c84f2a; --border:#e2d9cf; --error:#a32121; --warn:#9a5b00; --ok:#1f7a3b; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:Georgia,"Times New Roman",serif; }
+    header, main { width:min(1180px, calc(100% - 32px)); margin:0 auto; }
+    header { padding:28px 0 18px; }
+    h1 { margin:0 0 6px; }
+    .muted { color:var(--muted); }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btn { border:1px solid var(--accent); border-radius:8px; padding:9px 13px; background:var(--accent); color:#fff; cursor:pointer; text-decoration:none; font:inherit; }
+    .btn.secondary { background:#fff; color:var(--accent); }
+    .btn.draft { background:#6c5f54; border-color:#6c5f54; }
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:18px; box-shadow:0 8px 20px rgba(31,27,22,.06); }
+    .panel h2 { margin:0 0 14px; }
+    .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px; }
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field:has(textarea) { grid-column:1 / -1; }
+    input, select, textarea { width:100%; border:1px solid var(--border); border-radius:8px; padding:9px; background:#fff; font:inherit; }
+    textarea { resize:vertical; }
+    .help { color:var(--muted); font-size:12px; }
+    .error { color:var(--error); font-size:13px; }
+    .warning { color:var(--warn); }
+    .success { color:var(--ok); }
+    ul { margin:8px 0; }
+    .counter { font-size:12px; color:var(--muted); }
+    .actions { position:sticky; bottom:0; display:flex; flex-wrap:wrap; gap:9px; padding:14px; background:rgba(247,242,234,.96); border-top:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Metadados e SEO</h1>
+    <div class="muted">{{ edition.work.code }} · {{ edition.work.title }} · {{ edition.language.code }}</div>
+    <div class="toolbar">
+      <a class="btn secondary" href="{% url 'edition_steps' edition.id %}">Voltar ao pipeline</a>
+      <span class="muted">Status: <strong>{% if metadata %}{{ metadata.get_status_display }}{% else %}Rascunho não salvo{% endif %}</strong></span>
+    </div>
+  </header>
+  <main>
+    {% if messages %}
+    <section class="panel">
+      <h2>Mensagens</h2>
+      {% for message in messages %}<p class="{{ message.tags }}">{{ message }}</p>{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if validation %}
+    <section class="panel">
+      <h2>Validação atual</h2>
+      {% if validation.errors %}
+      <ul>{% for error in validation.errors %}<li class="error">{{ error }}</li>{% endfor %}</ul>
+      {% else %}<p class="success">Nenhum erro crítico de metadados.</p>{% endif %}
+      {% if validation.warnings %}
+      <ul>{% for warning in validation.warnings %}<li class="warning">{{ warning }}</li>{% endfor %}</ul>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="panel error">{{ form.non_field_errors }}</div>{% endif %}
+      {% for section_title, fields in sections %}
+      <section class="panel">
+        <h2>{{ section_title }}</h2>
+        {% if section_title == "Identificação" %}
+        <div class="field" style="margin-bottom:14px;"><label>Book code</label><input value="{{ edition.work.code }}" disabled /><span class="help">Fonte canônica: obra editorial; não é duplicado neste formulário.</span></div>
+        {% endif %}
+        <div class="fields">
+          {% for field in fields %}
+          <div class="field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == "seo_title" or field.name == "seo_description" %}<span class="counter" data-counter-for="{{ field.id_for_label }}"></span>{% endif %}
+            {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+            {% for error in field.errors %}<span class="error">{{ error }}</span>{% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endfor %}
+      <div class="actions">
+        <button class="btn draft" type="submit" name="action" value="save_draft">Salvar rascunho</button>
+        <button class="btn secondary" type="submit" name="action" value="validate">Validar metadados</button>
+        <button class="btn secondary" type="submit" name="action" value="generate_manifest">Gerar manifesto DRAFT</button>
+        <button class="btn" type="submit" name="action" value="send_rinobooks">Enviar à RinoBooks como DRAFT</button>
+      </div>
+    </form>
+  </main>
+  <script>
+    document.querySelectorAll("[data-counter-for]").forEach((counter) => {
+      const input = document.getElementById(counter.dataset.counterFor);
+      const update = () => { counter.textContent = `${input.value.length} caracteres`; };
+      input.addEventListener("input", update);
+      update();
+    });
+  </script>
+</body>
+</html>

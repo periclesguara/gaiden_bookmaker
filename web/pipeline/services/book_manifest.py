@@ -6,6 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.text import slugify
+
+from editorial.services.metadata import price_cents, rights_statement
 from . import edition_meta, paths, text_source
 
 
@@ -45,6 +49,7 @@ class ManifestExportInfo:
 class BookManifest:
     edition_id: int
     book_code: str
+    edition_code: Optional[str]
     language: str
     edition_type: Optional[str]
     imprint_name: Optional[str]
@@ -55,6 +60,9 @@ class BookManifest:
     export: ManifestExportInfo
     export_date: str
     export_user: str
+    status: str
+    contract_version: int
+    storefront: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -64,14 +72,120 @@ def _safe_path(path: Path) -> Optional[str]:
     return str(path) if path.exists() else None
 
 
+def _safe_epub_path(edition) -> Optional[str]:
+    build_dir = paths.edition_build_dir(edition)
+    candidates = [
+        paths.epub_path(edition),
+        build_dir / "BOOK.EPUB3",
+        build_dir / "ebook.epub",
+    ]
+    return next((str(path) for path in candidates if path.exists()), None)
+
+
+def _edition_metadata(edition):
+    try:
+        return edition.metadata
+    except ObjectDoesNotExist:
+        return None
+
+
+def _legacy_storefront(edition) -> dict[str, Any]:
+    title = (getattr(edition, "title", "") or "").strip() or edition.work.title
+    author = (getattr(edition, "author", "") or "").strip() or edition.work.author.name
+    author_parts = author.split(maxsplit=1)
+    return {
+        "slug": slugify(f"{title}-{edition_meta.language_code(edition)}"),
+        "title": title,
+        "subtitle": (getattr(edition, "subtitle", "") or "").strip(),
+        "original_title": edition.work.title,
+        "author": {
+            "first_name": author_parts[0] if author_parts else "",
+            "last_name": author_parts[1] if len(author_parts) > 1 else "",
+            "pseudonym": "",
+        },
+        "description": (getattr(edition, "about_edition_text", "") or "").strip(),
+        "short_description": "",
+        "seo_title": "",
+        "seo_description": "",
+        "keywords": [],
+        "primary_category": "",
+        "subcategory": "",
+        "theme": "",
+        "target_audience": "",
+        "cover_alt": "",
+        "isbn": (getattr(edition, "isbn", "") or "").strip(),
+        "rights_statement": (getattr(edition, "copyright_text", "") or "").strip(),
+        "price_cents": getattr(edition, "price_cents", None),
+        "currency": (getattr(edition, "currency", "") or "BRL").strip().upper(),
+        "hotmart_url": "",
+        "lulu_url": "",
+    }
+
+
+def _canonical_storefront(metadata) -> dict[str, Any]:
+    return {
+        "slug": metadata.slug or "",
+        "title": metadata.commercial_title,
+        "subtitle": metadata.subtitle,
+        "original_title": metadata.original_title,
+        "author": {
+            "first_name": metadata.author_first_name,
+            "last_name": metadata.author_last_name,
+            "pseudonym": metadata.author_pseudonym,
+        },
+        "description": metadata.description,
+        "short_description": metadata.short_description,
+        "seo_title": metadata.seo_title,
+        "seo_description": metadata.seo_description,
+        "keywords": list(metadata.keywords or []),
+        "primary_category": metadata.primary_category,
+        "subcategory": metadata.subcategory,
+        "theme": metadata.theme,
+        "target_audience": metadata.target_audience,
+        "cover_alt": metadata.cover_alt,
+        "isbn": metadata.isbn,
+        "rights_statement": rights_statement(metadata),
+        "price_cents": price_cents(metadata),
+        "currency": metadata.currency,
+        "hotmart_url": metadata.hotmart_url,
+        "lulu_url": metadata.lulu_url,
+        "edition_number": metadata.edition_number,
+        "publication_year": metadata.publication_year,
+        "original_language": metadata.original_language,
+        "release_date": (
+            metadata.expected_release_date.isoformat()
+            if metadata.expected_release_date
+            else ""
+        ),
+        "rights": {
+            "work_type": metadata.work_type,
+            "base_work_year": metadata.base_work_year,
+            "consulted_source": metadata.consulted_source,
+            "legal_basis": metadata.legal_basis,
+            "edition_nature": metadata.edition_nature,
+            "editorial_modifications": metadata.editorial_modifications,
+            "authorized_territories": metadata.authorized_territories,
+            "blocked_territories": metadata.blocked_territories,
+            "evidence": metadata.rights_evidence,
+        },
+        "sample": {
+            "title": metadata.sample_title,
+            "content": metadata.sample_content,
+        },
+        "promotional_images": list(metadata.promotional_images or []),
+    }
+
+
 def build_manifest(
     edition,
     target_edition=None,
     *,
     export_user: str = "system",
     epubcheck_status: str = "unknown",
+    epub_path_override: Path | None = None,
 ) -> BookManifest:
     effective = target_edition or edition
+    metadata = _edition_metadata(effective)
     ts = text_source.get_effective_text_source(effective)
 
     text_source_info = ManifestTextSource(
@@ -97,26 +211,56 @@ def build_manifest(
     )
 
     export_info = ManifestExportInfo(
-        epub=_safe_path(paths.epub_path(effective)),
+        epub=(
+            _safe_path(Path(epub_path_override))
+            if epub_path_override
+            else _safe_epub_path(effective)
+        ),
         pdf=_safe_path(paths.pdf_path(effective)),
         epubcheck_status=epubcheck_status,
     )
 
-    export_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    export_date = datetime.now(timezone.utc).isoformat(timespec="seconds").replace(
+        "+00:00", "Z"
+    )
 
     return BookManifest(
         edition_id=effective.id,
         book_code=edition_meta.book_code(effective),
-        language=edition_meta.language_code(effective),
-        edition_type=getattr(effective, "edition_type", None),
-        imprint_name=getattr(effective, "imprint_name", None),
-        collection_name=getattr(effective, "collection_name", None),
+        edition_code=metadata.edition_code if metadata else None,
+        language=(
+            metadata.regional_language
+            if metadata and metadata.regional_language
+            else edition_meta.language_code(effective)
+        ),
+        edition_type=(
+            metadata.edition_format
+            if metadata
+            else getattr(effective, "edition_type", None)
+        ),
+        imprint_name=(
+            metadata.imprint_name
+            if metadata
+            else getattr(effective, "imprint_name", None)
+        ),
+        collection_name=(
+            metadata.collection_name
+            if metadata
+            else getattr(effective, "collection_name", None)
+        ),
         text_source=text_source_info,
         md_files=md_files,
         build=build_info,
         export=export_info,
         export_date=export_date,
         export_user=export_user,
+        status="DRAFT",
+        contract_version=2,
+        storefront=(
+            _canonical_storefront(metadata)
+            if metadata
+            else _legacy_storefront(effective)
+        ),
     )
 
 
