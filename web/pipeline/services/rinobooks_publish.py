@@ -172,7 +172,15 @@ def publish_edition(
 
     if not isinstance(payload, dict):
         raise RinoBooksPublishError("RinoBooks returned an invalid draft response")
-    draft_id = payload.get("edition_id")
+    response_contract_version = payload.get("contract_version")
+    if response_contract_version not in (None, 2):
+        raise RinoBooksPublishError("RinoBooks returned an unsupported contract version")
+
+    draft_id = payload.get("catalog_edition_id")
+    if draft_id is None:
+        # Temporary compatibility with the v1 receiver response while deployments
+        # move to the standardized v2 response field.
+        draft_id = payload.get("edition_id")
     status = payload.get("status")
     if not isinstance(draft_id, int) or status != "DRAFT":
         raise RinoBooksPublishError("RinoBooks returned an invalid draft response")

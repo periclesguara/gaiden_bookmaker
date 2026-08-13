@@ -1,0 +1,91 @@
+{
+  "edition_id": 1,
+  "book_code": "BOOK_0001",
+  "edition_code": "BOOK_0001-ENUS-EPUB-01",
+  "language": "en-US",
+  "edition_type": "EPUB",
+  "imprint_name": "RinoBooks",
+  "collection_name": "Stoic Classics",
+  "text_source": {
+    "canonical_name": null,
+    "canonical_path": null,
+    "pipeline_step": null,
+    "pipeline_job_id": null,
+    "pipeline_filepath": null
+  },
+  "md_files": {
+    "pre_qa": null,
+    "qa": null,
+    "final": null
+  },
+  "build": {
+    "path": null,
+    "frontispiece_template": "frontispiece.md.j2",
+    "copyright_template": "copyright.md.j2",
+    "about_edition_template": "about_edition.md.j2",
+    "about_contributor_template": "about_contributor.md.j2"
+  },
+  "export": {
+    "epub": null,
+    "pdf": null,
+    "epubcheck_status": "pass"
+  },
+  "export_date": "2026-08-13T00:00:00Z",
+  "export_user": "contract-fixture",
+  "status": "DRAFT",
+  "contract_version": 2,
+  "storefront": {
+    "slug": "the-enchiridion-modern-english-edition",
+    "title": "The Enchiridion",
+    "subtitle": "Modern English Edition",
+    "original_title": "Enchiridion",
+    "author": {
+      "first_name": "Epictetus",
+      "last_name": "",
+      "pseudonym": ""
+    },
+    "description": "A complete commercial description.",
+    "short_description": "A practical Stoic manual in modern English.",
+    "seo_title": "The Enchiridion: Modern English Edition | RinoBooks",
+    "seo_description": "A clear modern English adaptation of Epictetus' practical Stoic manual, prepared with helpful editorial context for today's readers.",
+    "keywords": [
+      "Epictetus",
+      "Stoicism",
+      "Stoic philosophy",
+      "Enchiridion"
+    ],
+    "primary_category": "Philosophy",
+    "subcategory": "Stoicism",
+    "theme": "Practical philosophy",
+    "target_audience": "Readers of classical philosophy",
+    "cover_alt": "Cover of The Enchiridion by Epictetus",
+    "isbn": "",
+    "rights_statement": "Domínio público Public-domain source. Modern English adaptation Modernized language and original editorial notes.",
+    "price_cents": 1990,
+    "currency": "BRL",
+    "hotmart_url": "",
+    "lulu_url": "",
+    "edition_number": 1,
+    "publication_year": 2026,
+    "original_language": "grc",
+    "release_date": "",
+    "rights": {
+      "work_type": "PUBLIC_DOMAIN",
+      "base_work_year": 125,
+      "consulted_source": "Verified public-domain Greek and English sources.",
+      "legal_basis": "Public-domain source.",
+      "edition_nature": "Modern English adaptation",
+      "editorial_modifications": "Modernized language and original editorial notes.",
+      "authorized_territories": "Worldwide where public-domain status applies.",
+      "blocked_territories": "Territories pending legal review.",
+      "evidence": "Rights review worksheet."
+    },
+    "sample": {
+      "title": "Opening",
+      "content": "Some things are in our control..."
+    },
+    "promotional_images": [
+      "https://assets.example.invalid/enchiridion.jpg"
+    ]
+  }
+}

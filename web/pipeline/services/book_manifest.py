@@ -61,7 +61,7 @@ class BookManifest:
     export_date: str
     export_user: str
     status: str
-    contract_version: str
+    contract_version: int
     storefront: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
@@ -255,7 +255,7 @@ def build_manifest(
         export_date=export_date,
         export_user=export_user,
         status="DRAFT",
-        contract_version="2.0",
+        contract_version=2,
         storefront=(
             _canonical_storefront(metadata)
             if metadata

@@ -76,7 +76,7 @@ O contrato adiciona `contract_version`, `edition_code`, `status` e
   "export_date": "2026-08-13T00:00:00Z",
   "export_user": "operator",
   "status": "DRAFT",
-  "contract_version": "2.0",
+  "contract_version": 2,
   "storefront": {
     "slug": "the-enchiridion-modern-english-edition",
     "title": "The Enchiridion",
@@ -132,6 +132,12 @@ para consumidores internos legados: as estruturas antigas permanecem e os
 novos campos recebem valores vazios ou derivados. A exportação/publicação
 operacional, contudo, falha até que os metadados sejam preenchidos e validados.
 
+A fixture canônica `web/pipeline/contract_fixtures/manifest_v2.json` é gerada
+com os mesmos modelos e o mesmo serializador do fluxo real. O teste de contrato
+normaliza somente o identificador, a data e o usuário de exportação antes de
+comparar integralmente o manifesto emitido com essa fixture. O receptor deve
+usar esse arquivo diretamente no E2E, em vez de reconstruir um JSON semelhante.
+
 ## Requisitos do receptor RinoBooks
 
 O código do receptor não faz parte deste repositório e não foi modificado. Antes
@@ -139,7 +145,8 @@ de promover esta integração, o receptor de `POST /api/gaiden/editions` precisa
 ter testes de contrato que confirmem exatamente:
 
 - multipart com os campos `manifest`, `cover` e `epub`;
-- aceitação das chaves legadas e das adições do contrato `2.0`;
+- ausência de `contract_version` como contrato v1 e o valor JSON numérico `2`
+  como contrato v2; outros valores devem retornar HTTP 422;
 - `author` como objeto com `first_name`, `last_name` e `pseudonym` (o draft
   emissor anterior do PR #26 enviava uma string);
 - idiomas regionais `pt-BR`, `en-US`, `en-GB`, `fr-FR`, `de-DE` e `it-IT`;
@@ -149,7 +156,10 @@ ter testes de contrato que confirmem exatamente:
 - rejeição de `edition_code` ou `slug` duplicado conflitante e idempotência de
   reenvio do mesmo pacote;
 - criação/atualização sempre em `DRAFT`, ignorando qualquer tentativa de
-  status público, e resposta JSON com `edition_id` inteiro e `status: DRAFT`.
+  status público, e resposta JSON com `contract_version: 2`,
+  `catalog_edition_id` inteiro, `status: DRAFT`, `duplicate`, `replaced_draft` e
+  `result`. Durante a transição, o emissor ainda aceita o campo legado
+  `edition_id` em respostas v1.
 
 O Gaiden rejeita respostas com outro status, mas essa rejeição não desfaz uma
 mutação incorreta no servidor. Portanto, o fail-closed também deve existir no

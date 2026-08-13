@@ -104,6 +104,15 @@ class RinoBooksMetadataContractTests(TestCase):
             export_user="tester",
             epubcheck_status="pass",
         ).to_dict()
+        fixture_manifest = json.loads(json.dumps(manifest))
+        fixture_manifest["edition_id"] = 1
+        fixture_manifest["export_date"] = "2026-08-13T00:00:00Z"
+        fixture_manifest["export_user"] = "contract-fixture"
+        fixture_path = (
+            Path(__file__).with_name("contract_fixtures") / "manifest_v2.json"
+        )
+        expected_fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        self.assertEqual(fixture_manifest, expected_fixture)
 
         self.assertEqual(manifest["edition_id"], self.edition.id)
         self.assertEqual(manifest["book_code"], "BOOK_0001")
@@ -111,7 +120,7 @@ class RinoBooksMetadataContractTests(TestCase):
         self.assertEqual(manifest["language"], "en-US")
         self.assertEqual(manifest["edition_type"], "EPUB")
         self.assertEqual(manifest["status"], "DRAFT")
-        self.assertEqual(manifest["contract_version"], "2.0")
+        self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["storefront"]["price_cents"], 1990)
         self.assertEqual(manifest["storefront"]["author"]["first_name"], "Epictetus")
         self.assertEqual(manifest["storefront"]["primary_category"], "Philosophy")
@@ -181,7 +190,11 @@ class RinoBooksMetadataContractTests(TestCase):
 
             response = Mock()
             response.raise_for_status.return_value = None
-            response.json.return_value = {"edition_id": 7, "status": "PUBLISHED"}
+            response.json.return_value = {
+                "contract_version": 2,
+                "catalog_edition_id": 7,
+                "status": "PUBLISHED",
+            }
             session = Mock()
             session.post.return_value = response
 
@@ -222,9 +235,12 @@ class RinoBooksMetadataContractTests(TestCase):
             response = Mock()
             response.raise_for_status.return_value = None
             response.json.return_value = {
-                "edition_id": 7,
+                "contract_version": 2,
+                "catalog_edition_id": 7,
                 "status": "DRAFT",
                 "duplicate": False,
+                "replaced_draft": False,
+                "result": "created",
             }
             session = Mock()
             session.post.return_value = response
@@ -246,6 +262,7 @@ class RinoBooksMetadataContractTests(TestCase):
                 draft = publish_edition(self.edition, session=session)
 
             self.assertEqual(draft.status, "DRAFT")
+            self.assertEqual(draft.edition_id, 7)
             self.assertEqual(
                 session.post.call_args.args[0],
                 "https://rinobooks.example.invalid/api/gaiden/editions",
@@ -255,6 +272,82 @@ class RinoBooksMetadataContractTests(TestCase):
                 session.post.call_args.kwargs["data"]["manifest"]
             )
             self.assertEqual(sent_manifest["export"]["epub"], str(epub))
+
+    def test_sender_accepts_legacy_v1_receiver_response_during_transition(self):
+        self._metadata()
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            epub = root / "BOOK.EPUB3"
+            cover = root / "cover.jpg"
+            epub.write_bytes(b"epub")
+            cover.write_bytes(b"cover")
+            self.edition.cover_filepath = str(cover)
+            self.edition.save(update_fields=["cover_filepath"])
+
+            response = Mock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = {"edition_id": 9, "status": "DRAFT"}
+            session = Mock()
+            session.post.return_value = response
+
+            with (
+                override_settings(BASE_DIR=root / "web"),
+                patch.dict(
+                    "os.environ",
+                    {
+                        "RINOBOOKS_PUBLISH_URL": "https://rinobooks.example.invalid",
+                        "RINOBOOKS_PUBLISH_TOKEN": "x" * 32,
+                    },
+                ),
+                patch(
+                    "pipeline.services.rinobooks_publish.kdp_mode.run_epubcheck_for_edition",
+                    return_value=epub,
+                ),
+            ):
+                draft = publish_edition(self.edition, session=session)
+
+            self.assertEqual(draft.edition_id, 9)
+
+    def test_sender_rejects_unknown_receiver_contract_version(self):
+        self._metadata()
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            epub = root / "BOOK.EPUB3"
+            cover = root / "cover.jpg"
+            epub.write_bytes(b"epub")
+            cover.write_bytes(b"cover")
+            self.edition.cover_filepath = str(cover)
+            self.edition.save(update_fields=["cover_filepath"])
+
+            response = Mock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = {
+                "contract_version": 3,
+                "catalog_edition_id": 7,
+                "status": "DRAFT",
+            }
+            session = Mock()
+            session.post.return_value = response
+
+            with (
+                override_settings(BASE_DIR=root / "web"),
+                patch.dict(
+                    "os.environ",
+                    {
+                        "RINOBOOKS_PUBLISH_URL": "https://rinobooks.example.invalid",
+                        "RINOBOOKS_PUBLISH_TOKEN": "x" * 32,
+                    },
+                ),
+                patch(
+                    "pipeline.services.rinobooks_publish.kdp_mode.run_epubcheck_for_edition",
+                    return_value=epub,
+                ),
+                self.assertRaisesRegex(
+                    RinoBooksPublishError,
+                    "unsupported contract version",
+                ),
+            ):
+                publish_edition(self.edition, session=session)
 
     def test_epub_export_is_blocked_until_metadata_is_valid(self):
         session_url = reverse(
