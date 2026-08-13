@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 
 class Language(models.Model):
@@ -234,6 +235,123 @@ class Edition(models.Model):
 
     def __str__(self) -> str:
         return f"{self.work.title} [{self.language.code} · {self.seal.slug}]"
+
+
+class EditionMetadata(models.Model):
+    class RegionalLanguage(models.TextChoices):
+        PT_BR = "pt-BR", "Português (Brasil)"
+        EN_US = "en-US", "English (United States)"
+        EN_GB = "en-GB", "English (United Kingdom)"
+        FR_FR = "fr-FR", "Français (France)"
+        DE_DE = "de-DE", "Deutsch (Deutschland)"
+        IT_IT = "it-IT", "Italiano (Italia)"
+
+    class EditionFormat(models.TextChoices):
+        EPUB = "EPUB", "EPUB"
+        PRINT = "PRINT", "Impresso"
+        AUDIOBOOK = "AUDIOBOOK", "Audiolivro"
+        OTHER = "OTHER", "Outro"
+
+    class WorkType(models.TextChoices):
+        PUBLIC_DOMAIN = "PUBLIC_DOMAIN", "Domínio público"
+        DERIVATIVE = "DERIVATIVE", "Obra derivada"
+        ORIGINAL_RINOBOOKS = "ORIGINAL_RINOBOOKS", "Original RinoBooks"
+
+    class Currency(models.TextChoices):
+        BRL = "BRL", "BRL"
+        USD = "USD", "USD"
+        EUR = "EUR", "EUR"
+        GBP = "GBP", "GBP"
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Rascunho"
+        READY = "READY", "Validado para exportação"
+
+    edition = models.OneToOneField(
+        Edition,
+        on_delete=models.CASCADE,
+        related_name="metadata",
+    )
+    edition_code = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    commercial_title = models.CharField(max_length=255, blank=True)
+    subtitle = models.CharField(max_length=255, blank=True)
+    original_title = models.CharField(max_length=255, blank=True)
+    author_first_name = models.CharField(max_length=120, blank=True)
+    author_last_name = models.CharField(max_length=120, blank=True)
+    author_pseudonym = models.CharField(max_length=200, blank=True)
+    regional_language = models.CharField(
+        max_length=5,
+        choices=RegionalLanguage.choices,
+        blank=True,
+    )
+    original_language = models.CharField(max_length=20, blank=True)
+    imprint_name = models.CharField(max_length=150, blank=True, default="RinoBooks")
+    collection_name = models.CharField(max_length=255, blank=True)
+    edition_number = models.PositiveIntegerField(null=True, blank=True)
+    publication_year = models.PositiveIntegerField(null=True, blank=True)
+    isbn = models.CharField(max_length=32, blank=True)
+    edition_format = models.CharField(
+        max_length=20,
+        choices=EditionFormat.choices,
+        blank=True,
+        default=EditionFormat.EPUB,
+    )
+
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.TextField(blank=True)
+    description = models.TextField(blank=True)
+    short_description = models.TextField(blank=True)
+    keywords = models.JSONField(default=list, blank=True)
+    primary_category = models.CharField(max_length=120, blank=True)
+    subcategory = models.CharField(max_length=120, blank=True)
+    theme = models.CharField(max_length=180, blank=True)
+    target_audience = models.CharField(max_length=180, blank=True)
+    cover_alt = models.CharField(max_length=255, blank=True)
+
+    work_type = models.CharField(max_length=30, choices=WorkType.choices, blank=True)
+    base_work_year = models.PositiveIntegerField(null=True, blank=True)
+    consulted_source = models.TextField(blank=True)
+    legal_basis = models.TextField(blank=True)
+    edition_nature = models.CharField(max_length=255, blank=True)
+    editorial_modifications = models.TextField(blank=True)
+    authorized_territories = models.TextField(blank=True)
+    blocked_territories = models.TextField(blank=True)
+    rights_evidence = models.TextField(blank=True)
+
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=3, choices=Currency.choices, blank=True)
+    expected_release_date = models.DateField(null=True, blank=True)
+    hotmart_url = models.URLField(blank=True)
+    lulu_url = models.URLField(blank=True)
+    sample_title = models.CharField(max_length=255, blank=True)
+    sample_content = models.TextField(blank=True)
+    promotional_images = models.JSONField(default=list, blank=True)
+
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+    validated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "edition_metadata"
+        ordering = ["edition__work__code", "regional_language"]
+
+    @property
+    def book_code(self) -> str:
+        return self.edition.work.code
+
+    def save(self, *args, **kwargs):
+        self.edition_code = (self.edition_code or "").strip().upper() or None
+        self.slug = slugify(self.slug or "") or None
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.book_code} [{self.edition_code or 'draft'}]"
 
 
 class PipelineStage(models.TextChoices):

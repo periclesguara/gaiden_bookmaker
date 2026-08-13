@@ -447,6 +447,22 @@
     </article>
 
     <article class="card">
+      <h2>Metadados e SEO</h2>
+      <p class="status">
+        Etapa obrigatória após a finalização editorial e antes da exportação/publicação.
+      </p>
+      <div class="actions" style="margin-top: 12px;">
+        <a class="btn" href="{% url 'edition_metadata_edit' edition.id %}">
+          Abrir Metadados e SEO
+        </a>
+      </div>
+      <div class="status">
+        Status:
+        <strong>{% if metadata %}{{ metadata.get_status_display }}{% else %}Não iniciado{% endif %}</strong>
+      </div>
+    </article>
+
+    <article class="card">
       <h2>Build &amp; Export</h2>
       <div class="actions">
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">

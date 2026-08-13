@@ -5,7 +5,8 @@ from django.views.decorators.http import require_POST
 from pathlib import Path
 from django.utils import timezone
 
-from editorial.models import Edition as EditorialEdition
+from editorial.models import Edition as EditorialEdition, EditionMetadata
+from editorial.services.metadata import validate_metadata
 from gaiden_portal.forms import EditionForm
 from gaiden_portal.utils import (
     country_for_language,
@@ -16,7 +17,7 @@ from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PRO
 from pipeline.services import utils
 from editorial.frontmatter import build_frontmatter_files
 from editorial import kdp_mode
-from .forms import FrontmatterTemplateForm
+from .forms import EditionMetadataForm, FrontmatterTemplateForm
 
 
 BOOK_LANGUAGE_DEFAULTS = {
@@ -83,6 +84,228 @@ def _default_country(language: str) -> str:
         "es": "Brasil",
         "de": "Brasilien",
     }.get(language, "Brasil")
+
+
+def _metadata_initial(edition: EditorialEdition) -> dict:
+    language = {
+        "pt-br": "pt-BR",
+        "ptbr": "pt-BR",
+        "en": "en-US",
+        "en-us": "en-US",
+        "en-gb": "en-GB",
+        "de": "de-DE",
+        "de-de": "de-DE",
+        "fr": "fr-FR",
+        "fr-fr": "fr-FR",
+        "it": "it-IT",
+        "it-it": "it-IT",
+    }.get((edition.language.code or "").lower(), "")
+    author = (edition.author or edition.work.author.name or "").strip()
+    author_parts = author.split(maxsplit=1)
+    title = (edition.title or edition.work.title or "").strip()
+    edition_code = ""
+    if language:
+        edition_code = (
+            f"{edition.work.code}-{language.replace('-', '')}-EPUB-01".upper()
+        )
+    return {
+        "edition_code": edition_code,
+        "commercial_title": title,
+        "subtitle": edition.subtitle,
+        "original_title": edition.work.title,
+        "author_first_name": author_parts[0] if author_parts else "",
+        "author_last_name": author_parts[1] if len(author_parts) > 1 else "",
+        "regional_language": language,
+        "original_language": edition.work.original_language.code,
+        "imprint_name": edition.imprint_name or "RinoBooks",
+        "publication_year": edition.publication_year or edition.edition_year,
+        "edition_number": 1,
+        "edition_format": EditionMetadata.EditionFormat.EPUB,
+        "slug": title,
+        "work_type": (
+            EditionMetadata.WorkType.PUBLIC_DOMAIN
+            if edition.work.is_public_domain
+            else EditionMetadata.WorkType.ORIGINAL_RINOBOOKS
+        ),
+        "base_work_year": edition.work.year,
+        "currency": EditionMetadata.Currency.BRL,
+    }
+
+
+def edition_metadata_edit(request, edition_id: int):
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related(
+            "work",
+            "work__author",
+            "work__original_language",
+            "language",
+            "seal",
+        ),
+        pk=edition_id,
+    )
+    metadata = EditionMetadata.objects.filter(edition=edition).first()
+    form_instance = metadata or EditionMetadata(edition=edition)
+
+    if request.method == "POST":
+        form = EditionMetadataForm(request.POST, instance=form_instance)
+        if form.is_valid():
+            metadata = form.save(commit=False)
+            metadata.edition = edition
+            metadata.status = EditionMetadata.Status.DRAFT
+            metadata.validated_at = None
+            metadata.save()
+            action = request.POST.get("action", "save_draft")
+
+            if action == "save_draft":
+                messages.success(request, "Rascunho de Metadados e SEO salvo.")
+                return redirect("edition_metadata_edit", edition_id=edition.id)
+
+            validation = validate_metadata(metadata)
+            for warning in validation.warnings:
+                messages.warning(request, warning)
+            if not validation.is_valid:
+                for error in validation.errors:
+                    messages.error(request, error)
+                return redirect("edition_metadata_edit", edition_id=edition.id)
+
+            metadata.status = EditionMetadata.Status.READY
+            metadata.validated_at = timezone.now()
+            metadata.save(update_fields=["status", "validated_at", "updated_at"])
+
+            if action == "validate":
+                messages.success(
+                    request,
+                    "Metadados validados. A edição está liberada para exportação.",
+                )
+                return redirect("edition_metadata_edit", edition_id=edition.id)
+
+            export_user = (
+                request.user.username
+                if getattr(request, "user", None) and request.user.is_authenticated
+                else "system"
+            )
+            from pipeline.services.rinobooks_publish import (
+                RinoBooksPublishError,
+                prepare_publication_package,
+                publish_edition,
+            )
+
+            try:
+                if action == "generate_manifest":
+                    package = prepare_publication_package(
+                        edition,
+                        export_user=export_user,
+                    )
+                    messages.success(
+                        request,
+                        f"Manifesto DRAFT gerado: {package.manifest_path}",
+                    )
+                elif action == "send_rinobooks":
+                    draft = publish_edition(edition, export_user=export_user)
+                    messages.success(
+                        request,
+                        f"RinoBooks criou/atualizou o rascunho {draft.edition_id} ({draft.status}).",
+                    )
+                else:
+                    messages.error(request, "Ação de metadados desconhecida.")
+            except RinoBooksPublishError as exc:
+                messages.error(request, str(exc))
+            return redirect("edition_metadata_edit", edition_id=edition.id)
+    else:
+        form = EditionMetadataForm(
+            instance=form_instance,
+            initial=_metadata_initial(edition) if metadata is None else None,
+        )
+
+    validation = validate_metadata(metadata) if metadata else None
+    sections = [
+        (
+            "Identificação",
+            [
+                form[name]
+                for name in (
+                    "edition_code",
+                    "commercial_title",
+                    "subtitle",
+                    "original_title",
+                    "author_first_name",
+                    "author_last_name",
+                    "author_pseudonym",
+                    "regional_language",
+                    "original_language",
+                    "imprint_name",
+                    "collection_name",
+                    "edition_number",
+                    "publication_year",
+                    "isbn",
+                    "edition_format",
+                )
+            ],
+        ),
+        (
+            "SEO",
+            [
+                form[name]
+                for name in (
+                    "slug",
+                    "seo_title",
+                    "seo_description",
+                    "description",
+                    "short_description",
+                    "keywords",
+                    "primary_category",
+                    "subcategory",
+                    "theme",
+                    "target_audience",
+                    "cover_alt",
+                )
+            ],
+        ),
+        (
+            "Direitos",
+            [
+                form[name]
+                for name in (
+                    "work_type",
+                    "base_work_year",
+                    "consulted_source",
+                    "legal_basis",
+                    "edition_nature",
+                    "editorial_modifications",
+                    "authorized_territories",
+                    "blocked_territories",
+                    "rights_evidence",
+                )
+            ],
+        ),
+        (
+            "Comercial",
+            [
+                form[name]
+                for name in (
+                    "price",
+                    "currency",
+                    "expected_release_date",
+                    "hotmart_url",
+                    "lulu_url",
+                    "sample_title",
+                    "sample_content",
+                    "promotional_images",
+                )
+            ],
+        ),
+    ]
+    return render(
+        request,
+        "editorial/edition_metadata_form.html",
+        {
+            "edition": edition,
+            "metadata": metadata,
+            "form": form,
+            "sections": sections,
+            "validation": validation,
+        },
+    )
 
 
 def _sync_template_to_edition(template: BookEditionTemplate, edition: EditorialEdition) -> None:
