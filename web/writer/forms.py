@@ -48,10 +48,23 @@ class StoryProjectForm(forms.ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Preserve compatibility with existing clients and tests that predate the selector.
+        self.fields["writing_mode"].required = False
+        self.fields["writing_mode"].initial = (
+            self.instance.writing_mode or StoryProject.WritingMode.FICTION
+        )
+
     def clean(self):
         cleaned = super().clean()
         language = cleaned.get("language")
-        writing_mode = cleaned.get("writing_mode")
+        writing_mode = (
+            cleaned.get("writing_mode")
+            or self.instance.writing_mode
+            or StoryProject.WritingMode.FICTION
+        )
+        cleaned["writing_mode"] = writing_mode
         if (
             language
             and self.instance.pk
