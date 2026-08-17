@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from gaiden.writer_engine.engine import GenerationResult, NonfictionRequest
-from writer.forms import ChapterForm
+from writer.forms import ChapterForm, StoryProjectForm
 from writer.models import Chapter, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.projects import synchronize_chapters
@@ -58,6 +58,10 @@ class NonfictionWriterFlowTests(TestCase):
             session.generation_parameters["citation_contract"],
             "rag-chunk-footnotes-v1",
         )
+        self.assertEqual(
+            session.generation_parameters["reference_source_ids"],
+            list(chapter.reference_sources.values_list("id", flat=True)),
+        )
         self.assertEqual(session.supporting_cast_snapshot, {})
         self.assertEqual(session.supporting_cast_sha256, "")
         engine_factory.return_value.create_chapter.assert_not_called()
@@ -85,3 +89,19 @@ class NonfictionWriterFlowTests(TestCase):
         )
         self.assertEqual(form.fields["reference_sources"].label, "Fontes deste capítulo")
         self.assertIn("source_guidance", form.fields)
+
+    def test_nonfiction_pt_br_contract_develops_instead_of_forcing_translation(self):
+        form = StoryProjectForm(
+            data={
+                "title": "Ensaio",
+                "writing_mode": StoryProject.WritingMode.NONFICTION,
+                "language": StoryProject.Language.PT_BR,
+                "chapter_count": 1,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        project = form.save()
+        self.assertEqual(project.language_contract["source_language"], "pt-BR")
+        self.assertEqual(project.language_contract["target_language"], "pt-BR")
+        self.assertEqual(project.language_contract["operation"], "original")
