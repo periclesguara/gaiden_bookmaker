@@ -38,8 +38,28 @@ from .services import (
 
 
 def pipeline_dashboard(request):
-    pipelines = EditionPipeline.objects.select_related("edition__work", "edition__language").order_by("edition__work__code")
-    return render(request, "pipeline/dashboard.html", {"pipelines": pipelines})
+    pipelines = list(
+        EditionPipeline.objects.select_related("edition__work", "edition__language").order_by(
+            "edition__work__code"
+        )
+    )
+    return render(
+        request,
+        "pipeline/dashboard.html",
+        {
+            "pipelines": pipelines,
+            "active_pipelines": [
+                pipeline
+                for pipeline in pipelines
+                if pipeline.current_stage != PipelineStage.DONE
+            ],
+            "finalized_pipelines": [
+                pipeline
+                for pipeline in pipelines
+                if pipeline.current_stage == PipelineStage.DONE
+            ],
+        },
+    )
 
 
 def pipeline_jobs(request):
