@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from gaiden.writer_engine.engine import GenerationResult, NonfictionRequest
 from writer.forms import ChapterForm
-from writer.models import Chapter, StoryProject
+from writer.models import Chapter, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
 from writer.services.projects import synchronize_chapters
 
@@ -26,6 +26,13 @@ class NonfictionWriterFlowTests(TestCase):
         chapter.target_words = 400
         chapter.session_count = 1
         chapter.save()
+        source = SourceDocument.objects.create(
+            filename="institutions.txt",
+            source_path="/sources/institutions.txt",
+            status=SourceDocument.Status.NORMALIZED,
+        )
+        project.sources.add(source)
+        chapter.reference_sources.add(source)
         return chapter
 
     @patch("writer.services.generation._engine")
@@ -77,7 +84,5 @@ class NonfictionWriterFlowTests(TestCase):
             form.fields["script"].label,
             "Texto-base, argumentos e notas a desenvolver",
         )
-        self.assertEqual(
-            form.fields["source_guidance"].label,
-            "Referências e consultas para o RAG",
-        )
+        self.assertEqual(form.fields["reference_sources"].label, "Fontes deste capítulo")
+        self.assertIn("source_guidance", form.fields)
