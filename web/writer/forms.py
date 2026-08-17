@@ -51,6 +51,7 @@ class StoryProjectForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         language = cleaned.get("language")
+        writing_mode = cleaned.get("writing_mode")
         if (
             language
             and self.instance.pk
@@ -63,6 +64,9 @@ class StoryProjectForm(forms.ModelForm):
             )
         elif language:
             contract = language_contract_for(language)
+            if writing_mode == StoryProject.WritingMode.NONFICTION:
+                contract["source_language"] = language
+                contract["operation"] = "original"
             validate_language_contract(contract)
             self.instance.language_contract = contract
         if (
