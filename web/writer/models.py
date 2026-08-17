@@ -36,12 +36,21 @@ class SourceDocument(models.Model):
 
 
 class StoryProject(models.Model):
+    class WritingMode(models.TextChoices):
+        FICTION = "FICTION", "Fiction — Ficção"
+        NONFICTION = "NONFICTION", "Nonfiction — Não ficção"
+
     class Language(models.TextChoices):
         EN_US = "en-US", "EN-US — Inglês americano"
         EN_GB = "en-GB", "EN-UK — Inglês britânico"
         PT_BR = "pt-BR", "PT-BR — Português brasileiro"
 
     title = models.CharField(max_length=255)
+    writing_mode = models.CharField(
+        max_length=16,
+        choices=WritingMode.choices,
+        default=WritingMode.FICTION,
+    )
     language = models.CharField(
         max_length=40,
         choices=Language.choices,
@@ -120,6 +129,10 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     direction = models.TextField(blank=True)
     script = models.TextField(blank=True)
+    source_guidance = models.TextField(blank=True)
+    reference_sources = models.ManyToManyField(
+        SourceDocument, blank=True, related_name="chapters"
+    )
     target_words = models.PositiveIntegerField(
         default=2500, validators=[MinValueValidator(400), MaxValueValidator(12000)]
     )

@@ -1,12 +1,79 @@
 {% extends "writer/base.html" %}
 {% block title %}{{ project.title }}{% endblock %}
 {% block content %}
-<section class="card"><h1>{{ project.title }}</h1><p>{{ project.premise|default:"Premissa ainda não preenchida." }}</p><div class="actions"><a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar bíblias e roteiro</a></div></section>
-<div class="cols"><section class="card"><h2>2 · Fontes do RAG</h2><form method="post" action="{% url 'writer:project_sources' project.id %}">{% csrf_token %}<div class="source-list">{{ source_form.sources }}</div><button class="secondary" type="submit">Salvar seleção</button></form>
-<form method="post" action="{% url 'writer:vectorize' project.id %}" style="margin-top:12px">{% csrf_token %}<button type="submit">Vetorizar arquivos selecionados</button></form>
-<p class="muted">{% if project.vector_index_path %}Índice pronto. Alterar fontes invalida o índice.{% else %}Normalize e selecione os arquivos antes de vetorizar.{% endif %}</p></section>
-<section class="card"><h2>3–4 · Contrato e base criativa</h2><p><strong>Linguagem:</strong> {{ project.language_contract.source_language }} → {{ project.language_contract.target_language }} ({{ project.language_contract.target_variant }})</p><p><strong>Operação:</strong> {{ project.language_contract.operation }} · arcaísmos: {{ project.language_contract.style.reduce_archaisms }} · fluidez: {{ project.language_contract.style.fluency }}</p><p><strong>Personagem:</strong> {{ project.character_bible|truncatewords:30|default:"Pendente" }}</p><p><strong>Antagonista:</strong> {{ project.antagonist_bible|truncatewords:30|default:"Pendente" }}</p><p><strong>Coadjuvantes:</strong> {{ project.supporting_characters_bible|truncatewords:30|default:"Pendente — gere com a IA" }}</p>{% if project.supporting_characters_bible %}<h3>Atualizar coadjuvantes e fechar gaps</h3><form method="post" action="{% url 'writer:update_supporting_characters' project.id %}">{% csrf_token %}{{ supporting_cast_update_form.as_p }}<button class="secondary" type="submit">Atualizar Bíblia com IA + RAG</button></form><p class="muted">Informe personagens, inconsistências e referências por obra/capítulo. A atualização cria uma revisão e preserva IDs, nomes e aparições anteriores.</p>{% if supporting_cast_revisions %}<h3>Histórico da Bíblia</h3><ul>{% for revision in supporting_cast_revisions %}<li>v{{ revision.version }} · {{ revision.created_at }} · {{ revision.instruction|truncatewords:18 }}</li>{% endfor %}</ul>{% endif %}{% else %}<form method="post" action="{% url 'writer:generate_supporting_characters' project.id %}">{% csrf_token %}<button class="secondary" type="submit">Gerar Bíblia dos coadjuvantes com IA</button></form>{% endif %}<p><strong>Cenários:</strong> {{ project.scenario_bible|truncatewords:30|default:"Pendente" }}</p><p><strong>Mundo:</strong> {{ project.world_bible|truncatewords:30|default:"Pendente" }}</p></section></div>
-<section class="card"><h2>5 · Tabela de parâmetros — {{ project.chapter_count }} capítulos</h2><div class="table"><table><thead><tr><th>Capítulo</th><th>Direção / roteiro</th><th>Palavras</th><th>Tokens estimados</th><th>Sessões</th><th>Status</th><th>Ações</th></tr></thead><tbody>
-{% for chapter in project.chapters.all %}<tr><td><strong>Capítulo {{ chapter.number|stringformat:"02d" }}</strong><br>{{ chapter.title }}</td><td>{% if chapter.direction and chapter.script %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}</td><td>{{ chapter.target_words }}</td><td>≈ {{ chapter.estimated_tokens }}</td><td>{{ chapter.session_count }} × ≈ {{ chapter.words_per_session }} palavras</td><td><span class="status {{ chapter.status }}">{{ chapter.get_status_display }}</span></td><td><div class="actions"><a class="btn secondary" href="{% url 'writer:chapter_edit' chapter.id %}">Parâmetros</a><a class="btn secondary" href="{% url 'writer:chapter_detail' chapter.id %}">Abrir</a><form method="post" action="{% url 'writer:generate' chapter.id %}">{% csrf_token %}<button type="submit">Gerar capítulo</button></form></div></td></tr>{% endfor %}
-</tbody></table></div></section>
+<section class="card">
+  <h1>{{ project.title }}</h1>
+  <p><strong>Modo:</strong> {{ project.get_writing_mode_display }} · <strong>Idioma:</strong> {{ project.get_language_display }}</p>
+  {% if project.writing_mode == "FICTION" %}<p>{{ project.premise|default:"Premissa ainda não preenchida." }}</p>{% endif %}
+  <div class="actions"><a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar projeto</a></div>
+</section>
+<div class="cols">
+  <section class="card">
+    <h2>2 · Fontes do RAG</h2>
+    <form method="post" action="{% url 'writer:project_sources' project.id %}">
+      {% csrf_token %}<div class="source-list">{{ source_form.sources }}</div>
+      <button class="secondary" type="submit">Salvar seleção</button>
+    </form>
+    <form method="post" action="{% url 'writer:vectorize' project.id %}" style="margin-top:12px">
+      {% csrf_token %}<button type="submit">Vetorizar arquivos selecionados</button>
+    </form>
+    <p class="muted">{% if project.vector_index_path %}Índice pronto. Alterar fontes invalida o índice.{% else %}Normalize e selecione os arquivos antes de vetorizar.{% endif %}</p>
+  </section>
+  <section class="card">
+    <h2>3–4 · Contrato e direção</h2>
+    <p><strong>Linguagem:</strong> {{ project.language_contract.source_language }} → {{ project.language_contract.target_language }} ({{ project.language_contract.target_variant }})</p>
+    <p><strong>Operação:</strong> {{ project.language_contract.operation }} · arcaísmos: {{ project.language_contract.style.reduce_archaisms }} · fluidez: {{ project.language_contract.style.fluency }}</p>
+    {% if project.writing_mode == "NONFICTION" %}
+      <h3>Contrato Nonfiction</h3>
+      <p>Em cada capítulo, informe a direção, o texto-base a desenvolver e as referências ou consultas para o RAG. O Qwen preserva sua tese, amplia apenas com evidência recuperada e anexa fontes verificáveis.</p>
+    {% else %}
+      <p><strong>Personagem:</strong> {{ project.character_bible|truncatewords:30|default:"Pendente" }}</p>
+      <p><strong>Antagonista:</strong> {{ project.antagonist_bible|truncatewords:30|default:"Pendente" }}</p>
+      <p><strong>Coadjuvantes:</strong> {{ project.supporting_characters_bible|truncatewords:30|default:"Pendente — gere com a IA" }}</p>
+      {% if project.supporting_characters_bible %}
+        <h3>Atualizar coadjuvantes e fechar gaps</h3>
+        <form method="post" action="{% url 'writer:update_supporting_characters' project.id %}">
+          {% csrf_token %}{{ supporting_cast_update_form.as_p }}
+          <button class="secondary" type="submit">Atualizar Bíblia com IA + RAG</button>
+        </form>
+        <p class="muted">Informe personagens, inconsistências e referências por obra/capítulo. A atualização cria uma revisão e preserva IDs, nomes e aparições anteriores.</p>
+        {% if supporting_cast_revisions %}<h3>Histórico da Bíblia</h3><ul>{% for revision in supporting_cast_revisions %}<li>v{{ revision.version }} · {{ revision.created_at }} · {{ revision.instruction|truncatewords:18 }}</li>{% endfor %}</ul>{% endif %}
+      {% else %}
+        <form method="post" action="{% url 'writer:generate_supporting_characters' project.id %}">
+          {% csrf_token %}<button class="secondary" type="submit">Gerar Bíblia dos coadjuvantes com IA</button>
+        </form>
+      {% endif %}
+      <p><strong>Cenários:</strong> {{ project.scenario_bible|truncatewords:30|default:"Pendente" }}</p>
+      <p><strong>Mundo:</strong> {{ project.world_bible|truncatewords:30|default:"Pendente" }}</p>
+    {% endif %}
+  </section>
+</div>
+<section class="card">
+  <h2>5 · Tabela de capítulos — {{ project.chapter_count }} capítulos</h2>
+  <div class="table"><table>
+    <thead><tr><th>Capítulo</th><th>{% if project.writing_mode == "NONFICTION" %}Direção / texto / fontes{% else %}Direção / roteiro{% endif %}</th><th>Palavras</th><th>Tokens estimados</th><th>Sessões</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    {% for chapter in project.chapters.all %}
+      <tr>
+        <td><strong>Capítulo {{ chapter.number|stringformat:"02d" }}</strong><br>{{ chapter.title }}</td>
+        <td>
+          {% if project.writing_mode == "NONFICTION" %}
+            {% if chapter.direction and chapter.script and chapter.reference_sources.exists %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}
+          {% else %}
+            {% if chapter.direction and chapter.script %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}
+          {% endif %}
+        </td>
+        <td>{{ chapter.target_words }}</td><td>≈ {{ chapter.estimated_tokens }}</td>
+        <td>{{ chapter.session_count }} × ≈ {{ chapter.words_per_session }} palavras</td>
+        <td><span class="status {{ chapter.status }}">{{ chapter.get_status_display }}</span></td>
+        <td><div class="actions">
+          <a class="btn secondary" href="{% url 'writer:chapter_edit' chapter.id %}">Conteúdo</a>
+          <a class="btn secondary" href="{% url 'writer:chapter_detail' chapter.id %}">Abrir</a>
+          <form method="post" action="{% url 'writer:generate' chapter.id %}">{% csrf_token %}<button type="submit">Gerar capítulo</button></form>
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
 {% endblock %}

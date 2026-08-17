@@ -92,7 +92,10 @@ def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpRes
 @require_GET
 def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(
-        StoryProject.objects.prefetch_related("chapters__sessions", "sources"), pk=project_id
+        StoryProject.objects.prefetch_related(
+            "chapters__sessions", "chapters__reference_sources", "sources"
+        ),
+        pk=project_id
     )
     return render(request, "writer/project_detail.html", {
         "project": project,
@@ -108,6 +111,9 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
 @require_POST
 def generate_supporting_characters(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
+    if project.writing_mode != StoryProject.WritingMode.FICTION:
+        messages.error(request, "A Bíblia de coadjuvantes pertence somente ao modo Fiction.")
+        return redirect("writer:project_detail", project_id=project.id)
     if project.supporting_characters_bible.strip() and request.POST.get("confirm") != "yes":
         messages.error(
             request,
@@ -129,6 +135,9 @@ def generate_supporting_characters(request: HttpRequest, project_id: int) -> Htt
 @require_POST
 def update_supporting_characters(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
+    if project.writing_mode != StoryProject.WritingMode.FICTION:
+        messages.error(request, "A Bíblia de coadjuvantes pertence somente ao modo Fiction.")
+        return redirect("writer:project_detail", project_id=project.id)
     form = SupportingCastUpdateForm(request.POST)
     if not form.is_valid():
         messages.error(request, "Descreva a atualização ou o gap de continuidade.")

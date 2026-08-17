@@ -5,10 +5,10 @@ import os
 from django.db import transaction
 
 from gaiden.writer_engine.clients import OpenAIEmbeddingClient, QwenGenerator
-from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
+from gaiden.writer_engine.engine import ChapterRequest, NonfictionRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
 from writer.language_contract import contract_sha256, validate_language_contract
-from writer.models import Chapter, ChapterSession
+from writer.models import Chapter, ChapterSession, StoryProject
 from writer.services.supporting_characters import (
     cast_snapshot_for_generation,
     supporting_characters_context,
@@ -30,14 +30,26 @@ def _engine(chapter: Chapter) -> WriterEngine:
         thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
         in {"1", "true", "yes", "on"},
     )
+    index = VectorIndex.load(chapter.project.vector_index_path)
+    if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+        source_ids = list(chapter.reference_sources.values_list("id", flat=True))
+        prefixes = tuple(f"{source_id:06d}-" for source_id in source_ids)
+        rows = [
+            (chunk, vector)
+            for chunk, vector in index.rows
+            if chunk.source_path.startswith(prefixes)
+        ]
+        if not rows:
+            raise ValueError("the selected chapter sources are absent from the current vector index")
+        index = VectorIndex(model=index.model, dimension=index.dimension, rows=rows)
     return WriterEngine(
-        index=VectorIndex.load(chapter.project.vector_index_path),
+        index=index,
         embedder=embedder,
         generator=generator,
     )
 
 
-def _session_role(number: int, total: int) -> str:
+def _fiction_session_role(number: int, total: int) -> str:
     if total == 1:
         return "Complete the chapter arc, including opening, development, climax and closing."
     position = (number - 1) / max(1, total - 1)
@@ -50,10 +62,23 @@ def _session_role(number: int, total: int) -> str:
     return "Develop action, clues, character pressure and causal progression."
 
 
-def generate_chapter(chapter: Chapter) -> Chapter:
-    if chapter.status == Chapter.Status.FINAL:
-        raise ValueError("a finalized chapter cannot be regenerated")
-    required = {
+def _nonfiction_session_role(number: int, total: int) -> str:
+    if total == 1:
+        return "Develop the complete argument with a clear opening, analysis and conclusion."
+    if number == 1:
+        return "Establish the question, thesis and first necessary line of evidence."
+    if number == total:
+        return "Complete the analysis and close the chapter without introducing an unsupported thesis."
+    return "Develop the next distinct part of the argument without repeating earlier sessions."
+
+
+def _required_fields(chapter: Chapter) -> dict[str, str]:
+    if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+        return {
+            "direção do capítulo": chapter.direction,
+            "texto-base, argumentos e notas": chapter.script,
+        }
+    return {
         "bíblia do personagem": chapter.project.character_bible,
         "bíblia do antagonista": chapter.project.antagonist_bible,
         "bíblia dos coadjuvantes": chapter.project.supporting_characters_bible,
@@ -64,13 +89,24 @@ def generate_chapter(chapter: Chapter) -> Chapter:
         "direção do capítulo": chapter.direction,
         "roteiro do capítulo": chapter.script,
     }
-    missing = [label for label, value in required.items() if not value.strip()]
+
+
+def generate_chapter(chapter: Chapter) -> Chapter:
+    if chapter.status == Chapter.Status.FINAL:
+        raise ValueError("a finalized chapter cannot be regenerated")
+    missing = [
+        label for label, value in _required_fields(chapter).items() if not value.strip()
+    ]
+    if (
+        chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION
+        and not chapter.reference_sources.exists()
+    ):
+        missing.append("fontes deste capítulo")
     if missing:
         raise ValueError("complete before generation: " + ", ".join(missing))
     contract = chapter.project.language_contract
     validate_language_contract(contract)
     contract_hash = contract_sha256(contract)
-    cast_snapshot = cast_snapshot_for_generation(chapter.project)
     output_language = contract["target_language"]
     if chapter.target_words < chapter.session_count * 400:
         raise ValueError("target words must allow at least 400 words per session")
@@ -89,17 +125,33 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             "completed sessions use a different or legacy language contract "
             f"(sessions: {numbers}); create a versioned chapter revision"
         )
-    incompatible_cast = [
+    mode_incompatible = [
         session.number
         for session in completed.values()
-        if session.supporting_cast_sha256 != cast_snapshot.sha256
+        if session.generation_parameters.get("writing_mode", StoryProject.WritingMode.FICTION)
+        != chapter.project.writing_mode
     ]
-    if incompatible_cast:
-        numbers = ", ".join(str(number) for number in sorted(incompatible_cast))
+    if mode_incompatible:
+        numbers = ", ".join(str(number) for number in sorted(mode_incompatible))
         raise ValueError(
-            "completed sessions use a different or legacy supporting-cast revision "
-            f"(sessions: {numbers}); start a versioned chapter revision"
+            f"completed sessions use a different writing mode (sessions: {numbers})"
         )
+
+    cast_snapshot = None
+    if chapter.project.writing_mode == StoryProject.WritingMode.FICTION:
+        cast_snapshot = cast_snapshot_for_generation(chapter.project)
+        incompatible_cast = [
+            session.number
+            for session in completed.values()
+            if session.supporting_cast_sha256 != cast_snapshot.sha256
+        ]
+        if incompatible_cast:
+            numbers = ", ".join(str(number) for number in sorted(incompatible_cast))
+            raise ValueError(
+                "completed sessions use a different or legacy supporting-cast revision "
+                f"(sessions: {numbers}); start a versioned chapter revision"
+            )
+
     engine = _engine(chapter)
     chapter.status = Chapter.Status.GENERATING
     chapter.error_message = ""
@@ -109,46 +161,86 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             if number in completed:
                 continue
             previous = "\n\n".join(
-                session.content for session in chapter.sessions.filter(
+                session.content
+                for session in chapter.sessions.filter(
                     status=ChapterSession.Status.COMPLETE, number__lt=number
                 ).order_by("number")
             )
-            project = chapter.project
-            supporting_context = supporting_characters_context(
-                project.supporting_characters_bible,
-                chapter_number=chapter.number,
-                chapter_count=project.chapter_count,
-            )
-            continuity = (
-                f"Character bible:\n{project.character_bible}\n\n"
-                f"Antagonist bible:\n{project.antagonist_bible}\n\n"
-                f"{supporting_context}\n\n"
-                f"Scenario and locations:\n{project.scenario_bible}\n\n"
-                f"World, period, climate and references:\n{project.world_bible}\n\n"
-                f"Story direction:\n{project.story_direction}\n\n"
-                f"Story outline:\n{project.story_outline}\n\n"
-                f"Previous sessions of this chapter:\n{previous[-12000:]}"
-            )
-            brief = (
-                f"Chapter direction:\n{chapter.direction}\n\n"
-                f"Chapter script:\n{chapter.script}\n\n"
-                f"This is session {number} of {chapter.session_count}. "
-                f"{_session_role(number, chapter.session_count)} "
-                "Do not repeat previous sessions and do not close the chapter before the final session."
-            )
-            result = engine.create_chapter(
-                ChapterRequest(
-                    title=f"{chapter.title or f'Chapter {chapter.number:02d}'} — session {number}",
-                    language=output_language,
-                    brief=brief,
-                    continuity=continuity,
-                    point_of_view="Follow the project and chapter direction exactly",
-                    language_contract=contract,
-                    target_words=chapter.words_per_session,
-                ),
-                top_k=chapter.retrieval_top_k,
-            )
+            if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+                result = engine.create_nonfiction_chapter(
+                    NonfictionRequest(
+                        title=(
+                            f"{chapter.title or f'Chapter {chapter.number:02d}'} "
+                            f"— session {number}"
+                        ),
+                        language=output_language,
+                        direction=(
+                            f"{chapter.direction}\n\nSession {number} of {chapter.session_count}: "
+                            f"{_nonfiction_session_role(number, chapter.session_count)}"
+                        ),
+                        operator_text=chapter.script,
+                        source_guidance=chapter.source_guidance,
+                        continuity=previous[-12000:],
+                        language_contract=contract,
+                        target_words=chapter.words_per_session,
+                        citation_prefix=f"s{number}",
+                    ),
+                    top_k=chapter.retrieval_top_k,
+                )
+            else:
+                project = chapter.project
+                supporting_context = supporting_characters_context(
+                    project.supporting_characters_bible,
+                    chapter_number=chapter.number,
+                    chapter_count=project.chapter_count,
+                )
+                continuity = (
+                    f"Character bible:\n{project.character_bible}\n\n"
+                    f"Antagonist bible:\n{project.antagonist_bible}\n\n"
+                    f"{supporting_context}\n\n"
+                    f"Scenario and locations:\n{project.scenario_bible}\n\n"
+                    f"World, period, climate and references:\n{project.world_bible}\n\n"
+                    f"Story direction:\n{project.story_direction}\n\n"
+                    f"Story outline:\n{project.story_outline}\n\n"
+                    f"Previous sessions of this chapter:\n{previous[-12000:]}"
+                )
+                brief = (
+                    f"Chapter direction:\n{chapter.direction}\n\n"
+                    f"Chapter script:\n{chapter.script}\n\n"
+                    f"This is session {number} of {chapter.session_count}. "
+                    f"{_fiction_session_role(number, chapter.session_count)} "
+                    "Do not repeat previous sessions and do not close the chapter before the final session."
+                )
+                result = engine.create_chapter(
+                    ChapterRequest(
+                        title=(
+                            f"{chapter.title or f'Chapter {chapter.number:02d}'} "
+                            f"— session {number}"
+                        ),
+                        language=output_language,
+                        brief=brief,
+                        continuity=continuity,
+                        point_of_view="Follow the project and chapter direction exactly",
+                        language_contract=contract,
+                        target_words=chapter.words_per_session,
+                    ),
+                    top_k=chapter.retrieval_top_k,
+                )
+
             content = result.text
+            parameters = {
+                "writing_mode": chapter.project.writing_mode,
+                "target_words": chapter.words_per_session,
+                "chapter_target_words": chapter.target_words,
+                "session_count": chapter.session_count,
+                "retrieval_top_k": chapter.retrieval_top_k,
+                "validation_attempts": result.attempts,
+            }
+            if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+                parameters["citation_contract"] = "rag-chunk-footnotes-v1"
+                parameters["reference_source_ids"] = list(
+                    chapter.reference_sources.order_by("id").values_list("id", flat=True)
+                )
             with transaction.atomic():
                 ChapterSession.objects.create(
                     chapter=chapter,
@@ -159,18 +251,12 @@ def generate_chapter(chapter: Chapter) -> Chapter:
                     model=result.model,
                     source_chunk_ids=list(result.source_chunk_ids),
                     source_scores=list(result.source_scores),
-                    generation_parameters={
-                        "target_words": chapter.words_per_session,
-                        "chapter_target_words": chapter.target_words,
-                        "session_count": chapter.session_count,
-                        "retrieval_top_k": chapter.retrieval_top_k,
-                        "validation_attempts": result.attempts,
-                    },
+                    generation_parameters=parameters,
                     language_contract=contract,
                     language_contract_sha256=contract_hash,
-                    supporting_cast_revision=cast_snapshot.revision,
-                    supporting_cast_snapshot=cast_snapshot.registry,
-                    supporting_cast_sha256=cast_snapshot.sha256,
+                    supporting_cast_revision=(cast_snapshot.revision if cast_snapshot else None),
+                    supporting_cast_snapshot=(cast_snapshot.registry if cast_snapshot else {}),
+                    supporting_cast_sha256=(cast_snapshot.sha256 if cast_snapshot else ""),
                 )
         chapter.status = Chapter.Status.GENERATION_COMPLETE
         chapter.error_message = ""

@@ -8,13 +8,14 @@ class StoryProjectForm(forms.ModelForm):
     class Meta:
         model = StoryProject
         fields = (
-            "title", "language", "premise", "character_bible", "antagonist_bible",
+            "title", "writing_mode", "language", "premise", "character_bible", "antagonist_bible",
             "supporting_characters_bible", "scenario_bible", "world_bible",
             "story_direction", "story_outline",
             "chapter_count",
         )
         labels = {
             "title": "Título do projeto",
+            "writing_mode": "Modo de escrita",
             "language": "Idioma de criação",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
@@ -34,17 +35,36 @@ class StoryProjectForm(forms.ModelForm):
                 "story_direction", "story_outline",
             )
         }
+        widgets["writing_mode"] = forms.Select()
         widgets["language"] = forms.Select()
         help_texts = {
+            "writing_mode": (
+                "Fiction usa bíblias criativas. Nonfiction desenvolve o texto-base de cada "
+                "capítulo com direção e fontes recuperadas pelo RAG."
+            ),
             "language": (
                 "Selecione EN-US, EN-UK ou PT-BR. O Writer carrega automaticamente "
                 "o contrato correspondente antes de enviar o contexto RAG ao Qwen."
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Preserve compatibility with existing clients and tests that predate the selector.
+        self.fields["writing_mode"].required = False
+        self.fields["writing_mode"].initial = (
+            self.instance.writing_mode or StoryProject.WritingMode.FICTION
+        )
+
     def clean(self):
         cleaned = super().clean()
         language = cleaned.get("language")
+        writing_mode = (
+            cleaned.get("writing_mode")
+            or self.instance.writing_mode
+            or StoryProject.WritingMode.FICTION
+        )
+        cleaned["writing_mode"] = writing_mode
         if (
             language
             and self.instance.pk
@@ -57,8 +77,20 @@ class StoryProjectForm(forms.ModelForm):
             )
         elif language:
             contract = language_contract_for(language)
+            if writing_mode == StoryProject.WritingMode.NONFICTION:
+                contract["source_language"] = language
+                contract["operation"] = "original"
             validate_language_contract(contract)
             self.instance.language_contract = contract
+        if (
+            self.instance.pk
+            and "writing_mode" in self.changed_data
+            and self.instance.chapters.filter(sessions__isnull=False).exists()
+        ):
+            self.add_error(
+                "writing_mode",
+                "O modo de escrita fica imutável após a primeira sessão.",
+            )
         if (
             self.instance.pk
             and "supporting_characters_bible" in self.changed_data
@@ -122,13 +154,15 @@ class ChapterForm(forms.ModelForm):
     class Meta:
         model = Chapter
         fields = (
-            "title", "direction", "script", "target_words", "session_count",
-            "retrieval_top_k",
+            "title", "direction", "script", "reference_sources", "source_guidance",
+            "target_words", "session_count", "retrieval_top_k",
         )
         labels = {
             "title": "Título",
             "direction": "Direção do capítulo",
             "script": "Roteiro do capítulo",
+            "reference_sources": "Fontes deste capítulo",
+            "source_guidance": "Orientação de consulta dentro das fontes (opcional)",
             "target_words": "Meta de palavras",
             "session_count": "Número de sessões (1 a 4)",
             "retrieval_top_k": "Trechos recuperados pelo RAG",
@@ -136,7 +170,34 @@ class ChapterForm(forms.ModelForm):
         widgets = {
             "direction": forms.Textarea(attrs={"rows": 5}),
             "script": forms.Textarea(attrs={"rows": 7}),
+            "reference_sources": forms.CheckboxSelectMultiple(),
+            "source_guidance": forms.Textarea(attrs={"rows": 5}),
         }
+        help_texts = {
+            "source_guidance": (
+                "Indique assuntos, períodos ou perguntas para orientar o RAG dentro dos "
+                "arquivos selecionados para este capítulo."
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.project_id:
+            return
+        if self.instance.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+            self.fields["reference_sources"].queryset = self.instance.project.sources.order_by(
+                "filename", "id"
+            )
+            self.fields["script"].label = "Texto-base, argumentos e notas a desenvolver"
+            self.fields["script"].help_text = (
+                "O Qwen deve melhorar, ampliar e organizar este material sem substituir a tese."
+            )
+            self.fields["direction"].help_text = (
+                "Defina a tese, o objetivo, os limites e a estrutura esperada do capítulo."
+            )
+        else:
+            self.fields.pop("reference_sources")
+            self.fields.pop("source_guidance")
 
     def clean(self):
         cleaned = super().clean()
