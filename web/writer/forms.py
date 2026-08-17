@@ -141,14 +141,15 @@ class ChapterForm(forms.ModelForm):
     class Meta:
         model = Chapter
         fields = (
-            "title", "direction", "script", "source_guidance", "target_words",
-            "session_count", "retrieval_top_k",
+            "title", "direction", "script", "reference_sources", "source_guidance",
+            "target_words", "session_count", "retrieval_top_k",
         )
         labels = {
             "title": "Título",
             "direction": "Direção do capítulo",
             "script": "Roteiro do capítulo",
-            "source_guidance": "Referências e consultas para o RAG",
+            "reference_sources": "Fontes deste capítulo",
+            "source_guidance": "Orientação de consulta dentro das fontes (opcional)",
             "target_words": "Meta de palavras",
             "session_count": "Número de sessões (1 a 4)",
             "retrieval_top_k": "Trechos recuperados pelo RAG",
@@ -156,21 +157,24 @@ class ChapterForm(forms.ModelForm):
         widgets = {
             "direction": forms.Textarea(attrs={"rows": 5}),
             "script": forms.Textarea(attrs={"rows": 7}),
+            "reference_sources": forms.CheckboxSelectMultiple(),
             "source_guidance": forms.Textarea(attrs={"rows": 5}),
         }
         help_texts = {
             "source_guidance": (
-                "Indique obras, autores, documentos, assuntos, períodos ou perguntas que "
-                "devem orientar a recuperação das fontes deste capítulo."
+                "Indique assuntos, períodos ou perguntas para orientar o RAG dentro dos "
+                "arquivos selecionados para este capítulo."
             ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if (
-            self.instance.project_id
-            and self.instance.project.writing_mode == StoryProject.WritingMode.NONFICTION
-        ):
+        if not self.instance.project_id:
+            return
+        if self.instance.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+            self.fields["reference_sources"].queryset = self.instance.project.sources.order_by(
+                "filename", "id"
+            )
             self.fields["script"].label = "Texto-base, argumentos e notas a desenvolver"
             self.fields["script"].help_text = (
                 "O Qwen deve melhorar, ampliar e organizar este material sem substituir a tese."
@@ -178,6 +182,9 @@ class ChapterForm(forms.ModelForm):
             self.fields["direction"].help_text = (
                 "Defina a tese, o objetivo, os limites e a estrutura esperada do capítulo."
             )
+        else:
+            self.fields.pop("reference_sources")
+            self.fields.pop("source_guidance")
 
     def clean(self):
         cleaned = super().clean()
