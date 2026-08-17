@@ -92,7 +92,10 @@ def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpRes
 @require_GET
 def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(
-        StoryProject.objects.prefetch_related("chapters__sessions", "sources"), pk=project_id
+        StoryProject.objects.prefetch_related(
+            "chapters__sessions", "chapters__reference_sources", "sources"
+        ),
+        pk=project_id
     )
     return render(request, "writer/project_detail.html", {
         "project": project,
