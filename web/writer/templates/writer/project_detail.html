@@ -58,7 +58,7 @@
         <td><strong>Capítulo {{ chapter.number|stringformat:"02d" }}</strong><br>{{ chapter.title }}</td>
         <td>
           {% if project.writing_mode == "NONFICTION" %}
-            {% if chapter.direction and chapter.script and chapter.source_guidance %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}
+            {% if chapter.direction and chapter.script and chapter.reference_sources.exists %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}
           {% else %}
             {% if chapter.direction and chapter.script %}Preenchidos{% else %}<span class="errors">Pendentes</span>{% endif %}
           {% endif %}
