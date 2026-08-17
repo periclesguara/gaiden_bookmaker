@@ -4,8 +4,9 @@
 
 This is the phase-2 operator workflow layered on the local Qwen/RAG engine.
 It adds Django records and controls for source selection, normalization,
-vectorization, story bibles, a versioned JSON language contract, chapter planning, generation
-sessions, and explicit editorial finalization.
+vectorization, Fiction story bibles, a Nonfiction chapter-development mode, a versioned
+JSON language contract, chapter planning, generation sessions, source-validated citations,
+and explicit editorial finalization.
 
 It does not store model weights, source manuscripts, normalized bodies, vector
 indexes, or generated files in Git. Every Writer route requires an authenticated
@@ -29,8 +30,9 @@ Before deployment:
 8. open `/writer/`, but do not trigger paid or GPU work during deployment
    smoke tests.
 
-The Writer migrations create the cast-revision table and add nullable/defaulted
-cast-audit fields to chapter sessions. They do not alter editorial or pipeline
+The Writer migrations create the cast-revision table, add nullable/defaulted cast-audit
+fields to chapter sessions, add the defaulted project writing mode, and add the optional
+per-chapter source-guidance field. They do not alter editorial or pipeline
 tables, delete operator data, or touch files. Existing sessions retain blank
 cast-audit fields and are treated as legacy when a partial chapter is resumed.
 
@@ -77,11 +79,12 @@ the selected set through Qwen3-Embedding-0.6B.
 All selected files must be represented. The index is an external, derived,
 atomic artifact and can be rebuilt from normalized sources.
 
-### 3. Define the language contract and creative bibles
+### 3. Select the writing mode and define the language contract
 
-Each project has a mandatory, validated JSON language contract. It is separate
-from the story bibles: bibles define people, facts and events; the contract
-defines how every session must express them.
+Each project selects **Fiction** or **Nonfiction** and has a mandatory, validated
+JSON language contract. The mode becomes immutable after the first generation
+session. Fiction bibles define people, facts and events; the contract defines how
+every session must express them. Nonfiction does not require creative bibles.
 
 The project form exposes one language selector inside the Writer flow:
 
@@ -178,14 +181,34 @@ is rejected; the operator must create a versioned chapter revision. Direct
 editing of the cast field is blocked after the first session so in-progress
 changes pass through the audited update tool.
 
-### 4. Direct and script the story
+### 4. Direct Fiction or develop Nonfiction
 
-Every chapter has its own title, direction, and script. Project bibles and the
-general outline provide global continuity. Completed earlier sessions provide
-local continuity to the next session.
+Every Fiction chapter has its own title, direction, and script. Project bibles
+and the general outline provide global continuity. Completed earlier sessions
+provide local continuity to the next session.
+
+Every Nonfiction chapter has exactly three editorial inputs in addition to its
+title and generation parameters:
+
+- **Direction**: thesis, objective, limits, and expected structure;
+- **Operator text**: the prose, arguments, and notes Qwen must improve, expand,
+  and organize without replacing the thesis;
+- **Source guidance**: works, authors, documents, subjects, periods, or questions
+  used to formulate that chapter's RAG retrieval query.
+
+Nonfiction generation is blocked if any of these three inputs is empty. It does
+not require character, antagonist, supporting-cast, scenario, world, story
+direction, or story-outline bibles.
 
 Retrieved corpus text is untrusted reference data. It cannot change system
-rules or promote output.
+rules or promote output. In Nonfiction, Qwen may add a factual statement only
+from the retrieved context. Every substantive factual paragraph must end with
+one or more exact `[SRC:<chunk_id>]` markers. The engine rejects missing
+markers and IDs outside that retrieval result, then replaces valid markers with
+session-unique footnotes and appends source path, heading, and chunk ID. This
+first contract provides verifiable provenance; normalized bibliographic
+metadata can later enrich the displayed note without weakening the source-ID
+validation.
 
 ### 5. Chapter parameter table
 
@@ -211,9 +234,11 @@ words per session. The model may vary naturally; actual word count is recorded.
 
 The Generate chapter button is POST-only and CSRF-protected. It generates the
 configured sessions in order and records immutable session rows containing
-content, actual word count, model, retrieval IDs, scores, parameters, the complete
-language contract and SHA-256, plus the supporting-cast revision, snapshot, and
-SHA-256.
+content, actual word count, model, retrieval IDs, scores, parameters (including
+writing mode and citation-contract version), the complete language contract and
+SHA-256, plus the supporting-cast revision, snapshot, and SHA-256 when Fiction
+uses them. Nonfiction stores empty cast audit fields and retains the exact
+retrieval IDs behind every rendered footnote.
 
 A retry resumes missing sessions and does not overwrite completed ones. After
 all sessions, status becomes `GENERATION_COMPLETE`, not `FINAL`.
