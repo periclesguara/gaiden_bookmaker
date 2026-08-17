@@ -31,8 +31,8 @@ Before deployment:
    smoke tests.
 
 The Writer migrations create the cast-revision table, add nullable/defaulted cast-audit
-fields to chapter sessions, add the defaulted project writing mode, and add the optional
-per-chapter source-guidance field. They do not alter editorial or pipeline
+fields to chapter sessions, add the defaulted project writing mode, and add the optional per-chapter source-guidance field, and add the non-destructive
+many-to-many selection of approved sources for each chapter. They do not alter editorial or pipeline
 tables, delete operator data, or touch files. Existing sessions retain blank
 cast-audit fields and are treated as legacy when a partial chapter is resumed.
 
