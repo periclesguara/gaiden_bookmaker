@@ -187,8 +187,8 @@ Every Fiction chapter has its own title, direction, and script. Project bibles
 and the general outline provide global continuity. Completed earlier sessions
 provide local continuity to the next session.
 
-Every Nonfiction chapter has exactly three editorial inputs in addition to its
-title and generation parameters:
+Every Nonfiction chapter has three required editorial inputs and one optional
+query aid in addition to its title and generation parameters:
 
 - **Direction**: thesis, objective, limits, and expected structure;
 - **Operator text**: the prose, arguments, and notes Qwen must improve, expand,
