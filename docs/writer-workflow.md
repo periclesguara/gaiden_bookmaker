@@ -193,16 +193,20 @@ title and generation parameters:
 - **Direction**: thesis, objective, limits, and expected structure;
 - **Operator text**: the prose, arguments, and notes Qwen must improve, expand,
   and organize without replacing the thesis;
-- **Source guidance**: works, authors, documents, subjects, periods, or questions
-  used to formulate that chapter's RAG retrieval query.
+- **Chapter sources**: one or more exact files selected from the project's
+  approved and vectorized corpus;
+- **Optional source guidance**: subjects, periods, or questions used to formulate
+  the semantic query inside only those selected files.
 
-Nonfiction generation is blocked if any of these three inputs is empty. It does
+Nonfiction generation is blocked if direction, operator text, or the exact
+chapter-source selection is empty. Source guidance may remain empty. It does
 not require character, antagonist, supporting-cast, scenario, world, story
 direction, or story-outline bibles.
 
 Retrieved corpus text is untrusted reference data. It cannot change system
-rules or promote output. In Nonfiction, Qwen may add a factual statement only
-from the retrieved context. Every substantive factual paragraph must end with
+rules or promote output. In Nonfiction, the engine first filters the project index to the files selected
+for that chapter; Qwen may add a factual statement only from the retrieved
+context within that subset. Every substantive factual paragraph must end with
 one or more exact `[SRC:<chunk_id>]` markers. The engine rejects missing
 markers and IDs outside that retrieval result, then replaces valid markers with
 session-unique footnotes and appends source path, heading, and chunk ID. This
