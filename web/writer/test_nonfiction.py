@@ -67,12 +67,11 @@ class NonfictionWriterFlowTests(TestCase):
         self.assertEqual(request.source_guidance, chapter.source_guidance)
 
     @patch("writer.services.generation._engine")
-    def test_nonfiction_requires_chapter_source_guidance(self, engine_factory):
+    def test_nonfiction_requires_an_exact_chapter_source(self, engine_factory):
         chapter = self._chapter()
-        chapter.source_guidance = ""
-        chapter.save(update_fields=("source_guidance",))
+        chapter.reference_sources.clear()
 
-        with self.assertRaisesMessage(ValueError, "referências e consultas para o RAG"):
+        with self.assertRaisesMessage(ValueError, "fontes deste capítulo"):
             generate_chapter(chapter)
 
         engine_factory.assert_not_called()
