@@ -24,4 +24,11 @@ class Migration(migrations.Migration):
             name="source_guidance",
             field=models.TextField(blank=True),
         ),
+        migrations.AddField(
+            model_name="chapter",
+            name="reference_sources",
+            field=models.ManyToManyField(
+                blank=True, related_name="chapters", to="writer.sourcedocument"
+            ),
+        ),
     ]
