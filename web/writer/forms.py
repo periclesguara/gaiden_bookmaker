@@ -163,7 +163,10 @@ class ChapterForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+        if (
+            self.instance.project_id
+            and self.instance.project.writing_mode == StoryProject.WritingMode.NONFICTION
+        ):
             self.fields["script"].label = "Texto-base, argumentos e notas a desenvolver"
             self.fields["script"].help_text = (
                 "O Qwen deve melhorar, ampliar e organizar este material sem substituir a tese."
