@@ -28,9 +28,12 @@ services. Qwen3.5-9B is the default generation model and
 Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
 weights, indexes, requests, drafts, and audit sidecars remain external runtime
 artifacts. The reusable engine remains independent of Django. The staff-only `writer`
-application adds source manifests, story projects, creative bibles, chapter
-parameters, immutable generation sessions, and explicit editorial finalization.
-Supporting-cast continuity is versioned: RAG-assisted updates create immutable
+application adds source manifests, story projects, Fiction creative bibles,
+Nonfiction operator text and per-chapter source guidance, chapter parameters,
+immutable generation sessions, and explicit editorial finalization. Nonfiction
+generation preserves the operator thesis, accepts citations only for retrieved
+chunk IDs, and renders those IDs as auditable source notes. Supporting-cast
+continuity is versioned for Fiction: RAG-assisted updates create immutable
 revision records, while each generation session stores the exact cast snapshot
 and hash that governed its output. Its external file-treatment and deployment
 contract is defined in
