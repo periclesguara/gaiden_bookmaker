@@ -130,6 +130,9 @@ class Chapter(models.Model):
     direction = models.TextField(blank=True)
     script = models.TextField(blank=True)
     source_guidance = models.TextField(blank=True)
+    reference_sources = models.ManyToManyField(
+        SourceDocument, blank=True, related_name="chapters"
+    )
     target_words = models.PositiveIntegerField(
         default=2500, validators=[MinValueValidator(400), MaxValueValidator(12000)]
     )
