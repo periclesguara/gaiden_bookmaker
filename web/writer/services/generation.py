@@ -30,8 +30,20 @@ def _engine(chapter: Chapter) -> WriterEngine:
         thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
         in {"1", "true", "yes", "on"},
     )
+    index = VectorIndex.load(chapter.project.vector_index_path)
+    if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
+        source_ids = list(chapter.reference_sources.values_list("id", flat=True))
+        prefixes = tuple(f"{source_id:06d}-" for source_id in source_ids)
+        rows = [
+            (chunk, vector)
+            for chunk, vector in index.rows
+            if chunk.source_path.startswith(prefixes)
+        ]
+        if not rows:
+            raise ValueError("the selected chapter sources are absent from the current vector index")
+        index = VectorIndex(model=index.model, dimension=index.dimension, rows=rows)
     return WriterEngine(
-        index=VectorIndex.load(chapter.project.vector_index_path),
+        index=index,
         embedder=embedder,
         generator=generator,
     )
@@ -65,7 +77,6 @@ def _required_fields(chapter: Chapter) -> dict[str, str]:
         return {
             "direção do capítulo": chapter.direction,
             "texto-base, argumentos e notas": chapter.script,
-            "referências e consultas para o RAG": chapter.source_guidance,
         }
     return {
         "bíblia do personagem": chapter.project.character_bible,
@@ -86,6 +97,11 @@ def generate_chapter(chapter: Chapter) -> Chapter:
     missing = [
         label for label, value in _required_fields(chapter).items() if not value.strip()
     ]
+    if (
+        chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION
+        and not chapter.reference_sources.exists()
+    ):
+        missing.append("fontes deste capítulo")
     if missing:
         raise ValueError("complete before generation: " + ", ".join(missing))
     contract = chapter.project.language_contract
@@ -222,6 +238,9 @@ def generate_chapter(chapter: Chapter) -> Chapter:
             }
             if chapter.project.writing_mode == StoryProject.WritingMode.NONFICTION:
                 parameters["citation_contract"] = "rag-chunk-footnotes-v1"
+                parameters["reference_source_ids"] = list(
+                    chapter.reference_sources.order_by("id").values_list("id", flat=True)
+                )
             with transaction.atomic():
                 ChapterSession.objects.create(
                     chapter=chapter,
