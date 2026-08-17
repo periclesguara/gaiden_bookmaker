@@ -51,6 +51,7 @@ class NonfictionRequest:
     continuity: str
     language_contract: dict[str, object]
     target_words: int = 2500
+    citation_prefix: str = "src"
 
     def validate(self) -> None:
         required = {
@@ -63,6 +64,8 @@ class NonfictionRequest:
         missing = [name for name, value in required.items() if not value.strip()]
         if missing:
             raise ValueError(f"missing nonfiction request fields: {', '.join(missing)}")
+        if not re.fullmatch(r"[A-Za-z0-9-]+", self.citation_prefix):
+            raise ValueError("citation_prefix must contain only letters, numbers or hyphens")
         _validate_language_and_length(self.language, self.language_contract, self.target_words)
 
 
@@ -127,7 +130,9 @@ def nonfiction_citation_violations(draft: str, hits: tuple[SearchHit, ...]) -> l
     return violations
 
 
-def render_nonfiction_citations(draft: str, hits: tuple[SearchHit, ...], language: str) -> str:
+def render_nonfiction_citations(
+    draft: str, hits: tuple[SearchHit, ...], language: str, citation_prefix: str
+) -> str:
     by_id = {hit.chunk.chunk_id: hit.chunk for hit in hits}
     order: list[str] = []
 
@@ -135,7 +140,7 @@ def render_nonfiction_citations(draft: str, hits: tuple[SearchHit, ...], languag
         chunk_id = match.group(1)
         if chunk_id not in order:
             order.append(chunk_id)
-        return f"[^{order.index(chunk_id) + 1}]"
+        return f"[^{citation_prefix}-{order.index(chunk_id) + 1}]"
 
     prose = CITATION_PATTERN.sub(replace, draft).strip()
     heading = "Fontes desta sessão" if language == "pt-BR" else "Sources for this session"
@@ -143,7 +148,9 @@ def render_nonfiction_citations(draft: str, hits: tuple[SearchHit, ...], languag
     for number, chunk_id in enumerate(order, start=1):
         chunk = by_id[chunk_id]
         heading_label = f" — {chunk.heading}" if chunk.heading else ""
-        notes.append(f"[^{number}]: {chunk.source_path}{heading_label} — trecho {chunk_id}")
+        notes.append(
+            f"[^{citation_prefix}-{number}]: {chunk.source_path}{heading_label} — trecho {chunk_id}"
+        )
     return f"{prose}\n\n## {heading}\n\n" + "\n".join(notes)
 
 
@@ -275,7 +282,9 @@ class WriterEngine:
                 violations.extend(nonfiction_citation_violations(draft, hits))
             if not violations:
                 text = (
-                    render_nonfiction_citations(draft, hits, request.language)
+                    render_nonfiction_citations(
+                        draft, hits, request.language, request.citation_prefix
+                    )
                     if citation_required
                     else draft
                 )
