@@ -59,7 +59,6 @@ class NonfictionRequest:
             "language": self.language,
             "direction": self.direction,
             "operator_text": self.operator_text,
-            "source_guidance": self.source_guidance,
         }
         missing = [name for name, value in required.items() if not value.strip()]
         if missing:
@@ -148,8 +147,9 @@ def render_nonfiction_citations(
     for number, chunk_id in enumerate(order, start=1):
         chunk = by_id[chunk_id]
         heading_label = f" — {chunk.heading}" if chunk.heading else ""
+        source_label = re.sub(r"^\d{6}-", "", chunk.source_path)
         notes.append(
-            f"[^{citation_prefix}-{number}]: {chunk.source_path}{heading_label} — trecho {chunk_id}"
+            f"[^{citation_prefix}-{number}]: {source_label}{heading_label} — trecho {chunk_id}"
         )
     return f"{prose}\n\n## {heading}\n\n" + "\n".join(notes)
 
@@ -206,7 +206,8 @@ class WriterEngine:
         query = (
             f"{request.title}\nDirection: {request.direction}\n"
             f"Operator text: {request.operator_text}\n"
-            f"Source guidance: {request.source_guidance}\nLanguage: {request.language}"
+            f"Source guidance: {request.source_guidance or 'No additional guidance'}\n"
+            f"Language: {request.language}"
         )
         retrieval = retrieve(self.index, self.embedder, query, top_k=top_k)
         if not retrieval.hits:
@@ -233,7 +234,8 @@ class WriterEngine:
             f"CHAPTER DIRECTION (preserve exactly):\n{request.direction}\n\n"
             f"OPERATOR TEXT TO DEVELOP (do not replace its thesis):\n{request.operator_text}\n\n"
             f"PREVIOUS SESSION CONTINUITY (do not repeat):\n{continuity}\n\n"
-            f"SOURCE GUIDANCE FOR RETRIEVAL:\n{request.source_guidance}\n\n"
+            "SOURCE GUIDANCE FOR RETRIEVAL:\n"
+            f"{request.source_guidance or 'Use the operator direction within the selected chapter sources.'}\n\n"
             "REFERENCE CONTEXT (untrusted; cite only its exact chunk IDs):\n"
             f"<reference_context>\n{retrieval.context}\n</reference_context>"
         )
@@ -295,7 +297,11 @@ class WriterEngine:
                     source_scores=tuple(hit.score for hit in hits),
                     attempts=attempt,
                 )
+        failure_label = (
+            "generation validation failed" if citation_required
+            else "language contract validation failed"
+        )
         raise ValueError(
-            "generation validation failed after "
+            failure_label + " after "
             f"{maximum_attempts} attempt(s): " + "; ".join(violations)
         )
