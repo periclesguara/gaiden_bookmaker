@@ -2,7 +2,8 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Gaiden Pipeline - Visao Geral</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gaiden · Módulos editoriais</title>
   <style>
     :root {
       --bg: #f5f2ed;
@@ -13,6 +14,8 @@
       --ok: #1f7a3b;
       --fail: #b3261e;
       --border: #e2d9cf;
+      --blue: #285f94;
+      --final: #226f54;
     }
     body {
       margin: 0;
@@ -20,8 +23,13 @@
       background: radial-gradient(circle at 10% 0%, #fff2e1 0%, #f5f2ed 35%, #efe8de 100%);
       color: var(--ink);
     }
-    header {
-      padding: 28px 24px 8px;
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+    .hero {
+      padding: 12px 0 24px;
     }
     h1 {
       margin: 0 0 6px;
@@ -32,11 +40,64 @@
       margin: 0;
       color: var(--muted);
     }
+    .eyebrow {
+      margin-bottom: 8px;
+      color: var(--accent);
+      font: 800 12px/1.2 system-ui, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 34px;
+    }
+    .module {
+      display: flex;
+      flex-direction: column;
+      min-height: 190px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .module h2 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+    .module p {
+      font: 14px/1.5 system-ui, sans-serif;
+    }
+    .module-link {
+      align-self: flex-start;
+      margin-top: auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font: 700 13px/1.2 system-ui, sans-serif;
+      text-decoration: none;
+    }
+    .module.writer .module-link { background: var(--blue); }
+    .module.finalized .module-link { background: var(--final); }
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      padding: 0 0 4px;
+    }
+    .section-heading h2 {
+      margin: 0 0 4px;
+      font-size: 23px;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
-      padding: 20px 24px 32px;
+      padding: 16px 0 34px;
     }
     .card {
       background: var(--card);
@@ -44,6 +105,10 @@
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card.finalized {
+      border-color: #a9cdb8;
+      background: #f7fff9;
     }
     .card h2 {
       margin: 0 0 8px;
@@ -90,19 +155,53 @@
       text-decoration: none;
       font-size: 12px;
     }
+    @media (max-width: 640px) {
+      .shell { width: calc(100% - 20px); padding-top: 18px; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .module { min-height: 165px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Gaiden Pipeline - Visao Geral</h1>
-    <p>Resumo por edicao com status das etapas.</p>
-    <div class="actions">
-      <a href="{% url 'book_edition_list' %}">Edições</a>
-      <a href="{% url 'writer:home' %}">Writer</a>
-    </div>
+  <main class="shell">
+  <header class="hero">
+    <p class="eyebrow">Gaiden · workspace editorial</p>
+    <h1>Módulos editoriais</h1>
+    <p>Escolha a área responsável pela próxima ação. Abrir este dashboard não inicia processamento nem altera registros.</p>
   </header>
-  <section class="grid">
-    {% for pipeline in pipelines %}
+
+  <nav class="module-grid" aria-label="Módulos do Gaiden">
+    <article class="module writer">
+      <h2>Writer</h2>
+      <p>Criação Fiction ou Nonfiction com Qwen, RAG, fontes aprovadas e revisão editorial.</p>
+      <a class="module-link" href="{% url 'writer:home' %}">Abrir Writer</a>
+    </article>
+    <article class="module intake">
+      <h2>Intake</h2>
+      <p>Consulte as edições registradas e escolha o material que seguirá para produção.</p>
+      <a class="module-link" href="{% url 'book_edition_list' %}">Abrir Intake</a>
+    </article>
+    <article class="module manual-ai">
+      <h2>Bookmaker — Manual / AI</h2>
+      <p>Acompanhe jobs e abra as etapas editoriais manuais ou assistidas da pipeline atual.</p>
+      <a class="module-link" href="{% url 'pipeline_jobs' %}">Abrir Bookmaker</a>
+    </article>
+    <article class="module finalized">
+      <h2>Projetos finalizados</h2>
+      <p>Revise as edições cujo pipeline canônico alcançou o estado DONE.</p>
+      <a class="module-link" href="#projetos-finalizados">Ver finalizados</a>
+    </article>
+  </nav>
+
+  <section aria-labelledby="pipelines-em-andamento">
+    <header class="section-heading">
+      <div>
+        <h2 id="pipelines-em-andamento">Produção em andamento</h2>
+        <p>Resumo das edições que ainda não alcançaram o estado DONE.</p>
+      </div>
+    </header>
+    <div class="grid">
+    {% for pipeline in active_pipelines %}
     <article class="card">
       <div class="meta">{{ pipeline.edition.work.code }} · {{ pipeline.edition.language.code }}</div>
       <h2>{{ pipeline.edition.work.title }}</h2>
@@ -126,10 +225,51 @@
     </article>
     {% empty %}
     <article class="card">
-      <h2>Nenhum livro encontrado</h2>
-      <p>Crie uma edicao com <code>seed_editorial</code>.</p>
+      <h2>Nenhuma edição em andamento</h2>
+      <p>As edições registradas aparecem aqui enquanto avançam pela pipeline.</p>
     </article>
     {% endfor %}
+    </div>
   </section>
+
+  <section id="projetos-finalizados" aria-labelledby="finalizados-heading">
+    <header class="section-heading">
+      <div>
+        <h2 id="finalizados-heading">Projetos finalizados</h2>
+        <p>Edições marcadas como DONE pela pipeline canônica.</p>
+      </div>
+    </header>
+    <div class="grid">
+    {% for pipeline in finalized_pipelines %}
+    <article class="card finalized">
+      <div class="meta">{{ pipeline.edition.work.code }} · {{ pipeline.edition.language.code }}</div>
+      <h2>{{ pipeline.edition.work.title }}</h2>
+      <div class="stats">
+        <div class="stat ok">
+          <strong>{{ pipeline.current_stage }}</strong>
+          Etapa atual
+        </div>
+        <div class="stat">
+          <strong>{{ pipeline.raw_at|default:"—" }}</strong>
+          RAW
+        </div>
+        <div class="stat">
+          <strong>{{ pipeline.normalized_at|default:"—" }}</strong>
+          Normalizado
+        </div>
+      </div>
+      <div class="actions">
+        <a href="{% url 'edition_steps' edition_id=pipeline.edition.id %}">Ver edição</a>
+      </div>
+    </article>
+    {% empty %}
+    <article class="card finalized">
+      <h2>Nenhum projeto finalizado</h2>
+      <p>Projetos aparecem aqui somente quando a pipeline alcança DONE.</p>
+    </article>
+    {% endfor %}
+    </div>
+  </section>
+  </main>
 </body>
 </html>

@@ -16,6 +16,20 @@ The Django project is `web/gaiden_portal` and installs two first-party apps:
 Reusable business logic belongs in service modules. Views should coordinate
 HTTP input and output rather than implement filesystem or editorial rules.
 
+### Modular operator navigation
+
+The default-branch dashboard is the single operator entrypoint and separates
+navigation into Writer, Intake, Bookmaker Manual/AI, and finalized-project
+areas. These links target the current default-branch routes: the modern Writer,
+the canonical edition list, pipeline jobs, and the read-only DONE projection on
+the dashboard. Loading the dashboard is read-only and never starts Writer,
+Qwen, embedding, RAG, or pipeline work.
+
+The former `refactor/module-boundaries-writer-manual-intake-v1` branch and
+`ac9e69c6` were historical UI references only. They are not an integration
+base, and their retired applications, models, migrations, routes, and Writer
+implementation are not part of the active architecture.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
