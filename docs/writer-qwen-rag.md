@@ -1,11 +1,13 @@
-# Gaiden Writer: Qwen3.5 and Sherlock RAG
+# Writer: Qwen3.5 and Sherlock RAG
 
-## Status and phase boundary
+## Current boundary
 
-Phase 1 provides local model services, complete corpus indexing, retrieval, and
-chapter-draft generation. It deliberately adds no Django form, database field,
-or canonical-promotion action. Those belong to phase 2 after an operator
-acceptance run.
+The standalone Writer combines local model services, complete corpus indexing,
+retrieval, chapter-draft generation, and a separate Django operator portal.
+Writer records projects, sources, generation sessions, reviews, and explicit
+chapter finalization, but it has no canonical-promotion action inside Gaiden.
+Its only downstream boundary is the file handoff described in
+`docs/writer-gaiden-handoff.md`.
 
 The current main branch does not contain unpublished Sherlock manuscripts. Git
 is not their storage layer. The complete corpus must therefore be supplied from
@@ -20,10 +22,11 @@ The engine is physically separate from `gaiden/`. It serves only the Writer appl
 - Qwen3.5-9B creates chapter drafts.
 - Qwen3-Embedding-0.6B creates multilingual retrieval vectors.
 - Separate OpenAI-compatible loopback endpoints serve generation and embeddings.
-- Gaiden writes an atomic JSONL vector index under external storage. Phase 2 may
-  move the same contract to PostgreSQL/pgvector after retrieval is accepted.
-- Every output remains DRAFT and receives an audit sidecar with the model,
-  retrieved chunk IDs, and scores.
+- Writer writes an atomic JSONL vector index under external storage. A future
+  focused change may move the same retrieval contract to PostgreSQL/pgvector.
+- CLI outputs remain DRAFT and receive an audit sidecar. The portal records the
+  model, retrieved chunk IDs, scores, and language contract for each session;
+  chapters become FINAL only after explicit editorial confirmation.
 
 Qwen3.5 is not used as an embedding model. Generation and semantic retrieval
 are separate workloads and remain independently replaceable.
@@ -187,9 +190,9 @@ The command refuses to overwrite an existing draft or audit sidecar, requires a
 JSON language contract whose target language matches `language`, and rejects an
 exact 14-word sequence copied from retrieved material.
 
-## Acceptance gate before phase 2
+## Operational acceptance gate
 
-Do not create UI fields until all items pass:
+Do not authorize production generation until all items pass:
 
 1. corpus manifest and index source counts match;
 2. retrieval tests cover character, chronology, location, clue, and tone;
@@ -200,5 +203,5 @@ Do not create UI fields until all items pass:
 7. recovery is proven by deleting the derived index and rebuilding from the
    untouched corpus.
 
-After that gate, phase 2 may add Django fields, immutable draft versions, review,
-approval, and explicit promotion.
+Passing this gate does not authorize a Gaiden importer, automatic publication,
+or any cloud-model call.

@@ -23,12 +23,12 @@ Before deployment:
 3. verify ownership and permissions without making the source corpus writable
    to the web process;
 4. verify the separate loopback Qwen generation and embedding services;
-5. review `python web/manage.py migrate --plan`;
+5. review `python writer_web/manage.py migrate --plan`;
 6. apply Writer migrations through
-   `writer.0004_supporting_cast_revisions`;
-7. run `python web/manage.py check` and the protected test suite;
-8. open `/writer/`, but do not trigger paid or GPU work during deployment
-   smoke tests.
+   `writer.0005_nonfiction_mode`;
+7. run `python writer_web/manage.py check` and the protected Writer test suite;
+8. open the Writer root URL (for example `http://127.0.0.1:8001/`), but do
+   not trigger GPU work during deployment smoke tests.
 
 The Writer migrations create the cast-revision table, add nullable/defaulted cast-audit
 fields to chapter sessions, add the defaulted project writing mode, and add the optional per-chapter source-guidance field, and add the non-destructive
@@ -90,7 +90,7 @@ The project form exposes one language selector inside the Writer flow:
 
 - `EN-US`: contemporary American English creation;
 - `EN-UK` (stored as `en-GB`): contemporary British English creation;
-- `PT-BR`: Brazilian Portuguese translation and modernization.
+- `PT-BR`: original creation in contemporary Brazilian Portuguese.
 
 The Writer loads the matching contract automatically; operators do not edit the
 contract JSON in the form. The selected language and the contract's

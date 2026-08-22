@@ -34,6 +34,37 @@ def _atomic_write(path: Path, data: bytes) -> None:
         raise
 
 
+def _manifest(
+    project: StoryProject, body_sha: str, body_bytes: int, *, created_at: str
+) -> dict:
+    return {
+        "contract_version": 1,
+        "handoff_id": f"writer-project-{project.id:06d}-{body_sha[:12]}",
+        "source_system": "writer",
+        "destination_system": "gaiden_bookmaker",
+        "status": "AWAITING_GPT_PLUS_WORK",
+        "project": {
+            "writer_project_id": project.id,
+            "title": project.title,
+            "language": project.language,
+            "writing_mode": project.writing_mode,
+        },
+        "body": {
+            "file": BODY_NAME,
+            "media_type": "text/markdown",
+            "sha256": body_sha,
+            "bytes": body_bytes,
+        },
+        "next_step": {
+            "processor": "GPT_PLUS_WORK",
+            "return_status": "GAIDEN_BODY_READY",
+            "gaiden_entry_stage": "FRONTMATTER_ASSETS",
+            "skip_stages": ["BLOCK_01"],
+        },
+        "created_at": created_at,
+    }
+
+
 def merged_project_body(project: StoryProject) -> str:
     chapters = list(project.chapters.order_by("number"))
     if not chapters:
@@ -61,45 +92,57 @@ def export_project_handoff(project: StoryProject) -> Path:
     body_path = destination / BODY_NAME
     manifest_path = destination / MANIFEST_NAME
 
-    if manifest_path.exists() or body_path.exists():
-        if not manifest_path.is_file() or not body_path.is_file():
+    if destination.is_symlink():
+        raise ValueError("handoff destination must not be a symlink")
+    if destination.exists() or manifest_path.exists() or body_path.exists():
+        if (
+            not destination.is_dir()
+            or manifest_path.is_symlink()
+            or body_path.is_symlink()
+            or not manifest_path.is_file()
+            or not body_path.is_file()
+            or {path.name for path in destination.iterdir()}
+            != {BODY_NAME, MANIFEST_NAME}
+        ):
             raise ValueError("partial handoff exists; review it before retrying")
         existing = json.loads(manifest_path.read_text(encoding="utf-8"))
         if _sha256(body_path.read_bytes()) != body_sha:
             raise ValueError("handoff already exists with different body content")
         if existing.get("body", {}).get("sha256") != body_sha:
             raise ValueError("existing handoff manifest does not match its body")
+        created_at = existing.get("created_at")
+        if (
+            not isinstance(created_at, str)
+            or not created_at.strip()
+            or existing
+            != _manifest(project, body_sha, len(body), created_at=created_at)
+        ):
+            raise ValueError("existing handoff manifest is inconsistent")
         return destination
 
-    manifest = {
-        "contract_version": 1,
-        "handoff_id": f"writer-project-{project.id:06d}-{body_sha[:12]}",
-        "source_system": "writer",
-        "destination_system": "gaiden_bookmaker",
-        "status": "AWAITING_GPT_PLUS_WORK",
-        "project": {
-            "writer_project_id": project.id,
-            "title": project.title,
-            "language": project.language,
-            "writing_mode": project.writing_mode,
-        },
-        "body": {
-            "file": BODY_NAME,
-            "media_type": "text/markdown",
-            "sha256": body_sha,
-            "bytes": len(body),
-        },
-        "next_step": {
-            "processor": "GPT_PLUS_WORK",
-            "return_status": "GAIDEN_BODY_READY",
-            "gaiden_entry_stage": "FRONTMATTER_ASSETS",
-            "skip_stages": ["BLOCK_01"],
-        },
-        "created_at": timezone.now().isoformat(),
-    }
-    _atomic_write(body_path, body)
-    _atomic_write(
-        manifest_path,
-        (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    manifest = _manifest(
+        project, body_sha, len(body), created_at=timezone.now().isoformat()
     )
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(
+        tempfile.mkdtemp(dir=destination.parent, prefix=".handoff-package-")
+    )
+    try:
+        _atomic_write(staging / BODY_NAME, body)
+        _atomic_write(
+            staging / MANIFEST_NAME,
+            (
+                json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True)
+                + "\n"
+            ).encode("utf-8"),
+        )
+        os.rename(staging, destination)
+    except BaseException:
+        for name in (BODY_NAME, MANIFEST_NAME):
+            (staging / name).unlink(missing_ok=True)
+        try:
+            staging.rmdir()
+        except FileNotFoundError:
+            pass
+        raise
     return destination

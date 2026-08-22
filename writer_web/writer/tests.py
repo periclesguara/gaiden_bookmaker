@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -599,6 +600,20 @@ class WriterViewTests(TestCase):
             self.assertEqual(response.status_code, 200)
         self.assertEqual((StoryProject.objects.count(), Chapter.objects.count()), before)
 
+    def test_project_detail_renders_handoff_form_in_the_document_body(self):
+        response = self.client.get(
+            reverse("writer:project_detail", args=[self.project.id])
+        )
+        document = BeautifulSoup(response.content, "html.parser")
+        handoff_form = document.body.find(
+            "form",
+            action=reverse("writer:export_handoff", args=[self.project.id]),
+        )
+        self.assertIsNotNone(handoff_form)
+        self.assertEqual(
+            document.title.get_text(strip=True), f"{self.project.title} · RinoBooks"
+        )
+
     def test_normalize_and_generate_actions_require_post(self):
         document = SourceDocument.objects.create(filename="x.txt", source_path="/missing/x.txt")
         chapter = self.project.chapters.first()
@@ -623,6 +638,29 @@ class WriterViewTests(TestCase):
             ).status_code,
             405,
         )
+        self.assertEqual(
+            self.client.get(
+                reverse("writer:export_handoff", args=[self.project.id])
+            ).status_code,
+            405,
+        )
+
+    @patch("writer.views.export_project_handoff")
+    def test_handoff_action_is_staff_only_and_calls_only_the_export_service(
+        self, export_handoff
+    ):
+        export_handoff.return_value = Path("/external/writer-handoff/project-000001/outbound")
+        url = reverse("writer:export_handoff", args=[self.project.id])
+
+        anonymous = Client().post(url)
+        self.assertEqual(anonymous.status_code, 302)
+        export_handoff.assert_not_called()
+
+        response = self.client.post(url)
+        self.assertRedirects(
+            response, reverse("writer:project_detail", args=[self.project.id])
+        )
+        export_handoff.assert_called_once_with(self.project)
 
     @patch("writer.views.generate_supporting_characters_bible")
     def test_supporting_cast_action_calls_ai_service(self, generate_bible):
@@ -667,6 +705,12 @@ class WriterViewTests(TestCase):
             client.post(
                 reverse("writer:update_supporting_characters", args=[self.project.id]),
                 {"instruction": "Add a properly described supporting character."},
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            client.post(
+                reverse("writer:export_handoff", args=[self.project.id])
             ).status_code,
             403,
         )

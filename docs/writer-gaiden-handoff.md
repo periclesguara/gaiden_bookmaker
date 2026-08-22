@@ -18,9 +18,11 @@ A staff-only POST in Writer creates, under `WRITER_HANDOFF_ROOT`:
   body byte count and SHA-256.
 
 The action is idempotent for identical content and fails closed if a previous
-package contains different bytes or an inconsistent manifest. The configured
-root may be an rclone mount or another directory synchronized with Google Drive.
-Ordinary tests never contact Drive or a model.
+package contains different bytes or an inconsistent manifest. Both files are
+completed in a private staging directory and the package directory is then
+published atomically. The configured root may be an rclone mount or another
+directory synchronized with Google Drive. Ordinary tests never contact Drive
+or a model.
 
 Outbound status is `AWAITING_GPT_PLUS_WORK`.
 
