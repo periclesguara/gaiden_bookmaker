@@ -1,11 +1,13 @@
-# Gaiden Writer: Qwen3.5 and Sherlock RAG
+# Writer: Qwen3.5 and Sherlock RAG
 
-## Status and phase boundary
+## Current boundary
 
-Phase 1 provides local model services, complete corpus indexing, retrieval, and
-chapter-draft generation. It deliberately adds no Django form, database field,
-or canonical-promotion action. Those belong to phase 2 after an operator
-acceptance run.
+The standalone Writer combines local model services, complete corpus indexing,
+retrieval, chapter-draft generation, and a separate Django operator portal.
+Writer records projects, sources, generation sessions, reviews, and explicit
+chapter finalization, but it has no canonical-promotion action inside Gaiden.
+Its only downstream boundary is the file handoff described in
+`docs/writer-gaiden-handoff.md`.
 
 The current main branch does not contain unpublished Sherlock manuscripts. Git
 is not their storage layer. The complete corpus must therefore be supplied from
@@ -14,13 +16,17 @@ discovered text source produces no chunk.
 
 ## Architecture
 
+The engine is physically separate from `gaiden/`. It serves only the Writer application and local Qwen endpoints; it contains no OpenAI cloud translation workflow.
+
+
 - Qwen3.5-9B creates chapter drafts.
 - Qwen3-Embedding-0.6B creates multilingual retrieval vectors.
 - Separate OpenAI-compatible loopback endpoints serve generation and embeddings.
-- Gaiden writes an atomic JSONL vector index under external storage. Phase 2 may
-  move the same contract to PostgreSQL/pgvector after retrieval is accepted.
-- Every output remains DRAFT and receives an audit sidecar with the model,
-  retrieved chunk IDs, and scores.
+- Writer writes an atomic JSONL vector index under external storage. A future
+  focused change may move the same retrieval contract to PostgreSQL/pgvector.
+- CLI outputs remain DRAFT and receive an audit sidecar. The portal records the
+  model, retrieved chunk IDs, scores, and language contract for each session;
+  chapters become FINAL only after explicit editorial confirmation.
 
 Qwen3.5 is not used as an embedding model. Generation and semantic retrieval
 are separate workloads and remain independently replaceable.
@@ -48,9 +54,9 @@ Use an isolated model-serving environment. Resolve and review the immutable
 40-character revisions shown by the official Hugging Face repositories, then:
 
 ```bash
-export GAIDEN_MODEL_ROOT=/srv/gaiden/models
-export GAIDEN_QWEN_REVISION=<approved-40-character-model-commit>
-export GAIDEN_EMBEDDING_REVISION=<approved-40-character-model-commit>
+export WRITER_MODEL_ROOT=/srv/gaiden/models
+export WRITER_QWEN_REVISION=<approved-40-character-model-commit>
+export WRITER_EMBEDDING_REVISION=<approved-40-character-model-commit>
 bash scripts/writer/download_qwen_models.sh
 ```
 
@@ -83,11 +89,11 @@ Markdown or text. Frontmatter, covers, generated translations, and EPUBs do not
 belong in the index.
 
 ```bash
-export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_EMBEDDING_API_KEY=placeholder
-export GAIDEN_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
+export WRITER_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
+export WRITER_EMBEDDING_API_KEY=placeholder
+export WRITER_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
 
-python -m gaiden.writer_engine index \
+python -m writer_engine index \
   --source-root /srv/gaiden/corpora/sherlock-canon \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl
 ```
@@ -97,7 +103,7 @@ Compare its source count with the corpus manifest. A rebuild atomically replaces
 the complete index and never appends a partial mixture.
 
 ```bash
-python -m gaiden.writer_engine query \
+python -m writer_engine query \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl \
   --query "Watson observes an apparently impossible locked room" \
   --top-k 8
@@ -169,12 +175,12 @@ Create a request outside Git:
 Run:
 
 ```bash
-export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8000/v1
-export GAIDEN_QWEN_API_KEY=placeholder
-export GAIDEN_QWEN_MODEL=Qwen/Qwen3.5-9B
-export GAIDEN_QWEN_THINKING=0
+export WRITER_QWEN_BASE_URL=http://127.0.0.1:8000/v1
+export WRITER_QWEN_API_KEY=placeholder
+export WRITER_QWEN_MODEL=Qwen/Qwen3.5-9B
+export WRITER_QWEN_THINKING=0
 
-python -m gaiden.writer_engine chapter \
+python -m writer_engine chapter \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl \
   --request /srv/gaiden/writer/requests/chapter-01.json \
   --output /srv/gaiden/writer/drafts/chapter-01.md
@@ -184,9 +190,9 @@ The command refuses to overwrite an existing draft or audit sidecar, requires a
 JSON language contract whose target language matches `language`, and rejects an
 exact 14-word sequence copied from retrieved material.
 
-## Acceptance gate before phase 2
+## Operational acceptance gate
 
-Do not create UI fields until all items pass:
+Do not authorize production generation until all items pass:
 
 1. corpus manifest and index source counts match;
 2. retrieval tests cover character, chronology, location, clue, and tone;
@@ -197,5 +203,5 @@ Do not create UI fields until all items pass:
 7. recovery is proven by deleting the derived index and rebuilding from the
    untouched corpus.
 
-After that gate, phase 2 may add Django fields, immutable draft versions, review,
-approval, and explicit promotion.
+Passing this gate does not authorize a Gaiden importer, automatic publication,
+or any cloud-model call.

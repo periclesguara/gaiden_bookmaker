@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from gaiden.writer_engine.engine import GenerationResult, NonfictionRequest
+from writer_engine.engine import GenerationResult, NonfictionRequest
 from writer.forms import ChapterForm, StoryProjectForm
 from writer.models import Chapter, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter

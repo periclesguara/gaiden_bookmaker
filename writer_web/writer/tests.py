@@ -6,11 +6,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from gaiden.writer_engine.engine import GenerationResult
+from writer_engine.engine import GenerationResult
 from writer.forms import StoryProjectForm
 from writer.language_contract import (
     apply_deterministic_rules,
@@ -61,7 +62,7 @@ class NormalizationTests(TestCase):
             source.write_text("CHAPTER I\n\n" + ("Body text. " * 100), encoding="utf-8")
             document = SourceDocument.objects.create(filename=source.name, source_path=str(source))
             storage = Path(temporary) / "writer-storage"
-            with patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": str(storage)}):
+            with patch.dict(os.environ, {"WRITER_STORAGE_ROOT": str(storage)}):
                 normalize_document(document)
             document.refresh_from_db()
             self.assertEqual(document.status, SourceDocument.Status.NORMALIZED)
@@ -88,7 +89,7 @@ class LanguageContractTests(TestCase):
         pt_br = language_contract_for("pt-BR")
         self.assertTrue(en_us["style"]["american_english_only"])
         self.assertEqual(en_gb["target_variant"], "Contemporary British English")
-        self.assertEqual(pt_br["operation"], "translate_and_modernize")
+        self.assertEqual(pt_br["operation"], "original")
         self.assertEqual(pt_br["target_language"], "pt-BR")
 
     def test_project_form_loads_contract_from_language_selector(self):
@@ -112,7 +113,7 @@ class LanguageContractTests(TestCase):
             project.supporting_characters_bible, "Inspector and witnesses"
         )
         self.assertEqual(project.language_contract["target_language"], "pt-BR")
-        self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
+        self.assertEqual(project.language_contract["operation"], "original")
 
     def test_language_selector_is_immutable_after_first_session(self):
         project = StoryProject.objects.create(title="Started book", chapter_count=1)
@@ -231,7 +232,7 @@ class SourceDiscoveryTests(TestCase):
             root = Path(temporary)
             (root / "sherlock.md").write_text("text", encoding="utf-8")
             (root / "cover.jpg").write_bytes(b"not indexed")
-            with patch.dict(os.environ, {"GAIDEN_WRITER_SOURCE_ROOT": str(root)}):
+            with patch.dict(os.environ, {"WRITER_SOURCE_ROOT": str(root)}):
                 self.assertEqual(discover_source_documents(), 1)
                 self.assertEqual(discover_source_documents(), 0)
             self.assertEqual(SourceDocument.objects.get().filename, "sherlock.md")
@@ -599,6 +600,20 @@ class WriterViewTests(TestCase):
             self.assertEqual(response.status_code, 200)
         self.assertEqual((StoryProject.objects.count(), Chapter.objects.count()), before)
 
+    def test_project_detail_renders_handoff_form_in_the_document_body(self):
+        response = self.client.get(
+            reverse("writer:project_detail", args=[self.project.id])
+        )
+        document = BeautifulSoup(response.content, "html.parser")
+        handoff_form = document.body.find(
+            "form",
+            action=reverse("writer:export_handoff", args=[self.project.id]),
+        )
+        self.assertIsNotNone(handoff_form)
+        self.assertEqual(
+            document.title.get_text(strip=True), f"{self.project.title} · RinoBooks"
+        )
+
     def test_normalize_and_generate_actions_require_post(self):
         document = SourceDocument.objects.create(filename="x.txt", source_path="/missing/x.txt")
         chapter = self.project.chapters.first()
@@ -623,6 +638,29 @@ class WriterViewTests(TestCase):
             ).status_code,
             405,
         )
+        self.assertEqual(
+            self.client.get(
+                reverse("writer:export_handoff", args=[self.project.id])
+            ).status_code,
+            405,
+        )
+
+    @patch("writer.views.export_project_handoff")
+    def test_handoff_action_is_staff_only_and_calls_only_the_export_service(
+        self, export_handoff
+    ):
+        export_handoff.return_value = Path("/external/writer-handoff/project-000001/outbound")
+        url = reverse("writer:export_handoff", args=[self.project.id])
+
+        anonymous = Client().post(url)
+        self.assertEqual(anonymous.status_code, 302)
+        export_handoff.assert_not_called()
+
+        response = self.client.post(url)
+        self.assertRedirects(
+            response, reverse("writer:project_detail", args=[self.project.id])
+        )
+        export_handoff.assert_called_once_with(self.project)
 
     @patch("writer.views.generate_supporting_characters_bible")
     def test_supporting_cast_action_calls_ai_service(self, generate_bible):
@@ -667,6 +705,12 @@ class WriterViewTests(TestCase):
             client.post(
                 reverse("writer:update_supporting_characters", args=[self.project.id]),
                 {"instruction": "Add a properly described supporting character."},
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            client.post(
+                reverse("writer:export_handoff", args=[self.project.id])
             ).status_code,
             403,
         )

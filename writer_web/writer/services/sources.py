@@ -7,12 +7,12 @@ from writer.models import SourceDocument
 
 
 def source_root() -> Path:
-    configured = os.environ.get("GAIDEN_WRITER_SOURCE_ROOT", "").strip()
+    configured = os.environ.get("WRITER_SOURCE_ROOT", "").strip()
     if not configured:
-        raise ValueError("GAIDEN_WRITER_SOURCE_ROOT is not configured")
+        raise ValueError("WRITER_SOURCE_ROOT is not configured")
     root = Path(configured).expanduser().resolve(strict=True)
     if not root.is_dir():
-        raise ValueError("GAIDEN_WRITER_SOURCE_ROOT is not a directory")
+        raise ValueError("WRITER_SOURCE_ROOT is not a directory")
     return root
 
 

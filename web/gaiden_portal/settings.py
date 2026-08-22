@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "editorial",
     "pipeline",
-    "writer",
 ]
 
 MIDDLEWARE = [
@@ -159,3 +158,7 @@ SECURE_SSL_REDIRECT = (
     os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "0").strip().lower()
     in {"1", "true", "yes", "on"}
 )
+
+
+# Writer is a separate application. Gaiden exposes only an external navigation link.
+WRITER_APP_URL = os.environ.get("WRITER_APP_URL", "http://127.0.0.1:8001/")

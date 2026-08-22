@@ -8,17 +8,17 @@ from pathlib import Path
 
 from django.utils import timezone
 
-from gaiden.writer_engine.clients import OpenAIEmbeddingClient
-from gaiden.writer_engine.index import VectorIndex
+from writer_engine.clients import CompatibleEmbeddingClient
+from writer_engine.index import VectorIndex
 from writer.models import SourceDocument, StoryProject
 from writer.services.normalization import writer_storage_root
 
 
-def embedding_client() -> OpenAIEmbeddingClient:
-    return OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
+def embedding_client() -> CompatibleEmbeddingClient:
+    return CompatibleEmbeddingClient(
+        base_url=os.environ.get("WRITER_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
+        api_key=os.environ.get("WRITER_EMBEDDING_API_KEY", "placeholder"),
+        model=os.environ.get("WRITER_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
     )
 
 
@@ -34,7 +34,7 @@ def vectorize_project(project: StoryProject) -> Path:
         "\n".join(f"{document.id}:{document.normalized_sha256}" for document in documents).encode()
     ).hexdigest()[:20]
     destination = writer_storage_root() / "indexes" / f"project-{project.id}-{identity}.jsonl"
-    with tempfile.TemporaryDirectory(prefix="gaiden-writer-index-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="writer-index-") as temporary:
         staging = Path(temporary)
         for document in documents:
             source = Path(document.normalized_path).resolve(strict=True)

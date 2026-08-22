@@ -76,4 +76,12 @@
     </tbody>
   </table></div>
 </section>
+<section class="card">
+  <h2>7 · Exportar miolo para o GPT Plus Work</h2>
+  <p>Disponível somente quando todos os capítulos estiverem finalizados. O Writer cria <code>body.md</code> e <code>WRITER.HANDOFF.json</code> na pasta sincronizada com o Google Drive. Nenhum texto é enviado à OpenAI pelo Writer.</p>
+  <form method="post" action="{% url 'writer:export_handoff' project.id %}">
+    {% csrf_token %}<button class="green" type="submit">Mesclar e preparar handoff</button>
+  </form>
+  <p class="muted">Depois da revisão no GPT Plus Work, o retorno entra no Gaiden Bookmaker como <strong>GAIDEN_BODY_READY</strong>, pulando o Bloco 01.</p>
+</section>
 {% endblock %}

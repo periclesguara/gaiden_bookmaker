@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from django.test import SimpleTestCase
 
-from gaiden.writer_engine.corpus import SourceChunk
-from gaiden.writer_engine.engine import NonfictionRequest, WriterEngine
-from gaiden.writer_engine.index import VectorIndex
-from gaiden.writer_engine.language_contract import default_language_contract
+from writer_engine.corpus import SourceChunk
+from writer_engine.engine import NonfictionRequest, WriterEngine
+from writer_engine.index import VectorIndex
+from writer_engine.language_contract import default_language_contract
 
 
 class FakeEmbedder:

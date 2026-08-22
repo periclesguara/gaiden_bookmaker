@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "source_language": "en-GB",
+  "source_language": "pt-BR",
   "target_language": "pt-BR",
   "target_variant": "Português brasileiro contemporâneo",
-  "operation": "translate_and_modernize",
+  "operation": "original",
   "preserve": ["semantic_meaning", "proper_names", "characters", "plot_facts", "chronology", "causal_logic", "point_of_view", "dialogue_intent"],
   "reference_policy": {"semantic_content_only": true, "preserve_source_wording": false, "imitate_source_style": false, "preserve_victorianism": false},
   "deleted_terms": [],

@@ -58,6 +58,7 @@ def pipeline_dashboard(request):
                 for pipeline in pipelines
                 if pipeline.current_stage == PipelineStage.DONE
             ],
+            "writer_app_url": settings.WRITER_APP_URL,
         },
     )
 

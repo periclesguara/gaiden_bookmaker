@@ -13,8 +13,8 @@ editorial metadata, image assets, and validated digital book builds.
 - Canonical editorial artifacts live in the configured external storage, not in
   repository history.
 
-The application has a reusable editorial core in `gaiden/` and a Django
-operator interface in `web/`. See `docs/architecture.md` for ownership and
+Gaiden Bookmaker runs from `web/`. The physically separate Writer runs from
+`writer_web/` and uses the top-level `writer_engine/` package. See `docs/architecture.md` for ownership and
 runtime-data boundaries. See `docs/repository-governance.md` before
 retargeting or merging a branch.
 
@@ -56,6 +56,9 @@ python3 scripts/ci/scan_tracked_secrets.py
 python web/manage.py check
 python web/manage.py makemigrations --check --dry-run
 python web/manage.py test editorial pipeline
+python writer_web/manage.py check
+python writer_web/manage.py makemigrations --check --dry-run
+python writer_web/manage.py test writer
 ```
 
 The GitHub Actions application workflow additionally provisions PostgreSQL 16
@@ -70,8 +73,8 @@ and approved recovery sequence are documented in
 
 ## Documentation
 
-- `docs/architecture.md`: active modules, compatibility boundary, runtime data,
-  and quality gates.
+- `docs/architecture.md`: physical Writer/Gaiden boundary and quality gates.
+- `docs/writer-gaiden-handoff.md`: Drive/GPT Plus Work body handoff contract.
 - `docs/repository-governance.md`: branch, pull request, and artifact policy.
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
 - `docs/audits/main-migration-reconciliation.md`: recovered migration

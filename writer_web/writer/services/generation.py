@@ -4,9 +4,9 @@ import os
 
 from django.db import transaction
 
-from gaiden.writer_engine.clients import OpenAIEmbeddingClient, QwenGenerator
-from gaiden.writer_engine.engine import ChapterRequest, NonfictionRequest, WriterEngine
-from gaiden.writer_engine.index import VectorIndex
+from writer_engine.clients import CompatibleEmbeddingClient, QwenGenerator
+from writer_engine.engine import ChapterRequest, NonfictionRequest, WriterEngine
+from writer_engine.index import VectorIndex
 from writer.language_contract import contract_sha256, validate_language_contract
 from writer.models import Chapter, ChapterSession, StoryProject
 from writer.services.supporting_characters import (
@@ -18,16 +18,16 @@ from writer.services.supporting_characters import (
 def _engine(chapter: Chapter) -> WriterEngine:
     if not chapter.project.vector_index_path:
         raise ValueError("vectorize the selected project sources before generation")
-    embedder = OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
+    embedder = CompatibleEmbeddingClient(
+        base_url=os.environ.get("WRITER_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
+        api_key=os.environ.get("WRITER_EMBEDDING_API_KEY", "placeholder"),
+        model=os.environ.get("WRITER_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
     )
     generator = QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
+        base_url=os.environ.get("WRITER_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
+        api_key=os.environ.get("WRITER_QWEN_API_KEY", "placeholder"),
+        model=os.environ.get("WRITER_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
+        thinking=os.environ.get("WRITER_QWEN_THINKING", "0").casefold()
         in {"1", "true", "yes", "on"},
     )
     index = VectorIndex.load(chapter.project.vector_index_path)

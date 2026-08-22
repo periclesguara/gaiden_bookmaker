@@ -1,8 +1,8 @@
-# Writer deployment and file-treatment workflow
+# Independent Writer deployment and file-treatment workflow
 
 ## Scope
 
-This is the phase-2 operator workflow layered on the local Qwen/RAG engine.
+This is the independent Writer workflow layered on the local Qwen/RAG engine. It does not replicate Gaiden Bookmaker's manual process.
 It adds Django records and controls for source selection, normalization,
 vectorization, Fiction story bibles, a Nonfiction chapter-development mode, a versioned
 JSON language contract, chapter planning, generation sessions, source-validated citations,
@@ -17,18 +17,18 @@ Django staff user; anonymous operators are redirected to the admin login.
 Before deployment:
 
 1. back up PostgreSQL and record the current application commit;
-2. confirm that `GAIDEN_WRITER_SOURCE_ROOT` points to the read-only corpus
-   directory and `GAIDEN_WRITER_STORAGE_ROOT` points to writable external
+2. confirm that `WRITER_SOURCE_ROOT` points to the read-only corpus
+   directory and `WRITER_STORAGE_ROOT` points to writable external
    storage;
 3. verify ownership and permissions without making the source corpus writable
    to the web process;
 4. verify the separate loopback Qwen generation and embedding services;
-5. review `python web/manage.py migrate --plan`;
+5. review `python writer_web/manage.py migrate --plan`;
 6. apply Writer migrations through
-   `writer.0004_supporting_cast_revisions`;
-7. run `python web/manage.py check` and the protected test suite;
-8. open `/writer/`, but do not trigger paid or GPU work during deployment
-   smoke tests.
+   `writer.0005_nonfiction_mode`;
+7. run `python writer_web/manage.py check` and the protected Writer test suite;
+8. open the Writer root URL (for example `http://127.0.0.1:8001/`), but do
+   not trigger GPU work during deployment smoke tests.
 
 The Writer migrations create the cast-revision table, add nullable/defaulted cast-audit
 fields to chapter sessions, add the defaulted project writing mode, and add the optional per-chapter source-guidance field, and add the non-destructive
@@ -90,7 +90,7 @@ The project form exposes one language selector inside the Writer flow:
 
 - `EN-US`: contemporary American English creation;
 - `EN-UK` (stored as `en-GB`): contemporary British English creation;
-- `PT-BR`: Brazilian Portuguese translation and modernization.
+- `PT-BR`: original creation in contemporary Brazilian Portuguese.
 
 The Writer loads the matching contract automatically; operators do not edit the
 contract JSON in the form. The selected language and the contract's
@@ -114,7 +114,7 @@ The versioned presets are:
 
 - `docs/examples/language-contract.en-us-original.json`;
 - `docs/examples/language-contract.en-gb-original.json`;
-- `docs/examples/language-contract.pt-br-translation.json`.
+- `docs/examples/language-contract.pt-br-original.json`.
 
 Unknown keys, missing keys, duplicate terms, conflicting delete and replacement
 rules, and invalid ranges block saving. The contract's `target_language` is
@@ -261,3 +261,13 @@ with idempotency keys, progress reporting, cancellation, and worker limits.
 
 Do not expose local model endpoints publicly. Do not put complete manuscripts
 or prompt contents in application logs.
+
+
+## Physical handoff boundary
+
+After all chapters are FINAL, Writer may merge and export the body to
+`WRITER_HANDOFF_ROOT`. The package then leaves Writer for Google Drive and GPT
+Plus Work. Writer does not import the revised text back, does not call OpenAI
+cloud, and does not run Gaiden blocks. The verified return is consumed by
+Gaiden Bookmaker at FRONTMATTER_ASSETS with BLOCK_01 skipped. See
+`docs/writer-gaiden-handoff.md`.

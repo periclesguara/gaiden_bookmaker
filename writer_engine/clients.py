@@ -33,7 +33,7 @@ def _validate_endpoint(base_url: str, api_key: str) -> None:
 
 
 @dataclass
-class OpenAIEmbeddingClient:
+class CompatibleEmbeddingClient:
     base_url: str
     api_key: str = "EMPTY"
     model: str = "Qwen/Qwen3-Embedding-0.6B"

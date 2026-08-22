@@ -111,13 +111,10 @@ def normalize_text(raw: str) -> NormalizedText:
 
 
 def writer_storage_root() -> Path:
-    configured = os.environ.get("GAIDEN_WRITER_STORAGE_ROOT", "").strip()
+    configured = os.environ.get("WRITER_STORAGE_ROOT", "").strip()
     if configured:
         return Path(configured).expanduser().resolve()
-    storage = os.environ.get("GAIDEN_STORAGE_ROOT", "").strip()
-    if storage:
-        return (Path(storage).expanduser().resolve() / "writer")
-    return (Path(settings.BASE_DIR).parent / "data" / "writer").resolve()
+    return (Path(settings.BASE_DIR).parent / "runtime").resolve()
 
 
 def normalize_document(document: SourceDocument) -> SourceDocument:
