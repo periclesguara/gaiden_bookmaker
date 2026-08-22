@@ -61,7 +61,7 @@ class NormalizationTests(TestCase):
             source.write_text("CHAPTER I\n\n" + ("Body text. " * 100), encoding="utf-8")
             document = SourceDocument.objects.create(filename=source.name, source_path=str(source))
             storage = Path(temporary) / "writer-storage"
-            with patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": str(storage)}):
+            with patch.dict(os.environ, {"WRITER_STORAGE_ROOT": str(storage)}):
                 normalize_document(document)
             document.refresh_from_db()
             self.assertEqual(document.status, SourceDocument.Status.NORMALIZED)
@@ -231,7 +231,7 @@ class SourceDiscoveryTests(TestCase):
             root = Path(temporary)
             (root / "sherlock.md").write_text("text", encoding="utf-8")
             (root / "cover.jpg").write_bytes(b"not indexed")
-            with patch.dict(os.environ, {"GAIDEN_WRITER_SOURCE_ROOT": str(root)}):
+            with patch.dict(os.environ, {"WRITER_SOURCE_ROOT": str(root)}):
                 self.assertEqual(discover_source_documents(), 1)
                 self.assertEqual(discover_source_documents(), 0)
             self.assertEqual(SourceDocument.objects.get().filename, "sherlock.md")
