@@ -2,12 +2,13 @@ from pathlib import Path
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = (
+_writer_secret_key = (
     os.environ.get("WRITER_DJANGO_SECRET_KEY", "").strip()
     or os.environ.get("DJANGO_SECRET_KEY", "").strip()
 )
-if not SECRET_KEY:
+if not _writer_secret_key:
     raise RuntimeError("WRITER_DJANGO_SECRET_KEY or DJANGO_SECRET_KEY is required")
+SECRET_KEY = _writer_secret_key
 
 DEBUG = os.environ.get("WRITER_DJANGO_DEBUG", "0").strip().lower() in {"1", "true", "yes", "on"}
 ALLOWED_HOSTS = [
