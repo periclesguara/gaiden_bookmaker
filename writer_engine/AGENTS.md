@@ -1,10 +1,10 @@
-# Writer engine rules
+# Independent Writer engine rules
 
-These rules apply to `gaiden/writer_engine/` and its tests.
+These rules apply to `writer_engine/` and its tests.
 
 ## Boundaries
 
-- The Writer creates versioned drafts. It never promotes a draft to canonical
+- The standalone Writer creates versioned drafts. It never promotes a draft to canonical
   editorial text and never marks an edition as final.
 - Generation, retrieval, persistence, and the future Django interface remain
   separate components.

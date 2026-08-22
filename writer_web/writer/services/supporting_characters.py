@@ -10,8 +10,8 @@ from typing import Any
 
 from django.db import transaction
 
-from gaiden.writer_engine.clients import QwenGenerator
-from gaiden.writer_engine.index import VectorIndex
+from writer_engine.clients import QwenGenerator
+from writer_engine.index import VectorIndex
 from writer.models import StoryProject, SupportingCastRevision
 
 SCHEMA_VERSION = 2
@@ -31,11 +31,11 @@ class CastSnapshot:
 
 def _generator() -> QwenGenerator:
     return QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
+        base_url=os.environ.get("WRITER_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
+        api_key=os.environ.get("WRITER_QWEN_API_KEY", "placeholder"),
+        model=os.environ.get("WRITER_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
         temperature=0.4,
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
+        thinking=os.environ.get("WRITER_QWEN_THINKING", "0").casefold()
         in {"1", "true", "yes", "on"},
     )
 

@@ -26,4 +26,4 @@ audit = [
 ]
 
 [tool.setuptools]
-packages = ["gaiden", "gaiden.writer_engine"]
+packages = ["gaiden", "writer_engine"]

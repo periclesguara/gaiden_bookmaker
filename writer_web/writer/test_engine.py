@@ -6,10 +6,10 @@ from tempfile import TemporaryDirectory
 
 from django.test import SimpleTestCase
 
-from gaiden.writer_engine.corpus import load_corpus
-from gaiden.writer_engine.engine import ChapterRequest, WriterEngine, reject_long_exact_overlap
-from gaiden.writer_engine.index import VectorIndex
-from gaiden.writer_engine.language_contract import default_language_contract
+from writer_engine.corpus import load_corpus
+from writer_engine.engine import ChapterRequest, WriterEngine, reject_long_exact_overlap
+from writer_engine.index import VectorIndex
+from writer_engine.language_contract import default_language_contract
 
 
 class FakeEmbedder:
@@ -79,7 +79,7 @@ class WriterCorpusTests(SimpleTestCase):
 
 class WriterEngineTests(SimpleTestCase):
     def _engine(self, source_text, generated_text="An entirely original chapter draft."):
-        from gaiden.writer_engine.corpus import SourceChunk
+        from writer_engine.corpus import SourceChunk
 
         chunk = SourceChunk(
             chunk_id="chunk-1", source_path="canon/story.txt", source_sha256="a" * 64,

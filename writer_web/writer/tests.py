@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from gaiden.writer_engine.engine import GenerationResult
+from writer_engine.engine import GenerationResult
 from writer.forms import StoryProjectForm
 from writer.language_contract import (
     apply_deterministic_rules,
@@ -88,7 +88,7 @@ class LanguageContractTests(TestCase):
         pt_br = language_contract_for("pt-BR")
         self.assertTrue(en_us["style"]["american_english_only"])
         self.assertEqual(en_gb["target_variant"], "Contemporary British English")
-        self.assertEqual(pt_br["operation"], "translate_and_modernize")
+        self.assertEqual(pt_br["operation"], "original")
         self.assertEqual(pt_br["target_language"], "pt-BR")
 
     def test_project_form_loads_contract_from_language_selector(self):
@@ -112,7 +112,7 @@ class LanguageContractTests(TestCase):
             project.supporting_characters_bible, "Inspector and witnesses"
         )
         self.assertEqual(project.language_contract["target_language"], "pt-BR")
-        self.assertEqual(project.language_contract["operation"], "translate_and_modernize")
+        self.assertEqual(project.language_contract["operation"], "original")
 
     def test_language_selector_is_immutable_after_first_session(self):
         project = StoryProject.objects.create(title="Started book", chapter_count=1)

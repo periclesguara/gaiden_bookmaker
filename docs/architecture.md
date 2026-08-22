@@ -1,101 +1,55 @@
-# Gaiden architecture
+# Gaiden Bookmaker and Writer architecture
 
-## Active application
+## Physical applications
 
-Gaiden has two deliberate layers:
+The repository contains two independently runnable applications:
 
-- `gaiden/` contains reusable editorial processing code and command-line tools;
-- `web/` contains the Django operator application.
+- `web/`: Gaiden Bookmaker, which owns canonical editorial identity, Intake,
+  frontmatter, images, EPUB/PDF assembly and publication artifacts;
+- `writer_web/`: Writer, which owns Qwen/RAG drafting, bibles, language
+  contracts, chapters, immutable sessions and the outbound body handoff.
 
-The Django project is `web/gaiden_portal` and installs two first-party apps:
+The reusable local-Qwen engine lives at top-level `writer_engine/`. It is not
+inside `gaiden/`, and Gaiden must not import it. The Gaiden Django project does
+not install the `writer` app and exposes only the configurable
+`WRITER_APP_URL` navigation link.
 
-- `editorial`: canonical works, editions, contributors, metadata, frontmatter,
-  and editorial artifacts;
-- `pipeline`: jobs, runs, source selection, build paths, and operator flows.
+The Writer retains Django app label `writer` and its existing migration names,
+so moving the source does not rename tables or destroy operator data. The
+Writer portal can initially use the existing PostgreSQL database; `WRITER_PG*`
+allows a later database split through a separately reviewed migration runbook.
 
-Reusable business logic belongs in service modules. Views should coordinate
-HTTP input and output rather than implement filesystem or editorial rules.
+## Shared immutable sources
 
-### Modular operator navigation
+Canonical raw originals and normalized bodies remain external artifacts.
+PostgreSQL records identity, paths/URIs and SHA-256 values. Writer reads approved
+normalized bodies and creates only derived indexes and drafts. It may use an
+ephemeral staging copy while vectorizing, but it must not create another
+canonical library or modify the source.
 
-The default-branch dashboard is the single operator entrypoint and separates
-navigation into Writer, Intake, Bookmaker Manual/AI, and finalized-project
-areas. These links target the current default-branch routes: the modern Writer,
-the canonical edition list, pipeline jobs, and the read-only DONE projection on
-the dashboard. Loading the dashboard is read-only and never starts Writer,
-Qwen, embedding, RAG, or pipeline work.
+## Workflow boundary
 
-The former `refactor/module-boundaries-writer-manual-intake-v1` branch and
-`ac9e69c6` were historical UI references only. They are not an integration
-base, and their retired applications, models, migrations, routes, and Writer
-implementation are not part of the active architecture.
+1. Writer: Qwen + RAG + bibles + contracts create chapter text.
+2. Writer: finalized chapters merge into `body.md`.
+3. Writer: `body.md` and `WRITER.HANDOFF.json` are written to the configured
+   Google Drive-mounted handoff root with status `AWAITING_GPT_PLUS_WORK`.
+4. GPT Plus Work performs the manual editorial revision outside Writer.
+5. The returned package must declare `GAIDEN_BODY_READY`.
+6. Gaiden Bookmaker imports the verified body after checking SHA-256, skips
+   Block 01, and starts at frontmatter/assets before EPUB/PDF assembly.
 
-### Writer engine phase 1
-
-`gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
-It owns deterministic corpus discovery and chunking, atomic vector-index
-serialization, retrieval, prompt boundaries, Qwen client coordination, and
-originality checks. It does not own canonical promotion or final builds.
-
-Generation and embeddings use separate configurable OpenAI-compatible local
-services. Qwen3.5-9B is the default generation model and
-Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
-weights, indexes, requests, drafts, and audit sidecars remain external runtime
-artifacts. The reusable engine remains independent of Django. The staff-only `writer`
-application adds source manifests, story projects, Fiction creative bibles,
-Nonfiction operator text and per-chapter source guidance, chapter parameters,
-immutable generation sessions, and explicit editorial finalization. Nonfiction
-generation preserves the operator thesis, accepts citations only for retrieved
-chunk IDs, and renders those IDs as auditable source notes. Supporting-cast
-continuity is versioned for Fiction: RAG-assisted updates create immutable
-revision records, while each generation session stores the exact cast snapshot
-and hash that governed its output. Its external file-treatment and deployment
-contract is defined in
-`docs/writer-workflow.md`.
+Writer contains no manual OpenAI translation route and never sends a manuscript
+to OpenAI cloud. The `openai` Python SDK is used only as a transport client for
+the configured local OpenAI-compatible Qwen generation and embedding endpoints.
 
 ## Runtime data boundary
 
-Git is the source-of-truth for code, migrations, tests, small fixtures,
-configuration templates, and documentation. It is not the canonical store for:
-
-- manuscripts or chunks;
-- generated EPUB, PDF, Markdown, images, or covers;
-- databases, backups, logs, credentials, or operator exports.
-
-Runtime artifacts belong under the configured external storage. Paths under
-`data/` are compatibility locations and must remain ignored unless a small,
-reviewed fixture is intentionally added under a dedicated fixture directory.
-
-## Compatibility inventory
-
-The following names indicate compatibility code, not automatic deletion
-candidates:
-
-- modules suffixed `_2025.py`;
-- `setup_translate_2025.sh`;
-- book-specific build and normalization scripts;
-- `web/gaiden_portal/settings_sqlite.py`.
-
-Before removal, each item must have its callers searched, its replacement
-identified, and a rollback commit recorded. New production paths must not add
-dependencies on these compatibility modules.
+Git stores source, migrations, tests, schemas and documentation. It never stores
+manuscripts, bodies, indexes, drafts, handoff packages, EPUB/PDF files, model
+weights, credentials, databases or operator exports.
 
 ## Quality gates
 
-Every pull request must pass:
-
-1. repository hygiene and current-tree secret scanning;
-2. Python and shell syntax checks;
-3. PostgreSQL 16 plus pgvector clean migration;
-4. migration drift and pending-migration checks;
-5. at least the protected Django test baseline;
-6. dependency vulnerability auditing.
-
-The minimum test count is a regression guard, not a coverage target. New or
-changed behavior must add direct tests.
-
-## Change boundaries
-
-Migration repair, runtime-data cleanup, compatibility-code retirement, and
-feature integration are separate review units. Persistent data is never
-deleted merely to make model state match source code.
+Both Django projects must pass checks, migration drift, clean PostgreSQL 16 plus
+pgvector migration, protected tests, syntax compilation, dependency audit,
+repository hygiene and secret scanning.

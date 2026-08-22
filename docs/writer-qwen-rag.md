@@ -14,6 +14,9 @@ discovered text source produces no chunk.
 
 ## Architecture
 
+The engine is physically separate from `gaiden/`. It serves only the Writer application and local Qwen endpoints; it contains no OpenAI cloud translation workflow.
+
+
 - Qwen3.5-9B creates chapter drafts.
 - Qwen3-Embedding-0.6B creates multilingual retrieval vectors.
 - Separate OpenAI-compatible loopback endpoints serve generation and embeddings.
@@ -48,9 +51,9 @@ Use an isolated model-serving environment. Resolve and review the immutable
 40-character revisions shown by the official Hugging Face repositories, then:
 
 ```bash
-export GAIDEN_MODEL_ROOT=/srv/gaiden/models
-export GAIDEN_QWEN_REVISION=<approved-40-character-model-commit>
-export GAIDEN_EMBEDDING_REVISION=<approved-40-character-model-commit>
+export WRITER_MODEL_ROOT=/srv/gaiden/models
+export WRITER_QWEN_REVISION=<approved-40-character-model-commit>
+export WRITER_EMBEDDING_REVISION=<approved-40-character-model-commit>
 bash scripts/writer/download_qwen_models.sh
 ```
 
@@ -83,11 +86,11 @@ Markdown or text. Frontmatter, covers, generated translations, and EPUBs do not
 belong in the index.
 
 ```bash
-export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_EMBEDDING_API_KEY=placeholder
-export GAIDEN_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
+export WRITER_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
+export WRITER_EMBEDDING_API_KEY=placeholder
+export WRITER_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
 
-python -m gaiden.writer_engine index \
+python -m writer_engine index \
   --source-root /srv/gaiden/corpora/sherlock-canon \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl
 ```
@@ -97,7 +100,7 @@ Compare its source count with the corpus manifest. A rebuild atomically replaces
 the complete index and never appends a partial mixture.
 
 ```bash
-python -m gaiden.writer_engine query \
+python -m writer_engine query \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl \
   --query "Watson observes an apparently impossible locked room" \
   --top-k 8
@@ -169,12 +172,12 @@ Create a request outside Git:
 Run:
 
 ```bash
-export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8000/v1
-export GAIDEN_QWEN_API_KEY=placeholder
-export GAIDEN_QWEN_MODEL=Qwen/Qwen3.5-9B
-export GAIDEN_QWEN_THINKING=0
+export WRITER_QWEN_BASE_URL=http://127.0.0.1:8000/v1
+export WRITER_QWEN_API_KEY=placeholder
+export WRITER_QWEN_MODEL=Qwen/Qwen3.5-9B
+export WRITER_QWEN_THINKING=0
 
-python -m gaiden.writer_engine chapter \
+python -m writer_engine chapter \
   --index /srv/gaiden/writer/indexes/sherlock.jsonl \
   --request /srv/gaiden/writer/requests/chapter-01.json \
   --output /srv/gaiden/writer/drafts/chapter-01.md

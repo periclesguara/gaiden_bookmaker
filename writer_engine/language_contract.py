@@ -89,9 +89,10 @@ def language_contract_for(output_language: str) -> dict[str, Any]:
         contract["target_variant"] = "Contemporary British English"
         contract["style"]["american_english_only"] = False
     elif output_language == "pt-BR":
+        contract["source_language"] = "pt-BR"
         contract["target_language"] = "pt-BR"
         contract["target_variant"] = "Português brasileiro contemporâneo"
-        contract["operation"] = "translate_and_modernize"
+        contract["operation"] = "original"
         contract["style"]["american_english_only"] = False
     return contract
 

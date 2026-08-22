@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{% block title %}Writer{% endblock %} · Gaiden</title>
+  <title>{% block title %}Writer{% endblock %} · RinoBooks</title>
   <style>
     :root{--bg:#f2eee7;--panel:#fffdf9;--ink:#20272a;--muted:#667074;--line:#d8d0c5;--accent:#a84628;--blue:#285f94;--green:#226f54;--red:#a52d2d}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
@@ -21,8 +21,8 @@
   </style>
 </head>
 <body><main class="shell">
-  <header class="top"><div><strong>Gaiden Writer</strong><div class="muted">RAG local · Qwen · aprovação editorial</div></div>
-    <nav><a class="btn secondary" href="{% url 'pipeline_dashboard' %}">← Página inicial</a><a class="btn secondary" href="{% url 'writer:home' %}">Writer</a><a class="btn secondary" href="{% url 'writer:sources' %}">Arquivos</a></nav>
+  <header class="top"><div><strong>RinoBooks Writer</strong><div class="muted">RAG local · Qwen · aprovação editorial</div></div>
+    <nav><a class="btn secondary" href="{{ gaiden_bookmaker_url }}">← Página inicial</a><a class="btn secondary" href="{% url 'writer:home' %}">Writer</a><a class="btn secondary" href="{% url 'writer:sources' %}">Arquivos</a></nav>
   </header>
   <div class="steps"><span class="step">1 · Normalizar</span><span class="step">2 · Vetorizar</span><span class="step">3 · Bíblias</span><span class="step">4 · Roteiro</span><span class="step">5 · Parâmetros</span><span class="step">6 · Gerar</span></div>
   {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}

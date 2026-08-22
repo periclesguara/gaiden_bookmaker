@@ -4,7 +4,7 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 
-from gaiden.writer_engine.language_contract import (
+from writer_engine.language_contract import (
     apply_deterministic_rules,
     canonical_contract_json,
     contract_prompt,

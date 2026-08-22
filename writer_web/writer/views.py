@@ -15,6 +15,7 @@ from writer.forms import (
 )
 from writer.models import Chapter, SourceDocument, StoryProject
 from writer.services.generation import generate_chapter
+from writer.services.handoff import export_project_handoff
 from writer.services.normalization import normalize_document
 from writer.services.projects import synchronize_chapters
 from writer.services.sources import discover_source_documents
@@ -236,3 +237,18 @@ def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
     except Exception as exc:
         messages.error(request, f"Não foi possível finalizar: {exc}")
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@staff_member_required
+@require_POST
+def export_handoff(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    try:
+        destination = export_project_handoff(project)
+        messages.success(
+            request,
+            f"Miolo e manifesto preparados para o GPT Plus Work em {destination}.",
+        )
+    except Exception as exc:
+        messages.error(request, f"Não foi possível preparar o handoff: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
