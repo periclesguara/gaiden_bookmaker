@@ -181,7 +181,7 @@
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'normalize' %}">
           {% csrf_token %}
-          <button class="btn" type="submit">Normalize</button>
+          <button class="btn" type="submit">Normalize com Qwen</button>
         </form>
         <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'split' %}">
           {% csrf_token %}

@@ -660,12 +660,28 @@ def run_edition_step(request, edition_id: int, step: str):
             if not text:
                 raise ValueError("Could not extract text from RAW file.")
 
-            normalized = gaiden_normalize.normalize_text_v2(text)
+            normalized, normalize_report = gaiden_normalize.normalize_text_with_qwen(text)
             data_dir = Path(settings.BASE_DIR).parent / "data" / "normalized"
             data_dir.mkdir(parents=True, exist_ok=True)
             _, core_language = _edition_codes(core_edition)
             out_path = data_dir / f"{book_code}_{core_language}_v2.txt"
-            out_path.write_text(normalized, encoding="utf-8")
+            report_path = data_dir / f"{book_code}_{core_language}_normalize_report.json"
+            preview_path = data_dir / f"{book_code}_{core_language}_normalize_preview.txt"
+            normalize_report.update(
+                {
+                    "book_code": book_code,
+                    "language": core_language,
+                    "raw_path": str(raw_path),
+                    "normalized_path": str(out_path),
+                }
+            )
+            gaiden_normalize.write_normalization_artifacts(
+                output_path=out_path,
+                report_path=report_path,
+                preview_path=preview_path,
+                normalized=normalized,
+                audit=normalize_report,
+            )
 
             texts, _ = EditionText.objects.get_or_create(edition=core_edition)
             texts.raw_text = text
@@ -682,7 +698,12 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.last_log = ""
             pipeline_state.save()
 
-            messages.success(request, f"Normalize OK: {out_path}")
+            sources = ", ".join(normalize_report["source_kinds"]) or "nenhuma origem detectada"
+            messages.success(
+                request,
+                f"Normalize com Qwen OK: {out_path} · "
+                f"{normalize_report['removed_line_count']} linhas removidas · {sources}",
+            )
 
         elif step == "split":
             core_edition = _global_core_edition(edition)
