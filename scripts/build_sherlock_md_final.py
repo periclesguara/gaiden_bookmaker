@@ -104,20 +104,23 @@ def _strip_leading_title(text: str, title: str) -> str:
     return text.strip()
 
 
-def _read_frontmatter(frontmatter_dir: Path) -> tuple[str, str, str]:
-    frontispiece = (frontmatter_dir / "frontispiece.md").read_text(
-        encoding="utf-8"
-    )
+def _read_frontmatter(frontmatter_dir: Path) -> tuple[str, str, str, str]:
+    title_path = frontmatter_dir / "title_page.md"
+    if not title_path.exists():
+        title_path = frontmatter_dir / "frontispiece.md"
+    title_page = title_path.read_text(encoding="utf-8")
     copyright_text = (frontmatter_dir / "copyright.md").read_text(
         encoding="utf-8"
     )
     about = (frontmatter_dir / "about_edition.md").read_text(encoding="utf-8")
+    source_path = frontmatter_dir / "source_record.md"
+    source_record = source_path.read_text(encoding="utf-8") if source_path.exists() else ""
 
-    frontispiece = _strip_leading_title(frontispiece, "Frontispiece")
+    title_page = _strip_leading_title(title_page, "Title Page")
     copyright_text = _strip_leading_title(copyright_text, "Copyright")
     about = _strip_leading_title(about, "About this edition")
 
-    return frontispiece, copyright_text, about
+    return title_page, copyright_text, source_record, about
 
 
 def build() -> None:
@@ -130,12 +133,13 @@ def build() -> None:
     miolo_md = _build_miolo_md(chapters)
     paths.miolo_md.write_text(miolo_md, encoding="utf-8")
 
-    frontispiece, copyright_text, about = _read_frontmatter(
+    title_page, copyright_text, source_record, about = _read_frontmatter(
         paths.frontmatter_dir
     )
     parts = [
-        "# Frontispiece {.frontmatter-title .unlisted}\n\n" + frontispiece,
+        "# Title Page {.frontmatter-title .unlisted}\n\n" + title_page,
         "# Copyright {.frontmatter-title .unlisted}\n\n" + copyright_text,
+        source_record,
         "# About this edition {.frontmatter-title .unlisted}\n\n" + about,
         miolo_md.strip(),
     ]

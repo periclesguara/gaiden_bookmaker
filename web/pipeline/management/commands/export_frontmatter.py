@@ -7,7 +7,7 @@ from editorial.frontmatter import build_frontmatter_files
 
 
 class Command(BaseCommand):
-    help = "Exporta frontispicio/copyright/about* para .md a partir de Edition."
+    help = "Exporta Title Page/copyright/source record/about* a partir de Edition."
 
     def add_arguments(self, parser):
         parser.add_argument(

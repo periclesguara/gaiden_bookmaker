@@ -60,6 +60,7 @@ class Work(models.Model):
         default="TXT",
     )
     notes = models.TextField(blank=True)
+    source_provenance = models.JSONField(blank=True, default=dict)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,

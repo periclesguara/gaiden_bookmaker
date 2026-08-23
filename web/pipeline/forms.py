@@ -58,6 +58,7 @@ class BookEditionTemplateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["frontispiece_text"].label = "Title Page (template)"
 
         if self.instance and self.instance.pk and self.instance.collaborator_roles:
             self.initial["collaborator_roles"] = self.instance.roles_list

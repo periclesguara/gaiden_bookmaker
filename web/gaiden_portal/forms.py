@@ -22,6 +22,7 @@ class EditionForm(forms.ModelForm):
         self.fields["country"].help_text = "Fixo por idioma (manual depois)."
         if not self.initial.get("country"):
             self.initial["country"] = mapped_country
+        self.fields["frontispiece_template"].label = "Title Page (template)"
 
     def clean(self):
         cleaned = super().clean()

@@ -75,6 +75,7 @@ and approved recovery sequence are documented in
 
 - `docs/architecture.md`: physical Writer/Gaiden boundary and quality gates.
 - `docs/intake-qwen-normalize.md`: local-Qwen source-wrapper cleanup, safety gates, audit artifacts, and recovery.
+- `docs/source-provenance-frontmatter.md`: shared source metadata, canonical Title Page, compatibility, migration, and recovery.
 - `docs/writer-gaiden-handoff.md`: Drive/GPT Plus Work body handoff contract.
 - `docs/repository-governance.md`: branch, pull request, and artifact policy.
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.

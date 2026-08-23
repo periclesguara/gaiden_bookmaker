@@ -9,14 +9,15 @@ from editorial.models import Edition as EditorialEdition
 from gaiden_portal.forms import EditionForm
 from gaiden_portal.utils import (
     country_for_language,
-    get_frontispiece_template_for_edition,
+    get_title_page_template_for_edition,
     get_section_template_for_language,
 )
 from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
 from pipeline.services import utils
-from editorial.frontmatter import build_frontmatter_files
+from editorial.frontmatter import build_frontmatter_files, render_source_record
 from editorial import kdp_mode
 from .forms import FrontmatterTemplateForm
+from .provenance_forms import SourceProvenanceForm
 
 
 BOOK_LANGUAGE_DEFAULTS = {
@@ -132,7 +133,10 @@ def _write_frontmatter_files(edition: EditorialEdition) -> None:
 
 def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     out_dir = PROJECT_ROOT / "data" / "frontmatter" / book_code / language
-    return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_edition.md"))
+    return any(
+        (out_dir / name).exists()
+        for name in ("title_page.md", "frontispiece.md", "copyright.md", "about_edition.md")
+    )
 
 
 def frontmatter_template_edit(request, book_code: str, language: str):
@@ -364,8 +368,10 @@ def edition_edit(request, edition_id: int):
 
     if request.method == "POST":
         form = EditionForm(request.POST, instance=edition)
-        if form.is_valid():
+        provenance_form = SourceProvenanceForm(request.POST, work=edition.work)
+        if form.is_valid() and provenance_form.is_valid():
             form.save()
+            provenance_form.save()
             if apply_defaults:
                 edition.refresh_from_db()
                 book_defaults = BOOK_LANGUAGE_DEFAULTS.get(edition.work.code, {}).get(
@@ -384,6 +390,7 @@ def edition_edit(request, edition_id: int):
             return redirect("edition_edit", edition_id=edition.id)
     else:
         form = EditionForm(instance=edition)
+        provenance_form = SourceProvenanceForm(work=edition.work)
         if apply_defaults:
             book_defaults = BOOK_LANGUAGE_DEFAULTS.get(edition.work.code, {}).get(
                 edition.language_code, {}
@@ -401,7 +408,7 @@ def edition_edit(request, edition_id: int):
             form = EditionForm(instance=edition)
 
     country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_template = get_frontispiece_template_for_edition(edition)
+    title_page_template = get_title_page_template_for_edition(edition)
     copyright_template = get_section_template_for_language("copyright", edition.language_code)
     about_template = get_section_template_for_language("about_edition", edition.language_code)
 
@@ -413,10 +420,12 @@ def edition_edit(request, edition_id: int):
     context = {
         "edition": edition,
         "form": form,
-        "frontispiece_preview": render_to_string(
-            frontispiece_template,
+        "title_page_preview": render_to_string(
+            title_page_template,
             {"edition": edition, "country_label": country_label},
         ),
+        "provenance_form": provenance_form,
+        "source_record_preview": render_source_record(edition.work.source_provenance or {}),
         "copyright_preview": render_to_string(
             copyright_template,
             {"edition": edition, "country_label": country_label},
@@ -429,19 +438,25 @@ def edition_edit(request, edition_id: int):
     return render(request, "gaiden/edition_form.html", context)
 
 
-def frontispiece_preview(request, edition_id: int):
+def title_page_preview(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
-    template_name = get_frontispiece_template_for_edition(edition)
+    template_name = get_title_page_template_for_edition(edition)
     country_label = country_for_language(edition.language_code, edition.country)
-    frontispiece_md = render_to_string(
+    title_page_md = render_to_string(
         template_name,
         {"edition": edition, "country_label": country_label},
     )
     return render(
         request,
-        "gaiden/frontispiece_preview.html",
+        "gaiden/title_page_preview.html",
         {
             "edition": edition,
-            "frontispiece_md": frontispiece_md,
+            "title_page_md": title_page_md,
         },
     )
+
+
+def frontispiece_preview(request, edition_id: int):
+    """Compatibility endpoint for bookmarks created before Title Page v1."""
+
+    return title_page_preview(request, edition_id)

@@ -30,6 +30,16 @@ The RAW source is immutable and each accepted cleanup produces a derived text,
 preview, SHA-256 audit report, and explicit removed-line ranges. Details are in
 `docs/intake-qwen-normalize.md`.
 
+### Shared source provenance and frontmatter
+
+An explicit RAW upload deterministically extracts stable EPUB/TXT/Markdown
+metadata into `Work.source_provenance`. The shared record is read by Intake,
+the Manual editor, frontmatter export, and builders, but it never replaces
+edition title, author, translator, or other editorial decisions. The canonical
+frontmatter section is `title_page.md`; `frontispiece.md` is a byte-identical
+legacy alias. Builds place `source_record.md` after copyright and before
+edition notes. See `docs/source-provenance-frontmatter.md`.
+
 ## Shared immutable sources
 
 Canonical raw originals and normalized bodies remain external artifacts.

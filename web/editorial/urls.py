@@ -25,6 +25,11 @@ urlpatterns = [
         name="edition_edit",
     ),
     path(
+        "edition/<int:edition_id>/title-page/",
+        views.title_page_preview,
+        name="title_page_preview",
+    ),
+    path(
         "edition/<int:edition_id>/frontispiece/",
         views.frontispiece_preview,
         name="frontispiece_preview",
