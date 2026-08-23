@@ -28,6 +28,7 @@ class ManifestMdFiles:
 @dataclass
 class ManifestBuildInfo:
     path: Optional[str]
+    title_page_template: Optional[str]
     frontispiece_template: Optional[str]
     copyright_template: Optional[str]
     about_edition_template: Optional[str]
@@ -90,6 +91,7 @@ def build_manifest(
 
     build_info = ManifestBuildInfo(
         path=_safe_path(paths.build_md_path(effective)),
+        title_page_template="title_page.md.j2",
         frontispiece_template="frontispiece.md.j2",
         copyright_template="copyright.md.j2",
         about_edition_template="about_edition.md.j2",

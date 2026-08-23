@@ -62,6 +62,11 @@ the approved local model service.
 From the Intake edition flow, upload the RAW source and select **Normalize com
 Qwen**. The matrix flow uses the same implementation:
 
+The explicit RAW upload also extracts stable source provenance into the shared
+`Work` record. This deterministic extraction runs before normalization and does
+not call Qwen. Opening Intake with GET performs neither operation. See
+`docs/source-provenance-frontmatter.md` for the schema and Manual/build use.
+
 ```bash
 python -m gaiden.normalize book_0042 en
 ```

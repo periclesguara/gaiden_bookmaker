@@ -286,6 +286,21 @@
           <span class="badge">nenhum arquivo</span>
         {% endif %}
       </div>
+      <h3>Registro da fonte original</h3>
+      {% if source_provenance %}
+      <div class="status">
+        {% if source_provenance.original_title %}<div><strong>Título original:</strong> {{ source_provenance.original_title }}</div>{% endif %}
+        {% if source_provenance.source_author %}<div><strong>Autoria original:</strong> {{ source_provenance.source_author }}</div>{% endif %}
+        {% if source_provenance.original_publication_year %}<div><strong>Publicação original:</strong> {{ source_provenance.original_publication_year }}</div>{% endif %}
+        {% if source_provenance.source_platform %}<div><strong>Fonte:</strong> {{ source_provenance.source_platform }}</div>{% endif %}
+        {% if source_provenance.source_credits %}<div><strong>Source credits:</strong> {{ source_provenance.source_credits }}</div>{% endif %}
+        {% if source_provenance.source_filename %}<div><strong>Arquivo:</strong> {{ source_provenance.source_filename }}</div>{% endif %}
+        {% if source_provenance.source_sha256 %}<div><strong>SHA-256:</strong> {{ source_provenance.source_sha256 }}</div>{% endif %}
+        {% if source_provenance.extraction_warnings %}<div><strong>Revisão necessária:</strong> {{ source_provenance.extraction_warnings|join:"; " }}</div>{% endif %}
+      </div>
+      {% else %}
+      <div class="status">A proveniência será extraída somente após um upload RAW explícito.</div>
+      {% endif %}
       <div class="status">
         Normalize: <strong>{{ status.normalize }}</strong>
       </div>

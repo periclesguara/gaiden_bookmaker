@@ -1,0 +1,11 @@
+{% autoescape off %}
+<div align="center">Title Page</div>
+
+{{ edition.title }}{% if edition.subtitle %} - {{ edition.subtitle }}{% endif %}
+
+Autor: {{ edition.author }}
+Adaptiert von {{ edition.adapter }}
+
+{{ edition.seal_name }}
+{{ edition.city }}, {{ country_label }} · {{ edition.publication_year }}
+{% endautoescape %}

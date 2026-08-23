@@ -72,21 +72,35 @@
       {{ form.about_edition_text }}
     </div>
 
+    <h2>Registro da fonte original</h2>
+    {% if provenance_form.non_field_errors %}{{ provenance_form.non_field_errors }}{% endif %}
+    {% for field in provenance_form %}
+    <div>
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+      {{ field.errors }}
+    </div>
+    {% endfor %}
+
     <div class="actions">
       <button type="submit">Salvar</button>
       <a href="?apply_defaults=1">Aplicar defaults por idioma</a>
-      <a href="{% url 'frontispiece_preview' edition.id %}">Preview frontispicio</a>
+      <a href="{% url 'title_page_preview' edition.id %}">Preview Title Page</a>
     </div>
   </form>
 
-  <h2>Preview Frontispicio</h2>
-  <pre>{{ frontispiece_preview }}</pre>
+  <h2>Preview Title Page</h2>
+  <pre>{{ title_page_preview }}</pre>
 
   <h2>Preview Copyright</h2>
   <pre>{{ copyright_preview }}</pre>
 
   <h2>Preview About this edition</h2>
   <pre>{{ about_edition_preview }}</pre>
+
+  <h3>Preview Original Source Record</h3>
+  <pre>{{ source_record_preview }}</pre>
   <script>
     const langSelect = document.getElementById("{{ form.language_code.id_for_label }}");
     const defaultsInput = document.getElementById("apply_defaults");

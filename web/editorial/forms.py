@@ -36,3 +36,4 @@ class FrontmatterTemplateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["book_code"].disabled = True
         self.fields["language"].disabled = True
+        self.fields["frontispiece_text"].label = "Title Page (template)"

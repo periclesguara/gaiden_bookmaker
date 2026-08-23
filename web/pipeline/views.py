@@ -589,6 +589,7 @@ def edition_steps(request, edition_id: int):
         "frontmatter_template": frontmatter_template,
         "frontmatter_preview": frontmatter_template.frontispiece_rendered,
         "copyright_preview": frontmatter_template.copyright_rendered,
+        "source_provenance": edition.work.source_provenance or {},
         "frontmatter_locked": frontmatter_locked,
         "md_language_default": md_language_default,
         "md_source_map": md_source_map_json,
@@ -631,6 +632,11 @@ def run_edition_step(request, edition_id: int, step: str):
             with dest_path.open("wb+") as dest:
                 for chunk in uploaded.chunks():
                     dest.write(chunk)
+            from gaiden.source_provenance import extract_source_provenance_bytes
+
+            provenance = extract_source_provenance_bytes(dest_path.read_bytes(), uploaded.name)
+            core_edition.work.source_provenance = provenance
+            core_edition.work.save(update_fields=["source_provenance"])
             core_edition.raw_source_path = str(dest_path)
             core_edition.save(update_fields=["raw_source_path", "updated_at"])
 
@@ -644,6 +650,11 @@ def run_edition_step(request, edition_id: int, step: str):
             pipeline_state.last_log = ""
             pipeline_state.save()
             messages.success(request, f"RAW saved: {dest_path}")
+            if provenance.get("extraction_warnings"):
+                messages.warning(
+                    request,
+                    "Proveniência registrada com aviso; revise o Registro da fonte original.",
+                )
 
         elif step == "normalize":
             core_edition = _global_core_edition(edition)
@@ -673,6 +684,7 @@ def run_edition_step(request, edition_id: int, step: str):
                     "language": core_language,
                     "raw_path": str(raw_path),
                     "normalized_path": str(out_path),
+                    "source_provenance": core_edition.work.source_provenance or {},
                 }
             )
             gaiden_normalize.write_normalization_artifacts(

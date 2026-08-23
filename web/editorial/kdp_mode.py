@@ -51,8 +51,14 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     builds_base.mkdir(parents=True, exist_ok=True)
 
     sections: list[str] = []
-    for name in ["frontispiece", "copyright", "about_edition", "about_contributor"]:
-        path = fm_base / f"{name}.md"
+    ordered_paths = [
+        fm_base / "title_page.md" if (fm_base / "title_page.md").exists() else fm_base / "frontispiece.md",
+        fm_base / "copyright.md",
+        fm_base / "source_record.md",
+        fm_base / "about_edition.md",
+        fm_base / "about_contributor.md",
+    ]
+    for path in ordered_paths:
         if path.exists():
             txt = _normalize_pagebreaks(path.read_text(encoding="utf-8").rstrip())
             sections.append(txt + "\n\n")

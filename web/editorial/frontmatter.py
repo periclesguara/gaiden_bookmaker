@@ -59,45 +59,45 @@ def render_frontmatter(edition: Edition) -> Dict[str, str]:
     language = ctx.get("language") or "en"
     headings = {
         "en": {
-            "frontispiece": "Frontispiece",
+            "title_page": "Title Page",
             "copyright": "Copyright",
             "about_edition": "About this Edition",
             "about_contributor": "About the Contributors",
         },
         "de": {
-            "frontispiece": "Frontispiz",
+            "title_page": "Title Page",
             "copyright": "Copyright",
             "about_edition": "Über diese Ausgabe",
             "about_contributor": "Über die Mitwirkenden",
         },
         "es": {
-            "frontispiece": "Frontispicio",
+            "title_page": "Title Page",
             "copyright": "Copyright",
             "about_edition": "Sobre esta edición",
             "about_contributor": "Sobre los colaboradores",
         },
         "ptbr": {
-            "frontispiece": "Frontispício",
+            "title_page": "Title Page",
             "copyright": "Copyright",
             "about_edition": "Sobre esta edição",
             "about_contributor": "Sobre os colaboradores",
         },
         "pt-br": {
-            "frontispiece": "Frontispício",
+            "title_page": "Title Page",
             "copyright": "Copyright",
             "about_edition": "Sobre esta edição",
             "about_contributor": "Sobre os colaboradores",
         },
     }.get(language, {
-        "frontispiece": "Frontispiece",
+        "title_page": "Title Page",
         "copyright": "Copyright",
         "about_edition": "About this Edition",
         "about_contributor": "About the Contributors",
     })
     fm: Dict[str, str] = {}
 
-    fm["frontispiece"] = (
-        f"# {headings['frontispiece']}\n\n"
+    fm["title_page"] = (
+        f"# {headings['title_page']}\n\n"
         + render_template(edition.frontispiece_template, ctx)
         + "\n\n::: pagebreak\n"
     )
@@ -107,6 +107,10 @@ def render_frontmatter(edition: Edition) -> Dict[str, str]:
         + render_template(edition.copyright_template, ctx)
         + "\n\n::: pagebreak\n"
     )
+
+    source_record = render_source_record(getattr(edition.work, "source_provenance", {}) or {})
+    if source_record:
+        fm["source_record"] = source_record
 
     if edition.about_edition_template:
         fm["about_edition"] = (
@@ -136,13 +140,48 @@ def build_frontmatter_files(edition: Edition, base_dir: Path) -> None:
     fm = render_frontmatter(edition)
     for key, value in fm.items():
         (out_dir / f"{key}.md").write_text(value, encoding="utf-8")
+    # Legacy consumers still resolve this filename. It must be byte-identical
+    # to the canonical Title Page while compatibility remains supported.
+    (out_dir / "frontispiece.md").write_bytes((out_dir / "title_page.md").read_bytes())
 
 
 def build_merged_frontmatter(edition: Edition) -> str:
     fm = render_frontmatter(edition)
-    order = ["frontispiece", "copyright", "about_edition", "about_contributor"]
+    order = ["title_page", "copyright", "source_record", "about_edition", "about_contributor"]
     merged = ""
     for key in order:
         if key in fm:
             merged += fm[key].rstrip() + "\n\n"
     return merged.rstrip() + "\n"
+
+
+def render_source_record(provenance: dict) -> str:
+    if not provenance:
+        return ""
+
+    labels = (
+        ("original_title", "Original title"),
+        ("source_author", "Original author"),
+        ("original_publication_year", "Original publication"),
+        ("original_publication_basis", "Publication basis"),
+        ("source_platform", "Source platform"),
+        ("source_identifier", "Source ID"),
+        ("source_url", "Source URL"),
+        ("source_release_date", "Source release date"),
+        ("source_credits", "Source credits"),
+        ("rights", "Rights"),
+        ("source_language", "Source language"),
+        ("subjects", "Subjects"),
+        ("source_filename", "Source filename"),
+        ("source_sha256", "Source SHA-256"),
+    )
+    lines = ["# Original Source Record", ""]
+    for key, label in labels:
+        value = provenance.get(key)
+        if not value:
+            continue
+        if isinstance(value, list):
+            value = "; ".join(str(item) for item in value)
+        lines.append(f"- **{label}:** {value}")
+    lines.extend(["", "::: pagebreak"])
+    return "\n".join(lines) + "\n"

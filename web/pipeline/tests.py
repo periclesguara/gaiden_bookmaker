@@ -1,8 +1,13 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
+from unittest.mock import patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
+
+from editorial.models import Contributor, Edition, Language, Seal, Work
 
 from .models import BookEditionTemplate, PipelineJob, PipelineRun, PipelineRunItem
 from .services import paths, text_source
@@ -48,6 +53,79 @@ class PipelineModelTests(TestCase):
         item = PipelineRunItem.objects.create(run=run, book_id=42, lang="en")
         self.assertIn("book_0042", str(item))
         self.assertIn("PENDING", str(item))
+
+
+class SourceProvenanceIntakeTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        language = Language.objects.create(code="en", name="English", native_name="English")
+        author = Contributor.objects.create(name="Jane Austen")
+        seal = Seal.objects.create(slug="mantaquest", name="MantaQuest")
+        work = Work.objects.create(
+            code="book_0043",
+            title="Editorial Pride and Prejudice",
+            original_language=language,
+            author=author,
+        )
+        cls.edition = Edition.objects.create(
+            work=work,
+            language=language,
+            seal=seal,
+            title="Editorial Pride and Prejudice",
+            author="Jane Austen — editorial",
+            language_code="en",
+        )
+
+    def test_get_does_not_extract_provenance(self):
+        with patch(
+            "gaiden.source_provenance.extract_source_provenance_bytes",
+            side_effect=AssertionError("GET must not extract"),
+        ):
+            response = self.client.get(reverse("edition_steps", args=[self.edition.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.edition.work.refresh_from_db()
+        self.assertEqual(self.edition.work.source_provenance, {})
+
+    def test_explicit_raw_post_extracts_without_overwriting_editorial_metadata(self):
+        raw = (
+            b"Title: Pride and Prejudice\nAuthor: Jane Austen\n"
+            b"Release Date: June 1, 1998 [EBook #1342]\nLanguage: English\n"
+            b"Copyright 1813\n"
+        )
+        upload = SimpleUploadedFile("pride-source.txt", raw, content_type="text/plain")
+        with TemporaryDirectory() as tmp, override_settings(BASE_DIR=Path(tmp) / "web"):
+            response = self.client.post(
+                reverse("pipeline_run_edition_step", args=[self.edition.id, "raw"]),
+                {"raw_file": upload},
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.edition.refresh_from_db()
+        self.edition.work.refresh_from_db()
+        provenance = self.edition.work.source_provenance
+        self.assertEqual(provenance["original_title"], "Pride and Prejudice")
+        self.assertEqual(provenance["source_filename"], "pride-source.txt")
+        self.assertEqual(self.edition.title, "Editorial Pride and Prejudice")
+        self.assertEqual(self.edition.author, "Jane Austen — editorial")
+
+    def test_failed_extraction_keeps_filename_hash_and_review_warning(self):
+        raw = b"not an epub"
+        upload = SimpleUploadedFile("broken.epub", raw, content_type="application/epub+zip")
+        with TemporaryDirectory() as tmp, override_settings(BASE_DIR=Path(tmp) / "web"):
+            response = self.client.post(
+                reverse("pipeline_run_edition_step", args=[self.edition.id, "raw"]),
+                {"raw_file": upload},
+                follow=True,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.edition.work.refresh_from_db()
+        provenance = self.edition.work.source_provenance
+        self.assertEqual(provenance["source_filename"], "broken.epub")
+        self.assertEqual(len(provenance["source_sha256"]), 64)
+        self.assertTrue(provenance["extraction_warnings"])
+        self.assertContains(response, "revise o Registro da fonte original")
 
 
 class PipelinePathTests(SimpleTestCase):

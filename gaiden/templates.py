@@ -83,7 +83,7 @@ LANG_STRINGS = {
 }
 
 
-def frontispiece_text(meta: BookMeta) -> str:
+def title_page_text(meta: BookMeta) -> str:
     lang = _normalize_lang(meta.lang)
     ls = LANG_STRINGS[lang]
 
@@ -125,6 +125,12 @@ def frontispiece_text(meta: BookMeta) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+def frontispiece_text(meta: BookMeta) -> str:
+    """Legacy alias for the canonical Title Page renderer."""
+
+    return title_page_text(meta)
 
 
 def copyright_page(meta: BookMeta) -> str:

@@ -66,14 +66,19 @@ class Command(BaseCommand):
         )
 
         front_dir = frontmatter_base / book_code / language
-        front_files = {
-            "frontispiece.md",
-            "copyright.md",
-            "about_edition.md",
-            "about_contributor.md",
-        }
 
-        if not front_dir.exists() or not all((front_dir / f).exists() for f in front_files):
+        def title_page_path() -> Path:
+            canonical = front_dir / "title_page.md"
+            return canonical if canonical.exists() else front_dir / "frontispiece.md"
+
+        def required_frontmatter_exists() -> bool:
+            return (
+                front_dir.exists()
+                and title_page_path().exists()
+                and (front_dir / "copyright.md").exists()
+            )
+
+        if not required_frontmatter_exists():
             self.stdout.write(
                 self.style.WARNING(
                     "Frontmatter nao encontrado completo. Rodando export_frontmatter..."
@@ -85,7 +90,7 @@ class Command(BaseCommand):
                 f"--language={language}",
             )
 
-        if not front_dir.exists() or not all((front_dir / f).exists() for f in front_files):
+        if not required_frontmatter_exists():
             raise CommandError(
                 f"Mesmo apos export_frontmatter, frontmatter esta incompleto em {front_dir}"
             )
@@ -102,15 +107,24 @@ class Command(BaseCommand):
         def read_file(path: Path) -> str:
             return path.read_text(encoding="utf-8")
 
-        frontispiece = read_file(front_dir / "frontispiece.md")
+        title_page = read_file(title_page_path())
         copyright_text = read_file(front_dir / "copyright.md")
-        about_edition = read_file(front_dir / "about_edition.md")
-        about_contributor = read_file(front_dir / "about_contributor.md")
+        source_record_path = front_dir / "source_record.md"
+        about_edition_path = front_dir / "about_edition.md"
+        about_contributor_path = front_dir / "about_contributor.md"
+        source_record = read_file(source_record_path) if source_record_path.exists() else ""
+        about_edition = read_file(about_edition_path) if about_edition_path.exists() else ""
+        about_contributor = (
+            read_file(about_contributor_path) if about_contributor_path.exists() else ""
+        )
         content = read_file(content_path)
 
         sections = []
-        sections.append(frontispiece.strip() + "\n\n---\n\n")
+        sections.append(title_page.strip() + "\n\n---\n\n")
         sections.append(copyright_text.strip() + "\n\n---\n\n")
+
+        if source_record.strip():
+            sections.append(source_record.strip() + "\n\n---\n\n")
 
         if about_edition.strip():
             sections.append(about_edition.strip() + "\n\n---\n\n")

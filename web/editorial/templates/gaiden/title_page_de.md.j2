@@ -1,0 +1,24 @@
+<div align="center">Title Page</div>
+
+{{ edition.title }}
+{{ edition.subtitle }}
+
+{% if edition.about_edition_text %}
+Über diese Ausgabe
+{{ edition.about_edition_text }}
+{% endif %}
+
+Autor: {{ edition.author }}
+Adaptiert von {{ edition.adapter }}
+
+Erscheinungsjahr: {{ edition.publication_year }}
+
+Copyright © {{ edition.publication_year }} {{ edition.author }}.
+Gemeinfrei in den Vereinigten Staaten und in anderen Gebieten.
+
+Diese moderne Ausgabe von *{{ edition.title }}* wurde unter dem Imprint {{ edition.seal_name }} herausgegeben.
+{{ edition.seal_name }} ist eine eingetragene Marke von {{ edition.imprint_name }}.
+
+Verlag:
+Alle Rechte vorbehalten © {{ edition.imprint_name }}.
+{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}
