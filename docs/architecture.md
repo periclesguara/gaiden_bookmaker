@@ -19,6 +19,17 @@ so moving the source does not rename tables or destroy operator data. The
 Writer portal can initially use the existing PostgreSQL database; `WRITER_PG*`
 allows a later database split through a separately reviewed migration runbook.
 
+### Intake normalization
+
+Gaiden Intake owns source normalization in `gaiden/normalize.py`. Its local-Qwen
+client is independent from `writer_engine` and is limited to classifying
+numbered boundary lines for deletion. Deterministic cleanup runs first; Qwen
+cannot return replacement prose, inspect the interior outside the configured
+windows, or bypass confidence, source-evidence, and maximum-deletion guards.
+The RAW source is immutable and each accepted cleanup produces a derived text,
+preview, SHA-256 audit report, and explicit removed-line ranges. Details are in
+`docs/intake-qwen-normalize.md`.
+
 ## Shared immutable sources
 
 Canonical raw originals and normalized bodies remain external artifacts.
