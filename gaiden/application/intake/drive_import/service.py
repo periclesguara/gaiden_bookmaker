@@ -321,6 +321,7 @@ def _ensure_catalog(item_data: dict) -> Work:
     return Work.objects.create(
         code=item_data["book_code"],
         title=item_data["title"],
+        source_provenance={},
         original_language=language,
         author=contributor,
     )

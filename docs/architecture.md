@@ -16,6 +16,16 @@ The Django project is `web/gaiden_portal` and installs two first-party apps:
 Reusable business logic belongs in service modules. Views should coordinate
 HTTP input and output rather than implement filesystem or editorial rules.
 
+### Intake provenance schema compatibility
+
+Automated Drive Intake creates every `Work` with an explicit empty
+`source_provenance` object. The compatibility migration adds that JSON column
+only when it is absent, initializes pre-existing rows with `{}`, and preserves
+the physical column on reverse migration. This keeps this Intake branch safe on
+both clean databases and environments where the approved provenance migration
+already created the column; it never makes provenance nullable or replaces an
+existing record.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.

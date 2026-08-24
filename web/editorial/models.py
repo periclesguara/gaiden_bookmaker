@@ -57,6 +57,7 @@ class Contributor(models.Model):
 class Work(models.Model):
     code = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    source_provenance = models.JSONField(blank=True, default=dict)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,

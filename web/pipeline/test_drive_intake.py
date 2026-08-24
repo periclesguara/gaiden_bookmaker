@@ -190,6 +190,7 @@ class DriveIntakeConfirmationTests(TransactionTestCase):
         self.assertEqual(IntakeBatch.objects.count(), 1)
         self.assertEqual(IntakeItem.objects.count(), 1)
         self.assertEqual(Work.objects.filter(code="book_0050").count(), 1)
+        self.assertEqual(Work.objects.get(code="book_0050").source_provenance, {})
         self.assertEqual(IntakeItem.objects.get().status, "REGISTERED")
         self.assertTrue(IntakeItem.objects.get().canonical_path.startswith("02_IMPORTED_RAW/"))
 
