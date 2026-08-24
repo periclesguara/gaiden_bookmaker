@@ -183,7 +183,14 @@ def preview_drive_folder(
     seen_codes: dict[str, str] = {}
     items = []
     for row in editorial_rows:
-        proposed = next(proposals) if not row["detected"]["book_code"] else ""
+        existing_item = (
+            existing_batch.items.filter(relative_path=row["relative_path"]).first()
+            if existing_batch
+            else None
+        )
+        proposed = ""
+        if not row["detected"]["book_code"]:
+            proposed = existing_item.book_code if existing_item else next(proposals)
         code, conflict = resolve_book_code(
             filename_code=row["detected"]["book_code"],
             proposed_code=proposed,
@@ -192,11 +199,6 @@ def preview_drive_folder(
         # A value supplied by the operator is an explicit preview edit and has
         # precedence over the ambiguous middle segment of a filename.
         author = default_author.strip() or row["detected"]["author"]
-        existing_item = (
-            existing_batch.items.filter(relative_path=row["relative_path"]).first()
-            if existing_batch
-            else None
-        )
         operation, reason = _operation_for(
             code=code,
             title=title,

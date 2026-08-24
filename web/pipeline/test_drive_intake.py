@@ -203,6 +203,23 @@ class DriveIntakeConfirmationTests(TransactionTestCase):
         self.assertEqual(Work.objects.filter(code="book_0050").count(), 1)
         self.assertGreaterEqual(IntakeAuditEvent.objects.count(), 3)
 
+    def test_rerun_reuses_reserved_code_when_filename_has_no_book_code(self):
+        self.storage = FakeDriveStorage(
+            {"Generic Author — Uncoded Work.txt": b"An uncoded confirmed body.\n"}
+        )
+
+        first_preview = self.preview()
+        reserved_code = first_preview["items"][0]["book_code"]
+        confirm_drive_folder(self.storage, first_preview)
+
+        second_preview = self.preview()
+        self.assertEqual(second_preview["items"][0]["book_code"], reserved_code)
+        self.assertEqual(second_preview["items"][0]["operation"], "NO_OP")
+        second = confirm_drive_folder(self.storage, second_preview)
+
+        self.assertEqual(second["counts"]["noop"], 1)
+        self.assertEqual(Work.objects.filter(code=reserved_code).count(), 1)
+
     def test_changed_folder_invalidates_preview(self):
         preview = self.preview()
         self.storage.files["book_0050 — Generic Author — First Work.txt"] = b"Changed after preview.\n"
