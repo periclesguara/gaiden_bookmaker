@@ -928,10 +928,53 @@ class ManualTranslationJob(models.Model):
     STATUS_EXPORTED = "EXPORTED"
     STATUS_IMPORTED = "IMPORTED"
     STATUS_FAILED = "FAILED"
+    STATUS_SPLIT_PENDING = "SPLIT_PENDING"
+    STATUS_SPLITTING = "SPLITTING"
+    STATUS_SPLIT_REVIEW_REQUIRED = "SPLIT_REVIEW_REQUIRED"
+    STATUS_SPLIT_VALIDATED = "SPLIT_VALIDATED"
+    STATUS_DRIVE_EXPORTING = "DRIVE_EXPORTING"
+    STATUS_DRIVE_READY = "DRIVE_READY"
+    STATUS_TRANSLATION_IN_PROGRESS = "TRANSLATION_IN_PROGRESS"
+    STATUS_PARTIAL_RETURN = "PARTIAL_RETURN"
+    STATUS_RETURNS_READY = "RETURNS_READY"
+    STATUS_VALIDATING_RETURNS = "VALIDATING_RETURNS"
+    STATUS_MERGE_READY = "MERGE_READY"
+    STATUS_MERGING = "MERGING"
+    STATUS_MERGED = "MERGED"
+    STATUS_VALIDATED = "VALIDATED"
+    STATUS_COMPLETED = "COMPLETED"
+    STATUS_FAILED_RETRYABLE = "FAILED_RETRYABLE"
+    STATUS_CONFLICT = "CONFLICT"
+    STATUS_REJECTED = "REJECTED"
     STATUS_CHOICES = (
         (STATUS_EXPORTED, "Aguardando retorno"),
         (STATUS_IMPORTED, "Tradução importada"),
         (STATUS_FAILED, "Falha recuperável"),
+        (STATUS_SPLIT_PENDING, "Split pendente"),
+        (STATUS_SPLITTING, "Separando capítulos"),
+        (STATUS_SPLIT_REVIEW_REQUIRED, "Split requer revisão"),
+        (STATUS_SPLIT_VALIDATED, "Split validado"),
+        (STATUS_DRIVE_EXPORTING, "Exportando ao Drive"),
+        (STATUS_DRIVE_READY, "Drive pronto"),
+        (STATUS_TRANSLATION_IN_PROGRESS, "Tradução em andamento"),
+        (STATUS_PARTIAL_RETURN, "Retorno parcial"),
+        (STATUS_RETURNS_READY, "Retornos prontos"),
+        (STATUS_VALIDATING_RETURNS, "Validando retornos"),
+        (STATUS_MERGE_READY, "Merge liberado"),
+        (STATUS_MERGING, "Executando merge"),
+        (STATUS_MERGED, "Merge concluído"),
+        (STATUS_VALIDATED, "Manuscrito validado"),
+        (STATUS_COMPLETED, "Tradução pronta"),
+        (STATUS_FAILED_RETRYABLE, "Falha recuperável v2"),
+        (STATUS_CONFLICT, "Conflito"),
+        (STATUS_REJECTED, "Rejeitado"),
+    )
+
+    MODE_TRANSLATE = "translate"
+    MODE_MODERNIZE_2026 = "modernize_2026"
+    MODE_CHOICES = (
+        (MODE_TRANSLATE, "Traduzir"),
+        (MODE_MODERNIZE_2026, "Modernizar EN-US 2026"),
     )
 
     edition = models.ForeignKey(
@@ -946,18 +989,46 @@ class ManualTranslationJob(models.Model):
         null=True,
         blank=True,
     )
+    job_id = models.CharField(max_length=160, blank=True, default="", editable=False)
+    source_artifact = models.ForeignKey(
+        "editorial.PipelineArtifact",
+        on_delete=models.PROTECT,
+        related_name="chapter_translation_sources",
+        null=True,
+        blank=True,
+    )
+    final_artifact = models.ForeignKey(
+        "editorial.PipelineArtifact",
+        on_delete=models.SET_NULL,
+        related_name="chapter_translation_finals",
+        null=True,
+        blank=True,
+    )
     source_language = models.CharField(max_length=16)
     target_language = models.CharField(max_length=16)
+    translation_mode = models.CharField(max_length=24, choices=MODE_CHOICES, default=MODE_TRANSLATE)
+    schema_version = models.CharField(max_length=64, default="gaiden_manual_translation_job_v1")
+    splitter_version = models.CharField(max_length=64, blank=True, default="")
+    split_strategy = models.CharField(max_length=32, blank=True, default="")
+    chapter_count = models.PositiveIntegerField(default=0)
+    split_manifest = models.JSONField(default=dict)
+    validation_report = models.JSONField(default=dict)
     drive_path = models.CharField(max_length=1000)
+    drive_root_folder_id = models.CharField(max_length=255, blank=True, default="")
+    input_folder_id = models.CharField(max_length=255, blank=True, default="")
+    return_folder_id = models.CharField(max_length=255, blank=True, default="")
     source_path = models.CharField(max_length=1200)
     source_sha256 = models.CharField(max_length=64)
     expected_return_name = models.CharField(max_length=500)
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_EXPORTED)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_EXPORTED)
     return_source = models.CharField(max_length=1200, blank=True, default="")
     return_sha256 = models.CharField(max_length=64, blank=True, default="")
+    final_sha256 = models.CharField(max_length=64, blank=True, default="")
+    correlation_id = models.CharField(max_length=64, default=uuid.uuid4, editable=False, db_index=True)
     last_error = models.TextField(blank=True, default="")
     exported_at = models.DateTimeField(auto_now_add=True)
     imported_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -966,11 +1037,124 @@ class ManualTranslationJob(models.Model):
             models.UniqueConstraint(
                 fields=("edition", "target_language"),
                 name="pipeline_manual_translation_edition_target_unique",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=("job_id",),
+                condition=~models.Q(job_id=""),
+                name="pipeline_manual_translation_job_id_unique",
+            ),
         ]
 
     def __str__(self) -> str:
         return f"{self.edition.work.code} → {self.target_language} ({self.status})"
+
+
+class TranslationUnit(models.Model):
+    TYPE_PRELIMINARIES = "preliminaries"
+    TYPE_PREFACE = "preface"
+    TYPE_INTRODUCTION = "introduction"
+    TYPE_CHAPTER = "chapter"
+    TYPE_EPILOGUE = "epilogue"
+    TYPE_APPENDIX = "appendix"
+    TYPE_OVERSIZED_PART = "oversized_chapter_part"
+    TYPE_CHOICES = (
+        (TYPE_PRELIMINARIES, "Preliminares"),
+        (TYPE_PREFACE, "Prefácio"),
+        (TYPE_INTRODUCTION, "Introdução"),
+        (TYPE_CHAPTER, "Capítulo"),
+        (TYPE_EPILOGUE, "Epílogo"),
+        (TYPE_APPENDIX, "Apêndice"),
+        (TYPE_OVERSIZED_PART, "Parte de capítulo superdimensionado"),
+    )
+    STATUS_PENDING = "PENDING"
+    STATUS_SPLIT = "SPLIT"
+    STATUS_EXPORTED = "EXPORTED"
+    STATUS_RETURNED = "RETURNED"
+    STATUS_VALIDATED = "VALIDATED"
+    STATUS_FAILED_RETRYABLE = "FAILED_RETRYABLE"
+    STATUS_CONFLICT = "CONFLICT"
+    STATUS_REJECTED = "REJECTED"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Pendente"),
+        (STATUS_SPLIT, "Separada"),
+        (STATUS_EXPORTED, "Exportada"),
+        (STATUS_RETURNED, "Retornada"),
+        (STATUS_VALIDATED, "Validada"),
+        (STATUS_FAILED_RETRYABLE, "Falha recuperável"),
+        (STATUS_CONFLICT, "Conflito"),
+        (STATUS_REJECTED, "Rejeitada"),
+    )
+
+    translation_job = models.ForeignKey(
+        ManualTranslationJob,
+        on_delete=models.CASCADE,
+        related_name="units",
+    )
+    unit_id = models.CharField(max_length=32)
+    sequence = models.PositiveIntegerField()
+    unit_type = models.CharField(max_length=32, choices=TYPE_CHOICES)
+    chapter_number = models.CharField(max_length=32, blank=True, default="")
+    part_number = models.PositiveIntegerField(null=True, blank=True)
+    heading = models.CharField(max_length=500, blank=True, default="")
+    source_start_offset = models.PositiveBigIntegerField()
+    source_end_offset = models.PositiveBigIntegerField()
+    source_text_sha256 = models.CharField(max_length=64)
+    source_size_bytes = models.PositiveBigIntegerField()
+    input_filename = models.CharField(max_length=500)
+    expected_return_filename = models.CharField(max_length=500)
+    drive_input_file_id = models.CharField(max_length=255, blank=True, default="")
+    drive_return_file_id = models.CharField(max_length=255, blank=True, default="")
+    return_sha256 = models.CharField(max_length=64, blank=True, default="")
+    return_size_bytes = models.PositiveBigIntegerField(default=0)
+    status = models.CharField(max_length=24, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    validation_report = models.JSONField(default=dict)
+    retry_count = models.PositiveIntegerField(default=0)
+    returned_at = models.DateTimeField(null=True, blank=True)
+    validated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("translation_job_id", "sequence")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("translation_job", "unit_id"),
+                name="pipeline_translation_unit_job_unit_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("translation_job", "sequence"),
+                name="pipeline_translation_unit_job_sequence_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.translation_job.job_id}:{self.unit_id}"
+
+
+class TranslationJobEvent(models.Model):
+    translation_job = models.ForeignKey(
+        ManualTranslationJob,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    unit = models.ForeignKey(
+        TranslationUnit,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        null=True,
+        blank=True,
+    )
+    operation = models.CharField(max_length=48)
+    previous_status = models.CharField(max_length=32, blank=True, default="")
+    new_status = models.CharField(max_length=32)
+    origin = models.CharField(max_length=32, default="gaiden")
+    correlation_id = models.CharField(max_length=64, db_index=True)
+    error = models.TextField(blank=True, default="")
+    detail = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
 
 
 class ProductionBookmark(models.Model):

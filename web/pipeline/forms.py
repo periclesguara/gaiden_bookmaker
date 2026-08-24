@@ -194,5 +194,27 @@ class ManualTranslationUploadForm(forms.Form):
         return uploaded
 
 
+class ChapterTranslationSplitForm(forms.Form):
+    TARGET_CHOICES = (
+        ("en_us", "EN-US · modernização 2026"),
+        ("ptbr", "PT-BR · tradução"),
+        ("fr", "FR · tradução"),
+    )
+    MODE_CHOICES = (
+        ("translate", "Traduzir"),
+        ("modernize_2026", "Modernizar EN-US 2026"),
+    )
+
+    target_language = forms.ChoiceField(choices=TARGET_CHOICES)
+    translation_mode = forms.ChoiceField(choices=MODE_CHOICES)
+    force = forms.BooleanField(required=False)
+
+    def clean(self):
+        values = super().clean()
+        if values.get("translation_mode") == "modernize_2026" and values.get("target_language") != "en_us":
+            raise ValidationError("Modernize 2026 só pode ser usado com EN-US.")
+        return values
+
+
 def normalize_upload_ext(filename: str) -> str:
     return f".{filename.rsplit('.', 1)[-1].lower()}" if "." in filename else ""

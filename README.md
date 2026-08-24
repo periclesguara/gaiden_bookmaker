@@ -80,6 +80,8 @@ and approved recovery sequence are documented in
   complete Sherlock indexing, RAG, draft generation, and the phase-2 gate.
 - `docs/writer-workflow.md`: private-network deployment, file treatment, bibles,
   chapter parameters, four-session generation, review, and finalization.
+- `docs/runbooks/chapter-translation-drive-v2.md`: chapter-based translation
+  jobs, Drive layout, validation, deterministic merge, migration, and rollback.
 
 Architecture-specific documents must be updated in the same pull request as the
 behavior they describe.

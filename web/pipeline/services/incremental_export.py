@@ -109,6 +109,32 @@ class RclonePublisher:
                     check=False,
                 )
 
+    def read_bytes(self, relative_path: str) -> bytes:
+        return self._run("cat", self._remote(relative_path))
+
+    def stat(self, relative_path: str) -> dict[str, object] | None:
+        remote = self.destination if not relative_path else self._remote(relative_path)
+        completed = subprocess.run(
+            ["rclone", "lsjson", remote, "--stat"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if completed.returncode:
+            detail = completed.stderr.decode("utf-8", errors="replace").strip()
+            if re.search(r"not found|directory not found|object not found", detail, re.IGNORECASE):
+                return None
+            raise OSError(f"rclone falhou (lsjson --stat): {detail}")
+        payload = json.loads(completed.stdout or b"null")
+        return payload if isinstance(payload, dict) else None
+
+    def list_files(self, relative_directory: str) -> list[dict[str, object]]:
+        remote = self._remote(relative_directory)
+        payload = json.loads(self._run("lsjson", remote, "--files-only") or b"[]")
+        if not isinstance(payload, list):
+            raise OSError("Resposta inesperada ao listar arquivos do Drive.")
+        return [row for row in payload if isinstance(row, dict)]
+
 
 def publisher_for(destination: str | Path) -> Publisher:
     value = str(destination).strip()

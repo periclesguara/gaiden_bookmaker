@@ -63,6 +63,46 @@ urlpatterns = [
         name="manual_translation_export",
     ),
     path(
+        "editions/<int:edition_id>/production/chapter-split/",
+        views.chapter_translation_split,
+        name="chapter_translation_split",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/export/",
+        views.chapter_translation_export,
+        name="chapter_translation_export",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/split-qwen/",
+        views.chapter_translation_split_qwen,
+        name="chapter_translation_split_qwen",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/check-returns/",
+        views.chapter_translation_check_returns,
+        name="chapter_translation_check_returns",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/validate/",
+        views.chapter_translation_validate_returns,
+        name="chapter_translation_validate_returns",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/merge/",
+        views.chapter_translation_merge,
+        name="chapter_translation_merge",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/report/",
+        views.chapter_translation_report,
+        name="chapter_translation_report",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/final/",
+        views.chapter_translation_final_download,
+        name="chapter_translation_final_download",
+    ),
+    path(
         "translation-jobs/<int:job_id>/import-drive/",
         views.manual_translation_import_drive,
         name="manual_translation_import_drive",

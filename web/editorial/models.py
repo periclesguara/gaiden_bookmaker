@@ -453,8 +453,10 @@ class PipelineArtifact(models.Model):
     STAGE_CHOICES = [
         ("raw", "RAW"),
         ("normalize", "NORMALIZE"),
+        ("heading_clean", "HEADING CLEAN"),
         ("split", "SPLIT/CHUNK"),
         ("translate", "TRANSLATE"),
+        ("translation_final", "TRANSLATION FINAL"),
         ("refine", "REFINE"),
         ("polish", "POLISH"),
         ("miolo", "MIOLO"),
@@ -471,6 +473,7 @@ class PipelineArtifact(models.Model):
     relpath = models.TextField()
     filename = models.CharField(max_length=255, db_index=True)
     size_bytes = models.BigIntegerField(default=0)
+    sha256 = models.CharField(max_length=64, blank=True, default="", db_index=True)
     mtime_iso = models.CharField(max_length=40, default="")
     exists = models.BooleanField(default=True)
     is_candidate = models.BooleanField(default=True)

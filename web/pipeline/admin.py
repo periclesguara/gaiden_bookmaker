@@ -20,6 +20,8 @@ from pipeline.models import (
     IntakeItem,
     ManualTranslationJob,
     ProductionBookmark,
+    TranslationJobEvent,
+    TranslationUnit,
 )
 
 
@@ -116,9 +118,39 @@ class IntakeItemAdmin(admin.ModelAdmin):
 
 @admin.register(ManualTranslationJob)
 class ManualTranslationJobAdmin(admin.ModelAdmin):
-    list_display = ("edition", "target_language", "status", "drive_path", "updated_at")
-    search_fields = ("edition__work__code", "drive_path", "expected_return_name")
-    list_filter = ("status", "target_language")
+    list_display = (
+        "job_id",
+        "edition",
+        "schema_version",
+        "target_language",
+        "status",
+        "chapter_count",
+        "updated_at",
+    )
+    search_fields = ("job_id", "edition__work__code", "drive_path", "expected_return_name")
+    list_filter = ("schema_version", "status", "target_language", "translation_mode")
+
+
+@admin.register(TranslationUnit)
+class TranslationUnitAdmin(admin.ModelAdmin):
+    list_display = ("translation_job", "unit_id", "sequence", "unit_type", "status", "retry_count")
+    search_fields = ("translation_job__job_id", "heading", "input_filename", "expected_return_filename")
+    list_filter = ("unit_type", "status")
+
+
+@admin.register(TranslationJobEvent)
+class TranslationJobEventAdmin(admin.ModelAdmin):
+    list_display = (
+        "translation_job",
+        "unit",
+        "operation",
+        "previous_status",
+        "new_status",
+        "origin",
+        "created_at",
+    )
+    search_fields = ("translation_job__job_id", "correlation_id", "operation")
+    list_filter = ("operation", "new_status", "origin")
 
 
 @admin.register(ProductionBookmark)

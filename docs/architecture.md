@@ -32,6 +32,29 @@ is read-only: it neither repeats the import nor changes the selected source.
 Each file still requires an explicit preview or POST selection before it enters
 the editorial-production block.
 
+### Chapter translation through Google Drive
+
+Long-form manual translation has a versioned v2 path after `heading_clean`.
+`gaiden/application/translation/chapter_splitter.py` owns deterministic,
+byte-preserving unit detection. `pipeline.services.chapter_translation` owns
+Django persistence, transport coordination, return validation, and canonical
+merge. Views only coordinate explicit POST actions and never call Drive or
+Qwen during GET requests.
+
+`ManualTranslationJob` remains the parent identity for both schemas. Existing
+`gaiden_manual_translation_job_v1` rows stay on their monolithic route. V2 rows
+add ordered `TranslationUnit` records and append-only `TranslationJobEvent`
+records. The existing `PipelineArtifact` index records the immutable
+`heading_clean` source and the completed translation; Google Drive is not an
+identity, provenance, or canonical-content store.
+
+Only a job whose units are all `VALIDATED` can merge. Promotion to the existing
+editorial pipeline happens after deterministic merge and final validation have
+advanced the job through `MERGED`, `VALIDATED`, and `COMPLETED`. Partial returns
+cannot start frontmatter, preview, EPUB, or PDF production. Operational details
+and rollback constraints are in
+`docs/runbooks/chapter-translation-drive-v2.md`.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.

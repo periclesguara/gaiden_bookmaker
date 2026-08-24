@@ -49,6 +49,7 @@ from gaiden.application.pipeline.status import resolve_block_status_map
 from gaiden.application.builds.finalized_projects import mark_build_outdated
 from gaiden.infrastructure import storage
 from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
+from gaiden.infrastructure.qwen_chapter_detection import detect_chapter_boundaries
 
 from .models import (
     BookEditionTemplate,
@@ -75,6 +76,7 @@ except ImportError:
 from .forms import (
     BookEditionTemplateForm,
     BookSourceUploadForm,
+    ChapterTranslationSplitForm,
     ManualTranslationUploadForm,
     normalize_book_code_input,
 )
@@ -82,6 +84,7 @@ from .services import (
     book_manifest,
     build_book,
     chapter_agent,
+    chapter_translation,
     canonical_merge,
     core_docker,
     editorial_split,
@@ -1616,6 +1619,18 @@ def post_intake_workflow(request, edition_id: int):
     build_dir = paths.edition_build_dir(target_edition) if target_edition else None
     normalized_path = _normalized_v2_path(edition.work.code, edition.language.code)
     heading_path = heading_cleaner.clean_path_for_book_code(edition.work.code)
+    heading_sha256 = hashlib.sha256(heading_path.read_bytes()).hexdigest() if heading_path.is_file() else ""
+    chapter_job = job if job and job.schema_version == chapter_translation.JOB_SCHEMA_V2 else None
+    legacy_job = job if job and job.schema_version != chapter_translation.JOB_SCHEMA_V2 else None
+    chapter_progress = chapter_translation.job_progress(chapter_job)
+    chapter_units = list(chapter_job.units.order_by("sequence")) if chapter_job else []
+    translation_ready = bool(
+        job
+        and (
+            job.status == ManualTranslationJob.STATUS_IMPORTED
+            or job.status == ManualTranslationJob.STATUS_COMPLETED
+        )
+    )
     return render(
         request,
         "pipeline/post_intake_workflow.html",
@@ -1628,12 +1643,50 @@ def post_intake_workflow(request, edition_id: int):
             "normalize_done": normalized_path.exists(),
             "heading_path": heading_path,
             "heading_done": heading_path.exists(),
+            "heading_sha256": heading_sha256,
             "translation_options": TRANSLATE_VARIANT_OPTIONS,
             "selected_target": selected_target,
             "selected_target_label": _translate_variant_label(selected_target),
             "jobs": jobs,
             "job": job,
-            "translation_imported": bool(job and job.status == ManualTranslationJob.STATUS_IMPORTED),
+            "chapter_job": chapter_job,
+            "legacy_job": legacy_job,
+            "chapter_progress": chapter_progress,
+            "chapter_units": chapter_units,
+            "chapter_prelim_count": sum(
+                unit.unit_type
+                in {
+                    "preliminaries",
+                    "preface",
+                    "introduction",
+                    "epilogue",
+                    "appendix",
+                }
+                for unit in chapter_units
+            ),
+            "chapter_oversized_count": sum(
+                unit.unit_type == "oversized_chapter_part" for unit in chapter_units
+            ),
+            "chapter_split_validated": bool(
+                chapter_job
+                and chapter_job.status
+                not in {
+                    ManualTranslationJob.STATUS_SPLIT_PENDING,
+                    ManualTranslationJob.STATUS_SPLITTING,
+                    ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED,
+                }
+            ),
+            "translation_imported": translation_ready,
+            "chapter_split_form": ChapterTranslationSplitForm(
+                initial={
+                    "target_language": selected_target,
+                    "translation_mode": (
+                        ManualTranslationJob.MODE_MODERNIZE_2026
+                        if selected_target == "en_us"
+                        else ManualTranslationJob.MODE_TRANSLATE
+                    ),
+                }
+            ),
             "translation_upload_form": ManualTranslationUploadForm(),
             "target_edition": target_edition,
             "target_template": target_template,
@@ -1651,6 +1704,169 @@ def post_intake_workflow(request, edition_id: int):
     )
 
 
+def chapter_translation_split(request, edition_id: int):
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related("work__author", "language"),
+        id=edition_id,
+    )
+    if request.method != "POST":
+        return redirect("post_intake_workflow", edition_id=edition.id)
+    form = ChapterTranslationSplitForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "; ".join(form.non_field_errors()) or "Configuração de split inválida.")
+        return redirect(_post_intake_url(edition.id, request.POST.get("target_language") or "en_us"))
+    target_language = form.cleaned_data["target_language"]
+    try:
+        target_edition = _ensure_manual_target_edition(edition, target_language)
+        job = chapter_translation.prepare_chapter_job(
+            edition=edition,
+            target_edition=target_edition,
+            target_language=target_language,
+            translation_mode=form.cleaned_data["translation_mode"],
+            source_path=heading_cleaner.clean_path_for_book_code(edition.work.code),
+            force=bool(form.cleaned_data["force"]),
+        )
+        if job.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
+            messages.success(request, f"Split validado com {job.units.count()} unidades.")
+        else:
+            messages.warning(request, "O split requer revisão antes da exportação ao Drive.")
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(edition.id, target_language))
+
+
+def chapter_translation_split_qwen(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work__author", "edition__language", "target_edition"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.status != ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED:
+        messages.error(request, "O fallback Qwen só pode ser executado para um split que requer revisão.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        updated = chapter_translation.prepare_chapter_job(
+            edition=job.edition,
+            target_edition=job.target_edition,
+            target_language=job.target_language,
+            translation_mode=job.translation_mode,
+            source_path=Path(job.source_path),
+            force=True,
+            qwen_detector=detect_chapter_boundaries,
+        )
+        if updated.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
+            messages.success(request, "Sugestões Qwen validadas contra offsets e SHA-256 do fonte.")
+        else:
+            messages.warning(request, "As sugestões Qwen continuam exigindo revisão; nada foi exportado.")
+    except (OSError, RuntimeError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_export(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work__author", "source_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        result = chapter_translation.export_chapter_job(job)
+        if result["status"] == "NO_OP":
+            messages.info(request, "O job por capítulos já estava publicado com os mesmos hashes.")
+        else:
+            messages.success(request, f"{result['unit_count']} unidades publicadas no Google Drive.")
+    except (FileExistsError, OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_check_returns(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        result = chapter_translation.discover_chapter_returns(job)
+        messages.success(request, f"Retornos encontrados: {result['returned']} de {result['total']}.")
+    except (OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_validate_returns(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        report = chapter_translation.validate_chapter_returns(job)
+        messages.success(
+            request,
+            f"Unidades validadas: {report['validated_count']} de {report['unit_count']}.",
+        )
+    except (OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_merge(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work", "target_edition", "final_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        result = chapter_translation.merge_chapter_returns(job)
+        messages.success(request, f"Manuscrito final validado: SHA-256 {result['sha256']}.")
+    except (OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_report(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "GET":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    payload = {
+        "schema": chapter_translation.REPORT_SCHEMA,
+        "job_id": job.job_id,
+        "status": job.status,
+        "source_sha256": job.source_sha256,
+        "final_sha256": job.final_sha256,
+        "split_manifest": job.split_manifest,
+        "validation_report": job.validation_report,
+    }
+    response = HttpResponse(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        content_type="application/json",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{job.job_id}_report.json"'
+    return response
+
+
+def chapter_translation_final_download(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("final_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+        status=ManualTranslationJob.STATUS_COMPLETED,
+    )
+    if request.method != "GET" or not job.return_source:
+        raise Http404
+    path = Path(job.return_source).resolve()
+    try:
+        path.relative_to(storage.data_dir().resolve())
+    except ValueError as exc:
+        raise Http404 from exc
+    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != job.final_sha256:
+        raise Http404
+    return FileResponse(path.open("rb"), as_attachment=True, filename=job.expected_return_name)
+
+
 def manual_translation_export(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition.objects.select_related("work__author", "language"), id=edition_id)
     if request.method != "POST":
@@ -1663,6 +1879,12 @@ def manual_translation_export(request, edition_id: int):
         edition=edition,
         target_language=target_language,
     ).first()
+    if existing_job is not None and existing_job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(
+            request,
+            "Este idioma usa um job v2 por capítulos; utilize a ação de exportação da etapa 03.",
+        )
+        return redirect(_post_intake_url(edition.id, target_language))
     if existing_job is not None and request.POST.get("confirm_replace") != "1":
         messages.warning(
             request,
@@ -1791,6 +2013,9 @@ def manual_translation_import_drive(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(request, "Jobs v2 só podem importar retornos pela validação por capítulos.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
         returned = manual_translation.read_drive_return(job.drive_path)
         _register_manual_translation_return(job, returned["data"], str(returned["remote_path"]))
@@ -1806,6 +2031,9 @@ def manual_translation_import_drive(request, job_id: int):
 def manual_translation_import_upload(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(request, "Jobs v2 só podem importar retornos pela validação por capítulos.")
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     form = ManualTranslationUploadForm(request.POST, request.FILES)
     if not form.is_valid():
