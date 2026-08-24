@@ -308,6 +308,46 @@ class DriveIntakeInterfaceTests(TestCase):
         self.assertEqual(IntakeBatch.objects.count(), 0)
 
     @patch("pipeline.views_incremental.RcloneDriveStorage")
+    def test_registered_drive_folder_links_to_its_file_selection_table(self, storage_class):
+        storage_class.return_value = self.storage
+        batch = IntakeBatch.objects.create(
+            batch_code="batch_0001",
+            name="Fixture",
+            slug="fixture",
+            source="GOOGLE_DRIVE",
+            remote=self.storage.remote,
+            drive_source_path="01_INBOX_RAW/Fixture",
+            status="REGISTERED",
+        )
+        IntakeItem.objects.create(
+            batch=batch,
+            remote_file_id="file-50",
+            remote_path="01_INBOX_RAW/Fixture/book_0050.txt",
+            relative_path="book_0050.txt",
+            original_name="book_0050.txt",
+            size_bytes=11,
+            mime_type="text/plain",
+            extension=".txt",
+            remote_version="v1",
+            sha256="a" * 64,
+            title="First Work",
+            author_name="Generic Author",
+            source_language="en",
+            book_code="book_0050",
+            preview_operation="CREATE",
+            status="REGISTERED",
+            canonical_path="02_IMPORTED_RAW/batch_0001__fixture/book_0050/source/book_0050.txt",
+        )
+
+        response = self.client.get(reverse("automated_editorial_import"))
+
+        expected_url = f'{reverse("imported_book_list")}?batch=batch_0001'
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Lote batch_0001 já registrado")
+        self.assertContains(response, f'href="{expected_url}"')
+        self.assertContains(response, "Selecionar 1 arquivo(s)")
+
+    @patch("pipeline.views_incremental.RcloneDriveStorage")
     def test_confirmation_requires_post(self, storage_class):
         storage_class.return_value = self.storage
         response = self.client.get(reverse("automated_drive_folder_confirm"))
@@ -395,6 +435,47 @@ class ImportedBookProductionTests(TestCase):
         self.assertContains(response, "book_0056.txt")
         self.assertContains(response, ">Prévia de leitura<")
         self.assertContains(response, ">Enviar ao bloco de edição<")
+
+    def test_list_can_be_filtered_to_the_selected_intake_batch(self):
+        other_batch = IntakeBatch.objects.create(
+            batch_code="batch_0002",
+            name="Other batch",
+            slug="other-batch",
+            source="GOOGLE_DRIVE",
+            remote="fake_drive",
+            drive_source_path="01_INBOX_RAW/Other",
+            status="REGISTERED",
+        )
+        IntakeItem.objects.create(
+            batch=other_batch,
+            remote_file_id="file-57",
+            remote_path="01_INBOX_RAW/Other/book_0057.txt",
+            relative_path="book_0057.txt",
+            original_name="book_0057.txt",
+            size_bytes=10,
+            mime_type="text/plain",
+            extension=".txt",
+            remote_version="v1",
+            sha256="b" * 64,
+            title="Other Work",
+            author_name="Other Author",
+            source_language="en",
+            book_code="book_0057",
+            preview_operation="CREATE",
+            status="REGISTERED",
+            canonical_path="02_IMPORTED_RAW/batch_0002__other/book_0057/source/book_0057.txt",
+        )
+
+        response = self.client.get(
+            reverse("imported_book_list"),
+            {"batch": "batch_0001"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecionar arquivo de Generic batch")
+        self.assertContains(response, "book_0056")
+        self.assertNotContains(response, "book_0057")
+        self.assertContains(response, "1 arquivo(s) importado(s).")
 
     @patch("pipeline.views.RcloneDriveStorage")
     def test_reading_preview_downloads_verified_source_without_creating_editorial_records(self, storage_class):

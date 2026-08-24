@@ -225,8 +225,21 @@ def _render_automated(
     drive_location = "Google Drive · 01_INBOX_RAW"
     try:
         drive_storage = RcloneDriveStorage()
-        drive_folders = drive_storage.list_folders()
+        listed_folders = drive_storage.list_folders()
         drive_location = f"{drive_storage.remote}:{drive_storage.inbox}"
+        registered_batches = {
+            batch.drive_source_path: batch
+            for batch in IntakeBatch.objects.filter(
+                source="GOOGLE_DRIVE",
+                remote=drive_storage.remote,
+                status="REGISTERED",
+            ).prefetch_related("items")
+        }
+        drive_folders = []
+        for listed_folder in listed_folders:
+            folder = dict(listed_folder)
+            folder["registered_batch"] = registered_batches.get(folder.get("path", ""))
+            drive_folders.append(folder)
     except (DrivePathError, DriveStorageError, ValueError) as exc:
         drive_browse_error = str(exc)
     return render(

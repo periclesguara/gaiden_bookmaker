@@ -26,6 +26,12 @@ both clean databases and environments where the approved provenance migration
 already created the column; it never makes provenance nullable or replaces an
 existing record.
 
+For a registered Google Drive folder, the Intake dashboard links directly to
+the file-selection table filtered by its immutable batch code. This transition
+is read-only: it neither repeats the import nor changes the selected source.
+Each file still requires an explicit preview or POST selection before it enters
+the editorial-production block.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.

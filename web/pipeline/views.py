@@ -57,6 +57,7 @@ from .models import (
     EDITORIAL_LANGUAGES,
     IncrementalEdition,
     IntakeAuditEvent,
+    IntakeBatch,
     IntakeItem,
     ManualTranslationJob,
     ProductionBookmark,
@@ -1140,17 +1141,16 @@ def _registration_status_label(template: BookEditionTemplate | None) -> str:
     return dict(BookEditionTemplate.REGISTRATION_STATUS_CHOICES).get(template.registration_status, template.registration_status)
 
 
-def _imported_book_rows() -> list[dict[str, object]]:
+def _imported_book_rows(*, batch_code: str = "") -> list[dict[str, object]]:
     ensure_bookeditiontemplate_runtime_columns()
-    items = list(
+    item_query = (
         IntakeItem.objects.select_related("batch")
-        .filter(
-            batch__source="GOOGLE_DRIVE",
-            status="REGISTERED",
-        )
+        .filter(batch__source="GOOGLE_DRIVE", status="REGISTERED")
         .exclude(canonical_path="")
-        .order_by("book_code", "source_language", "id")
     )
+    if batch_code:
+        item_query = item_query.filter(batch__batch_code=batch_code)
+    items = list(item_query.order_by("book_code", "source_language", "id"))
     templates = {
         (row.book_code, utils.normalize_lang(row.language)): row
         for row in BookEditionTemplate.objects.filter(
@@ -1194,10 +1194,21 @@ def _imported_book_rows() -> list[dict[str, object]]:
 def imported_book_list(request):
     if request.method != "GET":
         return redirect("imported_book_list")
+    batch_code = (request.GET.get("batch") or "").strip()
+    selected_batch = None
+    if batch_code:
+        selected_batch = IntakeBatch.objects.filter(
+            batch_code=batch_code,
+            source="GOOGLE_DRIVE",
+        ).first()
     return render(
         request,
         "pipeline/imported_book_list.html",
-        {"imported_books": _imported_book_rows()},
+        {
+            "imported_books": _imported_book_rows(batch_code=batch_code),
+            "selected_batch": selected_batch,
+            "selected_batch_code": batch_code,
+        },
     )
 
 

@@ -13,9 +13,10 @@
 <body><main class="container">
   <section class="card">
     <p class="eyebrow">Página 01 · Seleção da obra</p>
-    <h1>Selecionar um livro importado</h1>
+    <h1>{% if selected_batch %}Selecionar arquivo de {{ selected_batch.name }}{% else %}Selecionar um livro importado{% endif %}</h1>
     <p class="muted">Cada linha corresponde a um arquivo confirmado pelo Intake, com código imutável. Abra a <strong>prévia de leitura</strong> e confirme qual arquivo deve seguir para o bloco de edição.</p>
-    <div class="actions"><a class="btn secondary" href="{% url 'production_dashboard' %}">Dashboard de edições</a><a class="btn secondary" href="{% url 'book_edition_new' %}">Voltar ao cadastro</a><a class="btn secondary" href="{% url 'automated_editorial_import' %}">Abrir Intake</a></div>
+    {% if selected_batch %}<p><strong>Lote:</strong> {{ selected_batch.batch_code }} · <strong>Pasta:</strong> {{ selected_batch.drive_source_path }}</p>{% elif selected_batch_code %}<p class="muted">O lote solicitado não foi encontrado ou não pertence ao Google Drive.</p>{% endif %}
+    <div class="actions"><a class="btn secondary" href="{% url 'production_dashboard' %}">Dashboard de edições</a><a class="btn secondary" href="{% url 'book_edition_new' %}">Voltar ao cadastro</a><a class="btn secondary" href="{% url 'automated_editorial_import' %}">Abrir Intake</a>{% if selected_batch_code %}<a class="btn secondary" href="{% url 'imported_book_list' %}">Ver todos os arquivos</a>{% endif %}</div>
     <ol class="steps" aria-label="Fluxo de produção"><li class="active">1 · Selecionar livro</li><li>2 · Normalize / Headings Cleaner</li><li>3 · Google Drive Translate</li><li>4 · Importar tradução</li><li>5 · Blocos 03 e 04</li></ol>
   </section>
   {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
