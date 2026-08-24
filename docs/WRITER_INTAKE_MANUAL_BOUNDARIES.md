@@ -29,6 +29,11 @@ the existing Author Studio catalog and does not introduce another `book_code`.
 - `/intake/` is the deterministic Intake entry. The established incremental
   import/Drive endpoints remain compatibility adapters under
   `/intake/automated/`; they contain no agent or OpenAI execution.
+- `/pipeline/editions/imported/` lists canonical Drive items registered by the
+  Intake. Its reading-preview GET downloads to temporary staging, verifies the
+  registered SHA-256 and extracts bounded text without creating an edition,
+  audit event or canonical artifact. Sending the selected file to the editing
+  block remains an explicit CSRF-protected POST.
 - `/manual/` owns selection of Translate, Refine and Polish. An edition is
   opened explicitly through `/manual/editions/<edition_id>/`; existing agent
   implementations and model choices are preserved.

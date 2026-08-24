@@ -369,13 +369,61 @@ class ImportedBookProductionTests(TestCase):
             "meta_file": str(self.root / "raw" / "meta.json"),
         }
 
-    def test_list_shows_each_imported_code_with_edit_action(self):
+    def test_list_shows_preview_and_explicit_editor_selection_actions(self):
         response = self.client.get(reverse("imported_book_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Selecionar um livro importado")
         self.assertContains(response, "book_0056")
         self.assertContains(response, "book_0056.txt")
-        self.assertContains(response, ">Editar<")
+        self.assertContains(response, ">Prévia de leitura<")
+        self.assertContains(response, ">Enviar ao bloco de edição<")
+
+    @patch("pipeline.views.RcloneDriveStorage")
+    def test_reading_preview_downloads_verified_source_without_creating_editorial_records(self, storage_class):
+        fake_storage = FakeDriveStorage({})
+        fake_storage.promoted[self.item.canonical_path] = self.payload
+        storage_class.return_value = fake_storage
+        counts_before = (
+            Edition.objects.count(),
+            BookEditionTemplate.objects.count(),
+            IntakeAuditEvent.objects.count(),
+        )
+        metadata_before = dict(self.item.metadata or {})
+
+        response = self.client.get(reverse("imported_book_preview", kwargs={"item_id": self.item.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Prévia de leitura")
+        self.assertContains(response, "Title: Example")
+        self.assertContains(response, "Enviar este arquivo ao bloco de edição")
+        self.assertEqual(fake_storage.download_count, 1)
+        self.item.refresh_from_db()
+        self.assertEqual(dict(self.item.metadata or {}), metadata_before)
+        self.assertEqual(
+            (
+                Edition.objects.count(),
+                BookEditionTemplate.objects.count(),
+                IntakeAuditEvent.objects.count(),
+            ),
+            counts_before,
+        )
+
+    @patch("pipeline.views.RcloneDriveStorage")
+    def test_reading_preview_rejects_a_source_with_a_different_sha256(self, storage_class):
+        fake_storage = FakeDriveStorage({})
+        fake_storage.promoted[self.item.canonical_path] = b"different bytes"
+        storage_class.return_value = fake_storage
+
+        response = self.client.get(
+            reverse("imported_book_preview", kwargs={"item_id": self.item.id}),
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("imported_book_list"))
+        self.assertContains(response, "SHA-256 do arquivo importado diverge")
+        self.assertFalse(Edition.objects.exists())
+        self.assertFalse(BookEditionTemplate.objects.exists())
+        self.assertFalse(IntakeAuditEvent.objects.exists())
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     @patch("pipeline.views.pipeline_ingest.run_source_extract")

@@ -33,6 +33,11 @@ urlpatterns = [
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/imported/", views.imported_book_list, name="imported_book_list"),
+    path(
+        "editions/imported/<int:item_id>/preview/",
+        views.imported_book_preview,
+        name="imported_book_preview",
+    ),
     path("editions/dashboard/", views.production_dashboard, name="production_dashboard"),
     path("builds/<int:build_id>/", views.final_build_detail, name="final_build_detail"),
     path("builds/<int:build_id>/download/", views.download_final_build, name="final_build_download"),

@@ -1185,7 +1185,7 @@ def _imported_book_rows() -> list[dict[str, object]]:
                 "extension_supported": extension_supported,
                 "ready": ready,
                 "edition": edition,
-                "action_label": "Abrir produção" if ready else "Editar",
+                "action_label": "Abrir bloco de edição" if ready else "Enviar ao bloco de edição",
             }
         )
     return rows
@@ -1198,6 +1198,39 @@ def imported_book_list(request):
         request,
         "pipeline/imported_book_list.html",
         {"imported_books": _imported_book_rows()},
+    )
+
+
+def imported_book_preview(request, item_id: int):
+    if request.method != "GET":
+        return redirect("imported_book_list")
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch"),
+        pk=item_id,
+        batch__source="GOOGLE_DRIVE",
+        status="REGISTERED",
+    )
+    try:
+        extension = item.extension.lower()
+        if extension not in pipeline_ingest.source_extract_supported_extensions():
+            raise ValueError(f"Formato {extension or '(sem extensão)'} não possui prévia de leitura.")
+        if not item.sha256 or not item.canonical_path:
+            raise ValueError("O item importado não possui origem canônica com SHA-256.")
+        drive_storage = RcloneDriveStorage(remote=item.batch.remote)
+        with drive_storage.staging_directory() as staging_name:
+            staged_path = Path(staging_name) / f"{item.book_code}{extension}"
+            drive_storage.download_imported_to(item.canonical_path, staged_path)
+            downloaded_sha256 = hashlib.sha256(staged_path.read_bytes()).hexdigest()
+            if downloaded_sha256 != item.sha256:
+                raise ValueError("O SHA-256 do arquivo importado diverge do registro do Intake.")
+            preview = pipeline_ingest.build_reading_preview(staged_path)
+    except (DrivePathError, DriveStorageError, OSError, ValueError) as exc:
+        messages.error(request, f"Não foi possível abrir a prévia de {item.book_code}: {exc}")
+        return redirect("imported_book_list")
+    return render(
+        request,
+        "pipeline/imported_book_preview.html",
+        {"item": item, "preview": preview},
     )
 
 

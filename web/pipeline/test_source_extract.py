@@ -8,7 +8,11 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-from gaiden.application.pipeline.source_extract import UnsupportedSourceFormatError, run_source_extract
+from gaiden.application.pipeline.source_extract import (
+    UnsupportedSourceFormatError,
+    build_reading_preview,
+    run_source_extract,
+)
 
 
 EXPECTED_KEYS = {
@@ -97,6 +101,20 @@ class SourceExtractTests(SimpleTestCase):
         self.assertEqual(result["details"]["images_count"], 1)
         self.assertEqual(meta["schema"], "source_extract_v1")
         self.assertTrue((self.repo_path(result["images_dir"]) / "cover.png").exists())
+
+    def test_epub_reading_preview_is_ordered_and_does_not_create_artifacts(self):
+        source = Path(self.tempdir.name) / "preview.epub"
+        self.write_epub(source)
+        files_before = sorted(path.relative_to(self.tempdir.name) for path in Path(self.tempdir.name).rglob("*"))
+
+        preview = build_reading_preview(source)
+
+        files_after = sorted(path.relative_to(self.tempdir.name) for path in Path(self.tempdir.name).rglob("*"))
+        self.assertEqual(preview["title"], "Fixture Book")
+        self.assertEqual(preview["input_format"], "epub")
+        self.assertLess(preview["text"].index("Chapter One"), preview["text"].index("Chapter Two"))
+        self.assertFalse(preview["truncated"])
+        self.assertEqual(files_after, files_before)
 
     def test_invalid_format_fails_with_clear_error(self):
         source = Path(self.tempdir.name) / "input.pdf"
