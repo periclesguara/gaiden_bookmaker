@@ -943,6 +943,7 @@ class ManualTranslationJob(models.Model):
     STATUS_MERGED = "MERGED"
     STATUS_VALIDATED = "VALIDATED"
     STATUS_COMPLETED = "COMPLETED"
+    STATUS_BLOCK_01_COMPLETE = "BLOCK_01_COMPLETE"
     STATUS_FAILED_RETRYABLE = "FAILED_RETRYABLE"
     STATUS_CONFLICT = "CONFLICT"
     STATUS_REJECTED = "REJECTED"
@@ -965,6 +966,7 @@ class ManualTranslationJob(models.Model):
         (STATUS_MERGED, "Merge concluído"),
         (STATUS_VALIDATED, "Manuscrito validado"),
         (STATUS_COMPLETED, "Tradução pronta"),
+        (STATUS_BLOCK_01_COMPLETE, "Bloco 01 concluído"),
         (STATUS_FAILED_RETRYABLE, "Falha recuperável v2"),
         (STATUS_CONFLICT, "Conflito"),
         (STATUS_REJECTED, "Rejeitado"),

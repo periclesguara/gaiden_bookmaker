@@ -869,7 +869,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertTrue(raw_path.exists())
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "HTML_UPLOADED")
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_can_save_metadata_first_and_upload_file_afterwards(self, mock_frontmatter):
@@ -921,7 +921,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertEqual(EditionText.objects.get(edition=self.edition).raw_path, str(raw_path))
         template.refresh_from_db()
         self.assertEqual(template.registration_status, BookEditionTemplate.STATUS_READY_FOR_BLOCK_02)
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     def test_upload_page_requires_saved_registration(self):
         response = self.client.get(
@@ -1018,7 +1018,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         self.assertTrue(raw_path.exists())
         pipeline_state = EditionPipeline.objects.get(edition=self.edition)
         self.assertEqual(pipeline_state.current_stage, "TXT_UPLOADED")
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     def test_cadastro_rejects_invalid_source_format_with_400(self):
         upload = SimpleUploadedFile(
@@ -1061,7 +1061,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         )
         template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
         self.assertEqual(template.author_name, "Author Test")
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_updates_existing_template_instead_of_duplicate(self, mock_frontmatter):
@@ -1095,7 +1095,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
         self.assertEqual(template.title, "Book Test")
         self.assertEqual(template.text_source_mode, "html")
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_editorial_autocreate_creates_missing_work_and_edition(self, mock_frontmatter):
@@ -1119,7 +1119,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         )
         self.assertTrue(Work.objects.filter(code=self.work.code).exists())
         self.assertTrue(Edition.objects.filter(work__code=self.work.code, language__code="en").exists())
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_work_integrityerror_fallback_keeps_outer_transaction_usable(self, mock_frontmatter):
@@ -1168,7 +1168,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
         )
         self.assertTrue(Work.objects.filter(code=self.work.code).exists())
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     def test_cadastro_edition_integrityerror_fallback_keeps_outer_transaction_usable(self, mock_frontmatter):
@@ -1216,7 +1216,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
             reverse("pipeline_html_dashboard", kwargs={"edition_id": edition.id}),
         )
         self.assertEqual(edition.title, "Book Test")
-        mock_frontmatter.assert_called_once()
+        mock_frontmatter.assert_not_called()
 
 
 class ContractIngestV1Tests(TestCase):

@@ -560,7 +560,7 @@ class ImportedBookProductionTests(TestCase):
         self.assertEqual(fake_storage.download_count, 1)
         self.assertEqual(BookEditionTemplate.objects.filter(book_code="book_0056", language="en").count(), 1)
         self.assertEqual(Edition.objects.filter(work__code="book_0056", language__code="en").count(), 1)
-        build_frontmatter.assert_called_once()
+        build_frontmatter.assert_not_called()
 
     def test_selection_requires_post(self):
         response = self.client.get(reverse("imported_book_select", kwargs={"item_id": self.item.id}))
@@ -582,13 +582,15 @@ class ImportedBookProductionTests(TestCase):
         response = self.client.post(reverse("imported_book_select", kwargs={"item_id": self.item.id}))
         page = self.client.get(response.url)
         self.assertContains(page, "Fluxo pós-Intake")
-        self.assertContains(page, "01 · Normalize")
-        self.assertContains(page, "02 · Headings Cleaner")
-        self.assertContains(page, "03 · Google Drive Translate")
-        self.assertContains(page, "04 · Importar tradução")
-        self.assertContains(page, "04 · Buscar e importar miolo do Drive")
-        self.assertContains(page, "04 · Importar miolo selecionado")
-        self.assertNotContains(page, "Bloco 02 · Core do Sistema")
+        self.assertContains(page, "01 · Normalize — Qwen + JSON")
+        self.assertContains(page, "02 · Split by Chapter")
+        self.assertContains(page, "03 · Google Drive")
+        self.assertContains(page, "04 · Tradução por capítulos")
+        self.assertContains(page, "05 · Return e Merge")
+        self.assertContains(page, "Bloco 02 · Frontmatter editável")
+        self.assertNotContains(page, "Headings Cleaner")
+        self.assertNotContains(page, "Importar miolo selecionado")
+        build_frontmatter.assert_not_called()
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     @patch("pipeline.views.pipeline_ingest.run_source_extract")
@@ -667,7 +669,7 @@ class ImportedBookProductionTests(TestCase):
         self.assertEqual(job.status, ManualTranslationJob.STATUS_EXPORTED)
         page = self.client.get(response.url)
         self.assertContains(page, "Import Google Drive")
-        self.assertContains(page, "Upload do computador")
+        self.assertContains(page, "Upload legado")
 
         export_job.reset_mock()
         repeated = self.client.post(

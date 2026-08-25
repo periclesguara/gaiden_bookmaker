@@ -1,5 +1,9 @@
 # Chapter translation through Google Drive v2
 
+> Historical compatibility runbook. New jobs use normalized body + structure
+> map and the v3 flow documented in `block-01-normalize-qwen-v2.md`. Do not use
+> this v2 procedure to create a new `heading_clean` dependency.
+
 ## Scope and ownership
 
 The v2 workflow is:

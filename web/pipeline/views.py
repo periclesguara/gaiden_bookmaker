@@ -50,6 +50,7 @@ from gaiden.application.builds.finalized_projects import mark_build_outdated
 from gaiden.infrastructure import storage
 from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
 from gaiden.infrastructure.qwen_chapter_detection import detect_chapter_boundaries
+from gaiden.infrastructure.qwen_normalize import QwenBlockClassifier
 
 from .models import (
     BookEditionTemplate,
@@ -82,6 +83,7 @@ from .forms import (
 )
 from .services import (
     book_manifest,
+    block01_normalize,
     build_book,
     chapter_agent,
     chapter_translation,
@@ -1343,7 +1345,6 @@ def _activate_intake_item_for_production(item: IntakeItem, request) -> Editorial
             attempt=item.attempt_count,
             detail={"edition_id": edition.id, "raw_path": str(raw_path)},
         )
-        kdp_mode.build_frontmatter_files(edition, storage.frontmatter_dir())
     return edition
 
 
@@ -1618,10 +1619,23 @@ def post_intake_workflow(request, edition_id: int):
     )
     build_dir = paths.edition_build_dir(target_edition) if target_edition else None
     normalized_path = _normalized_v2_path(edition.work.code, edition.language.code)
-    heading_path = heading_cleaner.clean_path_for_book_code(edition.work.code)
-    heading_sha256 = hashlib.sha256(heading_path.read_bytes()).hexdigest() if heading_path.is_file() else ""
-    chapter_job = job if job and job.schema_version == chapter_translation.JOB_SCHEMA_V2 else None
-    legacy_job = job if job and job.schema_version != chapter_translation.JOB_SCHEMA_V2 else None
+    normalize_manifest_path = storage.normalize_manifest_path(edition.work.code, edition.language.code)
+    structure_map_path = storage.structure_map_path(edition.work.code, edition.language.code)
+    normalize_manifest = {}
+    normalize_structure_count = 0
+    if normalize_manifest_path.is_file():
+        try:
+            normalize_manifest = json.loads(normalize_manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            normalize_manifest = {"review_required": True, "warnings": ["Manifest do Normalize inválido."]}
+    if structure_map_path.is_file():
+        try:
+            structure_payload = json.loads(structure_map_path.read_text(encoding="utf-8"))
+            normalize_structure_count = len(structure_payload.get("structures") or [])
+        except (OSError, json.JSONDecodeError, TypeError):
+            normalize_structure_count = 0
+    chapter_job = job if job and job.schema_version in chapter_translation.CHAPTER_JOB_SCHEMAS else None
+    legacy_job = job if job and job.schema_version not in chapter_translation.CHAPTER_JOB_SCHEMAS else None
     chapter_progress = chapter_translation.job_progress(chapter_job)
     chapter_units = list(chapter_job.units.order_by("sequence")) if chapter_job else []
     translation_ready = bool(
@@ -1629,6 +1643,7 @@ def post_intake_workflow(request, edition_id: int):
         and (
             job.status == ManualTranslationJob.STATUS_IMPORTED
             or job.status == ManualTranslationJob.STATUS_COMPLETED
+            or job.status == ManualTranslationJob.STATUS_BLOCK_01_COMPLETE
         )
     )
     return render(
@@ -1639,11 +1654,18 @@ def post_intake_workflow(request, edition_id: int):
             "book_code": edition.work.code,
             "source_template": source_template,
             "pipeline_state": pipeline_state,
-            "normalized_path": normalized_path,
-            "normalize_done": normalized_path.exists(),
-            "heading_path": heading_path,
-            "heading_done": heading_path.exists(),
-            "heading_sha256": heading_sha256,
+            "normalized_path": storage.normalized_body_path(edition.work.code, edition.language.code),
+            "normalize_done": storage.normalized_body_path(edition.work.code, edition.language.code).exists(),
+            "normalize_manifest": normalize_manifest,
+            "normalize_structure_count": normalize_structure_count,
+            "normalize_manifest_path": normalize_manifest_path,
+            "structure_map_path": structure_map_path,
+            "normalize_ready": bool(
+                storage.normalized_body_path(edition.work.code, edition.language.code).exists()
+                and structure_map_path.exists()
+                and normalize_manifest.get("validated")
+            ),
+            "provenance_status": (edition.work.source_provenance or {}).get("workflow_status", "PENDING"),
             "translation_options": TRANSLATE_VARIANT_OPTIONS,
             "selected_target": selected_target,
             "selected_target_label": _translate_variant_label(selected_target),
@@ -1723,7 +1745,8 @@ def chapter_translation_split(request, edition_id: int):
             target_edition=target_edition,
             target_language=target_language,
             translation_mode=form.cleaned_data["translation_mode"],
-            source_path=heading_cleaner.clean_path_for_book_code(edition.work.code),
+            source_path=storage.normalized_body_path(edition.work.code, edition.language.code),
+            structure_map_path=storage.structure_map_path(edition.work.code, edition.language.code),
             force=bool(form.cleaned_data["force"]),
         )
         if job.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
@@ -1769,7 +1792,7 @@ def chapter_translation_export(request, job_id: int):
     job = get_object_or_404(
         ManualTranslationJob.objects.select_related("edition__work__author", "source_artifact"),
         id=job_id,
-        schema_version=chapter_translation.JOB_SCHEMA_V2,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
     )
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
@@ -1785,7 +1808,11 @@ def chapter_translation_export(request, job_id: int):
 
 
 def chapter_translation_check_returns(request, job_id: int):
-    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    job = get_object_or_404(
+        ManualTranslationJob,
+        id=job_id,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
+    )
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
@@ -1797,7 +1824,11 @@ def chapter_translation_check_returns(request, job_id: int):
 
 
 def chapter_translation_validate_returns(request, job_id: int):
-    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    job = get_object_or_404(
+        ManualTranslationJob,
+        id=job_id,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
+    )
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
@@ -1815,7 +1846,7 @@ def chapter_translation_merge(request, job_id: int):
     job = get_object_or_404(
         ManualTranslationJob.objects.select_related("edition__work", "target_edition", "final_artifact"),
         id=job_id,
-        schema_version=chapter_translation.JOB_SCHEMA_V2,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
     )
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
@@ -1828,7 +1859,11 @@ def chapter_translation_merge(request, job_id: int):
 
 
 def chapter_translation_report(request, job_id: int):
-    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    job = get_object_or_404(
+        ManualTranslationJob,
+        id=job_id,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
+    )
     if request.method != "GET":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     payload = {
@@ -1852,8 +1887,11 @@ def chapter_translation_final_download(request, job_id: int):
     job = get_object_or_404(
         ManualTranslationJob.objects.select_related("final_artifact"),
         id=job_id,
-        schema_version=chapter_translation.JOB_SCHEMA_V2,
-        status=ManualTranslationJob.STATUS_COMPLETED,
+        schema_version__in=chapter_translation.CHAPTER_JOB_SCHEMAS,
+        status__in=(
+            ManualTranslationJob.STATUS_COMPLETED,
+            ManualTranslationJob.STATUS_BLOCK_01_COMPLETE,
+        ),
     )
     if request.method != "GET" or not job.return_source:
         raise Http404
@@ -1879,7 +1917,7 @@ def manual_translation_export(request, edition_id: int):
         edition=edition,
         target_language=target_language,
     ).first()
-    if existing_job is not None and existing_job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+    if existing_job is not None and existing_job.schema_version in chapter_translation.CHAPTER_JOB_SCHEMAS:
         messages.error(
             request,
             "Este idioma usa um job v2 por capítulos; utilize a ação de exportação da etapa 03.",
@@ -2013,7 +2051,7 @@ def manual_translation_import_drive(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
-    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+    if job.schema_version in chapter_translation.CHAPTER_JOB_SCHEMAS:
         messages.error(request, "Jobs v2 só podem importar retornos pela validação por capítulos.")
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
@@ -2032,7 +2070,7 @@ def manual_translation_import_upload(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
-    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+    if job.schema_version in chapter_translation.CHAPTER_JOB_SCHEMAS:
         messages.error(request, "Jobs v2 só podem importar retornos pela validação por capítulos.")
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     form = ManualTranslationUploadForm(request.POST, request.FILES)
@@ -2325,8 +2363,6 @@ def _handle_source_upload(
             f"{replacement_note}"
         )
         pipeline_state.save(update_fields=["raw_at", "current_stage", "last_log"])
-
-        kdp_mode.build_frontmatter_files(edition, storage.frontmatter_dir())
 
     logger.info(
         "pipeline_ingest_v1",
@@ -6179,6 +6215,10 @@ def edition_steps(request, edition_id: int):
             "can_translate": bool(pipeline_prereqs["can_translate"]),
         },
         "pipeline01_steps": pipeline01_steps,
+        "authoritative_block01": True,
+        "post_intake_workflow_url": reverse(
+            "post_intake_workflow", kwargs={"edition_id": edition.id}
+        ),
         "can_translate": can_translate,
         "refine_qa_status": refine_qa_status,
         "refine_qa_summary": refine_qa_summary,
@@ -6587,6 +6627,16 @@ def run_edition_step(request, edition_id: int, step: str):
 
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
 
+    block_02_steps = {
+        "txt_to_md",
+        "frontmatter",
+        "preflight",
+        "approve_md",
+        "build",
+        "export_epub",
+        "export_pdf",
+    }
+
     def _redirect_after_step() -> str:
         if request.POST.get("return_to") == "post_intake":
             workflow_edition_id = request.POST.get("workflow_edition_id") or edition.id
@@ -6645,6 +6695,17 @@ def run_edition_step(request, edition_id: int, step: str):
             )
 
     try:
+        if step in block_02_steps:
+            new_jobs = ManualTranslationJob.objects.filter(
+                edition__work=edition.work,
+                schema_version=chapter_translation.JOB_SCHEMA_V3,
+            )
+            if new_jobs.exclude(
+                status=ManualTranslationJob.STATUS_BLOCK_01_COMPLETE
+            ).exists():
+                raise ValueError(
+                    "Bloco 02 bloqueado: o Bloco 01 precisa alcançar BLOCK_01_COMPLETE."
+                )
         if step == "raw":
             core_edition = _processing_base_edition(edition)
             uploaded = request.FILES.get("raw_file")
@@ -6670,17 +6731,23 @@ def run_edition_step(request, edition_id: int, step: str):
 
         elif step == "normalize":
             core_edition = _processing_base_edition(edition)
-            out_path, normalized_source = _ensure_normalized_v2_for_heading_cleaner(core_edition)
-
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=core_edition)
-            if pipeline_state.raw_at is None:
-                pipeline_state.raw_at = timezone.now()
-            pipeline_state.current_stage = PipelineStage.NORMALIZED
-            pipeline_state.normalized_at = timezone.now()
-            pipeline_state.last_log = ""
-            pipeline_state.save()
-
-            messages.success(request, f"Normalize OK: {out_path} ({normalized_source})")
+            source_template = BookEditionTemplate.objects.get(
+                book_code=core_edition.work.code,
+                language=utils.normalize_lang(core_edition.language.code),
+            )
+            result = block01_normalize.run_normalize(
+                edition=core_edition,
+                source_template=source_template,
+                classifier=QwenBlockClassifier.from_env(),
+            )
+            if result["review_required"]:
+                messages.warning(request, "Normalize requer revisão; o split permanece bloqueado.")
+            else:
+                messages.success(
+                    request,
+                    f"Normalize validado: {result['removed_block_count']} blocos removidos e "
+                    f"{result['structure_count']} estruturas registradas.",
+                )
 
         elif step == "heading_cleaner":
             core_edition = _processing_base_edition(edition)

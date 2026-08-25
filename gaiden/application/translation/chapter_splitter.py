@@ -7,6 +7,7 @@ from typing import Callable
 
 
 SPLITTER_VERSION = "gaiden_chapter_splitter_v1"
+STRUCTURE_SPLITTER_VERSION = "gaiden_structure_map_splitter_v2"
 QWEN_SCHEMA = "gaiden_chapter_detection_v1"
 
 _WORD_NUMBERS = {
@@ -94,9 +95,14 @@ class SplitResult:
     warnings: tuple[str, ...]
 
     def as_manifest(self) -> dict[str, object]:
+        splitter_version = (
+            STRUCTURE_SPLITTER_VERSION
+            if self.strategy.startswith("structure_map") or self.strategy == "normalize_structure_map"
+            else SPLITTER_VERSION
+        )
         return {
             "schema": "gaiden_chapter_split_manifest_v1",
-            "splitter_version": SPLITTER_VERSION,
+            "splitter_version": splitter_version,
             "source_sha256": self.source_sha256,
             "source_size_bytes": self.source_size_bytes,
             "source_characters": self.source_characters,
@@ -540,6 +546,141 @@ def split_heading_clean(
         source_size_bytes=len(source),
         source_characters=len(text),
         strategy=strategy,
+        units=tuple(expanded),
+        validated=not review_required,
+        review_required=review_required,
+        warnings=tuple(warnings),
+    )
+
+
+def split_normalized_body(
+    source: bytes,
+    structure_map: dict[str, object],
+    *,
+    alert_characters: int = 30_000,
+    hard_limit_characters: int = 60_000,
+) -> SplitResult:
+    """Split a new Block 01 source using its validated Normalize structure map."""
+    try:
+        text = source.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise ChapterSplitError("normalized_body precisa ser UTF-8 válido.") from exc
+    if not text:
+        raise ChapterSplitError("normalized_body está vazio.")
+    if alert_characters <= 0 or hard_limit_characters <= alert_characters:
+        raise ChapterSplitError("Limites de capítulos inválidos.")
+    if structure_map.get("schema") != "gaiden_structure_map_v1":
+        raise ChapterSplitError("structure-map.json possui contrato inválido.")
+    if structure_map.get("normalized_sha256") != sha256_bytes(source):
+        raise ChapterSplitError("structure-map.json diverge do SHA-256 de normalized_body.")
+    if structure_map.get("review_required") or not structure_map.get("validated"):
+        return SplitResult(
+            source_sha256=sha256_bytes(source),
+            source_size_bytes=len(source),
+            source_characters=len(text),
+            strategy="structure_map_review_required",
+            units=(),
+            validated=False,
+            review_required=True,
+            warnings=("A estrutura do Normalize requer revisão antes do split.",),
+        )
+    raw_structures = structure_map.get("structures")
+    if not isinstance(raw_structures, list):
+        raise ChapterSplitError("structure-map.json não contém uma lista de estruturas.")
+    candidates: list[tuple[int, str, str, str, int | None]] = []
+    accepted = {"part", "chapter", "preface", "introduction", "epilogue", "appendix"}
+    previous_start = -1
+    current_part: int | None = None
+    for row in raw_structures:
+        if not isinstance(row, dict):
+            raise ChapterSplitError("Estrutura inválida no structure-map.json.")
+        structure_type = str(row.get("type") or "")
+        if structure_type not in accepted:
+            continue
+        start = row.get("start_offset")
+        end = row.get("end_offset")
+        heading = str(row.get("heading_original") or "")
+        if (
+            isinstance(start, bool)
+            or isinstance(end, bool)
+            or not isinstance(start, int)
+            or not isinstance(end, int)
+            or start <= previous_start
+            or start < 0
+            or end <= start
+            or end > len(text)
+            or text[start:end] != heading
+        ):
+            raise ChapterSplitError("Offsets ou heading inválidos no structure-map.json.")
+        chapter_number = ""
+        unit_type = structure_type
+        classified = _classify_heading(heading, current_part)
+        if structure_type == "part":
+            unit_type = "preliminaries"
+            if classified:
+                current_part = classified[2]
+        elif structure_type == "chapter" and classified:
+            chapter_number = classified[1]
+        candidates.append((start, unit_type, heading, chapter_number, current_part))
+        previous_start = start
+    if not candidates or not any(row[1] == "chapter" for row in candidates):
+        return SplitResult(
+            source_sha256=sha256_bytes(source),
+            source_size_bytes=len(source),
+            source_characters=len(text),
+            strategy="structure_map_review_required",
+            units=(),
+            validated=False,
+            review_required=True,
+            warnings=("Nenhum capítulo confiável foi encontrado no structure-map.json.",),
+        )
+    units: list[SplitUnit] = []
+    if candidates[0][0] > 0:
+        units.append(
+            _make_unit(
+                text,
+                sequence=0,
+                unit_type="preliminaries",
+                heading="",
+                start=0,
+                end=candidates[0][0],
+                evidence="content before first Normalize structure",
+            )
+        )
+    for index, candidate in enumerate(candidates):
+        start, unit_type, heading, chapter_number, part_number = candidate
+        end = candidates[index + 1][0] if index + 1 < len(candidates) else len(text)
+        units.append(
+            _make_unit(
+                text,
+                sequence=index + 1,
+                unit_type=unit_type,
+                heading=heading,
+                start=start,
+                end=end,
+                chapter_number=chapter_number,
+                part_number=part_number,
+                evidence="validated Normalize structure-map",
+            )
+        )
+    warnings = _chapter_sequence_warnings(units)
+    review_required = bool(warnings)
+    expanded: list[SplitUnit] = []
+    for unit in units:
+        if unit.end_offset - unit.start_offset > alert_characters:
+            warnings.append(f"{unit.unit_id} excede o alerta de {alert_characters} caracteres.")
+        parts, warning = _split_oversized_unit(text, unit, hard_limit_characters)
+        expanded.extend(parts)
+        if warning:
+            warnings.append(warning)
+            review_required = True
+    expanded = _renumber(expanded)
+    validate_coverage(text, expanded)
+    return SplitResult(
+        source_sha256=sha256_bytes(source),
+        source_size_bytes=len(source),
+        source_characters=len(text),
+        strategy="normalize_structure_map",
         units=tuple(expanded),
         validated=not review_required,
         review_required=review_required,

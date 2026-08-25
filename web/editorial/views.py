@@ -10,14 +10,19 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from pathlib import Path
 from django.utils import timezone
 
-from editorial.models import Edition as EditorialEdition, EditionBuild, EditionPipeline
+from editorial.models import Edition as EditorialEdition, EditionBuild, EditionPipeline, Work
 from gaiden_portal.forms import EditionForm
 from gaiden_portal.utils import (
     country_for_language,
     get_frontispiece_template_for_edition,
     get_section_template_for_language,
 )
-from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
+from pipeline.models import (
+    BookEditionTemplate,
+    LANGUAGE_DEFAULT_TEMPLATES,
+    ManualTranslationJob,
+    PROJECT_ROOT,
+)
 from pipeline.services import utils
 from editorial.frontmatter import (
     build_frontmatter_files,
@@ -228,6 +233,35 @@ def _frontmatter_files_exist(book_code: str, language: str) -> bool:
 
 
 def frontmatter_template_edit(request, book_code: str, language: str):
+    new_jobs = ManualTranslationJob.objects.filter(
+        edition__work__code=book_code,
+        schema_version="gaiden_manual_translation_job_v3",
+    )
+    provenance = (
+        Work.objects.filter(code=book_code)
+        .values_list("source_provenance", flat=True)
+        .first()
+        or {}
+    )
+    authoritative_flow_started = (
+        isinstance(provenance, dict)
+        and provenance.get("schema_version") == "gaiden_source_provenance_staged_v1"
+    )
+    block01_complete = new_jobs.filter(
+        status=ManualTranslationJob.STATUS_BLOCK_01_COMPLETE
+    ).exists()
+    if (
+        new_jobs.exclude(status=ManualTranslationJob.STATUS_BLOCK_01_COMPLETE).exists()
+        or (authoritative_flow_started and not block01_complete)
+    ):
+        messages.error(
+            request,
+            "Frontmatter bloqueado: conclua Normalize, tradução, validação e merge do Bloco 01.",
+        )
+        source_job = new_jobs.order_by("-updated_at").first()
+        if source_job is not None:
+            return redirect("post_intake_workflow", edition_id=source_job.edition_id)
+        return redirect("production_dashboard")
     force_defaults = request.GET.get("apply_defaults") == "1"
     edition = (
         EditorialEdition.objects.select_related("work", "language", "seal", "main_contributor")

@@ -453,7 +453,8 @@ class PipelineArtifact(models.Model):
     STAGE_CHOICES = [
         ("raw", "RAW"),
         ("normalize", "NORMALIZE"),
-        ("heading_clean", "HEADING CLEAN"),
+        ("structure_map", "STRUCTURE MAP"),
+        ("heading_clean", "HEADING CLEAN (LEGACY)"),
         ("split", "SPLIT/CHUNK"),
         ("translate", "TRANSLATE"),
         ("translation_final", "TRANSLATION FINAL"),

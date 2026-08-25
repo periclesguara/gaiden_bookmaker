@@ -82,6 +82,8 @@ and approved recovery sequence are documented in
   chapter parameters, four-session generation, review, and finalization.
 - `docs/runbooks/chapter-translation-drive-v2.md`: chapter-based translation
   jobs, Drive layout, validation, deterministic merge, migration, and rollback.
+- `docs/runbooks/block-01-normalize-qwen-v2.md`: authoritative Block 01 RAW,
+  Qwen JSON normalization, structure split, return/merge, and Block 02 gate.
 
 Architecture-specific documents must be updated in the same pull request as the
 behavior they describe.

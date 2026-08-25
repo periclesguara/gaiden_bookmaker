@@ -16,10 +16,12 @@ from django.utils import timezone
 from editorial.models import EditionPipeline, PipelineArtifact, PipelineStage
 from gaiden.application.translation.chapter_splitter import (
     SPLITTER_VERSION,
+    STRUCTURE_SPLITTER_VERSION,
     ChapterSplitError,
     SplitResult,
     SplitUnit,
     split_heading_clean,
+    split_normalized_body,
 )
 from gaiden.infrastructure import storage
 from pipeline.models import ManualTranslationJob, TranslationJobEvent, TranslationUnit
@@ -28,6 +30,8 @@ from pipeline.services.incremental_export import RclonePublisher
 
 
 JOB_SCHEMA_V2 = "gaiden_manual_translation_job_v2"
+JOB_SCHEMA_V3 = "gaiden_manual_translation_job_v3"
+CHAPTER_JOB_SCHEMAS = frozenset({JOB_SCHEMA_V2, JOB_SCHEMA_V3})
 STYLE_SCHEMA = "gaiden_translation_style_contract_v1"
 REPORT_SCHEMA = "gaiden_chapter_translation_report_v1"
 SAFE_FILE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
@@ -185,20 +189,27 @@ def _source_unit_bytes(job: ManualTranslationJob, unit: TranslationUnit) -> byte
     source_path = Path(job.source_path)
     data = source_path.read_bytes()
     if _sha256(data) != job.source_sha256:
-        raise ChapterSplitError("O heading_clean foi alterado depois da criação do split.")
+        raise ChapterSplitError("O artefato-fonte foi alterado depois da criação do split.")
     text = data.decode("utf-8", errors="strict")
     segment = text[unit.source_start_offset : unit.source_end_offset].encode("utf-8")
     if len(segment) != unit.source_size_bytes or _sha256(segment) != unit.source_text_sha256:
-        raise ChapterSplitError(f"A unidade {unit.unit_id} diverge do heading_clean registrado.")
+        raise ChapterSplitError(f"A unidade {unit.unit_id} diverge do artefato-fonte registrado.")
     return segment
 
 
-def _source_artifact(edition, source_path: Path, source_sha256: str, size_bytes: int) -> PipelineArtifact:
+def _source_artifact(
+    edition,
+    source_path: Path,
+    source_sha256: str,
+    size_bytes: int,
+    *,
+    stage: str,
+) -> PipelineArtifact:
     stat = source_path.stat()
     artifact, _ = PipelineArtifact.objects.update_or_create(
         work_code=edition.work.code,
         language_code=edition.language.code,
-        stage="heading_clean",
+        stage=stage,
         relpath=_relpath(source_path),
         defaults={
             "filename": source_path.name,
@@ -237,6 +248,7 @@ def prepare_chapter_job(
     target_language: str,
     translation_mode: str,
     source_path: Path,
+    structure_map_path: Path | None = None,
     force: bool = False,
     qwen_detector=None,
 ) -> ManualTranslationJob:
@@ -245,18 +257,35 @@ def prepare_chapter_job(
     if translation_mode not in dict(ManualTranslationJob.MODE_CHOICES):
         raise ValueError("Modo de tradução inválido.")
     if not source_path.is_file():
-        raise FileNotFoundError(f"Heading Cleaner não encontrado: {source_path}")
+        raise FileNotFoundError(f"Artefato-fonte não encontrado: {source_path}")
     source = source_path.read_bytes()
-    result = split_heading_clean(
-        source,
-        alert_characters=settings.GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS,
-        hard_limit_characters=settings.GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS,
-        qwen_detector=qwen_detector,
-        qwen_confidence_threshold=settings.GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE,
-    )
+    if structure_map_path is not None:
+        if not structure_map_path.is_file():
+            raise FileNotFoundError(f"structure-map.json não encontrado: {structure_map_path}")
+        structure_map = json.loads(structure_map_path.read_text(encoding="utf-8"))
+        result = split_normalized_body(
+            source,
+            structure_map,
+            alert_characters=settings.GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS,
+            hard_limit_characters=settings.GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS,
+        )
+        job_schema = JOB_SCHEMA_V3
+        source_stage = "normalize"
+        splitter_version = STRUCTURE_SPLITTER_VERSION
+    else:
+        result = split_heading_clean(
+            source,
+            alert_characters=settings.GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS,
+            hard_limit_characters=settings.GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS,
+            qwen_detector=qwen_detector,
+            qwen_confidence_threshold=settings.GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE,
+        )
+        job_schema = JOB_SCHEMA_V2
+        source_stage = "heading_clean"
+        splitter_version = SPLITTER_VERSION
     existing = ManualTranslationJob.objects.filter(edition=edition, target_language=target_language).first()
-    if existing and existing.schema_version != JOB_SCHEMA_V2:
-        raise ValueError("Já existe um job v1 para este livro e idioma; ele permanece no fluxo legado.")
+    if existing and existing.schema_version != job_schema:
+        raise ValueError("Já existe um job v1/v2 histórico para este livro e idioma; ele permanece no fluxo legado.")
     resplittable = {
         ManualTranslationJob.STATUS_SPLIT_PENDING,
         ManualTranslationJob.STATUS_SPLITTING,
@@ -271,7 +300,13 @@ def prepare_chapter_job(
             return existing
         raise ValueError("Já existe um split divergente; use a ação explícita Refazer split.")
 
-    source_artifact = _source_artifact(edition, source_path, result.source_sha256, len(source))
+    source_artifact = _source_artifact(
+        edition,
+        source_path,
+        result.source_sha256,
+        len(source),
+        stage=source_stage,
+    )
     manifest = _split_manifest(result, target_language)
     expected_name = f"{edition.work.code}_{target_language}_translated.txt"
     defaults = {
@@ -281,8 +316,8 @@ def prepare_chapter_job(
         "final_artifact": None,
         "source_language": edition.language.code,
         "translation_mode": translation_mode,
-        "schema_version": JOB_SCHEMA_V2,
-        "splitter_version": SPLITTER_VERSION,
+        "schema_version": job_schema,
+        "splitter_version": splitter_version,
         "split_strategy": result.strategy,
         "chapter_count": sum(
             row.unit_type == "chapter"
@@ -414,7 +449,7 @@ def _job_contract(job: ManualTranslationJob) -> dict[str, object]:
             }
         )
     return {
-        "schema": JOB_SCHEMA_V2,
+        "schema": job.schema_version,
         "job_id": job.job_id,
         "book_code": job.edition.work.code,
         "title": job.edition.title or job.edition.work.title,
@@ -481,7 +516,7 @@ def export_chapter_job(
     *,
     gateway: ChapterDriveGateway | None = None,
 ) -> dict[str, object]:
-    if job.schema_version != JOB_SCHEMA_V2:
+    if job.schema_version not in CHAPTER_JOB_SCHEMAS:
         raise ValueError("Somente jobs v2 podem usar exportação por capítulos.")
     if job.status == ManualTranslationJob.STATUS_DRIVE_READY:
         return {"status": "NO_OP", "unit_count": job.units.count(), "drive_path": job.drive_path}
@@ -567,7 +602,7 @@ def discover_chapter_returns(
     *,
     gateway: ChapterDriveGateway | None = None,
 ) -> dict[str, object]:
-    if job.schema_version != JOB_SCHEMA_V2:
+    if job.schema_version not in CHAPTER_JOB_SCHEMAS:
         raise ValueError("Jobs v1 continuam usando o importador monolítico.")
     if job.status not in {
         ManualTranslationJob.STATUS_DRIVE_READY,
@@ -858,7 +893,7 @@ def _validate_unit_return(job: ManualTranslationJob, unit: TranslationUnit) -> d
 
 
 def validate_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
-    if job.schema_version != JOB_SCHEMA_V2:
+    if job.schema_version not in CHAPTER_JOB_SCHEMAS:
         raise ValueError("Jobs v1 continuam usando a validação monolítica.")
     _set_status(job, ManualTranslationJob.STATUS_VALIDATING_RETURNS, "RETURN_VALIDATION_STARTED")
     reports: list[dict[str, object]] = []
@@ -933,12 +968,15 @@ def _final_artifact(job: ManualTranslationJob, final_path: Path, digest: str, si
 
 
 def merge_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
-    if job.schema_version != JOB_SCHEMA_V2:
+    if job.schema_version not in CHAPTER_JOB_SCHEMAS:
         raise ValueError("Jobs v1 continuam usando o merge monolítico.")
     units = list(job.units.order_by("sequence"))
     if not units or any(unit.status != TranslationUnit.STATUS_VALIDATED for unit in units):
         raise ValueError("O merge permanece bloqueado até 100% das unidades estarem validadas.")
-    if job.status == ManualTranslationJob.STATUS_COMPLETED and job.final_artifact_id:
+    if job.status in {
+        ManualTranslationJob.STATUS_COMPLETED,
+        ManualTranslationJob.STATUS_BLOCK_01_COMPLETE,
+    } and job.final_artifact_id:
         return {
             "status": "NO_OP",
             "path": job.final_artifact.relpath,
@@ -976,6 +1014,9 @@ def merge_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
         "schema": "gaiden_chapter_merge_manifest_v1",
         "job_id": job.job_id,
         "source_sha256": job.source_sha256,
+        "source_provenance_reference": f"work:{job.edition.work_id}:source_provenance",
+        "target_language": job.target_language,
+        "translation_mode": job.translation_mode,
         "final_file": job.expected_return_name,
         "final_sha256": digest,
         "size_bytes": len(merged),
@@ -993,6 +1034,10 @@ def merge_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
     }
     _write_atomic(_job_root(job) / "merge-manifest.json", _json_bytes(manifest))
     _write_atomic(_job_root(job) / "validation-report.json", _json_bytes(report))
+    if job.schema_version == JOB_SCHEMA_V3:
+        _write_atomic(_job_root(job) / "translated_body.txt", merged)
+        _write_atomic(_job_root(job) / "translation-manifest.json", _json_bytes(manifest))
+        _write_atomic(_job_root(job) / "qa-report.json", _json_bytes(report))
     target_edition = job.target_edition
     if target_edition is None:
         raise ValueError("O job não possui edição de destino para promoção editorial.")
@@ -1024,12 +1069,22 @@ def merge_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
         job.save(update_fields=["status", "updated_at"])
         _record_event(job, operation="FINAL_QA_VALIDATED", previous_status=previous, new_status=job.status, detail={"final_sha256": digest})
         previous = job.status
-        job.status = ManualTranslationJob.STATUS_COMPLETED
+        job.status = (
+            ManualTranslationJob.STATUS_BLOCK_01_COMPLETE
+            if job.schema_version == JOB_SCHEMA_V3
+            else ManualTranslationJob.STATUS_COMPLETED
+        )
         job.imported_at = timezone.now()
         job.completed_at = timezone.now()
         job.last_error = ""
         job.save(update_fields=["status", "imported_at", "completed_at", "last_error", "updated_at"])
-        _record_event(job, operation="TRANSLATION_COMPLETED", previous_status=previous, new_status=job.status, detail={"final_sha256": digest})
+        _record_event(
+            job,
+            operation=("BLOCK_01_COMPLETED" if job.schema_version == JOB_SCHEMA_V3 else "TRANSLATION_COMPLETED"),
+            previous_status=previous,
+            new_status=job.status,
+            detail={"final_sha256": digest},
+        )
         pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
         pipeline_state.current_stage = PipelineStage.MERGED
         pipeline_state.translation_language = job.target_language
@@ -1039,11 +1094,11 @@ def merge_chapter_returns(job: ManualTranslationJob) -> dict[str, object]:
         pipeline_state.save(
             update_fields=["current_stage", "translation_language", "translated_at", "merged_at", "last_log"]
         )
-    return {"status": "COMPLETED", "path": str(final_path), "sha256": digest, "unit_count": len(units), "manifest": manifest}
+    return {"status": job.status, "path": str(final_path), "sha256": digest, "unit_count": len(units), "manifest": manifest}
 
 
 def job_progress(job: ManualTranslationJob | None) -> dict[str, object]:
-    if job is None or job.schema_version != JOB_SCHEMA_V2:
+    if job is None or job.schema_version not in CHAPTER_JOB_SCHEMAS:
         return {
             "total": 0,
             "exported": 0,

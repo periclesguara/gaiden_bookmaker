@@ -321,6 +321,20 @@
 
   <section class="grid">
     <article class="card">
+      {% if authoritative_block01 %}
+      <h2>Bloco 01 · Miolo traduzido</h2>
+      <div class="status">O fluxo operacional canônico é executado na página pós-Intake:</div>
+      <ol>
+        <li>01 · Normalize — Qwen + JSON</li>
+        <li>02 · Split by Chapter</li>
+        <li>03 · Google Drive</li>
+        <li>04 · Tradução por capítulos</li>
+        <li>05 · Return e Merge</li>
+      </ol>
+      <div class="actions">
+        <a class="btn" href="{{ post_intake_workflow_url }}">Abrir Bloco 01</a>
+      </div>
+      {% else %}
       <h2>Bloco 02 · Core do Sistema</h2>
       <div class="status">Este bloco concentra normalize, fix, chunks, translate, split by chapter, refine e polish.</div>
       <div class="actions">
@@ -545,6 +559,7 @@
           <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
         </form>
       </div>
+      {% endif %}
     </article>
 
     <article class="card" id="transformacao-editorial">

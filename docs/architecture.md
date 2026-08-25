@@ -32,28 +32,32 @@ is read-only: it neither repeats the import nor changes the selected source.
 Each file still requires an explicit preview or POST selection before it enters
 the editorial-production block.
 
-### Chapter translation through Google Drive
+### Block 01 normalization and chapter translation
 
-Long-form manual translation has a versioned v2 path after `heading_clean`.
-`gaiden/application/translation/chapter_splitter.py` owns deterministic,
-byte-preserving unit detection. `pipeline.services.chapter_translation` owns
-Django persistence, transport coordination, return validation, and canonical
-merge. Views only coordinate explicit POST actions and never call Drive or
-Qwen during GET requests.
+New production work uses the versioned Block 01 chain: immutable RAW,
+Qwen block classification under `gaiden_normalize_decision_v2`, deterministic
+`normalized_body.txt`, validated `structure-map.json`, chapter split, Drive
+transport, progressive returns, validation, and canonical merge. The reusable
+normalizer is in `gaiden/application/normalization`; Django persistence and
+artifact publication are coordinated by `pipeline.services.block01_normalize`.
+Views invoke Qwen only from the explicit Normalize POST action.
 
-`ManualTranslationJob` remains the parent identity for both schemas. Existing
-`gaiden_manual_translation_job_v1` rows stay on their monolithic route. V2 rows
-add ordered `TranslationUnit` records and append-only `TranslationJobEvent`
-records. The existing `PipelineArtifact` index records the immutable
-`heading_clean` source and the completed translation; Google Drive is not an
-identity, provenance, or canonical-content store.
+`gaiden/application/translation/chapter_splitter.py` consumes the validated
+Normalize structure map for new jobs and proves that source units reconstruct
+`normalized_body` exactly. `pipeline.services.chapter_translation` retains the
+same persistence, transport, return-validation, and merge boundary. New rows
+use `gaiden_manual_translation_job_v3`; v1 monolithic jobs and v2
+`heading_clean` chapter jobs remain readable and operational without conversion.
+No new v3 flow creates or requires a `heading_clean` artifact.
 
-Only a job whose units are all `VALIDATED` can merge. Promotion to the existing
-editorial pipeline happens after deterministic merge and final validation have
-advanced the job through `MERGED`, `VALIDATED`, and `COMPLETED`. Partial returns
-cannot start frontmatter, preview, EPUB, or PDF production. Operational details
-and rollback constraints are in
-`docs/runbooks/chapter-translation-drive-v2.md`.
+The `PipelineArtifact` index records RAW, normalized body, structure map, and
+the completed translation. Google Drive is transport only. A v3 job advances
+to `BLOCK_01_COMPLETE` only after every unit is validated and the deterministic
+merge has atomically published `translated_body.txt`,
+`translation-manifest.json`, and `qa-report.json`. Frontmatter belongs to Block
+02 and is blocked from the moment Normalize stages v3 provenance until the job
+reaches `BLOCK_01_COMPLETE`. Intake and Normalize do not generate frontmatter. Operational details
+are in `docs/runbooks/block-01-normalize-qwen-v2.md`.
 
 ### Writer engine phase 1
 

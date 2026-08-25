@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import tempfile
 from pathlib import Path
@@ -11,6 +12,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from editorial.models import Contributor, Edition, Language, PipelineArtifact, Seal, Work
+from gaiden.infrastructure import storage
 from pipeline.models import BookEditionTemplate, ManualTranslationJob, TranslationJobEvent, TranslationUnit
 from pipeline.services import chapter_translation, manual_translation
 
@@ -452,6 +454,42 @@ class ChapterTranslationInterfaceTests(TestCase):
         self.heading_path = Path(self.temp.name) / "chunks" / work.code / "heading_cleaner" / "clean.txt"
         self.heading_path.parent.mkdir(parents=True, exist_ok=True)
         self.heading_path.write_text("CHAPTER I\n\nFirst.\n\nCHAPTER II\n\nSecond.\n", encoding="utf-8")
+        normalized_text = self.heading_path.read_text(encoding="utf-8")
+        normalized_path = storage.normalized_body_path(work.code, "en")
+        normalized_path.parent.mkdir(parents=True, exist_ok=True)
+        normalized_path.write_text(normalized_text, encoding="utf-8")
+        digest = hashlib.sha256(normalized_text.encode("utf-8")).hexdigest()
+        storage.normalize_manifest_path(work.code, "en").write_text(
+            json.dumps({"validated": True, "normalized_sha256": digest, "removed_block_count": 0}),
+            encoding="utf-8",
+        )
+        storage.structure_map_path(work.code, "en").write_text(
+            json.dumps(
+                {
+                    "schema": "gaiden_structure_map_v1",
+                    "normalized_sha256": digest,
+                    "validated": True,
+                    "review_required": False,
+                    "structures": [
+                        {
+                            "sequence": 1,
+                            "type": "chapter",
+                            "heading_original": "CHAPTER I",
+                            "start_offset": normalized_text.index("CHAPTER I"),
+                            "end_offset": normalized_text.index("CHAPTER I") + len("CHAPTER I"),
+                        },
+                        {
+                            "sequence": 2,
+                            "type": "chapter",
+                            "heading_original": "CHAPTER II",
+                            "start_offset": normalized_text.index("CHAPTER II"),
+                            "end_offset": normalized_text.index("CHAPTER II") + len("CHAPTER II"),
+                        },
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
         self.client = Client()
         self.page_url = reverse("post_intake_workflow", kwargs={"edition_id": self.edition.id})
 
@@ -463,10 +501,10 @@ class ChapterTranslationInterfaceTests(TestCase):
     ):
         response = self.client.get(self.page_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "02.5 · Split por capítulos")
-        self.assertContains(response, "Separar por capítulos")
+        self.assertContains(response, "02 · Split by Chapter")
+        self.assertContains(response, "02 · Separar e validar capítulos")
         self.assertContains(response, "SHA-256")
-        self.assertContains(response, "Valide primeiro a etapa 02.5")
+        self.assertContains(response, "Valide primeiro a etapa 02")
         export_job.assert_not_called()
         discover_returns.assert_not_called()
         qwen_detector.assert_not_called()
@@ -479,7 +517,7 @@ class ChapterTranslationInterfaceTests(TestCase):
         self.assertEqual(response.status_code, 302)
         job = ManualTranslationJob.objects.get(edition=self.edition, target_language="en_us")
         page = self.client.get(response.url)
-        self.assertEqual(job.schema_version, chapter_translation.JOB_SCHEMA_V2)
+        self.assertEqual(job.schema_version, chapter_translation.JOB_SCHEMA_V3)
         self.assertEqual(job.units.count(), 2)
         self.assertContains(page, "03 · Criar job por capítulos no Google Drive")
         self.assertContains(page, "0001__chapter_01.txt")
@@ -519,7 +557,7 @@ class ChapterTranslationInterfaceTests(TestCase):
         )
         response = self.client.get(self.page_url)
         self.assertContains(response, "Compatibilidade v1")
-        self.assertContains(response, "Buscar e importar miolo do Drive")
+        self.assertContains(response, "Buscar e importar miolo legado")
         self.assertNotContains(response, "Verificar retornos")
 
     @patch("pipeline.views.manual_translation.export_job")
@@ -578,11 +616,13 @@ class ChapterTranslationInterfaceTests(TestCase):
     @patch("pipeline.views.detect_chapter_boundaries")
     def test_qwen_fallback_runs_only_on_explicit_post_and_is_revalidated(self, detector):
         self.heading_path.write_text("Opening without deterministic headings.\n", encoding="utf-8")
-        self.client.post(
-            reverse("chapter_translation_split", kwargs={"edition_id": self.edition.id}),
-            {"target_language": "en_us", "translation_mode": "modernize_2026"},
+        job = chapter_translation.prepare_chapter_job(
+            edition=self.edition,
+            target_edition=self.edition,
+            target_language="en_us",
+            translation_mode="modernize_2026",
+            source_path=self.heading_path,
         )
-        job = ManualTranslationJob.objects.get(edition=self.edition, target_language="en_us")
         self.assertEqual(job.status, ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED)
         get_response = self.client.get(
             reverse("chapter_translation_split_qwen", kwargs={"job_id": job.id})

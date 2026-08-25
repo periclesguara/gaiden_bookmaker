@@ -89,6 +89,22 @@ def normalized_path(book_code: str, language: str) -> Path:
     return data_dir() / "normalized" / f"{book_code}_{language}_v2.txt"
 
 
+def block01_normalize_dir(book_code: str, language: str) -> Path:
+    return data_dir() / "normalized" / book_code / language
+
+
+def normalized_body_path(book_code: str, language: str) -> Path:
+    return block01_normalize_dir(book_code, language) / "normalized_body.txt"
+
+
+def normalize_manifest_path(book_code: str, language: str) -> Path:
+    return block01_normalize_dir(book_code, language) / "normalize-manifest.json"
+
+
+def structure_map_path(book_code: str, language: str) -> Path:
+    return block01_normalize_dir(book_code, language) / "structure-map.json"
+
+
 def chunks_dir(book_code: str | None = None, stage: str | None = None) -> Path:
     path = data_dir() / "chunks"
     if book_code:
