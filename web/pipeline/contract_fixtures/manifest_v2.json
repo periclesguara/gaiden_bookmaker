@@ -65,6 +65,13 @@
     "currency": "BRL",
     "hotmart_url": "",
     "lulu_url": "",
+    "sales_channels": [],
+    "availability": {
+      "status": "NOT_ATTACHED",
+      "label": "E-book não anexado",
+      "ebook_attached": false,
+      "active_sales_channels": []
+    },
     "edition_number": 1,
     "publication_year": 2026,
     "original_language": "grc",
