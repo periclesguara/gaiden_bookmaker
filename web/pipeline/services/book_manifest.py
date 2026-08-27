@@ -10,6 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.text import slugify
 
 from editorial.services.metadata import price_cents, rights_statement
+from editorial.storefront_availability import derive_storefront_availability, normalize_sales_channels
 from . import edition_meta, paths, text_source
 
 
@@ -89,10 +90,14 @@ def _edition_metadata(edition):
         return None
 
 
-def _legacy_storefront(edition) -> dict[str, Any]:
+def _legacy_storefront(edition, *, ebook_attached: bool) -> dict[str, Any]:
     title = (getattr(edition, "title", "") or "").strip() or edition.work.title
     author = (getattr(edition, "author", "") or "").strip() or edition.work.author.name
     author_parts = author.split(maxsplit=1)
+    availability_status = "COMING_SOON" if ebook_attached else "NOT_ATTACHED"
+    availability_label = (
+        "Lançamento em breve" if ebook_attached else "E-book não anexado"
+    )
     return {
         "slug": slugify(f"{title}-{edition_meta.language_code(edition)}"),
         "title": title,
@@ -119,10 +124,22 @@ def _legacy_storefront(edition) -> dict[str, Any]:
         "currency": (getattr(edition, "currency", "") or "BRL").strip().upper(),
         "hotmart_url": "",
         "lulu_url": "",
+        "sales_channels": [],
+        "availability": {
+            "status": availability_status,
+            "label": availability_label,
+            "ebook_attached": ebook_attached,
+            "active_sales_channels": [],
+        },
     }
 
 
-def _canonical_storefront(metadata) -> dict[str, Any]:
+def _canonical_storefront(metadata, *, ebook_attached: bool) -> dict[str, Any]:
+    channels = normalize_sales_channels(metadata)
+    availability = derive_storefront_availability(
+        metadata,
+        ebook_attached=ebook_attached,
+    )
     return {
         "slug": metadata.slug or "",
         "title": metadata.commercial_title,
@@ -149,6 +166,13 @@ def _canonical_storefront(metadata) -> dict[str, Any]:
         "currency": metadata.currency,
         "hotmart_url": metadata.hotmart_url,
         "lulu_url": metadata.lulu_url,
+        "sales_channels": channels,
+        "availability": {
+            "status": availability.status,
+            "label": availability.label,
+            "ebook_attached": availability.ebook_attached,
+            "active_sales_channels": list(availability.active_sales_channels),
+        },
         "edition_number": metadata.edition_number,
         "publication_year": metadata.publication_year,
         "original_language": metadata.original_language,
@@ -219,6 +243,7 @@ def build_manifest(
         pdf=_safe_path(paths.pdf_path(effective)),
         epubcheck_status=epubcheck_status,
     )
+    ebook_attached = bool(export_info.epub)
 
     export_date = datetime.now(timezone.utc).isoformat(timespec="seconds").replace(
         "+00:00", "Z"
@@ -257,9 +282,9 @@ def build_manifest(
         status="DRAFT",
         contract_version=2,
         storefront=(
-            _canonical_storefront(metadata)
+            _canonical_storefront(metadata, ebook_attached=ebook_attached)
             if metadata
-            else _legacy_storefront(effective)
+            else _legacy_storefront(effective, ebook_attached=ebook_attached)
         ),
     )
 
