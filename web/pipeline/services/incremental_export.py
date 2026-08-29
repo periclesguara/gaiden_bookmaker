@@ -62,6 +62,7 @@ class RclonePublisher:
         if not RCLONE_DESTINATION_RE.fullmatch(destination) or "\n" in destination:
             raise ValueError("Destino rclone inválido.")
         self.destination = destination.rstrip("/")
+        self._lsjson_stat_supported: bool | None = None
 
     def _remote(self, relative_path: str) -> str:
         return f"{self.destination}/{_safe_relative_path(relative_path)}"
@@ -108,6 +109,111 @@ class RclonePublisher:
                     stderr=subprocess.DEVNULL,
                     check=False,
                 )
+
+    def publish_tree(self, files: dict[str, bytes]) -> dict[str, dict[str, object]]:
+        if not files:
+            return {}
+        with tempfile.TemporaryDirectory(prefix="gaiden-drive-tree-") as temp_name:
+            local_root = Path(temp_name)
+            for relative_path, data in files.items():
+                safe_path = _safe_relative_path(relative_path)
+                target = (local_root / safe_path).resolve()
+                target.relative_to(local_root.resolve())
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+            try:
+                self._run(
+                    "copy",
+                    str(local_root),
+                    self.destination,
+                    "--immutable",
+                    "--size-only",
+                )
+            except OSError as exc:
+                if re.search(r"immutable|modified.*destination", str(exc), re.IGNORECASE):
+                    raise FileExistsError("O Drive contém arquivo divergente no lote.") from exc
+                raise
+            self._run(
+                "check",
+                str(local_root),
+                self.destination,
+                "--one-way",
+                "--download",
+            )
+            payload = json.loads(
+                self._run("lsjson", self.destination, "--files-only", "-R") or b"[]"
+            )
+        if not isinstance(payload, list):
+            raise OSError("Resposta inesperada ao indexar o lote no Drive.")
+        indexed = {
+            str(row.get("Path") or row.get("Name") or ""): row
+            for row in payload
+            if isinstance(row, dict)
+        }
+        missing = sorted(set(files) - set(indexed))
+        if missing:
+            raise OSError(f"O Drive não confirmou {len(missing)} arquivo(s) do lote.")
+        return {relative_path: indexed[relative_path] for relative_path in files}
+
+    def ensure_directory(self, relative_directory: str = "") -> None:
+        remote = self.destination if not relative_directory else self._remote(relative_directory)
+        self._run("mkdir", remote)
+
+    def read_bytes(self, relative_path: str) -> bytes:
+        return self._run("cat", self._remote(relative_path))
+
+    def stat(self, relative_path: str) -> dict[str, object] | None:
+        remote = self.destination if not relative_path else self._remote(relative_path)
+        if self._lsjson_stat_supported is not False:
+            completed = subprocess.run(
+                ["rclone", "lsjson", remote, "--stat"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            if completed.returncode == 0:
+                self._lsjson_stat_supported = True
+                payload = json.loads(completed.stdout or b"null")
+                return payload if isinstance(payload, dict) else None
+            detail = completed.stderr.decode("utf-8", errors="replace").strip()
+            if re.search(r"unknown flag.*--stat", detail, re.IGNORECASE):
+                self._lsjson_stat_supported = False
+            elif re.search(r"not found|directory not found|object not found", detail, re.IGNORECASE):
+                return None
+            else:
+                raise OSError(f"rclone falhou (lsjson --stat): {detail}")
+
+        remote_name, remote_path = remote.split(":", 1)
+        normalized_path = remote_path.strip("/")
+        if not normalized_path:
+            return {"Name": "", "Path": "", "IsDir": True}
+        parent_path, _, basename = normalized_path.rpartition("/")
+        parent_remote = f"{remote_name}:{parent_path}"
+        completed = subprocess.run(
+            ["rclone", "lsjson", parent_remote],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if completed.returncode:
+            detail = completed.stderr.decode("utf-8", errors="replace").strip()
+            if re.search(r"not found|directory not found|object not found", detail, re.IGNORECASE):
+                return None
+            raise OSError(f"rclone falhou (lsjson compatível): {detail}")
+        payload = json.loads(completed.stdout or b"[]")
+        if not isinstance(payload, list):
+            raise OSError("Resposta inesperada ao consultar item do Drive.")
+        return next(
+            (row for row in payload if isinstance(row, dict) and row.get("Name") == basename),
+            None,
+        )
+
+    def list_files(self, relative_directory: str) -> list[dict[str, object]]:
+        remote = self._remote(relative_directory)
+        payload = json.loads(self._run("lsjson", remote, "--files-only") or b"[]")
+        if not isinstance(payload, list):
+            raise OSError("Resposta inesperada ao listar arquivos do Drive.")
+        return [row for row in payload if isinstance(row, dict)]
 
 
 def publisher_for(destination: str | Path) -> Publisher:

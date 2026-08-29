@@ -28,6 +28,7 @@ from django.utils.text import slugify
 from editorial.models import (
     Contributor,
     EditionBuild,
+    EditionBuildAuditEvent,
     Edition as EditorialEdition,
     EditionPipeline,
     EditionText,
@@ -38,7 +39,7 @@ from editorial.models import (
 )
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
-from editorial.edition_renderer import invalidate_premium_render
+from editorial.edition_renderer import EditionRenderer, invalidate_premium_render
 from gaiden.application.pipeline import ingest as pipeline_ingest
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
@@ -46,9 +47,17 @@ from gaiden.application.pipeline.translation import (
 )
 from gaiden.application.pipeline.gates import preflight_gate as resolve_preflight_gate
 from gaiden.application.pipeline.status import resolve_block_status_map
+from gaiden.application.builds.final_epub_import import (
+    FinalEpubImportError,
+    import_final_epub,
+    invalidate_epubcheck_for_changed_artifact,
+    revalidate_registered_final_build,
+)
+from gaiden.application.builds.epubcheck_service import stream_sha256
 from gaiden.application.builds.finalized_projects import mark_build_outdated
 from gaiden.infrastructure import storage
 from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
+from gaiden.infrastructure.qwen_chapter_detection import detect_chapter_boundaries
 
 from .models import (
     BookEditionTemplate,
@@ -57,6 +66,7 @@ from .models import (
     EDITORIAL_LANGUAGES,
     IncrementalEdition,
     IntakeAuditEvent,
+    IntakeBatch,
     IntakeItem,
     ManualTranslationJob,
     ProductionBookmark,
@@ -74,6 +84,7 @@ except ImportError:
 from .forms import (
     BookEditionTemplateForm,
     BookSourceUploadForm,
+    ChapterTranslationSplitForm,
     ManualTranslationUploadForm,
     normalize_book_code_input,
 )
@@ -81,6 +92,7 @@ from .services import (
     book_manifest,
     build_book,
     chapter_agent,
+    chapter_translation,
     canonical_merge,
     core_docker,
     editorial_split,
@@ -1140,17 +1152,16 @@ def _registration_status_label(template: BookEditionTemplate | None) -> str:
     return dict(BookEditionTemplate.REGISTRATION_STATUS_CHOICES).get(template.registration_status, template.registration_status)
 
 
-def _imported_book_rows() -> list[dict[str, object]]:
+def _imported_book_rows(*, batch_code: str = "") -> list[dict[str, object]]:
     ensure_bookeditiontemplate_runtime_columns()
-    items = list(
+    item_query = (
         IntakeItem.objects.select_related("batch")
-        .filter(
-            batch__source="GOOGLE_DRIVE",
-            status="REGISTERED",
-        )
+        .filter(batch__source="GOOGLE_DRIVE", status="REGISTERED")
         .exclude(canonical_path="")
-        .order_by("book_code", "source_language", "id")
     )
+    if batch_code:
+        item_query = item_query.filter(batch__batch_code=batch_code)
+    items = list(item_query.order_by("book_code", "source_language", "id"))
     templates = {
         (row.book_code, utils.normalize_lang(row.language)): row
         for row in BookEditionTemplate.objects.filter(
@@ -1163,6 +1174,10 @@ def _imported_book_rows() -> list[dict[str, object]]:
             work__code__in=[item.book_code for item in items]
         )
     }
+    pipeline_states = {
+        row.edition_id: row
+        for row in EditionPipeline.objects.filter(edition_id__in=[edition.id for edition in editions.values()])
+    }
     supported_extensions = pipeline_ingest.source_extract_supported_extensions()
     rows: list[dict[str, object]] = []
     for item in items:
@@ -1172,6 +1187,16 @@ def _imported_book_rows() -> list[dict[str, object]]:
         source_info = _existing_source_info(template, edition)
         extension_supported = item.extension.lower() in supported_extensions
         ready = bool(edition and source_info["path"] and source_info["exists"])
+        pipeline_state = pipeline_states.get(edition.id) if edition else None
+        if ready:
+            stage_label = pipeline_state.get_current_stage_display() if pipeline_state else "Fonte preparada"
+            stage_code = pipeline_state.current_stage if pipeline_state else "SOURCE_EXTRACTED"
+        elif edition:
+            stage_label = "Cadastro existente · fonte ainda não preparada"
+            stage_code = "INTAKE_REGISTERED"
+        else:
+            stage_label = "Intake concluído · aguardando envio"
+            stage_code = "INTAKE_REGISTERED"
         rows.append(
             {
                 "item": item,
@@ -1185,7 +1210,9 @@ def _imported_book_rows() -> list[dict[str, object]]:
                 "extension_supported": extension_supported,
                 "ready": ready,
                 "edition": edition,
-                "action_label": "Abrir produção" if ready else "Editar",
+                "stage_label": stage_label,
+                "stage_code": stage_code,
+                "action_label": "Abrir bloco de edição" if ready else "Enviar ao bloco de edição",
             }
         )
     return rows
@@ -1194,10 +1221,75 @@ def _imported_book_rows() -> list[dict[str, object]]:
 def imported_book_list(request):
     if request.method != "GET":
         return redirect("imported_book_list")
+    batch_code = (request.GET.get("batch") or "").strip()
+    selected_batch = None
+    if batch_code:
+        selected_batch = IntakeBatch.objects.filter(
+            batch_code=batch_code,
+            source="GOOGLE_DRIVE",
+        ).first()
     return render(
         request,
         "pipeline/imported_book_list.html",
-        {"imported_books": _imported_book_rows()},
+        {
+            "imported_books": _imported_book_rows(batch_code=batch_code),
+            "selected_batch": selected_batch,
+            "selected_batch_code": batch_code,
+        },
+    )
+
+
+def imported_book_preview(request, item_id: int):
+    if request.method != "GET":
+        return redirect("imported_book_list")
+    item = get_object_or_404(
+        IntakeItem.objects.select_related("batch"),
+        pk=item_id,
+        batch__source="GOOGLE_DRIVE",
+        status="REGISTERED",
+    )
+    try:
+        extension = item.extension.lower()
+        if extension not in pipeline_ingest.source_extract_supported_extensions():
+            raise ValueError(f"Formato {extension or '(sem extensão)'} não possui prévia de leitura.")
+        if not item.sha256 or not item.canonical_path:
+            raise ValueError("O item importado não possui origem canônica com SHA-256.")
+        drive_storage = RcloneDriveStorage(remote=item.batch.remote)
+        with drive_storage.staging_directory() as staging_name:
+            staged_path = Path(staging_name) / f"{item.book_code}{extension}"
+            drive_storage.download_imported_to(item.canonical_path, staged_path)
+            downloaded_sha256 = hashlib.sha256(staged_path.read_bytes()).hexdigest()
+            if downloaded_sha256 != item.sha256:
+                raise ValueError("O SHA-256 do arquivo importado diverge do registro do Intake.")
+            preview = pipeline_ingest.build_reading_preview(staged_path)
+    except (DrivePathError, DriveStorageError, OSError, ValueError) as exc:
+        messages.error(request, f"Não foi possível abrir a prévia de {item.book_code}: {exc}")
+        return redirect(f"{reverse('imported_book_list')}?batch={item.batch.batch_code}")
+
+    edition = (
+        EditorialEdition.objects.select_related("work", "language")
+        .filter(work__code=item.book_code, language__code=utils.normalize_lang(item.source_language))
+        .first()
+    )
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first() if edition else None
+    if pipeline_state:
+        stage_label = pipeline_state.get_current_stage_display()
+        stage_code = pipeline_state.current_stage
+    elif edition:
+        stage_label = "Cadastro existente · fonte ainda não preparada"
+        stage_code = "INTAKE_REGISTERED"
+    else:
+        stage_label = "Intake concluído · aguardando envio"
+        stage_code = "INTAKE_REGISTERED"
+    return render(
+        request,
+        "pipeline/imported_book_preview.html",
+        {
+            "item": item,
+            "preview": preview,
+            "stage_label": stage_label,
+            "stage_code": stage_code,
+        },
     )
 
 
@@ -1499,11 +1591,18 @@ def download_final_build(request, build_id: int):
     if not build.qualifies_as_done:
         from editorial.models import EditionBuildAuditEvent
 
+        errors = build.integrity_errors()
+        invalidate_epubcheck_for_changed_artifact(
+            build,
+            actor=str(request.user) if request.user.is_authenticated else "anonymous",
+            reason="; ".join(errors),
+        )
+
         EditionBuildAuditEvent.objects.create(
             build=build,
             event_type="FINAL_ARTIFACT_DOWNLOAD_INTEGRITY_FAILED",
             actor=str(request.user) if request.user.is_authenticated else "anonymous",
-            details={"errors": build.integrity_errors(), "artifact_sha256": build.artifact_sha256},
+            details={"errors": errors, "artifact_sha256": build.artifact_sha256},
         )
         raise Http404("Final EPUB is not approved for download.")
     candidate = EditionBuild._safe_existing_path(build.epub_path, require_epub=True)
@@ -1570,8 +1669,79 @@ def post_intake_workflow(request, edition_id: int):
         if target_edition else None
     )
     build_dir = paths.edition_build_dir(target_edition) if target_edition else None
+    target_pipeline_state = (
+        EditionPipeline.objects.filter(edition=target_edition).first()
+        if target_edition else None
+    )
+    cover_preview_url = ""
+    if target_edition and target_edition.cover_filepath:
+        try:
+            cover_path = _safe_project_file(target_edition.cover_filepath)
+            cover_preview_url = (
+                f"{reverse('pipeline_edition_cover', kwargs={'edition_id': target_edition.id})}"
+                f"?{urlencode({'v': cover_path.stat().st_mtime_ns})}"
+            )
+        except Http404:
+            cover_preview_url = ""
+    gallery_images = []
+    if target_edition:
+        gallery_dir = _images_dir_for_edition(target_edition, target_pipeline_state)
+        for image_path in md_transform.list_available_images(gallery_dir):
+            gallery_images.append(
+                {
+                    "name": image_path.name,
+                    "url": reverse(
+                        "pipeline_edition_gallery_image",
+                        kwargs={"edition_id": target_edition.id, "filename": image_path.name},
+                    ),
+                }
+            )
+    premium_preview_url = ""
+    epub_download_url = ""
+    premium_preview_approved = False
+    epub_outdated = False
+    epub_exists = False
+    final_build = None
+    epub_final_ready = False
+    if target_edition:
+        premium_preview_url = (
+            f"{reverse('premium_epub_preview', kwargs={'edition_id': target_edition.id})}"
+            f"?{urlencode({'return_to': 'post_intake', 'workflow_edition_id': edition.id, 'target': selected_target})}"
+        )
+        renderer = EditionRenderer(target_edition)
+        premium_preview_approved = renderer.preview_is_approved()
+        final_build = next(
+            (
+                build
+                for build in EditionBuild.objects.filter(
+                    edition=target_edition,
+                    status=EditionBuild.STATUS_DONE,
+                    is_final=True,
+                ).order_by("-build_version", "-created_at")
+                if build.qualifies_as_done
+            ),
+            None,
+        )
+        latest_epub = Path(final_build.epub_path) if final_build else None
+        epub_exists = bool(latest_epub and renderer.epub_matches_preview(latest_epub))
+        epub_outdated = bool(final_build and not epub_exists)
+        epub_final_ready = bool(final_build)
+        if final_build and epub_exists:
+            epub_download_url = reverse("final_build_download", kwargs={"build_id": final_build.id})
     normalized_path = _normalized_v2_path(edition.work.code, edition.language.code)
     heading_path = heading_cleaner.clean_path_for_book_code(edition.work.code)
+    heading_sha256 = hashlib.sha256(heading_path.read_bytes()).hexdigest() if heading_path.is_file() else ""
+    chapter_job = job if job and job.schema_version == chapter_translation.JOB_SCHEMA_V2 else None
+    legacy_job = job if job and job.schema_version != chapter_translation.JOB_SCHEMA_V2 else None
+    chapter_progress = chapter_translation.job_progress(chapter_job)
+    chapter_units = list(chapter_job.units.order_by("sequence")) if chapter_job else []
+    translation_ready = bool(
+        job
+        and (
+            job.status == ManualTranslationJob.STATUS_IMPORTED
+            or job.status == ManualTranslationJob.STATUS_COMPLETED
+        )
+    )
     return render(
         request,
         "pipeline/post_intake_workflow.html",
@@ -1584,27 +1754,250 @@ def post_intake_workflow(request, edition_id: int):
             "normalize_done": normalized_path.exists(),
             "heading_path": heading_path,
             "heading_done": heading_path.exists(),
+            "heading_sha256": heading_sha256,
             "translation_options": TRANSLATE_VARIANT_OPTIONS,
             "selected_target": selected_target,
             "selected_target_label": _translate_variant_label(selected_target),
             "jobs": jobs,
             "job": job,
-            "translation_imported": bool(job and job.status == ManualTranslationJob.STATUS_IMPORTED),
+            "chapter_job": chapter_job,
+            "legacy_job": legacy_job,
+            "chapter_progress": chapter_progress,
+            "chapter_units": chapter_units,
+            "chapter_prelim_count": sum(
+                unit.unit_type
+                in {
+                    "preliminaries",
+                    "preface",
+                    "introduction",
+                    "epilogue",
+                    "appendix",
+                }
+                for unit in chapter_units
+            ),
+            "chapter_oversized_count": sum(
+                unit.unit_type == "oversized_chapter_part" for unit in chapter_units
+            ),
+            "chapter_split_validated": bool(
+                chapter_job
+                and chapter_job.status
+                not in {
+                    ManualTranslationJob.STATUS_SPLIT_PENDING,
+                    ManualTranslationJob.STATUS_SPLITTING,
+                    ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED,
+                }
+            ),
+            "translation_imported": translation_ready,
+            "chapter_split_form": ChapterTranslationSplitForm(
+                initial={
+                    "target_language": selected_target,
+                    "translation_mode": (
+                        ManualTranslationJob.MODE_MODERNIZE_2026
+                        if selected_target == "en_us"
+                        else ManualTranslationJob.MODE_TRANSLATE
+                    ),
+                }
+            ),
             "translation_upload_form": ManualTranslationUploadForm(),
             "target_edition": target_edition,
             "target_template": target_template,
             "target_base": target_base,
             "frontmatter_url": (
-                reverse("frontmatter_template_edit", kwargs={"book_code": edition.work.code, "language": target_base})
+                f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': target_base})}"
+                f"?{urlencode({'return_to': 'post_intake', 'workflow_edition_id': edition.id, 'target': selected_target})}"
                 if target_template else ""
             ),
             "pre_qa_exists": bool(build_dir and any(build_dir.glob("BOOK.PRE_QA*.md"))),
             "final_md_exists": bool(build_dir and (build_dir / "BOOK.MD_FINAL").exists()),
-            "epub_exists": bool(build_dir and any(build_dir.glob("*.epub"))),
+            "epub_exists": epub_exists,
+            "epub_outdated": epub_outdated,
+            "epub_final_ready": epub_final_ready,
+            "final_build": final_build,
             "pdf_exists": bool(build_dir and any(build_dir.glob("*.pdf"))),
             "cover_ready": bool(target_edition and target_edition.cover_filepath),
+            "cover_preview_url": cover_preview_url,
+            "gallery_images": gallery_images,
+            "gallery_count": len(gallery_images),
+            "premium_preview_url": premium_preview_url,
+            "premium_preview_approved": premium_preview_approved,
+            "epub_download_url": epub_download_url,
         },
     )
+
+
+def chapter_translation_split(request, edition_id: int):
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related("work__author", "language"),
+        id=edition_id,
+    )
+    if request.method != "POST":
+        return redirect("post_intake_workflow", edition_id=edition.id)
+    form = ChapterTranslationSplitForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "; ".join(form.non_field_errors()) or "Configuração de split inválida.")
+        return redirect(_post_intake_url(edition.id, request.POST.get("target_language") or "en_us"))
+    target_language = form.cleaned_data["target_language"]
+    try:
+        target_edition = _ensure_manual_target_edition(edition, target_language)
+        job = chapter_translation.prepare_chapter_job(
+            edition=edition,
+            target_edition=target_edition,
+            target_language=target_language,
+            translation_mode=form.cleaned_data["translation_mode"],
+            source_path=heading_cleaner.clean_path_for_book_code(edition.work.code),
+            force=bool(form.cleaned_data["force"]),
+            replace_legacy=bool(form.cleaned_data["replace_legacy"]),
+        )
+        if job.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
+            messages.success(request, f"Split validado com {job.units.count()} unidades.")
+        else:
+            messages.warning(request, "O split requer revisão antes da exportação ao Drive.")
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(edition.id, target_language))
+
+
+def chapter_translation_split_qwen(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work__author", "edition__language", "target_edition"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.status != ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED:
+        messages.error(request, "O fallback Qwen só pode ser executado para um split que requer revisão.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        updated = chapter_translation.prepare_chapter_job(
+            edition=job.edition,
+            target_edition=job.target_edition,
+            target_language=job.target_language,
+            translation_mode=job.translation_mode,
+            source_path=Path(job.source_path),
+            force=True,
+            qwen_detector=detect_chapter_boundaries,
+        )
+        if updated.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
+            messages.success(request, "Sugestões Qwen validadas contra offsets e SHA-256 do fonte.")
+        else:
+            messages.warning(request, "As sugestões Qwen continuam exigindo revisão; nada foi exportado.")
+    except (OSError, RuntimeError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_export(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work__author", "source_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    try:
+        result = chapter_translation.export_chapter_job(job)
+        if result["status"] == "NO_OP":
+            messages.info(request, "O job por capítulos já estava publicado com os mesmos hashes.")
+        else:
+            messages.success(request, f"{result['unit_count']} unidades publicadas no Google Drive.")
+    except (FileExistsError, OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_check_returns(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    messages.error(request, "A etapa 4 usa somente a importação do manuscrito consolidado.")
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_validate_returns(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    messages.error(request, "A etapa 4 usa somente a importação do manuscrito consolidado.")
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_import_consolidated(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work", "target_edition"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    form = ManualTranslationUploadForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, "Selecione um arquivo consolidado TXT ou Markdown válido.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    uploaded = form.cleaned_data["translated_file"]
+    try:
+        result = chapter_translation.import_consolidated_translation(
+            job,
+            b"".join(uploaded.chunks()),
+            source_label=f"upload:{uploaded.name}",
+        )
+        messages.success(request, f"Manuscrito consolidado importado: SHA-256 {result['sha256']}")
+    except (OSError, ValueError) as exc:
+        messages.error(request, str(exc))
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_merge(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("edition__work", "target_edition", "final_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+    )
+    if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    messages.error(request, "A etapa 4 usa somente a importação do manuscrito consolidado.")
+    return redirect(_post_intake_url(job.edition_id, job.target_language))
+
+
+def chapter_translation_report(request, job_id: int):
+    job = get_object_or_404(ManualTranslationJob, id=job_id, schema_version=chapter_translation.JOB_SCHEMA_V2)
+    if request.method != "GET":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    payload = {
+        "schema": chapter_translation.REPORT_SCHEMA,
+        "job_id": job.job_id,
+        "status": job.status,
+        "source_sha256": job.source_sha256,
+        "final_sha256": job.final_sha256,
+        "split_manifest": job.split_manifest,
+        "validation_report": job.validation_report,
+    }
+    response = HttpResponse(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        content_type="application/json",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{job.job_id}_report.json"'
+    return response
+
+
+def chapter_translation_final_download(request, job_id: int):
+    job = get_object_or_404(
+        ManualTranslationJob.objects.select_related("final_artifact"),
+        id=job_id,
+        schema_version=chapter_translation.JOB_SCHEMA_V2,
+        status=ManualTranslationJob.STATUS_COMPLETED,
+    )
+    if request.method != "GET" or not job.return_source:
+        raise Http404
+    path = Path(job.return_source).resolve()
+    try:
+        path.relative_to(storage.data_dir().resolve())
+    except ValueError as exc:
+        raise Http404 from exc
+    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != job.final_sha256:
+        raise Http404
+    return FileResponse(path.open("rb"), as_attachment=True, filename=job.expected_return_name)
+
 
 
 def manual_translation_export(request, edition_id: int):
@@ -1619,6 +2012,12 @@ def manual_translation_export(request, edition_id: int):
         edition=edition,
         target_language=target_language,
     ).first()
+    if existing_job is not None and existing_job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(
+            request,
+            "Este idioma usa um job v2 por capítulos; utilize a ação de exportação da etapa 03.",
+        )
+        return redirect(_post_intake_url(edition.id, target_language))
     if existing_job is not None and request.POST.get("confirm_replace") != "1":
         messages.warning(
             request,
@@ -1747,6 +2146,9 @@ def manual_translation_import_drive(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(request, "Jobs v2 devem usar a verificação de retornos por capítulo.")
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
         returned = manual_translation.read_drive_return(job.drive_path)
         _register_manual_translation_return(job, returned["data"], str(returned["remote_path"]))
@@ -1762,6 +2164,9 @@ def manual_translation_import_drive(request, job_id: int):
 def manual_translation_import_upload(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
     if request.method != "POST":
+        return redirect(_post_intake_url(job.edition_id, job.target_language))
+    if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
+        messages.error(request, "Jobs v2 não aceitam retorno monolítico; use return/chapters no Drive.")
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     form = ManualTranslationUploadForm(request.POST, request.FILES)
     if not form.is_valid():
@@ -3036,10 +3441,24 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
             texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
         return out_path, "html_source_md"
 
+    if texts.normalized_path:
+        prev = _resolve_project_path(texts.normalized_path)
+        if prev.exists():
+            normalized_text = prev.read_text(encoding="utf-8")
+            if prev.resolve() != out_path.resolve() or not out_path.exists():
+                out_path.write_text(normalized_text, encoding="utf-8")
+            if texts.normalized_text != normalized_text or texts.normalized_path != str(out_path):
+                texts.normalized_text = normalized_text
+                texts.normalized_path = str(out_path)
+                texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
+            return out_path, "edition_text.normalized_path"
+
     if out_path.exists():
-        if texts.normalized_path != str(out_path):
+        normalized_text = out_path.read_text(encoding="utf-8")
+        if texts.normalized_text != normalized_text or texts.normalized_path != str(out_path):
+            texts.normalized_text = normalized_text
             texts.normalized_path = str(out_path)
-            texts.save(update_fields=["normalized_path", "updated_at"])
+            texts.save(update_fields=["normalized_text", "normalized_path", "updated_at"])
         return out_path, "normalized_v2"
 
     if texts.normalized_text:
@@ -3047,14 +3466,6 @@ def _ensure_normalized_v2_for_heading_cleaner(core_edition) -> tuple[Path, str]:
         texts.normalized_path = str(out_path)
         texts.save(update_fields=["normalized_path", "updated_at"])
         return out_path, "edition_text.normalized_text"
-
-    if texts.normalized_path:
-        prev = _resolve_project_path(texts.normalized_path)
-        if prev.exists():
-            out_path.write_text(prev.read_text(encoding="utf-8"), encoding="utf-8")
-            texts.normalized_path = str(out_path)
-            texts.save(update_fields=["normalized_path", "updated_at"])
-            return out_path, "edition_text.normalized_path"
 
     raw_path_str = (texts.raw_path or "").strip() or (core_edition.raw_source_path or "").strip()
     if not raw_path_str:
@@ -5008,6 +5419,7 @@ def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[
     outputs: list[Path] = []
     skipped_cover = 0
     used_names = {p.name for p in target_dir.glob("*.jpg")}
+    uploaded_names: set[str] = set()
     for uploaded in files:
         if not uploaded:
             continue
@@ -5015,7 +5427,13 @@ def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[
             skipped_cover += 1
             continue
         stem = _normalize_uploaded_image_stem(getattr(uploaded, "name", ""))
-        out_name = _unique_jpg_name(stem, used_names)
+        preferred_name = f"{stem}.jpg"
+        if preferred_name not in uploaded_names:
+            out_name = preferred_name
+            used_names.add(out_name)
+        else:
+            out_name = _unique_jpg_name(stem, used_names)
+        uploaded_names.add(out_name)
         out_path = target_dir / out_name
         try:
             with Image.open(uploaded) as img:
@@ -5322,8 +5740,6 @@ def edition_steps(request, edition_id: int):
 
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             images_dir = _images_dir_for_edition(edition, pipeline_state)
-            if images_dir.exists():
-                shutil.rmtree(images_dir)
             images_dir.mkdir(parents=True, exist_ok=True)
 
             try:
@@ -6857,57 +7273,56 @@ def run_edition_step(request, edition_id: int, step: str):
             target_edition = _target_edition()
             _assert_block_04_ready(target_edition)
             epub_output = kdp_mode.build_epub_for_edition(target_edition)
-            result = {"path": str(epub_output)}
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            if pipeline_state.miolo_md_at is None:
-                pipeline_state.miolo_md_at = timezone.now()
-            if pipeline_state.final_md_at:
-                pipeline_state.current_stage = PipelineStage.DONE
-            pipeline_state.editorial_changed = False
-            pipeline_state.build_outdated = False
-            pipeline_state.last_built_at = timezone.now()
-            _set_pipeline_last_version(pipeline_state, epub_output)
-            pipeline_state.last_log = ""
-            pipeline_state.save(update_fields=[
-                "miolo_md_at",
-                "editorial_changed",
-                "build_outdated",
-                "last_built_at",
-                "current_stage",
-                "last_version_path",
-                "last_version_filename",
-                "last_log",
-            ])
-            _record_build_history(
-                target_edition,
-                language_code=utils.normalize_lang(_target_lang()),
-                epub_path=epub_output,
-                notes="EPUB gerado a partir do bloco 04.",
+            final = import_final_epub(
+                edition_id=target_edition.id,
+                locale=_target_lang().replace("_", "-"),
+                source_path=epub_output,
+                expected_sha256=stream_sha256(Path(epub_output)),
+                expected_size_bytes=Path(epub_output).stat().st_size,
+                source="PIPELINE_FINAL_EXPORT",
+                actor=str(request.user) if request.user.is_authenticated else "operator",
+                official_body_path=kdp_mode.builds_dir(target_edition) / "BOOK.MD_FINAL",
+                approved=True,
             )
-            messages.success(request, f"EPUB OK: {result['path']}")
+            result = {"path": str(final.destination), "build_id": final.build.id}
+            messages.success(
+                request,
+                f"EPUBCheck {final.build.epubcheck_status}: final v{final.build.build_version} liberado para download.",
+            )
 
         elif step == "done":
             target_edition = _target_edition()
-            pipeline_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
-            latest_path = _latest_version_path_for_edition(target_edition, pipeline_state)
-            if latest_path is None:
-                raise FileNotFoundError("Nenhuma versao EPUB encontrada para marcar como DONE.")
-            pipeline_state.current_stage = PipelineStage.DONE
-            pipeline_state.editorial_changed = False
-            pipeline_state.build_outdated = False
-            pipeline_state.last_built_at = timezone.now()
-            _set_pipeline_last_version(pipeline_state, latest_path)
-            pipeline_state.last_log = "DONE: versao oficial marcada no Bloco 04."
-            pipeline_state.save(update_fields=[
-                "current_stage",
-                "editorial_changed",
-                "build_outdated",
-                "last_built_at",
-                "last_version_path",
-                "last_version_filename",
-                "last_log",
-            ])
-            messages.success(request, f"0 DONE (FEITO): versao oficial marcada ({pipeline_state.last_version_filename}).")
+            final_build = next(
+                (
+                    build
+                    for build in EditionBuild.objects.filter(
+                        edition=target_edition,
+                        status=EditionBuild.STATUS_DONE,
+                        is_final=True,
+                    ).order_by("-build_version", "-created_at")
+                    if build.qualifies_as_done
+                ),
+                None,
+            )
+            if final_build is None:
+                raise FinalEpubImportError("FINAL_READY is blocked until EPUBCheck passes for the exact final EPUB.")
+            if not EditionBuildAuditEvent.objects.filter(
+                build=final_build,
+                event_type="FINAL_ARTIFACT_SAVED",
+            ).exists():
+                EditionBuildAuditEvent.objects.create(
+                    build=final_build,
+                    event_type="FINAL_ARTIFACT_SAVED",
+                    actor=str(request.user) if request.user.is_authenticated else "operator",
+                    details={
+                        "epub_sha256": final_build.artifact_sha256,
+                        "epubcheck_status": final_build.epubcheck_status,
+                    },
+                )
+            final_state, _ = EditionPipeline.objects.get_or_create(edition=target_edition)
+            final_state.last_log = f"FINAL_READY: EPUB final salvo ({final_build.epub_filename})."
+            final_state.save(update_fields=["last_log"])
+            messages.success(request, f"FINAL_READY: EPUBCheck aprovado para {final_build.epub_filename}.")
 
         elif step == "export_pdf":
             target_edition = _target_edition()
@@ -6931,8 +7346,20 @@ def run_edition_step(request, edition_id: int, step: str):
         elif step == "epubcheck":
             target_edition = _target_edition()
             _assert_block_04_ready(target_edition)
-            result = {"path": str(kdp_mode.run_epubcheck_for_edition(target_edition))}
-            messages.success(request, f"epubcheck OK: {result['path']}")
+            build = EditionBuild.objects.filter(
+                edition=target_edition,
+                status=EditionBuild.STATUS_DONE,
+                is_final=True,
+            ).order_by("-build_version", "-created_at").first()
+            if build is None:
+                raise FileNotFoundError("Nenhum EPUB final disponível para revalidar.")
+            report = revalidate_registered_final_build(
+                build,
+                actor=str(request.user) if request.user.is_authenticated else "operator",
+            )
+            if not report["passed"]:
+                raise FinalEpubImportError("EPUBCheck failed; final download remains blocked.")
+            messages.success(request, f"EPUBCheck {report['status']}: relatório atualizado.")
 
         elif step == "gaiden":
             target_lang = _target_lang()
@@ -6996,27 +7423,43 @@ def run_edition_step(request, edition_id: int, step: str):
 
 def download_last_version(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
-    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
-    path = _latest_version_path_for_edition(edition, pipeline_state)
-    if path is None:
-        raise Http404("Ultima versao nao encontrada.")
-    filename = (
-        getattr(pipeline_state, "last_version_filename", "")
-        if pipeline_state is not None
-        else ""
-    ) or path.name
-    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-    return FileResponse(
-        path.open("rb"),
-        as_attachment=True,
-        filename=filename,
-        content_type=content_type,
+    final_build = next(
+        (
+            build
+            for build in EditionBuild.objects.filter(
+                edition=edition,
+                status=EditionBuild.STATUS_DONE,
+                is_final=True,
+            ).order_by("-build_version", "-created_at")
+            if build.qualifies_as_done
+        ),
+        None,
     )
+    if final_build is None:
+        raise Http404("Nenhum EPUB final passou no gate EPUBCheck.")
+    return download_final_build(request, final_build.id)
 
 
 def edition_cover_file(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     path = _safe_project_file(edition.cover_filepath)
+    content_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    return FileResponse(path.open("rb"), content_type=content_type)
+
+
+def edition_gallery_image_file(request, edition_id: int, filename: str):
+    edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if Path(filename).name != filename or Path(filename).suffix.lower() not in md_transform.IMAGE_EXTENSIONS:
+        raise Http404("Imagem invalida.")
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    images_dir = _images_dir_for_edition(edition, pipeline_state).resolve()
+    path = (images_dir / filename).resolve()
+    try:
+        path.relative_to(images_dir)
+    except ValueError as exc:
+        raise Http404("Imagem fora do diretorio da edicao.") from exc
+    if not path.is_file():
+        raise Http404("Imagem nao encontrada.")
     content_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
     return FileResponse(path.open("rb"), content_type=content_type)
 

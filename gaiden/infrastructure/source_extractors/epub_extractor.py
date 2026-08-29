@@ -22,6 +22,19 @@ COSMETIC_FILENAMES = {
     "colophon.html",
 }
 
+_CHAPTER_SECTION_RE = re.compile(
+    r"<section\b[^>]*\bid=[\"']chapter-(\d+)[\"'][^>]*>",
+    re.IGNORECASE,
+)
+_SEMANTIC_CHAPTER_SECTION_RE = re.compile(
+    r"<section\b[^>]*(?:\bepub:type|\btype|\brole)=[\"'][^\"']*\bchapter\b[^\"']*[\"'][^>]*>",
+    re.IGNORECASE,
+)
+_ORDINAL_HEADING_RE = re.compile(
+    r"(?is)(?P<open><h[1-6]\b[^>]*>)\s*"
+    r"(?P<ordinal>[IVXLCDM]+|\d+)\.?\s*(?P<close></h[1-6]>)"
+)
+
 
 def _safe_image_name(path: str, used: set[str]) -> str:
     name = Path(path).name or "image"
@@ -39,6 +52,32 @@ def _safe_image_name(path: str, used: set[str]) -> str:
 def _body_inner(raw_html: str) -> str:
     match = re.search(r"(?is)<body\b[^>]*>(.*?)</body>", raw_html)
     return match.group(1).strip() if match else raw_html.strip()
+
+
+def _canonicalize_structural_chapter_heading(raw_html: str) -> str:
+    """Preserve EPUB chapter semantics in the text artifact.
+
+    Standard Ebooks commonly labels a semantic ``chapter-N`` section with an
+    ordinal-only heading (``I``, ``II``, ...).  Plain-text conversion loses
+    the semantic wrapper and makes those headings indistinguishable from a
+    standalone pronoun in the prose.  Turn only that structural heading into
+    the unambiguous pipeline contract ``CHAPTER N`` before text extraction.
+    """
+    section = _CHAPTER_SECTION_RE.search(raw_html)
+    semantic_section = _SEMANTIC_CHAPTER_SECTION_RE.search(raw_html)
+    if not section and not semantic_section:
+        return raw_html
+    chapter_number = section.group(1) if section else ""
+
+    def replace_heading(match: re.Match[str]) -> str:
+        number = chapter_number or match.group("ordinal")
+        return f"{match.group('open')}CHAPTER {number}{match.group('close')}"
+
+    return _ORDINAL_HEADING_RE.sub(
+        replace_heading,
+        raw_html,
+        count=1,
+    )
 
 
 def _is_html_item(item: dict) -> bool:
@@ -70,6 +109,7 @@ class EpubExtractor:
                 except KeyError:
                     warnings.append(f"Missing spine item: {item_path}")
                     continue
+                raw = _canonicalize_structural_chapter_heading(raw)
                 html_parts.append(f'<section data-source="{item_path}">\n{_body_inner(raw)}\n</section>')
 
             images_count = self._extract_images(zf, package.manifest, paths.images_dir)

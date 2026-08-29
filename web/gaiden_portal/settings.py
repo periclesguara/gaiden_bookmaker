@@ -28,6 +28,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Final-publication gate. EPUBCheck must be provisioned by the image/host;
+# Gaiden never downloads a validator while processing an operator build.
+EPUBCHECK_ENABLED = os.getenv("EPUBCHECK_ENABLED", "true").strip().lower() not in {"0", "false", "no"}
+EPUBCHECK_EXECUTABLE = os.getenv("EPUBCHECK_EXECUTABLE", "epubcheck")
+EPUBCHECK_TIMEOUT_SECONDS = int(os.getenv("EPUBCHECK_TIMEOUT_SECONDS", "120"))
+
 
 # Application definition
 
@@ -161,6 +167,27 @@ GAIDEN_INTAKE_ALLOWED_EXTENSIONS = tuple(
     if value.strip()
 )
 GAIDEN_INTAKE_MAX_FILE_SIZE = int(os.environ.get("GAIDEN_INTAKE_MAX_FILE_SIZE", str(100 * 1024 * 1024)))
+GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS = int(
+    os.environ.get("GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS", "30000")
+)
+GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS = int(
+    os.environ.get("GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS", "60000")
+)
+GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE = float(
+    os.environ.get("GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE", "0.85")
+)
+GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO = float(
+    os.environ.get("GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO", "0.45")
+)
+GAIDEN_CHAPTER_RETURN_MAX_SIZE_RATIO = float(
+    os.environ.get("GAIDEN_CHAPTER_RETURN_MAX_SIZE_RATIO", "1.80")
+)
+GAIDEN_CHAPTER_RETURN_MIN_PARAGRAPH_RATIO = float(
+    os.environ.get("GAIDEN_CHAPTER_RETURN_MIN_PARAGRAPH_RATIO", "0.50")
+)
+GAIDEN_CHAPTER_RETURN_MAX_PARAGRAPH_RATIO = float(
+    os.environ.get("GAIDEN_CHAPTER_RETURN_MAX_PARAGRAPH_RATIO", "2.00")
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

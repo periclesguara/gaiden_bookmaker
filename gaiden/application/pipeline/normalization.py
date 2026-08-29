@@ -194,6 +194,16 @@ def _should_promote_standalone_marker(lines: list[str], idx: int) -> bool:
     return _looks_like_body_line(next_nonblank)
 
 
+def _has_explicit_chapter_structure(lines: list[str]) -> bool:
+    """Return whether the source already carries a reliable chapter structure.
+
+    In that case an isolated Roman ``I`` is much more likely to be a pronoun
+    split out by an HTML converter than a missing chapter heading.  Promoting
+    it would both corrupt prose and create a false chapter boundary.
+    """
+    return sum(bool(EXPLICIT_CHAPTER_RE.match(line)) for line in lines) >= 2
+
+
 def _find_first_body_index(lines: list[str], before_index: int) -> int | None:
     for idx, line in enumerate(lines[:before_index]):
         if _looks_like_body_line(line):
@@ -299,7 +309,13 @@ def normalize_text_v1(raw: str) -> str:
 
 def normalize_text_v2(raw: str) -> str:
     text = normalize_text_v1(raw)
-    lines = _promote_standalone_chapter_markers(text.splitlines())
+    source_lines = text.splitlines()
+    has_explicit_chapters = _has_explicit_chapter_structure(source_lines)
+    lines = (
+        source_lines
+        if has_explicit_chapters
+        else _promote_standalone_chapter_markers(source_lines)
+    )
     out = []
     in_contents = False
     for line in lines:
@@ -313,7 +329,16 @@ def normalize_text_v2(raw: str) -> str:
             line = _normalize_roman_prefix_heading(line)
         out.append(line)
     out = _insert_part_markers_for_chapter_resets(out)
-    out = [line for line in out if not _is_isolated_numeric_residue(line)]
+    # Keep a standalone ``I`` when explicit chapter headings are already
+    # present: it can be the first-person pronoun separated by HTML markup.
+    out = [
+        line
+        for line in out
+        if not (
+            _is_isolated_numeric_residue(line)
+            and not (has_explicit_chapters and line.strip().upper() == "I")
+        )
+    ]
     out = _collapse_blank(out)
     return "\n".join(out).strip()
 

@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 
 from gaiden.infrastructure import storage
 from gaiden.application.pipeline.source_extract import (
+    build_reading_preview,
     run_source_extract,
     supported_extensions as source_extract_supported_extensions,
 )

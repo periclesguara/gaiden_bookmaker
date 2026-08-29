@@ -8,7 +8,13 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-from gaiden.application.pipeline.source_extract import UnsupportedSourceFormatError, run_source_extract
+from gaiden.application.pipeline.source_extract import (
+    UnsupportedSourceFormatError,
+    build_reading_preview,
+    run_source_extract,
+)
+from gaiden.application.pipeline.normalization import normalize_text_v2
+from gaiden.infrastructure.source_extractors.epub_extractor import _canonicalize_structural_chapter_heading
 
 
 EXPECTED_KEYS = {
@@ -98,6 +104,55 @@ class SourceExtractTests(SimpleTestCase):
         self.assertEqual(meta["schema"], "source_extract_v1")
         self.assertTrue((self.repo_path(result["images_dir"]) / "cover.png").exists())
 
+    def test_epub_structural_ordinal_heading_becomes_explicit_chapter_heading(self):
+        raw = (
+            '<section id="chapter-12" role="doc-chapter" epub:type="chapter">'
+            '<h2 epub:type="z3998:ordinal z3998:roman">XII</h2><p>Body.</p></section>'
+        )
+
+        canonical = _canonicalize_structural_chapter_heading(raw)
+
+        self.assertIn(">CHAPTER 12</h2>", canonical)
+        self.assertIn("<p>Body.</p>", canonical)
+
+    def test_epub_semantic_chapter_without_numeric_id_keeps_ordinal_as_chapter(self):
+        raw = (
+            '<section role="doc-chapter" epub:type="chapter">'
+            '<h2 epub:type="z3998:ordinal z3998:roman">XII</h2><p>Body.</p></section>'
+        )
+
+        canonical = _canonicalize_structural_chapter_heading(raw)
+
+        self.assertIn(">CHAPTER XII</h2>", canonical)
+
+    def test_epub_ordinal_sections_survive_extraction_and_normalization(self):
+        source = Path(self.tempdir.name) / "ordinal.epub"
+        self.write_epub(source, ordinal_headings=True)
+
+        result = self.run_extract("book_9013", source)
+        extracted = self.repo_path(result["canonical_txt"]).read_text(encoding="utf-8")
+        normalized = normalize_text_v2(extracted)
+
+        self.assertIn("CHAPTER 1", extracted)
+        self.assertIn("CHAPTER 2", extracted)
+        self.assertEqual(normalized.count("CHAPTER 1"), 1)
+        self.assertEqual(normalized.count("CHAPTER 2"), 1)
+        self.assertIn("\nI\ndo not agree", normalized)
+
+    def test_epub_reading_preview_is_ordered_and_does_not_create_artifacts(self):
+        source = Path(self.tempdir.name) / "preview.epub"
+        self.write_epub(source)
+        files_before = sorted(path.relative_to(self.tempdir.name) for path in Path(self.tempdir.name).rglob("*"))
+
+        preview = build_reading_preview(source)
+
+        files_after = sorted(path.relative_to(self.tempdir.name) for path in Path(self.tempdir.name).rglob("*"))
+        self.assertEqual(preview["title"], "Fixture Book")
+        self.assertEqual(preview["input_format"], "epub")
+        self.assertLess(preview["text"].index("Chapter One"), preview["text"].index("Chapter Two"))
+        self.assertFalse(preview["truncated"])
+        self.assertEqual(files_after, files_before)
+
     def test_invalid_format_fails_with_clear_error(self):
         source = Path(self.tempdir.name) / "input.pdf"
         source.write_bytes(b"%PDF-1.7")
@@ -143,7 +198,7 @@ class SourceExtractTests(SimpleTestCase):
         self.created_codes.append(book_code)
         return run_source_extract(book_code, "en", source)
 
-    def write_epub(self, path: Path) -> None:
+    def write_epub(self, path: Path, *, ordinal_headings: bool = False) -> None:
         with zipfile.ZipFile(path, "w") as zf:
             zf.writestr("mimetype", "application/epub+zip")
             zf.writestr(
@@ -189,6 +244,33 @@ class SourceExtractTests(SimpleTestCase):
                    <li><a href="chapter2.xhtml">Chapter Two</a></li>
                    </ol></nav></body></html>""",
             )
-            zf.writestr("OPS/chapter1.xhtml", "<html><body><h1>Chapter One</h1><p>First body.</p></body></html>")
-            zf.writestr("OPS/chapter2.xhtml", "<html><body><h1>Chapter Two</h1><p>Second body.</p></body></html>")
+            if ordinal_headings:
+                zf.writestr(
+                    "OPS/chapter1.xhtml",
+                    (
+                        '<html xmlns:epub="http://www.idpf.org/2007/ops"><body>'
+                        '<section id="chapter-1" epub:type="chapter">'
+                        '<h1 epub:type="z3998:ordinal z3998:roman">I</h1>'
+                        "<p>First body.</p><p>I</p><p>do not agree.</p>"
+                        "</section></body></html>"
+                    ),
+                )
+                zf.writestr(
+                    "OPS/chapter2.xhtml",
+                    (
+                        '<html xmlns:epub="http://www.idpf.org/2007/ops"><body>'
+                        '<section id="chapter-2" epub:type="chapter">'
+                        '<h1 epub:type="z3998:ordinal z3998:roman">II</h1>'
+                        "<p>Second body.</p></section></body></html>"
+                    ),
+                )
+            else:
+                zf.writestr(
+                    "OPS/chapter1.xhtml",
+                    "<html><body><h1>Chapter One</h1><p>First body.</p></body></html>",
+                )
+                zf.writestr(
+                    "OPS/chapter2.xhtml",
+                    "<html><body><h1>Chapter Two</h1><p>Second body.</p></body></html>",
+                )
             zf.writestr("OPS/images/cover.png", b"\x89PNG\r\n\x1a\n")

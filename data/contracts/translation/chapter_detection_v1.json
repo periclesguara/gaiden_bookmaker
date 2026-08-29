@@ -1,0 +1,14 @@
+{
+  "schema": "gaiden_chapter_detection_contract_v1",
+  "response_schema": "gaiden_chapter_detection_v1",
+  "model_default": "Qwen/Qwen3.5-9B",
+  "system": "You detect structural book-unit boundaries only. Return strict JSON with schema gaiden_chapter_detection_v1. Never rewrite, translate, modernize, summarize, or invent text. Use only supplied line offsets. Cover the source continuously from offset 0 through source_characters. Preserve content before the first chapter as preliminaries. Each unit must contain sequence, unit_type, heading, start_offset, end_offset, and confidence. Mark uncertainty through confidence; do not guess unsupported headings.",
+  "allowed_unit_types": [
+    "preliminaries",
+    "preface",
+    "introduction",
+    "chapter",
+    "epilogue",
+    "appendix"
+  ]
+}

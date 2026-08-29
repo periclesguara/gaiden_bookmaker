@@ -78,6 +78,8 @@ class BookEditionTemplateForm(forms.ModelForm):
 
         if (not self.instance or not self.instance.pk) and not self.is_bound:
             lang = self.initial.get("language") or self.instance.language or self.fields["language"].initial
+            self.fields["imprint_name"].initial = "Rinobooks"
+            self.fields["seal_name"].initial = "Wrecked Alien Machines"
             self._set_default_templates(lang)
 
     def _set_default_templates(self, lang: str):
@@ -192,6 +194,29 @@ class ManualTranslationUploadForm(forms.Form):
         if uploaded.size > 100 * 1024 * 1024:
             raise ValidationError("O arquivo traduzido excede 100 MB.")
         return uploaded
+
+
+class ChapterTranslationSplitForm(forms.Form):
+    TARGET_CHOICES = (
+        ("en_us", "EN-US · modernização 2026"),
+        ("ptbr", "PT-BR · tradução"),
+        ("fr", "FR · tradução"),
+    )
+    MODE_CHOICES = (
+        ("translate", "Traduzir"),
+        ("modernize_2026", "Modernizar EN-US 2026"),
+    )
+
+    target_language = forms.ChoiceField(choices=TARGET_CHOICES)
+    translation_mode = forms.ChoiceField(choices=MODE_CHOICES)
+    force = forms.BooleanField(required=False)
+    replace_legacy = forms.BooleanField(required=False)
+
+    def clean(self):
+        values = super().clean()
+        if values.get("translation_mode") == "modernize_2026" and values.get("target_language") != "en_us":
+            raise ValidationError("Modernize 2026 só pode ser usado com EN-US.")
+        return values
 
 
 def normalize_upload_ext(filename: str) -> str:
