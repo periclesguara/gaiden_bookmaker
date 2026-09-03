@@ -20,6 +20,7 @@ from gaiden.infrastructure import storage
 
 
 THEME_NAME = "gaiden_epub_premium"
+PUBLISHER_NAME = "Rinobooks"
 THEME_ROOT = Path(__file__).with_name("themes") / THEME_NAME
 PREVIEW_DIRNAME = "premium_epub_preview"
 STATE_FILENAME = "premium_epub_state.json"
@@ -60,6 +61,12 @@ _GUTENBERG_RE = re.compile(
     r"project gutenberg(?: literary archive foundation)?|www\.gutenberg\.org",
     re.IGNORECASE,
 )
+_BARE_ROMAN_HEADING_RE = re.compile(
+    r"^(?=[MDCLXVI]+$)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$",
+    re.IGNORECASE,
+)
+_ILLUSTRATION_EXTENSIONS = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+_COVER_STEMS = {"0", "00", "capa", "cover", "frontcover"}
 
 
 @dataclass
@@ -106,15 +113,55 @@ def _slug(value: str, fallback: str) -> str:
     return normalized or fallback
 
 
-def _plain_blocks(value: str, *, centered: bool = False) -> str:
-    blocks = [block.strip() for block in re.split(r"\n\s*\n", value or "") if block.strip()]
-    rendered = []
-    for index, block in enumerate(blocks):
-        lines = "<br/>".join(html.escape(line.strip()) for line in block.splitlines() if line.strip())
-        css_class = "no-indent centered" if centered else ("first-paragraph" if index == 0 else "")
-        class_attr = f' class="{css_class}"' if css_class else ""
-        rendered.append(f"<p{class_attr}>{lines}</p>")
-    return "".join(rendered)
+def _pandoc_markdown_fragment(source: str, *, allow_raw_html: bool = False) -> str:
+    input_format = (
+        "markdown+smart"
+        if allow_raw_html
+        else "markdown+smart+hard_line_breaks-raw_html"
+    )
+    result = subprocess.run(
+        ["pandoc", "-f", input_format, "-t", "html5", "--wrap=none"],
+        input=source,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError(f"Pandoc Markdown parse failed: {result.stderr.strip()}")
+    return result.stdout
+
+
+def _markdown_blocks(value: str, *, centered: bool = False) -> str:
+    """Render trusted editorial Markdown without allowing raw HTML through."""
+    fragment = _pandoc_markdown_fragment((value or "").strip())
+    soup = BeautifulSoup(fragment, "html.parser")
+    allowed = {
+        "blockquote",
+        "br",
+        "em",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "li",
+        "ol",
+        "p",
+        "strong",
+        "ul",
+    }
+    for tag in list(soup.find_all(True)):
+        if tag.name not in allowed:
+            tag.unwrap()
+            continue
+        tag.attrs = {}
+
+    paragraphs = soup.find_all("p")
+    for index, paragraph in enumerate(paragraphs):
+        if centered:
+            paragraph["class"] = ["no-indent", "centered"]
+        elif index == 0:
+            paragraph["class"] = ["first-paragraph"]
+    return "".join(str(node) for node in soup.contents)
 
 
 def _without_repeated_heading(value: str, heading: str) -> str:
@@ -154,6 +201,64 @@ class EditionRenderer:
                 raise ValueError("A per-edition CSS fork is not allowed")
             self.theme.update(overrides)
         self.warnings: list[str] = []
+        self._metadata: dict[str, object] | None = None
+
+    def _epub_metadata(self) -> dict[str, object]:
+        """Load optional edition-owned EPUB metadata without changing the data model.
+
+        The build-side file is deliberately narrow: it supplements immutable
+        bibliographic fields already stored on the edition and also holds
+        accessible descriptions for saved Intake illustrations.
+        """
+        if self._metadata is not None:
+            return self._metadata
+
+        path = self.build_dir / "epub_metadata.json"
+        if not path.exists():
+            self._metadata = {}
+            return self._metadata
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid EPUB metadata JSON: {path}") from exc
+        if not isinstance(payload, dict) or payload.get("schema") != "gaiden_epub_metadata_v1":
+            raise ValueError(f"Invalid EPUB metadata schema: {path}")
+
+        allowed = {
+            "schema", "language", "publisher", "rights", "description", "subjects",
+            "date", "contributors", "illustration_alt_text",
+        }
+        unknown = set(payload) - allowed
+        if unknown:
+            raise ValueError(f"Unsupported EPUB metadata fields: {sorted(unknown)}")
+        for key in ("language", "publisher", "rights", "description", "date"):
+            if key in payload and (not isinstance(payload[key], str) or not payload[key].strip()):
+                raise ValueError(f"EPUB metadata field {key!r} must be a non-empty string")
+        if "subjects" in payload and (
+            not isinstance(payload["subjects"], list)
+            or not all(isinstance(value, str) and value.strip() for value in payload["subjects"])
+        ):
+            raise ValueError("EPUB metadata subjects must be a list of non-empty strings")
+        if "contributors" in payload and (
+            not isinstance(payload["contributors"], list)
+            or not all(
+                isinstance(value, dict)
+                and isinstance(value.get("name"), str)
+                and value["name"].strip()
+                and isinstance(value.get("role"), str)
+                and re.fullmatch(r"[a-z]{3}", value["role"])
+                for value in payload["contributors"]
+            )
+        ):
+            raise ValueError("EPUB metadata contributors require name and a three-letter MARC role")
+        if "illustration_alt_text" in payload and (
+            not isinstance(payload["illustration_alt_text"], dict)
+            or not all(isinstance(key, str) and isinstance(value, str) and value.strip()
+                       for key, value in payload["illustration_alt_text"].items())
+        ):
+            raise ValueError("Illustration alt text must map filenames to non-empty strings")
+        self._metadata = payload
+        return self._metadata
 
     def _template(self, name: str, **context: str) -> str:
         value = (THEME_ROOT / "templates" / name).read_text(encoding="utf-8")
@@ -165,7 +270,7 @@ class EditionRenderer:
         return value
 
     def _document(self, title: str, epub_type: str, content: str) -> str:
-        language = html.escape(self.edition.language.code)
+        language = html.escape(str(self._epub_metadata().get("language") or self.edition.language.code))
         return self._template(
             "document.xhtml",
             language=language,
@@ -177,8 +282,8 @@ class EditionRenderer:
     def _source(self) -> tuple[str, Path]:
         candidates = [
             self.source_path,
-            self.build_dir / "kdp_merged.md",
             self.build_dir / "BOOK.MD_FINAL",
+            self.build_dir / "kdp_merged.md",
             self.build_dir / f"BOOK.PRE_EDITION.{self.edition.language.code}.md",
             self.build_dir / "BOOK.PRE_EDITION.md",
             self.build_dir / f"BOOK.PRE_QA.{self.edition.language.code}.md",
@@ -204,17 +309,54 @@ class EditionRenderer:
             raise ValueError("Project Gutenberg material detected; premium render blocked")
         return cleaned
 
+    def _apply_chapter_structure(self, source: str) -> str:
+        """Apply an optional, edition-owned chapter and illustration map."""
+        structure_path = self.build_dir / "chapter_structure.json"
+        if not structure_path.exists():
+            return source
+        payload = json.loads(structure_path.read_text(encoding="utf-8"))
+        chapters = payload.get("chapters")
+        if payload.get("schema") != "gaiden_chapter_structure_v1" or not isinstance(chapters, list):
+            raise ValueError(f"Invalid chapter structure: {structure_path}")
+
+        lines = source.splitlines()
+        for index, chapter in enumerate(chapters, start=1):
+            anchor = str(chapter.get("anchor") or "").strip()
+            title = str(chapter.get("title") or "").strip()
+            image_path = str(chapter.get("image") or "").strip()
+            if not anchor or not title:
+                raise ValueError(f"Chapter {index} requires anchor and title")
+            matches = [line_index for line_index, line in enumerate(lines) if line.strip().startswith(anchor)]
+            if len(matches) != 1:
+                raise ValueError(
+                    f"Chapter {index} anchor must match exactly once ({len(matches)} found): {anchor}"
+                )
+
+            line_index = matches[0]
+            heading = f"# Chapter {index:02d} — {title}"
+            if lines[line_index].lstrip().startswith("#"):
+                lines[line_index] = heading
+                insert_at = line_index + 1
+            else:
+                lines[line_index:line_index] = [heading, ""]
+                insert_at = line_index + 2
+
+            if image_path:
+                try:
+                    self._resolve_image(image_path, self.build_dir)
+                except FileNotFoundError:
+                    self.warnings.append(
+                        f"Ilustração do capítulo {index:02d} ausente: {image_path}"
+                    )
+                else:
+                    lines[insert_at:insert_at] = [
+                        f"![Illustration for Chapter {index:02d}]({image_path})",
+                        "",
+                    ]
+        return "\n".join(lines).strip() + "\n"
+
     def _markdown_fragment(self, source: str) -> str:
-        result = subprocess.run(
-            ["pandoc", "-f", "markdown+smart", "-t", "html5", "--wrap=none"],
-            input=source,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if result.returncode:
-            raise RuntimeError(f"Pandoc Markdown parse failed: {result.stderr.strip()}")
-        return result.stdout
+        return _pandoc_markdown_fragment(source, allow_raw_html=True)
 
     @staticmethod
     def _chapter_label(match: re.Match[str], heading: str) -> tuple[str, str]:
@@ -226,6 +368,13 @@ class EditionRenderer:
 
     def _split_units(self, fragment: str) -> list[RenderUnit]:
         soup = BeautifulSoup(fragment, "html.parser")
+        roman_chapter_mode = len(
+            [
+                node
+                for node in soup.find_all({"h1", "h2"})
+                if _BARE_ROMAN_HEADING_RE.fullmatch(node.get_text(" ", strip=True))
+            ]
+        ) >= 2
         units: list[RenderUnit] = []
         current: RenderUnit | None = None
         nodes: list[str] = []
@@ -251,6 +400,21 @@ class EditionRenderer:
                 if _END_RE.fullmatch(heading):
                     flush()
                     continue
+                if roman_chapter_mode:
+                    if _BARE_ROMAN_HEADING_RE.fullmatch(heading):
+                        flush()
+                        chapter_index += 1
+                        label = f"Chapter {heading.upper()}"
+                        current = RenderUnit(
+                            "chapter",
+                            f"chapter-{chapter_index:03d}",
+                            label,
+                            label,
+                            f"chapter_{chapter_index:03d}.xhtml",
+                        )
+                        continue
+                    if current is None:
+                        continue
                 if node.name == "h1" and _PART_RE.match(heading):
                     flush()
                     part_index += 1
@@ -282,10 +446,12 @@ class EditionRenderer:
                         f"backmatter_{backmatter_index:02d}.xhtml",
                     )
                     continue
+            # Content before/between semantic sections is not an introduction.
+            # Frontmatter is rendered from its explicit editorial fields, so a
+            # title-page remnant or intake marker must never create an empty or
+            # synthetic "Introduction" page in the EPUB.
             if current is None:
-                if isinstance(node, NavigableString) and not str(node).strip():
-                    continue
-                current = RenderUnit("introduction", "body-introduction", "Introduction", "", "body_introduction.xhtml")
+                continue
             nodes.append(str(node))
         flush()
         if not any(unit.kind == "chapter" for unit in units):
@@ -355,6 +521,94 @@ class EditionRenderer:
             unit.body_html = "".join(str(node) for node in soup.contents)
         return outputs
 
+    @staticmethod
+    def _illustration_sort_key(path: Path) -> tuple[tuple[int, object], ...]:
+        return tuple(
+            (0, int(part)) if part.isdigit() else (1, part)
+            for part in re.split(r"(\d+)", path.name.casefold())
+        )
+
+    def _saved_illustrations(self) -> list[Path]:
+        language = self.edition.language.code.strip().lower()
+        language_candidates = [language, language.replace("-", "_")]
+        if "_" in language_candidates[-1]:
+            language_candidates.append(language_candidates[-1].split("_", 1)[0])
+
+        found: dict[Path, Path] = {}
+        for language_code in dict.fromkeys(language_candidates):
+            images_dir = storage.images_dir(self.edition.work.code, language_code)
+            if not images_dir.exists():
+                continue
+            for path in images_dir.rglob("*"):
+                if not path.is_file() or path.suffix.casefold() not in _ILLUSTRATION_EXTENSIONS:
+                    continue
+                normalized_stem = re.sub(r"[^a-z0-9]+", "", path.stem.casefold())
+                numbers = [int(value) for value in re.findall(r"\d+", path.stem)]
+                if normalized_stem in _COVER_STEMS or (numbers and numbers[0] == 0):
+                    continue
+                found[path.resolve()] = path.resolve()
+        return sorted(found.values(), key=self._illustration_sort_key)
+
+    def _attach_saved_illustrations(self, units: list[RenderUnit]) -> None:
+        """Attach Intake gallery images to chapters by their numeric filename."""
+        chapters = [unit for unit in units if unit.kind == "chapter"]
+        images = self._saved_illustrations()
+        if not chapters or not images:
+            return
+
+        chapters_with_images = {
+            index
+            for index, unit in enumerate(chapters, start=1)
+            if BeautifulSoup(unit.body_html, "html.parser").find("img") is not None
+        }
+        assignments: dict[int, list[Path]] = {}
+        unnumbered: list[Path] = []
+        skipped = 0
+
+        for path in images:
+            numbers = [int(value) for value in re.findall(r"\d+", path.stem)]
+            chapter_number = numbers[0] if numbers else None
+            if chapter_number is None:
+                unnumbered.append(path)
+            elif chapter_number < 1 or chapter_number > len(chapters):
+                skipped += 1
+            elif chapter_number in chapters_with_images:
+                continue
+            else:
+                assignments.setdefault(chapter_number, []).append(path)
+
+        available_chapters = [
+            index
+            for index in range(1, len(chapters) + 1)
+            if index not in chapters_with_images and index not in assignments
+        ]
+        for path, chapter_number in zip(unnumbered, available_chapters):
+            assignments.setdefault(chapter_number, []).append(path)
+        skipped += max(0, len(unnumbered) - len(available_chapters))
+
+        for chapter_number, paths in assignments.items():
+            unit = chapters[chapter_number - 1]
+            soup = BeautifulSoup(unit.body_html, "html.parser")
+            for path in reversed(paths):
+                figure = soup.new_tag("figure")
+                image = soup.new_tag("img")
+                image["src"] = str(path)
+                alt_text = self._epub_metadata().get("illustration_alt_text", {})
+                image["alt"] = (
+                    alt_text.get(path.name, f"Illustration for Chapter {chapter_number:02d}")
+                    if isinstance(alt_text, dict)
+                    else f"Illustration for Chapter {chapter_number:02d}"
+                )
+                image["class"] = ["illustration"]
+                figure.append(image)
+                soup.insert(0, figure)
+            unit.body_html = "".join(str(node) for node in soup.contents)
+
+        if skipped:
+            self.warnings.append(
+                f"{skipped} saved illustration(s) could not be linked to an unillustrated chapter"
+            )
+
     def _frontmatter_template(self):
         try:
             from pipeline.models import BookEditionTemplate
@@ -375,12 +629,12 @@ class EditionRenderer:
         code = self.edition.language.code.lower().replace("_", "-")
         base = code.split("-")[0]
         labels = {
-            "en": {"copyright": "Copyright", "about": "About This Edition", "contents": "Contents", "end": "The End"},
-            "pt": {"copyright": "Direitos Autorais", "about": "Sobre Esta Edição", "contents": "Sumário", "end": "Fim"},
-            "fr": {"copyright": "Droits d’auteur", "about": "À propos de cette édition", "contents": "Sommaire", "end": "Fin"},
-            "es": {"copyright": "Derechos de autor", "about": "Sobre esta edición", "contents": "Contenido", "end": "Fin"},
-            "de": {"copyright": "Urheberrecht", "about": "Über diese Ausgabe", "contents": "Inhalt", "end": "Ende"},
-            "it": {"copyright": "Copyright", "about": "Questa edizione", "contents": "Indice", "end": "Fine"},
+            "en": {"cover": "Cover", "title_page": "Title Page", "frontispiece": "Frontispiece", "copyright": "Copyright", "about": "About This Book", "contents": "Contents", "end": "The End"},
+            "pt": {"cover": "Capa", "title_page": "Folha de rosto", "frontispiece": "Frontispício", "copyright": "Direitos Autorais", "about": "Sobre Este Livro", "contents": "Sumário", "end": "Fim"},
+            "fr": {"cover": "Couverture", "title_page": "Page de titre", "frontispiece": "Frontispice", "copyright": "Droits d’auteur", "about": "À propos de ce livre", "contents": "Sommaire", "end": "Fin"},
+            "es": {"cover": "Portada", "title_page": "Página de título", "frontispiece": "Frontispicio", "copyright": "Derechos de autor", "about": "Sobre este libro", "contents": "Contenido", "end": "Fin"},
+            "de": {"cover": "Umschlag", "title_page": "Titelseite", "frontispiece": "Frontispiz", "copyright": "Urheberrecht", "about": "Über dieses Buch", "contents": "Inhalt", "end": "Ende"},
+            "it": {"cover": "Copertina", "title_page": "Frontespizio", "frontispiece": "Antiporta", "copyright": "Copyright", "about": "Su questo libro", "contents": "Indice", "end": "Fine"},
         }
         return labels.get(base, labels["en"])
 
@@ -549,9 +803,25 @@ class EditionRenderer:
             )
         spine_rows = "".join(f'<itemref idref="{id_by_href[href]}"/>' for href in spine)
         template = self._frontmatter_template()
-        rights_holder = (getattr(template, "edition_copyright_holder", "") or "RinoBooks").strip()
-        rights = f"Original work in the public domain. This edition © {self.edition.edition_year or self.edition.publication_year} {rights_holder}."
+        metadata = self._epub_metadata()
+        rights_holder = (getattr(template, "edition_copyright_holder", "") or PUBLISHER_NAME).strip()
+        rights = str(metadata.get("rights") or (
+            f"Original work in the public domain. This edition © {self.edition.edition_year or self.edition.publication_year} {rights_holder}."
+        ))
         creator = (self.edition.author or self.edition.work.author.name).strip()
+        language = str(metadata.get("language") or self.edition.language.code)
+        publisher = str(metadata.get("publisher") or self.edition.publisher or PUBLISHER_NAME)
+        date = str(metadata.get("date") or self.edition.edition_year or self.edition.publication_year)
+        description = str(metadata.get("description") or "")
+        subjects = metadata.get("subjects") or []
+        contributors = metadata.get("contributors") or []
+        contributor_rows = "".join(
+            f'<dc:contributor id="contributor-{index}">{html.escape(str(value["name"]))}</dc:contributor>'
+            f'<meta refines="#contributor-{index}" property="role" scheme="marc:relators">{html.escape(str(value["role"]))}</meta>'
+            for index, value in enumerate(contributors, start=1)
+        )
+        subject_rows = "".join(f'<dc:subject>{html.escape(str(value))}</dc:subject>' for value in subjects)
+        description_row = f'<dc:description>{html.escape(description)}</dc:description>' if description else ""
         opf = (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id">'
@@ -559,9 +829,11 @@ class EditionRenderer:
             f'<dc:identifier id="pub-id">{html.escape(self._identifier())}</dc:identifier>'
             f'<dc:title>{html.escape(self.edition.title)}</dc:title>'
             f'<dc:creator>{html.escape(creator)}</dc:creator>'
-            f'<dc:language>{html.escape(self.edition.language.code)}</dc:language>'
-            '<dc:publisher>RinoBooks</dc:publisher>'
+            f'<dc:language>{html.escape(language)}</dc:language>'
+            f'<dc:publisher>{html.escape(publisher)}</dc:publisher>'
             f'<dc:rights>{html.escape(rights)}</dc:rights>'
+            f'<dc:date>{html.escape(date)}</dc:date>'
+            f'{contributor_rows}{description_row}{subject_rows}'
             f'<meta property="dcterms:modified">{self._modified()}</meta>'
             '</metadata>'
             f'<manifest>{"".join(manifest_rows)}</manifest>'
@@ -587,7 +859,9 @@ class EditionRenderer:
 
         source, source_base = self._source()
         source = self._clean_source(source)
+        source = self._apply_chapter_structure(source)
         units = self._split_units(self._markdown_fragment(source))
+        self._attach_saved_illustrations(units)
         self._copy_unit_images(units, images_dir, source_base)
 
         template = self._frontmatter_template()
@@ -595,8 +869,13 @@ class EditionRenderer:
         title = (self.edition.title or self.edition.work.title).strip()
         subtitle = (self.edition.subtitle or "").strip()
         author = (self.edition.author or self.edition.work.author.name).strip()
-        imprint = (self.edition.imprint_name or self.edition.seal_name or "MantaQuest").strip()
-        publisher = "RinoBooks"
+        title_page_seal = (
+            getattr(template, "seal_name", "")
+            or self.edition.seal_name
+            or getattr(self.edition.seal, "name", "")
+            or self.edition.imprint_name
+            or PUBLISHER_NAME
+        ).strip()
 
         cover_source = self._cover_path()
         if cover_source is None:
@@ -614,8 +893,7 @@ class EditionRenderer:
             title=html.escape(title),
             subtitle_html=f'<p class="book-subtitle">{html.escape(subtitle)}</p>' if subtitle else "",
             author=html.escape(author),
-            imprint=html.escape(imprint),
-            publisher=publisher,
+            seal=html.escape(title_page_seal),
         )
         self._write_xhtml(text_dir, "title_page.xhtml", title, "frontmatter", title_page)
 
@@ -624,7 +902,7 @@ class EditionRenderer:
         copyright_page = self._template(
             "copyright.xhtml",
             heading=html.escape(labels["copyright"]),
-            body_html=_plain_blocks(copyright_text, centered=True),
+            body_html=_markdown_blocks(copyright_text, centered=True),
         )
         self._write_xhtml(text_dir, "copyright.xhtml", labels["copyright"], "frontmatter", copyright_page)
 
@@ -633,34 +911,52 @@ class EditionRenderer:
         about_page = self._template(
             "about_this_edition.xhtml",
             heading=html.escape(labels["about"]),
-            body_html=_plain_blocks(about_text),
+            body_html=_markdown_blocks(about_text),
         )
         self._write_xhtml(text_dir, "about_this_edition.xhtml", labels["about"], "frontmatter", about_page)
 
-        navigation = self._render_units(text_dir, units)
+        body_navigation = self._render_units(text_dir, units)
         end_page = self._template("the_end.xhtml", heading=html.escape(labels["end"]))
         self._write_xhtml(text_dir, "the_end.xhtml", labels["end"], "backmatter", end_page)
-        navigation.append(("the_end.xhtml", "the-end", labels["end"]))
-        self._write_navigation(epub_dir, text_dir, navigation, labels)
 
         frontispiece_text = (getattr(template, "frontispiece_text", "") or "").strip()
         has_frontispiece = bool(frontispiece_text)
         if has_frontispiece:
             frontispiece = self._template(
                 "frontispiece.xhtml",
-                body_html=_plain_blocks(frontispiece_text, centered=True),
+                body_html=_markdown_blocks(frontispiece_text, centered=True),
             )
             self._write_xhtml(text_dir, "frontispiece.xhtml", "Frontispiece", "frontmatter", frontispiece)
+
+        navigation = [
+            ("cover.xhtml", "cover", labels["cover"]),
+            ("title_page.xhtml", "title-page", labels["title_page"]),
+        ]
+        if has_frontispiece:
+            navigation.append(("frontispiece.xhtml", "frontispiece", labels["frontispiece"]))
+        navigation.extend(
+            [
+                ("copyright.xhtml", "copyright", labels["copyright"]),
+                ("about_this_edition.xhtml", "about-this-edition", labels["about"]),
+            ]
+        )
+        navigation.extend(body_navigation)
+        navigation.append(("the_end.xhtml", "the-end", labels["end"]))
+        self._write_navigation(epub_dir, text_dir, navigation, labels)
 
         spine = [
             "text/cover.xhtml",
             "text/title_page.xhtml",
-            "text/copyright.xhtml",
-            "text/about_this_edition.xhtml",
-            "text/contents.xhtml",
         ]
         if has_frontispiece:
             spine.append("text/frontispiece.xhtml")
+        spine.extend(
+            [
+                "text/copyright.xhtml",
+                "text/contents.xhtml",
+                "text/about_this_edition.xhtml",
+            ]
+        )
         for unit in units:
             if unit.opening_filename:
                 spine.append(f"text/{unit.opening_filename}")
@@ -775,6 +1071,32 @@ class EditionRenderer:
                 raise ValueError(f"Rendered artifact changed after preview: {relative}")
         return manifest
 
+    def preview_is_approved(self) -> bool:
+        try:
+            manifest = self.verify_render()
+        except (FileNotFoundError, ValueError, json.JSONDecodeError):
+            return False
+        state = self._load_state()
+        return bool(
+            state.get("status") == "PREVIEW_APPROVED"
+            and state.get("approved_fingerprint") == manifest.get("fingerprint")
+        )
+
+    def epub_matches_preview(self, epub_path: Path) -> bool:
+        if not self.preview_is_approved() or not epub_path.is_file():
+            return False
+        manifest = self.verify_render()
+        expected = {
+            relative: digest
+            for relative, digest in manifest.get("files", {}).items()
+            if relative != "mimetype"
+        }
+        try:
+            actual = package_hashes(epub_path)
+        except (OSError, zipfile.BadZipFile):
+            return False
+        return actual == expected
+
     def build_epub(self, filename: str = "BOOK.epub", *, require_approval: bool = True) -> Path:
         manifest = self.verify_render()
         state = self._load_state()
@@ -841,6 +1163,18 @@ class EditionRenderer:
         spine = [item_by_id.get(item.get("idref")) for item in opf.find_all("itemref")]
         if not spine or spine[0] != "text/cover.xhtml":
             raise ValueError("Cover must be the first spine item")
+        expected_frontmatter = ["text/cover.xhtml", "text/title_page.xhtml"]
+        if "text/frontispiece.xhtml" in spine:
+            expected_frontmatter.append("text/frontispiece.xhtml")
+        expected_frontmatter.extend(
+            [
+                "text/copyright.xhtml",
+                "text/contents.xhtml",
+                "text/about_this_edition.xhtml",
+            ]
+        )
+        if spine[: len(expected_frontmatter)] != expected_frontmatter:
+            raise ValueError("Frontmatter does not follow the canonical reading order")
         if "text/the_end.xhtml" not in spine:
             raise ValueError("The End page is missing from spine")
         if opf.find("dc:language") is None and opf.find("language") is None:
@@ -848,7 +1182,11 @@ class EditionRenderer:
         package_text = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in epub_dir.rglob("*.xhtml"))
         if re.search(r"::: ?pagebreak|RELEASE\s+STAMP", package_text, re.IGNORECASE):
             raise ValueError("Internal pipeline marker leaked into XHTML")
-        if _GUTENBERG_RE.search(package_text):
+        body_text = "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (epub_dir / "text").glob("chapter_*.xhtml")
+        )
+        if _GUTENBERG_RE.search(body_text):
             raise ValueError("Project Gutenberg material leaked into XHTML")
 
 

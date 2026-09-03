@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
 import re
 import shutil
@@ -8,6 +9,7 @@ import subprocess
 import tempfile
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
@@ -76,10 +78,11 @@ class PremiumEpubRendererTests(TestCase):
             subtitle=cls.edition.subtitle,
             author_name=cls.edition.author,
             publication_year=2026,
-            frontispiece_text="A Premium Test Book\nExample Author\nMantaQuest",
-            copyright_text="Original work in the public domain.\n\nThis edition © 2026 RinoBooks.",
-            about_edition_text="This canonical test edition validates the premium digital workflow.",
+            frontispiece_text="# A Premium Test Book\n\n**Example Author**\n\n*MantaQuest*",
+            copyright_text="Original work in the public domain.\n\nThis *edition* © 2026 RinoBooks.",
+            about_edition_text="This **canonical** test edition validates the *premium* digital workflow.",
             imprint_name="MantaQuest",
+            seal_name="Wrecked Alien Machines",
             edition_year=2026,
             edition_copyright_holder="RinoBooks",
         )
@@ -103,6 +106,16 @@ class PremiumEpubRendererTests(TestCase):
         image.parent.mkdir(parents=True, exist_ok=True)
         image.write_bytes(
             base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
+        )
+        saved_gallery_image = storage.images_dir(
+            cls.edition.work.code,
+            cls.edition.language.code,
+        ) / "02.jpg"
+        saved_gallery_image.parent.mkdir(parents=True, exist_ok=True)
+        saved_gallery_image.write_bytes(
+            base64.b64decode(
+                "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q=="
+            )
         )
         cls.renderer = EditionRenderer(cls.edition)
         cls.result = cls.renderer.render()
@@ -163,12 +176,46 @@ class PremiumEpubRendererTests(TestCase):
             if path.startswith("EPUB/images/"):
                 self.assertEqual(package[path], digest)
 
+    def test_only_current_approved_epub_matches_preview(self):
+        invalidate_premium_render(self.edition, "test_render_changed")
+        self.renderer.render()
+        self.assertFalse(self.renderer.preview_is_approved())
+        self.renderer.approve_preview()
+        epub = self.renderer.build_epub("current.epub")
+        self.assertTrue(self.renderer.preview_is_approved())
+        self.assertTrue(self.renderer.epub_matches_preview(epub))
+
+        with zipfile.ZipFile(epub, "a") as archive:
+            archive.writestr("stale-marker.txt", "stale")
+        self.assertFalse(self.renderer.epub_matches_preview(epub))
+
     def test_each_chapter_has_unique_id(self):
         ids = []
         for path in (self.result.root / "EPUB/text").glob("chapter_*.xhtml"):
             soup = BeautifulSoup(path.read_text(encoding="utf-8"), "xml")
             ids.append(soup.find("section").get("id"))
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_source_preamble_does_not_create_synthetic_introduction(self):
+        units = self.renderer._split_units(
+            '<h1>Book title</h1><h2>Edition subtitle</h2>'
+            '<p>BOOK CODE: book_0901 INTAKE STATUS: READY</p>'
+            '<h2>Chapter 1 — Arrival</h2><p>Chapter text.</p>'
+        )
+        self.assertEqual([unit.kind for unit in units], ["chapter"])
+        self.assertFalse(any(unit.filename == "body_introduction.xhtml" for unit in units))
+
+    def test_bare_roman_headings_replace_generated_metadata_chapters(self):
+        units = self.renderer._split_units(
+            '<h1>Pride and Prejudice</h1>'
+            '<h1>Chapter 01 - Jane Austen</h1>'
+            '<h1>Chapter 02 - Modern English Edition</h1>'
+            '<h2>I</h2><p>First chapter.</p>'
+            '<h2>II</h2><p>Second chapter.</p>'
+        )
+
+        self.assertEqual([unit.number for unit in units], ["Chapter I", "Chapter II"])
+        self.assertEqual([unit.body_html for unit in units], ["<p class=\"first-paragraph\">First chapter.</p>", "<p class=\"first-paragraph\">Second chapter.</p>"])
 
     def test_each_chapter_has_single_h1(self):
         counts = {}
@@ -183,6 +230,26 @@ class PremiumEpubRendererTests(TestCase):
         path = self.result.root / "EPUB/text/contents.xhtml"
         self._assert_links(path, path.parent)
 
+    def test_contents_lists_all_editorial_sections_in_reading_order(self):
+        path = self.result.root / "EPUB/text/contents.xhtml"
+        soup = BeautifulSoup(path.read_text(encoding="utf-8"), "xml")
+        labels = [link.get_text(" ", strip=True) for link in soup.select(".contents-list a")]
+        self.assertEqual(
+            labels,
+            [
+                "Cover",
+                "Title Page",
+                "Frontispiece",
+                "Copyright",
+                "About This Book",
+                "Part One",
+                "Chapter 1",
+                "Chapter 2",
+                "Appendix",
+                "The End",
+            ],
+        )
+
     def test_nav_links_are_valid(self):
         path = self.result.root / "EPUB/nav.xhtml"
         self._assert_links(path, path.parent)
@@ -196,6 +263,66 @@ class PremiumEpubRendererTests(TestCase):
         hrefs = {item.get("id"): item.get("href") for item in opf.find_all("item")}
         spine = [hrefs[item.get("idref")] for item in opf.find_all("itemref")]
         self.assertEqual(spine[0], "text/cover.xhtml")
+
+    def test_frontmatter_spine_uses_canonical_editorial_order(self):
+        opf = self._opf()
+        hrefs = {item.get("id"): item.get("href") for item in opf.find_all("item")}
+        spine = [hrefs[item.get("idref")] for item in opf.find_all("itemref")]
+        self.assertEqual(
+            spine[:6],
+            [
+                "text/cover.xhtml",
+                "text/title_page.xhtml",
+                "text/frontispiece.xhtml",
+                "text/copyright.xhtml",
+                "text/contents.xhtml",
+                "text/about_this_edition.xhtml",
+            ],
+        )
+
+    def test_title_page_shows_the_editorial_seal(self):
+        path = self.result.root / "EPUB/text/title_page.xhtml"
+        seal = BeautifulSoup(path.read_text(encoding="utf-8"), "xml").select_one(".publisher")
+        self.assertEqual(seal.get_text(" ", strip=True), "Wrecked Alien Machines")
+
+    def test_publisher_metadata_uses_rinobooks(self):
+        self.assertEqual(self._opf().find("publisher").get_text(strip=True), "Rinobooks")
+
+    def test_post_intake_preview_opens_without_redirecting_to_manual_pipeline(self):
+        response = self.client.get(
+            reverse("premium_epub_preview", kwargs={"edition_id": self.edition.id}),
+            {
+                "return_to": "post_intake",
+                "workflow_edition_id": self.edition.id,
+                "target": "en_us",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Voltar ao pipeline do Intake")
+        self.assertEqual(
+            [item["filename"] for item in response.context["page_links"][:6]],
+            [
+                "cover.xhtml",
+                "title_page.xhtml",
+                "frontispiece.xhtml",
+                "copyright.xhtml",
+                "contents.xhtml",
+                "about_this_edition.xhtml",
+            ],
+        )
+
+    @patch("editorial.views.EditionRenderer.render", side_effect=ValueError("invalid preview"))
+    def test_post_intake_preview_error_returns_to_intake_instead_of_manual_pipeline(self, _render):
+        response = self.client.get(
+            reverse("premium_epub_preview", kwargs={"edition_id": self.edition.id}),
+            {
+                "return_to": "post_intake",
+                "workflow_edition_id": self.edition.id,
+                "target": "en_us",
+            },
+        )
+        expected = reverse("post_intake_workflow", kwargs={"edition_id": self.edition.id})
+        self.assertRedirects(response, f"{expected}?target=en_us", fetch_redirect_response=False)
 
     def test_cover_image_property_exists(self):
         self.assertIsNotNone(self._opf().find("item", attrs={"properties": re.compile("cover-image")}))
@@ -213,6 +340,65 @@ class PremiumEpubRendererTests(TestCase):
     def test_first_paragraph_has_no_indent_class(self):
         soup = BeautifulSoup((self.result.root / "EPUB/text/chapter_001.xhtml").read_text(encoding="utf-8"), "xml")
         self.assertIn("first-paragraph", soup.select_one(".chapter-body p").get("class"))
+
+    def test_saved_gallery_image_is_linked_to_its_numbered_chapter(self):
+        opening = self.result.root / "EPUB/text/chapter_002_opening.xhtml"
+        self.assertTrue(opening.exists())
+        soup = BeautifulSoup(opening.read_text(encoding="utf-8"), "xml")
+        self.assertEqual(soup.find("img").get("src"), "../images/02.jpg")
+        self.assertTrue((self.result.root / "EPUB/images/02.jpg").exists())
+
+    def test_approved_final_takes_precedence_over_legacy_kdp_source(self):
+        build_dir = storage.builds_dir(self.edition.work.code, self.edition.language.code)
+        legacy = build_dir / "kdp_merged.md"
+        approved = build_dir / "BOOK.MD_FINAL"
+        legacy.write_text("Project Gutenberg legacy material", encoding="utf-8")
+        approved.write_text("## Chapter 1 — Approved\n\nFinal editorial text.\n", encoding="utf-8")
+
+        source, source_dir = EditionRenderer(self.edition)._source()
+
+        self.assertEqual(source_dir, build_dir)
+        self.assertEqual(source, approved.read_text(encoding="utf-8"))
+
+    def test_gutenberg_source_credit_is_allowed_in_copyright_frontmatter(self):
+        template = BookEditionTemplate.objects.get(
+            book_code=self.edition.work.code,
+            language=self.edition.language.code,
+        )
+        template.copyright_text += "\n\nSource credit: Project Gutenberg eBook No. 42671."
+        template.save(update_fields=["copyright_text"])
+
+        result = EditionRenderer(self.edition).render()
+
+        copyright_page = (result.root / "EPUB/text/copyright.xhtml").read_text(encoding="utf-8")
+        self.assertIn("Project Gutenberg eBook No. 42671", copyright_page)
+
+    def test_frontmatter_markdown_is_rendered_without_visible_markers(self):
+        frontispiece = BeautifulSoup(
+            (self.result.root / "EPUB/text/frontispiece.xhtml").read_text(encoding="utf-8"),
+            "xml",
+        )
+        about = BeautifulSoup(
+            (self.result.root / "EPUB/text/about_this_edition.xhtml").read_text(encoding="utf-8"),
+            "xml",
+        )
+        copyright_page = BeautifulSoup(
+            (self.result.root / "EPUB/text/copyright.xhtml").read_text(encoding="utf-8"),
+            "xml",
+        )
+
+        self.assertEqual(frontispiece.find("h1").get_text(strip=True), "A Premium Test Book")
+        self.assertEqual(frontispiece.find("strong").get_text(strip=True), "Example Author")
+        self.assertEqual(frontispiece.find("em").get_text(strip=True), "MantaQuest")
+        self.assertEqual(about.find("strong").get_text(strip=True), "canonical")
+        self.assertEqual(about.find("em").get_text(strip=True), "premium")
+        self.assertEqual(copyright_page.find("em").get_text(strip=True), "edition")
+        visible_text = " ".join(
+            page.get_text(" ", strip=True)
+            for page in (frontispiece, about, copyright_page)
+        )
+        self.assertNotIn("**", visible_text)
+        self.assertNotIn("# A Premium", visible_text)
 
     def test_following_paragraphs_have_indent(self):
         css = (self.result.root / "EPUB/styles/gaiden-premium.css").read_text(encoding="utf-8")
@@ -272,6 +458,42 @@ class PremiumEpubRendererTests(TestCase):
         language = opf.find("language")
         self.assertIsNotNone(language)
         self.assertEqual(language.get_text(strip=True), self.edition.language.code)
+
+    def test_edition_owned_epub_metadata_sets_opf_and_illustration_alt_text(self):
+        metadata_path = self.renderer.build_dir / "epub_metadata.json"
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "schema": "gaiden_epub_metadata_v1",
+                    "language": "en-US",
+                    "publisher": "Example Rights Holder",
+                    "rights": "Example rights statement.",
+                    "description": "A tested modern edition.",
+                    "subjects": ["Classic fiction", "Adaptation"],
+                    "date": "2026",
+                    "contributors": [{"name": "Example Team", "role": "adp"}],
+                    "illustration_alt_text": {"02.jpg": "A meaningful scene description."},
+                }
+            ),
+            encoding="utf-8",
+        )
+        try:
+            configured = EditionRenderer(self.edition)
+            result = configured.render()
+            opf = BeautifulSoup((result.root / "EPUB/content.opf").read_text(encoding="utf-8"), "xml")
+            self.assertEqual(opf.find("language").get_text(strip=True), "en-US")
+            self.assertEqual(opf.find("publisher").get_text(strip=True), "Example Rights Holder")
+            self.assertEqual(opf.find("contributor").get_text(strip=True), "Example Team")
+            self.assertEqual(opf.find("description").get_text(strip=True), "A tested modern edition.")
+            saved_image = BeautifulSoup(
+                (result.root / "EPUB/text/chapter_002_opening.xhtml").read_text(encoding="utf-8"),
+                "xml",
+            ).find("img", src=re.compile("02.jpg"))
+            self.assertEqual(saved_image.get("alt"), "A meaningful scene description.")
+        finally:
+            metadata_path.unlink(missing_ok=True)
+            self.renderer._metadata = None
+            self.result = self.renderer.render()
 
     def test_the_end_page_exists_when_enabled(self):
         self.assertTrue((self.result.root / "EPUB/text/the_end.xhtml").exists())

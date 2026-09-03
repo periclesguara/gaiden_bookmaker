@@ -117,6 +117,7 @@ def _read_frontmatter(frontmatter_dir: Path) -> tuple[str, str, str]:
     frontispiece = _strip_leading_title(frontispiece, "Frontispiece")
     copyright_text = _strip_leading_title(copyright_text, "Copyright")
     about = _strip_leading_title(about, "About this edition")
+    about = _strip_leading_title(about, "About This Book")
 
     return frontispiece, copyright_text, about
 
@@ -137,7 +138,7 @@ def build() -> None:
     parts = [
         "# Frontispiece {.frontmatter-title .unlisted}\n\n" + frontispiece,
         "# Copyright {.frontmatter-title .unlisted}\n\n" + copyright_text,
-        "# About this edition {.frontmatter-title .unlisted}\n\n" + about,
+        "# About This Book {.frontmatter-title .unlisted}\n\n" + about,
         miolo_md.strip(),
     ]
     final_text = "\n\n".join(p for p in parts if p.strip()) + "\n"

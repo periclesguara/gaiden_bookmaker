@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from pathlib import PurePosixPath
+
 from django.contrib import messages
+from django.conf import settings
 from django.core import signing
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -52,7 +55,31 @@ def automated_drive_browse(request: HttpRequest) -> JsonResponse:
     folder = (request.GET.get("folder") or "").strip()
     try:
         storage = RcloneDriveStorage()
-        return JsonResponse({"root": storage.inbox, "folders": storage.list_folders(folder)})
+        source_path, discovered = storage.list_files(folder)
+        allowed_extensions = set(settings.GAIDEN_INTAKE_ALLOWED_EXTENSIONS)
+        files = [
+            {
+                "name": row["name"],
+                "path": row["relative_path"],
+                "size": row["size"],
+                "mime_type": row.get("mime_type") or "",
+                "modified_at": row.get("modified_at") or "",
+                "extension": PurePosixPath(row["name"]).suffix.casefold(),
+                "allowed": PurePosixPath(row["name"]).suffix.casefold() in allowed_extensions,
+            }
+            for row in discovered
+        ]
+        return JsonResponse(
+            {
+                "root": storage.inbox,
+                "folder": source_path,
+                # Folder selection already happens from the root listing. Avoid
+                # a second remote call here: some Drive backends take a long
+                # time to prove that a selected folder has no child folders.
+                "folders": [],
+                "files": files,
+            }
+        )
     except (DrivePathError, DriveStorageError, ValueError) as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 
@@ -226,6 +253,18 @@ def _render_automated(
     try:
         drive_storage = RcloneDriveStorage()
         drive_folders = drive_storage.list_folders()
+        registered_batches = {
+            batch.drive_source_path: batch
+            for batch in IntakeBatch.objects.filter(
+                source="GOOGLE_DRIVE",
+                remote=drive_storage.remote,
+                status="REGISTERED",
+            ).prefetch_related("items")
+        }
+        drive_folders = [
+            {**folder, "registered_batch": registered_batches.get(folder["path"])}
+            for folder in drive_folders
+        ]
         drive_location = f"{drive_storage.remote}:{drive_storage.inbox}"
     except (DrivePathError, DriveStorageError, ValueError) as exc:
         drive_browse_error = str(exc)

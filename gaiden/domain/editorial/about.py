@@ -5,7 +5,7 @@ from typing import List, Optional
 TEXT = {
     "en": {
         "about_contributor_title": "About the {roles}",
-        "about_edition_title": "About This Edition",
+        "about_edition_title": "About This Book",
         "role_labels": {
             "adapter": "Adapter",
             "editor": "Editor",

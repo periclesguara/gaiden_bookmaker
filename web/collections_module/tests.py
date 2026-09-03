@@ -24,6 +24,14 @@ class CollectionModuleTests(TestCase):
         self.assertContains(response, "Collections")
         self.assertContains(response, "Projetos Finalizados")
 
+    def test_legacy_project_entry_redirects_to_modular_home(self):
+        response = self.client.get(reverse("project_entry"))
+        self.assertRedirects(
+            response,
+            reverse("root"),
+            fetch_redirect_response=False,
+        )
+
     def test_create_collection(self):
         response = self.client.post(
             reverse("collection_new"),

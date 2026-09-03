@@ -16,7 +16,7 @@ from gaiden.application.intake.drive_import.service import (
     preview_drive_folder,
     retry_drive_batch,
 )
-from gaiden.infrastructure.drive_storage import DrivePathError, safe_drive_path
+from gaiden.infrastructure.drive_storage import DrivePathError, RcloneDriveStorage, safe_drive_path
 from pipeline.models import (
     BookEditionTemplate,
     IntakeAuditEvent,
@@ -42,6 +42,9 @@ class FakeDriveStorage:
 
     def list_folders(self, folder=""):
         return [{"name": "Fixture", "path": "01_INBOX_RAW/Fixture", "id": "folder-1", "modified_at": "v1"}]
+
+    def list_files(self, folder):
+        return self.discover(folder, recursive=False)
 
     def discover(self, folder, *, recursive=True):
         source = folder if folder.startswith(self.inbox) else f"{self.inbox}/{folder}"
@@ -108,6 +111,25 @@ class DriveIntakePreviewTests(TestCase):
             with self.subTest(value=value), self.assertRaises(DrivePathError):
                 safe_drive_path(value)
         self.assertEqual(safe_drive_path("01_INBOX_RAW/folder/file.txt"), "01_INBOX_RAW/folder/file.txt")
+
+    def test_lightweight_file_browser_parses_unicode_names_without_downloading(self):
+        storage = RcloneDriveStorage(remote="fake_drive", root="")
+        listing = (
+            'Jane Austen — Emma.epub,798869,"2026-08-22 16:55:10"\n'
+            'Jane Austen — Pride and Prejudice.epub,831946,"2026-08-22 16:55:06"\n'
+        ).encode("utf-8")
+
+        with patch.object(storage, "_run", return_value=listing) as run:
+            source, rows = storage.list_files("Jane_Austen")
+
+        self.assertEqual(source, "01_INBOX_RAW/Jane_Austen")
+        self.assertEqual(
+            [row["name"] for row in rows],
+            ["Jane Austen — Emma.epub", "Jane Austen — Pride and Prejudice.epub"],
+        )
+        self.assertEqual(rows[0]["size"], 798869)
+        self.assertIn("lsf", run.call_args.args[0])
+        self.assertIn("--csv", run.call_args.args[0])
 
     def test_metadata_parser_and_code_precedence_are_generic(self):
         metadata = filename_metadata("book_1234 — Any Author — Any Title.txt")
@@ -190,6 +212,7 @@ class DriveIntakeConfirmationTests(TransactionTestCase):
         self.assertEqual(IntakeBatch.objects.count(), 1)
         self.assertEqual(IntakeItem.objects.count(), 1)
         self.assertEqual(Work.objects.filter(code="book_0050").count(), 1)
+        self.assertEqual(Work.objects.get(code="book_0050").source_provenance, {})
         self.assertEqual(IntakeItem.objects.get().status, "REGISTERED")
         self.assertTrue(IntakeItem.objects.get().canonical_path.startswith("02_IMPORTED_RAW/"))
 
@@ -201,6 +224,42 @@ class DriveIntakeConfirmationTests(TransactionTestCase):
         self.assertEqual(IntakeItem.objects.count(), 1)
         self.assertEqual(Work.objects.filter(code="book_0050").count(), 1)
         self.assertGreaterEqual(IntakeAuditEvent.objects.count(), 3)
+
+    def test_rerun_reuses_reserved_code_when_filename_has_no_book_code(self):
+        self.storage = FakeDriveStorage(
+            {"Generic Author — Uncoded Work.txt": b"An uncoded confirmed body.\n"}
+        )
+
+        first_preview = self.preview()
+        reserved_code = first_preview["items"][0]["book_code"]
+        confirm_drive_folder(self.storage, first_preview)
+
+        second_preview = self.preview()
+        self.assertEqual(second_preview["items"][0]["book_code"], reserved_code)
+        self.assertEqual(second_preview["items"][0]["operation"], "NO_OP")
+        second = confirm_drive_folder(self.storage, second_preview)
+
+        self.assertEqual(second["counts"]["noop"], 1)
+        self.assertEqual(Work.objects.filter(code=reserved_code).count(), 1)
+
+    def test_stale_preview_cannot_replace_registered_code(self):
+        self.storage = FakeDriveStorage(
+            {"Generic Author — Uncoded Work.txt": b"An uncoded confirmed body.\n"}
+        )
+        first_preview = self.preview()
+        reserved_code = first_preview["items"][0]["book_code"]
+        confirm_drive_folder(self.storage, first_preview)
+        stale_preview = self.preview()
+        stale_preview["items"][0]["book_code"] = "book_9999"
+
+        with self.assertRaisesMessage(
+            StaleDrivePreview,
+            "A identidade reservada do lote mudou",
+        ):
+            confirm_drive_folder(self.storage, stale_preview)
+
+        self.assertEqual(IntakeItem.objects.get().book_code, reserved_code)
+        self.assertFalse(Work.objects.filter(code="book_9999").exists())
 
     def test_changed_folder_invalidates_preview(self):
         preview = self.preview()
@@ -270,8 +329,21 @@ class DriveIntakeInterfaceTests(TestCase):
         dashboard = self.client.get(reverse("automated_editorial_import"))
         self.assertEqual(dashboard.status_code, 200)
         self.assertContains(dashboard, "Importar pasta existente do Google Drive")
-        browse = self.client.get(reverse("automated_drive_browse"))
+        self.assertContains(dashboard, "Abrir arquivos")
+        self.assertContains(dashboard, 'id="drive-folder-contents"')
+        browse = self.client.get(
+            reverse("automated_drive_browse"),
+            {"folder": "01_INBOX_RAW/Fixture"},
+        )
         self.assertEqual(browse.status_code, 200)
+        payload = browse.json()
+        self.assertEqual(payload["folder"], "01_INBOX_RAW/Fixture")
+        self.assertEqual(
+            [file["name"] for file in payload["files"]],
+            ["book_0050 — Generic Author — First Work.txt"],
+        )
+        self.assertTrue(payload["files"][0]["allowed"])
+        self.assertEqual(self.storage.download_count, 0)
         preview = self.client.post(
             reverse("automated_drive_folder_preview"),
             {
@@ -288,6 +360,47 @@ class DriveIntakeInterfaceTests(TestCase):
         self.assertContains(preview, "book_0050")
         self.assertEqual(self.storage.download_count, 0)
         self.assertEqual(IntakeBatch.objects.count(), 0)
+
+    @patch("pipeline.views_incremental.RcloneDriveStorage")
+    def test_registered_drive_folder_links_to_its_file_selection_table(self, storage_class):
+        storage_class.return_value = self.storage
+        batch = IntakeBatch.objects.create(
+            batch_code="batch_0001",
+            name="Fixture",
+            slug="fixture",
+            source="GOOGLE_DRIVE",
+            remote=self.storage.remote,
+            drive_source_path="01_INBOX_RAW/Fixture",
+            status="REGISTERED",
+        )
+        IntakeItem.objects.create(
+            batch=batch,
+            remote_file_id="file-50",
+            remote_path="01_INBOX_RAW/Fixture/book_0050.txt",
+            relative_path="book_0050.txt",
+            original_name="book_0050.txt",
+            size_bytes=11,
+            mime_type="text/plain",
+            extension=".txt",
+            remote_version="v1",
+            sha256="a" * 64,
+            title="First Work",
+            author_name="Generic Author",
+            source_language="en",
+            book_code="book_0050",
+            preview_operation="CREATE",
+            status="REGISTERED",
+            canonical_path="02_IMPORTED_RAW/batch_0001__fixture/book_0050/source/book_0050.txt",
+        )
+
+        response = self.client.get(reverse("automated_editorial_import"))
+
+        expected_url = f'{reverse("imported_book_list")}?batch=batch_0001'
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Lote batch_0001 já registrado")
+        self.assertContains(response, f'href="{expected_url}"')
+        self.assertContains(response, "1 arquivo(s)")
+        self.assertContains(response, "Escolher obra e abrir bloco de edição")
 
     @patch("pipeline.views_incremental.RcloneDriveStorage")
     def test_confirmation_requires_post(self, storage_class):
@@ -369,13 +482,104 @@ class ImportedBookProductionTests(TestCase):
             "meta_file": str(self.root / "raw" / "meta.json"),
         }
 
-    def test_list_shows_each_imported_code_with_edit_action(self):
+    def test_list_shows_preview_stage_and_explicit_editor_selection_actions(self):
         response = self.client.get(reverse("imported_book_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Selecionar um livro importado")
         self.assertContains(response, "book_0056")
         self.assertContains(response, "book_0056.txt")
-        self.assertContains(response, ">Editar<")
+        self.assertContains(response, "Patamar atual")
+        self.assertContains(response, "Intake concluído · aguardando envio")
+        self.assertContains(response, ">Prévia de leitura<")
+        self.assertContains(response, ">Enviar ao bloco de edição<")
+
+    def test_list_can_be_filtered_to_the_selected_intake_batch(self):
+        other_batch = IntakeBatch.objects.create(
+            batch_code="batch_0002",
+            name="Other batch",
+            slug="other-batch",
+            source="GOOGLE_DRIVE",
+            remote="fake_drive",
+            drive_source_path="01_INBOX_RAW/Other",
+            status="REGISTERED",
+        )
+        IntakeItem.objects.create(
+            batch=other_batch,
+            remote_file_id="file-57",
+            remote_path="01_INBOX_RAW/Other/book_0057.txt",
+            relative_path="book_0057.txt",
+            original_name="book_0057.txt",
+            size_bytes=10,
+            mime_type="text/plain",
+            extension=".txt",
+            remote_version="v1",
+            sha256="b" * 64,
+            title="Other Work",
+            author_name="Other Author",
+            source_language="en",
+            book_code="book_0057",
+            preview_operation="CREATE",
+            status="REGISTERED",
+            canonical_path="02_IMPORTED_RAW/batch_0002__other/book_0057/source/book_0057.txt",
+        )
+
+        response = self.client.get(reverse("imported_book_list"), {"batch": "batch_0001"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecionar arquivo de Generic batch")
+        self.assertContains(response, "book_0056")
+        self.assertNotContains(response, "book_0057")
+        self.assertContains(response, "1 arquivo(s) importado(s).")
+
+    @patch("pipeline.views.RcloneDriveStorage")
+    def test_reading_preview_downloads_verified_source_without_creating_editorial_records(self, storage_class):
+        fake_storage = FakeDriveStorage({})
+        fake_storage.promoted[self.item.canonical_path] = self.payload
+        storage_class.return_value = fake_storage
+        counts_before = (
+            Edition.objects.count(),
+            BookEditionTemplate.objects.count(),
+            IntakeAuditEvent.objects.count(),
+        )
+        metadata_before = dict(self.item.metadata or {})
+
+        response = self.client.get(reverse("imported_book_preview", kwargs={"item_id": self.item.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Prévia de leitura")
+        self.assertContains(response, "Title: Example")
+        self.assertContains(response, "Patamar atual")
+        self.assertContains(response, "Enviar este arquivo ao bloco de edição")
+        self.assertContains(response, "Continuar para o bloco de edição →")
+        self.assertEqual(fake_storage.download_count, 1)
+        self.item.refresh_from_db()
+        self.assertEqual(dict(self.item.metadata or {}), metadata_before)
+        self.assertEqual(
+            (
+                Edition.objects.count(),
+                BookEditionTemplate.objects.count(),
+                IntakeAuditEvent.objects.count(),
+            ),
+            counts_before,
+        )
+
+    @patch("pipeline.views.RcloneDriveStorage")
+    def test_reading_preview_rejects_a_source_with_a_different_sha256(self, storage_class):
+        fake_storage = FakeDriveStorage({})
+        fake_storage.promoted[self.item.canonical_path] = b"different bytes"
+        storage_class.return_value = fake_storage
+
+        response = self.client.get(
+            reverse("imported_book_preview", kwargs={"item_id": self.item.id}),
+            follow=True,
+        )
+
+        expected_url = f'{reverse("imported_book_list")}?batch=batch_0001'
+        self.assertRedirects(response, expected_url)
+        self.assertContains(response, "SHA-256 do arquivo importado diverge")
+        self.assertFalse(Edition.objects.exists())
+        self.assertFalse(BookEditionTemplate.objects.exists())
+        self.assertFalse(IntakeAuditEvent.objects.exists())
 
     @patch("pipeline.views.kdp_mode.build_frontmatter_files")
     @patch("pipeline.views.pipeline_ingest.run_source_extract")
@@ -601,3 +805,14 @@ class ImportedBookProductionTests(TestCase):
         self.assertEqual((self.root / "translated" / "en_us" / "merge_refine_clean.txt").read_bytes(), translated)
         state = EditionPipeline.objects.get(edition=edition)
         self.assertEqual(state.current_stage, "MERGED")
+
+        workflow = self.client.get(response.url)
+        self.assertContains(workflow, "1 · Editar Frontmatter")
+        self.assertContains(workflow, "2 · Converter TXT em MD")
+        self.assertContains(workflow, "vinculadas automaticamente aos capítulos no preview")
+        self.assertContains(workflow, "Frontispício → Copyright → Sumário")
+        self.assertEqual(
+            workflow.context["frontmatter_url"],
+            f"{reverse('frontmatter_template_edit', kwargs={'book_code': 'book_0056', 'language': 'en'})}"
+            f"?return_to=post_intake&workflow_edition_id={edition.id}&target=en_us",
+        )

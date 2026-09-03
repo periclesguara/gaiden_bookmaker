@@ -1,6 +1,7 @@
 import ast
 import hashlib
 import os
+import subprocess
 import tempfile
 import zipfile
 from pathlib import Path
@@ -20,6 +21,13 @@ from editorial.models import (
     Language,
     Seal,
     Work,
+)
+from gaiden.application.builds.epubcheck_service import (
+    STATUS_FAILED,
+    STATUS_PASSED,
+    STATUS_PASSED_WITH_WARNINGS,
+    STATUS_UNAVAILABLE,
+    validate_epubcheck,
 )
 from gaiden.application.builds.final_epub_import import FinalEpubImportError, import_final_epub
 from gaiden.application.builds.finalized_projects import sync_finalized_project
@@ -278,7 +286,9 @@ class FinalEpubImportTests(TestCase):
         self.assertEqual(EditionBuildAuditEvent.objects.count(), 1)
         audit = EditionBuildAuditEvent.objects.get(event_type="FINAL_ARTIFACT_IMPORTED")
         self.assertEqual(audit.details["validation"]["tool"], "EPUBCheck")
-        self.assertIn("warnings", audit.details["validation"])
+        self.assertEqual(first.build.epubcheck_status, STATUS_PASSED)
+        self.assertEqual(first.build.epubcheck_validated_sha256, self.sha)
+        self.assertTrue(Path(first.build.epubcheck_report_path).is_file())
         self.assertEqual(Path(first.build.epub_path).read_bytes(), self.source.read_bytes())
         dashboard = self.client.get(reverse("production_dashboard"))
         self.assertContains(dashboard, "book_0078")
@@ -347,13 +357,14 @@ class FinalEpubImportTests(TestCase):
         self.assertEqual(destination.read_bytes(), b"different")
 
     def test_missing_epubcheck_fails_and_preserves_failed_build(self):
-        with patch("gaiden.application.builds.final_epub_import.shutil.which", return_value=None):
-            with self.assertRaisesMessage(FinalEpubImportError, "not found"):
+        with patch("gaiden.application.builds.epubcheck_service.shutil.which", return_value=None):
+            with self.assertRaisesMessage(FinalEpubImportError, "unavailable"):
                 self._import(skip_epubcheck_for_tests=False)
         failed = EditionBuild.objects.get()
         self.assertEqual(failed.status, EditionBuild.STATUS_FAILED)
         self.assertFalse(failed.validation_passed)
         self.assertEqual(failed.validation_report["tool"], "EPUBCheck")
+        self.assertEqual(failed.epubcheck_status, STATUS_UNAVAILABLE)
 
     def test_same_bytes_different_locale_is_not_returned_as_no_op(self):
         first = self._import()
@@ -393,9 +404,105 @@ class FinalEpubImportTests(TestCase):
         Path(result.build.epub_path).write_bytes(b"corrupt")
         response = self.client.get(reverse("final_build_download", args=[result.build.id]))
         self.assertEqual(response.status_code, 404)
+        result.build.refresh_from_db()
+        self.assertEqual(result.build.epubcheck_status, EditionBuild.EPUBCHECK_PENDING)
+        self.assertFalse(result.build.is_final)
         self.assertTrue(
             EditionBuildAuditEvent.objects.filter(
                 build=result.build,
                 event_type="FINAL_ARTIFACT_DOWNLOAD_INTEGRITY_FAILED",
             ).exists()
         )
+
+    def test_legacy_last_version_download_is_also_gated(self):
+        result = self._import()
+        response = self.client.get(
+            reverse("pipeline_download_last_version", args=[self.edition.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            hashlib.sha256(b"".join(response.streaming_content)).hexdigest(),
+            self.sha,
+        )
+        Path(result.build.epub_path).write_bytes(b"changed after validation")
+        blocked = self.client.get(
+            reverse("pipeline_download_last_version", args=[self.edition.id])
+        )
+        self.assertEqual(blocked.status_code, 404)
+
+    def test_epubcheck_returncode_never_passes_the_gate(self):
+        result = self._import()
+        epub = Path(result.build.epub_path)
+        runs = [
+            subprocess.CompletedProcess(["epubcheck", "--version"], 0, "EPUBCheck v5.2.1", ""),
+            subprocess.CompletedProcess(
+                ["epubcheck", str(epub)],
+                1,
+                "Messages: 0 fatals / 1 errors / 0 warnings / 0 infos",
+                "",
+            ),
+        ]
+        with patch("gaiden.application.builds.epubcheck_service.shutil.which", return_value="/usr/bin/epubcheck"), patch(
+            "gaiden.application.builds.epubcheck_service.subprocess.run", side_effect=runs
+        ):
+            report = validate_epubcheck(epub)
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["error_count"], 1)
+
+    def test_epubcheck_warning_passes_with_warning_status(self):
+        result = self._import()
+        epub = Path(result.build.epub_path)
+        runs = [
+            subprocess.CompletedProcess(["epubcheck", "--version"], 0, "EPUBCheck v5.2.1", ""),
+            subprocess.CompletedProcess(
+                ["epubcheck", str(epub)],
+                0,
+                "Messages: 0 fatals / 0 errors / 1 warnings / 0 infos",
+                "",
+            ),
+        ]
+        with patch("gaiden.application.builds.epubcheck_service.shutil.which", return_value="/usr/bin/epubcheck"), patch(
+            "gaiden.application.builds.epubcheck_service.subprocess.run", side_effect=runs
+        ):
+            report = validate_epubcheck(epub)
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["status"], STATUS_PASSED_WITH_WARNINGS)
+        self.assertEqual(report["warning_count"], 1)
+
+    def test_epubcheck_timeout_fails_closed(self):
+        result = self._import()
+        epub = Path(result.build.epub_path)
+        runs = [
+            subprocess.CompletedProcess(["epubcheck", "--version"], 0, "EPUBCheck v5.2.1", ""),
+            subprocess.TimeoutExpired(["epubcheck", str(epub)], 120, output="", stderr=""),
+        ]
+        with patch("gaiden.application.builds.epubcheck_service.shutil.which", return_value="/usr/bin/epubcheck"), patch(
+            "gaiden.application.builds.epubcheck_service.subprocess.run", side_effect=runs
+        ):
+            report = validate_epubcheck(epub)
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["status"], STATUS_FAILED)
+        self.assertIn("EPUBCHECK_TIMEOUT", report["stderr"])
+
+    def test_invalid_opf_is_failed_and_reported_before_final_ready(self):
+        invalid = self.root / "invalid.epub"
+        with zipfile.ZipFile(invalid, "w") as archive:
+            archive.writestr(zipfile.ZipInfo("mimetype"), b"application/epub+zip", compress_type=zipfile.ZIP_STORED)
+            archive.writestr("EPUB/book.opf", "<package>")
+        digest = hashlib.sha256(invalid.read_bytes()).hexdigest()
+        with self.assertRaises(FinalEpubImportError):
+            import_final_epub(
+                edition_id=self.edition.id,
+                locale="en-US",
+                source_path=invalid,
+                expected_sha256=digest,
+                expected_size_bytes=invalid.stat().st_size,
+                official_body_path=self.body,
+                approved=True,
+                skip_epubcheck_for_tests=True,
+            )
+        failed = EditionBuild.objects.get()
+        self.assertEqual(failed.status, EditionBuild.STATUS_FAILED)
+        self.assertEqual(failed.epubcheck_status, STATUS_FAILED)
+        self.assertTrue(Path(failed.epubcheck_report_path).is_file())
+        self.assertTrue(failed.validation_report["internal_qa_failed"])

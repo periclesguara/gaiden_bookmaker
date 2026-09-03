@@ -53,6 +53,7 @@ def build_context(edition: Edition) -> dict:
         "city": edition.city,
         "country": edition.country,
         "publisher": publisher,
+        "seal": edition.seal_name or "",
         "language_display": language_display(language_code),
     }
 

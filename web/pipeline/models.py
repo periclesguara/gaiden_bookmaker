@@ -84,7 +84,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Publication year\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Public Domain in the United States and other territories.\n"
             "\n"
             "This modern version of *{title}* was produced under the {seal} imprint.\n"
@@ -118,7 +118,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Ano de publicacao\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Dominio publico nos Estados Unidos e em outros territorios.\n"
             "\n"
             "Esta versao moderna de *{title}* foi produzida sob o selo {seal}.\n"
@@ -152,7 +152,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Ano de publicacion\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Dominio publico en los Estados Unidos y otros territorios.\n"
             "\n"
             "Esta version moderna de *{title}* fue producida bajo el sello {seal}.\n"
@@ -186,7 +186,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Erscheinungsjahr\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Gemeinfrei in den Vereinigten Staaten und anderen Gebieten.\n"
             "\n"
             "Diese moderne Ausgabe von *{title}* wurde unter dem {seal}-Imprint erstellt.\n"
@@ -220,7 +220,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Annee de publication\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Domaine public aux Etats-Unis et dans d'autres territoires.\n"
             "\n"
             "Cette edition moderne de *{title}* a ete produite sous l'empreinte {seal}.\n"
@@ -254,7 +254,7 @@ LANGUAGE_DEFAULT_TEMPLATES = {
             "Anno di pubblicazione\n"
             "{year}\n"
             "\n"
-            "Copyright © {year} Arthur Conan Doyle.\n"
+            "Copyright © {year} {publisher}.\n"
             "Di pubblico dominio negli Stati Uniti e in altri territori.\n"
             "\n"
             "Questa edizione moderna di *{title}* e stata prodotta sotto il marchio {seal}.\n"
@@ -547,10 +547,18 @@ class BookEditionTemplate(models.Model):
             return []
 
         def is_any_default(value: str, field_name: str) -> bool:
-            return any(
-                value == lang_defaults.get(field_name)
-                for lang_defaults in LANGUAGE_DEFAULT_TEMPLATES.values()
-            )
+            for lang_defaults in LANGUAGE_DEFAULT_TEMPLATES.values():
+                default_value = lang_defaults.get(field_name)
+                if value == default_value:
+                    return True
+                if field_name == "copyright_text" and default_value:
+                    legacy_value = default_value.replace(
+                        "Copyright © {year} {publisher}.",
+                        "Copyright © {year} Arthur Conan Doyle.",
+                    )
+                    if value == legacy_value:
+                        return True
+            return False
 
         updated_fields = []
         if not self.frontispiece_text or is_any_default(self.frontispiece_text, "frontispiece_text"):

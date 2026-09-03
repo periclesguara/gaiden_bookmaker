@@ -183,7 +183,14 @@ def preview_drive_folder(
     seen_codes: dict[str, str] = {}
     items = []
     for row in editorial_rows:
-        proposed = next(proposals) if not row["detected"]["book_code"] else ""
+        existing_item = (
+            existing_batch.items.filter(relative_path=row["relative_path"]).first()
+            if existing_batch
+            else None
+        )
+        proposed = ""
+        if not row["detected"]["book_code"]:
+            proposed = existing_item.book_code if existing_item else next(proposals)
         code, conflict = resolve_book_code(
             filename_code=row["detected"]["book_code"],
             proposed_code=proposed,
@@ -192,11 +199,6 @@ def preview_drive_folder(
         # A value supplied by the operator is an explicit preview edit and has
         # precedence over the ambiguous middle segment of a filename.
         author = default_author.strip() or row["detected"]["author"]
-        existing_item = (
-            existing_batch.items.filter(relative_path=row["relative_path"]).first()
-            if existing_batch
-            else None
-        )
         operation, reason = _operation_for(
             code=code,
             title=title,
@@ -321,6 +323,7 @@ def _ensure_catalog(item_data: dict) -> Work:
     return Work.objects.create(
         code=item_data["book_code"],
         title=item_data["title"],
+        source_provenance={},
         original_language=language,
         author=contributor,
     )
@@ -353,6 +356,28 @@ def confirm_drive_folder(storage: DriveStoragePort, preview: dict, *, selected_p
     if not selected or not selected.issubset(known):
         raise IntakeValidationError("Seleção de arquivos inválida.")
     chosen = [item for item in preview["items"] if item["relative_path"] in selected]
+    existing_batch = IntakeBatch.objects.filter(
+        source="GOOGLE_DRIVE",
+        remote=storage.remote,
+        drive_source_path=source_path,
+    ).first()
+    if existing_batch:
+        registered_codes = dict(
+            existing_batch.items.filter(relative_path__in=selected).values_list(
+                "relative_path",
+                "book_code",
+            )
+        )
+        changed_identity = [
+            item["relative_path"]
+            for item in chosen
+            if registered_codes.get(item["relative_path"], item["book_code"])
+            != item["book_code"]
+        ]
+        if changed_identity:
+            raise StaleDrivePreview(
+                "A identidade reservada do lote mudou; gere uma nova prévia antes de confirmar."
+            )
     conflicts = [item for item in chosen if item["operation"] == "CONFLICT"]
     if conflicts:
         raise IntakeValidationError("A seleção contém conflitos bloqueantes.")

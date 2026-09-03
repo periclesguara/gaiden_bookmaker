@@ -58,6 +58,16 @@ converts headings, emphasis, lists, and block quotes to XHTML while escaping raw
 HTML. Markdown control characters must not remain visible in the preview or the
 packaged EPUB.
 
+### Copyright holder safety
+
+Default copyright frontmatter attributes the modern edition to `{publisher}`;
+the original author remains identified only in the work metadata. The forward
+repair migration `pipeline.0023_replace_hard_coded_copyright_holder` replaces
+the erroneous Arthur Conan Doyle/Doyke holder text in existing production
+templates and synchronized edition frontmatter. It changes only the copyright
+fields and is intentionally irreversible; operators must use the verified
+database backup made before migration if recovery is required.
+
 Premium EPUB reading order is canonical and shared by the OPF spine, visible
 preview, and post-Intake workflow: cover, title page, frontispiece when present,
 copyright, contents, About This Book, body matter, and The End. The renderer
