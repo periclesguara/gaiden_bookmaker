@@ -188,6 +188,10 @@ def _clean_normalized_text(text: str) -> tuple[str, dict[str, int]]:
                 continue
             if is_heading:
                 prev_heading_key = heading_key
+            else:
+                # A repeated chapter number after prose is a legitimate
+                # restart (for example, a new Part/Book), not a duplicate.
+                prev_heading_key = ""
             blank_run = 0
         else:
             blank_run += 1

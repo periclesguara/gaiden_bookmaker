@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Writer{% endblock %} · Gaiden</title>
+  <style>
+    :root{--bg:#f2eee7;--panel:#fffdf9;--ink:#20272a;--muted:#667074;--line:#d8d0c5;--accent:#a84628;--blue:#285f94;--green:#226f54;--red:#a52d2d}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+    .shell{width:min(1280px,calc(100% - 28px));margin:22px auto 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    nav,.actions{display:flex;gap:8px;flex-wrap:wrap}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+    h1,h2,h3{font-family:Georgia,serif;margin-top:0}.muted{color:var(--muted)}.btn,button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:9px 14px;background:var(--accent);color:#fff;text-decoration:none;font-weight:800;cursor:pointer}
+    .btn.secondary,button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.green,button.green{background:var(--green)}button.danger{background:var(--red)}
+    table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid var(--line);vertical-align:top;text-align:left}th{background:#eee8df}.table{overflow:auto}
+    input,textarea,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit}input[type=checkbox]{width:auto}
+    label{font-weight:750}.field{margin-bottom:15px}.errors,.messages{list-style:none;padding:0}.errors{color:var(--red)}.messages li{padding:10px 14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:8px;margin-bottom:8px}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:16px}.step-form{margin:0}.step{width:100%;height:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);text-align:center;font-size:12px;font-weight:800;cursor:pointer}.step.complete{background:#dcefe5;border-color:#8fc7aa;color:var(--green)}.step.current{background:#fff0d5;border-color:#d7a84c;color:#714c08}.step.blocked{background:#eceae6;color:#777}.step small{display:block;font-weight:500;margin-top:3px}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.metric{border:1px solid var(--line);border-radius:10px;padding:13px;background:#fff}.metric strong{display:block;font:700 24px/1.1 Georgia,serif}.progress{height:12px;background:#ddd8d0;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--green)}.notice{padding:12px 14px;border-radius:9px;background:#fff0d5;border:1px solid #e5c780}.notice.ok{background:#dcefe5;border-color:#9dcbb2}.notice.error{background:#f5dddd;border-color:#dda2a2}.compact{margin:6px 0;padding-left:20px}.button-help{display:block;margin-top:6px;color:var(--muted);font-size:12px}.check{color:var(--green);font-weight:800}.pending{color:var(--red);font-weight:800}
+    dialog.confirm-dialog{width:min(560px,calc(100% - 28px));border:1px solid var(--line);border-radius:16px;padding:0;background:var(--panel);color:var(--ink);box-shadow:0 24px 80px #0005}dialog.confirm-dialog::backdrop{background:#172024aa;backdrop-filter:blur(2px)}.dialog-body{padding:24px}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--line);background:#f4f0e9}.dialog-actions button{min-width:120px}.impact{padding:10px 12px;border-left:4px solid var(--accent);background:#f8e9df;border-radius:6px}
+    .status{display:inline-block;padding:3px 8px;border-radius:999px;background:#e9ecee;font-size:12px}.status.FINAL,.status.VECTORIZED{background:#dcefe5;color:var(--green)}.status.FAILED{background:#f5dddd;color:var(--red)}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.source-list label{display:block;padding:6px}
+    @media(max-width:800px){.top,.cols{display:block}.steps,.metrics{grid-template-columns:repeat(2,1fr)}.table table,.table tbody,.table tr,.table td{display:block;width:100%}.table thead{display:none}.table tr{margin-bottom:12px;border:1px solid var(--line)}.table td{border:0}.actions .btn,.actions button{width:100%}}
+  </style>
+</head>
+<body><main class="shell">
+  <header class="top"><div><strong>Gaiden Writer</strong><div class="muted">RAG local · Qwen · aprovação editorial</div></div>
+    <nav><a class="btn secondary" href="{% url 'root' %}">← Página inicial</a><a class="btn secondary" href="{% url 'writer:home' %}">Writer</a><a class="btn secondary" href="{% url 'writer:sources' %}">Arquivos</a><a class="btn secondary" href="{% url 'writer:works' %}">Manuscritos</a></nav>
+  </header>
+  <div class="steps">
+    {% if workflow_stages %}
+      {% for stage in workflow_stages %}
+        {% if stage.number == 1 %}
+          <form class="step-form" method="post" action="{% url 'writer:normalize_sources' %}">{% csrf_token %}
+            {% for source in project.sources.all %}<input type="hidden" name="documents" value="{{ source.id }}">{% endfor %}
+            <button class="step {{ stage.state }}" type="button" data-dialog-open="stage-normalize-dialog">{{ stage.number }} · {{ stage.label }}<small>{{ stage.detail }}</small></button>
+            <dialog class="confirm-dialog" id="stage-normalize-dialog">
+              <div class="dialog-body">
+                {% if stage.complete %}<h2>Normalização já concluída</h2><p>{{ stage.detail }}.</p><p class="impact"><strong>Refazer?</strong> As fontes do projeto serão renormalizadas e o índice RAG atual será invalidado.</p>{% else %}<h2>Normalização pendente</h2><p>Abra a página de arquivos para selecionar as fontes que devem ser processadas.</p>{% endif %}
+              </div>
+              <div class="dialog-actions"><button class="secondary" type="button" data-dialog-close>Cancelar</button>{% if stage.complete %}<button type="submit" name="remake" value="yes">Refazer normalização</button>{% else %}<a class="btn" href="{% url 'writer:sources' %}">Abrir arquivos</a>{% endif %}</div>
+            </dialog>
+          </form>
+        {% elif stage.number == 2 %}
+          <form class="step-form" method="post" action="{% url 'writer:vectorize' project.id %}">{% csrf_token %}
+            <button class="step {{ stage.state }}" type="button" data-dialog-open="stage-vectorize-dialog">{{ stage.number }} · {{ stage.label }}<small>{{ stage.detail }}</small></button>
+            <dialog class="confirm-dialog" id="stage-vectorize-dialog">
+              <div class="dialog-body">
+                {% if stage.complete %}<h2>Vetorização já concluída</h2><p>{{ stage.detail }}.</p><p class="impact"><strong>Refazer?</strong> O índice será reconstruído com {{ dashboard.models.embedding_model }} sem alterar as obras normalizadas.</p>{% elif dashboard.vectorize_blockers %}<h2>Vetorização pendente</h2><ul class="compact">{% for blocker in dashboard.vectorize_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>{% else %}<h2>Confirmar vetorização</h2><p>Será criado o índice completo das {{ dashboard.sources.selected }} fontes selecionadas.</p>{% endif %}
+              </div>
+              <div class="dialog-actions"><button class="secondary" type="button" data-dialog-close>Cancelar</button>{% if stage.complete %}<button type="submit" name="remake" value="yes">Refazer vetorização</button>{% elif dashboard.vectorize_blockers %}<button class="secondary" type="button" data-dialog-close>Voltar ao painel</button>{% else %}<button type="submit" name="confirm" value="yes">Confirmar e executar</button>{% endif %}</div>
+            </dialog>
+          </form>
+        {% else %}
+          <form class="step-form" method="post" action="{% url 'writer:stage_status' project.id stage.number %}">{% csrf_token %}<button class="step {{ stage.state }}" type="submit">{{ stage.number }} · {{ stage.label }}<small>{{ stage.detail }}</small></button></form>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <span class="step">1 · Normalizar</span><span class="step">2 · Vetorizar</span><span class="step">3 · Bíblias</span><span class="step">4 · Roteiro</span><span class="step">5 · Parâmetros</span><span class="step">6 · Gerar</span>
+    {% endif %}
+  </div>
+  {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+<script>
+document.addEventListener("click", function (event) {
+  const opener = event.target.closest("[data-dialog-open]");
+  if (opener) {
+    const dialog = document.getElementById(opener.dataset.dialogOpen);
+    if (dialog) dialog.showModal();
+    return;
+  }
+  const closer = event.target.closest("[data-dialog-close]");
+  if (closer) closer.closest("dialog").close();
+});
+document.querySelectorAll("dialog.confirm-dialog").forEach(function (dialog) {
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) dialog.close();
+  });
+});
+</script>
+</body></html>

@@ -15,7 +15,8 @@
     main { padding: 1rem; }
     iframe { display: block; width: min(48rem, 100%); height: calc(100vh - 8rem); margin: auto; border: 1px solid #aaa; background: #fff; }
     .badge { display: inline-block; padding: .2rem .5rem; border-radius: 999px; background: #ded8cc; }
-    button { padding: .55rem .8rem; cursor: pointer; }
+    .warning { margin-top: .75rem; padding: .65rem .8rem; border: 1px solid #d09a42; border-radius: .5rem; background: #fff4dc; color: #704a10; }
+    button, .button { display: inline-block; padding: .55rem .8rem; cursor: pointer; border: 1px solid #bdb5a8; border-radius: 999px; background: #fff; color: inherit; text-decoration: none; }
     @media (max-width: 48rem) { .layout { grid-template-columns: 1fr; } nav { max-height: 12rem; } }
   </style>
 </head>
@@ -25,16 +26,26 @@
     <span class="badge">{{ render_state.status }}</span>
     <span class="badge">tema {{ manifest.theme }}</span>
     <span class="badge">hash {{ render_result.fingerprint|slice:":12" }}</span>
+    <span class="badge">{{ chapter_count }} capítulos</span>
+    <span class="badge">{{ illustrated_chapter_count }} ilustrados</span>
     <form method="post" action="{% url 'premium_epub_approve' edition.id %}" style="display:inline">
       {% csrf_token %}
       <button type="submit">Aprovar este preview</button>
     </form>
-    <a href="{% url 'edition_steps' edition.id %}">Voltar ao pipeline</a>
+    <a class="button" href="{{ frontmatter_adjust_url }}">Ajustar frontmatter</a>
+    {% if post_intake_return_url %}
+    <a class="button" href="{{ post_intake_return_url }}">Voltar ao pipeline do Intake</a>
+    {% else %}
+    <a class="button" href="{% url 'edition_steps' edition.id %}">Voltar ao pipeline</a>
+    {% endif %}
+    {% for warning in render_result.warnings %}
+    <div class="warning"><strong>Ajuste necessário:</strong> {{ warning }}</div>
+    {% endfor %}
   </header>
   <div class="layout">
     <nav aria-label="Páginas do EPUB">
-      {% for page in pages %}
-      <a href="{% url 'premium_epub_asset' edition.id 'EPUB/text/'|add:page %}" target="epub-preview">{{ page }}</a>
+      {% for page in page_links %}
+      <a href="{% url 'premium_epub_asset' edition.id 'EPUB/text/'|add:page.filename %}" target="epub-preview">{{ page.label }}</a>
       {% endfor %}
     </nav>
     <main>

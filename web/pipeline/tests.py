@@ -1,4 +1,5 @@
 import io
+import importlib
 import json
 import os
 import re
@@ -11,14 +12,21 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from editorial.models import Contributor, Edition, EditionBuild, EditionPipeline, EditionText, Language, Seal, Work
-from pipeline.forms import normalize_book_code_input
-from pipeline.models import BookEditionTemplate, CORE_BLOCK_KEY, CORE_ISOLATION_LANGUAGES, IncrementalEdition, SYSTEM_BLOCKS
+from pipeline.forms import BookEditionTemplateForm, normalize_book_code_input
+from pipeline.models import (
+    BookEditionTemplate,
+    CORE_BLOCK_KEY,
+    CORE_ISOLATION_LANGUAGES,
+    IncrementalEdition,
+    ManualTranslationJob,
+    SYSTEM_BLOCKS,
+)
 
 
 class _FakeResponsesAPI:
@@ -85,6 +93,24 @@ class _SlowOpenAIClient:
 
 
 class ItalianSupportTests(TestCase):
+    def test_new_edition_uses_canonical_publisher_and_seal(self):
+        form = BookEditionTemplateForm()
+        self.assertEqual(form["imprint_name"].value(), "Rinobooks")
+        self.assertEqual(form["seal_name"].value(), "Wrecked Alien Machines")
+
+    def test_frontispiece_uses_publisher_instead_of_seal(self):
+        template = BookEditionTemplate(
+            book_code="book_9998",
+            language="en",
+            title="Title",
+            author_name="Author",
+            publication_year=2026,
+            imprint_name="Rinobooks",
+            seal_name="Wrecked Alien Machines",
+            frontispiece_text="{publisher}",
+        )
+        self.assertEqual(template.frontispiece_rendered, "Rinobooks")
+
     def test_italian_refine_contract_and_frontmatter_helpers(self):
         from editorial.frontmatter import frontmatter_headings, language_display
         from gaiden_portal.utils import country_for_language, get_section_template_for_language
@@ -122,6 +148,62 @@ class ItalianSupportTests(TestCase):
             publication_year=2026,
         )
         self.assertEqual(template.get_placeholder_context()["language"], "Italiano")
+
+
+class CopyrightHolderDefaultsTests(SimpleTestCase):
+    def test_defaults_credit_the_publisher_not_a_hard_coded_author(self):
+        from pipeline.models import LANGUAGE_DEFAULT_TEMPLATES
+
+        for language, defaults in LANGUAGE_DEFAULT_TEMPLATES.items():
+            with self.subTest(language=language):
+                template = BookEditionTemplate(
+                    book_code=f"book_copyright_{language}",
+                    language=language,
+                    title="Sense and Sensibility",
+                    author_name="Jane Austen",
+                    publication_year=2026,
+                    imprint_name="Lillybooks",
+                    copyright_text=defaults["copyright_text"],
+                )
+
+                self.assertNotIn("Arthur Conan Doyle", template.copyright_text)
+                self.assertIn("Copyright © 2026 Lillybooks.", template.copyright_rendered)
+
+    def test_legacy_default_is_replaced_before_it_can_be_saved(self):
+        from pipeline.models import LANGUAGE_DEFAULT_TEMPLATES
+
+        current_default = LANGUAGE_DEFAULT_TEMPLATES["en"]["copyright_text"]
+        legacy_default = current_default.replace(
+            "Copyright © {year} {publisher}.",
+            "Copyright © {year} Arthur Conan Doyle.",
+        )
+        template = BookEditionTemplate(
+            book_code="book_copyright_legacy",
+            language="en",
+            title="Sense and Sensibility",
+            author_name="Jane Austen",
+            publication_year=2026,
+            imprint_name="Lillybooks",
+            copyright_text=legacy_default,
+        )
+
+        updated_fields = template.apply_language_defaults_if_empty()
+
+        self.assertIn("copyright_text", updated_fields)
+        self.assertEqual(template.copyright_text, current_default)
+        self.assertIn("Copyright © 2026 Lillybooks.", template.copyright_rendered)
+
+    def test_repair_migration_catches_the_reported_doyke_typo(self):
+        migration = importlib.import_module(
+            "pipeline.migrations.0023_replace_hard_coded_copyright_holder"
+        )
+
+        for holder in ("Arthur Conan Doyle", "Arthur Conan Doyke"):
+            with self.subTest(holder=holder):
+                self.assertEqual(
+                    migration._HARD_CODED_HOLDER.sub("{publisher}", f"Copyright © 2026 {holder}."),
+                    "Copyright © 2026 {publisher}.",
+                )
 
 
 class FrenchRefineRoutingTests(TestCase):
@@ -497,6 +579,43 @@ class CadastroSourceFormatRoutingTests(TestCase):
             response,
             reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
         )
+
+    def test_frontmatter_opened_from_intake_returns_to_intake_editor(self):
+        BookEditionTemplate.objects.update_or_create(
+            book_code=self.work.code,
+            language="en",
+            defaults={
+                "title": self.work.title,
+                "author_name": self.author.name,
+                "publication_year": 2026,
+            },
+        )
+        return_url = (
+            f"{reverse('post_intake_workflow', kwargs={'edition_id': self.edition.id})}"
+            "?target=en_us"
+        )
+        ManualTranslationJob.objects.create(
+            edition=self.edition,
+            target_edition=self.edition,
+            source_language="en",
+            target_language="en_us",
+            drive_path="drive:jobs/book_9999/en-us",
+            source_path="clean.txt",
+            source_sha256="a" * 64,
+            expected_return_name="book_9999_en_us_translated.txt",
+        )
+
+        response = self.client.get(
+            reverse(
+                "frontmatter_template_edit",
+                kwargs={"book_code": self.work.code, "language": "en"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Voltar à edição do Intake", count=2)
+        self.assertEqual(response.context["post_intake_return_url"], return_url)
+        self.assertNotContains(response, ">Voltar</a>", html=False)
 
     def test_saving_editorial_block_marks_pipeline_as_outdated(self):
         BookEditionTemplate.objects.update_or_create(
@@ -1679,7 +1798,7 @@ class EnglishPhilosoferTranslateTests(TestCase):
         response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "EN (modern)")
+        self.assertContains(response, "EN-US (Modernize 2026)")
         self.assertContains(response, "PT-BR (portugues)")
         self.assertContains(response, "translate_pt_br_2026")
         self.assertNotContains(response, "English-Philosofer")
@@ -2286,6 +2405,33 @@ class HeadingCleanerGateTests(TestCase):
         self.assertNotIn(".pginternal", clean_text)
         self.assertNotIn("----------", clean_text)
         self.assertNotIn("::: chapter", clean_text)
+
+    def test_heading_cleaner_prefers_registered_normalized_source_over_stale_local_cache(self):
+        self.source_md_path.unlink()
+        self.normalized_path.parent.mkdir(parents=True, exist_ok=True)
+        self.normalized_path.write_text("stale local cache\n", encoding="utf-8")
+        with tempfile.TemporaryDirectory(prefix="gaiden-normalized-source-") as temp_dir:
+            registered_path = Path(temp_dir) / "normalized_body.txt"
+            registered_text = "# Novel\n\n## I\n\nFirst chapter body.\n"
+            registered_path.write_text(registered_text, encoding="utf-8")
+            EditionText.objects.update_or_create(
+                edition=self.edition,
+                defaults={
+                    "normalized_text": registered_text,
+                    "normalized_path": str(registered_path),
+                },
+            )
+
+            from pipeline import views
+
+            resolved_path, source = views._ensure_normalized_v2_for_heading_cleaner(self.edition)
+
+        self.assertEqual(source, "edition_text.normalized_path")
+        self.assertEqual(resolved_path, self.normalized_path)
+        self.assertEqual(self.normalized_path.read_text(encoding="utf-8"), registered_text)
+        texts = EditionText.objects.get(edition=self.edition)
+        self.assertEqual(texts.normalized_path, str(self.normalized_path))
+        self.assertEqual(texts.normalized_text, registered_text)
 
     def test_translate_disabled_without_heading_clean(self):
         response = self.client.get(self.steps_url)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from django.test import TestCase
 from django.urls import reverse
@@ -16,12 +17,20 @@ class CollectionModuleTests(TestCase):
         base = f"collection_test_{Collection.objects.count() + 1:04d}"
         return f"{base}_{suffix}" if suffix else base
 
-    def test_root_shows_choice_between_book_and_collection(self):
+    def test_root_shows_modular_home(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Book")
-        self.assertContains(response, "Collection")
-        self.assertContains(response, "Dashboard de edições")
+        self.assertContains(response, "Bookmaker — Manual / AI")
+        self.assertContains(response, "Collections")
+        self.assertContains(response, "Projetos Finalizados")
+
+    def test_legacy_project_entry_redirects_to_modular_home(self):
+        response = self.client.get(reverse("project_entry"))
+        self.assertRedirects(
+            response,
+            reverse("root"),
+            fetch_redirect_response=False,
+        )
 
     def test_create_collection(self):
         response = self.client.post(
@@ -222,8 +231,10 @@ class CollectionModuleTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         item.refresh_from_db()
-        self.assertIn(f"/data/collections/{collection.code}/en/uploads/", item.source_original_path)
-        self.assertNotIn("/data/raw/", item.source_original_path)
+        self.assertEqual(
+            Path(item.source_original_path).parent,
+            collections_storage.uploads_dir(collection.code, "en"),
+        )
         self.assertEqual(item.upload_status, "completed")
 
     def test_upload_page_has_txt_html_epub_format_options(self):

@@ -1,0 +1,201 @@
+{% extends "writer/base.html" %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="top">
+    <div>
+      <h1>{{ project.title }}</h1>
+      <p>{{ project.premise|default:"Premissa ainda não preenchida." }}</p>
+    </div>
+    <div class="actions">
+      <a class="btn secondary" href="{% url 'writer:project_detail' project.id %}">Atualizar painel</a>
+      <a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar bíblias e roteiro</a>
+    </div>
+  </div>
+
+  <h2>Painel de controle</h2>
+  <div class="progress" aria-label="{{ dashboard.progress_percent }}% do fluxo concluído">
+    <span style="width:{{ dashboard.progress_percent }}%"></span>
+  </div>
+  <p class="muted">{{ dashboard.completed_stages }} de 6 etapas concluídas · {{ dashboard.progress_percent }}%</p>
+  {% if dashboard.current_stage %}
+    <div class="notice">
+      <strong>Etapa atual: {{ dashboard.current_stage.number }} · {{ dashboard.current_stage.label }}</strong><br>
+      {{ dashboard.current_stage.detail }}.
+      {% if dashboard.current_stage.number == 3 or dashboard.current_stage.number == 4 %}
+        <a href="{% url 'writer:project_edit' project.id %}">Preencher agora</a>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="notice ok"><strong>Fluxo completo.</strong> Todas as etapas foram concluídas.</div>
+  {% endif %}
+
+  <div class="metrics">
+    <div class="metric"><strong>{{ dashboard.sources.normalized }}/{{ dashboard.sources.selected }}</strong><span>fontes normalizadas</span></div>
+    <div class="metric"><strong>{{ dashboard.sources.vectorized }}/{{ dashboard.sources.selected }}</strong><span>fontes vetorizadas</span></div>
+    <div class="metric"><strong>{{ dashboard.index.chunk_count }}</strong><span>trechos no índice</span></div>
+    <div class="metric"><strong>{{ dashboard.chapters.prepared }}/{{ dashboard.chapters.total }}</strong><span>capítulos preparados</span></div>
+  </div>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>1–2 · Corpus e índice RAG</h2>
+    <p>
+      {% if dashboard.sources.all_normalized %}<span class="check">✓ Normalização concluída</span>{% else %}<span class="pending">Normalização pendente</span>{% endif %}<br>
+      {% if dashboard.sources.all_vectorized %}<span class="check">✓ Vetorização concluída</span>{% else %}<span class="pending">Vetorização pendente</span>{% endif %}
+    </p>
+    <ul class="compact">
+      <li>{{ dashboard.sources.selected }} fontes selecionadas</li>
+      <li>{{ dashboard.sources.normalized }} normalizadas</li>
+      <li>{{ dashboard.sources.vectorized }} vetorizadas</li>
+      {% if dashboard.sources.failed %}<li class="errors">{{ dashboard.sources.failed }} com falha</li>{% endif %}
+      {% if dashboard.index.valid %}
+        <li>{{ dashboard.index.chunk_count }} trechos de dimensão {{ dashboard.index.dimension }}</li>
+        <li>Modelo: {{ dashboard.index.embedding_model }}</li>
+      {% else %}
+        <li class="errors">{{ dashboard.index.reason }}</li>
+      {% endif %}
+    </ul>
+
+    <form method="post" action="{% url 'writer:project_sources' project.id %}">
+      {% csrf_token %}
+      <div class="source-list">{{ source_form.sources }}</div>
+      <button class="secondary" type="submit">Salvar seleção</button>
+      <small class="button-help">Alterar a seleção invalida o índice atual e exige nova vetorização.</small>
+    </form>
+    <form method="post" action="{% url 'writer:vectorize' project.id %}" style="margin-top:12px">
+      {% csrf_token %}
+      <button type="button" data-dialog-open="vectorize-dialog">
+        {% if dashboard.sources.all_vectorized %}Vetorização concluída · opções{% else %}Vetorizar arquivos selecionados{% endif %}
+      </button>
+      <dialog class="confirm-dialog" id="vectorize-dialog">
+        <div class="dialog-body">
+          {% if dashboard.sources.all_vectorized %}
+            <h2>Vetorização já concluída</h2>
+            <p>{{ dashboard.sources.vectorized }} fontes e {{ dashboard.index.chunk_count }} trechos estão no índice atual.</p>
+            <p class="impact"><strong>Refazer?</strong> O índice derivado será reconstruído integralmente com {{ dashboard.models.embedding_model }}. Isso usa o modelo de embeddings, mas não altera as obras normalizadas.</p>
+          {% elif dashboard.vectorize_blockers %}
+            <h2>Vetorização ainda não disponível</h2>
+            <ul class="compact">{% for blocker in dashboard.vectorize_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+          {% else %}
+            <h2>Confirmar vetorização</h2>
+            <p>Será criado um índice completo para as {{ dashboard.sources.selected }} fontes selecionadas usando {{ dashboard.models.embedding_model }}.</p>
+          {% endif %}
+        </div>
+        <div class="dialog-actions">
+          <button class="secondary" type="button" data-dialog-close>Cancelar</button>
+          {% if dashboard.sources.all_vectorized %}<button type="submit" name="remake" value="yes">Refazer vetorização</button>{% elif dashboard.vectorize_blockers %}<button class="secondary" type="button" data-dialog-close>Voltar ao painel</button>{% else %}<button type="submit" name="confirm" value="yes">Confirmar e executar</button>{% endif %}
+        </div>
+      </dialog>
+      {% if dashboard.vectorize_blockers %}
+        <small class="button-help">Pendente: {% for blocker in dashboard.vectorize_blockers %}{{ blocker }}{% if not forloop.last %}; {% endif %}{% endfor %}.</small>
+      {% elif dashboard.sources.all_vectorized %}
+        <small class="button-help">Clique para escolher entre refazer ou cancelar.</small>
+      {% else %}
+        <small class="button-help">Pronto para iniciar a vetorização completa.</small>
+      {% endif %}
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Modelos locais</h2>
+    {% if dashboard.models.online %}
+      <div class="notice ok"><strong>✓ Ollama conectado</strong><br>{{ dashboard.models.reason }}</div>
+    {% elif dashboard.models.checked %}
+      <div class="notice error"><strong>Ollama indisponível</strong><br>{{ dashboard.models.reason }}</div>
+    {% else %}
+      <div class="notice">{{ dashboard.models.reason }}</div>
+    {% endif %}
+    <p>
+      <strong>Embeddings</strong><br>
+      {{ dashboard.models.embedding_model }} ·
+      {% if dashboard.models.embedding_available %}<span class="check">instalado</span>{% elif dashboard.models.embedding_available == False %}<span class="pending">ausente</span>{% else %}<span class="muted">não verificado</span>{% endif %}
+    </p>
+    <p>
+      <strong>Escrita</strong><br>
+      {{ dashboard.models.writing_model }} ·
+      {% if dashboard.models.writing_available %}<span class="check">instalado</span>{% elif dashboard.models.writing_available == False %}<span class="pending">ausente</span>{% else %}<span class="muted">não verificado</span>{% endif %}
+    </p>
+    <p class="muted">O modelo pode estar instalado sem permanecer carregado na GPU; ele é carregado quando a etapa correspondente começa.</p>
+  </section>
+</div>
+
+<section class="card">
+  <div class="top">
+    <div><h2>3–4 · Base criativa</h2><p class="muted">A geração só é liberada quando todos os campos obrigatórios estão preenchidos.</p></div>
+    <a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Preencher bíblias e roteiro</a>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>Bíblias</h3>
+      <p>{% if project.character_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do personagem</p>
+      <p>{% if project.antagonist_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do antagonista</p>
+      <p>{% if project.scenario_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Cenários e locais</p>
+      <p>{% if project.world_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Mundo, época e clima</p>
+    </div>
+    <div>
+      <h3>Direção da obra</h3>
+      <p>{% if project.story_direction %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Direção da história</p>
+      <p>{% if project.story_outline %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Roteiro geral</p>
+      <p>{% if project.premise %}<span class="check">✓</span>{% else %}<span class="muted">Opcional</span>{% endif %} Premissa</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>5–6 · Capítulos — {{ dashboard.chapters.prepared }}/{{ dashboard.chapters.total }} preparados, {{ dashboard.chapters.generated }} gerados</h2>
+  {% if dashboard.global_generation_blockers %}
+    <div class="notice">
+      <strong>O que ainda impede a geração?</strong>
+      <ul class="compact">{% for blocker in dashboard.global_generation_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+      Os botões permanecem clicáveis e repetem essa orientação sem iniciar o modelo.
+    </div>
+  {% endif %}
+  <div class="table"><table><thead><tr><th>Capítulo</th><th>Direção / roteiro</th><th>Palavras</th><th>Sessões</th><th>Status</th><th>Ações e bloqueios</th></tr></thead><tbody>
+  {% for row in dashboard.chapter_rows %}
+    <tr>
+      <td><strong>Capítulo {{ row.chapter.number|stringformat:"02d" }}</strong><br>{{ row.chapter.title }}</td>
+      <td>
+        {% if row.direction_ready %}<span class="check">✓ direção</span>{% else %}<span class="pending">direção pendente</span>{% endif %}<br>
+        {% if row.script_ready %}<span class="check">✓ roteiro</span>{% else %}<span class="pending">roteiro pendente</span>{% endif %}
+      </td>
+      <td>{{ row.chapter.target_words }}<br><span class="muted">≈ {{ row.chapter.estimated_tokens }} tokens</span></td>
+      <td>{{ row.complete_sessions }}/{{ row.chapter.session_count }} concluídas<br><span class="muted">≈ {{ row.chapter.words_per_session }} palavras cada</span></td>
+      <td><span class="status {{ row.chapter.status }}">{{ row.chapter.get_status_display }}</span></td>
+      <td>
+        <div class="actions">
+          <a class="btn secondary" href="{% url 'writer:chapter_edit' row.chapter.id %}">Parâmetros</a>
+          <a class="btn secondary" href="{% url 'writer:chapter_detail' row.chapter.id %}">Abrir</a>
+          <form method="post" action="{% url 'writer:generate' row.chapter.id %}">{% csrf_token %}
+            <button type="button" data-dialog-open="generate-dialog-{{ row.chapter.id }}">{% if row.chapter.status == "GENERATION_COMPLETE" %}Geração concluída · opções{% elif row.chapter.status == "FINAL" %}Finalização concluída{% else %}Gerar capítulo{% endif %}</button>
+            <dialog class="confirm-dialog" id="generate-dialog-{{ row.chapter.id }}">
+              <div class="dialog-body">
+                {% if row.generation_ready %}
+                  <h2>Confirmar geração do Capítulo {{ row.chapter.number|stringformat:"02d" }}</h2>
+                  <p>O Writer recuperará referências do índice e executará {{ row.chapter.session_count }} sessão(ões) com o modelo {{ dashboard.models.writing_model }}.</p>
+                {% else %}
+                  <h2>Geração ainda não disponível</h2>
+                  <ul class="compact">{% for blocker in row.generation_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+                {% endif %}
+              </div>
+              <div class="dialog-actions">
+                <button class="secondary" type="button" data-dialog-close>Cancelar</button>
+                {% if row.generation_ready %}<button type="submit" name="confirm" value="yes">Confirmar e gerar</button>{% else %}<button class="secondary" type="button" data-dialog-close>Voltar ao painel</button>{% endif %}
+              </div>
+            </dialog>
+          </form>
+        </div>
+        {% if row.generation_blockers %}
+          <small class="button-help">Pendente: {% if dashboard.global_generation_blockers %}aguardando os requisitos gerais acima{% if row.chapter_blockers %}; {% endif %}{% endif %}{% for blocker in row.chapter_blockers %}{{ blocker }}{% if not forloop.last %}; {% endif %}{% endfor %}. Clique para ver os detalhes.</small>
+        {% else %}
+          <small class="button-help check">Pronto para gerar.</small>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">Nenhum capítulo configurado.</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

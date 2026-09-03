@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import os
 import subprocess
@@ -65,12 +67,15 @@ class RcloneDriveStorage:
 
     @staticmethod
     def _run(args: list[str]) -> bytes:
-        completed = subprocess.run(
-            ["rclone", *args],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
+        try:
+            completed = subprocess.run(
+                ["rclone", *args],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+        except FileNotFoundError as exc:
+            raise DriveStorageError("rclone não está instalado ou não está disponível no PATH.") from exc
         if completed.returncode:
             detail = completed.stderr.decode("utf-8", errors="replace").strip()
             raise DriveStorageError(f"rclone falhou ({' '.join(args[:2])}): {detail}")
@@ -91,6 +96,37 @@ class RcloneDriveStorage:
             ],
             key=lambda row: row["path"].casefold(),
         )
+
+    def list_files(self, folder: str) -> tuple[str, list[dict]]:
+        """List immediate files without hashes for the read-only Intake browser."""
+        source = self.source_path(folder)
+        payload = self._run(
+            [
+                "lsf",
+                self._remote_path(source),
+                "--files-only",
+                "--format",
+                "pst",
+                "--csv",
+                "--max-depth",
+                "1",
+            ]
+        )
+        rows = []
+        for raw in csv.reader(io.StringIO(payload.decode("utf-8", errors="replace"))):
+            if len(raw) != 3:
+                continue
+            relative = safe_drive_path(raw[0])
+            rows.append(
+                {
+                    "relative_path": relative,
+                    "name": PurePosixPath(relative).name,
+                    "size": int(raw[1] or 0),
+                    "mime_type": "",
+                    "modified_at": raw[2],
+                }
+            )
+        return source, sorted(rows, key=lambda row: row["relative_path"].casefold())
 
     def discover(self, folder: str, *, recursive: bool = True) -> tuple[str, list[dict]]:
         source = self.source_path(folder)

@@ -81,14 +81,24 @@
     .stat.fail strong {
       color: var(--fail);
     }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     .actions a {
       display: inline-block;
-      padding: 6px 10px;
-      border-radius: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
       background: var(--accent);
       color: #fff;
       text-decoration: none;
-      font-size: 12px;
+      font: 700 13px/1.2 system-ui, sans-serif;
+    }
+    .actions a.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--border);
     }
   </style>
 </head>
@@ -96,7 +106,11 @@
   <header>
     <h1>Gaiden - Visao Geral dos Blocos</h1>
     <p>Resumo por edicao com status das etapas.</p>
-    <p><a href="{% url 'book_edition_list' %}">Edicoes</a></p>
+    <nav class="actions" aria-label="Navegação principal">
+      <a class="secondary" href="{% url 'root' %}">← Página inicial</a>
+      <a class="secondary" href="{% url 'writer:home' %}">Writer</a>
+      <a href="{% url 'book_edition_list' %}">Edições</a>
+    </nav>
   </header>
   <section class="grid">
     {% for pipeline in pipelines %}

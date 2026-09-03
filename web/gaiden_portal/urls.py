@@ -1,13 +1,17 @@
 from django.contrib import admin
 from django.urls import include, path
 
-from collections_module import views as collection_views
 from pipeline import views_incremental
+from . import views as portal_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", collection_views.project_entry, name="root"),
+    path("", portal_views.home, name="root"),
     path("collections/", include("collections_module.urls")),
+    path("writer/", include("web.writer.urls")),
+    path("intake/", include("web.intake.urls")),
+    path("manual/", include("web.manual_ai.urls")),
+    path("finalized-projects/", include("web.finalized_projects.urls")),
     path(
         "intake/automated/",
         views_incremental.automated_editorial_import_dashboard,

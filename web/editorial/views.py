@@ -1,10 +1,13 @@
 import json
 import mimetypes
+import re
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from pathlib import Path
@@ -17,7 +20,12 @@ from gaiden_portal.utils import (
     get_frontispiece_template_for_edition,
     get_section_template_for_language,
 )
-from pipeline.models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES, PROJECT_ROOT
+from pipeline.models import (
+    BookEditionTemplate,
+    LANGUAGE_DEFAULT_TEMPLATES,
+    ManualTranslationJob,
+    PROJECT_ROOT,
+)
 from pipeline.services import utils
 from editorial.frontmatter import (
     build_frontmatter_files,
@@ -227,12 +235,61 @@ def _frontmatter_files_exist(book_code: str, language: str) -> bool:
     return any((out_dir / name).exists() for name in ("frontispiece.md", "copyright.md", "about_this_book.md"))
 
 
+def _post_intake_return_context(
+    request,
+    book_code: str,
+    edition: EditorialEdition | None,
+) -> tuple[str, str]:
+    """Resolve a contextual return without accepting an arbitrary redirect URL."""
+    workflow_edition_id = None
+    target = ""
+    if request.GET.get("return_to") == "post_intake":
+        try:
+            requested_edition_id = int(request.GET.get("workflow_edition_id") or "")
+        except (TypeError, ValueError):
+            requested_edition_id = None
+        if requested_edition_id and EditorialEdition.objects.filter(
+            pk=requested_edition_id,
+            work__code=book_code,
+        ).exists():
+            workflow_edition_id = requested_edition_id
+            target = (request.GET.get("target") or "").strip()
+
+    # A direct/old frontmatter URL has no return parameters. Translation jobs are
+    # the durable marker that this edition belongs to the post-Intake workflow.
+    if workflow_edition_id is None and edition is not None:
+        job = (
+            ManualTranslationJob.objects.filter(target_edition=edition).first()
+            or ManualTranslationJob.objects.filter(edition=edition).first()
+        )
+        if job is not None:
+            workflow_edition_id = job.edition_id
+            target = job.target_language
+
+    if workflow_edition_id is None:
+        return "", ""
+    return_params = {
+        "return_to": "post_intake",
+        "workflow_edition_id": workflow_edition_id,
+    }
+    return_url = reverse("post_intake_workflow", kwargs={"edition_id": workflow_edition_id})
+    if target:
+        return_params["target"] = target
+        return_url = f"{return_url}?{urlencode({'target': target})}"
+    return return_url, urlencode(return_params)
+
+
 def frontmatter_template_edit(request, book_code: str, language: str):
     force_defaults = request.GET.get("apply_defaults") == "1"
     edition = (
         EditorialEdition.objects.select_related("work", "language", "seal", "main_contributor")
         .filter(work__code=book_code, language__code=language)
         .first()
+    )
+    post_intake_return_url, frontmatter_return_query = _post_intake_return_context(
+        request,
+        book_code,
+        edition,
     )
 
     overrides = _frontmatter_overrides(book_code, language)
@@ -392,7 +449,13 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                     _write_frontmatter_files(edition)
                     _mark_editorial_changed(edition)
                     invalidate_premium_render(edition, "frontmatter_changed")
-                return redirect("frontmatter_template_edit", book_code=book_code, language=language)
+                frontmatter_url = reverse(
+                    "frontmatter_template_edit",
+                    kwargs={"book_code": book_code, "language": language},
+                )
+                if frontmatter_return_query:
+                    frontmatter_url = f"{frontmatter_url}?{frontmatter_return_query}"
+                return redirect(frontmatter_url)
     else:
         form = FrontmatterTemplateForm(instance=template)
         warning = ""
@@ -427,6 +490,8 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "language": language,
         "frontmatter_files_exist": files_exist,
         "overwrite_warning": warning,
+        "post_intake_return_url": post_intake_return_url,
+        "frontmatter_return_query": frontmatter_return_query,
     }
     return render(request, "editorial/frontmatter_form.html", context)
 
@@ -597,11 +662,18 @@ def frontispiece_preview(request, edition_id: int):
 
 def premium_epub_preview(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    post_intake_return_url, frontmatter_return_query = _post_intake_return_context(
+        request,
+        edition.work.code,
+        edition,
+    )
     renderer = EditionRenderer(edition)
     try:
         result = renderer.render()
     except Exception as exc:
         messages.error(request, f"Premium EPUB render failed: {exc}")
+        if post_intake_return_url:
+            return redirect(post_intake_return_url)
         return redirect("edition_steps", edition_id=edition.id)
     state = renderer._load_state()
     manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
@@ -610,6 +682,32 @@ def premium_epub_preview(request, edition_id: int):
         for path in result.spine
         if path.startswith("text/")
     ]
+    page_labels = {
+        "cover.xhtml": "Capa",
+        "title_page.xhtml": "Folha de rosto",
+        "copyright.xhtml": "Copyright",
+        "about_this_edition.xhtml": "About This Book",
+        "contents.xhtml": "Sumário",
+        "frontispiece.xhtml": "Frontispício",
+        "body_introduction.xhtml": "Introdução",
+        "the_end.xhtml": "Fim",
+    }
+    page_links = []
+    chapter_numbers: set[int] = set()
+    illustrated_chapters: set[int] = set()
+    for page in pages:
+        chapter_match = re.fullmatch(r"chapter_(\d+)(_opening)?\.xhtml", page)
+        if chapter_match:
+            chapter_number = int(chapter_match.group(1))
+            chapter_numbers.add(chapter_number)
+            if chapter_match.group(2):
+                illustrated_chapters.add(chapter_number)
+                label = f"Capítulo {chapter_number:02d} · abertura ilustrada"
+            else:
+                label = f"Capítulo {chapter_number:02d} · texto"
+        else:
+            label = page_labels.get(page, page)
+        page_links.append({"filename": page, "label": label})
     return render(
         request,
         "editorial/premium_epub_preview.html",
@@ -619,7 +717,20 @@ def premium_epub_preview(request, edition_id: int):
             "render_state": state,
             "manifest": manifest,
             "pages": pages,
+            "page_links": page_links,
             "first_page": pages[0],
+            "chapter_count": len(chapter_numbers),
+            "illustrated_chapter_count": len(illustrated_chapters),
+            "post_intake_return_url": post_intake_return_url,
+            "frontmatter_adjust_url": (
+                f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}"
+                f"?{frontmatter_return_query}"
+                if frontmatter_return_query else
+                reverse(
+                    "frontmatter_template_edit",
+                    kwargs={"book_code": edition.work.code, "language": edition.language.code},
+                )
+            ),
         },
     )
 

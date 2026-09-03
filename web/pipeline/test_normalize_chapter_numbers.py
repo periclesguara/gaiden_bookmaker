@@ -118,6 +118,22 @@ class NormalizeChapterNumbersTests(SimpleTestCase):
         self.assertIn("Body paragraph.", normalized)
         self.assertIn("Final body.", normalized)
 
+    def test_normalize_does_not_promote_pronoun_when_chapters_are_explicit(self):
+        raw = (
+            "CHAPTER 1\n\n"
+            "The first chapter starts here.\n\n"
+            "I\n"
+            "do not agree with that conclusion.\n\n"
+            "CHAPTER 2\n\n"
+            "The second chapter starts here.\n"
+        )
+
+        normalized = normalize_text_v2(raw)
+
+        self.assertEqual(normalized.count("CHAPTER 1"), 1)
+        self.assertEqual(normalized.count("CHAPTER 2"), 1)
+        self.assertIn("\nI\ndo not agree", normalized)
+
     def test_normalize_converts_roman_prefix_headings_to_arabic(self):
         raw = (
             "I. The First Case\n\n"

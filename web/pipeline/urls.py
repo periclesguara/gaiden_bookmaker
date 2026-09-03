@@ -33,7 +33,15 @@ urlpatterns = [
     path("jobs/", views.pipeline_jobs, name="pipeline_jobs"),
     path("editions/", views.book_edition_list, name="book_edition_list"),
     path("editions/imported/", views.imported_book_list, name="imported_book_list"),
+    path(
+        "editions/imported/<int:item_id>/preview/",
+        views.imported_book_preview,
+        name="imported_book_preview",
+    ),
     path("editions/dashboard/", views.production_dashboard, name="production_dashboard"),
+    path("builds/<int:build_id>/", views.final_build_detail, name="final_build_detail"),
+    path("builds/<int:build_id>/download/", views.download_final_build, name="final_build_download"),
+    path("builds/<int:build_id>/outdated/", views.mark_final_build_outdated, name="final_build_mark_outdated"),
     path(
         "editions/imported/<int:item_id>/select/",
         views.imported_book_select,
@@ -53,6 +61,51 @@ urlpatterns = [
         "editions/<int:edition_id>/production/google-drive/export/",
         views.manual_translation_export,
         name="manual_translation_export",
+    ),
+    path(
+        "editions/<int:edition_id>/production/chapter-split/",
+        views.chapter_translation_split,
+        name="chapter_translation_split",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/export/",
+        views.chapter_translation_export,
+        name="chapter_translation_export",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/split-qwen/",
+        views.chapter_translation_split_qwen,
+        name="chapter_translation_split_qwen",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/check-returns/",
+        views.chapter_translation_check_returns,
+        name="chapter_translation_check_returns",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/validate/",
+        views.chapter_translation_validate_returns,
+        name="chapter_translation_validate_returns",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/import-consolidated/",
+        views.chapter_translation_import_consolidated,
+        name="chapter_translation_import_consolidated",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/merge/",
+        views.chapter_translation_merge,
+        name="chapter_translation_merge",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/report/",
+        views.chapter_translation_report,
+        name="chapter_translation_report",
+    ),
+    path(
+        "translation-jobs/<int:job_id>/chapters/final/",
+        views.chapter_translation_final_download,
+        name="chapter_translation_final_download",
     ),
     path(
         "translation-jobs/<int:job_id>/import-drive/",
@@ -121,6 +174,11 @@ urlpatterns = [
         "editions/<int:edition_id>/cover/",
         views.edition_cover_file,
         name="pipeline_edition_cover",
+    ),
+    path(
+        "editions/<int:edition_id>/gallery/<str:filename>/",
+        views.edition_gallery_image_file,
+        name="pipeline_edition_gallery_image",
     ),
     path(
         "editions/<int:edition_id>/preview-merge-translate/",

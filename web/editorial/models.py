@@ -1,4 +1,9 @@
+import hashlib
+from pathlib import Path
+
 from django.db import models
+
+from gaiden.infrastructure import storage
 
 
 class Language(models.Model):
@@ -52,6 +57,7 @@ class Contributor(models.Model):
 class Work(models.Model):
     code = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    source_provenance = models.JSONField(blank=True, default=dict)
     original_language = models.ForeignKey(
         Language,
         on_delete=models.PROTECT,
@@ -296,6 +302,37 @@ class EditionBuild(models.Model):
         (BUILD_TYPE_INITIAL, "Initial"),
         (BUILD_TYPE_REBUILD, "Rebuild"),
     ]
+    STATUS_NOT_STARTED = "NOT_STARTED"
+    STATUS_IN_PROGRESS = "IN_PROGRESS"
+    STATUS_VALIDATING = "VALIDATING"
+    STATUS_READY_FOR_APPROVAL = "READY_FOR_APPROVAL"
+    STATUS_DONE = "DONE"
+    STATUS_FAILED = "FAILED"
+    STATUS_OUTDATED = "OUTDATED"
+    STATUS_CHOICES = [
+        (STATUS_NOT_STARTED, "Not started"),
+        (STATUS_IN_PROGRESS, "In progress"),
+        (STATUS_VALIDATING, "Validating"),
+        (STATUS_READY_FOR_APPROVAL, "Ready for approval"),
+        (STATUS_DONE, "Done"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_OUTDATED, "Outdated"),
+    ]
+
+    EPUBCHECK_PENDING = "EPUBCHECK_PENDING"
+    EPUBCHECK_RUNNING = "EPUBCHECK_RUNNING"
+    EPUBCHECK_PASSED = "EPUBCHECK_PASSED"
+    EPUBCHECK_PASSED_WITH_WARNINGS = "EPUBCHECK_PASSED_WITH_WARNINGS"
+    EPUBCHECK_FAILED = "EPUBCHECK_FAILED"
+    EPUBCHECK_UNAVAILABLE = "EPUBCHECK_UNAVAILABLE"
+    EPUBCHECK_STATUS_CHOICES = [
+        (EPUBCHECK_PENDING, "EPUBCheck pending"),
+        (EPUBCHECK_RUNNING, "EPUBCheck running"),
+        (EPUBCHECK_PASSED, "EPUBCheck passed"),
+        (EPUBCHECK_PASSED_WITH_WARNINGS, "EPUBCheck passed with warnings"),
+        (EPUBCHECK_FAILED, "EPUBCheck failed"),
+        (EPUBCHECK_UNAVAILABLE, "EPUBCheck unavailable"),
+    ]
 
     edition = models.ForeignKey(
         Edition,
@@ -309,6 +346,34 @@ class EditionBuild(models.Model):
     epub_path = models.CharField(max_length=500, blank=True, default="")
     pdf_path = models.CharField(max_length=500, blank=True, default="")
     notes = models.TextField(blank=True, default="")
+    locale = models.CharField(max_length=20, blank=True, default="")
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_NOT_STARTED)
+    artifact_sha256 = models.CharField(max_length=64, blank=True, default="", db_index=True)
+    artifact_size_bytes = models.PositiveBigIntegerField(default=0)
+    artifact_source = models.CharField(max_length=50, blank=True, default="")
+    is_final = models.BooleanField(default=False)
+    validation_passed = models.BooleanField(default=False)
+    official_body_path = models.CharField(max_length=500, blank=True, default="")
+    official_body_sha256 = models.CharField(max_length=64, blank=True, default="")
+    validated_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    validation_report = models.JSONField(default=dict, blank=True)
+    epubcheck_status = models.CharField(
+        max_length=40,
+        choices=EPUBCHECK_STATUS_CHOICES,
+        default=EPUBCHECK_PENDING,
+        db_index=True,
+    )
+    epubcheck_version = models.CharField(max_length=200, blank=True, default="")
+    epubcheck_run_at = models.DateTimeField(null=True, blank=True)
+    epubcheck_returncode = models.IntegerField(null=True, blank=True)
+    epubcheck_fatal_count = models.PositiveIntegerField(default=0)
+    epubcheck_error_count = models.PositiveIntegerField(default=0)
+    epubcheck_warning_count = models.PositiveIntegerField(default=0)
+    epubcheck_validated_sha256 = models.CharField(max_length=64, blank=True, default="", db_index=True)
+    epubcheck_report_path = models.CharField(max_length=500, blank=True, default="")
+    epubcheck_report_sha256 = models.CharField(max_length=64, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -318,6 +383,103 @@ class EditionBuild(models.Model):
 
     def __str__(self) -> str:
         return f"Build({self.edition} [{self.language_code}] v{self.build_version})"
+
+    @property
+    def epub_filename(self) -> str:
+        return Path(self.epub_path).name if self.epub_path else ""
+
+    @property
+    def qualifies_as_done(self) -> bool:
+        metadata_ready = bool(
+            self.status == self.STATUS_DONE
+            and self.is_final
+            and self.validation_passed
+            and self.epub_path
+            and self.artifact_sha256
+            and self.artifact_size_bytes
+            and self.artifact_source
+            and self.official_body_path
+            and self.official_body_sha256
+            and self.validated_at
+            and self.approved_at
+            and self.completed_at
+            and self.epubcheck_is_current
+        )
+        return metadata_ready and not self.integrity_errors()
+
+    @property
+    def epubcheck_is_current(self) -> bool:
+        if self.epubcheck_status not in {
+            self.EPUBCHECK_PASSED,
+            self.EPUBCHECK_PASSED_WITH_WARNINGS,
+        }:
+            return False
+        if self.epubcheck_fatal_count or self.epubcheck_error_count:
+            return False
+        if not self.epubcheck_validated_sha256 or self.epubcheck_validated_sha256 != self.artifact_sha256:
+            return False
+        if not self.epubcheck_report_path or not self.epubcheck_report_sha256:
+            return False
+        report = self._safe_existing_path(self.epubcheck_report_path)
+        epub = self._safe_existing_path(self.epub_path, require_epub=True)
+        if report is None or epub is None:
+            return False
+        return self._stream_sha256(report) == self.epubcheck_report_sha256 and self._stream_sha256(epub) == self.artifact_sha256
+
+    @staticmethod
+    def _stream_sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _safe_existing_path(value: str, *, require_epub: bool = False) -> Path | None:
+        if not value:
+            return None
+        candidate = Path(value).expanduser()
+        candidate = candidate.resolve() if candidate.is_absolute() else storage.resolve_repo_path(candidate).resolve()
+        allowed_roots = (storage.storage_root().resolve(), storage.repo_root().resolve())
+        if not any(candidate.is_relative_to(root) for root in allowed_roots):
+            return None
+        if not candidate.is_file() or (require_epub and candidate.suffix.casefold() != ".epub"):
+            return None
+        return candidate
+
+    def integrity_errors(self) -> list[str]:
+        errors: list[str] = []
+        epub = self._safe_existing_path(self.epub_path, require_epub=True)
+        body = self._safe_existing_path(self.official_body_path)
+        if epub is None:
+            errors.append("final EPUB is missing, outside canonical storage, or has an invalid extension")
+        else:
+            if epub.stat().st_size != self.artifact_size_bytes:
+                errors.append("final EPUB size differs from the registered size")
+            elif self._stream_sha256(epub) != self.artifact_sha256:
+                errors.append("final EPUB SHA-256 differs from the registered hash")
+        if body is None:
+            errors.append("official body is missing or outside canonical storage")
+        elif self._stream_sha256(body) != self.official_body_sha256:
+            errors.append("official body SHA-256 differs from the registered hash")
+        if not self.epubcheck_is_current:
+            errors.append("EPUBCheck gate is not passed for the current EPUB SHA-256")
+        return errors
+
+
+class EditionBuildAuditEvent(models.Model):
+    build = models.ForeignKey(EditionBuild, on_delete=models.PROTECT, related_name="audit_events")
+    event_type = models.CharField(max_length=50, db_index=True)
+    actor = models.CharField(max_length=150, blank=True, default="system")
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "edition_build_audit_event"
+        ordering = ["created_at", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.build_id}:{self.event_type}"
 
 
 class EditionText(models.Model):
@@ -343,8 +505,11 @@ class PipelineArtifact(models.Model):
     STAGE_CHOICES = [
         ("raw", "RAW"),
         ("normalize", "NORMALIZE"),
+        ("structure_map", "STRUCTURE MAP"),
+        ("heading_clean", "HEADING CLEAN (LEGACY)"),
         ("split", "SPLIT/CHUNK"),
         ("translate", "TRANSLATE"),
+        ("translation_final", "TRANSLATION FINAL"),
         ("refine", "REFINE"),
         ("polish", "POLISH"),
         ("miolo", "MIOLO"),
@@ -361,6 +526,7 @@ class PipelineArtifact(models.Model):
     relpath = models.TextField()
     filename = models.CharField(max_length=255, db_index=True)
     size_bytes = models.BigIntegerField(default=0)
+    sha256 = models.CharField(max_length=64, blank=True, default="", db_index=True)
     mtime_iso = models.CharField(max_length=40, default="")
     exists = models.BooleanField(default=True)
     is_candidate = models.BooleanField(default=True)

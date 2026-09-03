@@ -69,6 +69,11 @@
   {% endif %}
   <h1>Editorial · Frontmatter</h1>
   <div class="muted">Bloco 03 · Editorial e Assets. Frontmatter obrigatorio separado de Prefacio, Introducao e Epilogo.</div>
+  {% if post_intake_return_url %}
+  <div class="actions">
+    <a class="tab-link" href="{{ post_intake_return_url }}">← Voltar à edição do Intake</a>
+  </div>
+  {% endif %}
   {% if is_generic %}
   <div class="preview">
     Modo generico: nenhum Edition cadastrado para este livro/idioma.
@@ -93,7 +98,6 @@
   <div class="tab-nav">
     <a class="tab-link" href="#tab-frontmatter">Frontmatter</a>
     <a class="tab-link" href="#tab-preface">Prefacio</a>
-    <a class="tab-link" href="#tab-introduction">Introducao</a>
     <a class="tab-link" href="#tab-epilogue">Epilogo</a>
   </div>
 
@@ -209,22 +213,6 @@
       </div>
     </div>
 
-    <div class="field-group" id="tab-introduction">
-      <label for="{{ form.has_introduction.id_for_label }}">
-        {{ form.has_introduction }} Livro tera Introducao
-      </label>
-      <div class="muted">Opcional. So entra se marcado e com conteudo.</div>
-      <div data-optional-block="has_introduction">
-        <label for="{{ form.introduction_text.id_for_label }}">Introducao</label>
-        {{ form.introduction_text }}
-        <div class="preview-title">Preview</div>
-        <div class="preview">{{ introduction_preview }}</div>
-        <div class="actions">
-          <button type="submit" name="save_block" value="introduction">Salvar Introducao</button>
-        </div>
-      </div>
-    </div>
-
     <div class="field-group" id="tab-epilogue">
       <label for="{{ form.has_epilogue.id_for_label }}">
         {{ form.has_epilogue }} Livro tera Epilogo
@@ -251,7 +239,11 @@
 
     <div class="actions">
       <button type="submit" name="save_block" value="all">Salvar tudo</button>
-      <a href="{% url 'book_edition_list' %}">Voltar</a>
+      {% if post_intake_return_url %}
+        <a href="{{ post_intake_return_url }}">Voltar à edição do Intake</a>
+      {% else %}
+        <a href="{% url 'book_edition_list' %}">Voltar</a>
+      {% endif %}
     </div>
   </form>
   <div class="preview-title">Preview consolidado (final)</div>
@@ -276,7 +268,8 @@
       langSelect.addEventListener("change", (event) => {
         const code = event.target.value;
         const bookCode = event.target.dataset.bookCode;
-        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/`;
+        const returnQuery = "{{ frontmatter_return_query|escapejs }}";
+        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/${returnQuery ? `?${returnQuery}` : ""}`;
       });
     }
     const form = document.getElementById("frontmatter_form");

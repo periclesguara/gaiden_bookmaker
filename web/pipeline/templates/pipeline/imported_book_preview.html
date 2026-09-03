@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Prévia de leitura · {{ item.book_code }} · Gaiden</title>
+  <style>
+    :root{--bg:#f4f1ec;--paper:#fffdf8;--panel:#fff;--ink:#20272a;--muted:#667074;--line:#d9d2c8;--accent:#a84628;--blue:#285f94;--ok:#226f54}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif}.container{width:min(1000px,calc(100% - 30px));margin:24px auto 48px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}h1{font-family:Georgia,serif;margin:.15em 0}.eyebrow{color:var(--blue);font-size:12px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.muted{color:var(--muted)}.metadata{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.metadata div{border:1px solid var(--line);border-radius:9px;padding:10px;overflow-wrap:anywhere}.metadata strong{display:block;font-size:12px}.stage{border-color:var(--ok)!important;background:#edf7f1}.reader{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:clamp(18px,5vw,54px);font:18px/1.75 Georgia,serif;white-space:pre-wrap;overflow-wrap:anywhere;max-height:70vh;overflow:auto}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.btn,button{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:800;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}form{margin:0}@media(max-width:680px){.container{width:calc(100% - 18px);margin-top:10px}.card{padding:15px}.metadata{grid-template-columns:1fr}.reader{font-size:16px}.actions,.actions form,.actions .btn,.actions button{width:100%}}
+  </style>
+</head>
+<body><main class="container">
+  <section class="card">
+    <p class="eyebrow">Intake · Prévia de leitura</p>
+    <h1>{{ item.title|default:preview.title }}</h1>
+    <p class="muted">Leitura temporária do arquivo canônico verificado por SHA-256. Abrir esta página não cria edição nem altera o registro do Intake.</p>
+    <div class="metadata">
+      <div class="stage"><strong>Patamar atual</strong>{{ stage_label }}<br><small>{{ stage_code }}</small></div>
+      <div><strong>Código</strong>{{ item.book_code }}</div>
+      <div><strong>Autoria informada</strong>{{ item.author_name|default:"Não informada" }}</div>
+      <div><strong>Arquivo</strong>{{ item.original_name }}</div>
+      <div><strong>Idioma</strong>{{ item.source_language }}</div>
+      <div><strong>Formato</strong>{{ preview.input_format|upper }}</div>
+      <div><strong>Lote</strong>{{ item.batch.batch_code }}</div>
+      <div><strong>SHA-256</strong>{{ item.sha256 }}</div>
+    </div>
+    <div class="actions">
+      <a class="btn secondary" href="{% url 'imported_book_list' %}?batch={{ item.batch.batch_code|urlencode }}">Voltar aos arquivos da pasta</a>
+      <form method="post" action="{% url 'imported_book_select' item_id=item.id %}">{% csrf_token %}<button type="submit">Enviar este arquivo ao bloco de edição</button></form>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Prévia de leitura</h2>
+    {% if preview.truncated %}<p class="muted">A prévia foi limitada a {{ preview.visible_characters }} caracteres; o arquivo integral será preservado no fluxo de edição.</p>{% endif %}
+    <article class="reader">{{ preview.text }}</article>
+    <div class="actions" style="margin-top:18px">
+      <a class="btn secondary" href="{% url 'imported_book_list' %}?batch={{ item.batch.batch_code|urlencode }}">Escolher outro arquivo</a>
+      <form method="post" action="{% url 'imported_book_select' item_id=item.id %}">{% csrf_token %}<button type="submit">Continuar para o bloco de edição →</button></form>
+    </div>
+  </section>
+</main></body>
+</html>
