@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import os
-
 from django.db import transaction
 
-from gaiden.writer_engine.clients import OpenAIEmbeddingClient, QwenGenerator
+from gaiden.runtime.factory import build_embedder, build_generator
 from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
 from ..models import Chapter, ChapterSession
@@ -13,18 +11,8 @@ from ..models import Chapter, ChapterSession
 def _engine(chapter: Chapter) -> WriterEngine:
     if not chapter.project.vector_index_path:
         raise ValueError("vectorize the selected project sources before generation")
-    embedder = OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
-    )
-    generator = QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
-        in {"1", "true", "yes", "on"},
-    )
+    embedder = build_embedder()
+    generator = build_generator()
     return WriterEngine(
         index=VectorIndex.load(chapter.project.vector_index_path),
         embedder=embedder,
