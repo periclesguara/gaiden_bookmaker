@@ -14,7 +14,7 @@ from django.urls import reverse
 from gaiden.writer_engine.engine import GenerationResult
 from author_studio.models import Author, CanonicalText, Work, WorkSource
 from web.writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
-from web.writer.services.dashboard import build_project_dashboard
+from web.writer.services.dashboard import _model_status, build_project_dashboard
 from web.writer.services.generation import generate_chapter
 from web.writer.services.normalization import normalize_document, normalize_text
 from web.writer.services.projects import synchronize_chapters
@@ -92,6 +92,27 @@ class DashboardTests(SimpleTestCase):
             "Preencher bíblia do personagem",
             dashboard["chapter_rows"][0]["generation_blockers"],
         )
+
+    @patch("web.writer.services.dashboard.urlopen")
+    def test_separate_local_endpoints_are_verified_independently(self, urlopen_mock):
+        embedding_response = urlopen_mock.return_value.__enter__.return_value
+        embedding_response.read.side_effect = [
+            json.dumps({"data": [{"id": "Qwen/Qwen3-Embedding-0.6B"}]}).encode(),
+            json.dumps({"data": [{"id": "Qwen/Qwen3.5-9B"}]}).encode(),
+        ]
+        with patch.dict(os.environ, {
+            "GAIDEN_EMBEDDING_BASE_URL": "http://127.0.0.1:8001/v1",
+            "GAIDEN_EMBEDDING_MODEL": "Qwen/Qwen3-Embedding-0.6B",
+            "GAIDEN_QWEN_BASE_URL": "http://127.0.0.1:8000/v1",
+            "GAIDEN_QWEN_MODEL": "Qwen/Qwen3.5-9B",
+        }, clear=False):
+            status = _model_status(probe=True)
+        self.assertTrue(status["embedding_online"])
+        self.assertTrue(status["writing_online"])
+        self.assertTrue(status["embedding_available"])
+        self.assertTrue(status["writing_available"])
+        self.assertTrue(status["online"])
+        self.assertEqual(urlopen_mock.call_count, 2)
 
 
 class NormalizationServiceTests(SimpleTestCase):

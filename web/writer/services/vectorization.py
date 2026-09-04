@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
 import tempfile
 from pathlib import Path
 
 from django.utils import timezone
 
+from gaiden.runtime.factory import build_embedder
 from gaiden.writer_engine.clients import OpenAIEmbeddingClient
 from gaiden.writer_engine.index import VectorIndex
 from ..models import SourceDocument, StoryProject
@@ -15,11 +15,7 @@ from .normalization import writer_storage_root
 
 
 def embedding_client() -> OpenAIEmbeddingClient:
-    return OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
-    )
+    return build_embedder()
 
 
 def vectorize_project(project: StoryProject) -> Path:

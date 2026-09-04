@@ -101,9 +101,9 @@
   <section class="card">
     <h2>Modelos locais</h2>
     {% if dashboard.models.online %}
-      <div class="notice ok"><strong>✓ Ollama conectado</strong><br>{{ dashboard.models.reason }}</div>
+      <div class="notice ok"><strong>✓ Runtime local conectado</strong><br>{{ dashboard.models.reason }}</div>
     {% elif dashboard.models.checked %}
-      <div class="notice error"><strong>Ollama indisponível</strong><br>{{ dashboard.models.reason }}</div>
+      <div class="notice error"><strong>Runtime local incompleto ou indisponível</strong><br>{{ dashboard.models.reason }}</div>
     {% else %}
       <div class="notice">{{ dashboard.models.reason }}</div>
     {% endif %}

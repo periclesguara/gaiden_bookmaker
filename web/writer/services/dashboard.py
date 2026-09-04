@@ -85,6 +85,25 @@ def _is_loopback(base_url: str) -> bool:
         return hostname.casefold() == "localhost"
 
 
+def _probe_local_model(base_url: str, model: str) -> tuple[bool | None, bool | None, str]:
+    if not _is_loopback(base_url):
+        return None, None, "Endpoint não local; verificação automática desativada."
+    request = Request(f"{base_url}/models", headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=0.75) as response:
+            payload = json.load(response)
+        installed = {
+            str(item.get("id", ""))
+            for item in payload.get("data", [])
+            if isinstance(item, dict)
+        }
+        if model in installed:
+            return True, True, "Serviço local respondeu e confirmou o modelo."
+        return True, False, "Serviço local respondeu, mas não informou o modelo configurado."
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        return False, False, f"Serviço local indisponível: {exc}"
+
+
 def _model_status(*, probe: bool) -> dict:
     embedding_base_url = os.environ.get(
         "GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"
@@ -99,6 +118,8 @@ def _model_status(*, probe: bool) -> dict:
     status = {
         "checked": False,
         "online": None,
+        "embedding_online": None,
+        "writing_online": None,
         "embedding_base_url": embedding_base_url,
         "writing_base_url": writing_base_url,
         "embedding_model": embedding_model,
@@ -109,29 +130,21 @@ def _model_status(*, probe: bool) -> dict:
     }
     if not probe:
         return status
-    if embedding_base_url != writing_base_url:
-        status["reason"] = "Endpoints separados; verificação automática indisponível."
-        return status
-    if not _is_loopback(embedding_base_url):
-        status["reason"] = "Endpoint não local; verificação automática desativada."
-        return status
     status["checked"] = True
-    request = Request(f"{embedding_base_url}/models", headers={"Accept": "application/json"})
-    try:
-        with urlopen(request, timeout=0.75) as response:
-            payload = json.load(response)
-        installed = {
-            str(item.get("id", "")) for item in payload.get("data", []) if isinstance(item, dict)
-        }
-        status["online"] = True
-        status["embedding_available"] = embedding_model in installed
-        status["writing_available"] = writing_model in installed
-        status["reason"] = "Serviço local respondeu e informou os modelos instalados."
-    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
-        status["online"] = False
-        status["embedding_available"] = False
-        status["writing_available"] = False
-        status["reason"] = f"Serviço local indisponível: {exc}"
+    embedding_online, embedding_available, embedding_reason = _probe_local_model(
+        embedding_base_url, embedding_model
+    )
+    writing_online, writing_available, writing_reason = _probe_local_model(
+        writing_base_url, writing_model
+    )
+    status.update(
+        embedding_online=embedding_online,
+        writing_online=writing_online,
+        embedding_available=embedding_available,
+        writing_available=writing_available,
+        online=embedding_online is True and writing_online is True,
+        reason=f"Embeddings: {embedding_reason} Escrita: {writing_reason}",
+    )
     return status
 
 

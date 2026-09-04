@@ -2,31 +2,21 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from dataclasses import asdict
 from pathlib import Path
 
+from gaiden.runtime.factory import build_embedder, build_generator
 from .clients import OpenAIEmbeddingClient, QwenGenerator
 from .engine import ChapterRequest, WriterEngine
 from .index import VectorIndex
 
 
 def _embedding_client() -> OpenAIEmbeddingClient:
-    return OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "EMPTY"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
-    )
+    return build_embedder()
 
 
 def _generator() -> QwenGenerator:
-    return QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "EMPTY"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
-        in {"1", "true", "yes", "on"},
-    )
+    return build_generator()
 
 
 def _write_exclusive(path: Path, content: str) -> None:
