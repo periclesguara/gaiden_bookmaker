@@ -74,7 +74,7 @@ class LatexInteriorRenderer:
     """Render a no-bleed trade-book interior for LuaLaTeX.
 
     v1 intentionally refuses bleed interiors instead of producing subtly wrong
-    asymmetric bleed geometry.  Novels and most text-first RinoBooks editions
+    asymmetric bleed geometry. Novels and most text-first RinoBooks editions
     use no-bleed interiors, so this keeps the first production path safe.
     """
 
@@ -86,7 +86,10 @@ class LatexInteriorRenderer:
 
         trim_w = str(spec.trim_width_in)
         trim_h = str(spec.trim_height_in)
-        safe = str(spec.interior_safe_margin_in)
+        inner = str(spec.inner_margin_in)
+        outer = str(spec.outer_margin_in)
+        top = str(spec.top_margin_in)
+        bottom = str(spec.bottom_margin_in)
         font_size = str(spec.body_font_size_pt)
         leading = str(spec.body_leading_pt)
         font = escape_latex(spec.body_font)
@@ -111,8 +114,7 @@ class LatexInteriorRenderer:
 \\usepackage{{fontspec}}
 \\usepackage{{microtype}}
 \\usepackage{{geometry}}
-\\usepackage{{setspace}}
-\\geometry{{paperwidth={trim_w}in,paperheight={trim_h}in,inner={safe}in,outer={safe}in,top={safe}in,bottom={safe}in}}
+\\geometry{{paperwidth={trim_w}in,paperheight={trim_h}in,inner={inner}in,outer={outer}in,top={top}in,bottom={bottom}in}}
 \\setmainfont{{{font}}}
 \\setlength{{\\parindent}}{{1.25em}}
 \\setlength{{\\parskip}}{{0pt}}
