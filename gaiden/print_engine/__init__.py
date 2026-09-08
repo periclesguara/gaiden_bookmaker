@@ -7,6 +7,7 @@ future release adapters.
 """
 
 from .compiler import LatexCompileResult, LatexCompilerUnavailable, compile_lualatex
+from .cover import CoverLayout, Rect
 from .geometry import CoverGeometry
 from .latex import BookContent, Chapter, LatexInteriorRenderer
 from .package import PrintPackageManifest
@@ -24,6 +25,7 @@ __all__ = [
     "BookContent",
     "Chapter",
     "CoverGeometry",
+    "CoverLayout",
     "InteriorColor",
     "LatexCompileResult",
     "LatexCompilerUnavailable",
@@ -35,6 +37,7 @@ __all__ = [
     "PrintPackageManifest",
     "PrintProvider",
     "PrintSpec",
+    "Rect",
     "compile_lualatex",
     "preflight_pdfs",
     "preflight_spec",
