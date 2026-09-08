@@ -6,10 +6,11 @@ import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 from pathlib import Path
-from typing import Iterable
 
+from .geometry import CoverGeometry
 from .providers.ingramspark import IngramSparkAdapter
 from .specs import PrintProvider, PrintSpec
 
@@ -83,16 +84,34 @@ def _run_tool(command: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _pdf_page_count(path: Path) -> tuple[int | None, str | None]:
+def _pdfinfo(path: Path) -> tuple[str | None, str | None]:
     if shutil.which("pdfinfo") is None:
         return None, "pdfinfo is not installed"
     result = _run_tool(["pdfinfo", str(path)])
     if result.returncode != 0:
         return None, result.stderr.strip() or "pdfinfo failed"
-    match = re.search(r"^Pages:\s+(\d+)\s*$", result.stdout, flags=re.MULTILINE)
+    return result.stdout, None
+
+
+def _parse_page_count(pdfinfo_output: str) -> int | None:
+    match = re.search(r"^Pages:\s+(\d+)\s*$", pdfinfo_output, flags=re.MULTILINE)
+    return int(match.group(1)) if match else None
+
+
+def _parse_page_size_in(pdfinfo_output: str) -> tuple[Decimal, Decimal] | None:
+    match = re.search(
+        r"^Page size:\s+([0-9.]+)\s+x\s+([0-9.]+)\s+pts",
+        pdfinfo_output,
+        flags=re.MULTILINE,
+    )
     if not match:
-        return None, "pdfinfo did not report a page count"
-    return int(match.group(1)), None
+        return None
+    points_per_inch = Decimal("72")
+    return Decimal(match.group(1)) / points_per_inch, Decimal(match.group(2)) / points_per_inch
+
+
+def _close_enough(actual: Decimal, expected: Decimal, *, tolerance: Decimal = Decimal("0.01")) -> bool:
+    return abs(actual - expected) <= tolerance
 
 
 def _fonts_embedded(path: Path) -> tuple[bool | None, str | None]:
@@ -114,6 +133,36 @@ def _fonts_embedded(path: Path) -> tuple[bool | None, str | None]:
     if not font_rows:
         return None, "pdffonts found no parseable font rows"
     return all(font_rows), None
+
+
+def _append_size_check(
+    checks: list[PreflightCheck],
+    *,
+    code: str,
+    actual: tuple[Decimal, Decimal] | None,
+    expected: tuple[Decimal, Decimal],
+) -> None:
+    if actual is None:
+        checks.append(PreflightCheck(code, PreflightStatus.WARN, "PDF page size was not reported"))
+        return
+    if _close_enough(actual[0], expected[0]) and _close_enough(actual[1], expected[1]):
+        checks.append(
+            PreflightCheck(
+                code,
+                PreflightStatus.PASS,
+                f"page size verified: {actual[0]:.3f} x {actual[1]:.3f} in",
+            )
+        )
+    else:
+        checks.append(
+            PreflightCheck(
+                code,
+                PreflightStatus.FAIL,
+                "page size mismatch: "
+                f"actual {actual[0]:.3f} x {actual[1]:.3f} in; "
+                f"expected {expected[0]:.3f} x {expected[1]:.3f} in",
+            )
+        )
 
 
 def preflight_pdfs(
@@ -143,22 +192,60 @@ def preflight_pdfs(
     if not interior.is_file() or not cover.is_file():
         return PreflightReport(tuple(checks))
 
-    pages, page_error = _pdf_page_count(interior)
-    if pages is None:
+    interior_info, interior_error = _pdfinfo(interior)
+    cover_info, cover_error = _pdfinfo(cover)
+
+    if interior_info is None:
         checks.append(
-            PreflightCheck("interior.page_count", PreflightStatus.WARN, page_error or "page count not verified")
-        )
-    elif spec.page_count is not None and pages != spec.page_count:
-        checks.append(
-            PreflightCheck(
-                "interior.page_count",
-                PreflightStatus.FAIL,
-                f"interior has {pages} pages but finalized spec expects {spec.page_count}",
-            )
+            PreflightCheck("interior.pdfinfo", PreflightStatus.WARN, interior_error or "interior PDF not inspected")
         )
     else:
+        pages = _parse_page_count(interior_info)
+        if pages is None:
+            checks.append(
+                PreflightCheck("interior.page_count", PreflightStatus.WARN, "pdfinfo did not report a page count")
+            )
+        elif spec.page_count is not None and pages != spec.page_count:
+            checks.append(
+                PreflightCheck(
+                    "interior.page_count",
+                    PreflightStatus.FAIL,
+                    f"interior has {pages} pages but finalized spec expects {spec.page_count}",
+                )
+            )
+        else:
+            checks.append(
+                PreflightCheck("interior.page_count", PreflightStatus.PASS, f"interior page count verified: {pages}")
+            )
+        _append_size_check(
+            checks,
+            code="interior.page_size",
+            actual=_parse_page_size_in(interior_info),
+            expected=(spec.trim_width_in, spec.trim_height_in),
+        )
+
+    if cover_info is None:
         checks.append(
-            PreflightCheck("interior.page_count", PreflightStatus.PASS, f"interior page count verified: {pages}")
+            PreflightCheck("cover.pdfinfo", PreflightStatus.WARN, cover_error or "cover PDF not inspected")
+        )
+    elif spec.is_finalized:
+        cover_pages = _parse_page_count(cover_info)
+        if cover_pages == 1:
+            checks.append(PreflightCheck("cover.page_count", PreflightStatus.PASS, "cover is a single-page spread"))
+        else:
+            checks.append(
+                PreflightCheck(
+                    "cover.page_count",
+                    PreflightStatus.FAIL,
+                    f"cover must be one page; detected {cover_pages if cover_pages is not None else 'unknown'}",
+                )
+            )
+        geometry = CoverGeometry.from_spec(spec)
+        _append_size_check(
+            checks,
+            code="cover.page_size",
+            actual=_parse_page_size_in(cover_info),
+            expected=(geometry.spread_width_in, geometry.spread_height_in),
         )
 
     for code, path in (("interior.fonts_embedded", interior), ("cover.fonts_embedded", cover)):
@@ -170,4 +257,11 @@ def preflight_pdfs(
         else:
             checks.append(PreflightCheck(code, PreflightStatus.FAIL, "one or more fonts are not embedded"))
 
+    checks.append(
+        PreflightCheck(
+            "pdfx.validation",
+            PreflightStatus.WARN,
+            "PDF/X conformance is not yet machine-verified in v1; run the provider proof/preflight before release",
+        )
+    )
     return PreflightReport(tuple(checks))
