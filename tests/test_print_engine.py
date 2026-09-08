@@ -4,12 +4,13 @@ from decimal import Decimal
 
 import pytest
 
+from gaiden.print_engine.cover import CoverLayout
 from gaiden.print_engine.geometry import CoverGeometry
 from gaiden.print_engine.latex import BookContent, Chapter, LatexInteriorRenderer
 from gaiden.print_engine.package import PrintPackageManifest
 from gaiden.print_engine.preflight import PreflightStatus, preflight_spec
 from gaiden.print_engine.providers.ingramspark import IngramSparkAdapter
-from gaiden.print_engine.specs import Binding, PrintSpec
+from gaiden.print_engine.specs import PrintSpec
 
 
 def _final_spec(*, pages: int = 286, spine: str = "0.600") -> PrintSpec:
@@ -23,6 +24,18 @@ def test_cover_geometry_matches_finalized_6x9_interior():
     assert geometry.spread_height_in == Decimal("9.250")
     assert geometry.page_count == 286
     assert geometry.spine_text_allowed is True
+
+
+def test_cover_layout_places_back_spine_and_front_on_same_canvas():
+    spec = _final_spec()
+    layout = CoverLayout.from_spec(spec)
+
+    assert layout.back.x == Decimal("0.125")
+    assert layout.spine.x == Decimal("6.125")
+    assert layout.front.x == Decimal("6.725")
+    assert layout.front.width == Decimal("6")
+    assert layout.canvas.width == Decimal("12.850")
+    assert layout.front_safe.x == Decimal("6.975")
 
 
 def test_cover_fingerprint_changes_when_final_page_count_changes():
@@ -47,6 +60,17 @@ def test_ingram_adapter_refuses_unfinalized_cover_geometry():
     assert any("spine_width_in" in error for error in errors)
 
 
+def test_ingram_adapter_rejects_text_margin_inside_safe_area():
+    spec = PrintSpec(outer_margin_in=Decimal("0.4")).finalize(
+        page_count=200,
+        spine_width_in="0.5",
+    )
+
+    errors = IngramSparkAdapter.validate_spec(spec)
+
+    assert any("outer_margin_in" in error for error in errors)
+
+
 def test_preflight_is_no_go_when_interior_bleed_is_not_supported():
     spec = PrintSpec(interior_bleed=True).finalize(page_count=200, spine_width_in="0.5")
 
@@ -69,6 +93,7 @@ def test_latex_renderer_emits_twosided_print_source_and_escapes_metadata():
 
     assert r"\documentclass[11pt,twoside,openright]{memoir}" in tex
     assert r"paperwidth=6in,paperheight=9in" in tex
+    assert r"inner=0.75in,outer=0.5in,top=0.55in,bottom=0.65in" in tex
     assert r"Reason \& Ethics" in tex
     assert r"A 100\% Practical Edition" in tex
     assert r"Rino\_Books" in tex
