@@ -1,7 +1,7 @@
 """IngramSpark-compatible print policy.
 
-This adapter models public file-preparation constraints.  It does not call or
-copy IngramSpark's private backend.  Spine width remains an explicit input from
+This adapter models public file-preparation constraints. It does not call or
+copy IngramSpark's private backend. Spine width remains an explicit input from
 an official template/calculator until a provider-approved coefficient source is
 wired into the engine.
 """
@@ -44,6 +44,17 @@ class IngramSparkAdapter:
             errors.append(
                 f"interior safe margin must be at least {cls.policy.interior_safe_margin_in} in"
             )
+        for field_name in (
+            "inner_margin_in",
+            "outer_margin_in",
+            "top_margin_in",
+            "bottom_margin_in",
+        ):
+            value = getattr(spec, field_name)
+            if value < cls.policy.interior_safe_margin_in:
+                errors.append(
+                    f"{field_name} must be at least {cls.policy.interior_safe_margin_in} in"
+                )
         if spec.interior_bleed:
             errors.append(
                 "interior bleed composition is not enabled in print-engine v1; "
