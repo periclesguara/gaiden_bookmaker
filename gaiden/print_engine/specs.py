@@ -1,6 +1,6 @@
 """Canonical print-edition specifications.
 
-All physical dimensions are stored in inches as Decimal values.  Keeping the
+All physical dimensions are stored in inches as Decimal values. Keeping the
 spec immutable makes print artefacts reproducible: a change to trim, paper,
 page count or spine width creates a different edition fingerprint rather than
 silently mutating an already approved cover.
@@ -52,18 +52,24 @@ class PrintSpec:
     interior_color: InteriorColor = InteriorColor.BLACK_AND_WHITE
     interior_bleed: bool = False
 
-    # Provider/layout policy. These defaults match the Ingram-compatible
-    # adapter, but adapters remain responsible for validating them.
+    # Provider minimums / cover geometry.
     cover_bleed_in: Decimal = Decimal("0.125")
     interior_safe_margin_in: Decimal = Decimal("0.5")
     cover_safe_margin_in: Decimal = Decimal("0.25")
+
+    # Actual text-block geometry. The inner margin/gutter is deliberately
+    # larger than the outer margin for a bound 6x9 trade-book preset.
+    inner_margin_in: Decimal = Decimal("0.75")
+    outer_margin_in: Decimal = Decimal("0.5")
+    top_margin_in: Decimal = Decimal("0.55")
+    bottom_margin_in: Decimal = Decimal("0.65")
 
     body_font_size_pt: Decimal = Decimal("11")
     body_leading_pt: Decimal = Decimal("14")
     body_font: str = "TeX Gyre Pagella"
 
-    # These values are intentionally absent until the interior is final.  We
-    # do not guess provider paper-caliper coefficients in the core engine.
+    # These values are intentionally absent until the interior is final. We do
+    # not guess provider paper-caliper coefficients in the core engine.
     page_count: Optional[int] = None
     spine_width_in: Optional[Decimal] = None
 
@@ -74,6 +80,10 @@ class PrintSpec:
             "cover_bleed_in",
             "interior_safe_margin_in",
             "cover_safe_margin_in",
+            "inner_margin_in",
+            "outer_margin_in",
+            "top_margin_in",
+            "bottom_margin_in",
             "body_font_size_pt",
             "body_leading_pt",
         )
@@ -88,6 +98,9 @@ class PrintSpec:
             raise ValueError("cover bleed cannot be negative")
         if self.interior_safe_margin_in <= 0 or self.cover_safe_margin_in <= 0:
             raise ValueError("safe margins must be positive")
+        for field_name in ("inner_margin_in", "outer_margin_in", "top_margin_in", "bottom_margin_in"):
+            if getattr(self, field_name) <= 0:
+                raise ValueError(f"{field_name} must be positive")
         if self.body_font_size_pt <= 0 or self.body_leading_pt <= 0:
             raise ValueError("font size and leading must be positive")
         if self.body_leading_pt < self.body_font_size_pt:
