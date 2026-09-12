@@ -25,7 +25,7 @@
     <p><strong>Operação:</strong> {{ project.language_contract.operation }} · arcaísmos: {{ project.language_contract.style.reduce_archaisms }} · fluidez: {{ project.language_contract.style.fluency }}</p>
     {% if project.writing_mode == "NONFICTION" %}
       <h3>Contrato Nonfiction</h3>
-      <p>Em cada capítulo, informe a direção, o texto-base a desenvolver e as referências ou consultas para o RAG. O Qwen preserva sua tese, amplia apenas com evidência recuperada e anexa fontes verificáveis.</p>
+      <p>Em cada capítulo, informe a direção, o texto-base a desenvolver e as referências ou consultas para o RAG. O GPT-5.6 Luna preserva sua tese, amplia apenas com evidência recuperada e anexa fontes verificáveis.</p>
     {% else %}
       <p><strong>Personagem:</strong> {{ project.character_bible|truncatewords:30|default:"Pendente" }}</p>
       <p><strong>Antagonista:</strong> {{ project.antagonist_bible|truncatewords:30|default:"Pendente" }}</p>

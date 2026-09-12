@@ -1,8 +1,34 @@
 # Writer deployment and file-treatment workflow
 
+## Geração atual: OpenAI Luna
+
+O Writer usa exclusivamente `gpt-5.6-luna` em `https://api.openai.com/v1`
+(Responses API), reutilizando `OPENAI_API_KEY` do ambiente ou do carregador de
+segredos já existente. A chave nunca deve ser inserida em código ou documentação.
+O modelo e o endpoint são próprios do Writer: `GAIDEN_QWEN_*`,
+`GAIDEN_DEFAULT_MODEL` e `OPENAI_BASE_URL` não alteram essa rota.
+
+Geração, revisão e reparos que usam o gerador do Writer enviam o contexto
+necessário à OpenAI. Os embeddings e índices RAG existentes continuam locais e
+não precisam ser recriados. Não há carregamento de Qwen nem gate de GPU para
+redação. Outros módulos e seus modelos permanecem independentes.
+
+Cada chamada usa `reasoning.effort=none`, `store=false`, timeout de 180 segundos,
+limite de 256–32768 tokens e zero retries de transporte. Parâmetros de amostragem
+locais (inclusive a temperatura solicitada pelo crítico) não são enviados.
+Saídas vazias, incompletas ou erros interrompem o fluxo sem registrar o corpo da
+resposta de erro. A aprovação humana e a preservação de sessões permanecem.
+
+Reinicie o processo Django do Writer para carregar a mudança. Não é necessária
+migração nem alteração do arquivo de credenciais. Não reinicie uma geração em
+andamento. Testes automatizados usam mocks, sem chamadas pagas.
+
+Referência: https://developers.openai.com/api/docs/models/gpt-5.6-luna
+
+
 ## Scope
 
-This is the phase-2 operator workflow layered on the local Qwen/RAG engine.
+This is the phase-2 operator workflow using OpenAI Luna generation and local RAG.
 It adds Django records and controls for source selection, normalization,
 vectorization, Fiction story bibles, a Nonfiction chapter-development mode, a versioned
 JSON language contract, chapter planning, generation sessions, source-validated citations,

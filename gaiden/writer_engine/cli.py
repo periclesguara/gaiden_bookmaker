@@ -6,7 +6,8 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
-from .clients import OpenAIEmbeddingClient, QwenGenerator
+from .clients import OpenAIEmbeddingClient
+from .openai_generator import writer_generator
 from .engine import ChapterRequest, WriterEngine
 from .index import VectorIndex
 
@@ -19,14 +20,8 @@ def _embedding_client() -> OpenAIEmbeddingClient:
     )
 
 
-def _generator() -> QwenGenerator:
-    return QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "EMPTY"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
-        in {"1", "true", "yes", "on"},
-    )
+def _generator():
+    return writer_generator()
 
 
 def _write_exclusive(path: Path, content: str) -> None:
@@ -82,7 +77,7 @@ def _cmd_chapter(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Gaiden local Writer engine")
+    parser = argparse.ArgumentParser(description="Gaiden Writer engine")
     commands = parser.add_subparsers(dest="command", required=True)
     index = commands.add_parser("index", help="atomically rebuild a complete corpus index")
     index.add_argument("--source-root", required=True)

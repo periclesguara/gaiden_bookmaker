@@ -44,7 +44,7 @@ class StoryProjectForm(forms.ModelForm):
             ),
             "language": (
                 "Selecione EN-US, EN-UK ou PT-BR. O Writer carrega automaticamente "
-                "o contrato correspondente antes de enviar o contexto RAG ao Qwen."
+                "o contrato correspondente antes de enviar o contexto RAG ao GPT-5.6 Luna."
             ),
         }
 
@@ -190,7 +190,7 @@ class ChapterForm(forms.ModelForm):
             )
             self.fields["script"].label = "Texto-base, argumentos e notas a desenvolver"
             self.fields["script"].help_text = (
-                "O Qwen deve melhorar, ampliar e organizar este material sem substituir a tese."
+                "O GPT-5.6 Luna deve melhorar, ampliar e organizar este material sem substituir a tese."
             )
             self.fields["direction"].help_text = (
                 "Defina a tese, o objetivo, os limites e a estrutura esperada do capítulo."

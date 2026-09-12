@@ -10,7 +10,7 @@ from typing import Any
 
 from django.db import transaction
 
-from gaiden.writer_engine.clients import QwenGenerator
+from gaiden.writer_engine.openai_generator import writer_generator
 from gaiden.writer_engine.index import VectorIndex
 from writer.models import StoryProject, SupportingCastRevision
 
@@ -29,15 +29,8 @@ class CastSnapshot:
     revision: SupportingCastRevision
 
 
-def _generator() -> QwenGenerator:
-    return QwenGenerator(
-        base_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        api_key=os.environ.get("GAIDEN_QWEN_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B"),
-        temperature=0.4,
-        thinking=os.environ.get("GAIDEN_QWEN_THINKING", "0").casefold()
-        in {"1", "true", "yes", "on"},
-    )
+def _generator():
+    return writer_generator()
 
 
 def _clip(value: str, limit: int = 8_000) -> str:
@@ -71,11 +64,11 @@ def _project_context(project: StoryProject) -> str:
 def _parse_json_object(raw: str) -> dict[str, Any]:
     start = raw.find("{")
     if start < 0:
-        raise ValueError("Qwen did not return a JSON object")
+        raise ValueError("OpenAI Writer did not return a JSON object")
     try:
         value, _ = json.JSONDecoder().raw_decode(raw[start:])
     except json.JSONDecodeError as exc:
-        raise ValueError("Qwen returned invalid JSON for the supporting cast") from exc
+        raise ValueError("OpenAI Writer returned invalid JSON for the supporting cast") from exc
     if not isinstance(value, dict):
         raise ValueError("the supporting cast registry must be a JSON object")
     return value

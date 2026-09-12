@@ -40,8 +40,8 @@ These rules apply to `gaiden/writer_engine/` and its tests.
 
 ## Model operation and security
 
-- Qwen must be reached through a configurable local OpenAI-compatible endpoint.
-  Do not hard-code tokens, hosts, or operator paths.
+- Writer generation uses OpenAI GPT-5.6 Luna with the existing system API key.
+  Local embeddings remain separate. Never hard-code tokens or operator paths.
 - Refuse placeholder credentials on non-loopback endpoints.
 - Download only official model repositories into external storage. Production
   downloads require an explicit immutable model revision.

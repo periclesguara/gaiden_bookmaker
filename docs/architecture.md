@@ -34,12 +34,13 @@ implementation are not part of the active architecture.
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
 It owns deterministic corpus discovery and chunking, atomic vector-index
-serialization, retrieval, prompt boundaries, Qwen client coordination, and
+serialization, retrieval, prompt boundaries, OpenAI Luna client coordination, and
 originality checks. It does not own canonical promotion or final builds.
 
-Generation and embeddings use separate configurable OpenAI-compatible local
-services. Qwen3.5-9B is the default generation model and
-Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
+Generation uses OpenAI `gpt-5.6-luna` through the Responses API with the
+existing system key. Embeddings remain on their separate local endpoint;
+Qwen3-Embedding-0.6B is the default retrieval model. Writer generation ignores
+shared Qwen settings and does not require a local GPU gate. Corpus files, model
 weights, indexes, requests, drafts, and audit sidecars remain external runtime
 artifacts. The reusable engine remains independent of Django. The staff-only `writer`
 application adds source manifests, story projects, Fiction creative bibles,
