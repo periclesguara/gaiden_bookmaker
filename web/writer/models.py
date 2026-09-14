@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -37,6 +39,7 @@ class StoryProject(models.Model):
     language = models.CharField(max_length=40, default="Português (Brasil)")
     premise = models.TextField(blank=True)
     character_bible = models.TextField(blank=True)
+    supporting_characters_bible = models.TextField(blank=True)
     antagonist_bible = models.TextField(blank=True)
     scenario_bible = models.TextField(blank=True)
     world_bible = models.TextField(blank=True)
@@ -61,6 +64,8 @@ class Chapter(models.Model):
     class Status(models.TextChoices):
         PLANNED = "PLANNED", "Planejado"
         GENERATING = "GENERATING", "Gerando"
+        MERGING = "MERGING", "Unindo cenas"
+        MERGED = "MERGED", "Merge concluído"
         GENERATION_COMPLETE = "GENERATION_COMPLETE", "Geração concluída"
         FINAL = "FINAL", "Finalizado"
         FAILED = "FAILED", "Falhou"
@@ -70,6 +75,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     direction = models.TextField(blank=True)
     script = models.TextField(blank=True)
+    session_scenes = models.JSONField(default=list, blank=True)
     target_words = models.PositiveIntegerField(
         default=2500, validators=[MinValueValidator(400), MaxValueValidator(12000)]
     )
@@ -80,6 +86,15 @@ class Chapter(models.Model):
         default=8, validators=[MinValueValidator(1), MaxValueValidator(20)]
     )
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.PLANNED)
+    merged_text = models.TextField(blank=True)
+    merge_model = models.CharField(max_length=160, blank=True)
+    merge_input_sha256 = models.CharField(max_length=64, blank=True)
+    merged_at = models.DateTimeField(null=True, blank=True)
+    narrative_state = models.JSONField(default=dict, blank=True)
+    narrative_memory_model = models.CharField(max_length=160, blank=True)
+    logic_audit = models.JSONField(default=dict, blank=True)
+    logic_audit_model = models.CharField(max_length=160, blank=True)
+    memory_updated_at = models.DateTimeField(null=True, blank=True)
     final_text = models.TextField(blank=True)
     error_message = models.TextField(blank=True)
     finalized_at = models.DateTimeField(null=True, blank=True)
@@ -99,13 +114,23 @@ class Chapter(models.Model):
     def words_per_session(self) -> int:
         return max(1, round(self.target_words / self.session_count))
 
+    @property
+    def qa_ready(self) -> bool:
+        sessions = list(self.sessions.order_by("number"))
+        return ([s.number for s in sessions] == list(range(1, self.session_count + 1))
+                and all(s.status == ChapterSession.Status.COMPLETE and s.qa_passed for s in sessions))
+
     def finalize(self) -> None:
         sessions = list(self.sessions.order_by("number"))
         if len(sessions) != self.session_count or any(
             session.status != ChapterSession.Status.COMPLETE for session in sessions
         ):
             raise ValueError("all configured sessions must be complete before finalization")
-        self.final_text = "\n\n".join(session.content.strip() for session in sessions).strip()
+        if not all(session.qa_passed for session in sessions):
+            raise ValueError("Todas as sessões precisam passar pela validação e pelo crítico local antes da finalização.")
+        self.final_text = self.merged_text.strip() or "\n\n".join(
+            session.content.strip() for session in sessions
+        ).strip()
         self.status = self.Status.FINAL
         self.finalized_at = timezone.now()
         self.error_message = ""
@@ -139,6 +164,14 @@ class ChapterSession(models.Model):
         constraints = [
             models.UniqueConstraint(fields=("chapter", "number"), name="writer_unique_chapter_session")
         ]
+
+    @property
+    def qa_passed(self) -> bool:
+        params = self.generation_parameters
+        qa = params.get("validation", {})
+        return (params.get("qa_version") == 1 and qa.get("passed") is True
+                and qa.get("scope") == "mechanical_and_local_critic"
+                and params.get("qa_sha256") == hashlib.sha256(self.content.encode()).hexdigest())
 
     def __str__(self) -> str:
         return f"{self.chapter} — Sessão {self.number}"

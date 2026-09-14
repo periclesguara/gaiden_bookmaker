@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -70,6 +70,7 @@ class DashboardTests(SimpleTestCase):
                 chapters=self.Related([chapter]),
                 vector_index_path=str(index_path),
                 character_bible="",
+                supporting_characters_bible="",
                 antagonist_bible="",
                 scenario_bible="",
                 world_bible="",
@@ -286,11 +287,30 @@ class SourceDiscoveryTests(TestCase):
             self.assertIn("ACD-SHER3", document.filename)
 
 
-class ProjectAndChapterTests(TestCase):
+def fake_validated_session(chapter, number, engine, request, contract, previous):
+    # These pre-existing tests cover Django orchestration; QA itself has separate tests.
+    from gaiden.writer_engine.repair import ValidatedScene
+    from gaiden.writer_engine.validation import ValidationResult
+    return ValidatedScene(engine.create_chapter(request, top_k=chapter.retrieval_top_k),
+        ValidationResult(True, 100, scope="mechanical_and_local_critic"), {}, "/test/audit")
+
+
+class WriterQAIsolation:
+    def setUp(self):
+        super().setUp()
+        temporary = TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        patcher = patch('web.writer.services.validation.writer_storage_root', return_value=Path(temporary.name))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+
+class ProjectAndChapterTests(WriterQAIsolation, TestCase):
     def _project(self, **overrides):
         values = {
             "title": "New Mystery",
             "character_bible": "Detective character facts",
+            "supporting_characters_bible": "Supporting cast facts",
             "antagonist_bible": "Antagonist character facts",
             "scenario_bible": "London locations",
             "world_bible": "Victorian period, cold climate",
@@ -312,6 +332,7 @@ class ProjectAndChapterTests(TestCase):
         synchronize_chapters(project)
         self.assertEqual(project.chapters.count(), 12)
 
+    @patch("web.writer.services.generation.generate_validated_session", new=fake_validated_session)
     @patch("web.writer.services.generation._engine")
     def test_generation_runs_four_sessions_then_requires_explicit_finalization(self, engine_factory):
         project = self._project(chapter_count=1, vector_index_path="/runtime/index.jsonl")
@@ -338,11 +359,35 @@ class ProjectAndChapterTests(TestCase):
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.GENERATION_COMPLETE)
         self.assertEqual(chapter.sessions.count(), 4)
+        self.assertIn("Supporting characters bible:\nSupporting cast facts", engine_factory.return_value.calls[0].continuity)
         self.assertFalse(chapter.final_text)
         chapter.finalize()
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.FINAL)
         self.assertIn("Original session 1", chapter.final_text)
+
+    @patch("web.writer.services.generation.generate_validated_session", new=fake_validated_session)
+    @patch("web.writer.services.generation._engine")
+    def test_generation_can_stop_after_one_selected_session(self, engine_factory):
+        project = self._project(chapter_count=1, vector_index_path="/runtime/index.jsonl")
+        synchronize_chapters(project)
+        chapter = project.chapters.get()
+        chapter.direction = "Investigate the locked room"
+        chapter.script = "Opening, clue, confrontation, resolution"
+        chapter.save()
+        engine_factory.return_value.create_chapter.return_value = GenerationResult(
+            text=("First session. " * 220),
+            model="test/qwen",
+            source_chunk_ids=("source-1",),
+            source_scores=(0.9,),
+        )
+
+        generate_chapter(chapter, session_numbers=[1])
+
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.PLANNED)
+        self.assertEqual(list(chapter.sessions.values_list("number", flat=True)), [1])
+        self.assertTrue(chapter.sessions.get().qa_passed)
 
     def test_finalize_rejects_incomplete_sessions(self):
         project = self._project(chapter_count=1)
@@ -391,3 +436,209 @@ class WriterViewTests(TestCase):
         self.assertEqual(
             client.post(reverse("writer:generate", args=[chapter.id])).status_code, 403
         )
+
+
+class WriterIndexPathTests(SimpleTestCase):
+    def test_engine_loads_index_from_project_string_field(self):
+        from web.writer.services.generation import _engine
+        with TemporaryDirectory() as temporary:
+            path = Path(temporary) / "index.jsonl"
+            path.write_text(json.dumps({"schema_version": 1, "dimension": 2,
+                "embedding_model": "test-model", "source_count": 0,
+                "chunk_count": 0}) + "\n")
+            chapter = SimpleNamespace(project=SimpleNamespace(vector_index_path=str(path)))
+            with patch("web.writer.services.generation.OpenAIEmbeddingClient"), patch("web.writer.services.generation.writer_generator"):
+                engine = _engine(chapter)
+            self.assertEqual(engine.index.dimension, 2)
+
+
+class WriterAccelerationGateTests(SimpleTestCase):
+    def response(self, payload):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.return_value = json.dumps(payload).encode()
+        return response
+
+    @patch("web.writer.services.runtime.urlopen")
+    def test_gate_preloads_and_accepts_canonical_gpu_cpu_distribution(self, opener):
+        from web.writer.services.runtime import require_optimal_acceleration
+        opener.side_effect = [
+            self.response({"done": True}),
+            self.response({"models": [{
+                "name": "writer-model", "size": 1000, "size_vram": 660
+            }]}),
+        ]
+
+        status = require_optimal_acceleration(
+            base_url="http://127.0.0.1:8001/v1", model="writer-model"
+        )
+
+        self.assertEqual(status.gpu_percent, 66.0)
+        self.assertEqual(status.cpu_percent, 34.0)
+        self.assertEqual(opener.call_count, 2)
+
+    @patch("web.writer.services.runtime.urlopen")
+    def test_gate_rejects_cpu_heavy_distribution_before_generation(self, opener):
+        from web.writer.services.runtime import require_optimal_acceleration
+        opener.side_effect = [
+            self.response({"done": True}),
+            self.response({"models": [{
+                "name": "writer-model", "size": 1000, "size_vram": 500
+            }]}),
+        ]
+
+        with self.assertRaisesMessage(RuntimeError, "50.0% GPU / 50.0% CPU"):
+            require_optimal_acceleration(
+                base_url="http://127.0.0.1:8001/v1", model="writer-model"
+            )
+
+
+class SessionSceneTests(WriterQAIsolation, TestCase):
+    _project = ProjectAndChapterTests._project
+
+    def test_scene_validation_rejects_missing_sessions_and_blank_scenes(self):
+        from web.writer.services.scenes import validate_session_scenes
+        for value in ([['Opening']], [['Opening'], [' ']], 'invalid'):
+            with self.assertRaises(ValueError):
+                validate_session_scenes(value, 2)
+        self.assertEqual(validate_session_scenes([[' First ', 'Second']], 1), [['First', 'Second']])
+
+    def test_form_persists_scenes_without_general_direction(self):
+        from web.writer.forms import ChapterForm
+        chapter = Chapter.objects.create(project=self._project(), number=1)
+        data = {'title': 'Scenes', 'direction': '', 'script': '', 'session_count': 2,
+                'target_words': 1600, 'retrieval_top_k': 8,
+                'session_scenes': json.dumps([['Arrival', 'Discovery'], ['Confrontation']])}
+        form = ChapterForm(data, instance=chapter)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.session_scenes[0], ['Arrival', 'Discovery'])
+        ChapterSession.objects.create(chapter=chapter, number=1, content='Preserved draft')
+        data['session_scenes'] = json.dumps([['Changed'], ['Confrontation']])
+        form = ChapterForm(data, instance=chapter)
+        self.assertFalse(form.is_valid())
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.session_scenes[0], ['Arrival', 'Discovery'])
+
+    @patch('web.writer.services.generation.generate_validated_session', new=fake_validated_session)
+    @patch('web.writer.services.generation._engine')
+    def test_generation_assigns_only_current_scenes_and_resumes_without_repetition(self, factory):
+        chapter = Chapter.objects.create(project=self._project(), number=1, session_count=2,
+                                         session_scenes=[['Arrival', 'Discovery'], ['Confrontation']],
+                                         direction='Old full chapter direction', script='Old full chapter script')
+        factory.return_value.create_chapter.return_value = GenerationResult(
+            text='Generated text', model='test', source_chunk_ids=(), source_scores=())
+        generate_chapter(chapter)
+        calls = factory.return_value.create_chapter.call_args_list
+        self.assertIn('1. Arrival\n2. Discovery', calls[0].args[0].brief)
+        self.assertNotIn('Confrontation', calls[0].args[0].brief)
+        self.assertNotIn('Old full chapter', calls[0].args[0].brief)
+        self.assertIn('1. Confrontation', calls[1].args[0].brief)
+        self.assertNotIn('Arrival', calls[1].args[0].brief)
+        self.assertIn('Generated text', calls[1].args[0].continuity)
+        self.assertEqual(chapter.sessions.get(number=1).generation_parameters['scenes'], ['Arrival', 'Discovery'])
+        generate_chapter(chapter)
+        self.assertEqual(factory.return_value.create_chapter.call_count, 2)
+
+    @patch('web.writer.services.generation._engine')
+    def test_invalid_scene_plan_stops_before_model_call(self, factory):
+        chapter = Chapter.objects.create(project=self._project(), number=1, session_count=2,
+                                         session_scenes=[['Only first session']])
+        with self.assertRaises(ValueError):
+            generate_chapter(chapter)
+        factory.assert_not_called()
+
+    def test_scene_editor_and_plan_are_visible_and_escaped(self):
+        chapter = Chapter.objects.create(project=self._project(), number=1,
+                                         session_scenes=[['<script>alert(1)</script>']])
+        response = self.client.get(reverse('writer:chapter_edit', args=[chapter.pk]))
+        self.assertContains(response, 'Cenas por sessão')
+        self.assertContains(response, '+ Adicionar cena')
+        self.assertContains(response, '− Remover cena')
+        response = self.client.get(reverse('writer:chapter_detail', args=[chapter.pk]))
+        self.assertContains(response, '&lt;script&gt;alert(1)&lt;/script&gt;')
+
+    def test_can_plan_remaining_sessions_after_legacy_first_session(self):
+        from web.writer.forms import ChapterForm
+        chapter = Chapter.objects.create(project=self._project(), number=1)
+        session = ChapterSession.objects.create(chapter=chapter, number=1,
+            status=ChapterSession.Status.COMPLETE, content='Original first session')
+        data = {'title': '', 'direction': '', 'script': '', 'session_count': 4,
+                'target_words': 2500, 'retrieval_top_k': 8,
+                'session_scenes': json.dumps([[], ['Second'], ['Third'], ['Fourth']])}
+        form = ChapterForm(data, instance=chapter)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        chapter.refresh_from_db()
+        session.refresh_from_db()
+        self.assertEqual(chapter.session_scenes, [[], ['Second'], ['Third'], ['Fourth']])
+        self.assertEqual(session.content, 'Original first session')
+        data['session_scenes'] = json.dumps([['Rewrite first'], ['Second'], ['Third'], ['Fourth']])
+        self.assertFalse(ChapterForm(data, instance=chapter).is_valid())
+
+
+class GenerationGuardrailTests(WriterQAIsolation, TestCase):
+    _project = ProjectAndChapterTests._project
+
+    def chapter(self):
+        return Chapter.objects.create(project=self._project(), number=1,
+            session_count=2, session_scenes=[['Arrival'], ['Investigation']])
+
+    @patch('web.writer.services.generation._engine')
+    def test_stale_duplicate_is_blocked_before_model_call(self, factory):
+        chapter = self.chapter()
+        Chapter.objects.filter(pk=chapter.pk).update(status=Chapter.Status.GENERATING)
+        with self.assertRaisesMessage(ValueError, 'já está em geração'):
+            generate_chapter(chapter)
+        factory.assert_not_called()
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.GENERATING)
+
+    @patch('web.writer.services.generation._engine')
+    def test_repetition_stops_after_three_attempts_and_preserves_completed_session(self, factory):
+        chapter = self.chapter()
+        text = ' '.join(f'word{i}' for i in range(90))
+        first = ChapterSession.objects.create(chapter=chapter, number=1,
+            status=ChapterSession.Status.COMPLETE, content=text)
+        factory.return_value.prepare_chapter.return_value = SimpleNamespace(user="Original prompt", sources=())
+        factory.return_value.generate_candidate.return_value = GenerationResult(
+            text=text, model='test', source_chunk_ids=(), source_scores=())
+        with self.assertRaisesMessage(RuntimeError, 'failed after 3 attempts'):
+            generate_chapter(chapter)
+        self.assertEqual(factory.return_value.generate_candidate.call_count, 3)
+        first.refresh_from_db()
+        self.assertEqual(first.content, text)
+        self.assertEqual(chapter.sessions.count(), 1)
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.FAILED)
+
+    @patch('web.writer.services.generation._engine')
+    def test_rejected_saved_session_blocks_before_gpu_work(self, factory):
+        chapter = self.chapter()
+        ChapterSession.objects.create(chapter=chapter, number=1,
+            status=ChapterSession.Status.FAILED, content='Preserved rejected draft')
+        with self.assertRaisesMessage(ValueError, 'revisão manual'):
+            generate_chapter(chapter)
+        factory.assert_not_called()
+        self.assertEqual(chapter.sessions.get().content, 'Preserved rejected draft')
+
+    @patch('web.writer.services.generation._engine')
+    def test_engine_failure_releases_claim_without_retry(self, factory):
+        chapter = self.chapter()
+        factory.side_effect = RuntimeError('offline')
+        with self.assertRaisesMessage(RuntimeError, 'offline'):
+            generate_chapter(chapter)
+        factory.assert_called_once()
+        chapter.refresh_from_db()
+        self.assertEqual(chapter.status, Chapter.Status.FAILED)
+
+    @patch('gaiden.writer_engine.clients.OpenAI')
+    def test_model_clients_disable_transport_retries(self, client):
+        from gaiden.writer_engine.clients import QwenGenerator, OpenAIEmbeddingClient
+        QwenGenerator(base_url='http://127.0.0.1:8001/v1')
+        OpenAIEmbeddingClient(base_url='http://127.0.0.1:8001/v1')
+        self.assertEqual(client.call_count, 2)
+        for call in client.call_args_list:
+            self.assertEqual(call.kwargs['max_retries'], 0)

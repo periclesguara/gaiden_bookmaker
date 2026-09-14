@@ -19,6 +19,7 @@ urlpatterns = [
     path("projects/<int:project_id>/edit/", views.project_edit, name="project_edit"),
     path("projects/<int:project_id>/sources/", views.project_sources, name="project_sources"),
     path("projects/<int:project_id>/vectorize/", views.vectorize, name="vectorize"),
+    path("projects/<int:project_id>/generate/", views.generate_next, name="generate_next"),
     path("chapters/<int:chapter_id>/", views.chapter_detail, name="chapter_detail"),
     path("chapters/<int:chapter_id>/edit/", views.chapter_edit, name="chapter_edit"),
     path("chapters/<int:chapter_id>/generate/", views.generate, name="generate"),

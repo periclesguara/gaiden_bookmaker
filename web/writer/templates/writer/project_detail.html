@@ -117,6 +117,8 @@
       {{ dashboard.models.writing_model }} ·
       {% if dashboard.models.writing_available %}<span class="check">instalado</span>{% elif dashboard.models.writing_available == False %}<span class="pending">ausente</span>{% else %}<span class="muted">não verificado</span>{% endif %}
     </p>
+    <p><strong>Memória narrativa</strong><br>{{ dashboard.models.narrative_memory_model }}</p>
+    <p><strong>Auditoria lógica</strong><br>{{ dashboard.models.logic_audit_model }}</p>
     <p class="muted">O modelo pode estar instalado sem permanecer carregado na GPU; ele é carregado quando a etapa correspondente começa.</p>
   </section>
 </div>
@@ -130,6 +132,7 @@
     <div>
       <h3>Bíblias</h3>
       <p>{% if project.character_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do personagem</p>
+      <p>{% if project.supporting_characters_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia dos personagens coadjuvantes</p>
       <p>{% if project.antagonist_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do antagonista</p>
       <p>{% if project.scenario_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Cenários e locais</p>
       <p>{% if project.world_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Mundo, época e clima</p>
@@ -144,7 +147,30 @@
 </section>
 
 <section class="card">
-  <h2>5–6 · Capítulos — {{ dashboard.chapters.prepared }}/{{ dashboard.chapters.total }} preparados, {{ dashboard.chapters.generated }} gerados</h2>
+  <div class="top">
+    <div><h2>5–6 · Capítulos — {{ dashboard.chapters.prepared }}/{{ dashboard.chapters.total }} preparados, {{ dashboard.chapters.generated }} mergeados</h2></div>
+    <form method="post" action="{% url 'writer:generate_next' project.id %}">
+      {% csrf_token %}
+      {% if dashboard.next_chapter_row %}<input type="hidden" name="chapter_id" value="{{ dashboard.next_chapter_row.chapter.id }}">{% endif %}
+      <button type="button" data-dialog-open="generate-next-dialog">Generate</button>
+      <dialog class="confirm-dialog" id="generate-next-dialog">
+        <div class="dialog-body">
+          {% if dashboard.next_chapter_row %}
+            <h2>Gerar Capítulo {{ dashboard.next_chapter_row.chapter.number|stringformat:"02d" }}?</h2>
+            <p>O Writer gerará somente este capítulo: cenas em ordem, merge automático, memória narrativa Qwen e auditoria lógica Phi.</p>
+            <p class="impact">Capítulos já mergeados ou finalizados permanecem intocados.</p>
+          {% else %}
+            <h2>Nenhum capítulo pronto</h2>
+            <p>Salve as cenas e conclua os requisitos do primeiro capítulo pendente.</p>
+          {% endif %}
+        </div>
+        <div class="dialog-actions">
+          <button class="secondary" type="button" data-dialog-close>Não</button>
+          {% if dashboard.next_chapter_row %}<button type="submit" name="confirm" value="yes">Sim, gerar</button>{% endif %}
+        </div>
+      </dialog>
+    </form>
+  </div>
   {% if dashboard.global_generation_blockers %}
     <div class="notice">
       <strong>O que ainda impede a geração?</strong>
@@ -167,24 +193,6 @@
         <div class="actions">
           <a class="btn secondary" href="{% url 'writer:chapter_edit' row.chapter.id %}">Parâmetros</a>
           <a class="btn secondary" href="{% url 'writer:chapter_detail' row.chapter.id %}">Abrir</a>
-          <form method="post" action="{% url 'writer:generate' row.chapter.id %}">{% csrf_token %}
-            <button type="button" data-dialog-open="generate-dialog-{{ row.chapter.id }}">{% if row.chapter.status == "GENERATION_COMPLETE" %}Geração concluída · opções{% elif row.chapter.status == "FINAL" %}Finalização concluída{% else %}Gerar capítulo{% endif %}</button>
-            <dialog class="confirm-dialog" id="generate-dialog-{{ row.chapter.id }}">
-              <div class="dialog-body">
-                {% if row.generation_ready %}
-                  <h2>Confirmar geração do Capítulo {{ row.chapter.number|stringformat:"02d" }}</h2>
-                  <p>O Writer recuperará referências do índice e executará {{ row.chapter.session_count }} sessão(ões) com o modelo {{ dashboard.models.writing_model }}.</p>
-                {% else %}
-                  <h2>Geração ainda não disponível</h2>
-                  <ul class="compact">{% for blocker in row.generation_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
-                {% endif %}
-              </div>
-              <div class="dialog-actions">
-                <button class="secondary" type="button" data-dialog-close>Cancelar</button>
-                {% if row.generation_ready %}<button type="submit" name="confirm" value="yes">Confirmar e gerar</button>{% else %}<button class="secondary" type="button" data-dialog-close>Voltar ao painel</button>{% endif %}
-              </div>
-            </dialog>
-          </form>
         </div>
         {% if row.generation_blockers %}
           <small class="button-help">Pendente: {% if dashboard.global_generation_blockers %}aguardando os requisitos gerais acima{% if row.chapter_blockers %}; {% endif %}{% endif %}{% for blocker in row.chapter_blockers %}{{ blocker }}{% if not forloop.last %}; {% endif %}{% endfor %}. Clique para ver os detalhes.</small>

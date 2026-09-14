@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Gaiden BookMaker"
 requires-python = ">=3.10"
 dependencies = [
+    "langdetect==1.0.9",
     "markitdown[all]>=0.1.5",
     "pgvector>=0.5.0",
     "tiktoken>=0.7.0",

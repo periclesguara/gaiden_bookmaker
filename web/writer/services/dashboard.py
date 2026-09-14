@@ -7,11 +7,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from gaiden.writer_engine.openai_generator import WRITER_BASE_URL, WRITER_MODEL
+
 from ..models import Chapter, ChapterSession, SourceDocument, StoryProject
 
 
 BIBLE_FIELDS = (
     ("character_bible", "Bíblia do personagem"),
+    ("supporting_characters_bible", "Bíblia dos personagens coadjuvantes"),
     ("antagonist_bible", "Bíblia do antagonista"),
     ("scenario_bible", "Cenários e locais"),
     ("world_bible", "Mundo, época, clima e referências"),
@@ -89,13 +92,17 @@ def _model_status(*, probe: bool) -> dict:
     embedding_base_url = os.environ.get(
         "GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"
     ).rstrip("/")
-    writing_base_url = os.environ.get(
-        "GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"
-    ).rstrip("/")
+    writing_base_url = WRITER_BASE_URL
     embedding_model = os.environ.get(
         "GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"
     )
-    writing_model = os.environ.get("GAIDEN_QWEN_MODEL", "Qwen/Qwen3.5-9B")
+    writing_model = WRITER_MODEL
+    narrative_memory_model = os.environ.get(
+        "GAIDEN_NARRATIVE_MEMORY_MODEL", "Qwen/Qwen3.5-4B"
+    )
+    logic_audit_model = os.environ.get(
+        "GAIDEN_LOGIC_AUDIT_MODEL", "microsoft/Phi-4-mini-instruct"
+    )
     status = {
         "checked": False,
         "online": None,
@@ -103,6 +110,8 @@ def _model_status(*, probe: bool) -> dict:
         "writing_base_url": writing_base_url,
         "embedding_model": embedding_model,
         "writing_model": writing_model,
+        "narrative_memory_model": narrative_memory_model,
+        "logic_audit_model": logic_audit_model,
         "embedding_available": None,
         "writing_available": None,
         "reason": "Verificação do serviço não executada.",
@@ -110,7 +119,7 @@ def _model_status(*, probe: bool) -> dict:
     if not probe:
         return status
     if embedding_base_url != writing_base_url:
-        status["reason"] = "Endpoints separados; verificação automática indisponível."
+        status["reason"] = "Geração via OpenAI; RAG local. Disponibilidade da API não verificada."
         return status
     if not _is_loopback(embedding_base_url):
         status["reason"] = "Endpoint não local; verificação automática desativada."
@@ -181,10 +190,13 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
     ]
     bibles_complete = not missing_bibles
     story_complete = not missing_story
-    prepared_chapters = sum(bool(chapter.direction.strip() and chapter.script.strip()) for chapter in chapters)
+    prepared_chapters = sum(bool(
+        getattr(chapter, "session_scenes", [])
+        or (chapter.direction.strip() and chapter.script.strip())
+    ) for chapter in chapters)
     parameters_complete = bool(chapters) and prepared_chapters == len(chapters)
     generated_chapters = sum(
-        chapter.status in {Chapter.Status.GENERATION_COMPLETE, Chapter.Status.FINAL}
+        chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}
         for chapter in chapters
     )
     final_chapters = sum(chapter.status == Chapter.Status.FINAL for chapter in chapters)
@@ -256,33 +268,52 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
 
     chapter_rows = []
     for chapter in chapters:
+        chapter_sessions = list(chapter.sessions.all())
         blockers = list(global_generation_blockers)
         chapter_blockers = []
-        if not chapter.direction.strip():
+        if not getattr(chapter, "session_scenes", []) and not chapter.direction.strip():
             chapter_blockers.append("Preencher direção do capítulo")
-        if not chapter.script.strip():
+        if not getattr(chapter, "session_scenes", []) and not chapter.script.strip():
             chapter_blockers.append("Preencher roteiro do capítulo")
-        if chapter.status == Chapter.Status.FINAL:
+        if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
             chapter_blockers.append("Capítulo já finalizado")
-        elif chapter.status == Chapter.Status.GENERATING:
+        elif chapter.status in {Chapter.Status.GENERATING, Chapter.Status.MERGING}:
             chapter_blockers.append("Geração em andamento")
         elif chapter.status == Chapter.Status.GENERATION_COMPLETE:
-            chapter_blockers.append("Geração concluída; revisar e finalizar")
+            if not getattr(chapter, "qa_ready", False):
+                chapter_blockers.append("Sessões geradas exigem validação antes do merge")
+        if any(session.status != ChapterSession.Status.COMPLETE for session in chapter_sessions):
+            chapter_blockers.append("Há uma sessão rejeitada aguardando revisão manual")
         blockers.extend(chapter_blockers)
         complete_sessions = sum(
-            session.status == ChapterSession.Status.COMPLETE for session in chapter.sessions.all()
+            session.status == ChapterSession.Status.COMPLETE for session in chapter_sessions
         )
         chapter_rows.append(
             {
                 "chapter": chapter,
-                "direction_ready": bool(chapter.direction.strip()),
-                "script_ready": bool(chapter.script.strip()),
+                "direction_ready": bool(getattr(chapter, "session_scenes", []) or chapter.direction.strip()),
+                "script_ready": bool(getattr(chapter, "session_scenes", []) or chapter.script.strip()),
                 "generation_ready": not blockers,
                 "generation_blockers": blockers,
                 "chapter_blockers": chapter_blockers,
                 "complete_sessions": complete_sessions,
             }
         )
+
+    next_chapter_row = None
+    prior_chapters_complete = True
+    for row in chapter_rows:
+        chapter = row["chapter"]
+        already_merged = chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}
+        if already_merged:
+            continue
+        if not prior_chapters_complete:
+            row["generation_blockers"].append("Concluir o capítulo anterior primeiro")
+            row["chapter_blockers"].append("Concluir o capítulo anterior primeiro")
+            row["generation_ready"] = False
+        elif row["generation_ready"] and next_chapter_row is None:
+            next_chapter_row = row
+        prior_chapters_complete = False
 
     completed_stages = sum(stage["complete"] for stage in stages)
     vectorize_blockers = []
@@ -324,4 +355,5 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
         "vectorize_ready": not vectorize_blockers,
         "vectorize_blockers": vectorize_blockers,
         "global_generation_blockers": global_generation_blockers,
+        "next_chapter_row": next_chapter_row,
     }

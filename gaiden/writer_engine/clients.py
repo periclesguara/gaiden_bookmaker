@@ -17,7 +17,46 @@ class Embedder(Protocol):
 class Generator(Protocol):
     model: str
 
-    def generate(self, *, system: str, user: str, max_tokens: int) -> str: ...
+    def generate(self, *, system: str, user: str, max_tokens: int, temperature: float | None = None) -> str: ...
+
+
+@dataclass
+class LocalChatGenerator:
+    """Bounded client for a local OpenAI-compatible chat model."""
+
+    base_url: str
+    model: str
+    api_key: str = "EMPTY"
+    temperature: float = 0.1
+    timeout_seconds: float = 300.0
+
+    def __post_init__(self) -> None:
+        _validate_endpoint(self.base_url, self.api_key)
+        if self.timeout_seconds < 1:
+            raise ValueError("timeout_seconds must be at least 1")
+        self._client = OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key,
+            max_retries=0,
+            timeout=self.timeout_seconds,
+        )
+
+    def generate(self, *, system: str, user: str, max_tokens: int,
+                 temperature: float | None = None) -> str:
+        if not 256 <= max_tokens <= 32768:
+            raise ValueError("max_tokens must be between 256 and 32768")
+        response = self._client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            max_tokens=max_tokens,
+            temperature=self.temperature if temperature is None else temperature,
+        )
+        choice = response.choices[0]
+        self.last_finish_reason = getattr(choice, "finish_reason", "stop")
+        return (choice.message.content or "").strip()
 
 
 def _validate_endpoint(base_url: str, api_key: str) -> None:
@@ -28,7 +67,9 @@ def _validate_endpoint(base_url: str, api_key: str) -> None:
         is_loopback = ipaddress.ip_address(parsed.hostname).is_loopback
     except ValueError:
         is_loopback = parsed.hostname.casefold() == "localhost"
-    if not is_loopback and api_key.strip().casefold() in {"", "empty", "replace-me"}:
+    if not is_loopback and api_key.strip().casefold() in {
+        "", "empty", "placeholder", "replace-me"
+    }:
         raise ValueError("a real API key is required for non-loopback model endpoints")
 
 
@@ -43,7 +84,7 @@ class OpenAIEmbeddingClient:
         _validate_endpoint(self.base_url, self.api_key)
         if not 1 <= self.batch_size <= 128:
             raise ValueError("embedding batch_size must be between 1 and 128")
-        self._client = OpenAI(base_url=self.base_url, api_key=self.api_key)
+        self._client = OpenAI(base_url=self.base_url, api_key=self.api_key, max_retries=0)
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         vectors: list[list[float]] = []
@@ -69,12 +110,20 @@ class QwenGenerator:
     temperature: float = 0.7
     top_p: float = 0.8
     thinking: bool = False
+    timeout_seconds: float = 1800.0
 
     def __post_init__(self) -> None:
         _validate_endpoint(self.base_url, self.api_key)
-        self._client = OpenAI(base_url=self.base_url, api_key=self.api_key)
+        if self.timeout_seconds < 1:
+            raise ValueError("timeout_seconds must be at least 1")
+        self._client = OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key,
+            max_retries=0,
+            timeout=self.timeout_seconds,
+        )
 
-    def generate(self, *, system: str, user: str, max_tokens: int) -> str:
+    def generate(self, *, system: str, user: str, max_tokens: int, temperature: float | None = None) -> str:
         if not 256 <= max_tokens <= 32768:
             raise ValueError("max_tokens must be between 256 and 32768")
         response = self._client.chat.completions.create(
@@ -84,7 +133,7 @@ class QwenGenerator:
                 {"role": "user", "content": user},
             ],
             max_tokens=max_tokens,
-            temperature=self.temperature,
+            temperature=self.temperature if temperature is None else temperature,
             top_p=self.top_p,
             presence_penalty=1.5,
             reasoning_effort="medium" if self.thinking else "none",
@@ -94,6 +143,5 @@ class QwenGenerator:
             },
         )
         content = response.choices[0].message.content
-        if not content or not content.strip():
-            raise RuntimeError("Qwen returned an empty draft")
-        return content.strip()
+        self.last_finish_reason = getattr(response.choices[0], "finish_reason", "stop")
+        return (content or "").strip()

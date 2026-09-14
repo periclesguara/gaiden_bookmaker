@@ -11,6 +11,7 @@ from .forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
 from .models import Chapter, SourceDocument, StoryProject
 from .services.dashboard import build_project_dashboard
 from .services.generation import generate_chapter
+from .services.narrative import run_chapter_workflow
 from .services.normalization import normalize_document
 from .services.projects import synchronize_chapters
 from .services.sources import discover_source_documents
@@ -233,8 +234,8 @@ def chapter_detail(request: HttpRequest, chapter_id: int) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
-    if chapter.status == Chapter.Status.FINAL:
-        raise Http404("finalized chapters are immutable")
+    if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
+        raise Http404("merged and finalized chapters are immutable")
     form = ChapterForm(request.POST or None, instance=chapter)
     if request.method == "POST" and form.is_valid():
         form.save()
@@ -266,10 +267,49 @@ def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
             )
         return redirect("writer:project_detail", project_id=chapter.project_id)
     try:
-        generate_chapter(chapter)
-        messages.success(request, "Todas as sessões configuradas foram geradas.")
+        run_chapter_workflow(chapter)
+        messages.success(request, "Cenas geradas, merge concluído e memória narrativa atualizada.")
     except Exception as exc:
         messages.error(request, f"Falha na geração: {exc}")
+    return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@require_POST
+def generate_next(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(
+        StoryProject.objects.prefetch_related("chapters__sessions", "sources"),
+        pk=project_id,
+    )
+    if request.POST.get("confirm") != "yes":
+        messages.warning(request, "Confirme a geração antes de iniciar os modelos.")
+        return redirect("writer:project_detail", project_id=project.id)
+    dashboard = build_project_dashboard(project)
+    row = dashboard["next_chapter_row"]
+    if row is None:
+        messages.warning(request, "Nenhum próximo capítulo está pronto para geração.")
+        return redirect("writer:project_detail", project_id=project.id)
+    chapter = row["chapter"]
+    if request.POST.get("chapter_id") != str(chapter.pk):
+        messages.warning(
+            request,
+            "O próximo capítulo mudou desde a confirmação; revise o painel e confirme novamente.",
+        )
+        return redirect("writer:project_detail", project_id=project.id)
+    try:
+        run_chapter_workflow(chapter)
+        chapter.refresh_from_db()
+        if chapter.logic_audit.get("verdict") == "REVIEW_REQUIRED":
+            messages.warning(
+                request,
+                f"Capítulo {chapter.number:02d} mergeado; a auditoria lógica requer revisão.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Capítulo {chapter.number:02d} mergeado e memória narrativa atualizada.",
+            )
+    except Exception as exc:
+        messages.error(request, f"Falha na geração do Capítulo {chapter.number:02d}: {exc}")
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
 
 

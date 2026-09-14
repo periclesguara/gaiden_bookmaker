@@ -1,6 +1,7 @@
 from django import forms
 
 from .models import Chapter, SourceDocument, StoryProject
+from .services.scenes import validate_session_scenes
 
 
 class VersionForm(forms.Form):
@@ -18,7 +19,7 @@ class StoryProjectForm(forms.ModelForm):
     class Meta:
         model = StoryProject
         fields = (
-            "title", "language", "premise", "character_bible", "antagonist_bible",
+            "title", "language", "premise", "character_bible", "supporting_characters_bible", "antagonist_bible",
             "scenario_bible", "world_bible", "story_direction", "story_outline",
             "chapter_count",
         )
@@ -27,6 +28,7 @@ class StoryProjectForm(forms.ModelForm):
             "language": "Idioma de escrita",
             "premise": "Premissa",
             "character_bible": "Bíblia do personagem",
+            "supporting_characters_bible": "Bíblia dos personagens coadjuvantes",
             "antagonist_bible": "Bíblia do antagonista",
             "scenario_bible": "Cenários e locais",
             "world_bible": "Mundo, época, clima e referências",
@@ -37,7 +39,7 @@ class StoryProjectForm(forms.ModelForm):
         widgets = {
             field: forms.Textarea(attrs={"rows": 5})
             for field in (
-                "premise", "character_bible", "antagonist_bible", "scenario_bible",
+                "premise", "character_bible", "supporting_characters_bible", "antagonist_bible", "scenario_bible",
                 "world_bible", "story_direction", "story_outline",
             )
         }
@@ -69,21 +71,26 @@ class ProjectSourcesForm(forms.Form):
 
 
 class ChapterForm(forms.ModelForm):
+    @property
+    def completed_session_numbers(self):
+        return list(self.instance.sessions.values_list("number", flat=True)) if self.instance.pk else []
+
     class Meta:
         model = Chapter
         fields = (
-            "title", "direction", "script", "target_words", "session_count",
+            "title", "direction", "script", "session_scenes", "target_words", "session_count",
             "retrieval_top_k",
         )
         labels = {
             "title": "Título",
-            "direction": "Direção do capítulo",
-            "script": "Roteiro do capítulo",
+            "direction": "Direção geral do capítulo (opcional com cenas)",
+            "script": "Roteiro geral do capítulo (opcional com cenas)",
             "target_words": "Meta de palavras",
             "session_count": "Número de sessões (1 a 4)",
             "retrieval_top_k": "Trechos recuperados pelo RAG",
         }
         widgets = {
+            "session_scenes": forms.HiddenInput(),
             "direction": forms.Textarea(attrs={"rows": 5}),
             "script": forms.Textarea(attrs={"rows": 7}),
         }
@@ -92,12 +99,26 @@ class ChapterForm(forms.ModelForm):
         cleaned = super().clean()
         words = cleaned.get("target_words")
         sessions = cleaned.get("session_count")
+        if sessions and cleaned.get("session_scenes"):
+            try:
+                cleaned["session_scenes"] = validate_session_scenes(cleaned["session_scenes"], sessions, self.completed_session_numbers)
+            except ValueError as exc:
+                self.add_error("session_scenes", str(exc))
         if words and sessions and words < sessions * 400:
             self.add_error(
                 "target_words",
                 f"Use pelo menos {sessions * 400} palavras para {sessions} sessões.",
             )
-        if self.instance.pk and self.instance.sessions.exists() and self.changed_data:
+        if self.completed_session_numbers and "session_scenes" in self.changed_data:
+            old = self.instance.session_scenes or []
+            new = cleaned.get("session_scenes") or []
+            for number in self.completed_session_numbers:
+                previous = old[number - 1] if len(old) >= number else []
+                updated = new[number - 1] if len(new) >= number else []
+                if previous != updated:
+                    self.add_error("session_scenes", "As cenas das sessões já geradas ficam preservadas. Edite somente as próximas sessões.")
+                    break
+        if self.instance.pk and self.instance.sessions.exists() and set(self.changed_data) - {"session_scenes"}:
             raise forms.ValidationError(
                 "Parâmetros e roteiro ficam imutáveis após a primeira sessão. "
                 "Crie um novo capítulo ou uma futura revisão versionada."
