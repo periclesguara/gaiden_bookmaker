@@ -43,8 +43,20 @@ Install the declared environment and then load the non-secret runtime defaults:
 ```bash
 python -m pip install -r requirements-ci.txt
 python -m pip install --no-deps -e .
-source scripts/ops/env_gaiden.sh
 ```
+
+For a local runtime-data root outside the repository, create the ignored
+operator configuration from the template and adjust its path if necessary:
+
+```bash
+cp scripts/ops/env_local_dev.sh.example scripts/ops/env_local_dev.sh
+source scripts/ops/env_local_dev.sh
+```
+
+`scripts/dev/open_gaiden` loads that local file automatically. It must set
+`GAIDEN_DATA_ROOT` and `GAIDEN_STORAGE_ROOT` to the same external directory;
+do not place credentials in this file. Runtime builds, images, indexes, and
+operator data remain outside Git.
 
 ## Required checks
 
