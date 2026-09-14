@@ -32,6 +32,10 @@ build/
 *.egg
 *.log
 
+# Editor and manual source backups are not runtime configuration.
+*.bak
+*.bak.*
+
 # LaTeX
 *.aux
 *.toc

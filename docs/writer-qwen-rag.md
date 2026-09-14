@@ -132,10 +132,10 @@ Configure both clients against the same loopback API:
 
 ```bash
 export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_EMBEDDING_API_KEY=ollama
+export GAIDEN_EMBEDDING_API_KEY=placeholder
 export GAIDEN_EMBEDDING_MODEL=qwen3-embedding:0.6b
 export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_QWEN_API_KEY=ollama
+export GAIDEN_QWEN_API_KEY=placeholder
 export GAIDEN_QWEN_MODEL=qwen3.5:9b-q4_K_M
 export GAIDEN_QWEN_THINKING=0
 ```
@@ -156,7 +156,7 @@ belong in the index.
 
 ```bash
 export GAIDEN_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_EMBEDDING_API_KEY=ollama
+export GAIDEN_EMBEDDING_API_KEY=placeholder
 export GAIDEN_EMBEDDING_MODEL=qwen3-embedding:0.6b
 
 python -m gaiden.writer_engine index \
@@ -196,7 +196,7 @@ Run:
 
 ```bash
 export GAIDEN_QWEN_BASE_URL=http://127.0.0.1:8001/v1
-export GAIDEN_QWEN_API_KEY=ollama
+export GAIDEN_QWEN_API_KEY=placeholder
 export GAIDEN_QWEN_MODEL=qwen3.5:9b-q4_K_M
 export GAIDEN_QWEN_THINKING=0
 
