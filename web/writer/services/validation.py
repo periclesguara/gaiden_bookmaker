@@ -1,7 +1,9 @@
 """Django configuration and persistence boundary for per-session QA."""
 from dataclasses import asdict
 import json
+import os
 
+from gaiden.writer_engine.openai_generator import writer_generator
 from gaiden.writer_engine.validation import SceneContract
 from gaiden.writer_engine.repair import generate_validated_scene
 from .normalization import writer_storage_root
@@ -16,6 +18,11 @@ def language_code(value):
         if raw.startswith(name):
             return code
     return raw.split('(')[0].strip().replace('_','-').split('-')[0]
+
+
+def critic_generator():
+    """Return the Writer model used for semantic session review."""
+    return writer_generator()
 
 
 def scene_contract(chapter, number, plan):
@@ -42,11 +49,12 @@ def generate_validated_session(
 ):
     previous = chapter.sessions.filter(status='COMPLETE', number__lt=number).order_by('-number').first()
     previous_state = previous.generation_parameters.get('continuity', {}) if previous else {}
+    critic = critic_generator()
     return generate_validated_scene(engine, request, contract,
         previous_text=previous_text, previous_state=previous_state,
         top_k=chapter.retrieval_top_k,
         session_root=writer_storage_root()/f'project-{chapter.project_id}'/f'chapter {chapter.number:02d}'/f'session {number:02d}',
-        original_text=original_text)
+        original_text=original_text, critic_generator=critic)
 
 
 def contract_instructions(contract):

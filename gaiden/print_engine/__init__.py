@@ -15,6 +15,7 @@ from .preflight import (
     PreflightCheck,
     PreflightReport,
     PreflightStatus,
+    inspect_pdf_page_count,
     preflight_pdfs,
     preflight_spec,
 )
@@ -39,6 +40,7 @@ __all__ = [
     "PrintSpec",
     "Rect",
     "compile_lualatex",
+    "inspect_pdf_page_count",
     "preflight_pdfs",
     "preflight_spec",
 ]

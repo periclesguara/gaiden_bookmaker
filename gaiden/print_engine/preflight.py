@@ -35,7 +35,26 @@ class PreflightReport:
 
     @property
     def passed(self) -> bool:
+        """Whether the automated checks found no release-blocking failure.
+
+        A passing report can still require review when a check is WARN or SKIP.
+        Use ``fully_verified`` when every requested automated check must have
+        completed successfully.
+        """
         return all(check.status != PreflightStatus.FAIL for check in self.checks)
+
+    @property
+    def fully_verified(self) -> bool:
+        return bool(self.checks) and all(
+            check.status == PreflightStatus.PASS for check in self.checks
+        )
+
+    @property
+    def requires_review(self) -> bool:
+        return any(
+            check.status in (PreflightStatus.WARN, PreflightStatus.SKIP)
+            for check in self.checks
+        )
 
     @property
     def failures(self) -> tuple[PreflightCheck, ...]:
@@ -44,6 +63,8 @@ class PreflightReport:
     def as_dict(self) -> dict[str, object]:
         return {
             "passed": self.passed,
+            "fully_verified": self.fully_verified,
+            "requires_review": self.requires_review,
             "checks": [
                 {"code": c.code, "status": c.status.value, "message": c.message}
                 for c in self.checks
@@ -84,18 +105,37 @@ def _run_tool(command: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _pdfinfo(path: Path) -> tuple[str | None, str | None]:
+def _pdfinfo(path: Path) -> tuple[str | None, str | None, bool]:
     if shutil.which("pdfinfo") is None:
-        return None, "pdfinfo is not installed"
-    result = _run_tool(["pdfinfo", str(path)])
+        return None, "pdfinfo is not installed", True
+    try:
+        result = _run_tool(["pdfinfo", str(path)])
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return None, f"pdfinfo could not inspect {path}: {exc}", False
     if result.returncode != 0:
-        return None, result.stderr.strip() or "pdfinfo failed"
-    return result.stdout, None
+        return None, result.stderr.strip() or "pdfinfo failed", False
+    return result.stdout, None, False
 
 
 def _parse_page_count(pdfinfo_output: str) -> int | None:
     match = re.search(r"^Pages:\s+(\d+)\s*$", pdfinfo_output, flags=re.MULTILINE)
     return int(match.group(1)) if match else None
+
+
+def inspect_pdf_page_count(path: str | Path) -> int:
+    """Return a verified PDF page count using the local Poppler toolchain."""
+    pdf_path = Path(path)
+    if not pdf_path.is_file():
+        raise FileNotFoundError(pdf_path)
+    output, error, unavailable = _pdfinfo(pdf_path)
+    if unavailable:
+        raise RuntimeError(error or "pdfinfo is required to inspect the final interior")
+    if output is None:
+        raise ValueError(error or f"could not inspect PDF: {pdf_path}")
+    page_count = _parse_page_count(output)
+    if page_count is None:
+        raise ValueError(f"pdfinfo did not report a page count for {pdf_path}")
+    return page_count
 
 
 def _parse_page_size_in(pdfinfo_output: str) -> tuple[Decimal, Decimal] | None:
@@ -114,12 +154,15 @@ def _close_enough(actual: Decimal, expected: Decimal, *, tolerance: Decimal = De
     return abs(actual - expected) <= tolerance
 
 
-def _fonts_embedded(path: Path) -> tuple[bool | None, str | None]:
+def _fonts_embedded(path: Path) -> tuple[bool | None, str | None, bool]:
     if shutil.which("pdffonts") is None:
-        return None, "pdffonts is not installed"
-    result = _run_tool(["pdffonts", str(path)])
+        return None, "pdffonts is not installed", True
+    try:
+        result = _run_tool(["pdffonts", str(path)])
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return None, f"pdffonts could not inspect {path}: {exc}", False
     if result.returncode != 0:
-        return None, result.stderr.strip() or "pdffonts failed"
+        return None, result.stderr.strip() or "pdffonts failed", False
 
     font_rows = []
     for line in result.stdout.splitlines():
@@ -131,8 +174,12 @@ def _fonts_embedded(path: Path) -> tuple[bool | None, str | None]:
         if match:
             font_rows.append(match.group(1).lower() == "yes")
     if not font_rows:
-        return None, "pdffonts found no parseable font rows"
-    return all(font_rows), None
+        # A valid image/vector-only PDF can legitimately contain no fonts.
+        # pdffonts still emits its two-line table header in that case.
+        if "emb" in result.stdout.lower() and "object id" in result.stdout.lower():
+            return True, None, False
+        return None, "pdffonts returned an unrecognized result", False
+    return all(font_rows), None, False
 
 
 def _append_size_check(
@@ -192,12 +239,16 @@ def preflight_pdfs(
     if not interior.is_file() or not cover.is_file():
         return PreflightReport(tuple(checks))
 
-    interior_info, interior_error = _pdfinfo(interior)
-    cover_info, cover_error = _pdfinfo(cover)
+    interior_info, interior_error, interior_info_skipped = _pdfinfo(interior)
+    cover_info, cover_error, cover_info_skipped = _pdfinfo(cover)
 
     if interior_info is None:
         checks.append(
-            PreflightCheck("interior.pdfinfo", PreflightStatus.WARN, interior_error or "interior PDF not inspected")
+            PreflightCheck(
+                "interior.pdfinfo",
+                PreflightStatus.SKIP if interior_info_skipped else PreflightStatus.FAIL,
+                interior_error or "interior PDF not inspected",
+            )
         )
     else:
         pages = _parse_page_count(interior_info)
@@ -226,7 +277,11 @@ def preflight_pdfs(
 
     if cover_info is None:
         checks.append(
-            PreflightCheck("cover.pdfinfo", PreflightStatus.WARN, cover_error or "cover PDF not inspected")
+            PreflightCheck(
+                "cover.pdfinfo",
+                PreflightStatus.SKIP if cover_info_skipped else PreflightStatus.FAIL,
+                cover_error or "cover PDF not inspected",
+            )
         )
     elif spec.is_finalized:
         cover_pages = _parse_page_count(cover_info)
@@ -249,9 +304,15 @@ def preflight_pdfs(
         )
 
     for code, path in (("interior.fonts_embedded", interior), ("cover.fonts_embedded", cover)):
-        embedded, font_error = _fonts_embedded(path)
+        embedded, font_error, font_check_skipped = _fonts_embedded(path)
         if embedded is None:
-            checks.append(PreflightCheck(code, PreflightStatus.WARN, font_error or "font embedding not verified"))
+            checks.append(
+                PreflightCheck(
+                    code,
+                    PreflightStatus.SKIP if font_check_skipped else PreflightStatus.FAIL,
+                    font_error or "font embedding not verified",
+                )
+            )
         elif embedded:
             checks.append(PreflightCheck(code, PreflightStatus.PASS, "all detected fonts are embedded"))
         else:

@@ -1,0 +1,3 @@
+{% extends "writer/base.html" %}
+{% block title %}Adicionar Google Docs{% endblock %}
+{% block content %}<section class="card"><h1>Adicionar Google Docs</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Registrar Google Docs</button> <a class="btn secondary" href="{% url 'writer:sources' %}">Cancelar</a></form></section>{% endblock %}

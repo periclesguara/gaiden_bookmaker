@@ -631,6 +631,27 @@ class ChapterTranslationInterfaceTests(TestCase):
         discover_returns.assert_not_called()
         qwen_detector.assert_not_called()
 
+    def test_cover_selection_starts_upload_and_shows_pending_state(self):
+        ManualTranslationJob.objects.create(
+            edition=self.edition,
+            target_edition=self.edition,
+            source_language="en",
+            target_language="en_us",
+            drive_path="gaiden_drive:04_TRANSLATION_JOBS/book_7007/en-us/v2",
+            source_path=str(self.heading_path),
+            source_sha256="a" * 64,
+            expected_return_name="book_7007_en_us_translated.txt",
+            status=ManualTranslationJob.STATUS_COMPLETED,
+        )
+
+        response = self.client.get(self.page_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="cover-upload-form"')
+        self.assertContains(response, "o envio começa automaticamente")
+        self.assertContains(response, "coverForm.requestSubmit()")
+        self.assertContains(response, "Enviando capa — aguarde a confirmação")
+
     def test_explicit_split_post_creates_units_and_enables_drive_job(self):
         response = self.client.post(
             reverse("chapter_translation_split", kwargs={"edition_id": self.edition.id}),

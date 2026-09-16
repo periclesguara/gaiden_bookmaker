@@ -7,15 +7,20 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from .forms import ChapterForm, ProjectSourcesForm, StoryProjectForm
+from .forms import ChapterForm, GoogleDocSourceForm, ProjectSourcesForm, StoryProjectForm
 from .models import Chapter, SourceDocument, StoryProject
 from .services.dashboard import build_project_dashboard
 from .services.generation import generate_chapter
 from .services.narrative import run_chapter_workflow
 from .services.normalization import normalize_document
 from .services.projects import synchronize_chapters
-from .services.sources import discover_source_documents
+from .services.sources import discover_source_documents, register_google_doc
 from .services.vectorization import vectorize_project
+from .services.chapter_closure import close_chapter
+from .services.package_preparation import prepare_chapter_package
+from .services.google_drive_export import export_chapter_package
+from .services.output_import import import_chapter_output
+from .services.google_docs import canonical_google_doc_url, extract_document_id
 
 
 @require_GET
@@ -40,6 +45,16 @@ def sources(request: HttpRequest) -> HttpResponse:
         "normalized_count": normalized,
         "normalization_complete": bool(documents) and normalized == len(documents),
     })
+
+
+@require_http_methods(["GET", "POST"])
+def google_doc_source_add(request: HttpRequest) -> HttpResponse:
+    form = GoogleDocSourceForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        document = register_google_doc(form.cleaned_data["google_doc"])
+        messages.success(request, f"Google Docs registrado: {document.filename}.")
+        return redirect("writer:sources")
+    return render(request, "writer/google_doc_source_form.html", {"form": form})
 
 
 @require_POST
@@ -248,9 +263,9 @@ def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
 def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
     if request.POST.get("confirm") != "yes":
-        messages.warning(request, "Confirme a geração na caixa antes de iniciar o modelo.")
+        messages.warning(request, "Confirme a preparação do pacote na caixa antes de continuar.")
         return redirect("writer:project_detail", project_id=chapter.project_id)
-    dashboard = build_project_dashboard(chapter.project)
+    dashboard = build_project_dashboard(chapter.project, probe_models=False)
     row = next(
         item for item in dashboard["chapter_rows"] if item["chapter"].pk == chapter.pk
     )
@@ -259,7 +274,7 @@ def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
             messages.success(request, "Finalização concluída: este capítulo já está finalizado.")
         elif chapter.status == Chapter.Status.GENERATION_COMPLETE:
             messages.success(
-                request, "Geração concluída: revise as sessões e finalize o capítulo."
+                request, "Geração concluída: revise o capítulo e finalize."
             )
         else:
             messages.warning(
@@ -267,8 +282,8 @@ def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
             )
         return redirect("writer:project_detail", project_id=chapter.project_id)
     try:
-        run_chapter_workflow(chapter)
-        messages.success(request, "Cenas geradas, merge concluído e memória narrativa atualizada.")
+        chapter, contract, package_root = prepare_chapter_package(chapter)
+        messages.success(request, f"Pacote do Capítulo {chapter.number:02d} preparado; aguardando saída externa.")
     except Exception as exc:
         messages.error(request, f"Falha na geração: {exc}")
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
@@ -281,9 +296,9 @@ def generate_next(request: HttpRequest, project_id: int) -> HttpResponse:
         pk=project_id,
     )
     if request.POST.get("confirm") != "yes":
-        messages.warning(request, "Confirme a geração antes de iniciar os modelos.")
+        messages.warning(request, "Confirme a preparação do pacote do capítulo.")
         return redirect("writer:project_detail", project_id=project.id)
-    dashboard = build_project_dashboard(project)
+    dashboard = build_project_dashboard(project, probe_models=False)
     row = dashboard["next_chapter_row"]
     if row is None:
         messages.warning(request, "Nenhum próximo capítulo está pronto para geração.")
@@ -296,20 +311,38 @@ def generate_next(request: HttpRequest, project_id: int) -> HttpResponse:
         )
         return redirect("writer:project_detail", project_id=project.id)
     try:
-        run_chapter_workflow(chapter)
-        chapter.refresh_from_db()
-        if chapter.logic_audit.get("verdict") == "REVIEW_REQUIRED":
-            messages.warning(
-                request,
-                f"Capítulo {chapter.number:02d} mergeado; a auditoria lógica requer revisão.",
-            )
-        else:
-            messages.success(
-                request,
-                f"Capítulo {chapter.number:02d} mergeado e memória narrativa atualizada.",
-            )
+        chapter, contract, package_root = prepare_chapter_package(chapter)
+        messages.success(request, f"Pacote do Capítulo {chapter.number:02d} preparado; aguardando saída externa.")
     except Exception as exc:
         messages.error(request, f"Falha na geração do Capítulo {chapter.number:02d}: {exc}")
+    return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@require_POST
+def export_drive(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    try:
+        chapter = export_chapter_package(chapter)
+        messages.success(request, "Pacote exportado para o Google Drive; aguardando saída externa.")
+    except Exception as exc:
+        messages.error(request, f"Exportação não concluída; o pacote local permanece pronto: {exc}")
+    return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@require_POST
+def import_output(request: HttpRequest, chapter_id: int) -> HttpResponse:
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    try:
+        output_url = request.POST.get("output_url", "").strip()
+        if output_url:
+            output_id = extract_document_id(output_url)
+            chapter.drive_output_id = output_id
+            chapter.drive_output_url = canonical_google_doc_url(output_id)
+            chapter.save(update_fields=("drive_output_id", "drive_output_url", "updated_at"))
+        import_chapter_output(chapter)
+        messages.success(request, "Saída do capítulo importada; revise antes de finalizar.")
+    except Exception as exc:
+        messages.error(request, f"Importação não concluída: {exc}")
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
 
 
@@ -324,6 +357,7 @@ def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
         return redirect("writer:chapter_detail", chapter_id=chapter.id)
     try:
         chapter.finalize()
+        close_chapter(chapter)
         messages.success(request, "Capítulo finalizado após confirmação editorial.")
     except Exception as exc:
         messages.error(request, f"Não foi possível finalizar: {exc}")

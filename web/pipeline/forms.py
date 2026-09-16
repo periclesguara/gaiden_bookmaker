@@ -3,7 +3,7 @@ import re
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import BookEditionTemplate, LANGUAGE_DEFAULT_TEMPLATES
+from .models import BookEditionTemplate
 
 
 _BOOK_CODE_INPUT_RE = re.compile(r"^\s*(?:book[_-]?)?(\d+)\s*$", re.IGNORECASE)
@@ -77,20 +77,15 @@ class BookEditionTemplateForm(forms.ModelForm):
             self.initial["collaborator_roles"] = self.instance.roles_list
 
         if (not self.instance or not self.instance.pk) and not self.is_bound:
-            lang = self.initial.get("language") or self.instance.language or self.fields["language"].initial
-            self.fields["imprint_name"].initial = "Rinobooks"
-            self.fields["seal_name"].initial = "Wrecked Alien Machines"
-            self._set_default_templates(lang)
-
-    def _set_default_templates(self, lang: str):
-        defaults = LANGUAGE_DEFAULT_TEMPLATES.get(lang)
-        if defaults:
-            if not self.initial.get("frontispiece_text"):
-                self.fields["frontispiece_text"].initial = defaults["frontispiece_text"]
-            if not self.initial.get("copyright_text"):
-                self.fields["copyright_text"].initial = defaults["copyright_text"]
-
-        # About fields are always manual and should not be auto-filled.
+            # Frontmatter is editorial input: choices remain available, but no
+            # publisher, seal, frontispiece, or copyright is preselected.
+            for field_name in (
+                "imprint_name",
+                "seal_name",
+                "frontispiece_text",
+                "copyright_text",
+            ):
+                self.fields[field_name].initial = ""
 
     def clean_collaborator_roles(self):
         roles = self.cleaned_data.get("collaborator_roles") or []

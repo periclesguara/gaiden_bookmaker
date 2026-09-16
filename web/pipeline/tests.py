@@ -93,10 +93,27 @@ class _SlowOpenAIClient:
 
 
 class ItalianSupportTests(TestCase):
-    def test_new_edition_uses_canonical_publisher_and_seal(self):
+    def test_new_edition_keeps_frontmatter_fields_blank(self):
         form = BookEditionTemplateForm()
-        self.assertEqual(form["imprint_name"].value(), "Rinobooks")
-        self.assertEqual(form["seal_name"].value(), "Wrecked Alien Machines")
+        self.assertEqual(form["imprint_name"].value(), "")
+        self.assertEqual(form["seal_name"].value(), "")
+        self.assertEqual(form["frontispiece_text"].value(), "")
+        self.assertEqual(form["copyright_text"].value(), "")
+
+    def test_saving_blank_frontmatter_does_not_restore_defaults(self):
+        template = BookEditionTemplate(
+            book_code="book_blank_frontmatter",
+            language="en",
+            title="Title",
+            author_name="Author",
+            publication_year=2026,
+        )
+
+        template.save()
+
+        template.refresh_from_db()
+        self.assertEqual(template.frontispiece_text, "")
+        self.assertEqual(template.copyright_text, "")
 
     def test_frontispiece_uses_publisher_instead_of_seal(self):
         template = BookEditionTemplate(
@@ -110,6 +127,20 @@ class ItalianSupportTests(TestCase):
             frontispiece_text="{publisher}",
         )
         self.assertEqual(template.frontispiece_rendered, "Rinobooks")
+
+    def test_frontmatter_preview_does_not_invent_a_publisher(self):
+        template = BookEditionTemplate(
+            book_code="book_no_publisher",
+            language="en",
+            title="Title",
+            author_name="Author",
+            publication_year=2026,
+            frontispiece_text="{publisher}",
+            copyright_text="Copyright © {year} {publisher}.",
+        )
+
+        self.assertEqual(template.frontispiece_rendered, "")
+        self.assertEqual(template.copyright_rendered, "Copyright © 2026 .")
 
     def test_italian_refine_contract_and_frontmatter_helpers(self):
         from editorial.frontmatter import frontmatter_headings, language_display
@@ -579,6 +610,20 @@ class CadastroSourceFormatRoutingTests(TestCase):
             response,
             reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
         )
+
+    def test_new_frontmatter_preview_does_not_prefill_publisher_or_copyright(self):
+        response = self.client.get(
+            reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        template = BookEditionTemplate.objects.get(book_code=self.work.code, language="en")
+        self.assertEqual(template.imprint_name, "")
+        self.assertEqual(template.seal_name, "")
+        self.assertEqual(template.frontispiece_text, "")
+        self.assertEqual(template.copyright_text, "")
+        self.assertEqual(response.context["frontmatter_preview"], "")
+        self.assertEqual(response.context["copyright_preview"], "")
 
     def test_frontmatter_opened_from_intake_returns_to_intake_editor(self):
         BookEditionTemplate.objects.update_or_create(
@@ -3284,6 +3329,7 @@ class EditorialImagePipelineContractTests(TestCase):
             self.steps_url,
             data={
                 "action": "upload_images_files",
+                "confirm_generated_images": "1",
                 "images_files": [
                     self._image_upload("01.png"),
                     self._image_upload("02.png"),
@@ -3294,16 +3340,53 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             response.url,
-            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}?allow_html_to_common=1#transformacao-editorial",
+            f"{reverse('edition_steps', kwargs={'edition_id': self.edition.id})}"
+            "?allow_html_to_common=1&frontmatter_lang=en#transformacao-editorial",
         )
         self.assertTrue((self.images_dir / "01.jpg").exists())
         self.assertTrue((self.images_dir / "02.jpg").exists())
+
+    def test_image_upload_rejects_files_without_generated_origin_confirmation(self):
+        response = self.client.post(
+            self.steps_url,
+            data={
+                "action": "upload_images_files",
+                "images_files": [self._image_upload("source-original.png")],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse((self.images_dir / "source-original.jpg").exists())
+
+    def test_cover_upload_persists_file_path_and_update_timestamp(self):
+        previous_updated_at = self.edition.updated_at
+        storage_root = self.temp_root / "data"
+
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(storage_root)}):
+            response = self.client.post(
+                self.steps_url,
+                data={
+                    "action": "upload_cover",
+                    "cover_file": self._image_upload("new-cover.png"),
+                },
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.edition.refresh_from_db()
+        self.assertEqual(
+            self.edition.cover_filepath,
+            f"data/covers/{self.work.code}/en/cover.jpg",
+        )
+        self.assertGreater(self.edition.updated_at, previous_updated_at)
+        cover = storage_root / "covers" / self.work.code / "en" / "cover.jpg"
+        self.assertTrue(cover.is_file())
 
     def test_insert_and_apply_images_are_contractually_preserved(self):
         self.client.post(
             self.steps_url,
             data={
                 "action": "upload_images_files",
+                "confirm_generated_images": "1",
                 "images_files": [
                     self._image_upload("01.png"),
                     self._image_upload("02.png"),

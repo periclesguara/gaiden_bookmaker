@@ -28,10 +28,14 @@
     <span class="badge">hash {{ render_result.fingerprint|slice:":12" }}</span>
     <span class="badge">{{ chapter_count }} capítulos</span>
     <span class="badge">{{ illustrated_chapter_count }} ilustrados</span>
-    <form method="post" action="{% url 'premium_epub_approve' edition.id %}" style="display:inline">
-      {% csrf_token %}
-      <button type="submit">Aprovar este preview</button>
-    </form>
+    {% if manifest.production_ready %}
+      <form method="post" action="{% url 'premium_epub_approve' edition.id %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Aprovar este preview</button>
+      </form>
+    {% else %}
+      <button type="button" disabled title="Cadastre uma capa oficial para liberar a aprovação">Aprovação bloqueada: falta capa oficial</button>
+    {% endif %}
     <a class="button" href="{{ frontmatter_adjust_url }}">Ajustar frontmatter</a>
     {% if post_intake_return_url %}
     <a class="button" href="{{ post_intake_return_url }}">Voltar ao pipeline do Intake</a>

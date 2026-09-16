@@ -495,7 +495,7 @@ class BookEditionTemplate(models.Model):
             "pseudonym": pseudonym,
             "imprint": imprint,
             "role_label": self.primary_role_label,
-            "publisher": self.imprint_name or "Rinobooks",
+            "publisher": self.imprint_name or "",
             "adapter": adapter,
             "translator": self.translator_name,
             "editor": self.editor_name,
@@ -570,14 +570,9 @@ class BookEditionTemplate(models.Model):
         return updated_fields
 
     def save(self, *args, **kwargs):
-        apply_defaults = kwargs.pop("apply_defaults", True)
-        updated_fields = []
-        if apply_defaults:
-            updated_fields = self.apply_language_defaults_if_empty()
-        if updated_fields and kwargs.get("update_fields") is not None:
-            update_fields = set(kwargs["update_fields"])
-            update_fields.update(updated_fields)
-            kwargs["update_fields"] = update_fields
+        # Compatibility keyword retained for older callers. Defaults are now
+        # applied only by an explicit operator action, never as a save side effect.
+        kwargs.pop("apply_defaults", None)
         ensure_bookeditiontemplate_runtime_columns()
         super().save(*args, **kwargs)
 

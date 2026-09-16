@@ -5697,13 +5697,16 @@ def edition_steps(request, edition_id: int):
                 edition.cover_filepath = str(rel_path)
             except ValueError:
                 edition.cover_filepath = str(cover_path)
-            edition.save(update_fields=["cover_filepath"])
+            edition.save(update_fields=["cover_filepath", "updated_at"])
             invalidate_premium_render(edition, "cover_changed")
             messages.success(request, f"Capa salva: {edition.cover_filepath}")
             return _redirect_editorial()
         if action in {"upload_images_zip", "upload_gallery_zip"}:
             if _internal_images_disabled_for_edition(edition):
                 messages.info(request, "Este livro esta configurado como cover only. Imagens internas ficam desativadas.")
+                return _redirect_editorial()
+            if request.POST.get("confirm_generated_images") != "1":
+                messages.error(request, "Confirme que o ZIP contem somente imagens geradas para esta edicao.")
                 return _redirect_editorial()
             images_zip = request.FILES.get("images_zip")
             if not images_zip:
@@ -5732,6 +5735,9 @@ def edition_steps(request, edition_id: int):
         if action in {"upload_images_files", "upload_gallery_files"}:
             if _internal_images_disabled_for_edition(edition):
                 messages.info(request, "Este livro esta configurado como cover only. Imagens internas ficam desativadas.")
+                return _redirect_editorial()
+            if request.POST.get("confirm_generated_images") != "1":
+                messages.error(request, "Confirme que os arquivos sao imagens geradas para esta edicao.")
                 return _redirect_editorial()
             files = request.FILES.getlist("images_files")
             if not files:

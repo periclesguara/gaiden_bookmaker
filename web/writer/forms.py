@@ -1,7 +1,7 @@
 from django import forms
 
 from .models import Chapter, SourceDocument, StoryProject
-from .services.scenes import validate_session_scenes
+from .services.google_docs import extract_document_id
 
 
 class VersionForm(forms.Form):
@@ -70,6 +70,22 @@ class ProjectSourcesForm(forms.Form):
         self.fields["sources"].initial = project.sources.all()
 
 
+class GoogleDocSourceForm(forms.Form):
+    google_doc = forms.CharField(
+        label="Google Docs URL ou documentId",
+        max_length=500,
+        help_text="Apenas leitura; o documento precisa estar compartilhado com a credencial configurada.",
+    )
+
+    def clean_google_doc(self):
+        value = self.cleaned_data["google_doc"]
+        try:
+            extract_document_id(value)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+        return value
+
+
 class ChapterForm(forms.ModelForm):
     @property
     def completed_session_numbers(self):
@@ -78,7 +94,7 @@ class ChapterForm(forms.ModelForm):
     class Meta:
         model = Chapter
         fields = (
-            "title", "direction", "script", "session_scenes", "target_words", "session_count",
+            "title", "direction", "script", "target_words",
             "retrieval_top_k",
         )
         labels = {
@@ -86,11 +102,10 @@ class ChapterForm(forms.ModelForm):
             "direction": "Direção geral do capítulo (opcional com cenas)",
             "script": "Roteiro geral do capítulo (opcional com cenas)",
             "target_words": "Meta de palavras",
-            "session_count": "Número de sessões (1 a 4)",
+            "script": "Roteiro completo do capítulo",
             "retrieval_top_k": "Trechos recuperados pelo RAG",
         }
         widgets = {
-            "session_scenes": forms.HiddenInput(),
             "direction": forms.Textarea(attrs={"rows": 5}),
             "script": forms.Textarea(attrs={"rows": 7}),
         }
@@ -98,29 +113,15 @@ class ChapterForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         words = cleaned.get("target_words")
-        sessions = cleaned.get("session_count")
-        if sessions and cleaned.get("session_scenes"):
-            try:
-                cleaned["session_scenes"] = validate_session_scenes(cleaned["session_scenes"], sessions, self.completed_session_numbers)
-            except ValueError as exc:
-                self.add_error("session_scenes", str(exc))
+        sessions = 1
         if words and sessions and words < sessions * 400:
             self.add_error(
                 "target_words",
                 f"Use pelo menos {sessions * 400} palavras para {sessions} sessões.",
             )
-        if self.completed_session_numbers and "session_scenes" in self.changed_data:
-            old = self.instance.session_scenes or []
-            new = cleaned.get("session_scenes") or []
-            for number in self.completed_session_numbers:
-                previous = old[number - 1] if len(old) >= number else []
-                updated = new[number - 1] if len(new) >= number else []
-                if previous != updated:
-                    self.add_error("session_scenes", "As cenas das sessões já geradas ficam preservadas. Edite somente as próximas sessões.")
-                    break
-        if self.instance.pk and self.instance.sessions.exists() and set(self.changed_data) - {"session_scenes"}:
+        if self.instance.pk and self.instance.generated_text and set(self.changed_data) - {"session_scenes"}:
             raise forms.ValidationError(
-                "Parâmetros e roteiro ficam imutáveis após a primeira sessão. "
+                "Parâmetros e roteiro ficam imutáveis após a geração. "
                 "Crie um novo capítulo ou uma futura revisão versionada."
             )
         return cleaned

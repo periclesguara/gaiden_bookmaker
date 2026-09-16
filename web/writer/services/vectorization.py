@@ -16,9 +16,9 @@ from .normalization import writer_storage_root
 
 def embedding_client() -> OpenAIEmbeddingClient:
     return OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "placeholder"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"),
+        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY", ""),
+        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small"),
     )
 
 

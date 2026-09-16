@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 
 from gaiden.writer_engine.openai_generator import WRITER_BASE_URL, WRITER_MODEL
 
-from ..models import Chapter, ChapterSession, SourceDocument, StoryProject
+from ..models import Chapter, SourceDocument, StoryProject
 
 
 BIBLE_FIELDS = (
@@ -89,20 +89,12 @@ def _is_loopback(base_url: str) -> bool:
 
 
 def _model_status(*, probe: bool) -> dict:
-    embedding_base_url = os.environ.get(
-        "GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"
-    ).rstrip("/")
+    embedding_base_url = os.environ.get("OPENAI_BASE_URL", WRITER_BASE_URL).rstrip("/")
     writing_base_url = WRITER_BASE_URL
-    embedding_model = os.environ.get(
-        "GAIDEN_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"
-    )
+    embedding_model = os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small")
     writing_model = WRITER_MODEL
-    narrative_memory_model = os.environ.get(
-        "GAIDEN_NARRATIVE_MEMORY_MODEL", "Qwen/Qwen3.5-4B"
-    )
-    logic_audit_model = os.environ.get(
-        "GAIDEN_LOGIC_AUDIT_MODEL", "microsoft/Phi-4-mini-instruct"
-    )
+    narrative_memory_model = WRITER_MODEL
+    logic_audit_model = WRITER_MODEL
     status = {
         "checked": False,
         "online": None,
@@ -256,19 +248,15 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
             stage["state"] = "blocked"
         prior_complete = prior_complete and stage["complete"]
 
+    # Generate now builds and freezes the local contract package. It does not
+    # call a model or require a live/local model service. RAG remains useful
+    # context for the contract, but it is not a button lock for package prep.
     global_generation_blockers = []
-    if not all_vectorized:
-        global_generation_blockers.append(index["reason"])
     global_generation_blockers.extend(f"Preencher {label.lower()}" for label in missing_bibles)
     global_generation_blockers.extend(f"Preencher {label.lower()}" for label in missing_story)
-    if models["checked"] and not models["online"]:
-        global_generation_blockers.append("Serviço local de modelos indisponível")
-    elif models["checked"] and not models["writing_available"]:
-        global_generation_blockers.append("Modelo de escrita não instalado")
 
     chapter_rows = []
     for chapter in chapters:
-        chapter_sessions = list(chapter.sessions.all())
         blockers = list(global_generation_blockers)
         chapter_blockers = []
         if not getattr(chapter, "session_scenes", []) and not chapter.direction.strip():
@@ -277,17 +265,20 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
             chapter_blockers.append("Preencher roteiro do capítulo")
         if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
             chapter_blockers.append("Capítulo já finalizado")
+        elif chapter.status == Chapter.Status.PACKAGE_READY:
+            chapter_blockers.append("Pacote pronto; exporte para o Google Drive")
+        elif chapter.status in {Chapter.Status.EXPORTED_TO_DRIVE, Chapter.Status.WAITING_FOR_OUTPUT}:
+            chapter_blockers.append("Pacote já exportado; aguarde ou importe a saída")
+        elif chapter.status in {Chapter.Status.OUTPUT_IMPORTED, Chapter.Status.CLOSURE_COMPLETE}:
+            chapter_blockers.append("Saída já importada; revise e finalize")
         elif chapter.status in {Chapter.Status.GENERATING, Chapter.Status.MERGING}:
             chapter_blockers.append("Geração em andamento")
         elif chapter.status == Chapter.Status.GENERATION_COMPLETE:
-            if not getattr(chapter, "qa_ready", False):
-                chapter_blockers.append("Sessões geradas exigem validação antes do merge")
-        if any(session.status != ChapterSession.Status.COMPLETE for session in chapter_sessions):
-            chapter_blockers.append("Há uma sessão rejeitada aguardando revisão manual")
+            # This is a recoverable legacy state. Generate now means package
+            # preparation, so it must be allowed to freeze the contract even
+            # when an old model/audit run left this status behind.
+            pass
         blockers.extend(chapter_blockers)
-        complete_sessions = sum(
-            session.status == ChapterSession.Status.COMPLETE for session in chapter_sessions
-        )
         chapter_rows.append(
             {
                 "chapter": chapter,
@@ -296,7 +287,7 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
                 "generation_ready": not blockers,
                 "generation_blockers": blockers,
                 "chapter_blockers": chapter_blockers,
-                "complete_sessions": complete_sessions,
+                "complete_sessions": int(bool(chapter.generated_text)),
             }
         )
 
@@ -304,7 +295,11 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
     prior_chapters_complete = True
     for row in chapter_rows:
         chapter = row["chapter"]
-        already_merged = chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}
+        already_merged = chapter.status in {
+            Chapter.Status.MERGED,
+            Chapter.Status.FINAL,
+            Chapter.Status.CLOSURE_COMPLETE,
+        }
         if already_merged:
             continue
         if not prior_chapters_complete:

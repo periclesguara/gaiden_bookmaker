@@ -7,8 +7,11 @@ app_name = "writer"
 urlpatterns = [
     path("", views.home, name="home"),
     path("sources/", views.sources, name="sources"),
+    path("sources/google-doc/add/", views.google_doc_source_add, name="google_doc_source_add"),
     path("sources/scan/", views.scan_sources, name="scan_sources"),
     path("sources/normalize/", views.normalize_sources, name="normalize_sources"),
+    path("chapters/<int:chapter_id>/export-drive/", views.export_drive, name="export_drive"),
+    path("chapters/<int:chapter_id>/import-output/", views.import_output, name="import_output"),
     path("projects/new/", views.project_edit, name="project_new"),
     path("projects/<int:project_id>/", views.project_detail, name="project_detail"),
     path(

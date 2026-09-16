@@ -4,23 +4,40 @@ import hashlib
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 
 class SourceDocument(models.Model):
+    class SourceType(models.TextChoices):
+        LOCAL_FILE = "LOCAL_FILE", "Arquivo local"
+        GOOGLE_DOC = "GOOGLE_DOC", "Google Docs"
+
     class Status(models.TextChoices):
         DISCOVERED = "DISCOVERED", "Descoberto"
         NORMALIZED = "NORMALIZED", "Normalizado"
         VECTORIZED = "VECTORIZED", "Vetorizado"
         FAILED = "FAILED", "Falhou"
+        CONTRACT_READY = "CONTRACT_READY", "Contrato pronto"
+        CONTRACT_FROZEN = "CONTRACT_FROZEN", "Contrato congelado"
+        EXPORTED_TO_DRIVE = "EXPORTED_TO_DRIVE", "Exportado para Drive"
+        WAITING_FOR_OUTPUT = "WAITING_FOR_OUTPUT", "Aguardando saída externa"
+        OUTPUT_IMPORTED = "OUTPUT_IMPORTED", "Saída importada"
+        CLOSURE_COMPLETE = "CLOSURE_COMPLETE", "Fechamento concluído"
+        PACKAGE_READY = "PACKAGE_READY", "Pacote pronto localmente"
 
     filename = models.CharField(max_length=255)
-    source_path = models.TextField(unique=True)
+    source_type = models.CharField(max_length=24, choices=SourceType.choices, default=SourceType.LOCAL_FILE)
+    source_path = models.TextField(unique=False)
+    external_id = models.CharField(max_length=255, blank=True, db_index=True)
+    external_url = models.URLField(blank=True)
+    external_revision_id = models.CharField(max_length=255, blank=True)
+    external_modified_at = models.DateTimeField(null=True, blank=True)
     source_sha256 = models.CharField(max_length=64, blank=True)
     normalized_path = models.TextField(blank=True)
     normalized_sha256 = models.CharField(max_length=64, blank=True)
     provider = models.CharField(max_length=40, blank=True)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DISCOVERED)
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.DISCOVERED)
     normalization_report = models.JSONField(default=dict, blank=True)
     error_message = models.TextField(blank=True)
     discovered_at = models.DateTimeField(auto_now_add=True)
@@ -29,6 +46,13 @@ class SourceDocument(models.Model):
 
     class Meta:
         ordering = ("filename", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("source_type", "external_id"),
+                condition=Q(source_type="GOOGLE_DOC", external_id__gt=""),
+                name="writer_unique_google_doc_source",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.filename
@@ -45,6 +69,7 @@ class StoryProject(models.Model):
     world_bible = models.TextField(blank=True)
     story_direction = models.TextField(blank=True)
     story_outline = models.TextField(blank=True)
+    anchor_facts = models.JSONField(default=list, blank=True)
     chapter_count = models.PositiveSmallIntegerField(
         default=10, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
@@ -69,6 +94,13 @@ class Chapter(models.Model):
         GENERATION_COMPLETE = "GENERATION_COMPLETE", "Geração concluída"
         FINAL = "FINAL", "Finalizado"
         FAILED = "FAILED", "Falhou"
+        CONTRACT_READY = "CONTRACT_READY", "Contrato pronto"
+        CONTRACT_FROZEN = "CONTRACT_FROZEN", "Contrato congelado"
+        PACKAGE_READY = "PACKAGE_READY", "Pacote pronto localmente"
+        EXPORTED_TO_DRIVE = "EXPORTED_TO_DRIVE", "Exportado para Drive"
+        WAITING_FOR_OUTPUT = "WAITING_FOR_OUTPUT", "Aguardando saída externa"
+        OUTPUT_IMPORTED = "OUTPUT_IMPORTED", "Saída importada"
+        CLOSURE_COMPLETE = "CLOSURE_COMPLETE", "Fechamento concluído"
 
     project = models.ForeignKey(StoryProject, on_delete=models.CASCADE, related_name="chapters")
     number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
@@ -80,7 +112,7 @@ class Chapter(models.Model):
         default=2500, validators=[MinValueValidator(400), MaxValueValidator(12000)]
     )
     session_count = models.PositiveSmallIntegerField(
-        default=4, validators=[MinValueValidator(1), MaxValueValidator(4)]
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
     retrieval_top_k = models.PositiveSmallIntegerField(
         default=8, validators=[MinValueValidator(1), MaxValueValidator(20)]
@@ -96,6 +128,24 @@ class Chapter(models.Model):
     logic_audit_model = models.CharField(max_length=160, blank=True)
     memory_updated_at = models.DateTimeField(null=True, blank=True)
     final_text = models.TextField(blank=True)
+    generated_text = models.TextField(blank=True)
+    generation_model = models.CharField(max_length=160, blank=True)
+    generation_parameters = models.JSONField(default=dict, blank=True)
+    generation_source_chunk_ids = models.JSONField(default=list, blank=True)
+    generation_source_scores = models.JSONField(default=list, blank=True)
+    generation_contract_sha256 = models.CharField(max_length=64, blank=True)
+    generation_metadata = models.JSONField(default=dict, blank=True)
+    generated_at = models.DateTimeField(null=True, blank=True)
+    contract_version = models.PositiveIntegerField(null=True, blank=True)
+    contract_json_path = models.TextField(blank=True)
+    drive_folder_url = models.URLField(blank=True)
+    drive_contract_url = models.URLField(blank=True)
+    drive_output_url = models.URLField(blank=True)
+    drive_folder_id = models.CharField(max_length=255, blank=True)
+    drive_contract_id = models.CharField(max_length=255, blank=True)
+    drive_json_id = models.CharField(max_length=255, blank=True)
+    drive_output_id = models.CharField(max_length=255, blank=True)
+    drive_export_error = models.TextField(blank=True)
     error_message = models.TextField(blank=True)
     finalized_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -112,25 +162,20 @@ class Chapter(models.Model):
 
     @property
     def words_per_session(self) -> int:
-        return max(1, round(self.target_words / self.session_count))
+        return self.target_words
+
+    @property
+    def generated_word_count(self) -> int:
+        return len(self.generated_text.split())
 
     @property
     def qa_ready(self) -> bool:
-        sessions = list(self.sessions.order_by("number"))
-        return ([s.number for s in sessions] == list(range(1, self.session_count + 1))
-                and all(s.status == ChapterSession.Status.COMPLETE and s.qa_passed for s in sessions))
+        return bool(self.generated_text.strip())
 
     def finalize(self) -> None:
-        sessions = list(self.sessions.order_by("number"))
-        if len(sessions) != self.session_count or any(
-            session.status != ChapterSession.Status.COMPLETE for session in sessions
-        ):
-            raise ValueError("all configured sessions must be complete before finalization")
-        if not all(session.qa_passed for session in sessions):
-            raise ValueError("Todas as sessões precisam passar pela validação e pelo crítico local antes da finalização.")
-        self.final_text = self.merged_text.strip() or "\n\n".join(
-            session.content.strip() for session in sessions
-        ).strip()
+        if not self.generated_text.strip():
+            raise ValueError("chapter must contain generated text before finalization")
+        self.final_text = self.generated_text.strip()
         self.status = self.Status.FINAL
         self.finalized_at = timezone.now()
         self.error_message = ""
@@ -175,6 +220,69 @@ class ChapterSession(models.Model):
 
     def __str__(self) -> str:
         return f"{self.chapter} — Sessão {self.number}"
+
+
+class NarrativeContract(models.Model):
+    class Status(models.TextChoices):
+        READY = "READY", "Pronto"
+        USED = "USED", "Usado"
+        SUPERSEDED = "SUPERSEDED", "Substituído"
+
+    project = models.ForeignKey(StoryProject, on_delete=models.CASCADE, related_name="narrative_contracts")
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name="narrative_contracts")
+    version = models.PositiveIntegerField(default=1)
+    schema_version = models.CharField(max_length=20, default="1.0")
+    book_kit_snapshot = models.JSONField(default=dict)
+    book_kit_sha256 = models.CharField(max_length=64)
+    chapter_plan = models.JSONField(default=dict)
+    continuity_snapshot = models.JSONField(default=dict)
+    chapter_history = models.JSONField(default=dict)
+    source_rag_context = models.JSONField(default=list)
+    narrative_memory_context = models.JSONField(default=list)
+    payload_json = models.JSONField(default=dict)
+    payload_sha256 = models.CharField(max_length=64)
+    estimated_input_tokens = models.PositiveIntegerField(default=0)
+    token_budget = models.JSONField(default=dict)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.READY)
+    created_at = models.DateTimeField(auto_now_add=True)
+    frozen_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("project", "chapter", "version"), name="writer_unique_contract_version")]
+        ordering = ("project_id", "chapter_id", "-version")
+
+
+class ChapterNarrativeSummary(models.Model):
+    project = models.ForeignKey(StoryProject, on_delete=models.CASCADE, related_name="chapter_summaries")
+    chapter = models.OneToOneField(Chapter, on_delete=models.CASCADE, related_name="narrative_summary")
+    version = models.PositiveIntegerField(default=1)
+    short_summary = models.TextField(blank=True)
+    detailed_summary = models.TextField(blank=True)
+    opening_state = models.JSONField(default=dict)
+    major_events = models.JSONField(default=list)
+    closing_state = models.JSONField(default=dict)
+    characters_present = models.JSONField(default=list)
+    locations = models.JSONField(default=list)
+    facts_established = models.JSONField(default=list)
+    new_information = models.JSONField(default=list)
+    resolved_threads = models.JSONField(default=list)
+    open_threads = models.JSONField(default=list)
+    continuity_delta = models.JSONField(default=dict)
+    source_contract_sha256 = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class StoryContinuityState(models.Model):
+    project = models.ForeignKey(StoryProject, on_delete=models.CASCADE, related_name="continuity_states")
+    through_chapter = models.PositiveIntegerField()
+    version = models.PositiveIntegerField(default=1)
+    state_json = models.JSONField(default=dict)
+    state_sha256 = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("project", "through_chapter", "version"), name="writer_unique_continuity_version")]
+        ordering = ("project_id", "-through_chapter", "-version")
 
 
 class WriterStatus(models.TextChoices):

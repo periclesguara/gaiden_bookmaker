@@ -7,7 +7,7 @@ from web.writer.services.repair import repair_chapter_sessions
 
 class Command(BaseCommand):
     help = (
-        "Repair existing sessions through local Qwen validation; preserves originals "
+        "Repair existing sessions through Writer validation; preserves originals "
         "in immutable audit runs and stops on the first failure."
     )
 

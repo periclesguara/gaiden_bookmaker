@@ -109,6 +109,17 @@ class NarrativeCoreTests(TestCase):
         )
         self.assertEqual(audit.value["verdict"], "PASS")
 
+    def test_memory_discards_nontext_items_instead_of_recording_them_as_facts(self):
+        payload = state_payload(2)
+        payload["important_objects"] = ["telegram", {"name": "invented object"}]
+        memory = update_narrative_state(
+            generator("qwen-4b", json.dumps(payload)),
+            chapter_number=2,
+            previous_state={},
+            merged_chapter="Holmes examined the telegram.",
+        )
+        self.assertEqual(memory.value["important_objects"], ["telegram"])
+
     def test_phi_pass_cannot_hide_reported_conflicts(self):
         payload = audit_payload(1)
         payload["coherence"]["issues"] = ["Watson knows an undisclosed fact."]

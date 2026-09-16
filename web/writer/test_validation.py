@@ -172,6 +172,21 @@ class RepairPipelineTests(SimpleTestCase):
         self.assertEqual(len(list(self.root.rglob('attempt_*.txt'))),1)
         self.assertEqual(list(self.root.rglob('approved.txt')),[])
 
+    def test_fenced_json_from_local_phi_is_accepted(self):
+        self.engine.generator.generate.return_value = (
+            '```json\n' + json.dumps(critic_payload()) + '\n```'
+        )
+        scene = self.run_scene([TEXT])
+        self.assertTrue(scene.validation.passed)
+
+    def test_ungrounded_continuity_is_discarded_without_approving_new_facts(self):
+        payload = critic_payload()
+        payload['continuity']['location'] = 'invented place'
+        payload['continuity_evidence'] = {'invented place': 'not in the candidate'}
+        self.engine.generator.generate.return_value = json.dumps(payload)
+        scene = self.run_scene([TEXT])
+        self.assertEqual(scene.continuity['location'], '')
+
     def test_semantic_failure_is_repaired_not_approved(self):
         payload=critic_payload()
         payload['checks']['scene_contract']['status']='fail'
@@ -188,13 +203,13 @@ class RepairPipelineTests(SimpleTestCase):
             self.run_scene([TEXT])
         self.assertEqual(self.engine.generate_candidate.call_count,1)
 
-    def test_continuity_requires_exact_evidence(self):
+    def test_ungrounded_continuity_never_enters_saved_state(self):
         payload=critic_payload()
         payload['continuity']['location']='drawing room'
         payload['continuity_evidence']={'drawing room':'unwritten claim'}
         self.engine.generator.generate.return_value=json.dumps(payload)
-        with self.assertRaises(ManualReviewRequired):
-            self.run_scene([TEXT])
+        scene = self.run_scene([TEXT])
+        self.assertEqual(scene.continuity['location'], '')
 
     def test_grounded_continuity_is_saved(self):
         payload=critic_payload()
@@ -249,6 +264,35 @@ class RepairPipelineTests(SimpleTestCase):
             (Path(scene.audit_path)/'original.txt').read_text(),
             'Legacy text that must remain recoverable.',
         )
+
+    def test_explicit_local_critic_is_used_instead_of_the_author(self):
+        critic = Mock()
+        critic.last_finish_reason = 'stop'
+        critic.generate.return_value = json.dumps(critic_payload())
+        self.engine.generate_candidate.side_effect = [GenerationResult(TEXT, 'test/qwen', (), ())]
+
+        generate_validated_scene(
+            self.engine, object(), CONTRACT, session_root=self.root,
+            critic_generator=critic,
+        )
+
+        critic.generate.assert_called_once()
+        self.engine.generator.generate.assert_not_called()
+
+
+class CriticRoutingTests(SimpleTestCase):
+    @patch.dict('os.environ', {'GAIDEN_WRITER_CRITIC_PROVIDER': 'openai'})
+    @patch('web.writer.services.validation.writer_generator')
+    def test_openai_provider_uses_the_writer_luna_factory(self, factory):
+        from web.writer.services.validation import critic_generator
+        self.assertIs(critic_generator(), factory.return_value)
+        factory.assert_called_once_with()
+
+    @patch.dict('os.environ', {'GAIDEN_WRITER_CRITIC_PROVIDER': 'invalid'})
+    def test_invalid_critic_provider_fails_closed(self):
+        from web.writer.services.validation import critic_generator
+        with self.assertRaisesRegex(ValueError, 'GAIDEN_WRITER_CRITIC_PROVIDER'):
+            critic_generator()
 
 
 class StoredApprovalTests(TestCase):

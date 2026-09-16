@@ -842,7 +842,7 @@ class EditionRenderer:
         )
         (epub_dir / "content.opf").write_text(opf, encoding="utf-8")
 
-    def _render_tree(self, root: Path) -> list[str]:
+    def _render_tree(self, root: Path, *, allow_preview_cover: bool = False) -> list[str]:
         epub_dir = root / "EPUB"
         text_dir = epub_dir / "text"
         styles_dir = epub_dir / "styles"
@@ -879,9 +879,30 @@ class EditionRenderer:
 
         cover_source = self._cover_path()
         if cover_source is None:
-            raise FileNotFoundError("Premium EPUB requires an official cover image")
-        cover_filename = f"cover{cover_source.suffix.lower()}"
-        shutil.copy2(cover_source, images_dir / cover_filename)
+            if not allow_preview_cover:
+                raise FileNotFoundError("Premium EPUB requires an official cover image")
+            cover_filename = "preview-cover-placeholder.svg"
+            placeholder = (
+                '<?xml version="1.0" encoding="UTF-8"?>'
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 2100" role="img" '
+                'aria-labelledby="title description">'
+                '<title id="title">Capa provisória para pré-visualização</title>'
+                '<desc id="description">A capa oficial ainda não foi cadastrada.</desc>'
+                '<rect width="1400" height="2100" fill="#eee9df"/>'
+                '<rect x="90" y="90" width="1220" height="1920" fill="none" stroke="#70685d" stroke-width="4"/>'
+                f'<text x="700" y="880" text-anchor="middle" font-family="serif" font-size="78" fill="#24211d">{html.escape(title)}</text>'
+                f'<text x="700" y="1010" text-anchor="middle" font-family="sans-serif" font-size="42" fill="#514b43">{html.escape(author)}</text>'
+                '<text x="700" y="1470" text-anchor="middle" font-family="sans-serif" font-size="34" fill="#8b2e2e">CAPA OFICIAL PENDENTE</text>'
+                '<text x="700" y="1535" text-anchor="middle" font-family="sans-serif" font-size="26" fill="#514b43">Somente para visualização interna</text>'
+                '</svg>'
+            )
+            (images_dir / cover_filename).write_text(placeholder, encoding="utf-8")
+            self.warnings.append(
+                "Capa oficial ausente; o preview usa uma capa provisória que não pode ser aprovada nem exportada."
+            )
+        else:
+            cover_filename = f"cover{cover_source.suffix.lower()}"
+            shutil.copy2(cover_source, images_dir / cover_filename)
         cover = self._template(
             "cover.xhtml",
             cover_filename=html.escape(cover_filename),
@@ -996,14 +1017,17 @@ class EditionRenderer:
             "files": files,
             "spine": spine,
             "warnings": self.warnings,
+            "production_ready": not any(
+                path.endswith("/preview-cover-placeholder.svg") for path in files
+            ),
         }
 
-    def render(self) -> RenderResult:
+    def render(self, *, allow_preview_cover: bool = False) -> RenderResult:
         self.build_dir.mkdir(parents=True, exist_ok=True)
         temp_root = self.build_dir / f".{PREVIEW_DIRNAME}-{uuid.uuid4().hex}"
         temp_root.mkdir(parents=True)
         try:
-            spine = self._render_tree(temp_root)
+            spine = self._render_tree(temp_root, allow_preview_cover=allow_preview_cover)
             manifest = self._manifest(temp_root, spine)
             (temp_root / MANIFEST_FILENAME).write_text(
                 json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
@@ -1099,6 +1123,8 @@ class EditionRenderer:
 
     def build_epub(self, filename: str = "BOOK.epub", *, require_approval: bool = True) -> Path:
         manifest = self.verify_render()
+        if not manifest.get("production_ready", False):
+            raise ValueError("An official cover is required before EPUB packaging")
         state = self._load_state()
         if require_approval and (
             state.get("status") != "PREVIEW_APPROVED"

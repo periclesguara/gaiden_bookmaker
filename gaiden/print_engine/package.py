@@ -17,6 +17,31 @@ class PrintPackageManifest:
     interior_pdf: str = "INTERIOR.pdf"
     cover_pdf: str = "COVER.pdf"
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.book_id, str) or not self.book_id.strip():
+            raise ValueError("book_id must not be empty")
+
+        expected_geometry = CoverGeometry.from_spec(self.spec)
+        if self.geometry != expected_geometry:
+            raise ValueError("cover geometry does not match the finalized print spec")
+
+        for field_name in ("interior_pdf", "cover_pdf"):
+            filename = getattr(self, field_name)
+            if not isinstance(filename, str):
+                raise ValueError(f"{field_name} must be a safe PDF filename")
+            path = Path(filename)
+            if (
+                not filename
+                or "/" in filename
+                or "\\" in filename
+                or path.name != filename
+                or not path.stem
+                or path.suffix.lower() != ".pdf"
+            ):
+                raise ValueError(f"{field_name} must be a safe PDF filename")
+        if self.interior_pdf == self.cover_pdf:
+            raise ValueError("interior and cover PDF filenames must be different")
+
     def as_dict(self) -> dict[str, object]:
         return {
             "book_id": self.book_id,

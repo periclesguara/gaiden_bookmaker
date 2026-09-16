@@ -157,7 +157,7 @@
         <div class="dialog-body">
           {% if dashboard.next_chapter_row %}
             <h2>Gerar Capítulo {{ dashboard.next_chapter_row.chapter.number|stringformat:"02d" }}?</h2>
-            <p>O Writer gerará somente este capítulo: cenas em ordem, merge automático, memória narrativa Qwen e auditoria lógica Phi.</p>
+            <p>O Writer preparará somente este capítulo: contrato narrativo congelado e pacote canônico local.</p>
             <p class="impact">Capítulos já mergeados ou finalizados permanecem intocados.</p>
           {% else %}
             <h2>Nenhum capítulo pronto</h2>
@@ -178,7 +178,7 @@
       Os botões permanecem clicáveis e repetem essa orientação sem iniciar o modelo.
     </div>
   {% endif %}
-  <div class="table"><table><thead><tr><th>Capítulo</th><th>Direção / roteiro</th><th>Palavras</th><th>Sessões</th><th>Status</th><th>Ações e bloqueios</th></tr></thead><tbody>
+  <div class="table"><table><thead><tr><th>Capítulo</th><th>Direção / roteiro</th><th>Palavras</th><th>Geração</th><th>Status</th><th>Ações e bloqueios</th></tr></thead><tbody>
   {% for row in dashboard.chapter_rows %}
     <tr>
       <td><strong>Capítulo {{ row.chapter.number|stringformat:"02d" }}</strong><br>{{ row.chapter.title }}</td>
@@ -187,12 +187,31 @@
         {% if row.script_ready %}<span class="check">✓ roteiro</span>{% else %}<span class="pending">roteiro pendente</span>{% endif %}
       </td>
       <td>{{ row.chapter.target_words }}<br><span class="muted">≈ {{ row.chapter.estimated_tokens }} tokens</span></td>
-      <td>{{ row.complete_sessions }}/{{ row.chapter.session_count }} concluídas<br><span class="muted">≈ {{ row.chapter.words_per_session }} palavras cada</span></td>
+      <td>{{ row.chapter.generated_word_count }} geradas<br><span class="muted">uma geração por capítulo</span></td>
       <td><span class="status {{ row.chapter.status }}">{{ row.chapter.get_status_display }}</span></td>
       <td>
         <div class="actions">
           <a class="btn secondary" href="{% url 'writer:chapter_edit' row.chapter.id %}">Parâmetros</a>
           <a class="btn secondary" href="{% url 'writer:chapter_detail' row.chapter.id %}">Abrir</a>
+          <form method="post" action="{% url 'writer:generate' row.chapter.id %}">
+            {% csrf_token %}<input type="hidden" name="confirm" value="yes">
+            <button type="submit">1. Generate</button>
+          </form>
+          <form method="post" action="{% url 'writer:export_drive' row.chapter.id %}">
+            {% csrf_token %}
+            <button type="submit">2. Export</button>
+          </form>
+          <form method="post" action="{% url 'writer:import_output' row.chapter.id %}">
+            {% csrf_token %}
+            <button type="submit">3. Import Chapter</button>
+          </form>
+          {% if row.chapter.status == "OUTPUT_IMPORTED" %}
+            <form method="post" action="{% url 'writer:finalize' row.chapter.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="confirm" value="yes">
+              <button class="green" type="submit">Finalizar capítulo</button>
+            </form>
+          {% endif %}
         </div>
         {% if row.generation_blockers %}
           <small class="button-help">Pendente: {% if dashboard.global_generation_blockers %}aguardando os requisitos gerais acima{% if row.chapter_blockers %}; {% endif %}{% endif %}{% for blocker in row.chapter_blockers %}{{ blocker }}{% if not forloop.last %}; {% endif %}{% endfor %}. Clique para ver os detalhes.</small>

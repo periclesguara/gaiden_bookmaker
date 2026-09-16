@@ -524,3 +524,23 @@ class PremiumEpubRendererTests(TestCase):
         )
         self.assertEqual(artifact.status_code, 200)
         self.assertEqual(artifact.headers.get("X-Frame-Options"), "SAMEORIGIN")
+
+    def test_preview_remains_visible_without_official_cover_but_export_is_blocked(self):
+        cover = storage.covers_dir(self.edition.work.code, self.edition.language.code) / "cover.jpg"
+        saved_cover = cover.read_bytes()
+        cover.unlink()
+        try:
+            response = self.client.get(
+                reverse("premium_epub_preview", kwargs={"edition_id": self.edition.id})
+            )
+
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Aprovação bloqueada: falta capa oficial")
+            self.assertContains(response, "Capa oficial ausente")
+            placeholder = self.renderer.preview_root / "EPUB/images/preview-cover-placeholder.svg"
+            self.assertTrue(placeholder.exists())
+            with self.assertRaisesMessage(ValueError, "official cover"):
+                self.renderer.build_epub("must-not-export.epub", require_approval=False)
+        finally:
+            cover.write_bytes(saved_cover)
+            self.result = self.renderer.render()

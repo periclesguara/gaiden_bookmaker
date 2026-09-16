@@ -83,7 +83,7 @@ class SourceExtractTests(SimpleTestCase):
         self.assertNotIn("alert", canonical_txt)
         self.assertNotIn(".x", canonical_txt)
 
-    def test_epub_extract_generates_canonical_outputs_metadata_and_images(self):
+    def test_epub_extract_ignores_original_images(self):
         source = Path(self.tempdir.name) / "input.epub"
         self.write_epub(source)
 
@@ -100,9 +100,20 @@ class SourceExtractTests(SimpleTestCase):
         self.assertEqual(result["details"]["languages"], ["en"])
         self.assertEqual(result["details"]["spine_count"], 2)
         self.assertEqual(result["details"]["toc_count"], 2)
-        self.assertEqual(result["details"]["images_count"], 1)
+        self.assertEqual(result["details"]["images_count"], 0)
         self.assertEqual(meta["schema"], "source_extract_v1")
-        self.assertTrue((self.repo_path(result["images_dir"]) / "cover.png").exists())
+        self.assertFalse((self.repo_path(result["images_dir"]) / "cover.png").exists())
+        self.assertIn("Ignored 1 source EPUB image(s)", result["warnings"][-1])
+
+    def test_epub_extract_removes_source_image_references_from_html(self):
+        source = Path(self.tempdir.name) / "source-images.epub"
+        self.write_epub(source, include_inline_image=True)
+
+        result = self.run_extract("book_9014", source)
+
+        canonical_html = self.repo_path(result["canonical_html"]).read_text(encoding="utf-8")
+        self.assertNotIn("<img", canonical_html.lower())
+        self.assertNotIn("images/cover.png", canonical_html)
 
     def test_epub_structural_ordinal_heading_becomes_explicit_chapter_heading(self):
         raw = (
@@ -198,7 +209,13 @@ class SourceExtractTests(SimpleTestCase):
         self.created_codes.append(book_code)
         return run_source_extract(book_code, "en", source)
 
-    def write_epub(self, path: Path, *, ordinal_headings: bool = False) -> None:
+    def write_epub(
+        self,
+        path: Path,
+        *,
+        ordinal_headings: bool = False,
+        include_inline_image: bool = False,
+    ) -> None:
         with zipfile.ZipFile(path, "w") as zf:
             zf.writestr("mimetype", "application/epub+zip")
             zf.writestr(
@@ -265,9 +282,10 @@ class SourceExtractTests(SimpleTestCase):
                     ),
                 )
             else:
+                inline_image = '<img src="images/cover.png" alt="Original cover" />' if include_inline_image else ""
                 zf.writestr(
                     "OPS/chapter1.xhtml",
-                    "<html><body><h1>Chapter One</h1><p>First body.</p></body></html>",
+                    f"<html><body><h1>Chapter One</h1>{inline_image}<p>First body.</p></body></html>",
                 )
                 zf.writestr(
                     "OPS/chapter2.xhtml",

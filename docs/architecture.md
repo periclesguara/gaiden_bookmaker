@@ -53,10 +53,31 @@ Unnumbered images fill the remaining unillustrated chapters in natural filename
 order. Images that cannot be mapped are reported as render warnings rather than
 silently inserted in an unrelated chapter.
 
+Source EPUB artwork is never copied into the canonical editorial image
+directory and inline source image references are removed during extraction.
+Only images explicitly uploaded through the editorial image step are eligible,
+and that upload requires the operator to confirm that every file was generated
+for the current edition rather than inherited from the source work.
+
 Editorial frontmatter fields accept Markdown formatting. Premium rendering
 converts headings, emphasis, lists, and block quotes to XHTML while escaping raw
 HTML. Markdown control characters must not remain visible in the preview or the
 packaged EPUB.
+
+New frontmatter records leave publisher, seal, frontispiece, and copyright
+empty in the editor and preview. Saving an intentional blank does not restore a
+publisher or localized template. Publisher and seal choices remain available,
+and localized defaults are inserted only through the operator's explicit
+``apply_defaults`` action. The ``{publisher}`` placeholder also remains empty
+when no publisher was selected; preview rendering never invents a brand.
+
+When an edition has no official cover, the premium preview remains readable by
+rendering a clearly marked internal placeholder. Preview approval and EPUB
+packaging stay blocked until an edition-owned cover is saved under
+`data/covers/<book>/<language>/`; the placeholder is never a production cover.
+In the post-Intake workflow, selecting a cover starts its upload immediately;
+the interface remains in an explicit sending state until the server redirects
+back with the persisted cover status.
 
 ### Copyright holder safety
 
@@ -146,23 +167,51 @@ It is disabled unless the exact EPUB is a registered final build with a current
 EPUBCheck pass; confirming it records an idempotent final-save audit event.
 The same page has an `Início` link at the top for return to the main Gaiden page.
 
+### Final print-production boundary
+
+`gaiden/print_engine/` is the isolated final-production layer for physical PDF
+artifacts. It consumes approved editorial content after the final EPUB gate and
+does not import Django, `web.writer`, or `gaiden.writer_engine`. Writer owns text
+creation only; it cannot compile, package, or preflight print artifacts.
+
+The standalone `python -m gaiden.print_engine` command renders and compiles `INTERIOR.pdf`,
+reports its final even page count, and preflights the matching `COVER.pdf` after
+the provider-derived spine width is supplied. Generated TeX/PDF files stay in
+external runtime storage. Print validation runs in its own CI workflow and does
+not require a database, Writer service, model endpoint, or editorial source
+corpus.
+
 ### Writer engine phase 1
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
 It owns deterministic corpus discovery and chunking, atomic vector-index
-serialization, retrieval, prompt boundaries, Qwen client coordination, and
+serialization, retrieval, prompt boundaries, OpenAI Luna client coordination, and
 originality checks. It does not own canonical promotion or final builds.
 
-Generation and embeddings use separate configurable OpenAI-compatible local
-services. Qwen3.5-9B is the default generation model and
-Qwen3-Embedding-0.6B is the default retrieval model. Corpus files, model
+Generation uses OpenAI `gpt-5.6-luna` through the Responses API with the
+existing system key. Embeddings remain on their separate local endpoint;
+Qwen3-Embedding-0.6B is the default retrieval model. Writer generation ignores
+shared Qwen settings and does not require a local GPU gate. Corpus files, model
 weights, indexes, requests, drafts, and audit sidecars remain external runtime
 artifacts. The reusable engine remains independent of Django. The `writer`
 application opens without Django authentication and adds source manifests,
 story projects, creative bibles, chapter parameters, immutable generation
-sessions, and explicit editorial finalization.
+sessions, and explicit chapter-text finalization. Writer finalization only
+freezes the ordered chapter body. Its handoff contains chapter number, chapter
+title, and final narrative text; it contains no frontmatter, publication
+metadata, cover, EPUB, PDF, print specification, or canonical-edition mutation.
+Those responsibilities begin in the downstream editorial production stage.
 Its external file-treatment and deployment contract is defined in
 `docs/writer-workflow.md`.
+
+The operator workflow exposes one project-level Generate action. It selects the
+earliest eligible chapter only after prior chapters are merged or finalized,
+generates missing scene sessions, and creates a preserved chapter merge with the
+Writer model. A local Qwen3.5-4B then produces a bounded cumulative narrative
+state, and a separate local Phi-4 Mini produces a structured causal, temporal,
+and coherence audit. These stages are resumable and never overwrite a stored
+session or merge. `MERGED` remains a Writer draft; explicit human finalization
+still does not promote content into the editorial application.
 
 ## Runtime data boundary
 

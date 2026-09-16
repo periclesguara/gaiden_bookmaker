@@ -56,10 +56,17 @@ def _bounded_text(value: Any, label: str, *, allow_empty: bool = False) -> str:
     return value
 
 
-def _string_list(value: Any, label: str) -> list[str]:
+def _string_list(value: Any, label: str, *, discard_invalid_items: bool = False) -> list[str]:
     if not isinstance(value, list) or len(value) > MAX_LIST_ITEMS:
         raise ValueError(f"{label} must be a bounded list")
-    return [_bounded_text(item, f"{label} item") for item in value]
+    normalized = []
+    for item in value:
+        try:
+            normalized.append(_bounded_text(item, f"{label} item"))
+        except ValueError:
+            if not discard_invalid_items:
+                raise
+    return normalized
 
 
 def _json_object(raw: str, label: str) -> dict[str, Any]:
@@ -81,7 +88,9 @@ def validate_narrative_state(value: Any, chapter_number: int) -> dict[str, Any]:
         raise ValueError("narrative memory identifies the wrong schema or chapter")
     normalized = dict(value)
     for key in STATE_LIST_KEYS:
-        normalized[key] = _string_list(value[key], f"narrative memory {key}")
+        normalized[key] = _string_list(
+            value[key], f"narrative memory {key}", discard_invalid_items=True
+        )
     characters = value["character_state"]
     if not isinstance(characters, dict) or len(characters) > MAX_LIST_ITEMS:
         raise ValueError("narrative memory character_state must be a bounded object")
@@ -92,8 +101,12 @@ def validate_narrative_state(value: Any, chapter_number: int) -> dict[str, Any]:
             raise ValueError("each character state must contain location, status, and knows")
         normalized_characters[name] = {
             "location": _bounded_text(state["location"], "character location", allow_empty=True),
-            "status": _string_list(state["status"], "character status"),
-            "knows": _string_list(state["knows"], "character knowledge"),
+            "status": _string_list(
+                state["status"], "character status", discard_invalid_items=True
+            ),
+            "knows": _string_list(
+                state["knows"], "character knowledge", discard_invalid_items=True
+            ),
         }
     normalized["character_state"] = normalized_characters
     if len(json.dumps(normalized, ensure_ascii=False)) > MAX_STATE_CHARS:

@@ -725,6 +725,7 @@
         <input type="hidden" name="action" value="upload_gallery_zip" />
         <label for="gallery_zip">ZIP da Image Gallery</label>
         <input id="gallery_zip" type="file" name="images_zip" accept=".zip,application/zip" />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que o ZIP contem somente imagens geradas para esta edicao.</label>
         <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
       </form>
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_gallery_v1" data-contract-step="consolidate_gallery_images">
@@ -751,6 +752,7 @@
         <input type="hidden" name="action" value="upload_images_files" />
         <label for="images_files">Insert multiple images</label>
         <input id="images_files" type="file" name="images_files" accept="image/*" multiple />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que estes arquivos sao imagens geradas para esta edicao, nao imagens da obra-fonte.</label>
         <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
         <p class="form-text">
           Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
@@ -779,6 +781,7 @@
         <input type="hidden" name="action" value="upload_images_zip" />
         <label for="images_zip">ZIP de imagens</label>
         <input id="images_zip" type="file" name="images_zip" accept=".zip,application/zip" />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que o ZIP contem somente imagens geradas para esta edicao.</label>
         <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
       </form>
       <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="consolidate_images">

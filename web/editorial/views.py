@@ -303,14 +303,14 @@ def frontmatter_template_edit(request, book_code: str, language: str):
             "subtitle": overrides.get("subtitle", ""),
             "author_name": overrides.get("author_name", author_name),
             "publication_year": edition.edition_year or edition.work.year or 2026,
-            "imprint_name": edition.seal.name,
+            "imprint_name": "",
             "city_name": "Rio de Janeiro",
             "country_name": country_name,
             "collection_name": "",
             "collaborator_name": contributor_name,
             "collaborator_pseudonym": "",
             "collaborator_roles": "",
-            "seal_name": edition.seal.name,
+            "seal_name": "",
             "editor_name": "",
             "translator_name": "",
             "adapter_name": overrides.get("adapter_name", contributor_name),
@@ -341,10 +341,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         defaults=defaults,
     )
     updated_fields = []
-    if created:
-        template.apply_language_defaults_if_empty()
-        template.save(apply_defaults=False)
-    else:
+    if not created:
         language_overrides = BOOK_LANGUAGE_DEFAULTS.get(book_code, {})
         title_candidates = [item["title"] for item in language_overrides.values() if item.get("title")]
         subtitle_candidates = [
@@ -669,7 +666,7 @@ def premium_epub_preview(request, edition_id: int):
     )
     renderer = EditionRenderer(edition)
     try:
-        result = renderer.render()
+        result = renderer.render(allow_preview_cover=True)
     except Exception as exc:
         messages.error(request, f"Premium EPUB render failed: {exc}")
         if post_intake_return_url:

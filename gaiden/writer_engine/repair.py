@@ -19,6 +19,62 @@ class ManualReviewRequired(RuntimeError):
     pass
 
 
+def _parse_critic_json(raw: str) -> dict:
+    """Accept a JSON object, including a harmless Markdown JSON fence."""
+    value = raw.strip()
+    if value.startswith("```json") and value.endswith("```"):
+        value = value[len("```json"): -len("```")].strip()
+    parsed = json.loads(value)
+    if not isinstance(parsed, dict):
+        raise ValueError("Critic response must be a JSON object")
+    return parsed
+
+
+def _critic_response_schema(expected_checks: set[str]) -> dict:
+    check = {
+        'type': 'object',
+        'properties': {
+            'status': {'type': 'string', 'enum': ['pass', 'fail', 'uncertain']},
+            'reason': {'type': 'string'},
+            'evidence': {'type': 'string'},
+        },
+        'required': ['status', 'reason', 'evidence'],
+        'additionalProperties': False,
+    }
+    return {
+        'type': 'object',
+        'properties': {
+            'checks': {
+                'type': 'object',
+                'properties': {name: check for name in sorted(expected_checks)},
+                'required': sorted(expected_checks),
+                'additionalProperties': False,
+            },
+            'continuity': {
+                'type': 'object',
+                'properties': {
+                    key: ({'type': 'array', 'items': {'type': 'string'}}
+                          if key in LIST_FIELDS else {'type': 'string'})
+                    for key in sorted(STATE_FIELDS)
+                },
+                'required': sorted(STATE_FIELDS),
+                'additionalProperties': False,
+            },
+            'continuity_evidence': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {'fact': {'type': 'string'}, 'quote': {'type': 'string'}},
+                    'required': ['fact', 'quote'],
+                    'additionalProperties': False,
+                },
+            },
+        },
+        'required': ['checks', 'continuity', 'continuity_evidence'],
+        'additionalProperties': False,
+    }
+
+
 @dataclass(frozen=True)
 class ValidatedScene:
     result: object
@@ -80,21 +136,29 @@ def review_scene(generator, text, contract, previous_text, previous_state):
         'Return JSON only, no markdown. Use status pass, fail, or uncertain for every check. '
         'An uncertain check requires manual review. Extract only facts established in the '
         'candidate. Unknown continuity fields must be empty. Every nonempty continuity value '
-        'must have an exact candidate quotation as evidence; no invented facts or transitions.'
+        'must have an exact candidate quotation as evidence; no invented facts or transitions. '
+        'For a check with no detected violation, use pass and an empty evidence string. Do not '
+        'mark a check fail while saying that no violation was detected. If previous_text is empty, '
+        'the continuity check must be pass because there is no prior scene to compare. For every '
+        'continuity field, use an empty string or empty list unless you can quote a contiguous '
+        'substring of the candidate verbatim. In continuity_evidence, use each exact nonempty '
+        'continuity fact as the key and its exact candidate quotation as the value; never use '
+        'field names such as location or characters_present as evidence keys.'
     )
     expected_checks = CHECKS | {f'required_event_{i}' for i in range(1,len(contract.required_events)+1)} | {f'prohibited_event_{i}' for i in range(1,len(contract.prohibited_events)+1)}
     system += ' Check each required_event_N for occurrence and each prohibited_event_N for absence, using one-based contract order.'
-    schema = {
-        'checks': {key: {'status': 'pass|fail|uncertain', 'reason': 'concise explanation', 'evidence': 'exact candidate quote or empty if missing event'} for key in sorted(expected_checks)},
-        'continuity': {key: [] if key in LIST_FIELDS else '' for key in sorted(STATE_FIELDS)},
-        'continuity_evidence': {'each nonempty value in continuity': 'exact candidate quotation'},
-    }
+    schema = _critic_response_schema(expected_checks)
     user = json.dumps({'contract': asdict(contract), 'previous_text': previous_text[-16000:],
         'previous_state': previous_state, 'candidate': text, 'response_schema': schema}, ensure_ascii=False)
-    raw = generator.generate(system=system, user=user, max_tokens=4096, temperature=.1)
+    if getattr(generator, 'supports_structured_output', False) is True:
+        raw = generator.generate_json(
+            system=system, user=user, max_tokens=4096, schema=schema
+        )
+    else:
+        raw = generator.generate(system=system, user=user, max_tokens=4096, temperature=.1)
     if getattr(generator, 'last_finish_reason', 'stop') != 'stop':
         raise ValueError('Incomplete critic response')
-    review = json.loads(raw)
+    review = _parse_critic_json(raw)
     if not isinstance(review, dict) or set(review.get('checks', {})) != expected_checks:
         raise ValueError('Critic omitted required checks')
     for name, check in review['checks'].items():
@@ -103,14 +167,26 @@ def review_scene(generator, text, contract, previous_text, previous_state):
         if not isinstance(check.get('reason'), str) or not check['reason'].strip():
             raise ValueError('Critic must explain each check')
         evidence = check.get('evidence')
-        if not isinstance(evidence, str) or (evidence and evidence not in text):
+        if not isinstance(evidence, str):
             raise ValueError('Critic cited nonexistent evidence')
+        if evidence and evidence not in text:
+            if name.startswith('required_event_') and check['status'] == 'pass':
+                raise ValueError('A passed required event must cite candidate evidence')
+            check['evidence'] = ''
         if name.startswith('required_event_') and check['status'] == 'pass' and not evidence:
             raise ValueError('A passed required event must cite candidate evidence')
     state = review.get('continuity')
-    evidence = review.get('continuity_evidence')
-    if not isinstance(state, dict) or set(state) != STATE_FIELDS or not isinstance(evidence, dict):
+    evidence_records = review.get('continuity_evidence')
+    if not isinstance(state, dict) or set(state) != STATE_FIELDS:
         raise ValueError('Invalid continuity schema')
+    if isinstance(evidence_records, dict):
+        evidence = evidence_records
+    elif isinstance(evidence_records, list):
+        if any(not isinstance(item, dict) or set(item) != {'fact', 'quote'} for item in evidence_records):
+            raise ValueError('Invalid continuity evidence')
+        evidence = {item['fact']: item['quote'] for item in evidence_records}
+    else:
+        raise ValueError('Invalid continuity evidence')
     for key, value in state.items():
         if key in LIST_FIELDS:
             if not isinstance(value, list) or len(value) > 20 or any(not isinstance(v, str) for v in value):
@@ -120,16 +196,19 @@ def review_scene(generator, text, contract, previous_text, previous_state):
             if not isinstance(value, str):
                 raise ValueError('Invalid continuity string')
             values = [value] if value else []
+        grounded = []
         for fact in values:
             quote = evidence.get(fact)
-            if not fact.strip() or len(fact) > 1000 or not isinstance(quote, str) or not quote.strip() or quote not in text:
-                raise ValueError('Continuity fact lacks grounded evidence')
+            if (isinstance(fact, str) and fact.strip() and len(fact) <= 1000
+                    and isinstance(quote, str) and quote.strip() and quote in text):
+                grounded.append(fact)
+        state[key] = grounded if key in LIST_FIELDS else (grounded[0] if grounded else '')
     return review
 
 
 def generate_validated_scene(engine, request, contract, *, previous_text='', previous_state=None,
                              top_k=8, session_root: Path, base_temperature=.75,
-                             original_text=None):
+                             original_text=None, critic_generator=None):
     audit = AuditRun(session_root)
     write_new(audit.path/'contract.json', asdict(contract))
     if original_text is not None:
@@ -154,7 +233,7 @@ def generate_validated_scene(engine, request, contract, *, previous_text='', pre
         semantic = None
         if validation.passed:
             try:
-                semantic = review_scene(engine.generator, result.text, contract,
+                semantic = review_scene(critic_generator or engine.generator, result.text, contract,
                     previous_text, previous_state or {})
             except (ValueError, TypeError, KeyError):
                 validation = result_from_issues(validation.issues + [ValidationIssue(

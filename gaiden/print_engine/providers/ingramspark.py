@@ -62,6 +62,11 @@ class IngramSparkAdapter:
             )
         if spec.page_count is None:
             errors.append("final page_count is required before cover generation")
+        elif spec.page_count % 2:
+            errors.append(
+                "final page_count must be even; include the trailing blank page "
+                "before calculating the spine width"
+            )
         if spec.spine_width_in is None:
             errors.append(
                 "spine_width_in is required; obtain it from the official IngramSpark "

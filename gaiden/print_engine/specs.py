@@ -9,7 +9,7 @@ silently mutating an already approved cover.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Optional
 
@@ -39,7 +39,25 @@ class InteriorColor(str, Enum):
 def _d(value: Decimal | str | int | float) -> Decimal:
     if isinstance(value, Decimal):
         return value
-    return Decimal(str(value))
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"invalid decimal value: {value!r}") from exc
+
+
+def _page_count(value: object) -> int:
+    if isinstance(value, bool):
+        raise ValueError("page count must be a positive integer")
+    try:
+        decimal_value = _d(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError) as exc:
+        raise ValueError("page count must be a positive integer") from exc
+    if not decimal_value.is_finite() or decimal_value != decimal_value.to_integral_value():
+        raise ValueError("page count must be a positive integer")
+    result = int(decimal_value)
+    if result <= 0:
+        raise ValueError("page count must be positive")
+    return result
 
 
 @dataclass(frozen=True)
@@ -74,6 +92,19 @@ class PrintSpec:
     spine_width_in: Optional[Decimal] = None
 
     def __post_init__(self) -> None:
+        for field_name, enum_type in (
+            ("provider", PrintProvider),
+            ("binding", Binding),
+            ("paper", Paper),
+            ("interior_color", InteriorColor),
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, enum_type):
+                try:
+                    object.__setattr__(self, field_name, enum_type(value))
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(f"invalid {field_name}: {value!r}") from exc
+
         decimal_fields = (
             "trim_width_in",
             "trim_height_in",
@@ -88,9 +119,17 @@ class PrintSpec:
             "body_leading_pt",
         )
         for field_name in decimal_fields:
-            object.__setattr__(self, field_name, _d(getattr(self, field_name)))
+            value = _d(getattr(self, field_name))
+            if not value.is_finite():
+                raise ValueError(f"{field_name} must be finite")
+            object.__setattr__(self, field_name, value)
         if self.spine_width_in is not None:
-            object.__setattr__(self, "spine_width_in", _d(self.spine_width_in))
+            spine_width = _d(self.spine_width_in)
+            if not spine_width.is_finite():
+                raise ValueError("spine width must be finite")
+            object.__setattr__(self, "spine_width_in", spine_width)
+        if self.page_count is not None:
+            object.__setattr__(self, "page_count", _page_count(self.page_count))
 
         if self.trim_width_in <= 0 or self.trim_height_in <= 0:
             raise ValueError("trim dimensions must be positive")
@@ -101,14 +140,20 @@ class PrintSpec:
         for field_name in ("inner_margin_in", "outer_margin_in", "top_margin_in", "bottom_margin_in"):
             if getattr(self, field_name) <= 0:
                 raise ValueError(f"{field_name} must be positive")
+        if self.inner_margin_in + self.outer_margin_in >= self.trim_width_in:
+            raise ValueError("horizontal margins must leave a positive text block")
+        if self.top_margin_in + self.bottom_margin_in >= self.trim_height_in:
+            raise ValueError("vertical margins must leave a positive text block")
+        if self.cover_safe_margin_in * 2 >= min(self.trim_width_in, self.trim_height_in):
+            raise ValueError("cover safe margin must fit within a cover panel")
         if self.body_font_size_pt <= 0 or self.body_leading_pt <= 0:
             raise ValueError("font size and leading must be positive")
         if self.body_leading_pt < self.body_font_size_pt:
             raise ValueError("body leading cannot be smaller than font size")
-        if self.page_count is not None and self.page_count <= 0:
-            raise ValueError("page count must be positive")
         if self.spine_width_in is not None and self.spine_width_in <= 0:
             raise ValueError("spine width must be positive")
+        if not isinstance(self.body_font, str) or not self.body_font.strip():
+            raise ValueError("body font must not be empty")
 
     @property
     def is_finalized(self) -> bool:
@@ -118,6 +163,6 @@ class PrintSpec:
         """Return a new immutable spec bound to the final interior geometry."""
         return replace(
             self,
-            page_count=int(page_count),
+            page_count=_page_count(page_count),
             spine_width_in=_d(spine_width_in),
         )

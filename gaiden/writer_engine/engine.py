@@ -138,6 +138,6 @@ class WriterEngine:
         prepared = self.prepare_chapter(request, top_k=top_k)
         result = self.generate_candidate(prepared)
         if not result.text or result.finish_reason != "stop":
-            raise ValueError("Qwen returned empty or incomplete prose")
+            raise ValueError("Writer returned empty or incomplete prose")
         reject_long_exact_overlap(result.text, list(prepared.sources))
         return result

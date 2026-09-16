@@ -16,7 +16,7 @@ class OpenAIWriterTests(TestCase):
         client.assert_called_once_with(api_key="nonfunctional-test-placeholder", base_url="https://api.openai.com/v1", max_retries=0, timeout=180)
         client.return_value.responses.create.assert_called_once_with(
             model="gpt-5.6-luna", instructions="rules", input="brief",
-            max_output_tokens=512, reasoning={"effort": "none"}, store=False,
+            max_output_tokens=512, reasoning={"effort": "medium"}, store=False,
         )
         self.assertEqual(generator.last_finish_reason, "stop")
 
@@ -28,6 +28,20 @@ class OpenAIWriterTests(TestCase):
                 client.return_value.responses.create.return_value = SimpleNamespace(status=status, output_text=content)
                 with self.assertRaisesRegex(RuntimeError, "empty or incomplete"):
                     generator.generate(system="rules", user="brief", max_tokens=512)
+
+    @patch("gaiden.writer_engine.openai_generator.OpenAI")
+    def test_critic_uses_strict_structured_output(self, client):
+        client.return_value.responses.create.return_value = SimpleNamespace(
+            status="completed", output_text='{"checks": {}, "continuity": {}, "continuity_evidence": []}'
+        )
+        generator = OpenAIWriterGenerator(api_key="nonfunctional-test-placeholder")
+        schema = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
+        generator.generate_json(system="rules", user="brief", max_tokens=512, schema=schema)
+        request = client.return_value.responses.create.call_args.kwargs
+        self.assertEqual(request["text"]["format"], {
+            "type": "json_schema", "name": "writer_critic_response", "strict": True,
+            "schema": schema,
+        })
 
     @patch("gaiden.writer_engine.openai_generator.OpenAI")
     def test_token_limits_are_checked_before_request(self, client):
@@ -44,6 +58,18 @@ class OpenAIWriterTests(TestCase):
         self.assertEqual(writer_generator().model, "gpt-5.6-luna")
         config.assert_not_called()
         self.assertEqual(client.call_args.kwargs["base_url"], "https://api.openai.com/v1")
+
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "nonfunctional-test-placeholder", "GAIDEN_WRITER_REASONING_EFFORT": "high"}, clear=True)
+    @patch("gaiden.writer_engine.openai_generator.OpenAI")
+    def test_local_operator_can_select_a_supported_reasoning_effort(self, client):
+        self.assertEqual(writer_generator().reasoning_effort, "high")
+
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "nonfunctional-test-placeholder", "GAIDEN_WRITER_REASONING_EFFORT": "invalid"}, clear=True)
+    @patch("gaiden.writer_engine.openai_generator.OpenAI")
+    def test_invalid_operator_reasoning_effort_stops_before_client_creation(self, client):
+        with self.assertRaisesRegex(ValueError, "GAIDEN_WRITER_REASONING_EFFORT"):
+            writer_generator()
+        client.assert_not_called()
 
     @patch.dict("os.environ", {}, clear=True)
     @patch("gaiden.writer_engine.openai_generator.get_openai_api_key", return_value="nonfunctional-test-placeholder")
@@ -79,7 +105,7 @@ class WriterRoutingTests(TestCase):
     def test_django_uses_luna_without_local_generation(self):
         from importlib import import_module
         from unittest.mock import MagicMock
-        generation = import_module(f"{__package__}.services.generation")
+        generation = import_module("web.writer.services.generation")
         chapter = MagicMock()
         chapter.project.vector_index_path = "/unused/index.jsonl"
         chapter.project.writing_mode = "FICTION"

@@ -151,5 +151,11 @@ class LatexInteriorRenderer:
 \\vspace*{{\\fill}}
 \\begin{{center}}The End\\end{{center}}
 \\vspace*{{\\fill}}
+% Bound interiors must end on a complete leaf. After clearpage, an even
+% page counter means the last emitted page was odd, so add one blank verso.
+\\clearpage
+\\ifodd\\value{{page}}\\else
+  \\thispagestyle{{empty}}\\null\\newpage
+\\fi
 \\end{{document}}
 """

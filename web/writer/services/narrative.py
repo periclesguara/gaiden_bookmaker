@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 import hashlib
-import os
 
 from django.db import transaction
 from django.utils import timezone
 
-from gaiden.writer_engine.clients import LocalChatGenerator
 from gaiden.writer_engine.narrative import (
     audit_narrative_logic,
     merge_scenes,
@@ -19,29 +17,13 @@ from ..models import Chapter, ChapterSession
 from .generation import generate_chapter
 
 
-def _local_generator(prefix: str, *, default_url: str, default_model: str) -> LocalChatGenerator:
-    return LocalChatGenerator(
-        base_url=os.environ.get(f"GAIDEN_{prefix}_BASE_URL", default_url),
-        api_key=os.environ.get(f"GAIDEN_{prefix}_API_KEY", "placeholder"),
-        model=os.environ.get(f"GAIDEN_{prefix}_MODEL", default_model),
-        timeout_seconds=float(os.environ.get(f"GAIDEN_{prefix}_TIMEOUT_SECONDS", "300")),
-    )
+def narrative_memory_generator():
+    return writer_generator()
 
 
-def narrative_memory_generator() -> LocalChatGenerator:
-    return _local_generator(
-        "NARRATIVE_MEMORY",
-        default_url=os.environ.get("GAIDEN_QWEN_BASE_URL", "http://127.0.0.1:8000/v1"),
-        default_model="Qwen/Qwen3.5-4B",
-    )
-
-
-def logic_audit_generator() -> LocalChatGenerator:
-    return _local_generator(
-        "LOGIC_AUDIT",
-        default_url="http://127.0.0.1:8002/v1",
-        default_model="microsoft/Phi-4-mini-instruct",
-    )
+def logic_audit_generator():
+    """Use the Writer model for logic review."""
+    return writer_generator()
 
 
 def previous_chapter_context(chapter: Chapter) -> tuple[dict, dict]:
@@ -159,16 +141,10 @@ def complete_chapter_workflow(chapter: Chapter) -> Chapter:
 
 
 def run_chapter_workflow(chapter: Chapter) -> Chapter:
-    """Generate missing scenes once, then merge, remember, and audit once."""
+    """Generate one complete chapter request; finalization remains explicit."""
+    from .generation import generate_chapter
+
     chapter.refresh_from_db()
-    if chapter.status == Chapter.Status.FINAL or (
-        chapter.status == Chapter.Status.MERGED
-        and chapter.merged_text
-        and chapter.narrative_state
-        and chapter.logic_audit
-    ):
+    if chapter.status == Chapter.Status.FINAL or chapter.generated_text:
         return chapter
-    if not chapter.qa_ready:
-        generate_chapter(chapter)
-        chapter.refresh_from_db()
-    return complete_chapter_workflow(chapter)
+    return generate_chapter(chapter)

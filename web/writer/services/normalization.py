@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from ..models import SourceDocument
+from .source_loader import load_source
 
 GUTENBERG_START = re.compile(
     r"(?im)^\s*\*{0,3}\s*START OF (?:THIS|THE) PROJECT GUTENBERG EBOOK.*$"
@@ -121,15 +122,9 @@ def writer_storage_root() -> Path:
 
 
 def normalize_document(document: SourceDocument) -> SourceDocument:
-    configured_source = Path(document.source_path).expanduser()
-    if configured_source.is_symlink():
-        raise ValueError("symlink sources are forbidden")
-    source = configured_source.resolve(strict=True)
-    if source.suffix.casefold() not in {".txt", ".md"}:
-        raise ValueError("only direct .txt and .md source files are supported")
-    raw = source.read_text(encoding="utf-8", errors="strict")
-    result = normalize_text(raw)
-    source_sha = sha256_text(raw)
+    raw_document = load_source(document)
+    result = normalize_text(raw_document.text)
+    source_sha = sha256_text(raw_document.text)
     normalized_sha = sha256_text(result.text)
     destination = writer_storage_root() / "normalized" / f"{normalized_sha}.txt"
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -149,14 +144,28 @@ def normalize_document(document: SourceDocument) -> SourceDocument:
             Path(temporary_name).unlink(missing_ok=True)
             raise
     document.source_sha256 = source_sha
+    if raw_document.external_id:
+        document.external_id = raw_document.external_id
+        document.external_url = raw_document.external_url
+        document.external_revision_id = raw_document.revision_id
+        document.external_modified_at = raw_document.modified_at
     document.normalized_path = str(destination)
     document.normalized_sha256 = normalized_sha
     # Author Studio is the provenance of canonical texts; content inspection
     # must not erase that origin when an operator explicitly renormalizes them.
     document.provider = (
-        document.provider if document.provider == "AUTHOR_STUDIO" else result.provider
+        "GOOGLE_DOCS" if raw_document.source_type == SourceDocument.SourceType.GOOGLE_DOC
+        else (document.provider if document.provider == "AUTHOR_STUDIO" else result.provider)
     )
-    document.normalization_report = result.report
+    report = dict(result.report)
+    report.update({
+        "source_type": raw_document.source_type,
+        "external_id": raw_document.external_id,
+        "external_revision_id": raw_document.revision_id,
+        "structure_items_count": len(raw_document.structure),
+        "metadata": raw_document.metadata,
+    })
+    document.normalization_report = report
     document.status = SourceDocument.Status.NORMALIZED
     document.normalized_at = timezone.now()
     document.error_message = ""

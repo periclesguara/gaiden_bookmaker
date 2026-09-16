@@ -47,7 +47,7 @@
 
   <section class="card" id="bloco-03"><p class="eyebrow">Após o retorno da tradução</p><h2>Bloco 03 · Frontmatter, capa e imagens</h2>{% if not translation_imported %}<p class="path"><span class="chip warn">Bloqueado</span> Importe primeiro o retorno da tradução.</p>{% else %}
     <div class="two"><div class="option"><h3>Texto e frontmatter</h3><p class="muted">Primeiro revise e salve o frontmatter. Ao voltar, converta o miolo importado de TXT para MD.</p><div class="actions">{% if frontmatter_url %}<a class="btn secondary" href="{{ frontmatter_url }}">1 · Editar Frontmatter</a>{% endif %}<form method="post" action="{% url 'pipeline_run_edition_step' target_edition.id 'txt_to_md' %}">{% csrf_token %}<input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><input type="hidden" name="md_language" value="{{ target_base }}"><button type="submit">2 · Converter TXT em MD</button></form></div><p><span class="chip {% if pre_qa_exists %}ok{% endif %}">MD para revisão {% if pre_qa_exists %}pronto{% else %}pendente{% endif %}</span></p></div>
-      <div class="option"><h3>Capa</h3><div class="cover-viewer"><img id="cover-preview"{% if cover_preview_url %} src="{{ cover_preview_url }}"{% else %} hidden{% endif %} alt="Prévia da capa de {{ book_code }}"><span id="cover-empty" class="muted"{% if cover_preview_url %} hidden{% endif %}>Nenhuma capa salva.</span></div><p id="cover-preview-note"><span class="chip {% if cover_preview_url %}ok{% else %}warn{% endif %}">Capa {% if cover_preview_url %}salva e visível{% elif cover_ready %}cadastrada, mas arquivo não encontrado{% else %}pendente{% endif %}</span></p><form method="post" enctype="multipart/form-data" action="{% url 'edition_steps' target_edition.id %}">{% csrf_token %}<input type="hidden" name="action" value="upload_cover"><input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><input id="cover-file" type="file" name="cover_file" accept="image/*" required><button type="submit">Salvar capa</button></form></div>
+      <div class="option"><h3>Capa</h3><div class="cover-viewer"><img id="cover-preview"{% if cover_preview_url %} src="{{ cover_preview_url }}"{% else %} hidden{% endif %} alt="Prévia da capa de {{ book_code }}"><span id="cover-empty" class="muted"{% if cover_preview_url %} hidden{% endif %}>Nenhuma capa salva.</span></div><p id="cover-preview-note" aria-live="polite"><span class="chip {% if cover_preview_url %}ok{% else %}warn{% endif %}">Capa {% if cover_preview_url %}salva e visível{% elif cover_ready %}cadastrada, mas arquivo não encontrado{% else %}pendente{% endif %}</span></p><p class="muted">Ao selecionar uma imagem, o envio começa automaticamente.</p><form id="cover-upload-form" method="post" enctype="multipart/form-data" action="{% url 'edition_steps' target_edition.id %}">{% csrf_token %}<input type="hidden" name="action" value="upload_cover"><input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><input id="cover-file" type="file" name="cover_file" accept="image/*" required><button id="cover-upload-button" type="submit">Selecionar e salvar capa</button></form></div>
       <div class="option"><h3>Demais imagens</h3><p class="muted">As imagens numeradas são vinculadas automaticamente aos capítulos no preview: <code>01</code> corresponde ao capítulo 1, <code>02</code> ao capítulo 2, e assim por diante.</p><form method="post" enctype="multipart/form-data" action="{% url 'edition_steps' target_edition.id %}">{% csrf_token %}<input type="hidden" name="action" value="upload_gallery_files"><input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><input type="file" name="images_files" accept="image/*" multiple required><button type="submit">Salvar imagens</button></form><p><span class="chip {% if gallery_count %}ok{% else %}warn{% endif %}">{% if gallery_count == 1 %}1 imagem salva · vínculo automático no preview{% else %}{{ gallery_count }} imagens salvas · vínculo automático no preview{% endif %}</span></p>{% if gallery_images %}<div class="gallery-viewer">{% for item in gallery_images %}<figure class="gallery-item"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer"><img src="{{ item.url }}" alt="Imagem interna {{ item.name }}" loading="lazy"></a><figcaption>{{ item.name }}</figcaption></figure>{% endfor %}</div>{% else %}<p class="muted">Nenhuma imagem interna encontrada.</p>{% endif %}</div>
       <div class="option"><h3>Revisão final do texto</h3><div class="actions"><form method="post" action="{% url 'pipeline_run_edition_step' target_edition.id 'preflight' %}">{% csrf_token %}<input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><button type="submit" {% if not pre_qa_exists %}disabled{% endif %}>Executar Pre-flight</button></form><form method="post" action="{% url 'pipeline_run_edition_step' target_edition.id 'approve_md' %}">{% csrf_token %}<input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><button class="ok" type="submit" {% if not pre_qa_exists %}disabled{% endif %}>Aprovar MD final</button></form></div><p><span class="chip {% if final_md_exists %}ok{% endif %}">BOOK.MD_FINAL {% if final_md_exists %}pronto{% else %}pendente{% endif %}</span></p></div></div>{% endif %}
   </section>
@@ -56,6 +56,8 @@
   {% if target_edition %}<section class="card" id="salvar-epub-final"><p class="eyebrow">Encerramento do pipeline</p><h2>Salvar EPUB final</h2><p class="muted">Registra o EPUB como final somente quando ele já estiver salvo, com hash íntegro e EPUBCheck aprovado.</p><p><span class="chip {% if epub_final_ready %}ok{% else %}warn{% endif %}">{% if epub_final_ready %}EPUB final pronto · {{ final_build.epubcheck_status }}{% else %}Aguardando EPUBCheck aprovado{% endif %}</span></p><form method="post" action="{% url 'pipeline_run_edition_step' target_edition.id 'done' %}" class="actions">{% csrf_token %}<input type="hidden" name="return_to" value="post_intake"><input type="hidden" name="workflow_edition_id" value="{{ edition.id }}"><input type="hidden" name="target_variant" value="{{ selected_target }}"><button class="ok" type="submit" {% if not epub_final_ready %}disabled{% endif %}>Salvar EPUB final</button>{% if epub_download_url %}<a class="btn drive" href="{{ epub_download_url }}">Baixar EPUB final</a>{% endif %}</form></section>{% endif %}
 </main><script>
   const coverFile = document.getElementById("cover-file");
+  const coverForm = document.getElementById("cover-upload-form");
+  const coverButton = document.getElementById("cover-upload-button");
   const coverPreview = document.getElementById("cover-preview");
   const coverEmpty = document.getElementById("cover-empty");
   const coverNote = document.getElementById("cover-preview-note");
@@ -66,7 +68,23 @@
       coverPreview.src = URL.createObjectURL(file);
       coverPreview.hidden = false;
       if (coverEmpty) coverEmpty.hidden = true;
-      if (coverNote) coverNote.innerHTML = '<span class="chip warn">Prévia local — clique em Salvar capa</span>';
+      if (coverNote) coverNote.innerHTML = '<span class="chip warn">Enviando capa — aguarde a confirmação</span>';
+      if (coverButton) {
+        coverButton.disabled = true;
+        coverButton.textContent = "Enviando capa...";
+      }
+      window.requestAnimationFrame(() => {
+        if (coverForm) coverForm.requestSubmit();
+      });
+    });
+  }
+  if (coverForm) {
+    coverForm.addEventListener("submit", () => {
+      coverForm.setAttribute("aria-busy", "true");
+      if (coverButton) {
+        coverButton.disabled = true;
+        coverButton.textContent = "Enviando capa...";
+      }
     });
   }
 </script></body></html>

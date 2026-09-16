@@ -37,6 +37,8 @@ These rules apply to `gaiden/writer_engine/` and its tests.
   fact. Unresolved facts remain explicit review items.
 - Generated output is always `DRAFT` until a human explicitly approves a
   later immutable version.
+- The Writer application treats one complete chapter as one generation unit;
+  internal parts in a chapter script are not generation sessions.
 
 ## Model operation and security
 

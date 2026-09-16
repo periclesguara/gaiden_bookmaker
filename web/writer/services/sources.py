@@ -9,6 +9,7 @@ from author_studio.models import CanonicalText
 from gaiden.domain.author_studio.enums import CanonicalTextStatus
 
 from ..models import SourceDocument
+from .google_docs import canonical_google_doc_url, extract_document_id
 
 
 def source_root() -> Path:
@@ -90,3 +91,21 @@ def discover_source_documents() -> int:
         )
         count += int(created)
     return count
+
+
+def register_google_doc(value: str) -> SourceDocument:
+    document_id = extract_document_id(value)
+    document, created = SourceDocument.objects.get_or_create(
+        source_type=SourceDocument.SourceType.GOOGLE_DOC,
+        external_id=document_id,
+        defaults={
+            "filename": f"google_doc_{document_id}",
+            "source_path": "",
+            "external_url": canonical_google_doc_url(document_id),
+            "status": SourceDocument.Status.DISCOVERED,
+        },
+    )
+    if not created and not document.external_url:
+        document.external_url = canonical_google_doc_url(document_id)
+        document.save(update_fields=("external_url",))
+    return document

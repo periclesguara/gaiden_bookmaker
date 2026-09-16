@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from subprocess import CompletedProcess
 
 import pytest
 
+from gaiden.print_engine import preflight as preflight_module
 from gaiden.print_engine.cover import CoverLayout
 from gaiden.print_engine.geometry import CoverGeometry
 from gaiden.print_engine.latex import BookContent, Chapter, LatexInteriorRenderer
 from gaiden.print_engine.package import PrintPackageManifest
-from gaiden.print_engine.preflight import PreflightStatus, preflight_spec
+from gaiden.print_engine.preflight import PreflightStatus, preflight_pdfs, preflight_spec
 from gaiden.print_engine.providers.ingramspark import IngramSparkAdapter
 from gaiden.print_engine.specs import PrintSpec
 
@@ -99,6 +101,7 @@ def test_latex_renderer_emits_twosided_print_source_and_escapes_metadata():
     assert r"Rino\_Books" in tex
     assert r"\chapter{Chapter \#1}" in tex
     assert r"\widowpenalty=10000" in tex
+    assert r"\ifodd\value{page}\else" in tex
 
 
 def test_latex_renderer_refuses_bleed_interior_in_v1():
@@ -123,3 +126,75 @@ def test_manifest_binds_cover_to_geometry_fingerprint():
     assert payload["page_count"] == 286
     assert payload["artifacts"] == {"interior": "INTERIOR.pdf", "cover": "COVER.pdf"}
     assert payload["cover"]["geometry_fingerprint"] == geometry.fingerprint
+
+
+def test_manifest_rejects_geometry_from_another_finalized_spec():
+    spec = _final_spec(pages=286, spine="0.600")
+    stale_geometry = CoverGeometry.from_spec(_final_spec(pages=302, spine="0.640"))
+
+    with pytest.raises(ValueError, match="does not match"):
+        PrintPackageManifest(book_id="book_7003", spec=spec, geometry=stale_geometry)
+
+
+def test_manifest_rejects_artifact_path_traversal():
+    spec = _final_spec()
+
+    with pytest.raises(ValueError, match="safe PDF filename"):
+        PrintPackageManifest(
+            book_id="book_7003",
+            spec=spec,
+            geometry=CoverGeometry.from_spec(spec),
+            cover_pdf="../COVER.pdf",
+        )
+
+
+def test_print_spec_rejects_non_finite_dimensions_and_fractional_pages():
+    with pytest.raises(ValueError, match="finite"):
+        PrintSpec(trim_width_in="NaN")
+    with pytest.raises(ValueError, match="positive integer"):
+        PrintSpec().finalize(page_count=12.5, spine_width_in="0.1")
+
+
+def test_preflight_fails_when_installed_pdf_tools_cannot_read_files(tmp_path, monkeypatch):
+    interior = tmp_path / "INTERIOR.pdf"
+    cover = tmp_path / "COVER.pdf"
+    interior.write_bytes(b"not a PDF")
+    cover.write_bytes(b"not a PDF")
+    monkeypatch.setattr(preflight_module.shutil, "which", lambda _tool: "/usr/bin/tool")
+    monkeypatch.setattr(
+        preflight_module,
+        "_run_tool",
+        lambda command: CompletedProcess(command, 1, stdout="", stderr="invalid PDF"),
+    )
+
+    report = preflight_pdfs(_final_spec(), interior_pdf=interior, cover_pdf=cover)
+
+    assert report.passed is False
+    assert report.fully_verified is False
+    assert any(
+        check.code == "interior.pdfinfo" and check.status == PreflightStatus.FAIL
+        for check in report.checks
+    )
+
+
+def test_preflight_marks_unavailable_pdf_tools_as_skipped(tmp_path, monkeypatch):
+    interior = tmp_path / "INTERIOR.pdf"
+    cover = tmp_path / "COVER.pdf"
+    interior.touch()
+    cover.touch()
+    monkeypatch.setattr(preflight_module.shutil, "which", lambda _tool: None)
+
+    report = preflight_pdfs(_final_spec(), interior_pdf=interior, cover_pdf=cover)
+
+    assert report.passed is True
+    assert report.fully_verified is False
+    assert report.requires_review is True
+    assert any(check.status == PreflightStatus.SKIP for check in report.checks)
+
+
+def test_ingram_adapter_rejects_odd_final_page_count():
+    spec = _final_spec(pages=285, spine="0.600")
+
+    errors = IngramSparkAdapter.validate_spec(spec)
+
+    assert any("must be even" in error for error in errors)

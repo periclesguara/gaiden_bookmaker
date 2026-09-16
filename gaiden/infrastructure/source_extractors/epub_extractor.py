@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import posixpath
 import re
 import zipfile
 from pathlib import Path
@@ -34,24 +33,22 @@ _ORDINAL_HEADING_RE = re.compile(
     r"(?is)(?P<open><h[1-6]\b[^>]*>)\s*"
     r"(?P<ordinal>[IVXLCDM]+|\d+)\.?\s*(?P<close></h[1-6]>)"
 )
-
-
-def _safe_image_name(path: str, used: set[str]) -> str:
-    name = Path(path).name or "image"
-    stem = Path(name).stem or "image"
-    suffix = Path(name).suffix
-    candidate = name
-    index = 2
-    while candidate in used:
-        candidate = f"{stem}_{index}{suffix}"
-        index += 1
-    used.add(candidate)
-    return candidate
+_SOURCE_MEDIA_RE = re.compile(
+    r"(?is)<picture\b[^>]*>.*?</picture\s*>|"
+    r"<svg\b[^>]*>.*?</svg\s*>|"
+    r"<object\b[^>]*>.*?</object\s*>|"
+    r"<img\b[^>]*?/?>"
+)
 
 
 def _body_inner(raw_html: str) -> str:
     match = re.search(r"(?is)<body\b[^>]*>(.*?)</body>", raw_html)
     return match.group(1).strip() if match else raw_html.strip()
+
+
+def _remove_source_media(raw_html: str) -> str:
+    """Keep source EPUB artwork outside the editorial image pipeline."""
+    return _SOURCE_MEDIA_RE.sub("", raw_html)
 
 
 def _canonicalize_structural_chapter_heading(raw_html: str) -> str:
@@ -110,9 +107,20 @@ class EpubExtractor:
                     warnings.append(f"Missing spine item: {item_path}")
                     continue
                 raw = _canonicalize_structural_chapter_heading(raw)
+                raw = _remove_source_media(raw)
                 html_parts.append(f'<section data-source="{item_path}">\n{_body_inner(raw)}\n</section>')
 
-            images_count = self._extract_images(zf, package.manifest, paths.images_dir)
+            source_image_count = sum(
+                1
+                for item in package.manifest.values()
+                if str(item.get("media_type", "")).startswith("image/")
+            )
+            if source_image_count:
+                warnings.append(
+                    f"Ignored {source_image_count} source EPUB image(s); "
+                    "only explicitly uploaded generated images are eligible."
+                )
+            images_count = 0
 
         if not html_parts:
             raise ValueError("EPUB extract produced no readable spine HTML.")
@@ -143,23 +151,3 @@ class EpubExtractor:
         result = normalize_result(input_format=self.input_format, paths=paths, warnings=warnings, details=details)
         write_source_meta(result, paths)
         return result
-
-    def _extract_images(self, zf: zipfile.ZipFile, manifest: dict[str, dict], images_dir: Path) -> int:
-        images_dir.mkdir(parents=True, exist_ok=True)
-        used: set[str] = set()
-        count = 0
-        for item in manifest.values():
-            media_type = item.get("media_type", "")
-            if not media_type.startswith("image/"):
-                continue
-            item_path = posixpath.normpath(item.get("path", ""))
-            if not item_path:
-                continue
-            try:
-                data = zf.read(item_path)
-            except KeyError:
-                continue
-            image_name = _safe_image_name(item_path, used)
-            (images_dir / image_name).write_bytes(data)
-            count += 1
-        return count

@@ -9,7 +9,7 @@ from gaiden.writer_engine.repair import write_new
 
 
 class Command(BaseCommand):
-    help = 'Read-only mechanical audit of existing scenes; no Qwen calls or manuscript changes.'
+    help = 'Read-only mechanical audit of existing scenes; no model calls or manuscript changes.'
 
     def add_arguments(self, parser):
         parser.add_argument('chapter_id', type=int)

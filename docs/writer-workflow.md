@@ -5,15 +5,12 @@
 O Writer usa exclusivamente `gpt-5.6-luna` em `https://api.openai.com/v1`
 (Responses API), reutilizando `OPENAI_API_KEY` do ambiente ou do carregador de
 segredos já existente. A chave nunca deve ser inserida em código ou documentação.
-O modelo e o endpoint são próprios do Writer: `GAIDEN_QWEN_*`,
-`GAIDEN_DEFAULT_MODEL` e `OPENAI_BASE_URL` não alteram essa rota.
+O modelo e o endpoint são próprios do Writer; configurações de modelos locais
+não alteram essa rota.
 
 Geração, merge, revisão e reparos que usam o gerador do Writer enviam o contexto
-necessário à OpenAI. Os embeddings e índices RAG existentes continuam locais e
-não precisam ser recriados. Não há carregamento de Qwen nem gate de GPU para
-redação ou merge. Após o merge, Qwen3.5-4B mantém a memória narrativa estruturada
-e Phi-4 Mini audita causalidade, temporalidade e coerência em endpoints locais
-independentes. Outros módulos e seus modelos permanecem independentes.
+necessário à OpenAI. A memória narrativa, os contratos e o fechamento são
+responsabilidades do Writer e permanecem independentes do provedor externo.
 
 Cada chamada usa `reasoning.effort=none`, `store=false`, timeout de 180 segundos,
 limite de 256–32768 tokens e zero retries de transporte. Parâmetros de amostragem
@@ -399,3 +396,46 @@ linha no banco só é atualizada depois que o candidato passa pelo gate mecânic
 pelo crítico local; o hash do original fica em `repaired_from_sha256`. Uma falha
 mantém o texto atual da sessão, marca o capítulo para revisão e impede o início
 das sessões seguintes. O comando não é agendado e não inicia outro capítulo.
+# Google Docs sources
+
+O Writer aceita URLs ou `documentId` do Google Docs como fontes somente leitura.
+O conteúdo é extraído pelo adaptador, convertido em texto estruturado e salvo
+como arquivo normalizado interno; o banco do Writer, os hashes e o texto
+normalizado continuam sendo a fonte de verdade. O Writer não exporta conteúdo
+para o Google Docs nesta fase.
+
+Configure `GAIDEN_GOOGLE_CREDENTIALS_FILE` (ou a variável padrão
+`GOOGLE_APPLICATION_CREDENTIALS`) com credenciais de service account/aplicação.
+A conta precisa ter acesso de leitura a cada documento. Os escopos usados são
+`documents.readonly` e `drive.metadata.readonly`. Comentários, sugestões,
+imagens, tabelas, desenhos, notas de rodapé e equações são ignorados e
+registrados no relatório quando encontrados. Exportação será tratada em uma
+fase futura.
+# Unidade de geração do Writer
+
+Um capítulo é uma única requisição de geração. O campo `script` pode conter
+partes ou cenas internas, mas elas são instruções narrativas e não sessões
+persistidas. O texto completo fica em `Chapter.generated_text`; a passagem para
+`final_text` continua dependendo de aprovação explícita.
+
+## Controle narrativo
+
+O Writer constrói um Book Kit determinístico a partir do projeto, com âncoras
+explícitas e fingerprint SHA-256. Cada geração cria um `NarrativeContract`
+imutável contendo plano do capítulo, ledger de continuidade, histórico compacto,
+memória narrativa e referências RAG separadas por tipo.
+
+Após o fechamento, `ChapterNarrativeSummary` e `StoryContinuityState` registram
+o resumo estruturado e o estado da história. A memória narrativa só pode usar
+capítulos anteriores; conteúdo de capítulos futuros é excluído por construção.
+O orçamento de contexto preserva âncoras, plano e continuidade antes de aceitar
+histórico, memória ou RAG opcional. Conflitos de âncoras devem ser sinalizados,
+nunca corrigidos silenciosamente.
+## Ordem operacional definitiva
+
+O fluxo obrigatório é: Book Kit → plano do capítulo → Narrative Contract →
+freeze/auditoria → transporte manual para Google Drive/Docs → escrita externa
+manual → importação do texto → armazenamento no Chapter → fechamento → ledger
+de continuidade → memória narrativa → desbloqueio do próximo capítulo. O
+Writer não chama Gemini nem exporta automaticamente nesta fase; o contrato JSON
+é a representação canônica e o Google Doc é apenas transporte/apresentação.
