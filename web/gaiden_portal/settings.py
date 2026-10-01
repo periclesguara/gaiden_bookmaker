@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 EPUBCHECK_ENABLED = os.getenv("EPUBCHECK_ENABLED", "true").strip().lower() not in {"0", "false", "no"}
 EPUBCHECK_EXECUTABLE = os.getenv("EPUBCHECK_EXECUTABLE", "epubcheck")
 EPUBCHECK_TIMEOUT_SECONDS = int(os.getenv("EPUBCHECK_TIMEOUT_SECONDS", "120"))
+PRINTBOOK_VALIDATOR = os.getenv("PRINTBOOK_VALIDATOR", "")
 
 
 # Application definition
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     "web.intake.apps.IntakeConfig",
     "web.manual_ai.apps.ManualAIConfig",
     "web.finalized_projects.apps.FinalizedProjectsConfig",
+    "web.printbook.apps.PrintBookConfig",
 ]
 
 MIDDLEWARE = [
@@ -160,11 +162,12 @@ GAIDEN_DRIVE_REMOTE = os.environ.get("GAIDEN_DRIVE_REMOTE", "gaiden_drive")
 GAIDEN_DRIVE_ROOT = os.environ.get("GAIDEN_DRIVE_ROOT", "").strip("/")
 GAIDEN_DRIVE_INBOX = os.environ.get("GAIDEN_DRIVE_INBOX", "01_INBOX_RAW").strip("/")
 GAIDEN_DRIVE_IMPORTED = os.environ.get("GAIDEN_DRIVE_IMPORTED", "02_IMPORTED_RAW").strip("/")
+GAIDEN_DRIVE_LIST_TIMEOUT_SECONDS = float(os.environ.get("GAIDEN_DRIVE_LIST_TIMEOUT_SECONDS", "8"))
 GAIDEN_INTAKE_ALLOWED_EXTENSIONS = tuple(
     value.strip().lower()
     for value in os.environ.get(
         "GAIDEN_INTAKE_ALLOWED_EXTENSIONS",
-        ".epub,.txt,.md,.html,.htm,.docx,.rtf",
+        ".epub,.txt,.md,.markdown,.html,.htm,.xhtml,.xml,.docx,.odt,.rtf,.pdf,.mobi,.azw,.azw3,.fb2,.cbz,.zip",
     ).split(",")
     if value.strip()
 )
@@ -174,9 +177,6 @@ GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS = int(
 )
 GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS = int(
     os.environ.get("GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS", "60000")
-)
-GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE = float(
-    os.environ.get("GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE", "0.85")
 )
 GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO = float(
     os.environ.get("GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO", "0.45")

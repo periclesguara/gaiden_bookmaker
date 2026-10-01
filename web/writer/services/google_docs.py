@@ -24,25 +24,55 @@ def canonical_google_doc_url(document_id: str) -> str:
 
 
 def _credentials():
+    import os
+    import shutil
+    import subprocess
+
     import google.auth
     from google.oauth2 import service_account
+    from google.oauth2.credentials import Credentials
 
-    path = __import__("os").environ.get("GAIDEN_GOOGLE_CREDENTIALS_FILE") or __import__("os").environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     scopes = [
-        "https://www.googleapis.com/auth/documents.readonly",
-        "https://www.googleapis.com/auth/drive.metadata.readonly",
+        "https://www.googleapis.com/auth/drive",
     ]
+
+    path = (
+        os.environ.get("GAIDEN_GOOGLE_CREDENTIALS_FILE")
+        or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    )
+
     if path:
-        return service_account.Credentials.from_service_account_file(path, scopes=scopes)
+        return service_account.Credentials.from_service_account_file(
+            path,
+            scopes=scopes,
+        )
+
+    gcloud = shutil.which("gcloud")
+
+    if gcloud:
+        result = subprocess.run(
+            [gcloud, "auth", "print-access-token"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        token = result.stdout.strip()
+
+        if result.returncode == 0 and token:
+            return Credentials(token=token)
+
     try:
         credentials, _ = google.auth.default(scopes=scopes)
-    except Exception as exc:
-        raise RuntimeError(
-            "Google Docs credentials are unavailable; configure GAIDEN_GOOGLE_CREDENTIALS_FILE"
-        ) from exc
-    if credentials is None:
-        raise RuntimeError("Google Docs credentials are unavailable; configure GAIDEN_GOOGLE_CREDENTIALS_FILE")
-    return credentials
+        if credentials is not None:
+            return credentials
+    except Exception:
+        pass
+
+    raise RuntimeError(
+        "Google credentials unavailable. "
+        "Run gcloud auth login --enable-gdrive-access."
+    )
 
 
 def _paragraph_text(element: dict) -> tuple[str, str]:

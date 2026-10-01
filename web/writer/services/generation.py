@@ -8,10 +8,10 @@ from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 
-from gaiden.writer_engine.clients import OpenAIEmbeddingClient
+from gaiden.writer_engine.clients import LocalEmbeddingClient
 from gaiden.writer_engine.engine import ChapterRequest, WriterEngine
 from gaiden.writer_engine.index import VectorIndex
-from gaiden.writer_engine.openai_generator import writer_generator
+from gaiden.writer_engine.local_generator import writer_generator
 
 from ..models import Chapter
 from .validation import contract_instructions, scene_contract
@@ -24,10 +24,8 @@ def _engine(chapter: Chapter) -> WriterEngine:
         raise ValueError("vectorize the selected project sources before generation")
     return WriterEngine(
         index=VectorIndex.load(Path(chapter.project.vector_index_path)),
-        embedder=OpenAIEmbeddingClient(
-            base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-            api_key=os.environ.get("OPENAI_API_KEY", ""),
-            model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small"),
+        embedder=LocalEmbeddingClient(
+            model=os.environ.get("GAIDEN_LOCAL_EMBEDDING_MODEL", ""),
         ),
         generator=writer_generator(),
     )

@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from gaiden.writer_engine.corpus import load_corpus
-from gaiden.writer_engine.clients import QwenGenerator
 from gaiden.writer_engine.engine import ChapterRequest, WriterEngine, reject_long_exact_overlap
 from gaiden.writer_engine.index import VectorIndex
 
@@ -26,7 +25,7 @@ class OtherEmbedder(FakeEmbedder):
 
 
 class FakeGenerator:
-    model = "test/qwen"
+    model = "test/local"
 
     def __init__(self, text="An entirely original chapter draft."):
         self.text = text
@@ -107,7 +106,7 @@ class WriterEngineTests(SimpleTestCase):
             continuity="Watson narrates; Holmes has not met the suspect.",
             point_of_view="First-person Watson", target_words=1200,
         ))
-        self.assertEqual(result.model, "test/qwen")
+        self.assertEqual(result.model, "test/local")
         self.assertEqual(result.source_chunk_ids, ("chunk-1",))
         system, user, max_tokens = generator.calls[0]
         self.assertIn("untrusted reference data", system)
@@ -118,31 +117,3 @@ class WriterEngineTests(SimpleTestCase):
         phrase = "one two three four five six seven eight nine ten eleven twelve thirteen fourteen"
         with self.assertRaisesMessage(ValueError, "14 consecutive words"):
             reject_long_exact_overlap(f"Opening {phrase} ending.", [phrase])
-
-
-class QwenClientTests(SimpleTestCase):
-    @patch("gaiden.writer_engine.clients.OpenAI")
-    def test_generation_disables_thinking_for_compatible_runtimes(self, openai_class):
-        client = MagicMock()
-        client.chat.completions.create.return_value = SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content="Writer ready."))]
-        )
-        openai_class.return_value = client
-
-        generator = QwenGenerator(
-            base_url="http://127.0.0.1:8001/v1",
-            api_key="ollama",
-            model="qwen3.5:9b-q4_K_M",
-            thinking=False,
-        )
-        self.assertEqual(
-            generator.generate(system="system", user="user", max_tokens=256),
-            "Writer ready.",
-        )
-
-        call_kwargs = client.chat.completions.create.call_args.kwargs
-        self.assertEqual(call_kwargs["reasoning_effort"], "none")
-        extra_body = call_kwargs["extra_body"]
-        self.assertEqual(
-            extra_body["chat_template_kwargs"], {"enable_thinking": False}
-        )

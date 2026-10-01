@@ -1,78 +1,36 @@
+"""Compatibility import path backed exclusively by a loopback Ollama service."""
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
-from openai import OpenAI
+from .local_models import LocalModelClient, local_model_name
 
-from .env import require_openai_api_key
-
-_client: Optional[OpenAI] = None
+_client: LocalModelClient | None = None
 
 
-def get_client() -> OpenAI:
+def get_client() -> LocalModelClient:
     global _client
-    if _client is not None:
-        return _client
-    _client = OpenAI(api_key=require_openai_api_key())
+    if _client is None:
+        _client = LocalModelClient()
     return _client
 
 
 def choose_model(*, stage: str | None = None, contract_model: str | None = None, env_default: str | None = None) -> str:
-    if contract_model and str(contract_model).strip():
-        return str(contract_model).strip()
-    stage_key = (stage or "default").strip().upper()
-    env_specific = os.environ.get(f"GAIDEN_MODEL_{stage_key}", "").strip()
-    if env_specific:
-        return env_specific
-    if env_default and str(env_default).strip():
-        return str(env_default).strip()
-    return os.environ.get("GAIDEN_DEFAULT_MODEL", "gpt-5.2").strip() or "gpt-5.2"
+    return local_model_name()
 
 
 def openai_healthcheck() -> tuple[bool, str]:
-    try:
-        require_openai_api_key()
-    except Exception as exc:
-        return False, str(exc)
-    try:
-        get_client()
-    except Exception as exc:
-        return False, f"OpenAI client bootstrap failed: {exc}"
-    return True, "ok"
+    return False, "External OpenAI access is disabled; configure the local Ollama runtime."
 
 
-def call_agent_text(
-    *,
-    agent_name: str,
-    text: str,
-    model: str | None = None,
-    temperature: float = 0.4,
-    max_output_tokens: int = 8000,
-    system_prompt: str | None = None,
-) -> str:
-    client = get_client()
-    prompt = system_prompt or f"You are agent {agent_name}. Return only the transformed text."
-    kwargs: dict[str, Any] = {
-        "model": choose_model(stage=agent_name, contract_model=model, env_default=None),
-        "input": [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": text},
-        ],
-        "temperature": temperature,
-        "max_output_tokens": max_output_tokens,
-    }
-    try:
-        response = client.responses.create(**kwargs)
-    except Exception as exc:
-        if "Unsupported parameter: 'temperature'" not in str(exc):
-            raise
-        kwargs.pop("temperature", None)
-        response = client.responses.create(**kwargs)
-    output_text = getattr(response, "output_text", "") or ""
-    if output_text.strip():
-        return output_text.strip()
-    try:
-        return response.output[0].content[0].text.strip()
-    except Exception as exc:
-        raise RuntimeError(f"Agent {agent_name} returned no output text.") from exc
+def call_agent_text(*, agent_name: str, text: str, model: str | None = None,
+                    temperature: float = 0.4, max_output_tokens: int = 8000,
+                    system_prompt: str | None = None) -> str:
+    response = get_client().responses.create(
+        model=choose_model(stage=agent_name, contract_model=model),
+        input=[{"role": "system", "content": system_prompt or f"You are agent {agent_name}. Return only the transformed text."},
+               {"role": "user", "content": text}],
+        temperature=temperature, max_output_tokens=max_output_tokens,
+    )
+    return response.output_text

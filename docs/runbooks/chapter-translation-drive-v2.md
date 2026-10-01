@@ -34,34 +34,11 @@ An existing v1 row is never converted automatically. The unique
 edition/target-language identity remains in force, so Gaiden cannot create a
 second job identity for the same book and target language.
 
-## Split and Qwen
+## Deterministic split and manual review
 
-The splitter reads only `heading_clean`, records character offsets and a
-SHA-256 for every unit, and verifies that concatenating all source ranges
-reconstructs the source exactly. Content before the first heading becomes
-`0000__preliminaries.txt`. Chapters above the hard limit are split only at
-paragraph boundaries.
-
-Deterministic detection accepts the structural labels emitted or preserved by
-Normalize and Headings Cleaner, including a trailing period without a title
-(`CHAPTER I.`), `SECTION`, `ADVENTURE`, `CAPÍTULO`, `KAPITEL`, and `CHAPITRE`.
-A result with no confirmed chapter always remains in `SPLIT_REVIEW_REQUIRED`
-and cannot be exported to Drive.
-
-The limits are configured with:
-
-```text
-GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS=30000
-GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS=60000
-GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE=0.85
-```
-
-Qwen is available only through the explicit POST action shown after a
-deterministic split requires review. Its versioned contract is
-`data/contracts/translation/chapter_detection_v1.json`. Qwen receives source
-length, source hash, and structural line evidence; it cannot rewrite text.
-Suggested offsets are rejected unless they cover the complete source without
-gaps or overlaps and their headings occur inside the suggested ranges.
+Chapter boundaries are derived only from deterministic heading detection and
+validated against source offsets, coverage, and hashes. When structure is
+ambiguous, the job remains in human review; there is no model fallback.
 
 ## Drive contract
 
@@ -152,5 +129,5 @@ python web/manage.py test pipeline.test_chapter_translation_migrations
 python web/manage.py test pipeline.test_drive_intake
 ```
 
-Ordinary tests must mock Qwen and Drive. No test should contact a paid API,
+Ordinary tests must mock Drive. No test should contact a paid API,
 publish a book, or use operational credentials.

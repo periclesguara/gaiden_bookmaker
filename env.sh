@@ -12,11 +12,7 @@ export PGUSER=gaiden
 
 source ./.venv/bin/activate
 
-# Local Qwen runtime served by the loopback-only gaiden-ollama container.
-export GAIDEN_EMBEDDING_BASE_URL="http://127.0.0.1:8001/v1"
-export GAIDEN_EMBEDDING_API_KEY=placeholder
-export GAIDEN_EMBEDDING_MODEL="qwen3-embedding:0.6b"
-export GAIDEN_QWEN_BASE_URL="http://127.0.0.1:8001/v1"
-export GAIDEN_QWEN_API_KEY=placeholder
-export GAIDEN_QWEN_MODEL="qwen3.5:9b-q4_K_M"
-export GAIDEN_QWEN_THINKING="0"
+# Local model runtime. Select installed models without cloud-provider routing.
+export GAIDEN_LOCAL_MODEL_URL="http://127.0.0.1:11434"
+: "${GAIDEN_LOCAL_MODEL:?Set GAIDEN_LOCAL_MODEL to an installed local model}"
+: "${GAIDEN_LOCAL_EMBEDDING_MODEL:?Set GAIDEN_LOCAL_EMBEDDING_MODEL to an installed local embedding model}"

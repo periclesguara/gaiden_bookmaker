@@ -1,0 +1,316 @@
+{% extends 'printbook/base.html' %}
+{% block content %}
+<p><a href="{% url 'printbook:detail' edition.pk %}">← Voltar para {{ edition.name }}</a></p>
+<h1>Confecção da capa</h1>
+<p>{{ edition.name }} · {{ edition.trim }} in · {{ edition.paper }} · {{ edition.get_state_display }}</p>
+<p>A capa pertence ao miolo aprovado desta edição. Cada montagem é versionada e só pode avançar para o preflight depois que o PDF completo e o template da gráfica estiverem conferidos.</p>
+
+{% if source_error %}
+<section><p class="BLOCKER">{{ source_error }}</p></section>
+{% endif %}
+
+<section>
+  <h2>Geometria desta capa</h2>
+  {% if interior %}
+  <table>
+    <tr><th>Miolo atual</th><td>{{ interior.page_count }} páginas</td></tr>
+    <tr><th>Formato aparado</th><td>{{ edition.trim }} in</td></tr>
+    {% if geometry %}
+    <tr><th>Lombada recebida</th><td>{{ geometry.spine_width_in }} in</td></tr>
+    <tr><th>PDF full-wrap</th><td>{{ geometry.spread_width_in }} × {{ geometry.spread_height_in }} in</td></tr>
+    <tr><th>Fingerprint geométrico</th><td><code>{{ geometry.fingerprint }}</code></td></tr>
+    {% else %}
+    <tr><th>Frente/contracapa</th><td>{{ edition.trim }} + 0,125 in de sangria externa em cada painel</td></tr>
+    <tr><th>Template</th><td>Use o PDF oficial da gráfica para {{ interior.page_count }} páginas e informe a lombada dele.</td></tr>
+    {% endif %}
+  </table>
+  {% else %}
+  <p>Compile o miolo primeiro. A lombada e as dimensões da capa dependem da paginação final.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>1 · Estúdio e simulador de capa</h2>
+  <p>Envie a capa pronta como imagem e ajuste a produção em tempo real. Por padrão, nenhum texto é colocado sobre a arte. A prova sem template oficial fica marcada como <strong>PROVA</strong> e não libera o preflight.</p>
+  {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
+  <div class="cover-studio cover-studio-pro">
+    <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
+      {% csrf_token %}
+      <fieldset>
+        <legend>Arte da frente</legend>
+        <p>{{ design_form.cover_image.label_tag }} {{ design_form.cover_image }}<small>{{ design_form.cover_image.help_text }}</small></p>
+        <p>{{ design_form.image_fit.label_tag }} {{ design_form.image_fit }}</p>
+        <p>{{ design_form.enhancement_profile.label_tag }} {{ design_form.enhancement_profile }}<small>{{ design_form.enhancement_profile.help_text }}</small></p>
+        <p class="range-control">{{ design_form.image_zoom.label_tag }} {{ design_form.image_zoom }} <output data-output="image_zoom">100%</output></p>
+        <p class="range-control">{{ design_form.image_x.label_tag }} {{ design_form.image_x }} <output data-output="image_x">50%</output></p>
+        <p class="range-control">{{ design_form.image_y.label_tag }} {{ design_form.image_y }} <output data-output="image_y">50%</output></p>
+        <p class="range-control">{{ design_form.overlay_opacity.label_tag }} {{ design_form.overlay_opacity }} <output data-output="overlay_opacity">0%</output></p>
+      </fieldset>
+      <fieldset>
+        <legend>Lombada e frente</legend>
+        <p>{{ design_form.spine_text.label_tag }} {{ design_form.spine_text }}</p>
+        <p class="front-text-switch">{{ design_form.add_front_text }} {{ design_form.add_front_text.label_tag }}</p>
+        <div id="front-text-fields" hidden>
+          <p>{{ design_form.layout.label_tag }} {{ design_form.layout }}</p>
+          <p>{{ design_form.title.label_tag }} {{ design_form.title }}</p>
+          <p>{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}</p>
+          <p>{{ design_form.author.label_tag }} {{ design_form.author }}</p>
+          <fieldset>
+            <legend>Cores dos textos da frente</legend>
+            <div class="cover-control-grid">
+              <p>{{ design_form.text_color.label_tag }} {{ design_form.text_color }}</p>
+              <p>{{ design_form.accent_color.label_tag }} {{ design_form.accent_color }}</p>
+            </div>
+          </fieldset>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Blocos da contracapa</legend>
+        <p>{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}</p>
+        <p>{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}</p>
+        <p>{{ design_form.back_text.label_tag }} {{ design_form.back_text }}</p>
+        <p>{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}</p>
+      </fieldset>
+      <input type="hidden" name="background_color" value="{{ design_form.background_color.value|default:'#1F2937' }}">
+      <fieldset>
+        <legend>Paleta da contracapa</legend>
+        <p>{{ design_form.back_palette.label_tag }} {{ design_form.back_palette }}</p>
+        <div class="cover-palette-swatches" aria-label="Prévia da paleta"><span></span><span></span><span></span></div>
+        <div class="cover-control-grid">
+          <p>{{ design_form.back_background_color.label_tag }} {{ design_form.back_background_color }}</p>
+          <p>{{ design_form.back_text_color.label_tag }} {{ design_form.back_text_color }}</p>
+          <p>{{ design_form.back_accent_color.label_tag }} {{ design_form.back_accent_color }}</p>
+        </div>
+      </fieldset>
+      <details class="production-gate">
+        <summary>Produção gráfica e template oficial</summary>
+        <p>{{ design_form.spine.label_tag }} {{ design_form.spine }}<small>{{ design_form.spine.help_text }}</small></p>
+        <p>{{ design_form.template.label_tag }} {{ design_form.template }}<small>{{ design_form.template.help_text }}</small></p>
+      </details>
+      <div class="cover-save-actions">
+        <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar rascunho</button>
+        <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error %}disabled{% endif %}>Salvar capa final</button>
+      </div>
+    </form>
+    <div class="cover-simulator" data-trim="{{ edition.trim }}" data-trim-width="{{ edition.trim|cut:'x9'|cut:'x8.5' }}">
+      <div class="simulator-toolbar">
+        <button type="button" class="simulator-tab active" data-simulator-mode="wrap">Capa aberta</button>
+        <button type="button" class="simulator-tab" data-simulator-mode="book">Livro 3D</button>
+        <label><input type="checkbox" id="cover-guides" checked> Guias</label>
+      </div>
+      <div class="cover-live-preview with-guides" id="cover-live-preview" aria-label="Simulador da capa completa"{% if geometry %} style="aspect-ratio:{{ geometry.spread_width_in }}/{{ geometry.spread_height_in }}"{% endif %}>
+        <div class="cover-live-back">
+          <span class="cover-panel-label">CONTRACAPA</span>
+          <span class="cover-safe-zone"></span>
+          <div class="cover-live-back-copy">
+            <strong data-cover-back-heading></strong>
+            <blockquote data-cover-back-quote></blockquote>
+            <span class="cover-live-back-text" data-cover-back></span>
+            <small data-cover-back-bio></small>
+          </div>
+          <span class="cover-barcode-zone">ÁREA DO CÓDIGO</span>
+        </div>
+        <div class="cover-live-spine"><span data-cover-spine></span></div>
+        <div class="cover-live-front">
+          <img class="cover-live-image" data-cover-image{% if latest_visual.files.cover_image %} src="{% url 'printbook:cover_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a capa">
+          <span class="cover-live-overlay" data-cover-overlay></span>
+          <span class="cover-panel-label">FRENTE</span>
+          <span class="cover-safe-zone"></span>
+          <span class="cover-live-title" data-cover-title></span>
+          <span class="cover-live-subtitle" data-cover-subtitle></span>
+          <span class="cover-live-author" data-cover-author></span>
+        </div>
+      </div>
+      <div class="cover-book-view" id="cover-book-view" hidden>
+        <div class="cover-book-spine"><span data-cover-spine></span></div>
+        <div class="cover-book-front">
+          <img class="cover-live-image" data-cover-image{% if latest_visual.files.cover_image %} src="{% url 'printbook:cover_source_image' latest_visual.pk %}"{% endif %} alt="Simulação tridimensional da capa">
+          <span class="cover-live-overlay" data-cover-overlay></span>
+          <span class="cover-live-title" data-cover-title></span>
+          <span class="cover-live-subtitle" data-cover-subtitle></span>
+          <span class="cover-live-author" data-cover-author></span>
+        </div>
+      </div>
+      <p id="cover-image-status" class="cover-image-status">Selecione uma imagem PNG ou JPEG para visualizar a capa.</p>
+      <p class="cover-live-note">Linhas vermelhas: sangria e corte. Linhas verdes: área segura. A largura da lombada acompanha o valor do formulário.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Capas versionadas</h2>
+  {% for item in covers %}
+  <p>v{{ item.version }} · {{ item.status }} · miolo #{{ item.interior_id }}
+    {% if item.status == 'READY' or item.status == 'DRAFT' or item.status == 'BLOCKED' %}
+    · <a href="{% url 'printbook:preview' 'cover' item.pk %}">Ver prova da capa</a>
+    · <a href="{% url 'printbook:artifact' 'cover' item.pk %}">Baixar COVER.pdf</a>
+    {% endif %}
+    {% if item.files.template %}
+    · <a href="{% url 'printbook:cover_template' item.pk %}" target="_blank" rel="noopener">Abrir template oficial</a>
+    {% endif %}
+  </p>
+  {% for finding in item.findings %}<p class="{{ finding.severity }}">{{ finding.message }}</p>{% endfor %}
+  {% empty %}
+  <p>Nenhuma capa montada para este miolo.</p>
+  {% endfor %}
+  <p class="muted">PROVA usa a lombada estimada pelo simulador. READY possui template oficial conferido e pode seguir para o preflight.</p>
+</section>
+
+<section>
+  <h2>Próxima etapa</h2>
+  <p>Depois de salvar, retorne ao PrintBook para conferir capa e miolo juntos e executar os testes da IngramSpark.</p>
+  <a class="button-link" href="{% url 'printbook:detail' edition.pk %}">← Retornar ao PrintBook</a>
+  {% if interior and latest_visual %}<a class="button-link" href="{% url 'printbook:book_preview' edition.pk %}">Ver capa junto com o miolo</a>{% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+(function () {
+  const form = document.getElementById('cover-design-form');
+  if (!form) return;
+  const preview = document.getElementById('cover-live-preview');
+  const bookView = document.getElementById('cover-book-view');
+  const simulator = form.closest('.cover-studio').querySelector('.cover-simulator');
+  const status = document.getElementById('cover-image-status');
+  const value = (name) => (form.elements[name] ? form.elements[name].value : '');
+  const all = (selector) => document.querySelectorAll(selector);
+  let imageUrl = '';
+  let imageWidth = 0;
+  let imageHeight = 0;
+  const palettes = {
+    midnight: ['#1F2937', '#FFFFFF', '#D4A24C'],
+    ivory: ['#F4EBDD', '#2D2926', '#8A5A32'],
+    burgundy: ['#5A1726', '#FFF7ED', '#D6A75C'],
+    forest: ['#173C32', '#F5F1E8', '#C8A96B']
+  };
+
+  const updateImageQuality = () => {
+    if (!imageWidth || !imageHeight) return;
+    const trim = simulator.dataset.trim.split('x').map(Number);
+    const zoom = Number(value('image_zoom') || 100) / 100;
+    const ppi = Math.floor(Math.min(imageWidth / (trim[0] * zoom), imageHeight / (trim[1] * zoom)));
+    if (value('enhancement_profile') === 'production_300' && ppi < 300) {
+      const factor = (300 / ppi).toFixed(2);
+      status.className = 'cover-image-status quality-warning';
+      status.textContent = `${imageWidth} × ${imageHeight} px · ${ppi} ppi na origem · será ampliada em aproximadamente ${factor}× para 300 ppi. Confira a prova em tamanho real.`;
+      return;
+    }
+    const quality = ppi >= 300 ? 'boa para impressão' : ppi >= 200 ? 'aceitável para prova; revise antes da gráfica' : 'baixa resolução para impressão';
+    status.className = `cover-image-status ${ppi >= 300 ? 'quality-good' : ppi >= 200 ? 'quality-warning' : 'quality-error'}`;
+    status.textContent = `${imageWidth} × ${imageHeight} px · aproximadamente ${ppi} ppi · ${quality}.`;
+  };
+
+  const update = () => {
+    const background = value('background_color') || '#1F2937';
+    const text = value('text_color') || '#FFFFFF';
+    const accent = value('accent_color') || '#D4A24C';
+    const backBackground = value('back_background_color') || '#1F2937';
+    const backText = value('back_text_color') || '#FFFFFF';
+    const backAccent = value('back_accent_color') || '#D4A24C';
+    const zoom = Number(value('image_zoom') || 100) / 100;
+    const x = value('image_x') || 50;
+    const y = value('image_y') || 50;
+    const opacity = Number(value('overlay_opacity') || 0) / 100;
+    const spine = Number.parseFloat(value('spine'));
+    const spineFraction = Number.isFinite(spine) ? Math.max(0.05, Math.min(0.28, spine / 6)) : 0.08;
+    preview.style.gridTemplateColumns = `1fr ${spineFraction}fr 1fr`;
+    preview.style.backgroundColor = background;
+    preview.style.color = text;
+    const addFrontText = Boolean(form.elements.add_front_text && form.elements.add_front_text.checked);
+    preview.dataset.layout = addFrontText ? (value('layout') || 'classic') : 'art_only';
+    const frontFields = document.getElementById('front-text-fields');
+    if (frontFields) frontFields.hidden = !addFrontText;
+    all('.cover-live-spine,.cover-live-front,.cover-book-spine,.cover-book-front').forEach((element) => {
+      element.style.backgroundColor = background;
+      element.style.color = text;
+    });
+    all('.cover-live-back').forEach((element) => { element.style.backgroundColor = backBackground; element.style.color = backText; });
+    all('[data-cover-back-heading],[data-cover-back-quote]').forEach((element) => { element.style.color = backAccent; });
+    const swatches = document.querySelectorAll('.cover-palette-swatches span');
+    [backBackground, backText, backAccent].forEach((color, index) => { if (swatches[index]) swatches[index].style.background = color; });
+    all('[data-cover-title]').forEach((element) => { element.textContent = value('title') || 'Título do livro'; });
+    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = accent; });
+    all('[data-cover-author]').forEach((element) => { element.textContent = value('author') || 'Autor'; element.style.color = accent; });
+    all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text') || 'Texto da contracapa'; });
+    all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading') || 'Sobre este livro'; });
+    all('[data-cover-back-quote]').forEach((element) => { element.textContent = value('back_quote'); element.hidden = !value('back_quote'); });
+    all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; });
+    all('[data-cover-spine]').forEach((element) => { element.textContent = value('spine_text') || 'Lombada'; });
+    const artOnly = !addFrontText;
+    document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author]').forEach((element) => {
+      element.hidden = artOnly;
+    });
+    all('[data-cover-image]').forEach((element) => {
+      element.style.objectFit = value('image_fit') || 'cover';
+      element.style.objectPosition = `${x}% ${y}%`;
+      element.style.transform = `scale(${zoom})`;
+    });
+    all('[data-cover-overlay]').forEach((element) => { element.style.backgroundColor = `rgba(0,0,0,${opacity})`; });
+    ['image_zoom', 'image_x', 'image_y', 'overlay_opacity'].forEach((name) => {
+      const output = document.querySelector(`[data-output="${name}"]`);
+      if (output) output.value = `${value(name)}%`;
+    });
+    updateImageQuality();
+  };
+  form.querySelectorAll('input, textarea, select').forEach((field) => {
+    field.addEventListener('input', update);
+    field.addEventListener('change', update);
+  });
+  const palette = form.elements.back_palette;
+  if (palette) palette.addEventListener('change', () => {
+    const colors = palettes[palette.value];
+    if (!colors) return;
+    form.elements.back_background_color.value = colors[0];
+    form.elements.back_text_color.value = colors[1];
+    form.elements.back_accent_color.value = colors[2];
+    update();
+  });
+  const image = form.elements.cover_image;
+  const existingImage = document.querySelector('[data-cover-image][src]');
+  if (existingImage) {
+    const captureExistingSize = () => {
+      imageWidth = existingImage.naturalWidth;
+      imageHeight = existingImage.naturalHeight;
+      updateImageQuality();
+    };
+    if (existingImage.complete) captureExistingSize(); else existingImage.addEventListener('load', captureExistingSize, {once: true});
+  }
+  if (image) image.addEventListener('change', () => {
+    const file = image.files && image.files[0];
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    imageUrl = '';
+    imageWidth = 0;
+    imageHeight = 0;
+    if (!file) {
+      all('[data-cover-image]').forEach((element) => { element.removeAttribute('src'); });
+      status.className = 'cover-image-status';
+      status.textContent = 'Selecione uma imagem PNG ou JPEG para visualizar a capa.';
+      return;
+    }
+    if (!/^image\/(png|jpeg)$/.test(file.type)) {
+      status.className = 'cover-image-status quality-error';
+      status.textContent = 'Use uma imagem PNG ou JPEG neste campo. O PDF pertence ao campo de template oficial.';
+      return;
+    }
+    imageUrl = URL.createObjectURL(file);
+    all('[data-cover-image]').forEach((element) => {
+      element.src = imageUrl;
+      element.onload = () => {
+        imageWidth = element.naturalWidth;
+        imageHeight = element.naturalHeight;
+        updateImageQuality();
+      };
+    });
+  });
+  document.querySelectorAll('[data-simulator-mode]').forEach((button) => button.addEventListener('click', () => {
+    const bookMode = button.dataset.simulatorMode === 'book';
+    preview.hidden = bookMode;
+    bookView.hidden = !bookMode;
+    document.querySelectorAll('[data-simulator-mode]').forEach((item) => item.classList.toggle('active', item === button));
+  }));
+  const guides = document.getElementById('cover-guides');
+  if (guides) guides.addEventListener('change', () => preview.classList.toggle('with-guides', guides.checked));
+  update();
+}());
+</script>
+{% endblock %}

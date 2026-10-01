@@ -1,4 +1,5 @@
 import json
+import hashlib
 import mimetypes
 import re
 from urllib.parse import urlencode
@@ -35,6 +36,7 @@ from editorial.frontmatter import (
 )
 from editorial import kdp_mode
 from editorial.edition_renderer import EditionRenderer, invalidate_premium_render
+from editorial.services.book_preview import build_book_preview_context
 from gaiden.infrastructure import storage
 from .forms import FrontmatterTemplateForm
 
@@ -242,8 +244,10 @@ def _post_intake_return_context(
 ) -> tuple[str, str]:
     """Resolve a contextual return without accepting an arbitrary redirect URL."""
     workflow_edition_id = None
+    return_route = "post_intake"
     target = ""
-    if request.GET.get("return_to") == "post_intake":
+    if request.GET.get("return_to") in {"post_intake", "writer_intake"}:
+        return_route = request.GET.get("return_to")
         try:
             requested_edition_id = int(request.GET.get("workflow_edition_id") or "")
         except (TypeError, ValueError):
@@ -268,11 +272,11 @@ def _post_intake_return_context(
 
     if workflow_edition_id is None:
         return "", ""
-    return_params = {
-        "return_to": "post_intake",
-        "workflow_edition_id": workflow_edition_id,
-    }
-    return_url = reverse("post_intake_workflow", kwargs={"edition_id": workflow_edition_id})
+    return_params = {"return_to": return_route, "workflow_edition_id": workflow_edition_id}
+    return_url = reverse(
+        "writer_intake_assets" if return_route == "writer_intake" else "post_intake_workflow",
+        kwargs={"edition_id": workflow_edition_id},
+    )
     if target:
         return_params["target"] = target
         return_url = f"{return_url}?{urlencode({'target': target})}"
@@ -495,6 +499,13 @@ def frontmatter_template_edit(request, book_code: str, language: str):
 
 def editorial_frontmatter_actions(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
+    provenance = getattr(edition.work, "source_provenance", None)
+    if (
+        isinstance(provenance, dict)
+        and str(provenance.get("origin", "")).strip().lower() == "writer_canonical"
+        and provenance.get("intake_book_code")
+    ):
+        return redirect("post_intake_workflow", edition_id=edition.id)
 
     if request.method != "POST":
         return redirect("edition_steps", edition_id=edition.id)
@@ -657,6 +668,26 @@ def frontispiece_preview(request, edition_id: int):
     )
 
 
+def _writer_canonical_preview_source(edition: EditorialEdition) -> Path | None:
+    provenance = getattr(edition.work, "source_provenance", None)
+    if not isinstance(provenance, dict):
+        return None
+    writer_canonical = str(provenance.get("origin", "")).strip().lower() == "writer_canonical" or bool(
+        provenance.get("writer_canonical_revision_id")
+    )
+    if not writer_canonical:
+        return None
+    source = Path(str(provenance.get("working_manuscript_path") or ""))
+    if not source.is_file():
+        return None
+    expected = str(provenance.get("working_manuscript_sha256") or provenance.get("source_sha256") or "")
+    if expected:
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if digest != expected:
+            return None
+    return source
+
+
 def premium_epub_preview(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
     post_intake_return_url, frontmatter_return_query = _post_intake_return_context(
@@ -664,60 +695,26 @@ def premium_epub_preview(request, edition_id: int):
         edition.work.code,
         edition,
     )
-    renderer = EditionRenderer(edition)
+    provenance = getattr(edition.work, "source_provenance", None)
+    writer_canonical = isinstance(provenance, dict) and (
+        str(provenance.get("origin", "")).strip().lower() == "writer_canonical"
+        or bool(provenance.get("writer_canonical_revision_id"))
+    )
+    source_path = _writer_canonical_preview_source(edition)
     try:
-        result = renderer.render(allow_preview_cover=True)
+        preview_context = build_book_preview_context(edition, source_path=source_path)
     except Exception as exc:
         messages.error(request, f"Premium EPUB render failed: {exc}")
         if post_intake_return_url:
             return redirect(post_intake_return_url)
         return redirect("edition_steps", edition_id=edition.id)
-    state = renderer._load_state()
-    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
-    pages = [
-        path.removeprefix("text/")
-        for path in result.spine
-        if path.startswith("text/")
-    ]
-    page_labels = {
-        "cover.xhtml": "Capa",
-        "title_page.xhtml": "Folha de rosto",
-        "copyright.xhtml": "Copyright",
-        "about_this_edition.xhtml": "About This Book",
-        "contents.xhtml": "Sumário",
-        "frontispiece.xhtml": "Frontispício",
-        "body_introduction.xhtml": "Introdução",
-        "the_end.xhtml": "Fim",
-    }
-    page_links = []
-    chapter_numbers: set[int] = set()
-    illustrated_chapters: set[int] = set()
-    for page in pages:
-        chapter_match = re.fullmatch(r"chapter_(\d+)(_opening)?\.xhtml", page)
-        if chapter_match:
-            chapter_number = int(chapter_match.group(1))
-            chapter_numbers.add(chapter_number)
-            if chapter_match.group(2):
-                illustrated_chapters.add(chapter_number)
-                label = f"Capítulo {chapter_number:02d} · abertura ilustrada"
-            else:
-                label = f"Capítulo {chapter_number:02d} · texto"
-        else:
-            label = page_labels.get(page, page)
-        page_links.append({"filename": page, "label": label})
     return render(
         request,
         "editorial/premium_epub_preview.html",
         {
             "edition": edition,
-            "render_result": result,
-            "render_state": state,
-            "manifest": manifest,
-            "pages": pages,
-            "page_links": page_links,
-            "first_page": pages[0],
-            "chapter_count": len(chapter_numbers),
-            "illustrated_chapter_count": len(illustrated_chapters),
+            **preview_context,
+            "production_preview": writer_canonical,
             "post_intake_return_url": post_intake_return_url,
             "frontmatter_adjust_url": (
                 f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}"
@@ -749,7 +746,10 @@ def premium_epub_asset(request, edition_id: int, relative_path: str):
 def premium_epub_approve(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
     try:
-        EditionRenderer(edition).approve_preview()
+        EditionRenderer(
+            edition,
+            source_path=_writer_canonical_preview_source(edition),
+        ).approve_preview()
     except Exception as exc:
         messages.error(request, f"Premium preview approval failed: {exc}")
     else:

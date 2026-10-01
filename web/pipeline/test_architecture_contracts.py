@@ -40,12 +40,12 @@ class EnvContractsTests(SimpleTestCase):
     def test_secret_loader_reads_repo_file(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             secrets_path = Path(temp_dir) / "gaiden.env"
-            secrets_path.write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+            secrets_path.write_text("TEST_SECRET=test-value\n", encoding="utf-8")
             old = os.environ.get("GAIDEN_SECRETS_FILE")
             os.environ["GAIDEN_SECRETS_FILE"] = str(secrets_path)
             try:
                 env.load_repo_secrets(force_reload=True)
-                self.assertEqual(env.get_openai_api_key(), "test-key")
+                self.assertEqual(env.get_secret("TEST_SECRET"), "test-value")
             finally:
                 if old is None:
                     os.environ.pop("GAIDEN_SECRETS_FILE", None)

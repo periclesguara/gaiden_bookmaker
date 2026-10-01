@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -59,6 +60,11 @@ class SourceDocument(models.Model):
 
 
 class StoryProject(models.Model):
+    class Status(models.TextChoices):
+        WRITING = "WRITING", "Em escrita"
+        CANONICAL_READY = "CANONICAL_READY", "Miolo canônico pronto"
+        CLOSED = "CLOSED", "Projeto fechado"
+
     title = models.CharField(max_length=255)
     language = models.CharField(max_length=40, default="Português (Brasil)")
     premise = models.TextField(blank=True)
@@ -67,13 +73,47 @@ class StoryProject(models.Model):
     antagonist_bible = models.TextField(blank=True)
     scenario_bible = models.TextField(blank=True)
     world_bible = models.TextField(blank=True)
+    reference_bible = models.TextField(blank=True)
     story_direction = models.TextField(blank=True)
     story_outline = models.TextField(blank=True)
+    drive_project_folder_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Google Drive folder ID used as the permanent root for this Writer project.",
+    )
     anchor_facts = models.JSONField(default=list, blank=True)
     chapter_count = models.PositiveSmallIntegerField(
         default=10, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
     vector_index_path = models.TextField(blank=True)
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.WRITING)
+    canonical_manuscript = models.ForeignKey(
+        "ManuscriptRevision",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    manuscript_merge_revision = models.ForeignKey(
+        "ManuscriptRevision",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="merged_projects",
+    )
+    manuscript_drive_id = models.CharField(max_length=255, blank=True)
+    manuscript_drive_url = models.URLField(blank=True)
+    manuscript_drive_sha256 = models.CharField(max_length=64, blank=True)
+    manuscript_drive_exported_at = models.DateTimeField(null=True, blank=True)
+    manuscript_drive_imported_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="writer_closed_projects",
+    )
     sources = models.ManyToManyField(SourceDocument, blank=True, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -83,6 +123,90 @@ class StoryProject(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class ProjectReference(models.Model):
+    project = models.ForeignKey(StoryProject, on_delete=models.CASCADE, related_name="references")
+    source = models.ForeignKey(
+        "editorial.EditionBuild", on_delete=models.PROTECT, related_name="writer_project_references"
+    )
+    enabled = models.BooleanField(default=True)
+    roles = models.JSONField(default=list, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("source__edition__work__title", "id")
+        constraints = [models.UniqueConstraint(fields=("project", "source"), name="writer_unique_project_reference")]
+
+
+class SourceVectorIndex(models.Model):
+    class Status(models.TextChoices):
+        NOT_INDEXED = "NOT_INDEXED", "Não vetorizado"
+        QUEUED = "QUEUED", "Na fila"
+        PROCESSING = "PROCESSING", "Processando"
+        READY = "READY", "Pronto"
+        FAILED = "FAILED", "Falhou"
+        OUTDATED = "OUTDATED", "Desatualizado"
+
+    source = models.OneToOneField(
+        "editorial.EditionBuild", on_delete=models.PROTECT, related_name="writer_vector_index"
+    )
+    source_hash = models.CharField(max_length=64, blank=True)
+    embedding_model = models.CharField(max_length=160, blank=True)
+    embedding_version = models.CharField(max_length=40, default="1")
+    chunking_version = models.CharField(max_length=40, default="writer-source-v1")
+    chunk_count = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_INDEXED)
+    index_path = models.TextField(blank=True)
+    error_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ManuscriptRevision(models.Model):
+    class SourceKind(models.TextChoices):
+        IMPORTED_FINAL = "IMPORTED_FINAL", "Versão final importada"
+        CHAPTER_MERGE = "CHAPTER_MERGE", "Merge dos capítulos"
+
+    project = models.ForeignKey(
+        StoryProject,
+        on_delete=models.CASCADE,
+        related_name="manuscript_revisions",
+    )
+    version = models.PositiveIntegerField()
+    source_kind = models.CharField(
+        max_length=32,
+        choices=SourceKind.choices,
+        default=SourceKind.IMPORTED_FINAL,
+    )
+    original_filename = models.CharField(max_length=255, blank=True)
+    storage_path = models.TextField()
+    sha256 = models.CharField(max_length=64)
+    word_count = models.PositiveIntegerField(default=0)
+    character_count = models.PositiveIntegerField(default=0)
+    detected_chapter_count = models.PositiveIntegerField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="writer_manuscript_revisions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("version",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("project", "version"),
+                name="writer_unique_project_manuscript_revision",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.project.title} — v{self.version}"
 
 
 class Chapter(models.Model):

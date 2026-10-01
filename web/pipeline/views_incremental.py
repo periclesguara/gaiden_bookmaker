@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import PurePosixPath
 
 from django.contrib import messages
-from django.conf import settings
 from django.core import signing
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -16,6 +15,7 @@ from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageErro
 from gaiden.application.intake.drive_import.service import (
     IntakeValidationError,
     StaleDrivePreview,
+    allowed_intake_extensions,
     confirm_drive_folder,
     preview_drive_folder,
     retry_drive_batch,
@@ -56,7 +56,7 @@ def automated_drive_browse(request: HttpRequest) -> JsonResponse:
     try:
         storage = RcloneDriveStorage()
         source_path, discovered = storage.list_files(folder)
-        allowed_extensions = set(settings.GAIDEN_INTAKE_ALLOWED_EXTENSIONS)
+        allowed_extensions = allowed_intake_extensions()
         files = [
             {
                 "name": row["name"],

@@ -536,17 +536,25 @@ class EditionRenderer:
 
         found: dict[Path, Path] = {}
         for language_code in dict.fromkeys(language_candidates):
-            images_dir = storage.images_dir(self.edition.work.code, language_code)
-            if not images_dir.exists():
-                continue
-            for path in images_dir.rglob("*"):
-                if not path.is_file() or path.suffix.casefold() not in _ILLUSTRATION_EXTENSIONS:
+            image_dirs = (
+                storage.images_dir(self.edition.work.code, language_code),
+                storage.repo_root()
+                / "data"
+                / "images"
+                / self.edition.work.code
+                / language_code,
+            )
+            for images_dir in dict.fromkeys(image_dirs):
+                if not images_dir.exists():
                     continue
-                normalized_stem = re.sub(r"[^a-z0-9]+", "", path.stem.casefold())
-                numbers = [int(value) for value in re.findall(r"\d+", path.stem)]
-                if normalized_stem in _COVER_STEMS or (numbers and numbers[0] == 0):
-                    continue
-                found[path.resolve()] = path.resolve()
+                for path in images_dir.rglob("*"):
+                    if not path.is_file() or path.suffix.casefold() not in _ILLUSTRATION_EXTENSIONS:
+                        continue
+                    normalized_stem = re.sub(r"[^a-z0-9]+", "", path.stem.casefold())
+                    numbers = [int(value) for value in re.findall(r"\d+", path.stem)]
+                    if normalized_stem in _COVER_STEMS or (numbers and numbers[0] == 0):
+                        continue
+                    found[path.resolve()] = path.resolve()
         return sorted(found.values(), key=self._illustration_sort_key)
 
     def _attach_saved_illustrations(self, units: list[RenderUnit]) -> None:

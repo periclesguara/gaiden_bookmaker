@@ -240,7 +240,6 @@ def prepare_chapter_job(
     source_path: Path,
     force: bool = False,
     replace_legacy: bool = False,
-    qwen_detector=None,
 ) -> ManualTranslationJob:
     target_language = target_language.strip().lower().replace("-", "_")
     manual_translation.drive_target_folder(target_language)
@@ -253,8 +252,6 @@ def prepare_chapter_job(
         source,
         alert_characters=settings.GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS,
         hard_limit_characters=settings.GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS,
-        qwen_detector=qwen_detector,
-        qwen_confidence_threshold=settings.GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE,
     )
     existing = ManualTranslationJob.objects.filter(edition=edition, target_language=target_language).first()
     replacing_legacy = bool(existing and existing.schema_version != JOB_SCHEMA_V2)
@@ -515,14 +512,16 @@ def export_chapter_job(
     job: ManualTranslationJob,
     *,
     gateway: ChapterDriveGateway | None = None,
+    force: bool = False,
 ) -> dict[str, object]:
     if job.schema_version != JOB_SCHEMA_V2:
         raise ValueError("Somente jobs v2 podem usar exportação por capítulos.")
-    if job.status == ManualTranslationJob.STATUS_DRIVE_READY:
+    if job.status == ManualTranslationJob.STATUS_DRIVE_READY and not force:
         return {"status": "NO_OP", "unit_count": job.units.count(), "drive_path": job.drive_path}
     if job.status not in {
         ManualTranslationJob.STATUS_SPLIT_VALIDATED,
         ManualTranslationJob.STATUS_FAILED_RETRYABLE,
+        ManualTranslationJob.STATUS_DRIVE_READY,
     }:
         raise ValueError("O split precisa estar validado antes da exportação ao Drive.")
     active_gateway = gateway or RclonePublisher(job.drive_path)

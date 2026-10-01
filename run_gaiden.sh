@@ -3,6 +3,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+if [[ -f ./.gaiden_secrets ]]; then
+    set -a
+    source ./.gaiden_secrets
+    set +a
+fi
+
 export DJANGO_SECRET_KEY="${DJANGO_SECRET_KEY:-dev-only}"
 export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-gaiden_portal.settings}"
 export PGHOST="${PGHOST:-127.0.0.1}"

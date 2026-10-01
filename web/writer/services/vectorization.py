@@ -8,18 +8,14 @@ from pathlib import Path
 
 from django.utils import timezone
 
-from gaiden.writer_engine.clients import OpenAIEmbeddingClient
+from gaiden.writer_engine.clients import LocalEmbeddingClient
 from gaiden.writer_engine.index import VectorIndex
 from ..models import SourceDocument, StoryProject
 from .normalization import writer_storage_root
 
 
-def embedding_client() -> OpenAIEmbeddingClient:
-    return OpenAIEmbeddingClient(
-        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        api_key=os.environ.get("OPENAI_API_KEY", ""),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small"),
-    )
+def embedding_client() -> LocalEmbeddingClient:
+    return LocalEmbeddingClient(model=os.environ.get("GAIDEN_LOCAL_EMBEDDING_MODEL", ""))
 
 
 def vectorize_project(project: StoryProject) -> Path:

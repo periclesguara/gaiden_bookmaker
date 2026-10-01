@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from gaiden.application.pipeline import ingest, normalization, source_extract
-from gaiden.infrastructure import env, storage
+from gaiden.infrastructure import storage
 
 
 def _cmd_diagnostics(_: argparse.Namespace) -> int:
@@ -45,8 +46,8 @@ def _cmd_source_extract(args: argparse.Namespace) -> int:
 
 
 def _cmd_env_check(_: argparse.Namespace) -> int:
-    key = env.get_openai_api_key()
-    print("OPENAI_API_KEY=present" if key else "OPENAI_API_KEY=missing")
+    configured = bool(os.environ.get("GAIDEN_LOCAL_MODEL_URL"))
+    print("GAIDEN_LOCAL_MODEL_URL=configured" if configured else "GAIDEN_LOCAL_MODEL_URL=missing")
     return 0
 
 

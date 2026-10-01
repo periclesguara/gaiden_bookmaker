@@ -28,7 +28,9 @@
     <span class="badge">hash {{ render_result.fingerprint|slice:":12" }}</span>
     <span class="badge">{{ chapter_count }} capítulos</span>
     <span class="badge">{{ illustrated_chapter_count }} ilustrados</span>
-    {% if manifest.production_ready %}
+    {% if suppress_preview_approval %}
+      <span class="badge">Preview de produção · aprovação EPUB indisponível nesta etapa</span>
+    {% elif manifest.production_ready %}
       <form method="post" action="{% url 'premium_epub_approve' edition.id %}" style="display:inline">
         {% csrf_token %}
         <button type="submit">Aprovar este preview</button>

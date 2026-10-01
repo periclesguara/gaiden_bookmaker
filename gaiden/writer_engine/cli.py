@@ -6,18 +6,14 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
-from .clients import OpenAIEmbeddingClient
-from .openai_generator import writer_generator
+from .clients import LocalEmbeddingClient
+from .local_generator import writer_generator
 from .engine import ChapterRequest, WriterEngine
 from .index import VectorIndex
 
 
-def _embedding_client() -> OpenAIEmbeddingClient:
-    return OpenAIEmbeddingClient(
-        base_url=os.environ.get("GAIDEN_EMBEDDING_BASE_URL", "http://127.0.0.1:8001/v1"),
-        api_key=os.environ.get("GAIDEN_EMBEDDING_API_KEY", "EMPTY"),
-        model=os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small"),
-    )
+def _embedding_client() -> LocalEmbeddingClient:
+    return LocalEmbeddingClient(model=os.environ.get("GAIDEN_LOCAL_EMBEDDING_MODEL", ""))
 
 
 def _generator():

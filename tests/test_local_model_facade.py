@@ -13,8 +13,6 @@ class _FakeResponses:
 
     def create(self, **kwargs):
         self.calls.append(kwargs)
-        if "temperature" in kwargs:
-            raise RuntimeError("Unsupported parameter: 'temperature' is not supported with this model.")
         return _FakeResponse()
 
 
@@ -23,9 +21,10 @@ class _FakeClient:
         self.responses = _FakeResponses()
 
 
-def test_call_agent_text_retries_without_temperature_when_model_rejects_it(monkeypatch):
+def test_legacy_agent_facade_uses_the_configured_local_model(monkeypatch):
     client = _FakeClient()
     monkeypatch.setattr(openai_client, "get_client", lambda: client)
+    monkeypatch.setenv("GAIDEN_LOCAL_MODEL", "llama3.1:8b")
 
     result = openai_client.call_agent_text(
         agent_name="fr_translate_universal_2026",
@@ -36,7 +35,5 @@ def test_call_agent_text_retries_without_temperature_when_model_rejects_it(monke
     )
 
     assert result == "Texte français."
-    assert len(client.responses.calls) == 2
-    assert "temperature" in client.responses.calls[0]
-    assert "temperature" not in client.responses.calls[1]
-    assert client.responses.calls[1]["model"] == "gpt-5.5"
+    assert len(client.responses.calls) == 1
+    assert client.responses.calls[0]["model"] == "llama3.1:8b"

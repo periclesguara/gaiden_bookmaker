@@ -66,16 +66,19 @@ class RcloneDriveStorage:
         return result
 
     @staticmethod
-    def _run(args: list[str]) -> bytes:
+    def _run(args: list[str], *, timeout: float | None = None) -> bytes:
         try:
             completed = subprocess.run(
                 ["rclone", *args],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=False,
+                timeout=timeout,
             )
         except FileNotFoundError as exc:
             raise DriveStorageError("rclone não está instalado ou não está disponível no PATH.") from exc
+        except subprocess.TimeoutExpired as exc:
+            raise DriveStorageError(f"rclone excedeu o tempo limite ({' '.join(args[:2])}).") from exc
         if completed.returncode:
             detail = completed.stderr.decode("utf-8", errors="replace").strip()
             raise DriveStorageError(f"rclone falhou ({' '.join(args[:2])}): {detail}")
@@ -83,7 +86,12 @@ class RcloneDriveStorage:
 
     def list_folders(self, folder: str = "") -> list[dict]:
         source = self.source_path(folder)
-        payload = json.loads(self._run(["lsjson", self._remote_path(source), "--dirs-only"]))
+        payload = json.loads(
+            self._run(
+                ["lsjson", self._remote_path(source), "--dirs-only"],
+                timeout=getattr(settings, "GAIDEN_DRIVE_LIST_TIMEOUT_SECONDS", 8),
+            )
+        )
         return sorted(
             [
                 {
@@ -110,7 +118,8 @@ class RcloneDriveStorage:
                 "--csv",
                 "--max-depth",
                 "1",
-            ]
+            ],
+            timeout=getattr(settings, "GAIDEN_DRIVE_LIST_TIMEOUT_SECONDS", 8),
         )
         rows = []
         for raw in csv.reader(io.StringIO(payload.decode("utf-8", errors="replace"))):

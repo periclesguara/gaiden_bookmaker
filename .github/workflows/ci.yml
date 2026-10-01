@@ -92,7 +92,7 @@ jobs:
 
           from django.test.runner import DiscoverRunner
 
-          suite = DiscoverRunner(verbosity=0).build_suite(["editorial", "pipeline", "web.writer.tests"])
+          suite = DiscoverRunner(verbosity=0).build_suite(["editorial", "pipeline", "web.writer.tests", "printbook"])
           count = suite.countTestCases()
           print(f"Discovered {count} Django tests")
           if count < 20:
@@ -100,7 +100,7 @@ jobs:
           PY
 
       - name: Run tests
-        run: python web/manage.py test editorial pipeline web.writer.tests --noinput --verbosity 2
+        run: python web/manage.py test editorial pipeline web.writer.tests printbook --noinput --verbosity 2
 
       - name: Audit Python dependencies
         run: python -m pip_audit -r requirements-ci.txt --progress-spinner=off

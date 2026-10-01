@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from gaiden.writer_engine.openai_generator import WRITER_BASE_URL, WRITER_MODEL
+from gaiden.writer_engine.local_generator import WRITER_BASE_URL
 
 from ..models import Chapter, SourceDocument, StoryProject
 
@@ -89,12 +89,10 @@ def _is_loopback(base_url: str) -> bool:
 
 
 def _model_status(*, probe: bool) -> dict:
-    embedding_base_url = os.environ.get("OPENAI_BASE_URL", WRITER_BASE_URL).rstrip("/")
-    writing_base_url = WRITER_BASE_URL
-    embedding_model = os.environ.get("GAIDEN_EMBEDDING_MODEL", "text-embedding-3-small")
-    writing_model = WRITER_MODEL
-    narrative_memory_model = WRITER_MODEL
-    logic_audit_model = WRITER_MODEL
+    embedding_base_url = os.environ.get("GAIDEN_LOCAL_MODEL_URL", WRITER_BASE_URL).rstrip("/")
+    writing_base_url = embedding_base_url
+    embedding_model = os.environ.get("GAIDEN_LOCAL_EMBEDDING_MODEL", "not configured")
+    writing_model = os.environ.get("GAIDEN_LOCAL_MODEL", "not configured")
     status = {
         "checked": False,
         "online": None,
@@ -102,27 +100,24 @@ def _model_status(*, probe: bool) -> dict:
         "writing_base_url": writing_base_url,
         "embedding_model": embedding_model,
         "writing_model": writing_model,
-        "narrative_memory_model": narrative_memory_model,
-        "logic_audit_model": logic_audit_model,
         "embedding_available": None,
         "writing_available": None,
         "reason": "Verificação do serviço não executada.",
     }
     if not probe:
         return status
-    if embedding_base_url != writing_base_url:
-        status["reason"] = "Geração via OpenAI; RAG local. Disponibilidade da API não verificada."
-        return status
     if not _is_loopback(embedding_base_url):
         status["reason"] = "Endpoint não local; verificação automática desativada."
         return status
     status["checked"] = True
-    request = Request(f"{embedding_base_url}/models", headers={"Accept": "application/json"})
+    request = Request(f"{embedding_base_url}/api/tags", headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=0.75) as response:
             payload = json.load(response)
+        rows = payload.get("models", payload.get("data", []))
         installed = {
-            str(item.get("id", "")) for item in payload.get("data", []) if isinstance(item, dict)
+            str(item.get("name") or item.get("id") or "")
+            for item in rows if isinstance(item, dict)
         }
         status["online"] = True
         status["embedding_available"] = embedding_model in installed
@@ -266,7 +261,12 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
         if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
             chapter_blockers.append("Capítulo já finalizado")
         elif chapter.status == Chapter.Status.PACKAGE_READY:
-            chapter_blockers.append("Pacote pronto; exporte para o Google Drive")
+            # A prepared package may be regenerated. If chapter parameters
+            # are unchanged, build_narrative_contract() reuses the existing
+            # payload SHA/version. If they changed, it creates a new immutable
+            # contract version and prepare_chapter_package() rewrites the
+            # current package pointer.
+            pass
         elif chapter.status in {Chapter.Status.EXPORTED_TO_DRIVE, Chapter.Status.WAITING_FOR_OUTPUT}:
             chapter_blockers.append("Pacote já exportado; aguarde ou importe a saída")
         elif chapter.status in {Chapter.Status.OUTPUT_IMPORTED, Chapter.Status.CLOSURE_COMPLETE}:
@@ -316,10 +316,6 @@ def build_project_dashboard(project: StoryProject, *, probe_models: bool = True)
         vectorize_blockers.append("Selecione ao menos uma fonte")
     if selected_count and not all_normalized:
         vectorize_blockers.append("Normalize todas as fontes selecionadas")
-    if models["checked"] and not models["online"]:
-        vectorize_blockers.append("Serviço local de modelos indisponível")
-    elif models["checked"] and not models["embedding_available"]:
-        vectorize_blockers.append("Modelo de embeddings não instalado")
 
     return {
         "sources": {

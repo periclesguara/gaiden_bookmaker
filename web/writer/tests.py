@@ -8,17 +8,21 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from gaiden.writer_engine.engine import GenerationResult
 from author_studio.models import Author, CanonicalText, Work, WorkSource
+from editorial.models import Edition, EditionPipeline, Language, Seal
+from pipeline.services.writer_intake_handoff import register_closed_writer_in_intake
 from web.writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
 from web.writer.services.dashboard import build_project_dashboard
 from web.writer.services.generation import generate_chapter
 from web.writer.services.normalization import normalize_document, normalize_text
 from web.writer.services.projects import synchronize_chapters
 from web.writer.services.sources import discover_source_documents
+from web.writer.services.manuscripts import ProjectClosedError, close_writer_project, import_manuscript_revision, promote_canonical_manuscript
 
 
 class WriterAnonymousAccessTests(SimpleTestCase):
@@ -29,6 +33,116 @@ class WriterAnonymousAccessTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "writer/home.html")
+
+
+class FinalManuscriptTests(TestCase):
+    def setUp(self):
+        self.project = StoryProject.objects.create(title="Final book", chapter_count=1)
+
+    def upload(self, name="approved.md", content=b"# Chapter 1\n\nApproved text."):
+        return SimpleUploadedFile(name, content, content_type="text/markdown")
+
+    def test_existing_project_defaults_to_writing_and_upload_is_versioned(self):
+        self.assertEqual(self.project.status, StoryProject.Status.WRITING)
+        with TemporaryDirectory() as root, patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": root}):
+            first = import_manuscript_revision(self.project, self.upload())
+            second = import_manuscript_revision(self.project, self.upload("revised.txt", b"CHAPTER ONE\n\nRevised."))
+            self.assertEqual((first.version, second.version), (1, 2))
+            self.assertNotEqual(Path(first.storage_path).read_bytes(), Path(second.storage_path).read_bytes())
+            self.assertEqual(first.sha256, hashlib.sha256(Path(first.storage_path).read_bytes()).hexdigest())
+            self.assertEqual(first.word_count, 5)
+
+    def test_canonical_and_close_create_manifest_without_touching_chapter(self):
+        chapter = Chapter.objects.create(project=self.project, number=1, final_text="kept byte-for-byte")
+        session = ChapterSession.objects.create(chapter=chapter, number=1, status=ChapterSession.Status.COMPLETE, content="session")
+        with TemporaryDirectory() as root, patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": root}):
+            revision = import_manuscript_revision(self.project, self.upload())
+            promote_canonical_manuscript(self.project, revision)
+            close_writer_project(self.project)
+            chapter.refresh_from_db()
+            session.refresh_from_db()
+            self.project.refresh_from_db()
+            self.assertEqual(chapter.final_text, "kept byte-for-byte")
+            self.assertEqual(session.content, "session")
+            self.assertEqual(self.project.status, StoryProject.Status.CLOSED)
+            manifest = Path(revision.storage_path).with_name("manifest.json")
+            self.assertEqual(json.loads(manifest.read_text(encoding="utf-8"))["sha256"], revision.sha256)
+
+    def test_closed_project_rejects_new_revision(self):
+        with TemporaryDirectory() as root, patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": root}):
+            revision = import_manuscript_revision(self.project, self.upload())
+            promote_canonical_manuscript(self.project, revision)
+            close_writer_project(self.project)
+            with self.assertRaises(ProjectClosedError):
+                import_manuscript_revision(self.project, self.upload("later.md"))
+
+    def test_hash_divergence_blocks_closure(self):
+        with TemporaryDirectory() as root, patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": root}):
+            revision = import_manuscript_revision(self.project, self.upload())
+            promote_canonical_manuscript(self.project, revision)
+            Path(revision.storage_path).write_text("tampered\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                close_writer_project(self.project)
+            self.project.refresh_from_db()
+            self.assertEqual(self.project.status, StoryProject.Status.CANONICAL_READY)
+
+    def test_revision_from_another_project_cannot_become_canonical(self):
+        other = StoryProject.objects.create(title="Other book", chapter_count=1)
+        with TemporaryDirectory() as root, patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": root}):
+            revision = import_manuscript_revision(other, self.upload("other.md"))
+            with self.assertRaises(ValueError):
+                promote_canonical_manuscript(self.project, revision)
+            self.project.refresh_from_db()
+            self.assertIsNone(self.project.canonical_manuscript_id)
+
+
+class WriterIntakeBridgeTests(TestCase):
+    def setUp(self):
+        self.project = StoryProject.objects.create(
+            title="Bridge Book",
+            language="English (United Kingdom)",
+            chapter_count=1,
+        )
+        Language.objects.create(code="en", name="English", native_name="English")
+        Seal.objects.create(slug="rinobooks-bridge", name="RinoBooks")
+
+    def test_closed_canonical_creates_one_final_md_edition_and_reuses_it(self):
+        with TemporaryDirectory() as root, patch.dict(
+            os.environ,
+            {
+                "GAIDEN_WRITER_STORAGE_ROOT": root,
+                "GAIDEN_STORAGE_ROOT": root,
+            },
+        ):
+            revision = import_manuscript_revision(
+                self.project,
+                SimpleUploadedFile("canonical.md", b"# Chapter 1\n\nApproved body."),
+            )
+            promote_canonical_manuscript(self.project, revision)
+            close_writer_project(self.project)
+
+            first = register_closed_writer_in_intake(
+                project=self.project,
+                author_name="Author Bridge",
+                publisher="RinoBooks",
+            )
+            second = register_closed_writer_in_intake(
+                project=self.project,
+                author_name="Author Bridge",
+                publisher="RinoBooks",
+            )
+
+            self.assertTrue(first.created)
+            self.assertFalse(second.created)
+            self.assertEqual(first.edition.id, second.edition.id)
+            self.assertEqual(Edition.objects.filter(work=first.edition.work).count(), 1)
+            self.assertEqual(first.working_path.read_bytes(), Path(revision.storage_path).read_bytes())
+            self.assertEqual(first.working_sha256, revision.sha256)
+            self.assertEqual(first.edition.raw_source_path, "")
+            pipeline = EditionPipeline.objects.get(edition=first.edition)
+            self.assertEqual(pipeline.current_stage, "FINAL_MD")
+            self.assertIsNone(pipeline.raw_at)
+            self.assertEqual(first.edition.work.source_provenance["origin"], "writer_canonical")
 
 
 class DashboardTests(SimpleTestCase):
@@ -44,7 +158,7 @@ class DashboardTests(SimpleTestCase):
             index_path = Path(temporary) / "project.jsonl"
             index_path.write_text(json.dumps({
                 "schema_version": 1,
-                "embedding_model": "qwen3-embedding:0.6b",
+                "embedding_model": "local-test-embedding",
                 "dimension": 1024,
                 "source_count": 2,
                 "chunk_count": 18,
@@ -78,8 +192,8 @@ class DashboardTests(SimpleTestCase):
                 story_outline="",
             )
             with patch.dict(os.environ, {
-                "GAIDEN_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
-                "GAIDEN_QWEN_MODEL": "qwen3.5:9b-q4_K_M",
+                "GAIDEN_LOCAL_EMBEDDING_MODEL": "local-test-embedding",
+                "GAIDEN_LOCAL_MODEL": "local-test-model",
             }):
                 dashboard = build_project_dashboard(project, probe_models=False)
 
@@ -348,7 +462,7 @@ class ProjectAndChapterTests(WriterQAIsolation, TestCase):
                 engine_factory.return_value.calls.append(request)
                 return GenerationResult(
                     text=(f"Original session {number}. " * 220),
-                    model="test/qwen",
+                    model="test/local",
                     source_chunk_ids=(f"source-{number}",),
                     source_scores=(0.9,),
                 )
@@ -377,7 +491,7 @@ class ProjectAndChapterTests(WriterQAIsolation, TestCase):
         chapter.save()
         engine_factory.return_value.create_chapter.return_value = GenerationResult(
             text=("First session. " * 220),
-            model="test/qwen",
+            model="test/local",
             source_chunk_ids=("source-1",),
             source_scores=(0.9,),
         )
@@ -447,7 +561,7 @@ class WriterIndexPathTests(SimpleTestCase):
                 "embedding_model": "test-model", "source_count": 0,
                 "chunk_count": 0}) + "\n")
             chapter = SimpleNamespace(project=SimpleNamespace(vector_index_path=str(path)))
-            with patch("web.writer.services.generation.OpenAIEmbeddingClient"), patch("web.writer.services.generation.writer_generator"):
+            with patch("web.writer.services.generation.LocalEmbeddingClient"), patch("web.writer.services.generation.writer_generator"):
                 engine = _engine(chapter)
             self.assertEqual(engine.index.dimension, 2)
 
@@ -634,11 +748,7 @@ class GenerationGuardrailTests(WriterQAIsolation, TestCase):
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, Chapter.Status.FAILED)
 
-    @patch('gaiden.writer_engine.clients.OpenAI')
-    def test_model_clients_disable_transport_retries(self, client):
-        from gaiden.writer_engine.clients import QwenGenerator, OpenAIEmbeddingClient
-        QwenGenerator(base_url='http://127.0.0.1:8001/v1')
-        OpenAIEmbeddingClient(base_url='http://127.0.0.1:8001/v1')
-        self.assertEqual(client.call_count, 2)
-        for call in client.call_args_list:
-            self.assertEqual(call.kwargs['max_retries'], 0)
+    def test_model_clients_reject_cloud_model_names(self):
+        from gaiden.infrastructure.local_models import local_model_name
+        with self.assertRaises(ValueError):
+            local_model_name("gpt-5")

@@ -3,7 +3,7 @@ from dataclasses import asdict
 import json
 import os
 
-from gaiden.writer_engine.openai_generator import writer_generator
+from gaiden.writer_engine.local_generator import writer_generator
 from gaiden.writer_engine.validation import SceneContract
 from gaiden.writer_engine.repair import generate_validated_scene
 from .normalization import writer_storage_root

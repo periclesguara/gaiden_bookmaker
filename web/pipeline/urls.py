@@ -53,6 +53,11 @@ urlpatterns = [
         name="post_intake_workflow",
     ),
     path(
+        "editions/<int:edition_id>/writer-intake-assets/",
+        views.writer_intake_assets,
+        name="writer_intake_assets",
+    ),
+    path(
         "editions/<int:edition_id>/production/save/",
         views.save_production_bookmark,
         name="save_production_bookmark",
@@ -71,11 +76,6 @@ urlpatterns = [
         "translation-jobs/<int:job_id>/chapters/export/",
         views.chapter_translation_export,
         name="chapter_translation_export",
-    ),
-    path(
-        "translation-jobs/<int:job_id>/chapters/split-qwen/",
-        views.chapter_translation_split_qwen,
-        name="chapter_translation_split_qwen",
     ),
     path(
         "translation-jobs/<int:job_id>/chapters/check-returns/",

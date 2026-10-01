@@ -43,7 +43,49 @@ both clean databases and environments where an approved provenance migration
 already created the column; it never makes provenance nullable or replaces an
 existing record.
 
+### Writer provenance and Intake asset lane
+
+Ordinary editions retain the existing editorial workbench. A closed Writer
+canonical is routed to a dedicated Intake asset lane for frontmatter, cover,
+internal images, and premium preview. The canonical miolo is copied with its
+digest intact and does not pass through Normalize, Heading Cleaner, chapter
+split, translation, export, or import. Backend guards redirect direct
+transformation requests to the dedicated Intake lane.
+
+### Closed Writer to Intake handoff
+
+For a `CLOSED` Writer project with a canonical revision, the Writer detail page
+offers the explicit **Prosseguir para Intake** action. The operator supplies
+the required author credit and publisher/imprint; no author is inferred from
+the manuscript.  The bridge validates the project state, revision ownership,
+canonical file, manifest identity, and matching SHA-256 values before creating
+or reusing a `Work` and `Edition` for the downstream Intake workflow.
+
+The bridge stores `origin: writer_canonical`, Writer project/revision IDs, and
+the source SHA-256 in `Work.source_provenance`, assigns the operational Intake
+code, and registers the edition in the Intake asset lane. It makes a byte-preserving,
+atomic copy at `data/builds/<work-code>/<language>/BOOK.MD_FINAL`, records that
+copy's SHA-256, and initializes the existing `EditionPipeline` at `FINAL_MD`.
+It never creates a RAW artifact or runs Normalize, Chunk, Heading Cleaner,
+Translate, Refine, Polish, or Merge.  Repeating the action for the same Writer
+project and revision reuses the same Edition; a divergent existing final body
+is rejected rather than overwritten.
+
+After all Writer chapters reach `FINAL`, **Salvar manuscrito** creates the
+reviewed revision. Closing the project selects the canonical revision and
+enables the direct Intake handoff. The final miolo does not use a book-level
+Google Drive export/import round trip.
+
 ### Intake image and frontmatter rendering contract
+
+The visual book preview is shared by Intake and the Writer-canonical
+production view. `editorial.services.book_preview.build_book_preview_context`
+owns the `EditionRenderer` context, page navigation, chapter counts, cover
+placeholder/cover resolution, and local image assets; both views render the
+existing `editorial/premium_epub_preview.html` and its asset endpoint. Writer
+production supplies `BOOK.BUILD.MD`, falling back to `BOOK.MD_FINAL`, as the
+explicit renderer source. This creates preview XHTML/assets only; it does
+not package an EPUB, run Pandoc, or run EPUBCheck.
 
 The post-Intake workflow stores internal illustrations under the canonical
 edition image directory. Numbered filenames are mapped deterministically to
@@ -181,37 +223,47 @@ external runtime storage. Print validation runs in its own CI workflow and does
 not require a database, Writer service, model endpoint, or editorial source
 corpus.
 
-### Writer engine phase 1
+`web/printbook/` is the operator-facing persistence adapter around that core.
+Its internal catalog exposes only integrity-checked final `DONE` EPUB builds.
+Intake links open a source dashboard inside PrintBook; creating a physical
+edition is an explicit POST. Its independent EPUB preview reads the approved
+ZIP and uses PrintBook templates and sandboxed asset routes, without calling
+the editorial renderer or changing approval state.
+It accepts only a current, integrity-checked final `EditionBuild`, freezes its
+official-body SHA-256 in `PrintEdition`, and records versioned interior, cover,
+preflight, and export rows. All generated files remain in external Gaiden
+storage. Source/configuration/hash drift invalidates dependent builds without
+deleting history. The adapter imports no Writer model and never writes to the
+editorial source.
+
+The first platform profile is IngramSpark paperback, black-and-white interior,
+with explicit supported trims and paper choices. CoverMaker may create a DRAFT
+proof using a visibly identified paper-caliper estimate, but production cover
+geometry depends on the final PDF page count and an official-template spine
+width. A separate
+administrator-provisioned validator supplies hash-bound PDF/X, ICC, image,
+page-box, safe-area, template, barcode, and font-license evidence. Missing or
+incomplete evidence is a release blocker, never a simulated pass.
+
+### Writer engine and canonical Intake handoff
 
 `gaiden/writer_engine/` is a reusable, UI-independent draft-generation layer.
-It owns deterministic corpus discovery and chunking, atomic vector-index
-serialization, retrieval, prompt boundaries, OpenAI Luna client coordination, and
-originality checks. It does not own canonical promotion or final builds.
+It owns deterministic corpus discovery and chunking, vector-index serialization,
+retrieval, prompt boundaries, local model coordination, and originality checks.
+It does not own editorial production or print specifications.
 
-Generation uses OpenAI `gpt-5.6-luna` through the Responses API with the
-existing system key. Embeddings remain on their separate local endpoint;
-Qwen3-Embedding-0.6B is the default retrieval model. Writer generation ignores
-shared Qwen settings and does not require a local GPU gate. Corpus files, model
-weights, indexes, requests, drafts, and audit sidecars remain external runtime
-artifacts. The reusable engine remains independent of Django. The `writer`
-application opens without Django authentication and adds source manifests,
-story projects, creative bibles, chapter parameters, immutable generation
-sessions, and explicit chapter-text finalization. Writer finalization only
-freezes the ordered chapter body. Its handoff contains chapter number, chapter
-title, and final narrative text; it contains no frontmatter, publication
-metadata, cover, EPUB, PDF, print specification, or canonical-edition mutation.
-Those responsibilities begin in the downstream editorial production stage.
-Its external file-treatment and deployment contract is defined in
-`docs/writer-workflow.md`.
+All model-backed stages use the configured loopback Ollama service through
+`GAIDEN_LOCAL_MODEL_URL`; generation and embeddings use separately configured
+local model names. Remote endpoints are rejected. Qwen and Phi model families
+are rejected by the runtime. Legacy OpenAI-named adapter imports route only to
+the same local service and never instantiate a cloud SDK.
 
-The operator workflow exposes one project-level Generate action. It selects the
-earliest eligible chapter only after prior chapters are merged or finalized,
-generates missing scene sessions, and creates a preserved chapter merge with the
-Writer model. A local Qwen3.5-4B then produces a bounded cumulative narrative
-state, and a separate local Phi-4 Mini produces a structured causal, temporal,
-and coherence audit. These stages are resumable and never overwrite a stored
-session or merge. `MERGED` remains a Writer draft; explicit human finalization
-still does not promote content into the editorial application.
+Closing a Writer project freezes the selected canonical manuscript and records
+its digest. That exact manuscript is registered as the Intake text source. Once
+it reaches Intake, the miolo is not normalized, heading-cleaned, split,
+translated, exported, or imported. Intake remains responsible for frontmatter,
+images, cover, and the approval preview using its own templates. Writer's final
+review screen links directly to that dedicated Intake asset lane.
 
 ## Runtime data boundary
 

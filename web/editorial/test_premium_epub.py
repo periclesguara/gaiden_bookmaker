@@ -348,6 +348,29 @@ class PremiumEpubRendererTests(TestCase):
         self.assertEqual(soup.find("img").get("src"), "../images/02.jpg")
         self.assertTrue((self.result.root / "EPUB/images/02.jpg").exists())
 
+    def test_saved_gallery_image_falls_back_to_repository_gallery(self):
+        repository_image = (
+            storage.repo_root()
+            / "data"
+            / "images"
+            / self.edition.work.code
+            / self.edition.language.code
+            / "03.jpg"
+        )
+        repository_image.parent.mkdir(parents=True, exist_ok=True)
+        repository_image.write_bytes(b"repository-gallery-test")
+        try:
+            with patch(
+                "editorial.edition_renderer.storage.images_dir",
+                return_value=Path(self.temp_dir.name) / "missing-gallery",
+            ):
+                self.assertEqual(
+                    EditionRenderer(self.edition)._saved_illustrations(),
+                    [repository_image.resolve()],
+                )
+        finally:
+            repository_image.unlink(missing_ok=True)
+
     def test_approved_final_takes_precedence_over_legacy_kdp_source(self):
         build_dir = storage.builds_dir(self.edition.work.code, self.edition.language.code)
         legacy = build_dir / "kdp_merged.md"

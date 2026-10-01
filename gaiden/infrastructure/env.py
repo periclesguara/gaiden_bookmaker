@@ -78,11 +78,3 @@ def set_secret(name: str, value: str) -> None:
     path = secrets_file()
     path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
     load_repo_secrets(force_reload=True)
-
-
-def get_openai_api_key() -> str | None:
-    return get_secret("OPENAI_API_KEY")
-
-
-def require_openai_api_key() -> str:
-    return require_secret("OPENAI_API_KEY")

@@ -51,6 +51,55 @@ def _find_file(drive, name: str, parent: str, mime_type: str, contract_sha: str)
     return None
 
 
+
+def _write_google_doc(document_id: str, text: str) -> None:
+    """Replace the contents of a native Google Doc."""
+    from googleapiclient.discovery import build
+
+    credentials = _credentials()
+    docs = build(
+        "docs",
+        "v1",
+        credentials=credentials,
+        cache_discovery=False,
+    )
+
+    document = docs.documents().get(
+        documentId=document_id
+    ).execute()
+
+    body = document.get("body", {}).get("content", [])
+
+    end_index = max(
+        (element.get("endIndex", 1) for element in body),
+        default=1,
+    )
+
+    requests = []
+
+    if end_index > 2:
+        requests.append({
+            "deleteContentRange": {
+                "range": {
+                    "startIndex": 1,
+                    "endIndex": end_index - 1,
+                }
+            }
+        })
+
+    requests.append({
+        "insertText": {
+            "location": {"index": 1},
+            "text": text,
+        }
+    })
+
+    docs.documents().batchUpdate(
+        documentId=document_id,
+        body={"requests": requests},
+    ).execute()
+
+
 def export_chapter_package(chapter: Chapter) -> Chapter:
     """Transport an existing frozen package; never rebuilds its contract."""
     if chapter.status not in {Chapter.Status.PACKAGE_READY, Chapter.Status.EXPORTED_TO_DRIVE, Chapter.Status.WAITING_FOR_OUTPUT}:
@@ -65,7 +114,83 @@ def export_chapter_package(chapter: Chapter) -> Chapter:
     if actual_sha != contract.payload_sha256:
         raise ValueError("frozen contract JSON SHA mismatch")
     try:
-        drive = _drive()
+        credentials = _credentials()
+
+        from googleapiclient.discovery import build
+
+        drive = build(
+            "drive",
+            "v3",
+            credentials=credentials,
+            cache_discovery=False,
+        )
+
+        docs = build(
+            "docs",
+            "v1",
+            credentials=credentials,
+            cache_discovery=False,
+        )
+
+        def write_google_doc(document_id: str, content: str) -> None:
+            """
+            Substitui o conteúdo do Google Doc pelo contrato congelado.
+
+            O documento é rastreável pelo ID e pelo SHA armazenado
+            nas appProperties do Drive.
+            """
+
+            document = docs.documents().get(
+                documentId=document_id
+            ).execute()
+
+            body = document.get("body", {})
+            elements = body.get("content", [])
+
+            end_index = 1
+
+            for element in elements:
+                end_index = max(
+                    end_index,
+                    element.get("endIndex", 1),
+                )
+
+            requests = []
+
+            # Remove conteúdo anterior, se houver.
+            # O último caractere estrutural do Google Docs não pode
+            # ser apagado.
+            if end_index > 2:
+                requests.append(
+                    {
+                        "deleteContentRange": {
+                            "range": {
+                                "startIndex": 1,
+                                "endIndex": end_index - 1,
+                            }
+                        }
+                    }
+                )
+
+            if content:
+                requests.append(
+                    {
+                        "insertText": {
+                            "location": {
+                                "index": 1,
+                            },
+                            "text": content,
+                        }
+                    }
+                )
+
+            if requests:
+                docs.documents().batchUpdate(
+                    documentId=document_id,
+                    body={
+                        "requests": requests,
+                    },
+                ).execute()
         if chapter.drive_folder_id:
             chapter_folder = drive.files().get(
                 fileId=chapter.drive_folder_id,
@@ -74,8 +199,36 @@ def export_chapter_package(chapter: Chapter) -> Chapter:
             if chapter_folder.get("trashed") or chapter_folder.get("mimeType") != "application/vnd.google-apps.folder":
                 raise ValueError("registered Drive folder is not available")
         else:
-            project_folder = _find_or_create_folder(drive, f"BOOK_{chapter.project_id}", None)
-            chapter_folder = _find_or_create_folder(drive, f"Chapter_{chapter.number:02d}", project_folder["id"])
+            project_folder_id = (
+                chapter.project.drive_project_folder_id or ""
+            ).strip()
+
+            if not project_folder_id:
+                raise ValueError(
+                    f"Google Drive folder is not configured for "
+                    f"Writer project {chapter.project_id}: "
+                    f"{chapter.project.title}"
+                )
+
+            project_folder = drive.files().get(
+                fileId=project_folder_id,
+                fields="id,name,webViewLink,mimeType,trashed",
+            ).execute()
+
+            if (
+                project_folder.get("trashed")
+                or project_folder.get("mimeType")
+                != "application/vnd.google-apps.folder"
+            ):
+                raise ValueError(
+                    "registered project Google Drive folder is not available"
+                )
+
+            chapter_folder = _find_or_create_folder(
+                drive,
+                f"Chapter_{chapter.number:02d}",
+                project_folder["id"],
+            )
         # Existing IDs are reused; creation is only attempted when absent.
         def create_file(name, mime, content=None):
             body = {"name": name, "mimeType": mime, "parents": [chapter_folder["id"]], "appProperties": {"contract_sha256": contract.payload_sha256}}
@@ -87,6 +240,67 @@ def export_chapter_package(chapter: Chapter) -> Chapter:
         json_name = f"Chapter_{chapter.number:02d}_CONTRACT.json"
         output_name = f"Chapter_{chapter.number:02d}_OUTPUT"
         contract_doc = {"id": chapter.drive_contract_id, "webViewLink": chapter.drive_contract_url} if chapter.drive_contract_id else (_find_file(drive, contract_name, chapter_folder["id"], "application/vnd.google-apps.document", contract.payload_sha256) or create_file(contract_name, "application/vnd.google-apps.document"))
+        contract_text = (
+            "GAIDEN WRITER — FROZEN NARRATIVE CONTRACT\n"
+            "\n"
+            "PROJECT\n"
+            f"{chapter.project.title}\n"
+            "\n"
+            f"CHAPTER {chapter.number:02d}\n"
+            f"{chapter.title}\n"
+            "\n"
+            "EXTERNAL WRITER INSTRUCTION\n"
+            "\n"
+            "Write one complete literary chapter from the frozen "
+            "narrative contract below.\n"
+            "Obey the chapter direction, complete script, anchor facts, "
+            "book kit, continuity ledger, previous chapter summaries, "
+            "recent context and narrative memory.\n"
+            "Preserve established chronology, characterization, setting "
+            "and unresolved story threads.\n"
+            "Do not mention the contract, Gaiden, Gemini, AI, prompts "
+            "or the generation process.\n"
+            "Return only the finished chapter prose in the OUTPUT "
+            "document.\n"
+            "\n"
+            "FROZEN CONTRACT\n"
+            "\n"
+            + json.dumps(
+                package_payload,
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n"
+        )
+
+        write_google_doc(
+            contract_doc["id"],
+            contract_text,
+        )
+
+        frozen_package_text = package.read_text(
+            encoding="utf-8"
+        )
+
+        contract_document_text = (
+            "GAIDEN WRITER CONTRACT — FROZEN PACKAGE\n"
+            "=======================================\n\n"
+            f"Project: {chapter.project.title}\n"
+            f"Chapter: {chapter.number:02d} — {chapter.title}\n"
+            f"Contract version: {chapter.contract_version}\n"
+            f"Contract SHA-256: {contract.payload_sha256}\n\n"
+            "The JSON below is the canonical frozen Writer package.\n"
+            "It contains the book kit, chapter direction, complete script, "
+            "anchor facts, continuity, previous chapter summaries, recent "
+            "context, narrative memory/RAG and execution priorities.\n\n"
+            + frozen_package_text
+        )
+
+        _write_google_doc(
+            contract_doc["id"],
+            contract_document_text,
+        )
+
         json_file = {"id": chapter.drive_json_id, "webViewLink": ""} if chapter.drive_json_id else (_find_file(drive, json_name, chapter_folder["id"], "application/json", contract.payload_sha256) or create_file(json_name, "application/json", package))
         output_doc = {"id": chapter.drive_output_id, "webViewLink": chapter.drive_output_url} if chapter.drive_output_id else (_find_file(drive, output_name, chapter_folder["id"], "application/vnd.google-apps.document", contract.payload_sha256) or create_file(output_name, "application/vnd.google-apps.document"))
         with transaction.atomic():

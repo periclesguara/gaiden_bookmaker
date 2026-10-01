@@ -1,7 +1,8 @@
 # Writer operator rules
 
-- OpenAI Luna writing is orchestrated only by Django's Writer service. Codex may
-  implement/test guardrails and dispatch one explicitly authorized Django run.
+- Local Writer generation is orchestrated only by Django's Writer service.
+  Model traffic is loopback-only; never add Qwen/Phi coupling or external
+  OpenAI calls.
 - Do not coordinate individual generations, poll GPU/model progress in a loop,
   rewrite prompts between sessions, restart the model, or automatically retry
   failed generations. This avoids consuming Codex credits during writing.

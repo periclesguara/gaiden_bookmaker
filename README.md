@@ -35,7 +35,7 @@ At minimum, export unique values for:
 ```text
 DJANGO_SECRET_KEY
 PGPASSWORD
-OPENAI_API_KEY
+GAIDEN_LOCAL_MODEL and GAIDEN_LOCAL_EMBEDDING_MODEL
 ```
 
 Install the declared environment and then load the non-secret runtime defaults:
@@ -67,7 +67,7 @@ bash scripts/ci/check_repo_hygiene.sh
 python3 scripts/ci/scan_tracked_secrets.py
 python web/manage.py check
 python web/manage.py makemigrations --check --dry-run
-python web/manage.py test editorial pipeline
+python web/manage.py test editorial pipeline printbook
 ```
 
 The GitHub Actions application workflow additionally provisions PostgreSQL 16
@@ -88,10 +88,8 @@ and approved recovery sequence are documented in
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
 - `docs/audits/main-migration-reconciliation.md`: recovered migration
   provenance, data-preserving reconciliation, deployment, and rollback.
-- `docs/writer-qwen-rag.md`: phase-1 Writer rules, Qwen model operation,
-  complete Sherlock indexing, RAG, draft generation, and the phase-2 gate.
-- `docs/writer-workflow.md`: private-network deployment, file treatment, bibles,
-  chapter parameters, four-session generation, review, and finalization.
+- `docs/writer-workflow.md`: loopback-only local models, Writer finalization,
+  direct Intake handoff, and the restricted Intake asset lane.
 
 Architecture-specific documents must be updated in the same pull request as the
 behavior they describe.

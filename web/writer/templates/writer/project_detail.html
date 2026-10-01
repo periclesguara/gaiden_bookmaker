@@ -9,7 +9,7 @@
     </div>
     <div class="actions">
       <a class="btn secondary" href="{% url 'writer:project_detail' project.id %}">Atualizar painel</a>
-      <a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar bíblias e roteiro</a>
+      {% if project.status != "CLOSED" %}<a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar bíblias e roteiro</a>{% endif %}
     </div>
   </div>
 
@@ -58,7 +58,7 @@
       {% endif %}
     </ul>
 
-    <form method="post" action="{% url 'writer:project_sources' project.id %}">
+    {% if project.status != "CLOSED" %}<form method="post" action="{% url 'writer:project_sources' project.id %}">
       {% csrf_token %}
       <div class="source-list">{{ source_form.sources }}</div>
       <button class="secondary" type="submit">Salvar seleção</button>
@@ -95,7 +95,30 @@
       {% else %}
         <small class="button-help">Pronto para iniciar a vetorização completa.</small>
       {% endif %}
-    </form>
+    </form>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Reference Corpus</h2>
+    <p class="muted">Selecione obras canônicas do Intake. O Writer guarda somente a relação; arquivos e índices permanecem globais.</p>
+    {% if project.status != "CLOSED" %}<form method="post" action="{% url 'writer:project_references' project.id %}">{% csrf_token %}
+      <div class="source-list">{{ reference_selection_form.sources }}</div>
+      <button type="submit">Add Selected / Save Selection</button>
+    </form>{% endif %}
+    {% for row in reference_rows %}
+      <article class="notice">
+        <h3>{{ row.reference.source.edition.title|default:row.reference.source.edition.work.title }}</h3>
+        <p>{{ row.reference.source.edition.author|default:row.reference.source.edition.work.author.name }} · {{ row.reference.source.language_code }} · Status: {{ row.reference.source.status }} · Vectorization Status: <strong>{{ row.index.get_status_display }}</strong></p>
+        {% if project.status != "CLOSED" %}<form method="post" action="{% url 'writer:project_reference_edit' project.id row.reference.id %}">{% csrf_token %}
+          {{ row.form.enabled.label_tag }} {{ row.form.enabled }}
+          {{ row.form.roles_text.label_tag }} {{ row.form.roles_text }}
+          {{ row.form.notes.label_tag }} {{ row.form.notes }}
+          <button type="submit">Edit</button>
+        </form>
+        <div class="actions"><form method="post" action="{% url 'writer:reference_vectorize' project.id row.reference.id %}">{% csrf_token %}<button type="submit">{% if row.index.status == 'READY' %}Re-vectorize{% else %}Vectorize{% endif %}</button></form>
+        <form method="post" action="{% url 'writer:project_reference_remove' project.id row.reference.id %}">{% csrf_token %}<button class="secondary" type="submit">Remove</button></form></div>{% endif %}
+      </article>
+    {% empty %}<p>Nenhuma referência selecionada. A geração continua normalmente sem contexto de referência.</p>{% endfor %}
   </section>
 
   <section class="card">
@@ -117,8 +140,6 @@
       {{ dashboard.models.writing_model }} ·
       {% if dashboard.models.writing_available %}<span class="check">instalado</span>{% elif dashboard.models.writing_available == False %}<span class="pending">ausente</span>{% else %}<span class="muted">não verificado</span>{% endif %}
     </p>
-    <p><strong>Memória narrativa</strong><br>{{ dashboard.models.narrative_memory_model }}</p>
-    <p><strong>Auditoria lógica</strong><br>{{ dashboard.models.logic_audit_model }}</p>
     <p class="muted">O modelo pode estar instalado sem permanecer carregado na GPU; ele é carregado quando a etapa correspondente começa.</p>
   </section>
 </div>
@@ -126,7 +147,7 @@
 <section class="card">
   <div class="top">
     <div><h2>3–4 · Base criativa</h2><p class="muted">A geração só é liberada quando todos os campos obrigatórios estão preenchidos.</p></div>
-    <a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Preencher bíblias e roteiro</a>
+    {% if project.status != "CLOSED" %}<a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Preencher bíblias e roteiro</a>{% endif %}
   </div>
   <div class="cols">
     <div>
@@ -136,6 +157,7 @@
       <p>{% if project.antagonist_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do antagonista</p>
       <p>{% if project.scenario_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Cenários e locais</p>
       <p>{% if project.world_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Mundo, época e clima</p>
+      <p>{% if project.reference_bible %}<span class="check">✓</span>{% else %}<span class="muted">Opcional</span>{% endif %} Reference Bible</p>
     </div>
     <div>
       <h3>Direção da obra</h3>
@@ -149,7 +171,7 @@
 <section class="card">
   <div class="top">
     <div><h2>5–6 · Capítulos — {{ dashboard.chapters.prepared }}/{{ dashboard.chapters.total }} preparados, {{ dashboard.chapters.generated }} mergeados</h2></div>
-    <form method="post" action="{% url 'writer:generate_next' project.id %}">
+    {% if project.status != "CLOSED" %}<form method="post" action="{% url 'writer:generate_next' project.id %}">
       {% csrf_token %}
       {% if dashboard.next_chapter_row %}<input type="hidden" name="chapter_id" value="{{ dashboard.next_chapter_row.chapter.id }}">{% endif %}
       <button type="button" data-dialog-open="generate-next-dialog">Generate</button>
@@ -169,7 +191,7 @@
           {% if dashboard.next_chapter_row %}<button type="submit" name="confirm" value="yes">Sim, gerar</button>{% endif %}
         </div>
       </dialog>
-    </form>
+    </form>{% endif %}
   </div>
   {% if dashboard.global_generation_blockers %}
     <div class="notice">
@@ -191,6 +213,7 @@
       <td><span class="status {{ row.chapter.status }}">{{ row.chapter.get_status_display }}</span></td>
       <td>
         <div class="actions">
+          {% if project.status != "CLOSED" %}
           <a class="btn secondary" href="{% url 'writer:chapter_edit' row.chapter.id %}">Parâmetros</a>
           <a class="btn secondary" href="{% url 'writer:chapter_detail' row.chapter.id %}">Abrir</a>
           <form method="post" action="{% url 'writer:generate' row.chapter.id %}">
@@ -212,6 +235,7 @@
               <button class="green" type="submit">Finalizar capítulo</button>
             </form>
           {% endif %}
+          {% endif %}
         </div>
         {% if row.generation_blockers %}
           <small class="button-help">Pendente: {% if dashboard.global_generation_blockers %}aguardando os requisitos gerais acima{% if row.chapter_blockers %}; {% endif %}{% endif %}{% for blocker in row.chapter_blockers %}{{ blocker }}{% if not forloop.last %}; {% endif %}{% endfor %}. Clique para ver os detalhes.</small>
@@ -224,5 +248,65 @@
     <tr><td colspan="6">Nenhum capítulo configurado.</td></tr>
   {% endfor %}
   </tbody></table></div>
+</section>
+
+<section class="card">
+  <div class="top">
+    <div><h2>7 · Fechamento do manuscrito</h2><p class="muted">Depois que o último capítulo for finalizado, consolide, exporte para a mesma pasta do projeto no Google Drive e importe a versão revisada.</p></div>
+    {% if manuscript_pipeline.merge_revision %}<span class="status FINAL">MANUSCRITO SALVO</span>{% endif %}
+  </div>
+  <div class="actions">
+      <form method="post" action="{% url 'writer:save_manuscript' project.id %}">
+        {% csrf_token %}
+        <button type="submit" {% if project.status == "CLOSED" or not manuscript_pipeline.all_chapters_final %}disabled{% endif %}>1. Save Manuscript · Unir todos os capítulos</button>
+      </form>
+  </div>
+  {% if project.status == "CLOSED" %}<p class="button-help">Este projeto foi fechado. O miolo canônico segue diretamente ao Intake, onde são preparados frontmatter, imagens, capa e preview.</p>{% elif not manuscript_pipeline.all_chapters_final %}<p class="button-help">Finalize todos os capítulos para liberar o primeiro passo.</p>{% endif %}
+  {% if manuscript_pipeline.merge_revision %}<p class="check">Merge salvo: v{{ manuscript_pipeline.merge_revision.version }} · {{ manuscript_pipeline.merge_revision.word_count }} palavras.</p>{% endif %}
+</section>
+
+<section class="card">
+  <div class="top">
+    <div>
+      <h2>8 · Manuscrito Final</h2>
+      <p>Status do Writer: <strong>{{ project.get_status_display }}</strong></p>
+    </div>
+    {% if project.status == "CLOSED" %}<span class="status CLOSED">PROJETO FECHADO</span>{% endif %}
+  </div>
+  <p>{{ manuscript_revisions|length }} revisão(ões) existente(s).{% if project.canonical_manuscript %} Canonical atual: v{{ project.canonical_manuscript.version }}.{% endif %}</p>
+  {% if project.closed_at %}<p>Fechado em {{ project.closed_at }}{% if project.closed_by %} por {{ project.closed_by }}{% endif %}.</p>{% endif %}
+  {% if project.status != "CLOSED" %}
+    <form method="post" enctype="multipart/form-data" action="{% url 'writer:import_manuscript' project.id %}">
+      {% csrf_token %}
+      {{ manuscript_upload_form.manuscript.label_tag }}
+      {{ manuscript_upload_form.manuscript }}
+      <button type="submit">Importar manuscrito</button>
+    </form>
+  {% endif %}
+  {% if manuscript_revisions %}
+    <div class="table"><table><thead><tr><th>Versão</th><th>Arquivo</th><th>Palavras</th><th>Caracteres</th><th>Capítulos</th><th>SHA</th><th>Criado em</th><th>Canonical?</th><th>Ação</th></tr></thead><tbody>
+    {% for revision in manuscript_revisions %}
+      <tr>
+        <td>v{{ revision.version }}</td><td>{{ revision.original_filename }}</td><td>{{ revision.word_count }}</td><td>{{ revision.character_count }}</td><td>{{ revision.detected_chapter_count|default:"—" }}</td><td>{{ revision.sha256|slice:":12" }}</td><td>{{ revision.created_at }}</td>
+        <td>{% if project.canonical_manuscript_id == revision.id %}SIM{% else %}NÃO{% endif %}</td>
+        <td>{% if project.status != "CLOSED" and project.canonical_manuscript_id != revision.id %}<form method="post" action="{% url 'writer:promote_canonical_manuscript' project.id revision.id %}">{% csrf_token %}<button type="submit">Definir como Miolo Canônico</button></form>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% endif %}
+  {% if project.status != "CLOSED" and project.canonical_manuscript %}
+    <form method="post" action="{% url 'writer:close_project' project.id %}" style="margin-top:12px">
+      {% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="green" type="submit">Fechar Projeto</button>
+    </form>
+  {% elif project.status == "CLOSED" and project.canonical_manuscript %}
+    <p><strong>Canonical Manuscript:</strong> v{{ project.canonical_manuscript.version }} · {{ project.canonical_manuscript.word_count }} palavras · {{ project.canonical_manuscript.sha256|slice:":12" }}…</p>
+    <p class="notice ok">O Writer está somente leitura. O Intake usará o miolo canônico para configurar frontmatter, imagens, capa e preview.</p>
+    <form method="post" action="{% url 'writer:proceed_to_intake' project.id %}" style="margin-top:12px">
+      {% csrf_token %}
+      <p>{{ writer_intake_form.author_name.label_tag }} {{ writer_intake_form.author_name }}</p>
+      <p>{{ writer_intake_form.publisher.label_tag }} {{ writer_intake_form.publisher }}</p>
+      <button class="green" type="submit">Prosseguir para Intake</button>
+    </form>
+  {% endif %}
 </section>
 {% endblock %}

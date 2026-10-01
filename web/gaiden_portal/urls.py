@@ -9,6 +9,7 @@ urlpatterns = [
     path("", portal_views.home, name="root"),
     path("collections/", include("collections_module.urls")),
     path("writer/", include("web.writer.urls")),
+    path("printbook/", include("web.printbook.urls")),
     path("intake/", include("web.intake.urls")),
     path("manual/", include("web.manual_ai.urls")),
     path("finalized-projects/", include("web.finalized_projects.urls")),

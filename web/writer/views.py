@@ -7,8 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from .forms import ChapterForm, GoogleDocSourceForm, ProjectSourcesForm, StoryProjectForm
-from .models import Chapter, SourceDocument, StoryProject
+from .forms import (WriterIntakeForm, ChapterForm, GoogleDocSourceForm, ManuscriptUploadForm,
+                    ProjectReferenceForm, ProjectReferenceSelectionForm, ProjectSourcesForm, StoryProjectForm)
+from .models import Chapter, ManuscriptRevision, ProjectReference, SourceDocument, StoryProject
 from .services.dashboard import build_project_dashboard
 from .services.generation import generate_chapter
 from .services.narrative import run_chapter_workflow
@@ -16,11 +17,22 @@ from .services.normalization import normalize_document
 from .services.projects import synchronize_chapters
 from .services.sources import discover_source_documents, register_google_doc
 from .services.vectorization import vectorize_project
+from .services.references import index_status, set_project_references, vectorize_source
 from .services.chapter_closure import close_chapter
 from .services.package_preparation import prepare_chapter_package
 from .services.google_drive_export import export_chapter_package
 from .services.output_import import import_chapter_output
+from .services.manuscript_pipeline import (
+    save_merged_manuscript,
+)
 from .services.google_docs import canonical_google_doc_url, extract_document_id
+from .services.manuscripts import (
+    close_writer_project,
+    ensure_project_writable,
+    import_manuscript_revision,
+    promote_canonical_manuscript as promote_canonical_manuscript_service,
+    ProjectClosedError,
+)
 
 
 @require_GET
@@ -132,6 +144,13 @@ def normalize_sources(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id) if project_id else StoryProject()
+    if project.pk:
+        try:
+            ensure_project_writable(project)
+        except ProjectClosedError:
+            if request.method == "GET":
+                return redirect("writer:project_detail", project_id=project.id)
+            raise
     form = StoryProjectForm(request.POST or None, instance=project)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
@@ -145,15 +164,125 @@ def project_edit(request: HttpRequest, project_id: int | None = None) -> HttpRes
 @require_GET
 def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(
-        StoryProject.objects.prefetch_related("chapters__sessions", "sources"), pk=project_id
+        StoryProject.objects.prefetch_related("chapters__sessions", "sources", "references__source__edition__work__author"), pk=project_id
     )
     dashboard = build_project_dashboard(project)
+    chapters = list(project.chapters.order_by("number"))
+    all_chapters_final = (
+        len(chapters) == project.chapter_count
+        and all(chapter.status == Chapter.Status.FINAL and chapter.final_text.strip() for chapter in chapters)
+    )
     return render(request, "writer/project_detail.html", {
         "project": project,
         "source_form": ProjectSourcesForm(project=project),
+        "reference_selection_form": ProjectReferenceSelectionForm(project=project),
+        "reference_rows": [
+            {"reference": reference, "index": index_status(reference.source),
+             "form": ProjectReferenceForm(instance=reference)}
+            for reference in project.references.all()
+        ],
         "dashboard": dashboard,
         "workflow_stages": dashboard["stages"],
+        "manuscript_revisions": project.manuscript_revisions.all(),
+        "manuscript_upload_form": ManuscriptUploadForm(),
+        "writer_intake_form": WriterIntakeForm(),
+        "manuscript_pipeline": {
+            "all_chapters_final": all_chapters_final,
+            "merge_revision": project.manuscript_merge_revision,
+        },
     })
+
+
+@require_POST
+def project_references(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    form = ProjectReferenceSelectionForm(request.POST, project=project)
+    if form.is_valid():
+        set_project_references(project, form.cleaned_data["sources"])
+        messages.success(request, "Reference Corpus atualizado sem copiar arquivos do Intake.")
+    else:
+        messages.error(request, "Seleção de referências inválida.")
+    return redirect("writer:project_detail", project_id=project.pk)
+
+
+@require_POST
+def project_reference_edit(request: HttpRequest, project_id: int, reference_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    reference = get_object_or_404(ProjectReference, pk=reference_id, project=project)
+    form = ProjectReferenceForm(request.POST, instance=reference)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Papéis e notas da referência salvos.")
+    else:
+        messages.error(request, "Papéis ou notas inválidos.")
+    return redirect("writer:project_detail", project_id=project.pk)
+
+
+@require_POST
+def project_reference_remove(request: HttpRequest, project_id: int, reference_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    get_object_or_404(ProjectReference, pk=reference_id, project=project).delete()
+    messages.success(request, "Referência removida somente deste projeto; a fonte do Intake foi preservada.")
+    return redirect("writer:project_detail", project_id=project.pk)
+
+
+@require_POST
+def reference_vectorize(request: HttpRequest, project_id: int, reference_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    reference = get_object_or_404(ProjectReference.objects.select_related("source"), pk=reference_id, project=project)
+    try:
+        vectorize_source(reference.source)
+        messages.success(request, "Fonte canônica vetorizada e disponível para reutilização.")
+    except Exception as exc:
+        messages.error(request, f"Vetorização falhou: {exc}")
+    return redirect("writer:project_detail", project_id=project.pk)
+
+
+@require_POST
+def save_manuscript(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    try:
+        revision = save_merged_manuscript(project, request.user)
+        messages.success(request, f"Manuscrito salvo como v{revision.version}, com todos os capítulos finalizados.")
+    except Exception as exc:
+        messages.error(request, f"Não foi possível salvar o manuscrito: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@require_POST
+def proceed_to_intake(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    form = WriterIntakeForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Informe os créditos obrigatórios para abrir os assets do Intake.")
+        return redirect("writer:project_detail", project_id=project.id)
+
+    from pipeline.services.writer_intake_handoff import (
+        WriterIntakeHandoffError,
+        register_closed_writer_in_intake,
+        handoff_writer_edition_to_intake,
+    )
+
+    try:
+        result = register_closed_writer_in_intake(
+            project=project,
+            author_name=form.cleaned_data["author_name"],
+            publisher=form.cleaned_data["publisher"],
+        )
+        handoff_writer_edition_to_intake(edition=result.edition)
+    except WriterIntakeHandoffError as exc:
+        messages.error(request, f"O encaminhamento para o Intake falhou: {exc}")
+        return redirect("writer:project_detail", project_id=project.id)
+
+    messages.success(
+        request,
+        "Edição encaminhada ao Intake." if result.created else "Edição existente encaminhada novamente ao Intake.",
+    )
+    return redirect("writer_intake_assets", edition_id=result.edition.id)
 
 
 @require_POST
@@ -185,6 +314,7 @@ def stage_status(request: HttpRequest, project_id: int, stage_number: int) -> Ht
 @require_POST
 def project_sources(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
     form = ProjectSourcesForm(request.POST, project=project)
     if form.is_valid():
         selected = form.cleaned_data["sources"]
@@ -207,6 +337,7 @@ def vectorize(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(
         StoryProject.objects.prefetch_related("chapters__sessions", "sources"), pk=project_id
     )
+    ensure_project_writable(project)
     dashboard = build_project_dashboard(project)
     confirmed = request.POST.get("confirm") == "yes"
     remake = request.POST.get("remake") == "yes"
@@ -249,6 +380,12 @@ def chapter_detail(request: HttpRequest, chapter_id: int) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
+    try:
+        ensure_project_writable(chapter.project)
+    except ProjectClosedError:
+        if request.method == "GET":
+            return redirect("writer:project_detail", project_id=chapter.project_id)
+        raise
     if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
         raise Http404("merged and finalized chapters are immutable")
     form = ChapterForm(request.POST or None, instance=chapter)
@@ -262,6 +399,7 @@ def chapter_edit(request: HttpRequest, chapter_id: int) -> HttpResponse:
 @require_POST
 def generate(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter.objects.select_related("project"), pk=chapter_id)
+    ensure_project_writable(chapter.project)
     if request.POST.get("confirm") != "yes":
         messages.warning(request, "Confirme a preparação do pacote na caixa antes de continuar.")
         return redirect("writer:project_detail", project_id=chapter.project_id)
@@ -295,6 +433,7 @@ def generate_next(request: HttpRequest, project_id: int) -> HttpResponse:
         StoryProject.objects.prefetch_related("chapters__sessions", "sources"),
         pk=project_id,
     )
+    ensure_project_writable(project)
     if request.POST.get("confirm") != "yes":
         messages.warning(request, "Confirme a preparação do pacote do capítulo.")
         return redirect("writer:project_detail", project_id=project.id)
@@ -321,6 +460,7 @@ def generate_next(request: HttpRequest, project_id: int) -> HttpResponse:
 @require_POST
 def export_drive(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter, pk=chapter_id)
+    ensure_project_writable(chapter.project)
     try:
         chapter = export_chapter_package(chapter)
         messages.success(request, "Pacote exportado para o Google Drive; aguardando saída externa.")
@@ -332,6 +472,7 @@ def export_drive(request: HttpRequest, chapter_id: int) -> HttpResponse:
 @require_POST
 def import_output(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter, pk=chapter_id)
+    ensure_project_writable(chapter.project)
     try:
         output_url = request.POST.get("output_url", "").strip()
         if output_url:
@@ -349,6 +490,7 @@ def import_output(request: HttpRequest, chapter_id: int) -> HttpResponse:
 @require_POST
 def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
     chapter = get_object_or_404(Chapter, pk=chapter_id)
+    ensure_project_writable(chapter.project)
     if chapter.status == Chapter.Status.FINAL:
         messages.success(request, "Finalização concluída: este capítulo já está finalizado.")
         return redirect("writer:chapter_detail", chapter_id=chapter.id)
@@ -362,3 +504,51 @@ def finalize(request: HttpRequest, chapter_id: int) -> HttpResponse:
     except Exception as exc:
         messages.error(request, f"Não foi possível finalizar: {exc}")
     return redirect("writer:chapter_detail", chapter_id=chapter.id)
+
+
+@require_POST
+def import_manuscript(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    form = ManuscriptUploadForm(request.POST, request.FILES)
+    if form.is_valid():
+        try:
+            revision = import_manuscript_revision(
+                project, form.cleaned_data["manuscript"], request.user
+            )
+            messages.success(request, f"Manuscrito importado como v{revision.version}.")
+        except Exception as exc:
+            messages.error(request, f"Importação não concluída: {exc}")
+    else:
+        messages.error(request, "Upload inválido: " + "; ".join(
+            error for errors in form.errors.values() for error in errors
+        ))
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@require_POST
+def promote_canonical_manuscript(request: HttpRequest, project_id: int, revision_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    revision = get_object_or_404(ManuscriptRevision, pk=revision_id, project=project)
+    try:
+        promote_canonical_manuscript_service(project, revision)
+        messages.success(request, f"v{revision.version} definido como Miolo Canônico.")
+    except Exception as exc:
+        messages.error(request, f"Não foi possível definir o canonical: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@require_POST
+def close_project(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    if request.POST.get("confirm") != "yes":
+        messages.warning(request, "Confirmação obrigatória para fechar o projeto.")
+        return redirect("writer:project_detail", project_id=project.id)
+    try:
+        close_writer_project(project, request.user)
+        messages.success(request, "Projeto fechado; o Writer agora é somente leitura.")
+    except Exception as exc:
+        messages.error(request, f"Não foi possível fechar o projeto: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)

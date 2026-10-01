@@ -23,6 +23,20 @@ def frontmatter_dir(edition: Edition) -> Path:
     return storage.frontmatter_dir(edition.work.code, edition.language.code)
 
 
+def _is_writer_canonical(edition: Edition) -> bool:
+    provenance = getattr(edition.work, "source_provenance", None)
+    if not isinstance(provenance, dict):
+        return False
+    markers = {
+        str(provenance.get(key, "")).strip().lower()
+        for key in ("origin", "source_kind", "workflow")
+    }
+    return bool(
+        markers & {"writer", "writer_canonical", "writer_closed"}
+        or provenance.get("writer_canonical_revision_id")
+    )
+
+
 def translated_miolo_path(edition: Edition) -> Path:
     return storage.translated_dir(edition.work.code, edition.language.code) / "miolo.md"
 
@@ -1640,7 +1654,8 @@ def build_merged_kdp_source(edition: Edition) -> Path:
     core_txt = _normalize_pre_chapter_prelude(core_txt, edition).strip()
     if edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr":
         core_txt = _apply_book_0031_fr_editorial_shape(core_txt).strip()
-    core_txt = _renumber_core_aphorisms(core_txt).strip()
+    if not _is_writer_canonical(edition):
+        core_txt = _renumber_core_aphorisms(core_txt).strip()
     if not (edition.work.code == "0031 epictetus — the enchiridion" and edition.language.code.lower() == "fr"):
         core_txt = _insert_visual_chapter_titles(core_txt).strip()
     core_txt = _remove_unwanted_taglines(core_txt).strip()

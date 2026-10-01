@@ -12,7 +12,7 @@ def _extract_output_text(response: Any) -> str:
     try:
         return str(response.output[0].content[0].text).strip()
     except Exception as exc:
-        raise RuntimeError("OpenAI Responses API returned no output text.") from exc
+        raise RuntimeError("Local model adapter returned no output text.") from exc
 
 
 def _usage_dict(response: Any) -> dict[str, Any]:

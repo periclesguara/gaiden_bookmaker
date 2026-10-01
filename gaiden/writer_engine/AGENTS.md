@@ -10,7 +10,8 @@ These rules apply to `gaiden/writer_engine/` and its tests.
   separate components.
 - Model weights, vector indexes, source corpora, prompts containing manuscripts,
   and generated drafts are runtime artifacts and must never be committed.
-- External model and embedding calls are disabled in ordinary tests and CI.
+- Model and embedding traffic must use the loopback-only local runtime. Reject
+  remote endpoints and Qwen/Phi model families in every application stage.
 
 ## Corpus and RAG
 
@@ -42,9 +43,9 @@ These rules apply to `gaiden/writer_engine/` and its tests.
 
 ## Model operation and security
 
-- Writer generation uses OpenAI GPT-5.6 Luna with the existing system API key.
-  Local embeddings remain separate. Never hard-code tokens or operator paths.
-- Refuse placeholder credentials on non-loopback endpoints.
+- Writer generation and embeddings use only the configured loopback Ollama
+  runtime. Never add external OpenAI calls, SDK clients, or cloud fallbacks.
+- Never hard-code tokens or operator paths.
 - Download only official model repositories into external storage. Production
   downloads require an explicit immutable model revision.
 - Never enable arbitrary remote code merely to load a model.

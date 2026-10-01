@@ -62,7 +62,6 @@ class FakeChapterGateway:
     GAIDEN_DRIVE_REMOTE="gaiden_drive",
     GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS=30_000,
     GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS=60_000,
-    GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE=0.85,
     GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO=0.45,
     GAIDEN_CHAPTER_RETURN_MAX_SIZE_RATIO=1.80,
     GAIDEN_CHAPTER_RETURN_MIN_PARAGRAPH_RATIO=0.50,
@@ -570,7 +569,6 @@ class ChapterTranslationWorkflowTests(TestCase):
     GAIDEN_DRIVE_REMOTE="gaiden_drive",
     GAIDEN_CHAPTER_SPLIT_ALERT_CHARACTERS=30_000,
     GAIDEN_CHAPTER_SPLIT_HARD_LIMIT_CHARACTERS=60_000,
-    GAIDEN_CHAPTER_SPLIT_QWEN_CONFIDENCE=0.85,
     GAIDEN_CHAPTER_RETURN_MIN_SIZE_RATIO=0.45,
     GAIDEN_CHAPTER_RETURN_MAX_SIZE_RATIO=1.80,
     GAIDEN_CHAPTER_RETURN_MIN_PARAGRAPH_RATIO=0.50,
@@ -612,12 +610,9 @@ class ChapterTranslationInterfaceTests(TestCase):
         self.client = Client()
         self.page_url = reverse("post_intake_workflow", kwargs={"edition_id": self.edition.id})
 
-    @patch("pipeline.views.detect_chapter_boundaries")
     @patch("pipeline.views.chapter_translation.discover_chapter_returns")
     @patch("pipeline.views.chapter_translation.export_chapter_job")
-    def test_get_shows_step_025_without_calling_drive_or_qwen_actions(
-        self, export_job, discover_returns, qwen_detector
-    ):
+    def test_get_shows_step_025_without_calling_drive_actions(self, export_job, discover_returns):
         response = self.client.get(self.page_url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "02.5 · Split por capítulos")
@@ -629,7 +624,6 @@ class ChapterTranslationInterfaceTests(TestCase):
         self.assertContains(response, "04 · Importar consolidado")
         export_job.assert_not_called()
         discover_returns.assert_not_called()
-        qwen_detector.assert_not_called()
 
     def test_cover_selection_starts_upload_and_shows_pending_state(self):
         ManualTranslationJob.objects.create(
@@ -668,6 +662,23 @@ class ChapterTranslationInterfaceTests(TestCase):
         self.assertContains(page, "Importar arquivo consolidado")
         self.assertNotContains(page, "Executar merge")
 
+    def test_drive_ready_job_still_exposes_explicit_reexport_action(self):
+        job = chapter_translation.prepare_chapter_job(
+            edition=self.edition,
+            target_edition=self.edition,
+            target_language="en_us",
+            translation_mode="modernize_2026",
+            source_path=self.heading_path,
+        )
+        job.status = ManualTranslationJob.STATUS_DRIVE_READY
+        job.save(update_fields=["status"])
+
+        page = self.client.get(self.page_url)
+
+        self.assertContains(page, "03 · Reenviar job por capítulos ao Google Drive")
+        self.assertContains(page, 'name="force" value="1"')
+        self.assertContains(page, "return/book_7007_en_us_translated.txt")
+
     @patch("pipeline.views.chapter_translation.export_chapter_job")
     def test_only_explicit_export_post_calls_drive_export(self, export_job):
         job = chapter_translation.prepare_chapter_job(
@@ -687,7 +698,28 @@ class ChapterTranslationInterfaceTests(TestCase):
             reverse("chapter_translation_export", kwargs={"job_id": job.id})
         )
         self.assertEqual(post_response.status_code, 302)
-        export_job.assert_called_once()
+        export_job.assert_called_once_with(job, force=False)
+
+    @patch("pipeline.views.chapter_translation.export_chapter_job")
+    def test_reexport_post_for_drive_ready_job_forces_drive_publication(self, export_job):
+        job = chapter_translation.prepare_chapter_job(
+            edition=self.edition,
+            target_edition=self.edition,
+            target_language="en_us",
+            translation_mode="modernize_2026",
+            source_path=self.heading_path,
+        )
+        job.status = ManualTranslationJob.STATUS_DRIVE_READY
+        job.save(update_fields=["status"])
+        export_job.return_value = {"status": "DRIVE_READY", "unit_count": 2}
+
+        response = self.client.post(
+            reverse("chapter_translation_export", kwargs={"job_id": job.id}),
+            {"force": "1"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        export_job.assert_called_once_with(job, force=True)
 
     def test_legacy_v1_job_is_blocked_until_explicit_v2_replacement(self):
         ManualTranslationJob.objects.create(
@@ -799,8 +831,7 @@ class ChapterTranslationInterfaceTests(TestCase):
                 job.refresh_from_db()
                 self.assertEqual(job.status, ManualTranslationJob.STATUS_SPLIT_VALIDATED)
 
-    @patch("pipeline.views.detect_chapter_boundaries")
-    def test_qwen_fallback_runs_only_on_explicit_post_and_is_revalidated(self, detector):
+    def test_split_without_reliable_headings_requires_human_review(self):
         self.heading_path.write_text("Opening without deterministic headings.\n", encoding="utf-8")
         self.client.post(
             reverse("chapter_translation_split", kwargs={"edition_id": self.edition.id}),
@@ -808,30 +839,3 @@ class ChapterTranslationInterfaceTests(TestCase):
         )
         job = ManualTranslationJob.objects.get(edition=self.edition, target_language="en_us")
         self.assertEqual(job.status, ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED)
-        get_response = self.client.get(
-            reverse("chapter_translation_split_qwen", kwargs={"job_id": job.id})
-        )
-        self.assertEqual(get_response.status_code, 302)
-        detector.assert_not_called()
-        text = self.heading_path.read_text(encoding="utf-8")
-        detector.return_value = {
-            "schema": "gaiden_chapter_detection_v1",
-            "units": [
-                {
-                    "sequence": 1,
-                    "unit_type": "chapter",
-                    "heading": "Opening without deterministic headings.",
-                    "start_offset": 0,
-                    "end_offset": len(text),
-                    "confidence": 0.99,
-                }
-            ],
-        }
-        post_response = self.client.post(
-            reverse("chapter_translation_split_qwen", kwargs={"job_id": job.id})
-        )
-        self.assertEqual(post_response.status_code, 302)
-        detector.assert_called_once_with(text)
-        job.refresh_from_db()
-        self.assertEqual(job.status, ManualTranslationJob.STATUS_SPLIT_VALIDATED)
-        self.assertEqual(job.split_strategy, "qwen_supervised")

@@ -131,7 +131,7 @@ class RepairPipelineTests(SimpleTestCase):
         self.engine.generator.generate.return_value=json.dumps(critic_payload())
 
     def run_scene(self, texts, contract=CONTRACT):
-        self.engine.generate_candidate.side_effect=[GenerationResult(t,'test/qwen',(),()) if isinstance(t,str) else t for t in texts]
+        self.engine.generate_candidate.side_effect=[GenerationResult(t,'test/local',(),()) if isinstance(t,str) else t for t in texts]
         return generate_validated_scene(self.engine,object(),contract,session_root=self.root)
 
     def test_bad_then_good_preserves_attempts_lowers_temperature_and_stops(self):
@@ -172,7 +172,7 @@ class RepairPipelineTests(SimpleTestCase):
         self.assertEqual(len(list(self.root.rglob('attempt_*.txt'))),1)
         self.assertEqual(list(self.root.rglob('approved.txt')),[])
 
-    def test_fenced_json_from_local_phi_is_accepted(self):
+    def test_fenced_json_from_local_model_is_accepted(self):
         self.engine.generator.generate.return_value = (
             '```json\n' + json.dumps(critic_payload()) + '\n```'
         )
@@ -252,7 +252,7 @@ class RepairPipelineTests(SimpleTestCase):
         self.assertEqual((Path(first.audit_path)/'approved.txt').read_text(),TEXT)
 
     def test_existing_text_is_preserved_in_same_repair_audit(self):
-        self.engine.generate_candidate.side_effect=[GenerationResult(TEXT,'test/qwen',(),())]
+        self.engine.generate_candidate.side_effect=[GenerationResult(TEXT,'test/local',(),())]
         scene=generate_validated_scene(
             self.engine,
             object(),
@@ -269,7 +269,7 @@ class RepairPipelineTests(SimpleTestCase):
         critic = Mock()
         critic.last_finish_reason = 'stop'
         critic.generate.return_value = json.dumps(critic_payload())
-        self.engine.generate_candidate.side_effect = [GenerationResult(TEXT, 'test/qwen', (), ())]
+        self.engine.generate_candidate.side_effect = [GenerationResult(TEXT, 'test/local', (), ())]
 
         generate_validated_scene(
             self.engine, object(), CONTRACT, session_root=self.root,
@@ -283,17 +283,10 @@ class RepairPipelineTests(SimpleTestCase):
 class CriticRoutingTests(SimpleTestCase):
     @patch.dict('os.environ', {'GAIDEN_WRITER_CRITIC_PROVIDER': 'openai'})
     @patch('web.writer.services.validation.writer_generator')
-    def test_openai_provider_uses_the_writer_luna_factory(self, factory):
+    def test_legacy_provider_setting_cannot_route_away_from_local_writer(self, factory):
         from web.writer.services.validation import critic_generator
         self.assertIs(critic_generator(), factory.return_value)
         factory.assert_called_once_with()
-
-    @patch.dict('os.environ', {'GAIDEN_WRITER_CRITIC_PROVIDER': 'invalid'})
-    def test_invalid_critic_provider_fails_closed(self):
-        from web.writer.services.validation import critic_generator
-        with self.assertRaisesRegex(ValueError, 'GAIDEN_WRITER_CRITIC_PROVIDER'):
-            critic_generator()
-
 
 class StoredApprovalTests(TestCase):
     def setUp(self):
@@ -332,22 +325,11 @@ class StoredApprovalTests(TestCase):
 
 class LocalEndpointTests(SimpleTestCase):
     def test_writer_rejects_remote_model_endpoint(self):
-        from web.writer.services.generation import _require_loopback_endpoint
-
-        with self.assertRaisesMessage(ValueError, "loopback"):
-            _require_loopback_endpoint("https://api.example.test/v1", "writer")
-        self.assertEqual(
-            _require_loopback_endpoint("http://127.0.0.1:8001/v1", "writer"),
-            "http://127.0.0.1:8001/v1",
-        )
-
-    @patch("gaiden.writer_engine.clients.OpenAI")
-    def test_local_writer_allows_long_generation_without_transport_retry(self, client):
-        from gaiden.writer_engine.clients import QwenGenerator
-
-        QwenGenerator(base_url="http://127.0.0.1:8001/v1")
-        self.assertEqual(client.call_args.kwargs["timeout"], 1800.0)
-        self.assertEqual(client.call_args.kwargs["max_retries"], 0)
+        from gaiden.infrastructure.local_models import _local_base_url
+        from unittest.mock import patch
+        with patch.dict("os.environ", {"GAIDEN_LOCAL_MODEL_URL": "https://api.example.test/v1"}):
+            with self.assertRaisesMessage(ValueError, "loopback"):
+                _local_base_url()
 
 
 class ExistingSessionRepairTests(TestCase):
@@ -391,7 +373,7 @@ class ExistingSessionRepairTests(TestCase):
 
         def validated(chapter, number, engine, request, contract, previous, **kwargs):
             return ValidatedScene(
-                GenerationResult(f"Repaired session {number}.", "local/qwen", (), ()),
+                GenerationResult(f"Repaired session {number}.", "local/model", (), ()),
                 ValidationResult(True, 100, scope="mechanical_and_local_critic"),
                 {"location": f"location {number}"},
                 f"/audit/{number}",

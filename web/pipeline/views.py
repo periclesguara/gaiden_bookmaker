@@ -40,6 +40,7 @@ from editorial.models import (
 from editorial import kdp_mode
 from editorial.frontmatter import optional_section_warnings
 from editorial.edition_renderer import EditionRenderer, invalidate_premium_render
+from editorial.services.book_preview import build_book_preview_context
 from gaiden.application.pipeline import ingest as pipeline_ingest
 from gaiden.application.pipeline import normalization as pipeline_normalization
 from gaiden.application.pipeline.translation import (
@@ -57,7 +58,6 @@ from gaiden.application.builds.epubcheck_service import stream_sha256
 from gaiden.application.builds.finalized_projects import mark_build_outdated
 from gaiden.infrastructure import storage
 from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
-from gaiden.infrastructure.qwen_chapter_detection import detect_chapter_boundaries
 
 from .models import (
     BookEditionTemplate,
@@ -1178,6 +1178,8 @@ def _imported_book_rows(*, batch_code: str = "") -> list[dict[str, object]]:
         row.edition_id: row
         for row in EditionPipeline.objects.filter(edition_id__in=[edition.id for edition in editions.values()])
     }
+    from web.printbook.catalog import latest_by_edition
+    print_sources = latest_by_edition([edition.id for edition in editions.values()])
     supported_extensions = pipeline_ingest.source_extract_supported_extensions()
     rows: list[dict[str, object]] = []
     for item in items:
@@ -1210,6 +1212,7 @@ def _imported_book_rows(*, batch_code: str = "") -> list[dict[str, object]]:
                 "extension_supported": extension_supported,
                 "ready": ready,
                 "edition": edition,
+                "print_source": print_sources.get(edition.id) if edition else None,
                 "stage_label": stage_label,
                 "stage_code": stage_code,
                 "action_label": "Abrir bloco de edição" if ready else "Enviar ao bloco de edição",
@@ -1644,6 +1647,13 @@ def post_intake_workflow(request, edition_id: int):
         return redirect("imported_book_list")
 
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    provenance = dict(edition.work.source_provenance or {})
+    writer_handoff = (
+        provenance.get("origin") == "writer_canonical"
+        and bool(provenance.get("intake_book_code"))
+    )
+    if writer_handoff:
+        return redirect("writer_intake_assets", edition_id=edition.id)
     selected_target = _normalize_translate_variant(
         request.GET.get("target")
         or (pipeline_state.translation_language if pipeline_state else "")
@@ -1742,12 +1752,16 @@ def post_intake_workflow(request, edition_id: int):
             or job.status == ManualTranslationJob.STATUS_COMPLETED
         )
     )
+    if writer_handoff:
+        translation_ready = True
     return render(
         request,
         "pipeline/post_intake_workflow.html",
         {
             "edition": edition,
             "book_code": edition.work.code,
+            "writer_handoff": writer_handoff,
+            "intake_book_code": provenance.get("intake_book_code", ""),
             "source_template": source_template,
             "pipeline_state": pipeline_state,
             "normalized_path": normalized_path,
@@ -1807,7 +1821,7 @@ def post_intake_workflow(request, edition_id: int):
                 f"?{urlencode({'return_to': 'post_intake', 'workflow_edition_id': edition.id, 'target': selected_target})}"
                 if target_template else ""
             ),
-            "pre_qa_exists": bool(build_dir and any(build_dir.glob("BOOK.PRE_QA*.md"))),
+            "pre_qa_exists": writer_handoff or bool(build_dir and any(build_dir.glob("BOOK.PRE_QA*.md"))),
             "final_md_exists": bool(build_dir and (build_dir / "BOOK.MD_FINAL").exists()),
             "epub_exists": epub_exists,
             "epub_outdated": epub_outdated,
@@ -1830,6 +1844,10 @@ def chapter_translation_split(request, edition_id: int):
         EditorialEdition.objects.select_related("work__author", "language"),
         id=edition_id,
     )
+    blocked = _writer_intake_redirect(edition)
+    if blocked:
+        messages.error(request, "O miolo Writer canônico não passa por split ou tradução no Intake.")
+        return blocked
     if request.method != "POST":
         return redirect("post_intake_workflow", edition_id=edition.id)
     form = ChapterTranslationSplitForm(request.POST)
@@ -1857,46 +1875,23 @@ def chapter_translation_split(request, edition_id: int):
     return redirect(_post_intake_url(edition.id, target_language))
 
 
-def chapter_translation_split_qwen(request, job_id: int):
-    job = get_object_or_404(
-        ManualTranslationJob.objects.select_related("edition__work__author", "edition__language", "target_edition"),
-        id=job_id,
-        schema_version=chapter_translation.JOB_SCHEMA_V2,
-    )
-    if request.method != "POST":
-        return redirect(_post_intake_url(job.edition_id, job.target_language))
-    if job.status != ManualTranslationJob.STATUS_SPLIT_REVIEW_REQUIRED:
-        messages.error(request, "O fallback Qwen só pode ser executado para um split que requer revisão.")
-        return redirect(_post_intake_url(job.edition_id, job.target_language))
-    try:
-        updated = chapter_translation.prepare_chapter_job(
-            edition=job.edition,
-            target_edition=job.target_edition,
-            target_language=job.target_language,
-            translation_mode=job.translation_mode,
-            source_path=Path(job.source_path),
-            force=True,
-            qwen_detector=detect_chapter_boundaries,
-        )
-        if updated.status == ManualTranslationJob.STATUS_SPLIT_VALIDATED:
-            messages.success(request, "Sugestões Qwen validadas contra offsets e SHA-256 do fonte.")
-        else:
-            messages.warning(request, "As sugestões Qwen continuam exigindo revisão; nada foi exportado.")
-    except (OSError, RuntimeError, ValueError) as exc:
-        messages.error(request, str(exc))
-    return redirect(_post_intake_url(job.edition_id, job.target_language))
-
-
 def chapter_translation_export(request, job_id: int):
     job = get_object_or_404(
         ManualTranslationJob.objects.select_related("edition__work__author", "source_artifact"),
         id=job_id,
         schema_version=chapter_translation.JOB_SCHEMA_V2,
     )
+    blocked = _writer_intake_redirect(job.edition)
+    if blocked:
+        messages.error(request, "Exportação por capítulos está desativada para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     try:
-        result = chapter_translation.export_chapter_job(job)
+        result = chapter_translation.export_chapter_job(
+            job,
+            force=request.POST.get("force") == "1",
+        )
         if result["status"] == "NO_OP":
             messages.info(request, "O job por capítulos já estava publicado com os mesmos hashes.")
         else:
@@ -1928,6 +1923,10 @@ def chapter_translation_import_consolidated(request, job_id: int):
         id=job_id,
         schema_version=chapter_translation.JOB_SCHEMA_V2,
     )
+    blocked = _writer_intake_redirect(job.edition)
+    if blocked:
+        messages.error(request, "Importação por capítulos está desativada para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     form = ManualTranslationUploadForm(request.POST, request.FILES)
@@ -1953,6 +1952,10 @@ def chapter_translation_merge(request, job_id: int):
         id=job_id,
         schema_version=chapter_translation.JOB_SCHEMA_V2,
     )
+    blocked = _writer_intake_redirect(job.edition)
+    if blocked:
+        messages.error(request, "Merge de tradução está desativado para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     messages.error(request, "A etapa 4 usa somente a importação do manuscrito consolidado.")
@@ -2002,6 +2005,10 @@ def chapter_translation_final_download(request, job_id: int):
 
 def manual_translation_export(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition.objects.select_related("work__author", "language"), id=edition_id)
+    blocked = _writer_intake_redirect(edition)
+    if blocked:
+        messages.error(request, "Exportação de tradução está desativada para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect("post_intake_workflow", edition_id=edition.id)
     target_language = _normalize_translate_variant(request.POST.get("target_language") or "")
@@ -2144,6 +2151,10 @@ def _register_manual_translation_return(job: ManualTranslationJob, data: bytes, 
 
 def manual_translation_import_drive(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
+    blocked = _writer_intake_redirect(job.edition)
+    if blocked:
+        messages.error(request, "Importação externa está desativada para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
@@ -2163,6 +2174,10 @@ def manual_translation_import_drive(request, job_id: int):
 
 def manual_translation_import_upload(request, job_id: int):
     job = get_object_or_404(ManualTranslationJob.objects.select_related("edition__work", "target_edition"), id=job_id)
+    blocked = _writer_intake_redirect(job.edition)
+    if blocked:
+        messages.error(request, "Importação está desativada para o miolo Writer canônico.")
+        return blocked
     if request.method != "POST":
         return redirect(_post_intake_url(job.edition_id, job.target_language))
     if job.schema_version == chapter_translation.JOB_SCHEMA_V2:
@@ -3195,6 +3210,211 @@ def _block_status_map(*, pipeline_state, raw_path: str | None, frontmatter_templ
         epub_ready=epub_exists,
         pdf_ready=pdf_exists,
     )
+
+
+_BOOKMAKER_BLOCKS = (
+    ("intake", "00 · Intake", ("Upload", "Normalize", "Split / Chunk", "Heading Cleaner")),
+    ("editorial", "01 · Editorial", ("Translate", "Refine", "Polish", "Merge")),
+    ("production", "02 · Produção", ("Frontmatter", "Imagens", "Capa", "EPUB")),
+    ("publication", "03 · Publicação", ("Fechamento",)),
+)
+
+_WRITER_CANONICAL_EDITORIAL_STEPS = frozenset(
+    {
+        "raw",
+        "normalize",
+        "chunk",
+        "heading_cleaner",
+        "translate",
+        "split_by_chapter",
+        "refine",
+        "merge_refine",
+        "split_refine_by_chapter",
+        "polish",
+        "polish_agent",
+        "txt_to_md",
+        "txt_to_miolo",
+    }
+)
+
+
+def _is_writer_canonical_origin(edition: EditorialEdition) -> bool:
+    """Return whether a future Writer bridge marked this work as canonical Writer input.
+
+    The bridge is intentionally not implemented here.  This accepts only explicit
+    provenance markers so ordinary Intake works retain their existing behavior.
+    """
+    provenance = getattr(edition.work, "source_provenance", None)
+    if not isinstance(provenance, dict):
+        return False
+    markers = {
+        str(provenance.get(key, "")).strip().lower()
+        for key in ("origin", "source_kind", "workflow")
+    }
+    return bool(
+        markers & {"writer", "writer_canonical", "writer_closed"}
+        or provenance.get("writer_canonical_revision_id")
+    )
+
+
+def writer_intake_assets(request, edition_id: int):
+    """Intake-owned metadata, cover, gallery and preview lane for Writer."""
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related("work", "language", "work__author"), pk=edition_id
+    )
+    provenance = dict(edition.work.source_provenance or {})
+    if provenance.get("origin") != "writer_canonical" or not provenance.get("intake_book_code"):
+        raise Http404("Writer Intake asset lane not found")
+    if request.method == "POST":
+        if request.POST.get("confirm_generated_images") != "1":
+            messages.error(request, "Confirme que os arquivos enviados pertencem a esta edição.")
+            return redirect("writer_intake_assets", edition_id=edition.id)
+        action = request.POST.get("action")
+        if action == "upload_cover":
+            uploaded = request.FILES.get("cover_file")
+            if not uploaded:
+                messages.error(request, "Selecione a imagem da capa.")
+            else:
+                cover_path = Path(settings.BASE_DIR).parent / "data" / "covers" / edition.work.code / utils.normalize_lang(edition.language.code) / "cover.jpg"
+                try:
+                    _save_uploaded_image_as_jpg(uploaded, cover_path)
+                    edition.cover_filepath = str(cover_path.relative_to(Path(settings.BASE_DIR).parent))
+                    edition.save(update_fields=["cover_filepath", "updated_at"])
+                    invalidate_premium_render(edition, "cover_changed")
+                    messages.success(request, "Capa salva no Intake.")
+                except Exception as exc:
+                    messages.error(request, str(exc))
+        elif action == "upload_gallery_files":
+            files = request.FILES.getlist("images_files")
+            image_dir = _images_dir_for_edition(edition, EditionPipeline.objects.filter(edition=edition).first())
+            image_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                count, _outputs, skipped = _convert_uploaded_images_to_jpg(files, image_dir)
+                if count:
+                    invalidate_premium_render(edition, "images_changed")
+                    messages.success(request, f"Imagens internas salvas no Intake: {count}.")
+                else:
+                    messages.error(request, "Nenhuma imagem interna válida foi convertida.")
+                if skipped:
+                    messages.info(request, "Arquivos identificados como capa foram ignorados na galeria.")
+            except RuntimeError as exc:
+                messages.error(request, str(exc))
+        else:
+            messages.error(request, "Ação de asset inválida.")
+        return redirect("writer_intake_assets", edition_id=edition.id)
+
+    pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
+    images = [
+        {"name": item.name, "url": reverse("pipeline_edition_gallery_image", kwargs={"edition_id": edition.id, "filename": item.name})}
+        for item in md_transform.list_available_images(_images_dir_for_edition(edition, pipeline_state))
+    ]
+    cover_url = ""
+    if edition.cover_filepath:
+        try:
+            cover_path = _safe_project_file(edition.cover_filepath)
+            cover_url = f"{reverse('pipeline_edition_cover', kwargs={'edition_id': edition.id})}?{urlencode({'v': cover_path.stat().st_mtime_ns})}"
+        except Http404:
+            pass
+    return render(request, "pipeline/writer_intake_assets.html", {
+        "edition": edition,
+        "intake_book_code": provenance["intake_book_code"],
+        "cover_url": cover_url,
+        "images": images,
+        "frontmatter_url": f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}?{urlencode({'return_to': 'writer_intake', 'edition_id': edition.id})}",
+        "preview_url": f"{reverse('premium_epub_preview', kwargs={'edition_id': edition.id})}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': edition.id})}",
+    })
+
+
+def _writer_intake_redirect(edition: EditorialEdition):
+    """Return the single Intake handoff URL for a Writer-canonical edition."""
+    provenance = getattr(edition.work, "source_provenance", None)
+    if not _is_writer_canonical_origin(edition) or not isinstance(provenance, dict):
+        return None
+    if not provenance.get("intake_book_code"):
+        return None
+    return redirect("writer_intake_assets", edition_id=edition.id)
+
+
+def _bookmaker_block_state(
+    block: str,
+    *,
+    pipeline_state: EditionPipeline,
+    block_statuses: dict[str, object],
+    writer_canonical: bool,
+) -> tuple[str, str]:
+    if writer_canonical:
+        return {
+            "intake": ("complete", "✓"),
+            "editorial": ("locked", "🔒"),
+            "production": ("active", "●"),
+            "publication": ("pending", "○"),
+        }[block]
+
+    intake_complete = bool(pipeline_state.chunked_at)
+    editorial_complete = bool(block_statuses["bloco_02_done"])
+    production_complete = bool(block_statuses["block_04_ready"])
+    publication_complete = bool(block_statuses["bloco_04_done"])
+    if block == "intake":
+        return ("complete", "✓") if intake_complete else ("active", "●")
+    if block == "editorial":
+        if not intake_complete:
+            return "locked", "🔒"
+        return ("complete", "✓") if editorial_complete else ("active", "●")
+    if block == "production":
+        if not editorial_complete:
+            return "locked", "🔒"
+        return ("complete", "✓") if production_complete else ("active", "●")
+    if not production_complete:
+        return "locked", "🔒"
+    return ("complete", "✓") if publication_complete else ("active", "●")
+
+
+def _bookmaker_navigation(
+    edition: EditorialEdition,
+    *,
+    pipeline_state: EditionPipeline,
+    block_statuses: dict[str, object],
+    active_block: str,
+    active_tab: str,
+    writer_canonical: bool,
+) -> list[dict[str, object]]:
+    base_url = _edition_steps_redirect_url(edition)
+    separator = "&" if "?" in base_url else "?"
+    blocks: list[dict[str, object]] = []
+    for block, label, tabs in _BOOKMAKER_BLOCKS:
+        state, marker = _bookmaker_block_state(
+            block,
+            pipeline_state=pipeline_state,
+            block_statuses=block_statuses,
+            writer_canonical=writer_canonical,
+        )
+        if writer_canonical and block == "intake":
+            tabs = ("Status",)
+        elif writer_canonical and block == "editorial":
+            tabs = ("Bloqueado",)
+        tab_rows = []
+        for tab in tabs:
+            tab_key = slugify(tab).replace("-", "_")
+            tab_rows.append(
+                {
+                    "key": tab_key,
+                    "label": tab,
+                    "url": f"{base_url}{separator}{urlencode({'block': block, 'tab': tab_key})}",
+                    "active": block == active_block and tab_key == active_tab,
+                }
+            )
+        blocks.append(
+            {
+                "key": block,
+                "label": label,
+                "state": state,
+                "marker": marker,
+                "active": block == active_block,
+                "url": f"{base_url}{separator}{urlencode({'block': block, 'tab': tab_rows[0]['key']})}",
+                "tabs": tab_rows,
+            }
+        )
+    return blocks
 
 
 def _next_build_version(edition, language_code: str) -> int:
@@ -5409,7 +5629,7 @@ def _save_uploaded_image_as_jpg(uploaded, out_path: Path) -> None:
         tmp_path.unlink(missing_ok=True)
 
 
-def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[Path]]:
+def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[Path], int]:
     try:
         from PIL import Image
     except ImportError as exc:
@@ -5521,6 +5741,10 @@ def _consolidate_internal_images(images_dir: Path, consolidated_dir: Path) -> di
 
 def edition_steps(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
+    intake_redirect = _writer_intake_redirect(edition)
+    if intake_redirect is not None:
+        return intake_redirect
+    writer_canonical = _is_writer_canonical_origin(edition)
     book_code, language = _edition_codes(edition)
     normalized_language = utils.normalize_lang(language)
     source_template = (
@@ -5584,6 +5808,9 @@ def edition_steps(request, edition_id: int):
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "run_matrix":
+            if writer_canonical:
+                messages.error(request, "Obras canônicas do Writer não podem reexecutar o pipeline editorial.")
+                return redirect(_edition_steps_redirect_url(edition))
             if PipelineRun is None or PipelineRunItem is None:
                 messages.error(request, "Runner Matrix indisponivel nesta branch (models PipelineRun ausentes).")
                 return redirect("edition_steps", edition_id=edition.id)
@@ -5816,6 +6043,9 @@ def edition_steps(request, edition_id: int):
             messages.success(request, f"Core salvo: {pipeline_state.core_last_txt_path}")
             return redirect("edition_steps", edition_id=edition.id)
         if action == "save_translation_language":
+            if writer_canonical:
+                messages.error(request, "Obras canônicas do Writer não podem executar Translate ou conversão de texto.")
+                return redirect(_edition_steps_redirect_url(edition))
             target_language = _normalize_translate_variant(request.POST.get("target_language") or language)
             target_base = _translate_base_language(target_language)
             try:
@@ -5981,6 +6211,12 @@ def edition_steps(request, edition_id: int):
     chunk_count = _count_split_chunks(book_code)
     pipeline_prereqs = _pipeline01_prereq_state(edition)
     pipeline01_steps = build_pipeline01_steps(edition, pipeline_state)
+    intake_pipeline_steps = [
+        step for step in pipeline01_steps if step["key"] in {"normalize", "heading_cleaner", "chunk"}
+    ]
+    editorial_pipeline_steps = [
+        step for step in pipeline01_steps if step["key"] not in {"normalize", "heading_cleaner", "chunk"}
+    ]
     heading_clean_path = heading_cleaner.clean_path_for_book_code(
         str(pipeline_prereqs["book_code"])
     )
@@ -6091,6 +6327,48 @@ def edition_steps(request, edition_id: int):
         epub_exists=epub_path.exists(),
         pdf_exists=pdf_path.exists(),
     )
+    if writer_canonical:
+        # A canonical Writer manuscript reaches production with its text already
+        # closed.  The future bridge supplies BOOK.MD_FINAL; no synthetic stage
+        # is persisted merely to make the existing production gate understandable.
+        block_statuses = {
+            **block_statuses,
+            "bloco_02_running": False,
+            "bloco_02_done": True,
+            "bloco_03_ready": True,
+        }
+    requested_block = (request.GET.get("block") or "").strip().lower()
+    valid_blocks = {block[0] for block in _BOOKMAKER_BLOCKS}
+    if requested_block not in valid_blocks:
+        requested_block = "production" if writer_canonical else ""
+    requested_tab = (request.GET.get("tab") or "").strip().lower()
+    if not requested_tab and requested_block:
+        if writer_canonical and requested_block == "intake":
+            requested_tab = "Status"
+        elif writer_canonical and requested_block == "editorial":
+            requested_tab = "Bloqueado"
+        else:
+            requested_tab = next(
+                tabs[0] for key, _label, tabs in _BOOKMAKER_BLOCKS if key == requested_block
+            )
+        requested_tab = slugify(requested_tab).replace("-", "_")
+    bookmaker_blocks = _bookmaker_navigation(
+        edition,
+        pipeline_state=pipeline_state,
+        block_statuses=block_statuses,
+        active_block=requested_block,
+        active_tab=requested_tab,
+        writer_canonical=writer_canonical,
+    )
+    active_bookmaker_label = next(
+        (item["label"] for item in bookmaker_blocks if item["active"]),
+        "Bookmaker",
+    )
+    visible_pipeline_steps = pipeline01_steps
+    if requested_block == "intake":
+        visible_pipeline_steps = intake_pipeline_steps
+    elif requested_block == "editorial":
+        visible_pipeline_steps = editorial_pipeline_steps
     preflight_json = paths.preflight_json_path(edition)
     preflight_md = paths.preflight_md_path(edition)
     preflight_done = preflight_json.exists() and preflight_md.exists()
@@ -6184,7 +6462,7 @@ def edition_steps(request, edition_id: int):
         route = "Agent"
         agent_name = _translate_agent_name(lang)
         if lang == "en_us":
-            detail = "Runtime interno JSON-first: contrato + script Gaiden; OpenAI apenas como inferencia."
+            detail = "Runtime interno JSON-first: contrato + script Gaiden; inferência via modelo local."
         elif lang == "fr":
             detail = "Runtime interno JSON-first: contrato universal frances; modelo lido do contrato."
         else:
@@ -6236,6 +6514,15 @@ def edition_steps(request, edition_id: int):
         pipeline_state.last_version_filename
         or (latest_version_path.name if latest_version_path else "")
     )
+    writer_provenance = (
+        dict(getattr(edition.work, "source_provenance", None) or {})
+        if writer_canonical
+        else {}
+    )
+    if writer_provenance and not writer_provenance.get("writer_revision_id"):
+        writer_provenance["writer_revision_id"] = writer_provenance.get(
+            "writer_canonical_revision_id", ""
+        )
 
     context = {
         "edition": edition,
@@ -6329,6 +6616,21 @@ def edition_steps(request, edition_id: int):
             "can_translate": bool(pipeline_prereqs["can_translate"]),
         },
         "pipeline01_steps": pipeline01_steps,
+        "intake_pipeline_steps": intake_pipeline_steps,
+        "editorial_pipeline_steps": editorial_pipeline_steps,
+        "visible_pipeline_steps": visible_pipeline_steps,
+        "writer_canonical": writer_canonical,
+        "writer_provenance": writer_provenance,
+        "writer_intake_code": writer_provenance.get("intake_book_code", ""),
+        "writer_intake_url": (
+            reverse("post_intake_workflow", kwargs={"edition_id": edition.id})
+            if writer_provenance.get("intake_book_code")
+            else ""
+        ),
+        "active_bookmaker_block": requested_block,
+        "active_bookmaker_tab": requested_tab,
+        "active_bookmaker_label": active_bookmaker_label,
+        "bookmaker_blocks": bookmaker_blocks,
         "can_translate": can_translate,
         "refine_qa_status": refine_qa_status,
         "refine_qa_summary": refine_qa_summary,
@@ -6353,6 +6655,9 @@ def edition_steps(request, edition_id: int):
 def pipeline_heading_cleaner_run(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     if request.method != "POST":
+        return redirect(_edition_steps_redirect_url(edition))
+    if _is_writer_canonical_origin(edition):
+        messages.error(request, "Obras canônicas do Writer não podem executar Heading Cleaner.")
         return redirect(_edition_steps_redirect_url(edition))
 
     core_edition = _processing_base_edition(edition)
@@ -6732,8 +7037,21 @@ def run_edition_step(request, edition_id: int, step: str):
     edition = get_object_or_404(EditorialEdition, id=edition_id)
     book_code, language = _edition_codes(edition)
 
+    if (
+        _writer_intake_redirect(edition) is not None
+        and request.POST.get("return_to") != "post_intake"
+    ):
+        return _writer_intake_redirect(edition)
+
     if request.method != "POST":
-        return redirect("edition_steps", edition_id=edition.id)
+        return redirect(_post_intake_url(edition.id))
+
+    if step in _WRITER_CANONICAL_EDITORIAL_STEPS and _is_writer_canonical_origin(edition):
+        messages.error(
+            request,
+            "Obras canônicas do Writer não podem reexecutar etapas editoriais no Bookmaker.",
+        )
+        return redirect(_edition_steps_redirect_url(edition))
 
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
 
@@ -7471,26 +7789,74 @@ def edition_gallery_image_file(request, edition_id: int, filename: str):
 
 
 def build_book_md(request, book_code, language):
-    if request.method != "POST":
-        return redirect("book_edition_list")
-
     edition = get_object_or_404(
         EditorialEdition,
         work__code=book_code,
         language__code=language,
     )
 
-    call_command(
-        "build_book_text",
-        book_code=edition.work.code,
-        language=edition.language.code,
-    )
+    intake_redirect = _writer_intake_redirect(edition)
+    if intake_redirect is not None:
+        return intake_redirect
 
+    if request.method != "POST":
+        return redirect("book_edition_list")
+
+    if _is_writer_canonical_origin(edition):
+        try:
+            kdp_mode.build_frontmatter_files(edition, storage.frontmatter_dir())
+            merged_path = kdp_mode.build_merged_kdp_source(edition)
+            book_build_path = kdp_mode.builds_dir(edition) / "BOOK.BUILD.MD"
+
+            if not book_build_path.exists():
+                raise FileNotFoundError(
+                    f"BOOK.BUILD.MD não foi produzido em {book_build_path}"
+                )
+
+            messages.success(
+                request,
+                (
+                    "Livro montado a partir do manuscrito canônico do Writer. "
+                    f"Build: {book_build_path}"
+                ),
+            )
+        except Exception as exc:
+            messages.error(
+                request,
+                f"Não foi possível montar o livro: {exc}",
+            )
+            return redirect(
+                f"{reverse('edition_steps', kwargs={'edition_id': edition.id})}"
+                "?block=production&tab=frontmatter"
+            )
+    else:
+        call_command(
+            "build_book_text",
+            book_code=edition.work.code,
+            language=edition.language.code,
+        )
+
+    if _is_writer_canonical_origin(edition):
+        return redirect("premium_epub_preview", edition_id=edition.id)
     return redirect("preview_book_md", book_code=book_code, language=language)
 
 
 def preview_book_md(request, book_code, language):
+    edition = get_object_or_404(
+        EditorialEdition.objects.select_related("work", "language"),
+        work__code=book_code,
+        language__code=language,
+    )
+
     build_dir = paths.edition_build_dir_for_language(book_code, language)
+    writer_canonical = _is_writer_canonical_origin(edition)
+
+    if writer_canonical:
+        intake_redirect = _writer_intake_redirect(edition)
+        if intake_redirect is not None:
+            return intake_redirect
+        return redirect("premium_epub_preview", edition_id=edition.id)
+
     candidates = [
         get_book_md_path(book_code, language),
         build_dir / "BOOK.BUILD.MD",
@@ -7500,40 +7866,81 @@ def preview_book_md(request, book_code, language):
         build_dir / "BOOK.PRE_EDITION.md",
         build_dir / "BOOK.PRE_QA.md",
     ]
-    path = next((p for p in candidates if p.exists()), None)
+
+    path = next(
+        (candidate for candidate in candidates if candidate.exists()),
+        None,
+    )
+
     if not path:
         raise Http404("Markdown file not found for preview.")
 
     content = path.read_text(encoding="utf-8")
+
     context = {
         "book_code": book_code,
         "language": language,
         "md_path": str(path),
         "content": content,
     }
-    return render(request, "pipeline/preview_md.html", context)
+
+    return render(
+        request,
+        "pipeline/preview_md.html",
+        context,
+    )
 
 
 def preview_pre_edition_md(request, book_code, language):
-    build_dir = paths.edition_build_dir_for_language(book_code, language)
+    edition = (
+        EditorialEdition.objects.select_related("work", "language")
+        .filter(
+            work__code=book_code,
+            language__code=language,
+        )
+        .first()
+    )
+
+    if edition and _is_writer_canonical_origin(edition):
+        intake_redirect = _writer_intake_redirect(edition)
+        if intake_redirect is not None:
+            return intake_redirect
+        return redirect("preview_book_md", book_code=book_code, language=language)
+
+    build_dir = paths.edition_build_dir_for_language(
+        book_code,
+        language,
+    )
+
     candidates = [
         build_dir / f"BOOK.PRE_EDITION.{language}.md",
         build_dir / f"BOOK.PRE_QA.{language}.md",
         build_dir / "BOOK.PRE_EDITION.md",
         build_dir / "BOOK.PRE_QA.md",
     ]
-    path = next((p for p in candidates if p.exists()), None)
+
+    path = next(
+        (candidate for candidate in candidates if candidate.exists()),
+        None,
+    )
+
     if not path:
         raise Http404("Markdown file not found for preview.")
 
     content = path.read_text(encoding="utf-8")
+
     context = {
         "book_code": book_code,
         "language": language,
         "md_path": str(path),
         "content": content,
     }
-    return render(request, "pipeline/preview_md.html", context)
+
+    return render(
+        request,
+        "pipeline/preview_md.html",
+        context,
+    )
 
 
 def preview_merge_translate(request, edition_id: int):
@@ -7573,6 +7980,9 @@ def save_merge_translate_preview(request, edition_id: int):
         return redirect("edition_steps", edition_id=edition_id)
 
     edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if _is_writer_canonical_origin(edition):
+        messages.error(request, "Obras canônicas do Writer não podem salvar merges editoriais.")
+        return redirect(_edition_steps_redirect_url(edition))
     pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
     book_code, language = _edition_codes(edition)
 
@@ -7772,6 +8182,9 @@ def save_merge_polidor_preview(request, edition_id: int):
         return redirect("edition_steps", edition_id=edition_id)
 
     edition = get_object_or_404(EditorialEdition, id=edition_id)
+    if _is_writer_canonical_origin(edition):
+        messages.error(request, "Obras canônicas do Writer não podem salvar merges editoriais.")
+        return redirect(_edition_steps_redirect_url(edition))
     book_code, _language = _edition_codes(edition)
     merged_path, target_base = _resolve_merge_polidor_source(edition)
     if not merged_path:
@@ -7812,6 +8225,9 @@ def preview_miolo_md(request, book_code, language):
         work__code=book_code,
         language__code=language,
     )
+    intake_redirect = _writer_intake_redirect(edition)
+    if intake_redirect is not None:
+        return intake_redirect
     candidates = [
         paths.miolo_md_path_for_language(book_code, language),
         paths.miolo_md_path(edition),

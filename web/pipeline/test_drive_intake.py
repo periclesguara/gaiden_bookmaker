@@ -12,6 +12,7 @@ from editorial.models import Contributor, Edition, EditionPipeline, EditionText,
 from gaiden.application.intake.drive_import.metadata import filename_metadata, normalize_language, resolve_book_code, text_header_metadata
 from gaiden.application.intake.drive_import.service import (
     StaleDrivePreview,
+    allowed_intake_extensions,
     confirm_drive_folder,
     preview_drive_folder,
     retry_drive_batch,
@@ -166,6 +167,59 @@ class DriveIntakePreviewTests(TestCase):
         self.assertEqual(first["counts"], {"CREATE": 2, "UPDATE": 0, "NO_OP": 0, "CONFLICT": 0})
         self.assertEqual(self.storage.download_count, 0)
         self.assertEqual(before, (IntakeBatch.objects.count(), IntakeItem.objects.count(), Work.objects.count()))
+
+    @override_settings(GAIDEN_INTAKE_ALLOWED_EXTENSIONS=())
+    def test_preview_accepts_source_formats_from_google_drive(self):
+        self.storage = FakeDriveStorage(
+            {
+                "Author One — Portable.pdf": b"%PDF-1.4\nminimal",
+                "Author Two — Archive.odt": b"PK\x03\x04minimal",
+                "Author Three — Ebook.epub": b"PK\x03\x04minimal",
+                "Author Four — Manuscript.docx": b"PK\x03\x04minimal",
+            }
+        )
+
+        preview = preview_drive_folder(
+            self.storage,
+            folder="Fixture",
+            recursive=True,
+            batch_name="Generic batch",
+            default_author="",
+            source_language="en",
+        )
+
+        self.assertTrue({".pdf", ".odt", ".epub", ".docx"}.issubset(allowed_intake_extensions()))
+        self.assertEqual(preview["counts"], {"CREATE": 4, "UPDATE": 0, "NO_OP": 0, "CONFLICT": 0})
+        self.assertEqual({item["extension"] for item in preview["items"]}, {".pdf", ".odt", ".epub", ".docx"})
+
+    def test_preview_ignores_folder_names_and_reserves_codes_by_author_and_title(self):
+        self.storage = FakeDriveStorage(
+            {
+                "z_folder/Zed Author — Later Work.txt": b"Later body\n",
+                "a_folder/Ada Author — First Work.txt": b"First body\n",
+            }
+        )
+
+        preview = preview_drive_folder(
+            self.storage,
+            folder="Fixture",
+            recursive=True,
+            batch_name="Generic batch",
+            default_author="",
+            source_language="en",
+        )
+
+        self.assertEqual(
+            [(item["author"], item["title"], item["book_code"]) for item in preview["items"]],
+            [
+                ("Ada Author", "First Work", "book_0001"),
+                ("Zed Author", "Later Work", "book_0002"),
+            ],
+        )
+        self.assertEqual(
+            [item["relative_path"] for item in preview["items"]],
+            ["a_folder/Ada Author — First Work.txt", "z_folder/Zed Author — Later Work.txt"],
+        )
 
     @override_settings(GAIDEN_INTAKE_MAX_FILE_SIZE=5)
     def test_file_above_limit_is_conflict(self):

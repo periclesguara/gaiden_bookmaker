@@ -17,6 +17,8 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from editorial.models import Contributor, ContributorRole, Language, Work
+from gaiden.application.author_studio.ingest_work_source import ALLOWED_EXTENSIONS as SOURCE_ALLOWED_EXTENSIONS
+from gaiden.application.author_studio.ingest_work_source import ZIP_EXTENSIONS as SOURCE_ZIP_EXTENSIONS
 from pipeline.models import IntakeAuditEvent, IntakeBatch, IntakeCounter, IntakeItem
 
 from .contracts import DriveStoragePort
@@ -25,6 +27,10 @@ from .metadata import filename_metadata, normalize_language, resolve_book_code, 
 
 CONTROL_NAMES = {"book.manifest.json", "readme.txt"}
 CONTROL_SUFFIXES = (".manifest.json", ".csv")
+TEXT_HEADER_EXTENSIONS = {".txt", ".md", ".markdown", ".html", ".htm", ".xhtml", ".xml", ".fb2", ".rtf"}
+ZIP_SIGNATURE_EXTENSIONS = SOURCE_ZIP_EXTENSIONS
+PDF_SIGNATURE_EXTENSIONS = {".pdf"}
+MOBI_SIGNATURE_EXTENSIONS = {".mobi", ".azw"}
 logger = logging.getLogger(__name__)
 
 
@@ -78,6 +84,24 @@ def _is_control_file(name: str) -> bool:
     return lowered in CONTROL_NAMES or any(lowered.endswith(suffix) for suffix in CONTROL_SUFFIXES)
 
 
+def allowed_intake_extensions() -> set[str]:
+    configured = {
+        value.strip().casefold()
+        for value in getattr(settings, "GAIDEN_INTAKE_ALLOWED_EXTENSIONS", ())
+        if str(value).strip()
+    }
+    return configured or set(SOURCE_ALLOWED_EXTENSIONS)
+
+
+def _file_sort_key(row: dict) -> tuple[str, str, str]:
+    detected = row["detected"]
+    return (
+        detected["author"].casefold(),
+        detected["title"].casefold(),
+        PurePosixPath(row["name"]).name.casefold(),
+    )
+
+
 def _numeric_suffix(value: str, prefix: str) -> int | None:
     match = re.fullmatch(rf"{re.escape(prefix)}([0-9]+)", value or "")
     return int(match.group(1)) if match else None
@@ -93,7 +117,15 @@ def _preview_book_codes(count: int) -> list[str]:
     values = list(Work.objects.values_list("code", flat=True))
     values.extend(IntakeItem.objects.exclude(book_code="").values_list("book_code", flat=True))
     maximum = max((_numeric_suffix(value, "book_") or 0 for value in values), default=0)
-    return [f"book_{number:04d}" for number in range(maximum + 1, maximum + count + 1)]
+
+    counter_next = (
+        IntakeCounter.objects.filter(key="book")
+        .values_list("next_value", flat=True)
+        .first()
+    )
+
+    start = max(maximum + 1, int(counter_next or 1))
+    return [f"book_{number:04d}" for number in range(start, start + count)]
 
 
 def _allocate_code(*, key: str, prefix: str, width: int, floor: int) -> str:
@@ -155,7 +187,7 @@ def preview_drive_folder(
     seal: str = "",
 ) -> dict:
     source_path, discovered = storage.discover(folder, recursive=recursive)
-    allowed = set(settings.GAIDEN_INTAKE_ALLOWED_EXTENSIONS)
+    allowed = allowed_intake_extensions()
     max_size = settings.GAIDEN_INTAKE_MAX_FILE_SIZE
     editorial_rows = []
     warnings = []
@@ -173,6 +205,7 @@ def preview_drive_folder(
         metadata = filename_metadata(row["name"])
         editorial_rows.append({**row, "extension": extension, "detected": metadata})
 
+    editorial_rows.sort(key=_file_sort_key)
     proposals = iter(_preview_book_codes(sum(1 for row in editorial_rows if not row["detected"]["book_code"])))
     existing_batch = IntakeBatch.objects.filter(
         source="GOOGLE_DRIVE",
@@ -275,9 +308,18 @@ def _sha256_file(path: Path) -> str:
 def _validate_basic_content(path: Path, extension: str) -> None:
     if path.stat().st_size <= 0:
         raise IntakeValidationError("Arquivo vazio.")
-    if extension in {".txt", ".md", ".html", ".htm", ".rtf"}:
+    header = path.read_bytes()[:65536]
+    if extension in TEXT_HEADER_EXTENSIONS:
         path.read_bytes()[:65536].decode("utf-8", errors="strict")
-    elif extension in {".epub", ".docx"} and not zipfile.is_zipfile(path):
+        if extension == ".rtf" and not header.lstrip().startswith(b"{\\rtf"):
+            raise IntakeValidationError("Assinatura inválida para .rtf.")
+    elif extension in ZIP_SIGNATURE_EXTENSIONS and not zipfile.is_zipfile(path):
+        raise IntakeValidationError(f"Assinatura inválida para {extension}.")
+    elif extension in PDF_SIGNATURE_EXTENSIONS and not header.startswith(b"%PDF-"):
+        raise IntakeValidationError("Assinatura inválida para .pdf.")
+    elif extension in MOBI_SIGNATURE_EXTENSIONS and not (
+        len(header) >= 68 and header[60:68] in {b"BOOKMOBI", b"TEXtREAd"}
+    ):
         raise IntakeValidationError(f"Assinatura inválida para {extension}.")
 
 
@@ -395,7 +437,7 @@ def confirm_drive_folder(storage: DriveStoragePort, preview: dict, *, selected_p
             if target.stat().st_size != item_data["size"]:
                 raise IntakeValidationError(f"Tamanho divergente após download: {item_data['relative_path']}")
             _validate_basic_content(target, item_data["extension"])
-            headers = text_header_metadata(target.read_bytes()) if item_data["extension"] in {".txt", ".md", ".html", ".htm", ".rtf"} else {"book_code": "", "title": "", "author": "", "language": ""}
+            headers = text_header_metadata(target.read_bytes()) if item_data["extension"] in TEXT_HEADER_EXTENSIONS else {"book_code": "", "title": "", "author": "", "language": ""}
             code, conflict = resolve_book_code(
                 header_code=headers["book_code"],
                 filename_code=item_data["book_code"] if item_data["code_source"] == "filename" else "",

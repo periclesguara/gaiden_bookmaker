@@ -16,7 +16,8 @@ services:
       PGDATABASE: ${PGDATABASE:-gaiden}
       PGUSER: ${PGUSER:-gaiden}
       PGPASSWORD: ${PGPASSWORD:-gaiden}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GAIDEN_LOCAL_MODEL_URL: ${GAIDEN_LOCAL_MODEL_URL:-http://127.0.0.1:11434}
+      GAIDEN_LOCAL_MODEL: ${GAIDEN_LOCAL_MODEL:-}
       GAIDEN_CORE_DOCKER_ENABLED: "1"
 
   gaiden-core-en:

@@ -131,75 +131,11 @@ class ChapterTranslationSplitterTests(unittest.TestCase):
         self.assertTrue(result.review_required)
         self.assertIn("não começa em 1", result.warnings[0])
 
-    def test_qwen_can_suggest_replacement_for_discontinuous_deterministic_split(self):
-        text = "CHAPTER 1\n\nFirst.\n\nCHAPTER 3\n\nThird.\n"
-        result = self.split(
-            text,
-            qwen_detector=lambda value: {
-                "schema": "gaiden_chapter_detection_v1",
-                "units": [
-                    {
-                        "sequence": 1,
-                        "unit_type": "chapter",
-                        "heading": "CHAPTER 1",
-                        "start_offset": 0,
-                        "end_offset": len(value),
-                        "confidence": 0.91,
-                    }
-                ],
-            },
-        )
-        self.assertTrue(result.validated)
-        self.assertEqual(result.strategy, "qwen_supervised")
-
-    def test_valid_qwen_fallback_is_supervised_and_preserves_text(self):
-        text = "Opening section.\nSecond section.\n"
-
-        def detector(value):
-            boundary = value.index("Second")
-            return {
-                "schema": "gaiden_chapter_detection_v1",
-                "units": [
-                    {
-                        "sequence": 1,
-                        "unit_type": "introduction",
-                        "heading": "",
-                        "start_offset": 0,
-                        "end_offset": boundary,
-                        "confidence": 0.95,
-                    },
-                    {
-                        "sequence": 2,
-                        "unit_type": "chapter",
-                        "heading": "Second section.",
-                        "start_offset": boundary,
-                        "end_offset": len(value),
-                        "confidence": 0.95,
-                    },
-                ],
-            }
-
-        result = self.split(text, qwen_detector=detector)
-        self.assertEqual(result.strategy, "qwen_supervised")
-        self.assertTrue(result.validated)
-
-    def test_qwen_fallback_rejects_invalid_offsets(self):
-        with self.assertRaisesRegex(ChapterSplitError, "lacuna"):
-            self.split(
-                "No headings here.\n",
-                qwen_detector=lambda value: {
-                    "schema": "gaiden_chapter_detection_v1",
-                    "units": [
-                        {
-                            "unit_type": "chapter",
-                            "heading": "",
-                            "start_offset": 1,
-                            "end_offset": len(value),
-                            "confidence": 0.99,
-                        }
-                    ],
-                },
-            )
+    def test_inconsistent_structure_fails_closed_for_human_review(self):
+        result = self.split("CHAPTER 1\n\nFirst.\n\nCHAPTER 3\n\nThird.\n")
+        self.assertFalse(result.validated)
+        self.assertTrue(result.review_required)
+        self.assertEqual(result.strategy, "deterministic")
 
     def test_coverage_rejects_gap(self):
         result = self.split("CHAPTER I\n\nOne.\n\nCHAPTER II\n\nTwo.\n")

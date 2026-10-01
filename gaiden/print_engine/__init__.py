@@ -8,6 +8,7 @@ future release adapters.
 
 from .compiler import LatexCompileResult, LatexCompilerUnavailable, compile_lualatex
 from .cover import CoverLayout, Rect
+from .cover_composition import cover_tex, design_cover_tex
 from .geometry import CoverGeometry
 from .latex import BookContent, Chapter, LatexInteriorRenderer
 from .package import PrintPackageManifest
@@ -27,6 +28,8 @@ __all__ = [
     "Chapter",
     "CoverGeometry",
     "CoverLayout",
+    "cover_tex",
+    "design_cover_tex",
     "InteriorColor",
     "LatexCompileResult",
     "LatexCompilerUnavailable",

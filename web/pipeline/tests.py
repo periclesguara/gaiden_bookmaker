@@ -1,4 +1,5 @@
 import io
+import hashlib
 import importlib
 import json
 import os
@@ -782,14 +783,54 @@ class CadastroSourceFormatRoutingTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Bloco 01 - Entrada")
-        self.assertContains(response, "Bloco 02 - Core do Sistema")
-        self.assertContains(response, "Bloco 03 - Editorial e Assets")
-        self.assertContains(response, "Bloco 04 - Finalizacao")
-        self.assertContains(response, "Core oficial do sistema.")
+        self.assertContains(response, "00 · Intake")
+        self.assertContains(response, "01 · Editorial")
+        self.assertContains(response, "02 · Produção")
+        self.assertContains(response, "03 · Publicação")
+        intake = next(item for item in response.context["bookmaker_blocks"] if item["key"] == "intake")
+        self.assertIn("block=intake&tab=upload", intake["url"])
         self.assertContains(response, "PT-BR")
         self.assertContains(response, "Français")
         self.assertContains(response, "Italiano")
+
+    def test_writer_canonical_opens_production_and_blocks_editorial_step(self):
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            publication_year=2026,
+            text_source_mode="txt",
+        )
+        self.work.source_provenance = {
+            "origin": "writer_canonical",
+            "writer_project_id": 2,
+            "writer_canonical_revision_id": 1,
+        }
+        self.work.save(update_fields=["source_provenance"])
+
+        response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["active_bookmaker_block"], "production")
+        states = {item["key"]: item["state"] for item in response.context["bookmaker_blocks"]}
+        self.assertEqual(
+            states,
+            {
+                "intake": "complete",
+                "editorial": "locked",
+                "production": "active",
+                "publication": "pending",
+            },
+        )
+        self.assertContains(response, "Frontmatter")
+        pipeline_state = EditionPipeline.objects.get(edition=self.edition)
+        blocked = self.client.post(
+            reverse("pipeline_normalize_run", kwargs={"edition_id": self.edition.id})
+        )
+        self.assertEqual(blocked.status_code, 302)
+        pipeline_state.refresh_from_db()
+        self.assertIsNone(pipeline_state.normalized_at)
 
     def test_editorial_inputs_are_available_before_block_03_is_ready(self):
         BookEditionTemplate.objects.create(
@@ -1139,7 +1180,7 @@ class PipelineBlockContractTests(CadastroSourceFormatRoutingTests):
         response = self.client.get(reverse("edition_steps", kwargs={"edition_id": self.edition.id}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Bloco 02 · Core do Sistema")
+        self.assertContains(response, "Intake e Editorial")
 
     def test_public_domain_requires_original_dates(self):
         response = self.client.post(
@@ -2800,7 +2841,7 @@ class HeadingCleanerGateTests(TestCase):
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
-        self.assertContains(response, "Bloco 03 · Editorial e Assets")
+        self.assertContains(response, "02 · Produção")
         self.assertContains(response, "Pre-flight")
         self.assertNotContains(response, "Lock translate")
         self.assertNotContains(response, "Lock refine")
@@ -3001,7 +3042,7 @@ class HeadingCleanerGateTests(TestCase):
         positions = [html.find(item) for item in expected]
         self.assertTrue(all(pos >= 0 for pos in positions))
         self.assertEqual(positions, sorted(positions))
-        self.assertContains(response, "Bloco 03 · Editorial e Assets")
+        self.assertContains(response, "02 · Produção")
         self.assertContains(response, "Pre-flight")
 
     @patch("pipeline.services.preflight.get_client")
@@ -4582,3 +4623,136 @@ class MdApproveImagesContractTests(TestCase):
 
         self.assertEqual(Path(result["source"]).resolve(), (self.build_dir / "BOOK.PRE_EDITION.md").resolve())
         self.assertIn("![](assets/images/ch01_01_01.jpg)", final_text)
+
+
+class WriterCanonicalPreviewTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_root = Path(self.temp_dir.name)
+        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
+        os.environ["GAIDEN_STORAGE_ROOT"] = str(self.temp_root / "data")
+        self.language = Language.objects.create(code="en", name="English", native_name="English")
+        self.author = Contributor.objects.create(name="Péricles Guará Silva")
+        self.seal = Seal.objects.create(slug="writer-preview-seal", name="RinoBooks")
+        self.work = Work.objects.create(
+            code="writer-preview-book",
+            title="The Devil in Paris",
+            original_language=self.language,
+            author=self.author,
+            source_provenance={"origin": "writer_canonical"},
+        )
+        self.edition = Edition.objects.create(
+            work=self.work,
+            language=self.language,
+            seal=self.seal,
+            title=self.work.title,
+            author=self.author.name,
+            publisher="RinoBooks",
+            imprint_name="RinoBooks",
+        )
+        BookEditionTemplate.objects.create(
+            book_code=self.work.code,
+            language="en",
+            title=self.work.title,
+            author_name=self.author.name,
+            imprint_name="RinoBooks",
+            publication_year=2026,
+        )
+        self.build_dir = self.temp_root / "data" / "builds" / self.work.code / "en"
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+        self.final_path = self.build_dir / "BOOK.MD_FINAL"
+        self.final_path.write_text(
+            "# Frontispiece\n\nCopyright\n\n# Chapter 1\n\nChapter one begins.\n",
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        if self.old_storage_root is None:
+            os.environ.pop("GAIDEN_STORAGE_ROOT", None)
+        else:
+            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
+        self.temp_dir.cleanup()
+
+    def test_writer_preview_prefers_book_build_and_uses_intake_renderer(self):
+        build_path = self.build_dir / "BOOK.BUILD.MD"
+        build_path.write_text(
+            "# Frontispiece\n\nCopyright\n\n# About This Book\n\n# Chapter 1\n\nBuilt chapter.\n",
+            encoding="utf-8",
+        )
+
+        response = self.client.get(
+            reverse("preview_book_md", kwargs={"book_code": self.work.code, "language": "en"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["md_path"], str(build_path))
+        self.assertContains(response, "The Devil in Paris")
+        self.assertContains(response, "Capítulo 01")
+        self.assertTrue(any(t.name == "editorial/premium_epub_preview.html" for t in response.templates))
+        chapter = self.client.get(
+            reverse(
+                "premium_epub_asset",
+                kwargs={"edition_id": self.edition.id, "relative_path": "EPUB/text/chapter_001.xhtml"},
+            )
+        )
+        self.assertEqual(chapter.status_code, 200)
+        self.assertContains(chapter, "Built chapter.")
+
+    def test_writer_preview_falls_back_to_final_without_pre_artifacts(self):
+        response = self.client.get(
+            reverse("preview_pre_edition_md", kwargs={"book_code": self.work.code, "language": "en"})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("preview_book_md", kwargs={"book_code": self.work.code, "language": "en"}),
+        )
+        preview = self.client.get(response.url)
+        self.assertEqual(preview.status_code, 200)
+        self.assertContains(preview, "Capítulo 01")
+        chapter = self.client.get(
+            reverse(
+                "premium_epub_asset",
+                kwargs={"edition_id": self.edition.id, "relative_path": "EPUB/text/chapter_001.xhtml"},
+            )
+        )
+        self.assertEqual(chapter.status_code, 200)
+        self.assertContains(chapter, "Chapter one begins.")
+        self.assertFalse(list(self.build_dir.glob("BOOK.PRE_*")))
+
+    def test_writer_build_creates_book_build_and_preserves_final(self):
+        before = hashlib.sha256(self.final_path.read_bytes()).hexdigest()
+
+        response = self.client.post(
+            reverse("build_book_md", kwargs={"book_code": self.work.code, "language": "en"})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse("preview_book_md", kwargs={"book_code": self.work.code, "language": "en"}),
+        )
+        self.assertTrue((self.build_dir / "BOOK.BUILD.MD").is_file())
+        self.assertTrue((self.build_dir / "kdp_merged.md").is_file())
+        self.assertEqual(hashlib.sha256(self.final_path.read_bytes()).hexdigest(), before)
+        self.assertFalse(list(self.build_dir.glob("BOOK.PRE_*")))
+
+    def test_writer_production_hides_legacy_preview_and_build_buttons(self):
+        response = self.client.get(
+            reverse("edition_steps", kwargs={"edition_id": self.edition.id})
+            + "?block=production&tab=frontmatter"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Preview do Livro")
+        for legacy_label in (
+            "Preview MD",
+            "Preview (Pre-Edition)",
+            "Preview Miolo",
+            "Approve MD Final",
+            "Gaiden: Montar Livro Completo",
+            "Export Print PDF",
+        ):
+            self.assertNotContains(response, legacy_label)
+        self.assertNotContains(response, "Preview EPUB Premium")

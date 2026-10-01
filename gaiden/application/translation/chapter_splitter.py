@@ -3,11 +3,9 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, replace
-from typing import Callable
 
 
 SPLITTER_VERSION = "gaiden_chapter_splitter_v1"
-QWEN_SCHEMA = "gaiden_chapter_detection_v1"
 
 _WORD_NUMBERS = {
     "one": "1",
@@ -424,49 +422,6 @@ def _renumber(units: list[SplitUnit]) -> list[SplitUnit]:
     return result
 
 
-def _qwen_units(text: str, payload: dict, confidence_threshold: float) -> tuple[list[SplitUnit], bool]:
-    if payload.get("schema") != QWEN_SCHEMA or not isinstance(payload.get("units"), list):
-        raise ChapterSplitError("Resposta Qwen não segue gaiden_chapter_detection_v1.")
-    units: list[SplitUnit] = []
-    expected_start = 0
-    review_required = False
-    for index, row in enumerate(payload["units"], start=1):
-        if not isinstance(row, dict):
-            raise ChapterSplitError("Unidade Qwen inválida.")
-        start = row.get("start_offset")
-        end = row.get("end_offset")
-        heading = str(row.get("heading") or "").strip()
-        unit_type = str(row.get("unit_type") or "chapter").strip()
-        if unit_type not in {"preliminaries", "preface", "introduction", "chapter", "epilogue", "appendix"}:
-            raise ChapterSplitError("Qwen sugeriu um tipo de unidade não permitido.")
-        if not isinstance(start, int) or not isinstance(end, int) or start != expected_start or end <= start or end > len(text):
-            raise ChapterSplitError("Offsets Qwen possuem lacuna, sobreposição ou limite inválido.")
-        if unit_type == "chapter" and not heading:
-            raise ChapterSplitError("Qwen sugeriu um capítulo sem heading verificável.")
-        confidence = float(row.get("confidence") or 0)
-        if heading and heading.casefold() not in text[start:end].casefold():
-            raise ChapterSplitError("Heading Qwen não está presente na unidade sugerida.")
-        if confidence < confidence_threshold:
-            review_required = True
-        sequence = 0 if index == 1 and unit_type == "preliminaries" else index
-        units.append(
-            _make_unit(
-                text,
-                sequence=sequence,
-                unit_type=unit_type,
-                heading=heading,
-                start=start,
-                end=end,
-                confidence=confidence,
-                evidence="qwen supervised offset suggestion",
-            )
-        )
-        expected_start = end
-    if expected_start != len(text):
-        raise ChapterSplitError("Offsets Qwen não cobrem integralmente o fonte.")
-    return units, review_required
-
-
 def _chapter_sequence_warnings(units: list[SplitUnit]) -> list[str]:
     groups: dict[int | None, list[int]] = {}
     for unit in units:
@@ -518,8 +473,6 @@ def split_heading_clean(
     *,
     alert_characters: int = 30_000,
     hard_limit_characters: int = 60_000,
-    qwen_detector: Callable[[str], dict] | None = None,
-    qwen_confidence_threshold: float = 0.85,
 ) -> SplitResult:
     try:
         text = source.decode("utf-8", errors="strict")
@@ -538,37 +491,22 @@ def split_heading_clean(
     detection_warnings = _chapter_sequence_warnings(units)
     missing_chapters = bool(units) and not deterministic_had_chapters
     if not units or detection_warnings or missing_chapters:
-        if qwen_detector is None:
-            if units:
-                warnings.extend(detection_warnings)
-                if missing_chapters:
-                    warnings.append("Nenhum capítulo estrutural confiável foi encontrado.")
-                review_required = True
-            else:
-                return SplitResult(
-                    source_sha256=sha256_bytes(source),
-                    source_size_bytes=len(source),
-                    source_characters=len(text),
-                    strategy="review_required",
-                    units=(),
-                    validated=False,
-                    review_required=True,
-                    warnings=("Nenhum heading estrutural confiável foi encontrado.",),
-                )
+        if units:
+            warnings.extend(detection_warnings)
+            if missing_chapters:
+                warnings.append("Nenhum capítulo estrutural confiável foi encontrado.")
+            review_required = True
         else:
-            units, review_required = _qwen_units(text, qwen_detector(text), qwen_confidence_threshold)
-            strategy = "qwen_supervised"
-            if detection_warnings or missing_chapters:
-                warnings.append(
-                    "O splitter determinístico exigiu fallback supervisionado por inconsistência estrutural."
-                )
-            qwen_warnings = _chapter_sequence_warnings(units)
-            if qwen_warnings:
-                warnings.extend(qwen_warnings)
-                review_required = True
-            if not any(unit.unit_type == "chapter" for unit in units):
-                warnings.append("Qwen não confirmou nenhum capítulo estrutural; revisão humana obrigatória.")
-                review_required = True
+            return SplitResult(
+                source_sha256=sha256_bytes(source),
+                source_size_bytes=len(source),
+                source_characters=len(text),
+                strategy="review_required",
+                units=(),
+                validated=False,
+                review_required=True,
+                warnings=("Nenhum heading estrutural confiável foi encontrado.",),
+            )
     if not units:
         return SplitResult(
             source_sha256=sha256_bytes(source),

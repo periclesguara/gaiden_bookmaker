@@ -3,6 +3,7 @@ from editorial.models import Edition
 from gaiden.application.builds.finalized_projects import finalized_project_builds
 from pipeline.models import IntakeItem
 from web.writer.models import Manuscript
+from web.printbook.models import PrintEdition
 
 
 def home_projection() -> dict:
@@ -10,6 +11,12 @@ def home_projection() -> dict:
     finalized_edition_ids = {build.edition_id for build in finalized}
     total_editions = Edition.objects.count()
     cards = [
+        {
+            "key": "printbook", "title": "04 · PrintBook",
+            "description": "Configure edições físicas, componha o miolo e confira os bloqueios técnicos de impressão.",
+            "count": PrintEdition.objects.count(), "status": "Edições físicas",
+            "route": "printbook:home", "action": "Abrir PrintBook",
+        },
         {
             "key": "intake",
             "title": "Intake",
