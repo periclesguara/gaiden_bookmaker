@@ -250,63 +250,77 @@
   </tbody></table></div>
 </section>
 
-<section class="card">
-  <div class="top">
-    <div><h2>7 · Fechamento do manuscrito</h2><p class="muted">Depois que o último capítulo for finalizado, consolide, exporte para a mesma pasta do projeto no Google Drive e importe a versão revisada.</p></div>
-    {% if manuscript_pipeline.merge_revision %}<span class="status FINAL">MANUSCRITO SALVO</span>{% endif %}
-  </div>
+<section class="card" id="manuscript-finalization">
+  <h2>7 · Fechamento do manuscrito</h2>
+  {% if manuscript_pipeline.all_chapters_final %}<p class="status FINAL">MANUSCRIPT COMPLETE</p>
+  {% else %}<p>Finalize todos os capítulos para liberar SAVE MERGE.</p>{% endif %}
   <div class="actions">
-      <form method="post" action="{% url 'writer:save_manuscript' project.id %}">
-        {% csrf_token %}
-        <button type="submit" {% if project.status == "CLOSED" or not manuscript_pipeline.all_chapters_final %}disabled{% endif %}>1. Save Manuscript · Unir todos os capítulos</button>
-      </form>
+    <form method="post" action="{% url 'writer:save_manuscript' project.id %}">{% csrf_token %}
+      <button type="submit" {% if project.status == "CLOSED" or not manuscript_pipeline.all_chapters_final %}disabled{% endif %}>SAVE MERGE</button>
+    </form>
+    <form method="post" action="{% url 'writer:export_merge' project.id %}">{% csrf_token %}
+      <button type="submit" {% if not manuscript_pipeline.merge_revision %}disabled{% endif %}>EXPORT MERGE</button>
+    </form>
   </div>
-  {% if project.status == "CLOSED" %}<p class="button-help">Este projeto foi fechado. O miolo canônico segue diretamente ao Intake, onde são preparados frontmatter, imagens, capa e preview.</p>{% elif not manuscript_pipeline.all_chapters_final %}<p class="button-help">Finalize todos os capítulos para liberar o primeiro passo.</p>{% endif %}
-  {% if manuscript_pipeline.merge_revision %}<p class="check">Merge salvo: v{{ manuscript_pipeline.merge_revision.version }} · {{ manuscript_pipeline.merge_revision.word_count }} palavras.</p>{% endif %}
+  {% if manuscript_pipeline.merge_revision %}<p class="check">MERGE SAVED · v{{ manuscript_pipeline.merge_revision.version }} · {{ manuscript_pipeline.merge_revision.word_count }} palavras.</p>
+  <p>EXPORT MERGE baixa o arquivo e guarda uma cópia versionada em return/ do projeto.</p>{% endif %}
+
+  <h3>IMPORT FINAL VERSION</h3>
+  {% if project.status != "CLOSED" %}
+  <p><a class="button" href="{% url 'writer:import_final_drive' project.id %}">GOOGLE DRIVE</a></p>
+  <form method="post" enctype="multipart/form-data" action="{% url 'writer:import_manuscript' project.id %}">{% csrf_token %}
+    {{ manuscript_upload_form.manuscript.label_tag }} {{ manuscript_upload_form.manuscript }}
+    <p data-selected-file>Selected: {% if manuscript_pipeline.selected_final %}{{ manuscript_pipeline.selected_final.original_filename }}{% else %}—{% endif %}</p>
+    <button type="submit" data-confirm-final-upload disabled>IMPORT FINAL VERSION</button>
+  </form>
+  {% else %}<p>Projeto fechado: revisões e capítulos permanecem somente leitura.</p>{% endif %}
+
+  <form method="post" action="{% url 'writer:save_final' project.id %}">{% csrf_token %}
+    {% if manuscript_pipeline.selected_final %}<input type="hidden" name="revision_id" value="{{ manuscript_pipeline.selected_final.id }}">
+    <p>Selected: {{ manuscript_pipeline.selected_final.original_filename }} · v{{ manuscript_pipeline.selected_final.version }}</p>{% endif %}
+    <button type="submit" data-save-final {% if project.status == "CLOSED" or not manuscript_pipeline.selected_final %}disabled{% endif %}>SAVE FINAL</button>
+  </form>
+  {% if manuscript_pipeline.final_revision %}
+    <p class="check">FINAL MANUSCRIPT SAVED · v{{ manuscript_pipeline.final_revision.version }} · {{ manuscript_pipeline.final_revision.word_count }} palavras.</p>
+    <p>Esta Final Version é a fonte oficial. Salvar outro merge não substitui o texto final.</p>
+  {% elif manuscript_pipeline.fallback_warning %}<p class="notice">{{ manuscript_pipeline.fallback_warning }}</p>
+  {% elif manuscript_pipeline.all_chapters_final %}<p>Sem Final Version ou merge salvo, a entrada na edição salvará um merge dos capítulos finais.</p>{% endif %}
+
+  <h3>GO TO EDITION MODE</h3>
+  <p>A edição começa em FRONTMATTER do Intake. A entrada congela o manuscrito escolhido e fecha o Writer para escrita.</p>
+  <form method="post" action="{% url 'writer:proceed_to_intake' project.id %}">{% csrf_token %}
+    <p>{{ writer_intake_form.author_name.label_tag }} {{ writer_intake_form.author_name }}</p>
+    <p>{{ writer_intake_form.publisher.label_tag }} {{ writer_intake_form.publisher }}</p>
+    <button class="green" type="submit" {% if not manuscript_pipeline.can_enter_edition %}disabled{% endif %}>GO TO EDITION MODE</button>
+  </form>
+  {% if manuscript_pipeline.edition_revision %}<p>Fonte da edição: v{{ manuscript_pipeline.edition_revision.version }} · {{ manuscript_pipeline.edition_revision.get_source_kind_display }}.</p>{% endif %}
+  <p>Frontmatter → Figures → Assembly → Preview → Approve → Generate EPUB</p>
 </section>
 
+{% if manuscript_revisions %}
 <section class="card">
-  <div class="top">
-    <div>
-      <h2>8 · Manuscrito Final</h2>
-      <p>Status do Writer: <strong>{{ project.get_status_display }}</strong></p>
-    </div>
-    {% if project.status == "CLOSED" %}<span class="status CLOSED">PROJETO FECHADO</span>{% endif %}
-  </div>
-  <p>{{ manuscript_revisions|length }} revisão(ões) existente(s).{% if project.canonical_manuscript %} Canonical atual: v{{ project.canonical_manuscript.version }}.{% endif %}</p>
-  {% if project.closed_at %}<p>Fechado em {{ project.closed_at }}{% if project.closed_by %} por {{ project.closed_by }}{% endif %}.</p>{% endif %}
-  {% if project.status != "CLOSED" %}
-    <form method="post" enctype="multipart/form-data" action="{% url 'writer:import_manuscript' project.id %}">
-      {% csrf_token %}
-      {{ manuscript_upload_form.manuscript.label_tag }}
-      {{ manuscript_upload_form.manuscript }}
-      <button type="submit">Importar manuscrito</button>
-    </form>
-  {% endif %}
-  {% if manuscript_revisions %}
-    <div class="table"><table><thead><tr><th>Versão</th><th>Arquivo</th><th>Palavras</th><th>Caracteres</th><th>Capítulos</th><th>SHA</th><th>Criado em</th><th>Canonical?</th><th>Ação</th></tr></thead><tbody>
-    {% for revision in manuscript_revisions %}
-      <tr>
-        <td>v{{ revision.version }}</td><td>{{ revision.original_filename }}</td><td>{{ revision.word_count }}</td><td>{{ revision.character_count }}</td><td>{{ revision.detected_chapter_count|default:"—" }}</td><td>{{ revision.sha256|slice:":12" }}</td><td>{{ revision.created_at }}</td>
-        <td>{% if project.canonical_manuscript_id == revision.id %}SIM{% else %}NÃO{% endif %}</td>
-        <td>{% if project.status != "CLOSED" and project.canonical_manuscript_id != revision.id %}<form method="post" action="{% url 'writer:promote_canonical_manuscript' project.id revision.id %}">{% csrf_token %}<button type="submit">Definir como Miolo Canônico</button></form>{% endif %}</td>
-      </tr>
-    {% endfor %}
-    </tbody></table></div>
-  {% endif %}
-  {% if project.status != "CLOSED" and project.canonical_manuscript %}
-    <form method="post" action="{% url 'writer:close_project' project.id %}" style="margin-top:12px">
-      {% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="green" type="submit">Fechar Projeto</button>
-    </form>
-  {% elif project.status == "CLOSED" and project.canonical_manuscript %}
-    <p><strong>Canonical Manuscript:</strong> v{{ project.canonical_manuscript.version }} · {{ project.canonical_manuscript.word_count }} palavras · {{ project.canonical_manuscript.sha256|slice:":12" }}…</p>
-    <p class="notice ok">O Writer está somente leitura. O Intake usará o miolo canônico para configurar frontmatter, imagens, capa e preview.</p>
-    <form method="post" action="{% url 'writer:proceed_to_intake' project.id %}" style="margin-top:12px">
-      {% csrf_token %}
-      <p>{{ writer_intake_form.author_name.label_tag }} {{ writer_intake_form.author_name }}</p>
-      <p>{{ writer_intake_form.publisher.label_tag }} {{ writer_intake_form.publisher }}</p>
-      <button class="green" type="submit">Prosseguir para Intake</button>
-    </form>
-  {% endif %}
+  <h2>Histórico de manuscritos</h2>
+  <div class="table"><table><thead><tr><th>Versão</th><th>Origem</th><th>Arquivo</th><th>Palavras</th><th>SHA</th><th>Criado em</th><th>Final?</th><th>Ação</th></tr></thead><tbody>
+  {% for revision in manuscript_revisions %}
+    <tr><td>v{{ revision.version }}</td><td>{{ revision.get_source_kind_display }}</td><td>{{ revision.original_filename }}</td>
+      <td>{{ revision.word_count }}</td><td>{{ revision.sha256|slice:":12" }}</td><td>{{ revision.created_at }}</td>
+      <td>{% if project.canonical_manuscript_id == revision.id %}SIM{% else %}NÃO{% endif %}</td>
+      <td>{% if project.status != "CLOSED" and revision.source_kind == "IMPORTED_FINAL" %}<a href="?selected_final={{ revision.id }}#manuscript-finalization">Selecionar para SAVE FINAL</a>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
 </section>
+{% endif %}
+<script>
+(() => {
+  const input = document.querySelector('[data-final-upload]');
+  if (!input) return;
+  const form = input.closest('form');
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    form.querySelector('[data-selected-file]').textContent = 'Selected: ' + (file ? file.name : '—');
+    form.querySelector('[data-confirm-final-upload]').disabled = !file;
+    if (file) document.querySelector('[data-save-final]').disabled = true;
+  });
+})();
+</script>
 {% endblock %}

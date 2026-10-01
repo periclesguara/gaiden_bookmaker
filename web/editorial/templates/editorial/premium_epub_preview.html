@@ -33,10 +33,14 @@
     {% elif manifest.production_ready %}
       <form method="post" action="{% url 'premium_epub_approve' edition.id %}" style="display:inline">
         {% csrf_token %}
-        <button type="submit">Aprovar este preview</button>
+        <button type="submit">{% if edition_source == 'writer' %}APPROVE FINAL EDITION{% else %}Aprovar este preview{% endif %}</button>
       </form>
     {% else %}
       <button type="button" disabled title="Cadastre uma capa oficial para liberar a aprovação">Aprovação bloqueada: falta capa oficial</button>
+    {% endif %}
+    {% if edition_source == 'writer' %}
+    <a class="button" href="?{{ writer_preview_query }}">REGENERATE PREVIEW</a>
+    {% if render_state.status == 'PREVIEW_APPROVED' %}<span class="badge">EDITION APPROVED</span>{% endif %}
     {% endif %}
     <a class="button" href="{{ frontmatter_adjust_url }}">Ajustar frontmatter</a>
     {% if post_intake_return_url %}

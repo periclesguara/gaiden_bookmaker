@@ -8,7 +8,8 @@ from pathlib import Path
 from django.db import transaction
 
 from ..models import Chapter, ManuscriptRevision, StoryProject
-from .manuscripts import _atomic_write, _revision_path, detect_chapter_headings
+from .manuscripts import (_immutable_write, _revision_path, detect_chapter_headings,
+                         ensure_project_writable, revision_bytes)
 
 
 def _final_chapters(project: StoryProject) -> list[Chapter]:
@@ -42,13 +43,15 @@ def _merged_text(project: StoryProject, chapters: list[Chapter]) -> str:
 def save_merged_manuscript(project: StoryProject, created_by=None) -> ManuscriptRevision:
     """Persist one revision containing every finalized chapter in order."""
     project = StoryProject.objects.select_for_update().get(pk=project.pk)
+    ensure_project_writable(project)
     chapters = _final_chapters(project)
     text = _merged_text(project, chapters)
     encoded = text.encode("utf-8")
     digest = hashlib.sha256(encoded).hexdigest()
 
     current = project.manuscript_merge_revision
-    if current and current.sha256 == digest and Path(current.storage_path).is_file():
+    if current and current.sha256 == digest:
+        revision_bytes(project, current)
         return current
 
     version = (
@@ -59,7 +62,7 @@ def save_merged_manuscript(project: StoryProject, created_by=None) -> Manuscript
         or 0
     ) + 1
     path = _revision_path(project, version)
-    _atomic_write(path, encoded)
+    _immutable_write(path, encoded)
     try:
         revision = ManuscriptRevision.objects.create(
             project=project,
@@ -79,5 +82,4 @@ def save_merged_manuscript(project: StoryProject, created_by=None) -> Manuscript
     except BaseException:
         path.unlink(missing_ok=True)
         raise
-
 

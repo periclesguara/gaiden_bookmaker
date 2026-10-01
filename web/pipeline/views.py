@@ -3266,10 +3266,24 @@ def writer_intake_assets(request, edition_id: int):
     if provenance.get("origin") != "writer_canonical" or not provenance.get("intake_book_code"):
         raise Http404("Writer Intake asset lane not found")
     if request.method == "POST":
+        action = request.POST.get("action")
+        if action in {"assembly", "generate_epub"}:
+            from .services.writer_edition_workflow import assemble_writer_edition, generate_writer_epub
+            try:
+                if action == "assembly":
+                    assemble_writer_edition(edition)
+                    messages.success(request, "ASSEMBLY SAVED · frontmatter, figuras e estilos montados para preview.")
+                else:
+                    final = generate_writer_epub(edition, str(request.user) if request.user.is_authenticated else "operator")
+                    messages.success(request, f"EPUB VALID · v{final.build.build_version} · {final.build.epubcheck_status}.")
+            except ValueError as exc:
+                messages.error(request, f"EPUB NEEDS FIXES: {exc}" if action == "generate_epub" else f"Montagem bloqueada: {exc}")
+            except Exception:
+                messages.error(request, "A ferramenta editorial está indisponível. A versão anterior permanece preservada.")
+            return redirect("writer_intake_assets", edition_id=edition.id)
         if request.POST.get("confirm_generated_images") != "1":
             messages.error(request, "Confirme que os arquivos enviados pertencem a esta edição.")
             return redirect("writer_intake_assets", edition_id=edition.id)
-        action = request.POST.get("action")
         if action == "upload_cover":
             uploaded = request.FILES.get("cover_file")
             if not uploaded:
@@ -3320,8 +3334,11 @@ def writer_intake_assets(request, edition_id: int):
         "intake_book_code": provenance["intake_book_code"],
         "cover_url": cover_url,
         "images": images,
-        "frontmatter_url": f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}?{urlencode({'return_to': 'writer_intake', 'edition_id': edition.id})}",
-        "preview_url": f"{reverse('premium_epub_preview', kwargs={'edition_id': edition.id})}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': edition.id})}",
+        "edition_source": "writer",
+        "preview_approved": EditionRenderer(edition).preview_is_approved(),
+        "latest_epub_build": EditionBuild.objects.filter(edition=edition).exclude(epub_path="").order_by("-build_version").first(),
+        "frontmatter_url": f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': edition.id, 'edition_source': 'writer'})}",
+        "preview_url": f"{reverse('premium_epub_preview', kwargs={'edition_id': edition.id})}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': edition.id, 'edition_source': 'writer'})}",
     })
 
 

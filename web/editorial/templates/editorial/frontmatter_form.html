@@ -48,7 +48,15 @@
 </head>
 <body>
   {% url 'book_edition_new' as nav_home_url %}
-  {% if edition %}
+  {% if edition_source == 'writer' %}
+    <nav class="actions" aria-label="Edition Mode">
+      <a href="{% url 'writer:home' %}">Writer</a>
+      <strong>FRONTMATTER</strong>
+      <a href="{{ post_intake_return_url }}#figures">FIGURES</a>
+      <a href="{{ post_intake_return_url }}#assembly">ASSEMBLY</a>
+      <a href="{{ post_intake_return_url }}#preview">PREVIEW · APPROVE · GENERATE EPUB</a>
+    </nav>
+  {% elif edition %}
     {% if source_format == 'html' %}
       {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
       {% url 'edition_steps' edition.id as nav_steps_base_url %}

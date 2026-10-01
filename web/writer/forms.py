@@ -142,7 +142,8 @@ class GoogleDocSourceForm(forms.Form):
 
 
 class ManuscriptUploadForm(forms.Form):
-    manuscript = forms.FileField(label="Importar versão final revisada")
+    manuscript = forms.FileField(label="BROWSE COMPUTER", widget=forms.ClearableFileInput(
+        attrs={"accept": ".txt,.md,.docx", "data-final-upload": "1"}))
 
     def clean_manuscript(self):
         uploaded = self.cleaned_data["manuscript"]

@@ -5,6 +5,8 @@ import json
 import os
 import re
 import tempfile
+import io
+import zipfile
 from pathlib import Path
 
 from django.core.exceptions import PermissionDenied
@@ -69,6 +71,14 @@ def _read_text(data: bytes, suffix: str) -> str:
             return _technical_normalize(data.decode("utf-8", errors="strict"))
         except UnicodeDecodeError as exc:
             raise ValueError("o manuscrito precisa estar em UTF-8") from exc
+    # Bound decompression before handing DOCX to the existing paragraph reader.
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            members = archive.infolist()
+            if len(members) > 5000 or sum(item.file_size for item in members) > 100 * 1024 * 1024:
+                raise ValueError("DOCX excede o limite de conteúdo descompactado")
+    except zipfile.BadZipFile as exc:
+        raise ValueError("arquivo DOCX inválido") from exc
     with tempfile.NamedTemporaryFile(suffix=suffix) as temporary:
         temporary.write(data)
         temporary.flush()
@@ -91,6 +101,39 @@ def _atomic_write(path: Path, content: bytes) -> None:
     except BaseException:
         Path(temporary_name).unlink(missing_ok=True)
         raise
+
+
+def _immutable_write(path: Path, content: bytes) -> None:
+    """Publish complete bytes atomically without replacing an operator file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".revision-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temporary, 0o600)
+        try:
+            os.link(temporary, path)
+        except FileExistsError as exc:
+            raise ValueError("o caminho já existe; nenhuma versão foi sobrescrita") from exc
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+def revision_bytes(project, revision) -> bytes:
+    if revision.project_id != project.pk:
+        raise ValueError("a revisão não pertence a este projeto")
+    path = Path(revision.storage_path).expanduser()
+    root = writer_storage_root().resolve()
+    if path.is_symlink() or not path.resolve().is_relative_to(root) or not path.is_file():
+        raise ValueError("arquivo de manuscrito indisponível ou fora do storage Writer")
+    if path.stat().st_size > MAX_MANUSCRIPT_BYTES:
+        raise ValueError("manuscrito excede o limite de 50 MiB")
+    data = path.read_bytes()
+    if not data or hashlib.sha256(data).hexdigest() != revision.sha256:
+        raise ValueError("o hash do manuscrito não confere")
+    return data
 
 
 def _revision_path(project: StoryProject, version: int) -> Path:
@@ -132,12 +175,14 @@ def import_manuscript_revision(project: StoryProject, uploaded_file, created_by=
         raise ValueError("formato não suportado; use .md, .txt ou .docx")
     data = _uploaded_bytes(uploaded_file)
     text = _read_text(data, suffix)
+    if not text.strip():
+        raise ValueError("o manuscrito precisa conter texto")
     encoded = text.encode("utf-8")
     version = (ManuscriptRevision.objects.filter(project=project).order_by("-version").values_list("version", flat=True).first() or 0) + 1
     path = _revision_path(project, version)
     if path.exists():
         raise ValueError("o próximo caminho de manuscrito já existe; verifique o storage")
-    _atomic_write(path, encoded)
+    _immutable_write(path, encoded)
     detected = len(detect_chapter_headings(text))
     try:
         return ManuscriptRevision.objects.create(
@@ -164,6 +209,11 @@ def promote_canonical_manuscript(project: StoryProject, revision: ManuscriptRevi
     ensure_project_writable(project)
     if revision.project_id != project.pk:
         raise ValueError("a revisão não pertence a este projeto")
+    revision_bytes(project, revision)
+    current = project.canonical_manuscript
+    if (current and current.source_kind == ManuscriptRevision.SourceKind.IMPORTED_FINAL
+            and revision.source_kind != ManuscriptRevision.SourceKind.IMPORTED_FINAL):
+        raise ValueError("uma Final Version salva tem prioridade sobre o merge dos capítulos")
     project.canonical_manuscript = revision
     project.status = StoryProject.Status.CANONICAL_READY
     project.save(update_fields=("canonical_manuscript", "status", "updated_at"))

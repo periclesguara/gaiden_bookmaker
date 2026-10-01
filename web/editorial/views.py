@@ -259,6 +259,12 @@ def _post_intake_return_context(
             workflow_edition_id = requested_edition_id
             target = (request.GET.get("target") or "").strip()
 
+    if workflow_edition_id is None and edition is not None:
+        provenance = edition.work.source_provenance or {}
+        if provenance.get("origin") == "writer_canonical" and provenance.get("intake_book_code"):
+            workflow_edition_id = edition.id
+            return_route = "writer_intake"
+
     # A direct/old frontmatter URL has no return parameters. Translation jobs are
     # the durable marker that this edition belongs to the post-Intake workflow.
     if workflow_edition_id is None and edition is not None:
@@ -273,6 +279,8 @@ def _post_intake_return_context(
     if workflow_edition_id is None:
         return "", ""
     return_params = {"return_to": return_route, "workflow_edition_id": workflow_edition_id}
+    if return_route == "writer_intake":
+        return_params["edition_source"] = "writer"
     return_url = reverse(
         "writer_intake_assets" if return_route == "writer_intake" else "post_intake_workflow",
         kwargs={"edition_id": workflow_edition_id},
@@ -493,6 +501,7 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         "overwrite_warning": warning,
         "post_intake_return_url": post_intake_return_url,
         "frontmatter_return_query": frontmatter_return_query,
+        "edition_source": "writer" if edition and (edition.work.source_provenance or {}).get("origin") == "writer_canonical" else "",
     }
     return render(request, "editorial/frontmatter_form.html", context)
 
@@ -702,6 +711,9 @@ def premium_epub_preview(request, edition_id: int):
     )
     source_path = _writer_canonical_preview_source(edition)
     try:
+        if writer_canonical:
+            from pipeline.services.writer_edition_workflow import canonical_source
+            source_path = canonical_source(edition)
         preview_context = build_book_preview_context(edition, source_path=source_path)
     except Exception as exc:
         messages.error(request, f"Premium EPUB render failed: {exc}")
@@ -715,6 +727,8 @@ def premium_epub_preview(request, edition_id: int):
             "edition": edition,
             **preview_context,
             "production_preview": writer_canonical,
+            "edition_source": "writer" if writer_canonical else "",
+            "writer_preview_query": urlencode({"return_to": "writer_intake", "workflow_edition_id": edition.id, "edition_source": "writer"}),
             "post_intake_return_url": post_intake_return_url,
             "frontmatter_adjust_url": (
                 f"{reverse('frontmatter_template_edit', kwargs={'book_code': edition.work.code, 'language': edition.language.code})}"
@@ -746,12 +760,24 @@ def premium_epub_asset(request, edition_id: int, relative_path: str):
 def premium_epub_approve(request, edition_id: int):
     edition = get_object_or_404(EditorialEdition, pk=edition_id)
     try:
-        EditionRenderer(
+        source_path = _writer_canonical_preview_source(edition)
+        if (edition.work.source_provenance or {}).get("origin") == "writer_canonical":
+            from pipeline.services.writer_edition_workflow import canonical_source
+            source_path = canonical_source(edition)
+        renderer = EditionRenderer(
             edition,
-            source_path=_writer_canonical_preview_source(edition),
-        ).approve_preview()
+            source_path=source_path,
+        )
+        result = renderer.approve_preview()
+        if (edition.work.source_provenance or {}).get("origin") == "writer_canonical":
+            state = renderer._load_state()
+            state["approved_at"] = timezone.now().isoformat()
+            state["edition_version_id"] = result.fingerprint
+            renderer._write_state(state)
     except Exception as exc:
         messages.error(request, f"Premium preview approval failed: {exc}")
     else:
         messages.success(request, "Premium EPUB preview approved. The exact rendered artifacts are locked for packaging.")
+    if (edition.work.source_provenance or {}).get("origin") == "writer_canonical":
+        return redirect(f"{reverse('premium_epub_preview', args=[edition.id])}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': edition.id, 'edition_source': 'writer'})}")
     return redirect("premium_epub_preview", edition_id=edition.id)

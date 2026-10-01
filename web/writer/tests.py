@@ -9,19 +9,23 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from gaiden.writer_engine.engine import GenerationResult
 from author_studio.models import Author, CanonicalText, Work, WorkSource
 from editorial.models import Edition, EditionPipeline, Language, Seal
 from pipeline.services.writer_intake_handoff import register_closed_writer_in_intake
-from web.writer.models import Chapter, ChapterSession, SourceDocument, StoryProject
+from web.writer.models import Chapter, ChapterSession, ManuscriptRevision, SourceDocument, StoryProject
 from web.writer.services.dashboard import build_project_dashboard
 from web.writer.services.generation import generate_chapter
 from web.writer.services.normalization import normalize_document, normalize_text
 from web.writer.services.projects import synchronize_chapters
 from web.writer.services.sources import discover_source_documents
+from web.writer.services.finalization import (edition_source, export_merge, prepare_edition_source,
+                                             save_final)
+from web.writer.services.manuscript_drive import _BoundedBuffer, import_drive_final, list_final_files
+from web.writer.services.manuscript_pipeline import save_merged_manuscript
 from web.writer.services.manuscripts import ProjectClosedError, close_writer_project, import_manuscript_revision, promote_canonical_manuscript
 
 
@@ -752,3 +756,427 @@ class GenerationGuardrailTests(WriterQAIsolation, TestCase):
         from gaiden.infrastructure.local_models import local_model_name
         with self.assertRaises(ValueError):
             local_model_name("gpt-5")
+
+
+# Manuscript finalization: included in the protected web.writer.tests suite.
+class MergeSafetyTests(TestCase):
+    def setUp(self):
+        self.temp = TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        env = patch.dict(os.environ, {"GAIDEN_WRITER_STORAGE_ROOT": self.temp.name})
+        env.start()
+        self.addCleanup(env.stop)
+        self.project = StoryProject.objects.create(title="Book", chapter_count=1)
+        Chapter.objects.create(project=self.project, number=1, title="Opening",
+                               status=Chapter.Status.FINAL, final_text="Final chapter text.")
+
+    def test_closed_project_cannot_create_merge(self):
+        self.project.status = StoryProject.Status.CLOSED
+        self.project.save()
+        with self.assertRaises(ProjectClosedError):
+            save_merged_manuscript(self.project)
+        self.assertFalse(self.project.manuscript_revisions.exists())
+
+    def test_merge_reuse_checks_physical_hash(self):
+        revision = save_merged_manuscript(self.project)
+        Path(revision.storage_path).write_text("tampered", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            save_merged_manuscript(self.project)
+        self.assertEqual(self.project.manuscript_revisions.count(), 1)
+
+    def test_merge_never_overwrites_an_existing_next_path(self):
+        path = Path(self.temp.name) / "projects" / str(self.project.pk) / "manuscripts/manuscript_v001.md"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b"operator file")
+        with self.assertRaises(ValueError):
+            save_merged_manuscript(self.project)
+        self.assertEqual(path.read_bytes(), b"operator file")
+
+    def test_merge_remains_versioned_and_idempotent(self):
+        first = save_merged_manuscript(self.project)
+        same = save_merged_manuscript(self.project)
+        self.assertEqual(first.pk, same.pk)
+        Chapter.objects.filter(project=self.project).update(final_text="A new reviewed chapter.")
+        second = save_merged_manuscript(self.project)
+        self.assertEqual(second.version, first.version + 1)
+        self.assertEqual(first.sha256, hashlib.sha256(Path(first.storage_path).read_bytes()).hexdigest())
+
+
+class FinalizationTests(TestCase):
+    setUp = MergeSafetyTests.setUp
+
+    def imported(self, text=b"# Chapter 1\n\nReviewed final text."):
+        return import_manuscript_revision(self.project, SimpleUploadedFile("reviewed.md", text))
+
+    def test_export_requires_a_saved_merge(self):
+        with self.assertRaisesMessage(ValueError, "salve um merge"):
+            export_merge(self.project)
+        self.assertFalse((Path(self.temp.name) / "projects" / str(self.project.pk) / "return").exists())
+
+    def test_export_preserves_bytes_and_every_prior_version(self):
+        merge = save_merged_manuscript(self.project)
+        first, second = export_merge(self.project), export_merge(self.project)
+        self.assertNotEqual(first.path, second.path)
+        self.assertEqual(first.path.read_bytes(), second.path.read_bytes())
+        self.assertEqual(first.data, Path(merge.storage_path).read_bytes())
+        metadata = json.loads(second.path.with_suffix(".json").read_text())
+        self.assertEqual(metadata["sha256"], merge.sha256)
+        self.assertEqual(metadata["export_version"], 2)
+        self.assertEqual(first.path.parent.name, "return")
+
+    def test_export_uses_latest_merge_even_with_stale_pointer_and_saved_final(self):
+        first = save_merged_manuscript(self.project)
+        final = self.imported()
+        save_final(self.project, final)
+        Chapter.objects.filter(project=self.project).update(final_text="New merge only.")
+        latest = save_merged_manuscript(self.project)
+        StoryProject.objects.filter(pk=self.project.pk).update(manuscript_merge_revision=first)
+        self.assertEqual(export_merge(self.project).revision.pk, latest.pk)
+        self.project.refresh_from_db()
+        self.assertEqual(edition_source(self.project).pk, final.pk)
+
+    def test_unsaved_import_does_not_replace_merge(self):
+        merge = save_merged_manuscript(self.project)
+        self.imported()
+        self.project.refresh_from_db()
+        self.assertEqual(edition_source(self.project).pk, merge.pk)
+
+    def test_saved_final_wins_even_when_chapters_are_no_longer_final(self):
+        final = self.imported()
+        save_final(self.project, final)
+        Chapter.objects.filter(project=self.project).update(status=Chapter.Status.PLANNED)
+        frozen, used_merge = prepare_edition_source(self.project)
+        self.assertFalse(used_merge)
+        self.assertEqual(frozen.canonical_manuscript_id, final.pk)
+        self.assertEqual(frozen.status, StoryProject.Status.CLOSED)
+
+    def test_final_cannot_be_demoted_to_merge_by_legacy_canonical_route(self):
+        merge = save_merged_manuscript(self.project)
+        final = self.imported()
+        save_final(self.project, final)
+        with self.assertRaisesMessage(ValueError, "Final Version"):
+            promote_canonical_manuscript(self.project, merge)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.canonical_manuscript_id, final.pk)
+
+    def test_tampered_final_blocks_handoff_without_chapter_fallback(self):
+        final = self.imported()
+        save_final(self.project, final)
+        save_merged_manuscript(self.project)
+        Path(final.storage_path).write_bytes(b"tampered")
+        with self.assertRaises(ValueError):
+            prepare_edition_source(self.project)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.status, StoryProject.Status.CANONICAL_READY)
+        self.assertEqual(self.project.manuscript_revisions.count(), 2)
+
+    def test_chapter_fallback_only_when_neither_final_nor_merge_exists(self):
+        frozen, used_merge = prepare_edition_source(self.project)
+        self.assertTrue(used_merge)
+        self.assertEqual(frozen.status, StoryProject.Status.CLOSED)
+        self.assertEqual(self.project.manuscript_revisions.count(), 1)
+        repeated, _ = prepare_edition_source(self.project)
+        self.assertEqual(repeated.canonical_manuscript_id, frozen.canonical_manuscript_id)
+        self.assertEqual(self.project.manuscript_revisions.count(), 1)
+
+    def test_incomplete_chapters_cannot_be_used_as_fallback(self):
+        Chapter.objects.filter(project=self.project).update(status=Chapter.Status.PLANNED)
+        with self.assertRaises(ValueError):
+            prepare_edition_source(self.project)
+        self.assertFalse(self.project.manuscript_revisions.exists())
+
+    def test_save_final_checks_selection_ownership_and_hash(self):
+        merge = save_merged_manuscript(self.project)
+        with self.assertRaises(ValueError):
+            save_final(self.project, merge)
+        other = StoryProject.objects.create(title="Other")
+        revision = import_manuscript_revision(other, SimpleUploadedFile("other.txt", b"Other final"))
+        with self.assertRaises(ValueError):
+            save_final(self.project, revision)
+        final = self.imported()
+        Path(final.storage_path).write_bytes(b"tampered")
+        with self.assertRaises(ValueError):
+            save_final(self.project, final)
+
+    def test_progressive_controls_and_selected_filename_are_visible(self):
+        response = self.client.get(reverse("writer:project_detail", args=[self.project.pk]))
+        self.assertContains(response, '>EXPORT MERGE</button>')
+        self.assertContains(response, 'disabled>EXPORT MERGE')
+        self.assertContains(response, 'disabled>SAVE FINAL')
+        self.assertContains(response, 'GOOGLE DRIVE')
+        self.assertContains(response, 'BROWSE COMPUTER')
+        merge = save_merged_manuscript(self.project)
+        response = self.client.get(reverse("writer:project_detail", args=[self.project.pk]))
+        self.assertNotContains(response, 'disabled>EXPORT MERGE')
+        self.assertContains(response, 'No imported Final Version. The latest Merge will be used.')
+        imported = self.imported()
+        response = self.client.get(reverse("writer:project_detail", args=[self.project.pk]), {"selected_final": imported.pk})
+        self.assertContains(response, 'Selected: reviewed.md')
+        self.assertNotContains(response, 'disabled>SAVE FINAL')
+        response = self.client.post(reverse("writer:save_final", args=[self.project.pk]), {"revision_id": imported.pk})
+        self.assertEqual(response.status_code, 302)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.canonical_manuscript_id, imported.pk)
+        self.assertNotEqual(imported.pk, merge.pk)
+
+    def test_export_is_post_only_and_returns_versioned_download(self):
+        url = reverse("writer:export_merge", args=[self.project.pk])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        merge = save_merged_manuscript(self.project)
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, Path(merge.storage_path).read_bytes())
+        self.assertIn('attachment;', response["Content-Disposition"])
+
+    def test_local_upload_remains_candidate_until_save_final(self):
+        url = reverse("writer:import_manuscript", args=[self.project.pk])
+        response = self.client.post(url, {"manuscript": SimpleUploadedFile("reviewed.md", b"Final file.")})
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('selected_final=', response.url)
+        self.project.refresh_from_db()
+        self.assertIsNone(self.project.canonical_manuscript)
+
+    def test_whitespace_only_upload_is_rejected(self):
+        with self.assertRaises(ValueError):
+            self.imported(b"  \n  ")
+
+    def test_go_to_edition_reuses_intake_and_opens_frontmatter(self):
+        from editorial.models import Language, Seal
+        Language.objects.create(code="en", name="English", native_name="English")
+        Seal.objects.create(name="RinoBooks", slug="rinobooks-test")
+        self.project.language = "English (United Kingdom)"
+        self.project.save()
+        merge = save_merged_manuscript(self.project)
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": self.temp.name}):
+            response = self.client.post(reverse("writer:proceed_to_intake", args=[self.project.pk]),
+                                        {"author_name": "Test Author", "publisher": "RinoBooks"})
+            self.assertEqual(response.status_code, 302)
+            self.assertIn('/frontmatter/', response.url)
+            self.assertIn('edition_source=writer', response.url)
+            self.assertIn('workflow_edition_id=', response.url)
+            self.project.refresh_from_db()
+            self.assertEqual(self.project.canonical_manuscript_id, merge.pk)
+            self.assertEqual(self.project.status, StoryProject.Status.CLOSED)
+            # Existing frontmatter template and contextual navigation remain in use.
+            frontmatter = self.client.get(response.url)
+            self.assertEqual(frontmatter.status_code, 200)
+            self.assertTemplateUsed(frontmatter, 'editorial/frontmatter_form.html')
+            self.assertEqual(frontmatter.context['edition_source'], 'writer')
+            self.assertContains(frontmatter, 'FIGURES')
+            self.assertNotContains(frontmatter, 'Normalize')
+            self.assertNotContains(frontmatter, 'Headings Cleaning')
+
+    def test_docx_upload_reuses_existing_reader_with_bounded_archive(self):
+        import io
+        from docx import Document
+        document = Document()
+        document.add_paragraph('Final DOCX paragraph.')
+        stream = io.BytesIO()
+        document.save(stream)
+        revision = import_manuscript_revision(self.project, SimpleUploadedFile('final.docx', stream.getvalue()))
+        self.assertIn('Final DOCX paragraph.', Path(revision.storage_path).read_text())
+
+    def test_invalid_docx_is_rejected_without_revision(self):
+        with self.assertRaises(ValueError):
+            import_manuscript_revision(self.project, SimpleUploadedFile('bad.docx', b'not a zip'))
+        self.assertFalse(self.project.manuscript_revisions.exists())
+
+
+class DriveFinalizationTests(TestCase):
+    setUp = MergeSafetyTests.setUp
+
+    def metadata(self, **changes):
+        result = {"id": "drive_file_123456", "name": "reviewed.md", "mimeType": "text/markdown",
+                  "version": "3", "modifiedTime": "2026-10-01T12:00:00Z", "size": "30", "trashed": False}
+        result.update(changes)
+        return result
+
+    @patch("web.writer.services.manuscript_drive._download", return_value=b"# Chapter 1\n\nFinal from Drive.\n")
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_drive_import_records_provenance_and_reuses_same_file_version(self, factory, download):
+        factory.return_value.files.return_value.get.return_value.execute.return_value = self.metadata()
+        first = import_drive_final(self.project, 'https://drive.google.com/file/d/drive_file_123456/view')
+        again = import_drive_final(self.project, 'drive_file_123456')
+        self.assertEqual(first.pk, again.pk)
+        self.assertEqual(self.project.manuscript_revisions.count(), 1)
+        record = json.loads(Path(first.storage_path).with_suffix('.source.json').read_text())
+        self.assertEqual(record['drive_file_id'], 'drive_file_123456')
+        self.assertEqual(record['drive_version'], '3')
+        self.assertEqual(record['sha256'], first.sha256)
+        self.project.refresh_from_db()
+        self.assertIsNone(self.project.canonical_manuscript)
+        self.assertEqual(self.project.manuscript_drive_id, 'drive_file_123456')
+        factory.return_value.files.return_value.create.assert_not_called()
+        factory.return_value.files.return_value.update.assert_not_called()
+
+    @patch("web.writer.services.manuscript_drive._download", return_value=b"Drive final")
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_changing_drive_version_is_rejected_without_local_write(self, factory, download):
+        factory.return_value.files.return_value.get.return_value.execute.side_effect = [self.metadata(), self.metadata(version='4')]
+        with self.assertRaises(ValueError):
+            import_drive_final(self.project, 'drive_file_123456')
+        self.assertFalse(self.project.manuscript_revisions.exists())
+
+    @patch("web.writer.services.manuscript_drive._download")
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_unsupported_file_and_trashed_file_are_not_downloaded(self, factory, download):
+        for metadata in (self.metadata(name='bad.exe', mimeType='application/octet-stream'), self.metadata(trashed=True)):
+            factory.return_value.files.return_value.get.return_value.execute.return_value = metadata
+            with self.assertRaises(ValueError):
+                import_drive_final(self.project, 'drive_file_123456')
+        download.assert_not_called()
+
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_project_folder_picker_lists_without_downloading(self, factory):
+        self.project.drive_project_folder_id = 'drive_folder_12345'
+        factory.return_value.files.return_value.list.return_value.execute.return_value = {
+            'files': [self.metadata(), self.metadata(name='ignore.pdf', mimeType='application/pdf')],
+            'nextPageToken': 'next',
+        }
+        files, token = list_final_files(self.project)
+        self.assertEqual([file['name'] for file in files], ['reviewed.md'])
+        self.assertEqual(token, 'next')
+        factory.return_value.files.return_value.get_media.assert_not_called()
+
+    def test_download_buffer_enforces_limit_without_creating_a_revision(self):
+        with patch('web.writer.services.manuscript_drive.MAX_MANUSCRIPT_BYTES', 3):
+            stream = _BoundedBuffer()
+            stream.write(b'123')
+            with self.assertRaises(ValueError):
+                stream.write(b'4')
+
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_drive_picker_and_upload_route_reuse_existing_importer(self, factory):
+        self.project.drive_project_folder_id = 'drive_folder_12345'
+        self.project.save()
+        factory.return_value.files.return_value.list.return_value.execute.return_value = {'files': [self.metadata()]}
+        response = self.client.get(reverse('writer:import_final_drive', args=[self.project.pk]))
+        self.assertContains(response, 'reviewed.md')
+        self.assertContains(response, 'Selecionar e importar')
+        factory.return_value.files.return_value.get.return_value.execute.return_value = self.metadata()
+        with patch('web.writer.services.manuscript_drive._download', return_value=b'Reviewed Drive file.'):
+            response = self.client.post(reverse('writer:import_final_drive', args=[self.project.pk]),
+                                        {'file_id': 'drive_file_123456'})
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('selected_final=', response.url)
+
+    @patch("web.writer.services.manuscript_drive._download", return_value=b"Reviewed Drive file.")
+    @patch("web.writer.services.manuscript_drive._drive")
+    def test_failed_provenance_write_preserves_operator_file_and_rolls_back_revision(self, factory, download):
+        factory.return_value.files.return_value.get.return_value.execute.return_value = self.metadata()
+        path = Path(self.temp.name) / 'projects' / str(self.project.pk) / 'manuscripts/manuscript_v001.source.json'
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b'operator provenance')
+        with self.assertRaises(ValueError):
+            import_drive_final(self.project, 'drive_file_123456')
+        self.assertEqual(path.read_bytes(), b'operator provenance')
+        self.assertFalse(path.with_name('manuscript_v001.md').exists())
+        self.assertFalse(self.project.manuscript_revisions.exists())
+
+    @patch('googleapiclient.http.MediaIoBaseDownload')
+    def test_native_google_doc_uses_read_only_text_export(self, downloader):
+        from web.writer.services.manuscript_drive import _download
+        drive = MagicMock()
+        downloader.return_value.next_chunk.return_value = (None, True)
+        metadata = self.metadata(mimeType='application/vnd.google-apps.document')
+        _download(drive, metadata)
+        drive.files.return_value.export_media.assert_called_once_with(fileId=metadata['id'], mimeType='text/plain')
+        drive.files.return_value.get_media.assert_not_called()
+
+    @patch('googleapiclient.http.MediaIoBaseDownload')
+    def test_oversize_file_stops_before_network_download(self, downloader):
+        from web.writer.services.manuscript_drive import _download
+        with self.assertRaises(ValueError):
+            _download(MagicMock(), self.metadata(size=str(51 * 1024 * 1024)))
+        downloader.assert_not_called()
+
+
+class EditionWorkflowTests(SimpleTestCase):
+    def setUp(self):
+        self.temp = TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        root = Path(self.temp.name)
+        self.source = root / 'BOOK.MD_FINAL'
+        self.source.write_bytes(b'# Chapter 1\n\nFrozen manuscript.')
+        self.edition = SimpleNamespace(pk=7, id=7, language=SimpleNamespace(code='en'), work=SimpleNamespace(
+            code='writer-test', source_provenance={'origin': 'writer_canonical', 'intake_book_code': 'book_0007', 'working_manuscript_path': str(self.source),
+                               'source_sha256': hashlib.sha256(self.source.read_bytes()).hexdigest()}))
+        root_patch = patch('pipeline.services.writer_edition_workflow.storage.storage_root', return_value=root)
+        root_patch.start()
+        self.addCleanup(root_patch.stop)
+
+    @patch('pipeline.services.writer_edition_workflow.EditionRenderer')
+    @patch('pipeline.services.writer_edition_workflow.kdp_mode.build_merged_kdp_source')
+    @patch('pipeline.services.writer_edition_workflow.kdp_mode.build_frontmatter_files')
+    def test_assembly_reuses_renderer_without_text_transformation(self, frontmatter, legacy_merge, renderer):
+        from pipeline.services.writer_edition_workflow import assemble_writer_edition
+        original = self.source.read_bytes()
+        assemble_writer_edition(self.edition)
+        renderer.assert_called_once_with(self.edition, source_path=self.source)
+        legacy_merge.assert_not_called()
+        self.assertEqual(self.source.read_bytes(), original)
+
+    @patch('pipeline.services.writer_edition_workflow.import_final_epub')
+    @patch('pipeline.services.writer_edition_workflow.EditionRenderer')
+    def test_unapproved_or_changed_edition_cannot_generate(self, factory, importer):
+        from pipeline.services.writer_edition_workflow import generate_writer_epub
+        factory.return_value.preview_is_approved.side_effect = [False]
+        with self.assertRaises(ValueError):
+            generate_writer_epub(self.edition)
+        factory.return_value.preview_is_approved.side_effect = [True, False]
+        with self.assertRaises(ValueError):
+            generate_writer_epub(self.edition)
+        factory.return_value.build_epub.assert_not_called()
+        importer.assert_not_called()
+
+    @patch('pipeline.services.writer_edition_workflow.import_final_epub')
+    @patch('pipeline.services.writer_edition_workflow.EditionRenderer')
+    def test_epub_generation_reuses_existing_epubcheck_gate(self, factory, importer):
+        from pipeline.services.writer_edition_workflow import generate_writer_epub
+        output = Path(self.temp.name) / 'BOOK.epub'
+        output.write_bytes(b'packaged-epub-fixture')
+        factory.return_value.preview_is_approved.return_value = True
+        factory.return_value.build_epub.return_value = output
+        generate_writer_epub(self.edition)
+        kwargs = importer.call_args.kwargs
+        self.assertEqual(kwargs['official_body_path'], self.source)
+        self.assertTrue(kwargs['approved'])
+        self.assertNotIn('skip_epubcheck_for_tests', kwargs)
+        self.assertEqual(kwargs['expected_sha256'], hashlib.sha256(output.read_bytes()).hexdigest())
+
+    def test_damaged_canonical_is_rejected(self):
+        from pipeline.services.writer_edition_workflow import canonical_source
+        self.source.write_bytes(b'tampered')
+        with self.assertRaises(ValueError):
+            canonical_source(self.edition)
+
+    def test_direct_frontmatter_url_recovers_writer_navigation_from_provenance(self):
+        from editorial.views import _post_intake_return_context
+        url, query = _post_intake_return_context(RequestFactory().get('/'), self.edition.work.code, self.edition)
+        self.assertEqual(url, reverse('writer_intake_assets', args=[7]))
+        self.assertIn('edition_source=writer', query)
+
+    @patch('editorial.views.messages')
+    @patch('editorial.views.get_object_or_404')
+    @patch('editorial.views.EditionRenderer')
+    def test_writer_approval_records_time_and_version_and_preserves_context(self, factory, find, messages):
+        from editorial.views import premium_epub_approve
+        find.return_value = self.edition
+        factory.return_value.approve_preview.return_value = SimpleNamespace(fingerprint='edition-fingerprint')
+        factory.return_value._load_state.return_value = {}
+        response = premium_epub_approve(RequestFactory().post('/'), 7)
+        state = factory.return_value._write_state.call_args.args[0]
+        self.assertEqual(state['edition_version_id'], 'edition-fingerprint')
+        self.assertIn('approved_at', state)
+        self.assertIn('edition_source=writer', response.url)
+
+    @patch('editorial.views.messages')
+    @patch('editorial.views.get_object_or_404')
+    @patch('editorial.views.build_book_preview_context')
+    def test_damaged_writer_source_cannot_fall_back_to_another_preview(self, build_preview, find, messages):
+        from editorial.views import premium_epub_preview
+        find.return_value = self.edition
+        self.source.write_bytes(b'tampered')
+        response = premium_epub_preview(RequestFactory().get('/'), 7)
+        self.assertEqual(response.status_code, 302)
+        build_preview.assert_not_called()

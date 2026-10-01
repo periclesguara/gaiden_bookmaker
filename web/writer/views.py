@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.urls import reverse
 
 from .forms import (WriterIntakeForm, ChapterForm, GoogleDocSourceForm, ManuscriptUploadForm,
                     ProjectReferenceForm, ProjectReferenceSelectionForm, ProjectSourcesForm, StoryProjectForm)
@@ -25,6 +28,10 @@ from .services.output_import import import_chapter_output
 from .services.manuscript_pipeline import (
     save_merged_manuscript,
 )
+from .services.finalization import (FALLBACK_WARNING, edition_source, export_merge as export_merge_service,
+                                   latest_merge, prepare_edition_source, save_final as save_final_service,
+                                   saved_final)
+from .services.manuscript_drive import import_drive_final, list_final_files
 from .services.google_docs import canonical_google_doc_url, extract_document_id
 from .services.manuscripts import (
     close_writer_project,
@@ -172,6 +179,12 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
         len(chapters) == project.chapter_count
         and all(chapter.status == Chapter.Status.FINAL and chapter.final_text.strip() for chapter in chapters)
     )
+    selected = project.manuscript_revisions.filter(source_kind=ManuscriptRevision.SourceKind.IMPORTED_FINAL)
+    if request.GET.get("selected_final", "").isdigit():
+        selected = selected.filter(pk=int(request.GET["selected_final"]))
+    selected = selected.order_by("-version").first()
+    merge = latest_merge(project)
+    final = saved_final(project)
     return render(request, "writer/project_detail.html", {
         "project": project,
         "source_form": ProjectSourcesForm(project=project),
@@ -188,7 +201,12 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
         "writer_intake_form": WriterIntakeForm(),
         "manuscript_pipeline": {
             "all_chapters_final": all_chapters_final,
-            "merge_revision": project.manuscript_merge_revision,
+            "merge_revision": merge,
+            "selected_final": selected,
+            "final_revision": final,
+            "edition_revision": edition_source(project),
+            "can_enter_edition": bool(project.canonical_manuscript) if project.status == StoryProject.Status.CLOSED else bool(final or merge or all_chapters_final),
+            "fallback_warning": FALLBACK_WARNING if merge and not final else "",
         },
     })
 
@@ -247,9 +265,68 @@ def save_manuscript(request: HttpRequest, project_id: int) -> HttpResponse:
     project = get_object_or_404(StoryProject, pk=project_id)
     try:
         revision = save_merged_manuscript(project, request.user)
-        messages.success(request, f"Manuscrito salvo como v{revision.version}, com todos os capítulos finalizados.")
+        messages.success(request, f"MERGE SAVED · v{revision.version}, com todos os capítulos finalizados.")
     except Exception as exc:
         messages.error(request, f"Não foi possível salvar o manuscrito: {exc}")
+    return redirect("writer:project_detail", project_id=project.id)
+
+
+@require_POST
+def export_merge(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    try:
+        exported = export_merge_service(project)
+    except ValueError as exc:
+        messages.error(request, f"Exportação não concluída: {exc}")
+        return redirect("writer:project_detail", project_id=project.id)
+    response = HttpResponse(exported.data, content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{exported.path.name}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET", "POST"])
+def import_final_drive(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    if request.method == "POST":
+        try:
+            revision = import_drive_final(project, request.POST.get("file_id", ""), request.user)
+        except ValueError as exc:
+            messages.error(request, f"Importação não concluída: {exc}")
+        except Exception:
+            messages.error(request, "Não foi possível acessar o arquivo do Drive. Verifique a credencial e o compartilhamento.")
+        else:
+            messages.success(request, f"Selected: {revision.original_filename} · v{revision.version}. Use SAVE FINAL para confirmar.")
+            return redirect(f"{reverse('writer:project_detail', args=[project.id])}?{urlencode({'selected_final': revision.id})}#manuscript-finalization")
+        return redirect("writer:import_final_drive", project_id=project.id)
+    files, next_page, error = [], "", ""
+    if project.drive_project_folder_id:
+        try:
+            files, next_page = list_final_files(project, request.GET.get("page_token"))
+        except Exception:
+            error = "Não foi possível listar a pasta do projeto. Verifique a credencial, ou informe o link/ID do arquivo."
+    return render(request, "writer/import_final_drive.html", {
+        "project": project, "files": files, "drive_error": error,
+        "next_page_query": urlencode({"page_token": next_page}) if next_page else "",
+    })
+
+
+@require_POST
+def save_final(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    raw_id = request.POST.get("revision_id", "")
+    if not raw_id.isdigit():
+        messages.error(request, "Selecione uma versão final importada.")
+        return redirect("writer:project_detail", project_id=project.id)
+    revision = get_object_or_404(ManuscriptRevision, pk=int(raw_id), project=project,
+                                source_kind=ManuscriptRevision.SourceKind.IMPORTED_FINAL)
+    try:
+        save_final_service(project, revision)
+    except ValueError as exc:
+        messages.error(request, f"Final não salvo: {exc}")
+    else:
+        messages.success(request, f"FINAL MANUSCRIPT SAVED · v{revision.version}.")
     return redirect("writer:project_detail", project_id=project.id)
 
 
@@ -268,13 +345,16 @@ def proceed_to_intake(request: HttpRequest, project_id: int) -> HttpResponse:
     )
 
     try:
+        # Persist the frozen revision before the independently retryable Intake handoff.
+        # Rolling back its row after publishing immutable files would orphan that version.
+        project, used_merge = prepare_edition_source(project, request.user)
         result = register_closed_writer_in_intake(
             project=project,
             author_name=form.cleaned_data["author_name"],
             publisher=form.cleaned_data["publisher"],
         )
         handoff_writer_edition_to_intake(edition=result.edition)
-    except WriterIntakeHandoffError as exc:
+    except (WriterIntakeHandoffError, ValueError) as exc:
         messages.error(request, f"O encaminhamento para o Intake falhou: {exc}")
         return redirect("writer:project_detail", project_id=project.id)
 
@@ -282,7 +362,9 @@ def proceed_to_intake(request: HttpRequest, project_id: int) -> HttpResponse:
         request,
         "Edição encaminhada ao Intake." if result.created else "Edição existente encaminhada novamente ao Intake.",
     )
-    return redirect("writer_intake_assets", edition_id=result.edition.id)
+    if used_merge:
+        messages.warning(request, FALLBACK_WARNING)
+    return redirect(f"{reverse('frontmatter_template_edit', kwargs={'book_code': result.edition.work.code, 'language': result.edition.language.code})}?{urlencode({'return_to': 'writer_intake', 'workflow_edition_id': result.edition.id, 'edition_source': 'writer'})}")
 
 
 @require_POST
@@ -517,6 +599,7 @@ def import_manuscript(request: HttpRequest, project_id: int) -> HttpResponse:
                 project, form.cleaned_data["manuscript"], request.user
             )
             messages.success(request, f"Manuscrito importado como v{revision.version}.")
+            return redirect(f"{reverse('writer:project_detail', args=[project.id])}?{urlencode({'selected_final': revision.id})}#manuscript-finalization")
         except Exception as exc:
             messages.error(request, f"Importação não concluída: {exc}")
     else:
