@@ -56,6 +56,8 @@ def build_chapter_request(chapter: Chapter) -> tuple[ChapterRequest, object]:
         f"World, period, climate and references:\n{project.world_bible}\n\n"
         f"Previous chapter continuity:\n{_previous_context(chapter)}"
     )
+    if project.reference_bible:
+        continuity = f"Project reference bible (global book context):\n{project.reference_bible}\n\n{continuity}"
     brief = (
         f"Chapter direction:\n{chapter.direction}\n\n"
         f"Complete chapter script, including any internal parts or scenes:\n{chapter.script}\n\n"

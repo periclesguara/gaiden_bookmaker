@@ -233,3 +233,55 @@ Run against a disposable PostgreSQL 16 database with pgvector. Never use an
 operator database for a clean-migration rehearsal. The tests include ORM fixture
 writes, reference exclusion, mixed file formats, partial batch completion,
 unavailable directories and unchanged file bytes/mtime after browsing.
+
+## Project reference bible
+
+Each project uses the existing optional `StoryProject.reference_bible` TextField
+(migration `writer.0013_reference_system`). No new schema or migration is needed.
+The project dashboard has a collapsible **Bíblia de Referências** section with a
+large plain-text textarea and **Salvar Bíblia** button. Reloading reads the saved
+value; whitespace and line breaks are preserved and no field character limit is
+added. Closed projects expose the value as read-only.
+
+`POST /writer/projects/<id>/reference-bible/` validates `ReferenceBibleForm` and
+calls `save_reference_bible`, which locks the project, checks that it is writable,
+and updates only `reference_bible` and `updated_at`. An explicitly empty value
+clears the field; a missing field is rejected. Saving does not synchronize
+chapters, generate text, build contracts, access Drive, write manuscript files,
+or change sources, merges, Final or Intake records.
+
+`build_chapter_request` reads this project field into the global continuity
+context when nonempty, without truncation or additional persistent copies.
+An empty field produces the same request context as the approved base. The
+existing narrative contract already exposes the field in its reference section;
+its historical snapshot behavior is unchanged. Saving the Bible does not create
+a snapshot or modify earlier contracts. Provider context limits still apply to
+generation; saving long text is independent of those limits.
+
+Focused verification on disposable PostgreSQL 16 with pgvector:
+
+```bash
+python web/manage.py test pipeline.test_writer_reference_bible pipeline.test_intake_library
+python web/manage.py check
+python web/manage.py makemigrations --check --dry-run
+python web/manage.py migrate --check
+python -m compileall -q web/writer web/pipeline/test_writer_reference_bible.py
+git diff --check
+bash scripts/ci/check_repo_hygiene.sh
+python scripts/ci/scan_tracked_secrets.py
+```
+
+Base: `fix/intake-writer-existing-library` at `e2d67318`. Reverting this focused
+change restores the previous UI and request builder; the existing stored field
+and operator data remain in place. No migration rollback is needed.
+
+Validation on 2026-10-01: 21 focused tests passed on PostgreSQL 16 with pgvector,
+including the unchanged Intake/library tests. A clean migration, Django check,
+migration drift/pending checks, compileall, diff check, hygiene and tracked
+secret scan passed. Against the approved base, the filled-context regression
+failed while the empty-context compatibility test passed. A read-only operator
+schema query confirmed the existing TEXT column and applied migration 0013.
+The broad suite and remote CI were not rerun for this focused change; no inherited
+failures or dependencies were repaired. No operator records were written during
+validation. Security impact is limited to a CSRF-protected POST following the
+existing Writer access policy and closed-project guard.

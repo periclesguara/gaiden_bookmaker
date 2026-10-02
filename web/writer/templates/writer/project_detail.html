@@ -38,6 +38,21 @@
   </div>
 </section>
 
+<details class="card" id="reference-bible">
+  <summary><strong>Bíblia de Referências</strong> · opcional</summary>
+  <p class="muted">Contexto global do projeto: referências, fatos canônicos, cronologia, conceitos, tom e instruções editoriais.</p>
+  {% if project.status == "CLOSED" %}
+    <p class="muted">Projeto fechado · somente leitura.</p>
+    <pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{ project.reference_bible|default:"Bíblia ainda não preenchida." }}</pre>
+  {% else %}
+    <form method="post" action="{% url 'writer:project_reference_bible' project.id %}">
+      {% csrf_token %}
+      <div class="field">{{ reference_bible_form.reference_bible.label_tag }}{{ reference_bible_form.reference_bible }}{{ reference_bible_form.reference_bible.errors }}</div>
+      <button type="submit">Salvar Bíblia</button>
+    </form>
+  {% endif %}
+</details>
+
 <div class="cols">
   <section class="card">
     <h2>1–2 · Corpus e índice RAG</h2>
@@ -157,7 +172,7 @@
       <p>{% if project.antagonist_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Bíblia do antagonista</p>
       <p>{% if project.scenario_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Cenários e locais</p>
       <p>{% if project.world_bible %}<span class="check">✓</span>{% else %}<span class="pending">Pendente</span>{% endif %} Mundo, época e clima</p>
-      <p>{% if project.reference_bible %}<span class="check">✓</span>{% else %}<span class="muted">Opcional</span>{% endif %} Reference Bible</p>
+      <p>{% if project.reference_bible %}<span class="check">✓</span>{% else %}<span class="muted">Opcional</span>{% endif %} Bíblia de Referências</p>
     </div>
     <div>
       <h3>Direção da obra</h3>

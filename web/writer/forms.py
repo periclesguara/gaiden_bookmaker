@@ -30,7 +30,20 @@ class PromotionForm(forms.Form):
     confirm = forms.BooleanField(label="I confirm promotion to the official body")
 
 
-class StoryProjectForm(forms.ModelForm):
+class ReferenceBibleForm(forms.ModelForm):
+    reference_bible = forms.CharField(
+        label="Bíblia de Referências",
+        required=False,
+        strip=False,
+        widget=forms.Textarea(attrs={"rows": 18}),
+    )
+
+    class Meta:
+        model = StoryProject
+        fields = ("reference_bible",)
+
+
+class StoryProjectForm(ReferenceBibleForm):
     class Meta:
         model = StoryProject
         fields = (
@@ -48,7 +61,7 @@ class StoryProjectForm(forms.ModelForm):
             "antagonist_bible": "Bíblia do antagonista",
             "scenario_bible": "Cenários e locais",
             "world_bible": "Mundo, época, clima e referências",
-            "reference_bible": "Reference Bible",
+            "reference_bible": "Bíblia de Referências",
             "story_direction": "Direção da história",
             "story_outline": "Roteiro geral",
             "drive_project_folder_id": "Pasta do projeto no Google Drive",

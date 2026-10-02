@@ -10,14 +10,14 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.urls import reverse
 
-from .forms import (WriterIntakeForm, ChapterForm, GoogleDocSourceForm, ManuscriptUploadForm,
+from .forms import (WriterIntakeForm, ChapterForm, GoogleDocSourceForm, ManuscriptUploadForm, ReferenceBibleForm,
                     ProjectReferenceForm, ProjectReferenceSelectionForm, ProjectSourcesForm, StoryProjectForm)
 from .models import Chapter, ManuscriptRevision, ProjectReference, SourceDocument, StoryProject
 from .services.dashboard import build_project_dashboard
 from .services.generation import generate_chapter
 from .services.narrative import run_chapter_workflow
 from .services.normalization import normalize_document
-from .services.projects import synchronize_chapters
+from .services.projects import save_reference_bible, synchronize_chapters
 from .services.sources import discover_source_documents, register_google_doc
 from .services.vectorization import vectorize_project
 from .services.references import index_status, set_project_references, vectorize_source
@@ -205,6 +205,7 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
     final = saved_final(project)
     return render(request, "writer/project_detail.html", {
         "project": project,
+        "reference_bible_form": ReferenceBibleForm(instance=project),
         "source_form": ProjectSourcesForm(project=project),
         "reference_selection_form": ProjectReferenceSelectionForm(project=project),
         "reference_rows": [
@@ -227,6 +228,19 @@ def project_detail(request: HttpRequest, project_id: int) -> HttpResponse:
             "fallback_warning": FALLBACK_WARNING if merge and not final else "",
         },
     })
+
+
+@require_POST
+def project_reference_bible(request: HttpRequest, project_id: int) -> HttpResponse:
+    project = get_object_or_404(StoryProject, pk=project_id)
+    ensure_project_writable(project)
+    form = ReferenceBibleForm(request.POST, instance=project)
+    if "reference_bible" in request.POST and form.is_valid():
+        save_reference_bible(project, form.cleaned_data["reference_bible"])
+        messages.success(request, "Bíblia de Referências salva.")
+    else:
+        messages.error(request, "Não foi possível salvar a Bíblia de Referências. Envie um texto válido.")
+    return redirect(f"{reverse('writer:project_detail', args=[project.pk])}#reference-bible")
 
 
 @require_POST

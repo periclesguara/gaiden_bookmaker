@@ -16,6 +16,7 @@ urlpatterns = [
     path("chapters/<int:chapter_id>/import-output/", views.import_output, name="import_output"),
     path("projects/new/", views.project_edit, name="project_new"),
     path("projects/<int:project_id>/", views.project_detail, name="project_detail"),
+    path("projects/<int:project_id>/reference-bible/", views.project_reference_bible, name="project_reference_bible"),
     path(
         "projects/<int:project_id>/stages/<int:stage_number>/status/",
         views.stage_status,
