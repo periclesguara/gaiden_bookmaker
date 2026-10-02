@@ -1,0 +1,140 @@
+{% extends "writer/base.html" %}
+{% block title %}Pastas importadas e referências{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Pastas importadas e referências</h1>
+  <p>Arquivos existentes, organizados pela pasta de origem. Os caminhos abaixo são referências ao armazenamento atual.</p>
+  <a href="{% url 'intake:home' %}">Livros no Intake</a> ·
+  <a href="{% url 'writer:sources' %}">Fontes de geração registradas</a>
+</section>
+
+<section class="card">
+  <h2>Fontes já registradas no Writer</h2>
+  <ul>
+    {% for document in registered_documents %}
+      <li>
+        {{ document.filename }} — <code>{{ document.source_path }}</code>
+        {% for project in document.projects.all %}
+          · <a href="{% url 'writer:project_detail' project.id %}">{{ project.title }}</a>
+        {% endfor %}
+      </li>
+    {% empty %}
+      <li>Nenhuma fonte registrada.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Fontes de edições existentes</h2>
+  <ul>
+    {% for edition in edition_sources %}
+      <li>{{ edition.work.title }} · {{ edition.language.code }} — <code>{{ edition.raw_source_path }}</code></li>
+    {% empty %}
+      <li>Nenhuma fonte de edição registrada.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% if library_error %}<p class="notice">{{ library_error }}</p>{% endif %}
+
+{% for batch in batches %}
+  <section class="card">
+    <h2>{{ batch.name }}</h2>
+    <p>{{ batch.batch_code }} · {{ batch.drive_source_path }} · {{ batch.get_source_display }}</p>
+    <div class="table">
+      <table>
+        <thead><tr><th>Arquivo</th><th>Formato / estado</th><th>Localização existente</th></tr></thead>
+        <tbody>
+          {% for item in batch.library_items %}
+            <tr>
+              <td>{{ item.relative_path }}</td>
+              <td>{{ item.extension }} · {{ item.get_status_display }}</td>
+              <td><code>{{ item.canonical_path }}</code></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% empty %}
+  <section class="card">Nenhuma pasta importada registrada.</section>
+{% endfor %}
+
+{% for folder, files in local_folders.items %}
+  <section class="card">
+    <h2>Fontes locais · {{ folder }}</h2>
+    <ul>
+      {% for file in files %}<li>{{ file.name }} — <code>{{ file.path }}</code></li>{% endfor %}
+    </ul>
+  </section>
+{% endfor %}
+
+<section class="card">
+  <h2>Consultar pastas existentes no Drive</h2>
+  <p>Informe o caminho dentro da entrada ou do armazenamento importado para consultar todos os formatos, incluindo PDFs e referências.</p>
+  <form id="library-browser">
+    <label for="library-folder">Pasta</label>
+    <input id="library-folder" name="folder" placeholder="{{ drive_inbox }}" value="{{ drive_inbox }}">
+    <button type="submit">Consultar pasta</button>
+  </form>
+  <p>Entrada: <code>{{ drive_inbox }}</code> · Importados: <code>{{ drive_imported }}</code></p>
+  <p id="library-status" role="status"></p>
+  <ul id="library-entries"></ul>
+</section>
+
+<script>
+const browserForm = document.getElementById('library-browser');
+const folderInput = document.getElementById('library-folder');
+const entryList = document.getElementById('library-entries');
+const statusLine = document.getElementById('library-status');
+let listingPending = false;
+
+browserForm.addEventListener('submit', async function(event) {
+  event.preventDefault();
+  if (listingPending) return;
+  listingPending = true;
+  const button = browserForm.querySelector('button');
+  button.disabled = true;
+  statusLine.textContent = 'Consultando pasta…';
+  entryList.replaceChildren();
+  try {
+    const params = new URLSearchParams({folder: folderInput.value});
+    const response = await fetch("{% url 'writer:library_browse' %}?" + params);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Consulta indisponível.');
+    for (const entry of data.entries) {
+      const row = document.createElement('li');
+      if (entry.is_dir) {
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.textContent = entry.name;
+        open.addEventListener('click', () => {
+          folderInput.value = entry.path;
+          browserForm.requestSubmit();
+        });
+        row.append(open);
+      } else if (entry.id) {
+        const link = document.createElement('a');
+        link.textContent = entry.name;
+        link.href = 'https://drive.google.com/file/d/' + encodeURIComponent(entry.id) + '/view';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        row.append(link);
+      } else {
+        row.textContent = entry.name;
+      }
+      const path = document.createElement('small');
+      path.textContent = ' · ' + entry.path;
+      row.append(path);
+      entryList.append(row);
+    }
+    statusLine.textContent = data.entries.length + ' arquivo(s) e pasta(s).';
+  } catch (error) {
+    statusLine.textContent = error.message;
+  } finally {
+    listingPending = false;
+    button.disabled = false;
+  }
+});
+</script>
+{% endblock %}

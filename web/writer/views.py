@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.db import transaction
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
@@ -49,6 +49,24 @@ def home(request: HttpRequest) -> HttpResponse:
         "projects": projects,
         "source_count": SourceDocument.objects.count(),
     })
+
+
+@require_GET
+def library(request: HttpRequest) -> HttpResponse:
+    from .services.library import existing_library
+    return render(request, "writer/library.html", existing_library())
+
+
+@require_GET
+def library_browse(request: HttpRequest) -> HttpResponse:
+    from gaiden.infrastructure.drive_storage import DrivePathError, DriveStorageError, RcloneDriveStorage
+    try:
+        entries = RcloneDriveStorage().list_library_entries(request.GET.get("folder", ""))
+    except DrivePathError:
+        return JsonResponse({"error": "Pasta inválida: use a entrada ou o armazenamento importado."}, status=400)
+    except (DriveStorageError, ValueError):
+        return JsonResponse({"error": "Não foi possível consultar esta pasta no Drive. Os arquivos existentes foram preservados."}, status=503)
+    return JsonResponse({"entries": entries})
 
 
 @require_GET

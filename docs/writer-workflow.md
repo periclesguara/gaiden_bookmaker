@@ -167,3 +167,69 @@ author, build version and deterministic chunk ID with every hit. Projects with
 no selected READY references skip reference retrieval without blocking chapter
 generation. Reference material is delimited and remains below project rules,
 story direction and project bibles in the instruction hierarchy.
+
+## Existing Intake titles and Writer folders
+
+`/intake/` renders the imported-title catalog directly. It reads `IntakeItem`
+records with an existing canonical path and existing editorial `Edition`/`Work`
+relationships,
+groups files and editions under each Work, and preserves stored titles and IDs.
+Catalog-only Works without a registered source or edition are not listed.
+Existing editions open through their production route; source-only titles link
+to the existing registered-source table. No source is activated on page load.
+The automated folder/import administration remains at `/intake/automated/` as
+an optional operation rather than an obligatory landing page.
+
+`/writer/library/`, linked from Writer Projects and Sources, exposes every
+previously imported item with a canonical path, grouped by its existing
+`IntakeBatch`.
+A batch with a retryable failure still exposes its successfully imported
+items. A later conflicting attempt does not hide a previous canonical path;
+the current item status remains visible. Every format is listed, including PDF
+and image references. Existing
+`SourceDocument` paths and their project links, and historical
+`Edition.raw_source_path` records, are exposed without registration or mutation.
+Local files
+under `GAIDEN_WRITER_SOURCE_ROOT` are also listed recursively, preserving their
+relative folders and physical paths. Symlink files and directories are skipped.
+An unavailable local root is reported without hiding the registered batches.
+
+The library is a read-only reference projection, not a normalization, RAG
+registration or extraction operation. Remote paths are those recorded at import;
+loading the page neither enumerates Drive nor verifies remote availability nor
+fetches unregistered remote files. The optional **Consultar pasta** browser calls
+`/writer/library/browse/` only on explicit operator selection. It lists immediate
+files and subfolders in the configured inbox/imported roots using bounded
+`rclone lsjson` metadata calls; subfolders can be opened and every file format is
+retained. Drive file IDs link to the existing file in Drive. It never downloads
+content, imports a batch, or writes records. Paths outside those roots and
+traversal paths are rejected; unavailable listings are reported without retries.
+Local enumeration does not create
+`SourceDocument` rows. Existing generation sources and project references keep
+their original registration and processing flow. In particular, exposing a PDF
+reference does not add PDF support to the TXT/Markdown generation pipeline.
+
+PDF sources stay outside the Intake title catalog. Articles/papers/references
+are excluded when `IntakeItem.metadata.kind`, `.role`, or `.document_type` is
+`reference`, `article`, `paper`, `artigo`, `referencia`, `chapter`, `excerpt`,
+`notes`, `bibliography`, or `project_auxiliary`, or when Work provenance
+has that `document_type`. Existing unclassified TXT/EPUB sources are not guessed
+from filenames or prose; they retain their catalog identity. This change does
+not write classifications into operator records.
+
+This repair has no migration, persistent write, transfer, file copy, rename,
+content transformation, or schema repair in its GET routes. Restore the prior
+navigation by reverting the focused repair commit; operator data needs no
+restoration because it was never changed. The approved base is local
+`feature/writer-finalization`, checkpoint `398618e3`, not the divergent main.
+
+Targeted verification:
+
+```bash
+python web/manage.py test pipeline.test_intake_library
+```
+
+Run against a disposable PostgreSQL 16 database with pgvector. Never use an
+operator database for a clean-migration rehearsal. The tests include ORM fixture
+writes, reference exclusion, mixed file formats, partial batch completion,
+unavailable directories and unchanged file bytes/mtime after browsing.

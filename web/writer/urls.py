@@ -6,6 +6,8 @@ app_name = "writer"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("library/browse/", views.library_browse, name="library_browse"),
+    path("library/", views.library, name="library"),
     path("sources/", views.sources, name="sources"),
     path("sources/google-doc/add/", views.google_doc_source_add, name="google_doc_source_add"),
     path("sources/scan/", views.scan_sources, name="scan_sources"),

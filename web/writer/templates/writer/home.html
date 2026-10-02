@@ -1,6 +1,7 @@
 {% extends "writer/base.html" %}
 {% block title %}Projetos{% endblock %}
 {% block content %}
+<p><a class="btn secondary" href="{% url 'writer:library' %}">Pastas importadas e referências</a></p>
 <section class="card"><h1>Motor de criação de livros</h1><p class="muted">Normalize as fontes, vetorize o corpus, escreva as bíblias e configure os capítulos.</p>
 <div class="actions"><a class="btn" href="{% url 'writer:project_new' %}">Novo projeto</a><a class="btn secondary" href="{% url 'writer:sources' %}">Arquivos ({{ source_count }})</a><a class="btn secondary" href="{% url 'writer:works' %}">Manuscritos e versões</a></div></section>
 <section class="card"><h2>Projetos</h2><div class="table"><table><thead><tr><th>Projeto</th><th>Idioma</th><th>Capítulos</th><th>RAG</th><th>Ação</th></tr></thead><tbody>

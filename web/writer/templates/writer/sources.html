@@ -1,6 +1,7 @@
 {% extends "writer/base.html" %}
 {% block title %}Arquivos{% endblock %}
 {% block content %}
+<p><a class="btn secondary" href="{% url 'writer:library' %}">Pastas importadas e referências</a></p>
 <section class="card"><h1>1 · Seleção e normalização</h1><p class="muted">A normalização remove contratos e material editorial de Project Gutenberg, Internet Archive, Standard Ebooks e frontmatter técnico. Epílogos narrativos são preservados.</p>
 {% if normalization_complete %}<div class="notice ok"><strong>✓ Normalização concluída</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos. O botão continua clicável para confirmar este estado.</div>{% else %}<div class="notice"><strong>Normalização pendente</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos.</div>{% endif %}
 <form method="post" action="{% url 'writer:scan_sources' %}">{% csrf_token %}<button type="submit">Localizar arquivos</button></form></section>

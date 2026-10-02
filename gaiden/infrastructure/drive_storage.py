@@ -84,6 +84,24 @@ class RcloneDriveStorage:
             raise DriveStorageError(f"rclone falhou ({' '.join(args[:2])}): {detail}")
         return completed.stdout
 
+    def list_library_entries(self, folder: str = "") -> list[dict]:
+        """Read existing source/import folders without transferring any bytes."""
+        source = safe_drive_path(folder or self.inbox)
+        if not any(source == root or source.startswith(f"{root}/") for root in (self.inbox, self.imported)):
+            raise DrivePathError("A biblioteca deve estar na entrada ou no armazenamento importado.")
+        payload = json.loads(self._run(
+            ["lsjson", self._remote_path(source), "--max-depth", "1"],
+            timeout=getattr(settings, "GAIDEN_DRIVE_LIST_TIMEOUT_SECONDS", 8),
+        ))
+        entries = []
+        for row in payload:
+            name = row.get("Path") or row.get("Name") or ""
+            if not name or "/" in name:
+                continue
+            path = safe_drive_path(f"{source}/{name}")
+            entries.append({"name": name, "path": path, "is_dir": bool(row.get("IsDir")), "id": row.get("ID") or ""})
+        return sorted(entries, key=lambda entry: (not entry["is_dir"], entry["name"].casefold()))
+
     def list_folders(self, folder: str = "") -> list[dict]:
         source = self.source_path(folder)
         payload = json.loads(

@@ -311,3 +311,16 @@ changed behavior must add direct tests.
 Migration repair, runtime-data cleanup, compatibility-code retirement, and
 feature integration are separate review units. Persistent data is never
 deleted merely to make model state match source code.
+
+### Read-only Intake and Writer library navigation
+
+`web.intake.services.catalog` projects registered sources and existing editorial
+editions into one row per Work for the `/intake/` landing page. PDF and explicitly
+classified reference material stays in the Writer library rather than the
+book-title catalog. `web.writer.services.library` exposes IntakeBatch/IntakeItem
+relationships and all local source-root file formats without copying,
+registering, normalizing or downloading files. An optional Writer metadata
+browser uses bounded read-only Drive listings within the inbox/imported roots.
+The automated-import page remains an optional administration route. See
+`docs/writer-workflow.md` for exact
+classification rules, storage references, limitations and rollback.
