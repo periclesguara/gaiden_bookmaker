@@ -1,0 +1,22 @@
+{{ edition.title }}
+{{ edition.subtitle }}
+
+{% if edition.about_edition_text %}
+Sobre esta edicao
+{{ edition.about_edition_text }}
+{% endif %}
+
+Autor: {{ edition.author }}
+Adaptado por {{ edition.adapter }}
+
+Ano de publicação: {{ edition.publication_year }}
+
+Copyright © {{ edition.publication_year }} {{ edition.author }}.
+Domínio público nos Estados Unidos e em outros territórios.
+
+Esta versão moderna de *{{ edition.title }}* foi produzida sob o selo {{ edition.seal_name }}.
+{{ edition.seal_name }} é uma marca registrada da {{ edition.imprint_name }}.
+
+Editora:
+Todos os direitos reservados a {{ edition.imprint_name }}.
+{{ edition.city }}, {{ country_label }} — {{ edition.publication_year }}

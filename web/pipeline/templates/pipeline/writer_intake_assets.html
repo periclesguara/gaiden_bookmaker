@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intake · Assets do livro</title>
+<style>
+body{margin:0;background:#f4f1ec;color:#20272a;font:15px/1.5 system-ui,sans-serif}.container{width:min(1180px,calc(100% - 30px));margin:24px auto 50px}.card{background:#fff;border:1px solid #d9d2c8;border-radius:14px;padding:22px;margin-bottom:18px}h1,h2{font-family:Georgia,serif;margin-top:0}.muted{color:#667074}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn,button{display:inline-flex;padding:9px 14px;border:0;border-radius:999px;background:#a84628;color:#fff;text-decoration:none;font-weight:800;cursor:pointer}.btn.secondary{background:#fff;color:#20272a;border:1px solid #d9d2c8}input[type=file]{max-width:100%;padding:9px;border:1px solid #d9d2c8;border-radius:8px}.messages{list-style:none;padding:0}.messages li{background:#fff;border:1px solid #d9d2c8;padding:10px;margin-bottom:8px;border-radius:8px}
+</style></head><body><main class="container">
+  <nav class="actions"><a class="btn secondary" href="{% url 'imported_book_list' %}">← Intake</a><a class="btn secondary" href="{% url 'writer:home' %}">Writer</a></nav>
+  {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+  <h1>Edition Mode · {{ edition.work.title }}</h1>
+  <p>Registro {{ intake_book_code }} · miolo canônico do Writer · {{ edition.language.name }}</p>
+  <p>Esta área usa os templates e assets do Intake. O texto do miolo permanece inalterado.</p>
+  <p><a class="btn" href="{{ frontmatter_url }}">FRONTMATTER</a>
+     <a class="btn secondary" href="#figures">FIGURES</a>
+     <a class="btn secondary" href="#assembly">ASSEMBLY</a>
+     <a class="btn secondary" href="{{ preview_url }}">Abrir preview para aprovação</a></p>
+
+  <section class="card" id="figures">
+    <h2>FIGURES · Capa</h2>
+    {% if cover_url %}<p><img src="{{ cover_url }}" alt="Capa atual" style="max-width:260px;height:auto"></p>{% else %}<p>Nenhuma capa cadastrada.</p>{% endif %}
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      <input type="hidden" name="action" value="upload_cover">
+      <input type="hidden" name="confirm_generated_images" value="1">
+      <input type="file" name="cover_file" accept="image/*" required>
+      <button type="submit">Salvar capa</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Imagens internas</h2>
+    {% if images %}<ul>{% for image in images %}<li><a href="{{ image.url }}"><img src="{{ image.url }}" alt="{{ image.name }}" style="max-width:140px;max-height:140px;object-fit:contain"> {{ image.name }}</a></li>{% endfor %}</ul>{% else %}<p>Nenhuma imagem interna cadastrada.</p>{% endif %}
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      <input type="hidden" name="action" value="upload_gallery_files">
+      <input type="hidden" name="confirm_generated_images" value="1">
+      <input type="file" name="images_files" accept="image/*" multiple required>
+      <button type="submit">Adicionar imagens</button>
+    </form>
+  </section>
+  <section class="card" id="assembly">
+    <h2>ASSEMBLY</h2>
+    <p>Montar o manuscrito congelado com frontmatter, figuras, sumário e estilos usando o renderer do Intake.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="assembly">
+      <button type="submit">ASSEMBLY · REGENERATE PREVIEW</button></form>
+  </section>
+  <section class="card" id="preview">
+    <h2>PREVIEW · APPROVE · GENERATE EPUB</h2>
+    <a class="btn" href="{{ preview_url }}">PREVIEW · APPROVE FINAL EDITION</a>
+    {% if preview_approved %}<p>EDITION APPROVED</p>{% else %}<p>Aprove o preview com uma capa oficial antes de gerar o EPUB.</p>{% endif %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="generate_epub">
+      <button type="submit" {% if not preview_approved %}disabled{% endif %}>GENERATE EPUB</button></form>
+    {% if latest_epub_build %}
+      <p>EPUBCheck: {{ latest_epub_build.epubcheck_status }} · v{{ latest_epub_build.build_version }}</p>
+      <p>Fatais: {{ latest_epub_build.epubcheck_fatal_count }} · Erros: {{ latest_epub_build.epubcheck_error_count }} · Warnings: {{ latest_epub_build.epubcheck_warning_count }}</p>
+      {% if latest_epub_build.qualifies_as_done %}<p>EPUB VALID · <a href="{% url 'final_build_download' latest_epub_build.id %}">Download EPUB</a></p>
+      {% else %}<p>EPUB NEEDS FIXES · {{ latest_epub_build.notes }}</p>{% endif %}
+    {% endif %}
+  </section>
+
+
+</main>
+</body></html>

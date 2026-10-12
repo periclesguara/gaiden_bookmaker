@@ -1,0 +1,29 @@
+{% extends 'printbook/base.html' %}
+{% block content %}
+<p><a class="button-link" href="{% url 'printbook:detail' edition.pk %}">← Retornar ao PrintBook</a></p>
+<h1>{{ edition.name }} · capa e miolo</h1>
+<p>Conferência conjunta do PDF de capa e do miolo atual. Esta tela não substitui o preflight da IngramSpark.</p>
+<section>
+  <h2>Capa completa · v{{ cover.version }} · {{ cover.status }}</h2>
+  <img style="width:100%;height:auto" src="{% url 'printbook:page' 'cover' cover.pk 1 %}" alt="Capa completa de {{ edition.name }}">
+  <p><a href="{% url 'printbook:preview' 'cover' cover.pk %}">Abrir capa com guias</a></p>
+</section>
+<section>
+  <h2>Miolo · v{{ interior.version }} · {{ interior.page_count }} páginas</h2>
+  <div class="spread">
+    <div class="pdf-panel"><img src="{% url 'printbook:page' 'interior' interior.pk 1 %}" alt="Primeira página do miolo"></div>
+    {% if interior.page_count > 1 %}<div class="pdf-panel"><img src="{% url 'printbook:page' 'interior' interior.pk 2 %}" alt="Segunda página do miolo"></div>{% endif %}
+  </div>
+  <p><a href="{% url 'printbook:preview' 'interior' interior.pk %}">Percorrer todas as páginas do miolo</a></p>
+</section>
+<section>
+  <h2>Teste para IngramSpark</h2>
+  <ul class="readiness-list">
+    {% for item in readiness %}<li class="{% if item.ok %}quality-good{% else %}WARNING{% endif %}">{% if item.ok %}✓{% else %}PENDENTE{% endif %} · {{ item.label }}</li>{% endfor %}
+  </ul>
+  <form method="post" action="{% url 'printbook:action' edition.pk 'preflight' %}">{% csrf_token %}
+    <button {% if cover.status != 'READY' %}disabled{% endif %}>Executar testes da IngramSpark</button>
+  </form>
+  {% if cover.status != 'READY' %}<p class="WARNING">Finalize a capa com o template oficial antes de executar o preflight.</p>{% endif %}
+</section>
+{% endblock %}

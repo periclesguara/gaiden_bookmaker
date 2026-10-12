@@ -1,0 +1,18 @@
+{% extends 'writer/base.html' %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'corpus/catalog.css' %}">{% endblock %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<h1>{{ project.title }}</h1>
+<p>{{ config.backend }} &middot; {{ selected_count }} obras selecionadas</p>
+<form method="get"><label for="author">Autor</label><select name="author" id="author"><option value="">Selecao atual</option>{% for author in authors %}<option value="{{ author.author_id }}" {% if request.GET.author == author.author_id|stringformat:'s' %}selected{% endif %}>{{ author.author__name }} &middot; {{ author.work_count }} obras</option>{% endfor %}</select><button type="submit">Abrir</button></form>
+{% if config.backend == 'CANONICAL_CORPUS' and project.status != 'CLOSED' %}
+<form method="post">{% csrf_token %}
+{% for row in rows %}<input type="hidden" name="scope" value="{{ row.work.pk }}">{% endfor %}
+<div class="table"><table><thead><tr><th>Obra</th><th>Fonte</th><th>Normalizado</th><th>Chunks</th><th>Vetores</th><th>RAG</th></tr></thead><tbody>
+{% for row in rows %}<tr><td><label><input type="checkbox" name="works" value="{{ row.work.pk }}" {% if row.selected %}checked{% endif %}> {{ row.display_title|default:row.work.title }}</label><br><small>{{ row.work.code }}</small></td><td data-label="Fonte">{{ row.source|yesno:'Sim,Nao' }}</td><td data-label="Normalizado">{{ row.normalized|yesno:'Sim,Nao' }}</td><td data-label="Chunks">{{ row.chunk_count }}</td><td data-label="Vetores">{{ row.vector_status }}</td><td data-label="RAG">{{ row.rag_ready|yesno:'READY,BLOCKED' }}</td></tr>{% endfor %}
+</tbody></table></div><button type="submit">Salvar selecao</button>
+</form>
+{% endif %}
+<p><a href="{% url 'writer:project_detail' project.pk %}">Voltar ao projeto</a></p>
+{% endblock %}

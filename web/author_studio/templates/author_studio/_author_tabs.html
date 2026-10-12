@@ -1,0 +1,5 @@
+<nav class="tabs" aria-label="Navegação do autor">
+  <a class="tab {% if active_tab == 'works' %}active{% endif %}" href="{% url 'author_studio:author_detail' author.slug %}">Obras</a>
+  <a class="tab {% if active_tab == 'processing' %}active{% endif %}" href="{% url 'author_studio:author_processing' author.slug %}">Processamento</a>
+  <a class="tab {% if active_tab == 'embeddings' %}active{% endif %}" href="{% url 'author_studio:author_embeddings' author.slug %}">Embeddings</a>
+</nav>

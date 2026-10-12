@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Copy this file to env_local_dev.sh and adapt the local path. The copied file
+# is ignored by Git. Keep credentials in the environment or secret manager.
+
+export GAIDEN_DATA_ROOT="${GAIDEN_DATA_ROOT:-$HOME/Downloads/GAIDEN_DATA_ROOT}"
+export GAIDEN_STORAGE_ROOT="${GAIDEN_STORAGE_ROOT:-$GAIDEN_DATA_ROOT}"
+export GAIDEN_WRITER_STORAGE_ROOT="${GAIDEN_WRITER_STORAGE_ROOT:-$GAIDEN_STORAGE_ROOT/writer}"

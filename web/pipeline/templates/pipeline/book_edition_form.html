@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro do Livro - Pipeline</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f7f7f8;
+      color: #111;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 28px auto;
+      padding: 0 16px 32px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    fieldset {
+      border: 1px solid #ddd;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    label {
+      font-weight: 600;
+    }
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #cfcfcf;
+      border-radius: 6px;
+      background: #fff;
+    }
+    textarea {
+      min-height: 90px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .alert {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #dfdfdf;
+      background: #f9f9f9;
+    }
+    .error {
+      color: #a00000;
+      margin-top: 4px;
+      font-size: 0.95em;
+    }
+    .muted {
+      color: #666;
+      font-size: 0.95em;
+    }
+    .status-chip {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d5d5d5;
+      background: #f5f5f5;
+      font-size: 12px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid #e2e2e2;
+      padding: 8px;
+      font-size: 14px;
+      vertical-align: top;
+    }
+    th {
+      background: #f2f2f2;
+      text-align: left;
+    }
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn, button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #111;
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn.secondary, button.secondary {
+      background: #fff;
+      color: #111;
+    }
+    .inline-radio {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .inline-radio label {
+      font-weight: 500;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      {% url 'book_edition_new' as nav_home_url %}
+      {% url 'pipeline_dashboard' as nav_pipeline_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="home" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url %}
+      <h1>Pagina 01 · Cadastro do livro</h1>
+      <p>Cadastre ou selecione um livro existente. O upload do arquivo-fonte acontece apenas na Pagina 02.</p>
+
+      {% if messages %}
+        <div>
+          {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if current_template %}
+        <div class="alert">
+          <strong>Cadastro atual:</strong> {{ current_template.book_code }} [{{ current_template.language }}]
+          <span class="status-chip">{{ status_label }}</span>
+          {% if upload_url %}
+            <a class="btn secondary" href="{{ upload_url }}">Ir para Upload</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="actions" style="justify-content: space-between;">
+        <h2 style="margin: 0;">Livros existentes</h2>
+        <div class="actions"><a class="btn secondary" href="{% url 'production_dashboard' %}">Dashboard de edições</a><a class="btn" href="{% url 'imported_book_list' %}">Selecionar livros importados</a></div>
+      </div>
+      <p class="muted">Selecione um livro do sistema e clique em Estado do livro para abrir o relatorio.</p>
+
+      <form method="get" id="registration_report_form" class="card" style="padding:16px; margin-top: 12px;">
+        <div class="grid">
+          <div>
+            <label for="book_filter">Selecionar livro</label>
+            <select id="book_filter" name="book">
+              <option value="">Selecione um livro...</option>
+              {% for option in registration_book_options %}
+                <option value="{{ option.value }}" {% if book_filter_value == option.value %}selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <div class="muted">Ao escolher um livro, o filtro fica definido para esse cadastro.</div>
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <div>
+              <label>&nbsp;</label>
+              <div class="actions">
+                <button type="submit">Estado do livro</button>
+                <a class="btn secondary" href="{% url 'book_edition_new' %}">Limpar</a>
+              </div>
+              <div class="muted" style="margin-top: 8px;">O relatorio mostra apenas o livro selecionado.</div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      {% if show_rows_table %}
+      <div class="alert" style="margin-top: 12px;">
+        Relatorio do livro selecionado.
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Book code</th>
+            <th>Idioma</th>
+            <th>Titulo</th>
+            <th>Autor</th>
+            <th>Status</th>
+            <th>Arquivo-fonte</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in edition_rows %}
+          <tr>
+            <td>{{ row.book_code }}</td>
+            <td>{{ row.language }}</td>
+            <td>{{ row.title }}</td>
+            <td>{{ row.author|default:"-" }}</td>
+            <td>{{ row.status_label }}</td>
+            <td>
+              {% if row.source_info.path %}
+                {{ row.source_info.name|default:row.source_info.path }}<br />
+                <span class="muted">{{ row.template.source_file_type|upper|default:"-" }}</span>
+              {% else %}
+                <span class="muted">Nao enviado</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="row-actions">
+                <a class="btn secondary" href="{{ row.edit_url }}">{{ row.action_label }}</a>
+                {% if row.registration_edit_url %}
+                  <a class="btn secondary" href="{{ row.registration_edit_url }}">Cadastro</a>
+                {% endif %}
+                {% if row.reedit_html_url %}
+                  <a class="btn secondary" href="{{ row.reedit_html_url }}">Reeditar (HTML)</a>
+                {% endif %}
+                {% if row.upload_url %}
+                  <a class="btn secondary" href="{{ row.upload_url }}">Upload (sobrescrever com cuidado)</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">Nenhum livro encontrado para esse filtro.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert" style="margin-top: 12px;">
+        Selecione um livro e clique em <strong>Estado do livro</strong> para exibir o relatorio.
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Cadastro do livro</h2>
+      <p class="muted">Ao salvar, os dados cadastrais vao para o banco e o fluxo segue para a Pagina 02.</p>
+
+      {% if form.non_field_errors %}
+        <div class="alert">
+          {% for error in form.non_field_errors %}
+            <div class="error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if form.errors %}
+        <div class="alert">
+          {% for field, errors in form.errors.items %}
+            {% if field != "__all__" %}
+              <div class="error">{{ field }}: {{ errors|join:", " }}</div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <fieldset>
+          <legend><strong>Metadados basicos</strong></legend>
+
+          <div class="grid">
+            <div>
+              <label for="book_id">Book ID</label>
+              <input id="book_id" name="book_code" type="text" placeholder="book_0007" value="{{ form.book_code.value|default:'' }}" required />
+              {% if form.book_code.errors %}<div class="error">{{ form.book_code.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div>
+              <label for="language">Idioma</label>
+              <select id="language" name="language" required>
+                {% with lang=form.language.value|default:'en' %}
+                  <option value="en" {% if lang == 'en' %}selected{% endif %}>en</option>
+                  <option value="ptbr" {% if lang == 'ptbr' %}selected{% endif %}>ptbr</option>
+                  <option value="es" {% if lang == 'es' %}selected{% endif %}>es</option>
+                  <option value="de" {% if lang == 'de' %}selected{% endif %}>de</option>
+                  <option value="fr" {% if lang == 'fr' %}selected{% endif %}>fr</option>
+                  <option value="it" {% if lang == 'it' %}selected{% endif %}>it</option>
+                {% endwith %}
+              </select>
+              {% if form.language.errors %}<div class="error">{{ form.language.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div>
+              <label for="title">Titulo</label>
+              <input id="title" name="title" type="text" placeholder="The Adventures of Sherlock Holmes" value="{{ form.title.value|default:'' }}" required />
+              {% if form.title.errors %}<div class="error">{{ form.title.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div>
+              <label for="author">Autor original</label>
+              <input id="author" name="author_name" type="text" placeholder="Arthur Conan Doyle" value="{{ form.author_name.value|default:'' }}" required />
+              {% if form.author_name.errors %}<div class="error">{{ form.author_name.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div>
+              <label for="publication_year">Ano desta edicao</label>
+              <input id="publication_year" name="publication_year" type="number" min="1000" max="2100" value="{{ form.publication_year.value|default:'2026' }}" required />
+              {% if form.publication_year.errors %}<div class="error">{{ form.publication_year.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div>
+              <label for="subtitle">Subtitulo</label>
+              <input id="subtitle" name="subtitle" type="text" value="{{ form.subtitle.value|default:'' }}" />
+              {% if form.subtitle.errors %}<div class="error">{{ form.subtitle.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend><strong>Tipo da obra</strong></legend>
+          <div class="inline-radio">
+            {% with work_kind=form.work_kind.value|default:'AUTHORIAL' %}
+              <label><input type="radio" name="work_kind" value="AUTHORIAL" {% if work_kind == 'AUTHORIAL' %}checked{% endif %} /> Obra autoral</label>
+              <label><input type="radio" name="work_kind" value="PUBLIC_DOMAIN" {% if work_kind == 'PUBLIC_DOMAIN' %}checked{% endif %} /> Obra de dominio publico</label>
+            {% endwith %}
+          </div>
+          {% if form.work_kind.errors %}<div class="error">{{ form.work_kind.errors|join:", " }}</div>{% endif %}
+
+          <div class="grid" style="margin-top: 12px;">
+            <div>
+              <label for="original_publication_date">Data da publicacao original</label>
+              <input id="original_publication_date" name="original_publication_date" type="date" value="{{ form.original_publication_date.value|default:'' }}" />
+              {% if form.original_publication_date.errors %}<div class="error">{{ form.original_publication_date.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div id="death-date-wrapper">
+              <label for="original_author_death_date">Data de falecimento do autor original</label>
+              <input id="original_author_death_date" name="original_author_death_date" type="date" value="{{ form.original_author_death_date.value|default:'' }}" />
+              {% if form.original_author_death_date.errors %}<div class="error">{{ form.original_author_death_date.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend><strong>Campos editoriais</strong></legend>
+          <div class="grid">
+            <div>
+              <label for="imprint_name">Imprint</label>
+              <input id="imprint_name" name="imprint_name" type="text" value="{{ form.imprint_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="collection_name">Colecao</label>
+              <input id="collection_name" name="collection_name" type="text" value="{{ form.collection_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="collaborator_name">Colaborador principal</label>
+              <input id="collaborator_name" name="collaborator_name" type="text" value="{{ form.collaborator_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="collaborator_pseudonym">Pseudonimo</label>
+              <input id="collaborator_pseudonym" name="collaborator_pseudonym" type="text" value="{{ form.collaborator_pseudonym.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="seal_name">Selo</label>
+              <input id="seal_name" name="seal_name" type="text" value="{{ form.seal_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="editor_name">Editor</label>
+              <input id="editor_name" name="editor_name" type="text" value="{{ form.editor_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="translator_name">Tradutor</label>
+              <input id="translator_name" name="translator_name" type="text" value="{{ form.translator_name.value|default:'' }}" />
+            </div>
+            <div>
+              <label for="adapter_name">Adaptador</label>
+              <input id="adapter_name" name="adapter_name" type="text" value="{{ form.adapter_name.value|default:'' }}" />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" name="action" value="save_metadata">Salvar</button>
+          {% if upload_url %}
+            <a class="btn secondary" href="{{ upload_url }}">Ir para Upload</a>
+          {% endif %}
+          <a class="btn secondary" href="{% url 'pipeline_dashboard' %}">Voltar ao Dashboard</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const registrationReportForm = document.getElementById('registration_report_form');
+    const bookFilterSelect = document.getElementById('book_filter');
+    const workKindInputs = document.querySelectorAll('input[name="work_kind"]');
+    const deathDateWrapper = document.getElementById('death-date-wrapper');
+
+    function updateWorkKindUI() {
+      const selected = document.querySelector('input[name="work_kind"]:checked');
+      const isPublicDomain = selected && selected.value === 'PUBLIC_DOMAIN';
+      if (deathDateWrapper) {
+        deathDateWrapper.classList.toggle('hidden', !isPublicDomain);
+      }
+    }
+
+    if (registrationReportForm && bookFilterSelect) {
+      bookFilterSelect.addEventListener('change', () => {
+        if (bookFilterSelect.value) {
+          registrationReportForm.requestSubmit();
+        }
+      });
+    }
+
+    workKindInputs.forEach((input) => input.addEventListener('change', updateWorkKindUI));
+    updateWorkKindUI();
+  </script>
+</body>
+</html>

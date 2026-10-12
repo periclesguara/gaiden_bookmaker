@@ -1,0 +1,2 @@
+"""Glossary integration helpers."""
+

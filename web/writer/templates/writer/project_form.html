@@ -1,0 +1,65 @@
+{% extends "writer/base.html" %}
+{% load static %}
+{% block title %}{% if project.pk %}Editar projeto{% else %}Novo projeto{% endif %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'writer/project_form.css' %}">
+<link rel="stylesheet" href="{% static 'writer/corpus.css' %}">
+{% endblock %}
+{% block content %}
+<div class="project-heading">
+  <span class="muted">Writer</span>
+  <h1>{% if project.pk %}Editar Projeto · {{ project.title }}{% else %}Novo Projeto{% endif %}</h1>
+  {% if project.pk %}<span class="status">{{ project.get_status_display }}</span>{% endif %}
+</div>
+<form method="post" id="project-form">
+  {% csrf_token %}{{ form.non_field_errors }}
+  <section class="editorial-section">
+    <h2>Identificação</h2>
+    <div class="field">{{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}</div>
+    <div class="field primary-language">{{ form.language.label_tag }}{{ form.language }}{{ form.language.errors }}</div>
+  </section>
+  <section class="editorial-section">
+    <div class="section-heading"><h2>Idiomas do projeto</h2><button type="button" class="secondary" data-dialog-open="language-selector">Selecionar idiomas</button></div>
+    {{ form.project_languages.errors }}
+    <div id="language-rules">
+    {% for code,name,field in form.language_fields %}
+      <div class="language-rule" data-language="{{ code }}">
+        <div class="section-heading"><h3>{{ name }}</h3><span class="primary-badge">Principal</span><button type="button" class="secondary set-primary" data-primary="{{ code }}">Definir como principal</button></div>
+        <div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>
+        <button type="button" class="secondary suggestion" data-suggestion="{{ code }}">Usar sugestão</button>
+      </div>
+    {% endfor %}
+    </div>
+  </section>
+  {% for heading,fields in editorial_sections %}
+  <section class="editorial-section"><h2>{{ heading }}</h2>
+    {% for field in fields %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+  </section>
+  {% endfor %}
+  <section class="editorial-section" id="project-references">
+    <div class="section-heading"><h2>Corpus do Projeto</h2><button type="button" class="secondary" id="open-references">Selecionar obras</button></div>
+    <div id="reference-summary" aria-live="polite"></div>
+    {{ form.work_references }}{{ form.work_references.errors }}{{ form.corpus_removed_work_ids }}{{ form.corpus_removed_work_ids.errors }}
+  </section>
+  <section class="editorial-section"><h2>Direção e roteiro</h2>
+    <div class="field">{{ form.story_direction.label_tag }}{{ form.story_direction }}{{ form.story_direction.errors }}</div>
+    <div class="field">{{ form.story_outline.label_tag }}{{ form.story_outline }}{{ form.story_outline.errors }}</div>
+  </section>
+  <section class="editorial-section"><h2>Capítulos</h2>
+    <div class="field chapter-count">{{ form.chapter_count.label_tag }}{{ form.chapter_count }}{{ form.chapter_count.errors }}</div>
+    {% if project.pk %}<p>{{ project.chapters.count }} capítulos existentes</p>{% endif %}
+    <div class="actions">
+      <button type="submit">{% if project.pk %}Salvar alterações{% else %}Salvar e criar tabela de capítulos{% endif %}</button>
+      {% if project.pk %}<a class="btn secondary" href="{% url 'writer:project_detail' project.id %}">Abrir tabela de capítulos</a>{% endif %}
+    </div>
+  </section>
+  <dialog class="confirm-dialog" id="language-selector">
+    <div class="dialog-body"><h2>Idiomas do projeto</h2>{{ form.project_languages }}</div>
+    <div class="dialog-actions"><button type="button" data-dialog-close>Concluir</button></div>
+  </dialog>
+</form>
+{% include "writer/corpus_selector.html" %}
+{{ language_suggestions|json_script:"language-suggestions-data" }}
+<script src="{% static 'writer/corpus.js' %}" defer></script>
+<script src="{% static 'writer/project_form.js' %}" defer></script>
+{% endblock %}

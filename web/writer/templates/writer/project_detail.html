@@ -1,0 +1,197 @@
+{% extends "writer/base.html" %}
+{% load static %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'writer/corpus.css' %}">{% endblock %}
+{% block content %}
+<header class="project-title top">
+  <div><span class="muted">Writer · {{ project.get_status_display }}</span><h1>{{ project.title }}</h1></div>
+  {% if project.status != "CLOSED" %}<a class="btn secondary" href="{% url 'writer:project_edit' project.id %}">Editar projeto</a>{% endif %}
+</header>
+
+<section class="editorial-band">
+  <h2>História e personagens</h2>
+  {% if project.premise %}<p>{{ project.premise|linebreaksbr }}</p>{% endif %}
+  <div class="bible-status">
+    <span class="{% if project.character_bible %}check{% else %}muted{% endif %}">Bíblia do personagem{% if project.character_bible %} ✓{% endif %}</span>
+    <span class="{% if project.supporting_characters_bible %}check{% else %}muted{% endif %}">Bíblia dos coadjuvantes{% if project.supporting_characters_bible %} ✓{% endif %}</span>
+    <span class="{% if project.antagonist_bible %}check{% else %}muted{% endif %}">Bíblia do antagonista{% if project.antagonist_bible %} ✓{% endif %}</span>
+  </div>
+</section>
+
+<section class="editorial-band">
+  <h2>Mundo e cenários</h2>
+  <div class="bible-status">
+    <span class="{% if project.scenario_bible %}check{% else %}muted{% endif %}">Cenários e locais{% if project.scenario_bible %} ✓{% endif %}</span>
+    <span class="{% if project.world_bible %}check{% else %}muted{% endif %}">Mundo, época e clima{% if project.world_bible %} ✓{% endif %}</span>
+  </div>
+</section>
+
+<section class="editorial-band" id="project-corpus">
+  <div class="top"><h2>Corpus do Projeto</h2>
+    {% if project.status != "CLOSED" %}{% if project.canonical_corpus.backend == "CANONICAL_CORPUS" %}<a class="btn secondary" href="{% url 'corpus:project' project.pk %}">Selecionar obras</a>{% else %}<button type="button" class="secondary" id="open-references">Selecionar obras</button>{% endif %}{% endif %}
+  </div>
+  <div class="corpus-authors">
+  {% for author in dashboard.corpus.authors %}
+    <div class="corpus-author"><strong>{{ author.name }}</strong><span>{{ author.selected }} obra{{ author.selected|pluralize:"s" }}</span>
+      <small class="{% if author.vectorized == author.selected %}check{% else %}muted{% endif %}">{% if author.vectorized == author.selected %}✓ {% endif %}{{ author.vectorized }} vetorizada{{ author.vectorized|pluralize:"s" }}</small>
+    </div>
+  {% empty %}<p class="muted">Nenhuma obra selecionada.</p>{% endfor %}
+  </div>
+  <p><strong>Total: {{ dashboard.corpus.selected }} obra{{ dashboard.corpus.selected|pluralize:"s" }}</strong></p>
+  <dl class="corpus-status">
+    <div><dt>Normalização</dt><dd>{{ dashboard.corpus.normalized }}/{{ dashboard.corpus.selected }}</dd></div>
+    <div><dt>Vetorização</dt><dd>{{ dashboard.corpus.vectorized }}/{{ dashboard.corpus.selected }}</dd></div>
+    <div><dt>RAG</dt><dd class="{% if dashboard.corpus.all_vectorized %}check{% else %}muted{% endif %}">{% if dashboard.corpus.all_vectorized %}✓ Pronto{% else %}Pendente{% endif %}</dd></div>
+  </dl>
+  {% if project.status != "CLOSED" and project.canonical_corpus.backend != "CANONICAL_CORPUS" %}<div class="actions corpus-actions">
+    <form method="post" action="{% url 'writer:prepare_corpus' project.id %}">{% csrf_token %}<button type="submit">Normalizar pendentes</button></form>
+    <form method="post" action="{% url 'writer:vectorize' project.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit">Vetorizar pendentes</button></form>
+  </div>{% endif %}
+  {% if dashboard.corpus.preparation_pending %}<p class="muted">{{ dashboard.corpus.preparation_pending }} obra{{ dashboard.corpus.preparation_pending|pluralize:"s" }} precisa{{ dashboard.corpus.preparation_pending|pluralize:"m" }} de normalização.</p>{% endif %}
+  {% if dashboard.corpus.blockers %}
+    <details id="corpus-details"><summary>Ver detalhes</summary><ul class="compact">
+      {% for item in dashboard.corpus.blockers %}<li><strong>{{ item.title }}</strong>: {{ item.reason }}</li>{% endfor %}
+    </ul></details>
+  {% else %}<details id="corpus-details"><summary>Ver detalhes</summary><p>{{ dashboard.index.chunk_count }} trechos disponíveis.</p></details>{% endif %}
+</section>
+
+<section class="editorial-band" id="reference-bible">
+  <h2>Bíblia de Referências</h2>
+  {% if project.status == "CLOSED" %}<p class="preserve-lines">{{ project.reference_bible|default:"Não preenchida." }}</p>
+  {% else %}<form method="post" action="{% url 'writer:project_reference_bible' project.id %}">{% csrf_token %}
+    <div class="field">{{ reference_bible_form.reference_bible }}{{ reference_bible_form.reference_bible.errors }}</div>
+    <button type="submit" class="secondary">Salvar Bíblia</button>
+  </form>{% endif %}
+</section>
+
+<section class="editorial-band">
+  <h2>Direção e roteiro</h2>
+  <details><summary>Direção da história</summary><p class="preserve-lines">{{ project.story_direction|default:"Não preenchida." }}</p></details>
+  <details><summary>Roteiro geral</summary><p class="preserve-lines">{{ project.story_outline|default:"Não preenchido." }}</p></details>
+</section>
+
+<section class="editorial-band" id="chapters">
+  <div class="top"><h2>Capítulos</h2><span class="muted">{{ dashboard.chapters.final }}/{{ dashboard.chapters.total }} concluídos</span></div>
+  {% if dashboard.global_generation_blockers %}<details><summary>Requisitos pendentes</summary><ul class="compact">{% for item in dashboard.global_generation_blockers %}<li>{{ item }}</li>{% endfor %}</ul></details>{% endif %}
+  <div class="table chapter-table"><table><thead><tr><th>Capítulo</th><th>Roteiro / resumo</th><th>Direção</th><th>Estado</th><th>Resumo de continuidade</th><th>Ações</th></tr></thead><tbody>
+  {% for row in dashboard.chapter_rows %}<tr>
+    <td><strong>{{ row.chapter.number|stringformat:"02d" }} · {{ row.chapter.title }}</strong></td>
+    <td>{{ row.chapter.script|default:"Pendente"|truncatechars:150 }}</td>
+    <td>{{ row.chapter.direction|default:"Pendente"|truncatechars:120 }}</td>
+    <td>{% if row.waiting_for %}<span class="muted">Aguardando capítulo {{ row.waiting_for|stringformat:"02d" }}</span>{% else %}<span class="status {{ row.chapter.status }}">{{ row.chapter.get_status_display }}</span>{% endif %}</td>
+    <td>{% if row.summary %}<details><summary>Ver resumo</summary><p>{{ row.summary.short_summary }}</p></details>{% else %}<span class="muted">—</span>{% endif %}</td>
+    <td><div class="actions">
+      <a class="btn secondary" href="{% url 'writer:chapter_detail' row.chapter.id %}">Abrir</a>
+      {% if project.status != "CLOSED" %}
+        {% if row.chapter.status != "FINAL" %}<a class="btn secondary" href="{% url 'writer:chapter_edit' row.chapter.id %}">Editar</a>{% endif %}
+        {% if row.generation_ready and not row.waiting_for %}<form method="post" action="{% url 'writer:generate' row.chapter.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit">Gerar contrato</button></form>
+        {% elif row.chapter.status == "OUTPUT_IMPORTED" and not row.waiting_for %}<form method="post" action="{% url 'writer:finalize' row.chapter.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit">Finalizar capítulo</button></form>
+        {% elif row.chapter.status == "FINAL" and not row.summary and not row.waiting_for %}<form method="post" action="{% url 'writer:finalize' row.chapter.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit">Salvar resumo</button></form>{% endif %}
+      {% endif %}
+      <form method="post" action="{% url 'writer:project_export_drive' project.id %}">{% csrf_token %}
+        <input type="hidden" name="chapter_id" value="{{ row.chapter.id }}">
+        <button type="submit" {% if project.status == "CLOSED" or row.chapter.status == "FINAL" %}disabled{% endif %}>Exportar IA externa</button>
+      </form>
+    </div></td>
+  </tr>
+  {% if row.writer_transfer %}
+  <tr class="chapter-transfer-row"><td colspan="6">
+    {% include "writer/_chapter_transfer.html" with chapter=row.chapter writer_export=row.writer_export transfer=row.writer_transfer %}
+  </td></tr>
+  {% elif row.chapter.contract_json_path %}
+  <tr class="chapter-transfer-row"><td colspan="6">
+    <div class="chapter-transfer">
+      <div class="chapter-transfer-heading">
+        <strong>Contrato anterior do capítulo {{ row.chapter.number|stringformat:"02d" }}</strong>
+        <span class="muted">Registro preservado</span>
+      </div>
+      {% if row.chapter.drive_contract_url %}<a class="btn secondary" href="{{ row.chapter.drive_contract_url }}" target="_blank" rel="noreferrer">Abrir contrato anterior</a>{% endif %}
+      {% if row.chapter.drive_export_error %}<p class="errors">{{ row.chapter.drive_export_error }}</p>{% endif %}
+    </div>
+  </td></tr>
+  {% endif %}
+  {% empty %}<tr><td colspan="6">Nenhum capítulo configurado.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% if project.status != "CLOSED" and project.canonical_corpus.backend != "CANONICAL_CORPUS" %}
+  {% include "writer/corpus_selector.html" with save_corpus=True %}
+  <script src="{% static 'writer/corpus.js' %}" defer></script>
+{% endif %}
+
+<section class="card" id="manuscript-finalization">
+  <h2>Fechamento do manuscrito</h2>
+  {% if manuscript_pipeline.all_chapters_final %}<p class="status FINAL">MANUSCRIPT COMPLETE</p>
+  {% else %}<p>Finalize todos os capítulos para liberar SAVE MERGE.</p>{% endif %}
+  <div class="actions">
+    <form method="post" action="{% url 'writer:save_manuscript' project.id %}">{% csrf_token %}
+      <button type="submit" {% if project.status == "CLOSED" or not manuscript_pipeline.all_chapters_final %}disabled{% endif %}>SAVE MERGE</button>
+    </form>
+    <form method="post" action="{% url 'writer:export_merge' project.id %}">{% csrf_token %}
+      <button type="submit" {% if not manuscript_pipeline.merge_revision %}disabled{% endif %}>EXPORT MERGE</button>
+    </form>
+  </div>
+  {% if manuscript_pipeline.merge_revision %}<p class="check">MERGE SAVED · v{{ manuscript_pipeline.merge_revision.version }} · {{ manuscript_pipeline.merge_revision.word_count }} palavras.</p>
+  <p>EXPORT MERGE baixa o arquivo e guarda uma cópia versionada em return/ do projeto.</p>{% endif %}
+
+  <h3>IMPORT FINAL VERSION</h3>
+  {% if project.status != "CLOSED" %}
+  <p><a class="button" href="{% url 'writer:import_final_drive' project.id %}">GOOGLE DRIVE</a></p>
+  <form method="post" enctype="multipart/form-data" action="{% url 'writer:import_manuscript' project.id %}">{% csrf_token %}
+    {{ manuscript_upload_form.manuscript.label_tag }} {{ manuscript_upload_form.manuscript }}
+    <p data-selected-file>Selected: {% if manuscript_pipeline.selected_final %}{{ manuscript_pipeline.selected_final.original_filename }}{% else %}—{% endif %}</p>
+    <button type="submit" data-confirm-final-upload disabled>IMPORT FINAL VERSION</button>
+  </form>
+  {% else %}<p>Projeto fechado: revisões e capítulos permanecem somente leitura.</p>{% endif %}
+
+  <form method="post" action="{% url 'writer:save_final' project.id %}">{% csrf_token %}
+    {% if manuscript_pipeline.selected_final %}<input type="hidden" name="revision_id" value="{{ manuscript_pipeline.selected_final.id }}">
+    <p>Selected: {{ manuscript_pipeline.selected_final.original_filename }} · v{{ manuscript_pipeline.selected_final.version }}</p>{% endif %}
+    <button type="submit" data-save-final {% if project.status == "CLOSED" or not manuscript_pipeline.selected_final %}disabled{% endif %}>SAVE FINAL</button>
+  </form>
+  {% if manuscript_pipeline.final_revision %}
+    <p class="check">FINAL MANUSCRIPT SAVED · v{{ manuscript_pipeline.final_revision.version }} · {{ manuscript_pipeline.final_revision.word_count }} palavras.</p>
+    <p>Esta Final Version é a fonte oficial. Salvar outro merge não substitui o texto final.</p>
+  {% elif manuscript_pipeline.fallback_warning %}<p class="notice">{{ manuscript_pipeline.fallback_warning }}</p>
+  {% elif manuscript_pipeline.all_chapters_final %}<p>Sem Final Version ou merge salvo, a entrada na edição salvará um merge dos capítulos finais.</p>{% endif %}
+
+  <h3>GO TO EDITION MODE</h3>
+  <p>A edição começa em FRONTMATTER do Intake. A entrada congela o manuscrito escolhido e fecha o Writer para escrita.</p>
+  <form method="post" action="{% url 'writer:proceed_to_intake' project.id %}">{% csrf_token %}
+    <p>{{ writer_intake_form.author_name.label_tag }} {{ writer_intake_form.author_name }}</p>
+    <p>{{ writer_intake_form.publisher.label_tag }} {{ writer_intake_form.publisher }}</p>
+    <button class="green" type="submit" {% if not manuscript_pipeline.can_enter_edition %}disabled{% endif %}>GO TO EDITION MODE</button>
+  </form>
+  {% if manuscript_pipeline.edition_revision %}<p>Fonte da edição: v{{ manuscript_pipeline.edition_revision.version }} · {{ manuscript_pipeline.edition_revision.get_source_kind_display }}.</p>{% endif %}
+  <p>Frontmatter → Figures → Assembly → Preview → Approve → Generate EPUB</p>
+</section>
+
+{% if manuscript_revisions %}
+<section class="card">
+  <h2>Histórico de manuscritos</h2>
+  <div class="table"><table><thead><tr><th>Versão</th><th>Origem</th><th>Arquivo</th><th>Palavras</th><th>SHA</th><th>Criado em</th><th>Final?</th><th>Ação</th></tr></thead><tbody>
+  {% for revision in manuscript_revisions %}
+    <tr><td>v{{ revision.version }}</td><td>{{ revision.get_source_kind_display }}</td><td>{{ revision.original_filename }}</td>
+      <td>{{ revision.word_count }}</td><td>{{ revision.sha256|slice:":12" }}</td><td>{{ revision.created_at }}</td>
+      <td>{% if project.canonical_manuscript_id == revision.id %}SIM{% else %}NÃO{% endif %}</td>
+      <td>{% if project.status != "CLOSED" and revision.source_kind == "IMPORTED_FINAL" %}<a href="?selected_final={{ revision.id }}#manuscript-finalization">Selecionar para SAVE FINAL</a>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+<script>
+(() => {
+  const input = document.querySelector('[data-final-upload]');
+  if (!input) return;
+  const form = input.closest('form');
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    form.querySelector('[data-selected-file]').textContent = 'Selected: ' + (file ? file.name : '—');
+    form.querySelector('[data-confirm-final-upload]').disabled = !file;
+    if (file) document.querySelector('[data-save-final]').disabled = true;
+  });
+})();
+document.querySelectorAll('[data-copy]').forEach((button) => {
+  button.addEventListener('click', () => navigator.clipboard && navigator.clipboard.writeText(button.dataset.copy || ''));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{
+  "id": "no_roman_heading_numerals",
+  "type": "heading_roman_numerals_validator",
+  "version": "1.0.0",
+  "description": "Fails when structural headings retain Roman numerals after Translate/Modernize.",
+  "applies_to": [
+    "translate",
+    "modernize"
+  ],
+  "heading_labels": [
+    "BOOK",
+    "CHAPTER",
+    "PART",
+    "SECTION"
+  ],
+  "convert_roman_numerals_to_arabic": true,
+  "fail_on_match": true,
+  "failure_message": "Structural headings must use Arabic numerals, for example BOOK 9 instead of BOOK IX."
+}

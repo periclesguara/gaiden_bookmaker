@@ -1,0 +1,17 @@
+{% extends 'writer/base.html' %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'corpus/catalog.css' %}">{% endblock %}
+{% block title %}Corpus{% endblock %}
+{% block content %}
+<h1>Corpus</h1>
+{% for batch in batches %}
+<h2>{{ batch.batch }}</h2>
+<p>Fontes {{ batch.sources }}/{{ batch.works }} &middot; Normalizados {{ batch.normalized }}/{{ batch.works }} &middot; Chunks {{ batch.chunked }}/{{ batch.works }} &middot; Vetores {{ batch.vectorized }}/{{ batch.works }} &middot; RAG {{ batch.rag_status }}</p>
+{% endfor %}
+<form method="get"><label for="author">Autor</label><select id="author" name="author"><option value="">Autores</option>{% for author in authors %}<option value="{{ author.author_id }}" {% if request.GET.author == author.author_id|stringformat:'s' %}selected{% endif %}>{{ author.author__name }} &middot; {{ author.work_count }} obras</option>{% endfor %}</select><button type="submit">Abrir</button></form>
+<div class="table"><table><thead><tr><th>Obra</th><th>Fonte</th><th>Normalizado</th><th>Chunks</th><th>Vetores</th><th>RAG</th></tr></thead><tbody>
+{% for row in rows %}<tr><td>{{ row.display_title|default:row.work.title }}<br><small>{{ row.work.code }}</small></td><td data-label="Fonte">{{ row.source|yesno:'Sim,Nao' }}</td><td data-label="Normalizado">{{ row.normalized|yesno:'Sim,Nao' }}</td><td data-label="Chunks">{{ row.chunk_count }}</td><td data-label="Vetores">{{ row.vector_status }}</td><td data-label="RAG">{{ row.rag_ready|yesno:'READY,BLOCKED' }}</td></tr>{% endfor %}
+</tbody></table></div>
+<h2>Projetos</h2>
+<ul>{% for config in projects %}<li><a href="{% url 'corpus:project' config.project_id %}">{{ config.project.title }}</a> &middot; {{ config.backend }}{% if config.backend == 'CANONICAL_CORPUS' %} &middot; {{ config.works.count }} selecionadas{% endif %}</li>{% endfor %}</ul>
+{% endblock %}

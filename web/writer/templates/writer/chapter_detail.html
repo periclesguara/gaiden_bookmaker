@@ -1,0 +1,42 @@
+{% extends "writer/base.html" %}
+{% load static %}
+{% block title %}{{ chapter.title }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'writer/corpus.css' %}">{% endblock %}
+{% block content %}
+<header class="project-title top">
+  <div><h1>{{ chapter.number|stringformat:"02d" }} · {{ chapter.title }}</h1><span class="status {{ chapter.status }}">{{ chapter.get_status_display }}</span></div>
+  <div class="actions"><a class="btn secondary" href="{% url 'writer:project_detail' chapter.project.id %}#chapters">Voltar ao projeto</a>
+  {% if chapter.project.status != "CLOSED" and chapter.status != "FINAL" and chapter.status != "MERGED" %}<a class="btn secondary" href="{% url 'writer:chapter_edit' chapter.id %}">Editar capítulo</a>{% endif %}</div>
+</header>
+<section class="editorial-band"><h2>Direção e roteiro</h2><p class="preserve-lines">{{ chapter.direction }}</p><details><summary>Roteiro do capítulo</summary><p class="preserve-lines">{{ chapter.script }}</p></details></section>
+<section class="editorial-band">
+{% if writer_transfer %}
+  {% include "writer/_chapter_transfer.html" with project=chapter.project transfer=writer_transfer %}
+{% else %}
+  <div class="chapter-transfer-heading"><strong>Exportação e retorno do capítulo {{ chapter.number|stringformat:"02d" }}</strong><span class="muted">Ainda não exportado</span></div>
+  {% if chapter.project.status != "CLOSED" and chapter.status != "FINAL" %}<form method="post" action="{% url 'writer:project_export_drive' chapter.project_id %}">{% csrf_token %}<input type="hidden" name="chapter_id" value="{{ chapter.id }}"><button type="submit">Exportar IA externa</button></form>{% endif %}
+{% endif %}
+</section>
+{% if chapter.contract_json_path %}
+<section class="editorial-band"><h2>Contrato anterior</h2><p>Versão {{ chapter.contract_version }}</p>
+{% if chapter.drive_contract_url %}<a class="btn secondary" href="{{ chapter.drive_contract_url }}" target="_blank" rel="noreferrer">Abrir contrato anterior</a>{% endif %}
+{% if chapter.drive_export_error or chapter.error_message %}<details><summary>Ver detalhes</summary><p>{{ chapter.drive_export_error }}</p><p>{{ chapter.error_message }}</p></details>{% endif %}
+</section>{% endif %}
+{% if chapter.final_text or chapter.generated_text or chapter.merged_text %}
+<section class="editorial-band"><h2>{% if chapter.status == "FINAL" %}Texto final{% else %}Texto do capítulo{% endif %}</h2>
+<p class="muted">{{ chapter.generated_word_count }} palavras · Meta {{ chapter.target_words }}</p>
+<div class="preserve-lines">{{ chapter.final_text|default:chapter.generated_text|default:chapter.merged_text }}</div>
+</section>{% endif %}
+{% if chapter.status == "OUTPUT_IMPORTED" or chapter.status == "GENERATION_COMPLETE" or chapter.status == "MERGED" %}
+<section class="editorial-band"><h2>Finalização</h2>
+{% if chapter.project.status != "CLOSED" %}<form method="post" action="{% url 'writer:finalize' chapter.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit" {% if not chapter.generated_text %}disabled{% endif %}>Finalizar capítulo</button></form>{% endif %}
+</section>{% endif %}
+{% if chapter.narrative_summary %}
+<section class="editorial-band"><h2>Resumo de continuidade</h2><p>{{ chapter.narrative_summary.short_summary }}</p>
+<details><summary>Ver fatos registrados</summary>
+<ul class="compact">{% for item in chapter.narrative_summary.major_events %}<li>{{ item }}</li>{% endfor %}{% for item in chapter.narrative_summary.facts_established %}<li>{{ item }}</li>{% endfor %}</ul>
+<p>Personagens: {{ chapter.narrative_summary.characters_present|join:", " }}</p>
+<p>Pendências: {{ chapter.narrative_summary.open_threads|join:"; " }}</p>
+</details></section>{% endif %}
+{% if chapter.error_message %}<details><summary>Ver detalhes da última operação</summary><p>{{ chapter.error_message }}</p></details>{% endif %}
+{% endblock %}

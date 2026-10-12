@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gaiden-bookmaker"
+version = "0.1.0"
+description = "Gaiden BookMaker"
+requires-python = ">=3.10"
+dependencies = [
+    "langdetect==1.0.9",
+    "markitdown[all]>=0.1.5",
+    "pgvector>=0.5.0",
+    "tiktoken>=0.7.0",
+    "google-api-python-client==2.166.0",
+    "google-auth==2.38.0",
+]
+
+[project.scripts]
+gaiden-cli = "gaiden.interfaces.cli:main"
+gaiden-collections = "gaiden.interfaces.collections_cli:main"
+
+[tool.setuptools.packages.find]
+include = ["gaiden*"]

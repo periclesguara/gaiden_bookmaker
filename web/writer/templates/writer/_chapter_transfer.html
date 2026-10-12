@@ -1,0 +1,30 @@
+<div class="chapter-transfer writer-transfer">
+  <div class="chapter-transfer-heading">
+    <strong>Exportação e retorno do capítulo {{ chapter.number|stringformat:"02d" }}</strong>
+    <span class="status {{ transfer.state }}">{{ transfer.state }}</span>
+  </div>
+  <dl class="writer-transfer-details">
+    <div><dt>Export ID</dt><dd>{{ transfer.export_id }}</dd></div>
+    <div><dt>Versão</dt><dd>v{{ transfer.export_version }}</dd></div>
+    <div><dt>Arquivo de saída</dt><dd>{{ transfer.response_filename|default:"Aguardando retorno" }}</dd></div>
+    <div><dt>ID do arquivo</dt><dd>{{ transfer.response_file_id|default:"Ainda não importado" }}</dd></div>
+    <div><dt>Pasta return</dt><dd>{{ transfer.return_folder_id|default:"Não criada" }}</dd></div>
+    <div><dt>Importado em</dt><dd>{{ transfer.imported_at|default:"Ainda não importado" }}</dd></div>
+    <div><dt>Palavras</dt><dd>{{ transfer.word_count|default:"—" }}</dd></div>
+    <div class="wide"><dt>SHA-256</dt><dd>{{ transfer.sha256|default:"—" }}</dd></div>
+    <div class="wide"><dt>Próxima etapa</dt><dd><span class="status {% if transfer.can_proceed %}IMPORTED{% else %}WAITING_RETURN{% endif %}">{% if transfer.can_proceed %}LIBERADA{% else %}BLOQUEADA{% endif %}</span> {{ transfer.next_step }}</dd></div>
+  </dl>
+  {% if transfer.error_message %}<p class="notice error"><strong>Erro:</strong> {{ transfer.error_message }}</p>{% endif %}
+  <div class="actions">
+    {% if transfer.request_url %}<a class="btn secondary" href="{{ transfer.request_url }}" target="_blank" rel="noreferrer">Abrir pedido</a>{% endif %}
+    {% if transfer.return_folder_url %}<a class="btn secondary" href="{{ transfer.return_folder_url }}" target="_blank" rel="noreferrer">Abrir pasta return</a>{% endif %}
+    {% if transfer.response_file_url %}<a class="btn secondary" href="{{ transfer.response_file_url }}" target="_blank" rel="noreferrer">Abrir resposta importada</a>{% endif %}
+    {% if not transfer.imported and transfer.return_folder_id and project.status != "CLOSED" %}
+      <form method="post" action="{% url 'writer:project_export_check_return' project.id writer_export.export_id %}">{% csrf_token %}<button type="submit">Verificar retorno</button></form>
+      <form method="post" action="{% url 'writer:project_export_import_return' project.id writer_export.export_id %}">{% csrf_token %}<button type="submit">Importar retorno</button></form>
+    {% endif %}
+  </div>
+  {% if transfer.imported %}
+    <p class="notice ok"><strong>Importação concluída.</strong> O texto está disponível no Writer para revisão.</p>
+  {% elif transfer.state == "WAITING_RETURN" %}<p class="notice">Aguardando os arquivos de resposta na pasta return.</p>{% endif %}
+</div>

@@ -1,0 +1,10 @@
+{% autoescape off %}
+{{ edition.title }}
+{{ edition.subtitle }}
+
+Autore: {{ edition.author }}
+Adattamento di {{ edition.adapter }}
+
+{{ edition.seal_name }}
+{{ edition.city }}, {{ country_label }} · {{ edition.publication_year }}
+{% endautoescape %}

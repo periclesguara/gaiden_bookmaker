@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bloco 01 - Entrada HTML - {{ book_code }} ({{ language }})</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --ink: #161b22;
+      --muted: #57606a;
+      --card: #ffffff;
+      --border: #d0d7de;
+      --ok: #1a7f37;
+      --accent: #0969da;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 960px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+    .badge.ok {
+      color: var(--ok);
+      border-color: #2da44e55;
+      background: #dafbe1;
+    }
+    .step {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .btn {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .btn.disabled, .btn[disabled] {
+      background: #9aa4b2;
+      border-color: #9aa4b2;
+      color: #f3f4f6;
+      cursor: not-allowed;
+    }
+    ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+    code {
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      {% url 'book_edition_new' as nav_home_url %}
+      {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_base_url %}
+      {% url 'frontmatter_template_edit' book_code=book_code language=lang as nav_frontmatter_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="pipeline" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_base_url|add:'?allow_html_to_common=1' nav_frontmatter_url=nav_frontmatter_url %}
+      <h1>Bloco 01 - Entrada HTML - {{ book_code }} ({{ language }})</h1>
+      <p class="muted">Etapa atual do Bloco 01: <strong>{{ current_stage }}</strong></p>
+      <p class="muted">Formato registrado no cadastro: <strong>{{ source_format }}</strong></p>
+      {% if raw_source_path %}
+        <p class="muted">Raw registrado: <code>{{ raw_source_path }}</code></p>
+      {% endif %}
+      {% if last_log %}
+        <p class="muted">Ultimo log: {{ last_log }}</p>
+      {% endif %}
+    </section>
+
+    {% if messages %}
+      <section class="card">
+        {% for message in messages %}
+          <div>{{ message }}</div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if report_payload %}
+      <section class="card">
+        <h2>Report Preprod</h2>
+        <p class="muted">ok_to_convert: <strong>{{ report_payload.ok_to_convert }}</strong></p>
+        <p class="muted">headings_found: {{ report_payload.headings_found }} | chapters_detected: {{ report_payload.chapters_detected }}</p>
+        {% if report_payload.warnings %}
+          <div class="muted">Warnings:</div>
+          <ul>
+            {% for warn in report_payload.warnings %}
+              <li>{{ warn }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if report_payload.errors %}
+          <div class="muted">Errors:</div>
+          <ul>
+            {% for err in report_payload.errors %}
+              <li>{{ err }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    {% endif %}
+    {% if report_errors %}
+      <section class="card">
+        {% for err in report_errors %}
+          <div>{{ err }}</div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    <section class="card">
+      <h2>Artefatos esperados</h2>
+      <ul>
+        {% for row in artifact_rows %}
+          <li>
+            <strong>{{ row.label }}:</strong>
+            <code>{{ row.path }}</code>
+            {% if row.exists %}
+              <span class="badge ok">existe</span>
+            {% else %}
+              <span class="badge">pendente</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Depois do Bloco 01</h2>
+      <div class="muted">Depois que voce concluir a entrada HTML e seguir para o fluxo comum, os blocos 02-04 poderao gerar:</div>
+      <ul>
+        {% for row in pipeline01_artifact_rows %}
+          <li>
+            <strong>{{ row.label }}:</strong>
+            <code>{{ row.path }}</code>
+            <span class="muted">gerado no fluxo comum dos blocos 02-04</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Etapas da linha HTML</h2>
+
+      <div class="step">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+          <div>
+            <strong>Step 1 - HTML_UPLOADED</strong>
+            <div class="muted">Gate 0 (cadastro) salvou o RAW HTML deterministico.</div>
+          </div>
+          {% if step1_ok %}
+            <span class="badge ok">OK</span>
+          {% else %}
+            <span class="badge">Pendente</span>
+          {% endif %}
+        </div>
+        <ul>
+          <li><strong>Book:</strong> {{ book_code }}</li>
+          <li><strong>Lang:</strong> {{ lang }}</li>
+          <li><strong>Lane:</strong> {{ source_format|upper }}</li>
+        </ul>
+        <div class="muted">
+          <strong>RAW HTML:</strong>
+          <code>{{ artifacts.raw_html_path }}</code>
+        </div>
+        <div class="actions">
+          {% url 'pipeline_html_reupload_run' edition.id as reupload_url %}
+          {% if reupload_url %}
+            <form method="post" action="{{ reupload_url }}" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="file" name="source_file" accept=".html,.htm" required>
+              <button class="btn" type="submit">Re-upload HTML</button>
+            </form>
+          {% else %}
+            <span class="muted">Re-upload indisponivel neste servidor. Reinicie o Django.</span>
+          {% endif %}
+          <a class="btn secondary" href="{% url 'book_edition_new' %}?book_code={{ book_code }}&language={{ lang }}">
+            Voltar ao cadastro
+          </a>
+        </div>
+      </div>
+
+      <div class="step">
+        <strong>2) Pre-producao HTML</strong>
+        <div class="actions">
+          <form method="post" action="{% url 'pipeline_html_preprod_run' edition.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit" {% if not can_run_preprod %}disabled{% endif %}>Rodar</button>
+          </form>
+        </div>
+        {% if not can_run_preprod %}
+          <div class="muted">Envie o RAW HTML no cadastro para habilitar.</div>
+        {% endif %}
+      </div>
+
+      <div class="step">
+        <strong>3) Converter HTML -> MD</strong>
+        <div class="actions">
+          <form method="post" action="{% url 'pipeline_html_convert_run' edition.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit" {% if not can_run_convert %}disabled{% endif %}>Rodar</button>
+          </form>
+        </div>
+        {% if not can_run_convert %}
+          <div class="muted">Requer stage >= HTML_PREPROD_READY e report ok_to_convert=true.</div>
+        {% endif %}
+      </div>
+
+      <div class="step">
+        <strong>4) Abrir Bloco 02</strong>
+        <div class="actions">
+          <form method="post" action="{% url 'pipeline_html_md_normalize_run' edition.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">Abrir</button>
+          </form>
+        </div>
+        <div class="muted">Esta etapa apenas direciona para o fluxo comum dos blocos 02-04.</div>
+      </div>
+
+      <div class="step">
+        <strong>5) Continuar nos Blocos 02-04</strong>
+        <div class="actions">
+          <a class="btn secondary" href="{% url 'edition_steps' edition.id %}?allow_html_to_common=1">
+            Abrir fluxo comum
+          </a>
+          <a class="btn secondary" href="{% url 'pipeline_dashboard' %}">
+            Voltar ao dashboard
+          </a>
+        </div>
+        {% if not can_continue_common %}
+          <div class="muted">Dica: rode "Converter HTML -> MD" antes de seguir.</div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

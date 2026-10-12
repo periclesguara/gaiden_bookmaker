@@ -1,0 +1,5 @@
+h1, h2 { overflow-wrap: anywhere; }
+.table { max-width: 100%; }
+@media (max-width: 800px) {
+  td[data-label]::before { content: attr(data-label) ": "; font-weight: 700; }
+}

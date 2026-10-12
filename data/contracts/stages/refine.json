@@ -1,0 +1,99 @@
+{
+  "id": "refine",
+  "version": "1.0.0",
+  "stage_type": "llm_editorial_stage",
+  "description": "Refines chunks produced by the EN-US translate/modernize stage into fluent, elegant, rhythmic modern American literary prose while preserving semantic fidelity and allowing controlled assisted rewriting for cadence, clarity, sentence reduction, and flow.",
+  "input_requirements": {
+    "requires_chunk": true,
+    "requires_language_contract": true,
+    "requires_agent_contract": true,
+    "requires_source_text": true
+  },
+  "output_requirements": {
+    "plain_text_only": true,
+    "preserve_headings": true,
+    "preserve_paragraphs": true,
+    "preserve_dialogue": true,
+    "no_explanations": true,
+    "no_notes": true,
+    "no_json": true,
+    "no_markdown_fences": true
+  },
+  "merge_policy": {
+    "canonical_order_source": "chunks_manifest.json",
+    "order_by": [
+      "chapter_index",
+      "chunk_index",
+      "source_chunk_id"
+    ],
+    "require_run_id_isolation": true,
+    "run_output_layout": "data/refined/{book_id}/{language}/runs/{run_id}/",
+    "required_manifests": [
+      "refine_manifest.json",
+      "merge_report.json"
+    ],
+    "block_merge_when": [
+      "expected_chunk_missing",
+      "extra_chunk_present",
+      "duplicate_source_chunk_id",
+      "chunk_outside_manifest",
+      "source_sha256_mismatch",
+      "output_sha256_mismatch",
+      "empty_output",
+      "wrong_run_id",
+      "wrong_book_id",
+      "wrong_language"
+    ],
+    "do_not_order_by": [
+      "filesystem_order",
+      "glob_order",
+      "alphabetical_filename_order",
+      "creation_time",
+      "model_output_headings",
+      "response_arrival_order"
+    ]
+  },
+  "processing_order": [
+    "load_agent_contract",
+    "load_language_contract",
+    "load_stage_contract",
+    "load_validator_contracts",
+    "scan_input",
+    "build_prompt",
+    "call_openai_responses_api",
+    "validate_output",
+    "retry_if_needed",
+    "write_output",
+    "write_audit_log"
+  ],
+  "failure_policy": {
+    "empty_output": "fail",
+    "meta_commentary_detected": "retry",
+    "archaic_terms_remaining": "retry",
+    "heading_loss": "retry",
+    "length_ratio_suspicious": "manual_review",
+    "max_retries_exceeded": "fail_and_save_report"
+  },
+  "stage_position": {
+    "expected_previous_stage": [
+      "modernize",
+      "translate"
+    ],
+    "expected_input_location": [
+      "data/translated/{book_id}/en_us/",
+      "translate_US_EN"
+    ],
+    "recommended_output_location": "data/refined/{book_id}/en_us/"
+  },
+  "editorial_behavior": {
+    "semantic_preservation_target": 0.7,
+    "assisted_rewrite_allowance": 0.3,
+    "ratio_is_guidance_not_exact_metric": true,
+    "reduce_overlong_sentences": true,
+    "improve_cadence": true,
+    "improve_musicality": true,
+    "improve_flow": true,
+    "remove_residual_archaisms": true,
+    "use_contractions_sparingly": true
+  }
+}

@@ -1,0 +1,402 @@
+from __future__ import annotations
+
+import ipaddress
+import json
+import os
+from pathlib import Path
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+
+from gaiden.writer_engine.local_generator import WRITER_BASE_URL
+
+from ..models import Chapter, SourceVectorIndex, StoryProject
+
+
+BIBLE_FIELDS = (
+    ("character_bible", "Bíblia do personagem"),
+    ("supporting_characters_bible", "Bíblia dos personagens coadjuvantes"),
+    ("antagonist_bible", "Bíblia do antagonista"),
+    ("scenario_bible", "Cenários e locais"),
+    ("world_bible", "Mundo, época, clima e referências"),
+)
+STORY_FIELDS = (
+    ("story_direction", "Direção da história"),
+    ("story_outline", "Roteiro geral"),
+)
+
+
+def _index_status(path_value: str, expected_sources: int, expected_model: str) -> dict:
+    status = {
+        "recorded": bool(path_value),
+        "exists": False,
+        "valid": False,
+        "path": path_value,
+        "source_count": 0,
+        "chunk_count": 0,
+        "dimension": 0,
+        "embedding_model": "",
+        "created_at": "",
+        "reason": "Índice RAG ainda não criado.",
+    }
+    if not path_value:
+        return status
+    try:
+        path = Path(path_value).expanduser().resolve(strict=True)
+        if not path.is_file():
+            status["reason"] = "O caminho registrado não é um arquivo de índice."
+            return status
+        status["exists"] = True
+        with path.open(encoding="utf-8") as handle:
+            header = json.loads(handle.readline())
+        status.update(
+            source_count=int(header.get("source_count", 0)),
+            chunk_count=int(header.get("chunk_count", 0)),
+            dimension=int(header.get("dimension", 0)),
+            embedding_model=str(header.get("embedding_model", "")),
+            created_at=str(header.get("created_at", "")),
+        )
+        problems = []
+        if header.get("schema_version") != 1:
+            problems.append("schema incompatível")
+        if status["source_count"] != expected_sources:
+            problems.append(
+                f"índice contém {status['source_count']} de {expected_sources} fontes"
+            )
+        if status["chunk_count"] <= 0:
+            problems.append("nenhum trecho vetorizado")
+        if status["dimension"] <= 0:
+            problems.append("dimensão de vetor inválida")
+        if expected_model and status["embedding_model"] != expected_model:
+            problems.append("modelo do índice difere do modelo configurado")
+        if problems:
+            status["reason"] = "; ".join(problems).capitalize() + "."
+            return status
+        status["valid"] = True
+        status["reason"] = "Índice íntegro e compatível com a seleção atual."
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        status["reason"] = f"Não foi possível validar o índice: {exc}"
+    return status
+
+
+def _is_loopback(base_url: str) -> bool:
+    hostname = urlparse(base_url).hostname
+    if not hostname:
+        return False
+    try:
+        return ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        return hostname.casefold() == "localhost"
+
+
+def _model_status(*, probe: bool) -> dict:
+    embedding_base_url = os.environ.get("GAIDEN_LOCAL_MODEL_URL", WRITER_BASE_URL).rstrip("/")
+    writing_base_url = embedding_base_url
+    embedding_model = os.environ.get("GAIDEN_LOCAL_EMBEDDING_MODEL", "not configured")
+    writing_model = os.environ.get("GAIDEN_LOCAL_MODEL", "not configured")
+    status = {
+        "checked": False,
+        "online": None,
+        "embedding_base_url": embedding_base_url,
+        "writing_base_url": writing_base_url,
+        "embedding_model": embedding_model,
+        "writing_model": writing_model,
+        "embedding_available": None,
+        "writing_available": None,
+        "reason": "Verificação do serviço não executada.",
+    }
+    if not probe:
+        return status
+    if not _is_loopback(embedding_base_url):
+        status["reason"] = "Endpoint não local; verificação automática desativada."
+        return status
+    status["checked"] = True
+    request = Request(f"{embedding_base_url}/api/tags", headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=0.75) as response:
+            payload = json.load(response)
+        rows = payload.get("models", payload.get("data", []))
+        installed = {
+            str(item.get("name") or item.get("id") or "")
+            for item in rows if isinstance(item, dict)
+        }
+        status["online"] = True
+        status["embedding_available"] = embedding_model in installed
+        status["writing_available"] = writing_model in installed
+        status["reason"] = "Serviço local respondeu e informou os modelos instalados."
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        status["online"] = False
+        status["embedding_available"] = False
+        status["writing_available"] = False
+        status["reason"] = f"Serviço local indisponível: {exc}"
+    return status
+
+
+def _stage(number: int, label: str, complete: bool, detail: str) -> dict:
+    return {
+        "number": number,
+        "label": label,
+        "complete": complete,
+        "detail": detail,
+        "state": "complete" if complete else "blocked",
+    }
+
+
+def _ready_reference_index(source):
+    try:
+        index = source.writer_vector_index
+    except SourceVectorIndex.DoesNotExist:
+        return None
+    if (
+        index.status == SourceVectorIndex.Status.READY
+        and source.official_body_sha256
+        and index.source_hash == source.official_body_sha256
+        and source._safe_existing_path(index.index_path) is not None
+    ):
+        return index
+    return None
+
+
+def _reference_scope_status(project: StoryProject) -> dict:
+    from corpus.writer_adapter import is_canonical, scope_status
+    if is_canonical(project):
+        return scope_status(project)
+    from .corpus import index_ready, reference_index, verified_body
+
+    references = list(project.references.filter(enabled=True).select_related(
+        "source__edition__work__author", "intake_work__author",
+    ))
+    authors = {}
+    prepared = vectorized = failed = chunks = 0
+    blockers = []
+    models = set()
+    for reference in references:
+        work = reference.intake_work or (reference.source.edition.work if reference.source_id else None)
+        author_name = work.author.name if work else "Sem autor"
+        group = authors.setdefault(author_name, {"name": author_name, "selected": 0, "vectorized": 0})
+        group["selected"] += 1
+        index = reference_index(reference)
+        body = verified_body(index) if index else None
+        if body:
+            prepared += 1
+        else:
+            blockers.append({"title": work.title if work else "Referência", "reason": "Arquivo fonte ou texto preparado indisponível."})
+        if index and index_ready(index):
+            vectorized += 1
+            group["vectorized"] += 1
+            chunks += index.chunk_count
+            models.add(index.embedding_model)
+        elif index and index.status == SourceVectorIndex.Status.FAILED:
+            failed += 1
+            blockers.append({"title": work.title if work else "Referência", "reason": index.error_message or "Vetorização falhou."})
+        elif index and index.status == SourceVectorIndex.Status.READY:
+            blockers.append({"title": work.title if work else "Referência", "reason": "Índice desatualizado ou indisponível."})
+    total = len(references)
+    ready = total > 0 and vectorized == total
+    return {
+        "selected": total, "normalized": prepared, "vectorized": vectorized,
+        "failed": failed, "all_normalized": total > 0 and prepared == total,
+        "all_vectorized": ready, "blockers": blockers,
+        "authors": sorted(authors.values(), key=lambda row: row["name"]),
+        "preparation_pending": total - prepared,
+        "vectorization_pending": total - vectorized,
+        "vectorization_available": prepared > vectorized,
+        "index": {"recorded": bool(vectorized), "exists": bool(vectorized), "valid": ready,
+                  "path": "", "source_count": vectorized, "chunk_count": chunks,
+                  "dimension": 0, "embedding_model": ", ".join(sorted(models)),
+                  "created_at": "", "reason": "Pronto" if ready else "Pendente"},
+    }
+
+
+def build_project_dashboard(project: StoryProject, *, probe_models: bool = True) -> dict:
+    chapters = list(project.chapters.all())
+    reference_scope = _reference_scope_status(project)
+    selected_count = reference_scope["selected"]
+    normalized_count = reference_scope["normalized"]
+    vectorized_count = reference_scope["vectorized"]
+    all_normalized = reference_scope["all_normalized"]
+
+    models = _model_status(probe=probe_models)
+    index = reference_scope["index"]
+    all_vectorized = reference_scope["all_vectorized"]
+
+    missing_bibles = [
+        label for field, label in BIBLE_FIELDS if not getattr(project, field).strip()
+    ]
+    missing_story = [
+        label for field, label in STORY_FIELDS if not getattr(project, field).strip()
+    ]
+    bibles_complete = not missing_bibles
+    story_complete = not missing_story
+    prepared_chapters = sum(bool(
+        getattr(chapter, "session_scenes", [])
+        or (chapter.direction.strip() and chapter.script.strip())
+    ) for chapter in chapters)
+    parameters_complete = bool(chapters) and prepared_chapters == len(chapters)
+    generated_chapters = sum(
+        chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}
+        for chapter in chapters
+    )
+    final_chapters = sum(chapter.status == Chapter.Status.FINAL for chapter in chapters)
+    generation_complete = bool(chapters) and generated_chapters == len(chapters)
+
+    stages = [
+        _stage(
+            1,
+            "Normalizar",
+            all_normalized,
+            f"{normalized_count} de {selected_count} referências preparadas",
+        ),
+        _stage(
+            2,
+            "Vetorizar",
+            all_vectorized,
+            (
+                f"{index['chunk_count']} trechos · dimensão {index['dimension']}"
+                if all_vectorized
+                else index["reason"]
+            ),
+        ),
+        _stage(
+            3,
+            "Bíblias",
+            bibles_complete,
+            "Concluídas" if bibles_complete else f"{len(missing_bibles)} campos pendentes",
+        ),
+        _stage(
+            4,
+            "Roteiro",
+            story_complete,
+            "Concluído" if story_complete else f"{len(missing_story)} campos pendentes",
+        ),
+        _stage(
+            5,
+            "Parâmetros",
+            parameters_complete,
+            f"{prepared_chapters} de {len(chapters)} capítulos preparados",
+        ),
+        _stage(
+            6,
+            "Gerar",
+            generation_complete,
+            f"{generated_chapters} de {len(chapters)} capítulos gerados",
+        ),
+    ]
+    prior_complete = True
+    current_stage = None
+    for stage in stages:
+        if stage["complete"]:
+            stage["state"] = "complete"
+        elif prior_complete and current_stage is None:
+            stage["state"] = "current"
+            current_stage = stage
+        else:
+            stage["state"] = "blocked"
+        prior_complete = prior_complete and stage["complete"]
+
+    # Contract preparation is local; selected references must already be ready.
+    global_generation_blockers = []
+    if selected_count and not all_vectorized:
+        global_generation_blockers.append("Concluir a preparação e vetorização do corpus")
+    global_generation_blockers.extend(f"Preencher {label.lower()}" for label in missing_bibles)
+    global_generation_blockers.extend(f"Preencher {label.lower()}" for label in missing_story)
+
+    chapter_rows = []
+    for chapter in chapters:
+        blockers = list(global_generation_blockers)
+        chapter_blockers = []
+        if not getattr(chapter, "session_scenes", []) and not chapter.direction.strip():
+            chapter_blockers.append("Preencher direção do capítulo")
+        if not getattr(chapter, "session_scenes", []) and not chapter.script.strip():
+            chapter_blockers.append("Preencher roteiro do capítulo")
+        if chapter.status in {Chapter.Status.MERGED, Chapter.Status.FINAL}:
+            chapter_blockers.append("Capítulo já finalizado")
+        elif chapter.status == Chapter.Status.PACKAGE_READY:
+            # A prepared package may be regenerated. If chapter parameters
+            # are unchanged, build_narrative_contract() reuses the existing
+            # payload SHA/version. If they changed, it creates a new immutable
+            # contract version and prepare_chapter_package() rewrites the
+            # current package pointer.
+            pass
+        elif chapter.status in {Chapter.Status.EXPORTED_TO_DRIVE, Chapter.Status.WAITING_FOR_OUTPUT}:
+            chapter_blockers.append("Pacote já exportado; aguarde ou importe a saída")
+        elif chapter.status in {Chapter.Status.OUTPUT_IMPORTED, Chapter.Status.CLOSURE_COMPLETE}:
+            chapter_blockers.append("Saída já importada; revise e finalize")
+        elif chapter.status in {Chapter.Status.GENERATING, Chapter.Status.MERGING}:
+            chapter_blockers.append("Geração em andamento")
+        elif chapter.status == Chapter.Status.GENERATION_COMPLETE:
+            # This is a recoverable legacy state. Generate now means package
+            # preparation, so it must be allowed to freeze the contract even
+            # when an old model/audit run left this status behind.
+            pass
+        blockers.extend(chapter_blockers)
+        chapter_rows.append(
+            {
+                "chapter": chapter,
+                "direction_ready": bool(getattr(chapter, "session_scenes", []) or chapter.direction.strip()),
+                "script_ready": bool(getattr(chapter, "session_scenes", []) or chapter.script.strip()),
+                "generation_ready": not blockers,
+                "generation_blockers": blockers,
+                "chapter_blockers": chapter_blockers,
+                "complete_sessions": int(bool(chapter.generated_text)),
+                "summary": getattr(chapter, "narrative_summary", None),
+            }
+        )
+
+    next_chapter_row = None
+    prior_chapters_complete = True
+    for row in chapter_rows:
+        chapter = row["chapter"]
+        complete = chapter.status == Chapter.Status.FINAL and row["summary"] and row["summary"].short_summary.strip()
+        row["waiting_for"] = None
+        if complete:
+            continue
+        if not prior_chapters_complete:
+            row["waiting_for"] = next_chapter_number
+            row["generation_blockers"].append("Concluir o capítulo anterior primeiro")
+            row["chapter_blockers"].append("Concluir o capítulo anterior primeiro")
+            row["generation_ready"] = False
+        elif row["generation_ready"] and next_chapter_row is None:
+            next_chapter_row = row
+        if prior_chapters_complete:
+            next_chapter_number = chapter.number
+        prior_chapters_complete = False
+
+    completed_stages = sum(stage["complete"] for stage in stages)
+    vectorize_blockers = []
+    if not selected_count:
+        vectorize_blockers.append("Selecione ao menos uma referência")
+    if not reference_scope["vectorization_available"] and not all_vectorized:
+        vectorize_blockers.append("Normalize as obras pendentes")
+
+    return {
+        "sources": {
+            "selected": selected_count,
+            "normalized": normalized_count,
+            "vectorized": vectorized_count,
+            "failed": reference_scope["failed"],
+            "all_normalized": all_normalized,
+            "all_vectorized": all_vectorized,
+        },
+        "index": index,
+        "corpus": reference_scope,
+        "models": models,
+        "missing_bibles": missing_bibles,
+        "missing_story": missing_story,
+        "bibles_complete": bibles_complete,
+        "story_complete": story_complete,
+        "chapters": {
+            "total": len(chapters),
+            "prepared": prepared_chapters,
+            "generated": generated_chapters,
+            "final": final_chapters,
+        },
+        "chapter_rows": chapter_rows,
+        "stages": stages,
+        "completed_stages": completed_stages,
+        "progress_percent": round(completed_stages / len(stages) * 100),
+        "current_stage": current_stage,
+        "vectorize_ready": not vectorize_blockers,
+        "vectorize_blockers": vectorize_blockers,
+        "global_generation_blockers": global_generation_blockers,
+        "next_chapter_row": next_chapter_row,
+    }

@@ -1,0 +1,622 @@
+GPT-5.6 SOL — REGRAS DE EXECUÇÃO GIT/GITHUB DO GAIDEN
+======================================================
+
+Versão: 1.0
+Data de referência: 2026-08-03
+Repositório: gaiden_bookmaker
+Objetivo: revisar, organizar e publicar alterações locais sem perder trabalho,
+misturar artefatos editoriais com código ou criar conflitos entre commits locais
+e o GitHub.
+
+
+1. PAPEL DO GPT-5.6 SOL
+-----------------------
+
+Você é o agente responsável pela integração segura do repositório.
+
+Prioridades obrigatórias, nesta ordem:
+
+1. Preservar integralmente o trabalho local do usuário.
+2. Não sobrescrever arquivos modificados, removidos ou não rastreados.
+3. Atualizar a visão do GitHub antes de classificar commits.
+4. Distinguir hash ausente de alteração realmente inédita.
+5. Revisar e testar antes de criar commits de integração.
+6. Somente fazer push quando o usuário autorizar explicitamente.
+7. Nunca publicar segredos, bancos locais, EPUBs, builds ou dados derivados.
+
+Não trate um worktree sujo como área descartável. Toda alteração preexistente
+pertence ao usuário até prova em contrário.
+
+
+2. PROIBIÇÕES ABSOLUTAS
+-----------------------
+
+Nunca executar:
+
+    git reset --hard
+    git clean -fd
+    git clean -fdx
+    git checkout -- .
+    git restore .
+    git restore --staged --worktree .
+    git push --force
+    git push --force-with-lease
+    git add .
+    git add -A
+
+Nunca:
+
+- apagar ou restaurar alterações locais que não foram criadas na tarefa atual;
+- fazer rebase, merge ou cherry-pick no worktree principal enquanto ele estiver sujo;
+- commitar arquivos de data/, backups/, _vault/, bancos, segredos, logs ou EPUBs;
+- alterar commits publicados sem autorização explícita;
+- fazer push direto para main;
+- resolver conflito escolhendo automaticamente “ours” ou “theirs” para o arquivo inteiro;
+- usar stash como mecanismo automático de segurança sem autorização do usuário;
+- assumir que “ahead do upstream” significa “inédito no GitHub”;
+- criar um único megacommit misturando código, dados editoriais, documentação e artefatos.
+
+
+3. ESTADO CONHECIDO EM 2026-08-03
+---------------------------------
+
+Branch de trabalho atual:
+
+    agent/gaiden-author-studio
+
+Situação observada após git fetch:
+
+    agent/gaiden-author-studio: 0 ahead / 0 behind
+
+Worktree principal observado:
+
+    92 arquivos modificados
+    106 arquivos removidos
+    2 caminhos não rastreados
+    200 alterações no total
+
+Caminhos não rastreados observados:
+
+    docs/audits/
+    scripts/release/finalize_colour_out_of_space_v2.py
+
+Este snapshot é apenas referência. Sempre recalcular o estado antes de agir.
+
+
+4. AUDITORIA INICIAL OBRIGATÓRIA
+--------------------------------
+
+Executar primeiro, sem modificar arquivos:
+
+    git rev-parse --show-toplevel
+    git status --short --branch
+    git remote -v
+    git branch -vv
+    git worktree list
+
+Atualizar somente as referências remotas:
+
+    git fetch --all --prune
+
+Recalcular a divergência da branch atual:
+
+    git rev-list --left-right --count '@{upstream}...HEAD'
+
+Listar hashes locais ausentes de todos os remotes:
+
+    git log --branches --not --remotes \
+      --date=short \
+      --pretty=format:'%H%x09%ad%x09%an%x09%s'
+
+Listar branches locais com hashes ausentes dos remotes:
+
+    git for-each-ref refs/heads --format='%(refname:short)' | \
+    while IFS= read -r branch; do
+      count=$(git rev-list --count "$branch" --not --remotes)
+      if [ "$count" -gt 0 ]; then
+        printf '%s\t%s\n' "$count" "$branch"
+      fi
+    done
+
+IMPORTANTE: a lista acima ainda pode conter commits que já chegaram ao GitHub
+com outro hash. Antes de afirmar que uma alteração é inédita, comparar patch-id
+ou usar git cherry contra o upstream correto:
+
+    git cherry -v origin/main main
+    git cherry -v origin/feature/translate-2025 feature/translate-2025
+
+Interpretação de git cherry:
+
+    +  patch ainda não encontrado no upstream comparado
+    -  patch equivalente já existe no upstream com outro hash
+
+Quando houver várias branches remotas, comparar patch-id contra refs/remotes/*
+antes de classificar um commit como não publicado.
+
+
+5. COMMITS REALMENTE INÉDITOS NO SNAPSHOT
+-----------------------------------------
+
+Os commits abaixo não possuíam hash nem patch equivalente em qualquer remote no
+snapshot de 2026-08-03. Revalidar antes de trabalhar neles.
+
+5.1. main — prioridade alta
+
+    63feed27  checkpoint: pipeline home, heading cleaner post-split, and flow updates
+    4772f26c  pipeline: add Aldebaran refine + refine QA and merge cleanup
+    6d628a18  pipeline: restore image upload, consolidation and insertion flow
+
+Regras:
+
+- revisar como uma pilha ordenada;
+- validar migration 0017 e compatibilidade com o estado atual do Django;
+- revisar rotas, views, templates e serviços em conjunto;
+- não fazer push direto de main;
+- transportar somente alterações ainda necessárias para uma branch nova.
+
+5.2. feature/translate-2025 — prioridade crítica
+
+    9a3ff68a  checkpoint: translate infra + secret manager + contracts + diagnostics + templates OK
+
+Características:
+
+    99 arquivos alterados
+    12.207 adições
+    contém backups de chunks e componentes antigos de Streamlit
+
+Regras:
+
+- NÃO publicar o commit como está;
+- NÃO fazer cherry-pick integral;
+- separar código útil, contratos e documentação;
+- excluir backups, outputs, dados e qualquer segredo;
+- revisar manualmente o key manager;
+- verificar se o código Streamlit ainda é relevante;
+- criar commits pequenos e temáticos em branch limpa.
+
+5.3. feature/parallel-translate — prioridade alta
+
+    1a4d4a30  Translate: fix short outputs by aligning max token params + truncation diagnostics
+    b5793bb9  Translate: log endpoint + incomplete status for truncation
+    2a553627  Translate: safe partial runs + editorial guardrails
+    1e4510b5  Translate: enrich run report merge flags
+    dc3098bd  Net preflight: normalize DNS host + retry
+    c5cbb4e1  Translate: switch primary to gpt-5-chat-latest + content_filter switch
+
+Regras:
+
+- revisar os seis commits como uma única série lógica;
+- comparar gaiden/translate.py com a implementação atual;
+- validar contratos de tradução e comportamento de truncamento;
+- revisar retries para evitar loops e duplicação de custos;
+- não aceitar automaticamente gpt-5-chat-latest: confirmar o modelo atual e o
+  contrato suportado antes de integrar;
+- testar falhas parciais, content_filter, timeout, DNS e retomada segura;
+- descartar código substituído pela arquitetura atual.
+
+5.4. wip/recover-stash5-megazord-v1 — prioridade baixa
+
+    bbe083b4  Chore: ignore local sqlite DB
+    335b8936  Chore: ignore local build/vault artifacts
+
+Regras:
+
+- revisar contra o .gitignore atual;
+- não publicar a branch WIP;
+- consolidar apenas linhas ainda necessárias em um commit chore isolado;
+- não remover exceções que mantêm README ou contratos rastreados.
+
+
+6. HASHES LOCAIS JÁ EQUIVALENTES NO GITHUB
+------------------------------------------
+
+No snapshot, estes hashes estavam ausentes, mas os patches já existiam no
+GitHub com outro hash. Não reaplicar nem publicar novamente:
+
+    0ea98b96
+    9e282439
+    8b757331
+    493b81b1
+    e81e51c1
+    593a2744
+    a6f68548
+    ddc00fbe
+
+Antes de remover branches locais antigas, solicitar autorização do usuário.
+
+
+7. ESTRATÉGIA OBRIGATÓRIA DE ISOLAMENTO
+---------------------------------------
+
+Como o worktree principal está sujo, toda integração deve acontecer em um novo
+worktree criado a partir do remote atualizado.
+
+Exemplo para revisão, usando um nome ainda inexistente:
+
+    git fetch origin --prune
+    git worktree add ../gaiden_bookmaker_review \
+      -b review/local-commits-v1 origin/main
+
+Antes de criar:
+
+    git branch --list review/local-commits-v1
+    git worktree list
+    test ! -e ../gaiden_bookmaker_review
+
+Se branch ou diretório já existir, escolher outro nome. Nunca reutilizar um
+worktree sem auditar seu estado.
+
+Dentro do novo worktree:
+
+    git status --short --branch
+    git rev-parse --abbrev-ref HEAD
+
+O resultado deve estar limpo antes de cherry-pick, edição ou teste.
+
+
+8. COMO TRANSPORTAR COMMITS ANTIGOS
+----------------------------------
+
+Não fazer merge de branches antigas e divergentes. Preferir revisão commit a
+commit ou extração manual de partes ainda válidas.
+
+Inspeção:
+
+    git show --stat --summary <commit>
+    git show --name-status <commit>
+    git show --check <commit>
+    git diff origin/main...<branch> -- <caminho>
+
+Para um commit pequeno e aprovado:
+
+    git cherry-pick --no-commit <commit>
+    git status --short
+    git diff --check
+    git diff
+
+Usar --no-commit permite revisar e remover trechos obsoletos antes de criar um
+novo commit. Não continuar se houver conflito não compreendido.
+
+Para commits grandes ou contaminados por dados:
+
+    git show <commit>:<caminho> > /tmp/arquivo_para_inspecao
+
+Depois, implementar somente o comportamento necessário no código atual. Não
+copiar cegamente árvores completas de uma versão antiga.
+
+
+9. RESOLUÇÃO SEGURA DE CONFLITOS
+--------------------------------
+
+Quando houver conflito:
+
+1. Parar e listar:
+
+       git status --short
+       git diff --name-only --diff-filter=U
+
+2. Para cada arquivo, comparar:
+
+       git diff --base -- <arquivo>
+       git diff --ours -- <arquivo>
+       git diff --theirs -- <arquivo>
+
+3. Entender a intenção do código atual e do commit antigo.
+4. Aplicar resolução mínima com edição explícita.
+5. Executar testes específicos do componente.
+6. Revisar o diff completo antes de marcar como resolvido.
+
+Não usar para resolver arquivo inteiro:
+
+    git checkout --ours <arquivo>
+    git checkout --theirs <arquivo>
+
+Esses comandos somente podem ser usados após revisão comprovada e para um alvo
+exato, nunca como atalho global.
+
+Se o conflito envolver alterações locais do usuário, interromper e pedir
+orientação. Não presumir qual versão deve prevalecer.
+
+
+10. REGRAS DE STAGING
+---------------------
+
+Sempre adicionar caminhos explícitos:
+
+    git add -- path/to/file_a.py path/to/file_b.html
+
+Para partes específicas:
+
+    git add -p -- path/to/file.py
+
+Antes de commitar:
+
+    git status --short
+    git diff --check
+    git diff --cached --check
+    git diff --cached --stat
+    git diff --cached --name-status
+    git diff --cached
+
+Cancelar o commit se houver arquivo inesperado, binário, dado editorial, banco,
+segredo, log, build ou artefato gerado.
+
+
+11. ARQUIVOS QUE NÃO DEVEM SER COMMITADOS
+-----------------------------------------
+
+Respeitar o .gitignore. Não forçar inclusão com git add -f, salvo autorização
+explícita e justificativa documentada.
+
+Categorias proibidas por padrão:
+
+    .env
+    .env.*
+    .gaiden_secrets
+    *.sqlite
+    *.sqlite3
+    *.db
+    *.log
+    *.epub
+    data/**
+    backups/**
+    _vault/**
+    data/tmp/**
+    data/builds/**
+    data/translated/**
+    data/chunks/**
+    web/data/**
+    BOOK.MD_FINAL*
+    kdp_merged/**
+
+Exceções somente quando já previstas no .gitignore, por exemplo contratos e
+README canônicos. Verificar com:
+
+    git check-ignore -v <caminho>
+
+Nunca modificar o .gitignore apenas para esconder um problema sem revisar se o
+arquivo já está rastreado. Para rastreados, documentar e tratar em commit de
+limpeza separado.
+
+
+12. SEGURANÇA E SEGREDOS
+------------------------
+
+Antes do commit:
+
+    git diff --cached --name-only
+
+Se gitleaks estiver instalado:
+
+    gitleaks protect --staged --redact
+
+Se não estiver instalado, procurar apenas nomes de arquivos suspeitos e padrões
+sem imprimir valores secretos em logs compartilhados:
+
+    git diff --cached --name-only | \
+      rg -i '(^|/)(\.env|.*secret.*|.*credential.*|.*token.*|.*key.*)$'
+
+Revisar manualmente alterações em:
+
+    settings.py
+    key managers
+    clientes de API
+    arquivos de ambiente
+    configuração de banco
+
+Nunca expor conteúdo de tokens, senhas ou chaves na resposta ao usuário.
+
+
+13. TESTES MÍNIMOS ANTES DE COMMITAR
+-----------------------------------
+
+Executar checks proporcionais aos arquivos modificados.
+
+Verificação geral:
+
+    .venv/bin/python web/manage.py check \
+      --settings=gaiden_portal.settings_test
+    .venv/bin/python -m compileall -q gaiden web scripts
+    git diff --check
+    git diff --cached --check
+
+Para alterações de models/migrations:
+
+    .venv/bin/python web/manage.py makemigrations --check --dry-run \
+      --settings=gaiden_portal.settings_test
+    .venv/bin/python web/manage.py migrate --plan \
+      --settings=gaiden_portal.settings_test
+
+Para pipeline/editorial, selecionar testes focados antes da suíte ampla:
+
+    .venv/bin/python web/manage.py test \
+      editorial.test_premium_epub.PremiumEpubRendererTests \
+      --settings=gaiden_portal.settings_test
+
+    .venv/bin/python web/manage.py test \
+      pipeline.tests.CadastroSourceFormatRoutingTests \
+      pipeline.tests.PipelineBlockContractTests \
+      --settings=gaiden_portal.settings_test
+
+Para tradução, testar no mínimo:
+
+- sucesso completo;
+- truncamento;
+- resposta incompleta;
+- content_filter;
+- timeout/retry;
+- retomada após falha;
+- ausência de chave/API;
+- dry-run sem custo externo.
+
+Não executar chamadas pagas ou mutações externas sem autorização.
+
+
+14. REGRAS PARA CRIAR COMMITS
+-----------------------------
+
+Cada commit deve ter uma única responsabilidade. Separar, quando aplicável:
+
+1. migrations/models;
+2. serviços e regras de domínio;
+3. views/URLs;
+4. templates/UI;
+5. testes;
+6. documentação;
+7. limpeza de .gitignore.
+
+Formato recomendado:
+
+    feat(pipeline): descrição objetiva
+    fix(editorial): descrição objetiva
+    test(pipeline): descrição objetiva
+    docs(git): descrição objetiva
+    chore(repo): descrição objetiva
+
+Antes do commit final:
+
+    git diff --cached --stat
+    git diff --cached
+    git status --short
+
+Criar commit não autoriza push.
+
+
+15. REGRAS PARA SINCRONIZAR COM O GITHUB
+----------------------------------------
+
+Antes de publicar uma branch de revisão:
+
+    git fetch origin --prune
+    git rev-list --left-right --count origin/main...HEAD
+    git log --oneline --decorate origin/main..HEAD
+    git diff --stat origin/main...HEAD
+
+Se origin/main avançou, integrar somente no worktree limpo. Preferir rebase da
+branch de revisão antes do push inicial, nunca da branch suja do usuário:
+
+    git rebase origin/main
+
+Se a branch já estiver publicada e o rebase exigir force push, parar e pedir
+autorização. Não usar force por padrão.
+
+Push somente após autorização explícita:
+
+    git push -u origin review/local-commits-v1
+
+Não fazer:
+
+    git push origin main
+
+Após push, abrir Pull Request em modo draft e informar:
+
+- commits incluídos;
+- commits descartados e motivo;
+- testes executados;
+- riscos conhecidos;
+- migrations;
+- impacto em dados e compatibilidade;
+- ausência de artefatos e segredos.
+
+
+16. PLANO DE REVISÃO RECOMENDADO
+--------------------------------
+
+Executar em quatro lotes independentes:
+
+LOTE A — main local
+
+    63feed27
+    4772f26c
+    6d628a18
+
+Objetivo: recuperar somente funcionalidades ainda úteis do pipeline atual.
+Revisão obrigatória: migrations, UI, rotas, imagens e regressões.
+
+LOTE B — tradução
+
+    1a4d4a30
+    b5793bb9
+    2a553627
+    1e4510b5
+    dc3098bd
+    c5cbb4e1
+
+Objetivo: portar diagnósticos e guardrails ainda válidos.
+Revisão obrigatória: modelos, custos, retries e APIs atuais.
+
+LOTE C — .gitignore
+
+    bbe083b4
+    335b8936
+
+Objetivo: consolidar somente padrões ausentes no .gitignore atual.
+
+LOTE D — checkpoint legado
+
+    9a3ff68a
+
+Objetivo: inventariar; não cherry-pick integralmente. Extrair apenas arquivos ou
+comportamentos aprovados.
+
+Cada lote deve usar branch/worktree próprios ou commits claramente separados.
+Não misturar lotes em um único PR.
+
+
+17. CRITÉRIOS DE PARADA
+-----------------------
+
+Parar e pedir orientação se ocorrer qualquer situação abaixo:
+
+- arquivo em conflito também está modificado no worktree principal;
+- migration local conflita com migration publicada;
+- teste exige credencial, custo externo ou alteração de produção;
+- segredo aparece em histórico ou staging;
+- commit contém grande volume de data/, backups ou artefatos;
+- não é possível determinar se uma alteração antiga ainda é válida;
+- push exigiria force;
+- branch remota foi alterada durante a revisão;
+- testes relevantes falham por causa não compreendida;
+- o escopo necessário é materialmente maior que o autorizado.
+
+
+18. RELATÓRIO FINAL OBRIGATÓRIO
+-------------------------------
+
+Ao terminar cada lote, relatar:
+
+1. branch e worktree utilizados;
+2. commits de origem revisados;
+3. arquivos e comportamentos aproveitados;
+4. alterações descartadas e justificativa;
+5. conflitos encontrados e resolução;
+6. testes executados e resultados;
+7. commits novos criados;
+8. status ahead/behind;
+9. confirmação de que não houve push, ou URL do PR se autorizado;
+10. confirmação de que o worktree principal permaneceu intacto.
+
+
+19. CHECKLIST FINAL PARA O GPT-5.6 SOL
+-------------------------------------
+
+[ ] Executei git fetch --all --prune.
+[ ] Confirmei branch, upstream e worktrees.
+[ ] Não alterei o worktree principal sujo.
+[ ] Comparei commits por hash e patch-id.
+[ ] Não reapliquei patches equivalentes já publicados.
+[ ] Trabalhei em branch/worktree isolados.
+[ ] Não usei reset --hard, clean, restore global ou force push.
+[ ] Não usei git add . nem git add -A.
+[ ] Revisei staging arquivo por arquivo.
+[ ] Não incluí data, banco, EPUB, build, log, backup ou segredo.
+[ ] Executei testes focados.
+[ ] Executei git diff --check.
+[ ] Separei mudanças por responsabilidade.
+[ ] Não fiz push sem autorização explícita.
+[ ] Registrei riscos, descartes e resultados.
+[ ] Confirmei que o trabalho local do usuário permaneceu intacto.
+
+
+FIM DAS REGRAS
+==============

@@ -1,0 +1,8 @@
+{% extends "author_studio/base.html" %}
+{% block content %}
+<h1>Etapa 02 — Embeddings</h1>
+{% include "author_studio/_author_tabs.html" with active_tab="embeddings" %}
+<div class="card"><h2>Entrada preparada</h2><p><strong>{{ author.name }}</strong> possui {{ completed_work_count }} obras e {{ total_chunks }} chunks prontos para geração de embeddings.</p></div>
+<div class="card"><h2>Ordem do processo</h2><div class="pipeline"><div class="stage active"><div class="stage-title"><span>02 — Gerar embeddings</span><span>Próxima</span></div><div class="stage-meta">Cada chunk receberá uma representação vetorial rastreável.</div></div><div class="stage locked"><div class="stage-title"><span>03 — Indexar vetores</span><span>Depois</span></div><div class="stage-meta">O índice vetorial só será criado após os embeddings.</div></div></div></div>
+<p>A infraestrutura de embeddings será configurada nesta aba na próxima implementação.</p>
+{% endblock %}

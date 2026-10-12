@@ -1,0 +1,111 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environments and credentials
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.gaiden_secrets*
+secrets_gaiden/
+*.pem
+*.key
+credentials*.json
+service-account*.json
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*~
+*.bak
+*.bak.*
+
+# Logs, temporary files and caches
+*.log
+tmp/
+cache/
+output/
+exports/
+scripts/**/tmp/
+scripts/**/out/
+scripts/**/outputs/
+scripts/**/.cache/
+scripts/**/.venv/
+scripts/private/
+
+# Runtime databases and dumps
+*.sqlite
+*.sqlite3
+*.db
+data/**/*.parquet
+data/**/*.csv
+data/**/*.jsonl
+data/**/raw/
+
+# Editorial and generated artifacts
+*.epub
+*.mobi
+*.azw3
+*.pdf
+*.docx
+data/builds/
+data/canonical/
+data/chunks/
+data/contracts_runtime/*.json
+data/covers/
+data/frontmatter/
+data/images/
+data/miolo/
+data/normalized/
+data/translated/
+editorial/raw_uploads/
+legacy/data/
+merge_refine_clean*.txt
+**/merge_refine_clean*.txt
+*_BUILD_STAMP_*.txt
+
+# Operator-local storage, backups and external-library links
+/data/**
+/backups/**
+!/backups/README.md
+/vault/
+quarantine/
+data/books
+data/books.bak_*
+data/builds.bak_*
+docs/audit/runs
+docs/audit/runs.bak_*
+gaiden/frontmatter_store
+gaiden/frontmatter_store.bak_*
+
+# Local helper scripts
+return_book.sh
+translate_book.sh
+
+# LaTeX
+*.aux
+*.toc
+*.out
+*.lof
+*.lot
+
+# Local Writer models, indexes, requests, drafts, and audits
+models/
+data/writer/
+writer-index*.jsonl
+*.audit.json

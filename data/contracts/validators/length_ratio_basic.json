@@ -1,0 +1,11 @@
+{
+  "id": "length_ratio_basic",
+  "version": "1.0.0",
+  "type": "length_ratio_validator",
+  "fail_on_match": false,
+  "manual_review_on_match": true,
+  "min_ratio": 0.65,
+  "max_ratio": 1.45,
+  "metric": "character_count",
+  "failure_message_template": "The output length ratio is suspicious. Source length: {{source_length}}. Output length: {{output_length}}. Ratio: {{ratio}}."
+}

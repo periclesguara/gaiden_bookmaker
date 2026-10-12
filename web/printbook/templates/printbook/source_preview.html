@@ -1,0 +1,5 @@
+{% extends 'printbook/base.html' %}{% block content %}
+<h1>PrintBook · {{ source.edition.title|default:source.edition.work.title }}</h1><p>EPUB final DONE · v{{ source.build_version }} · Referência de leitura para a edição física.</p><p>A paginação impressa será mostrada após compilar o miolo.</p>
+<nav aria-label="Navegação da visualização"><a class="button-link" href="{% url 'printbook:home' %}">← Página principal</a><a href="{% url 'printbook:source' source.pk %}">Formato, diagramação e capa</a></nav>
+<div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:24px"><nav aria-label="Páginas do EPUB" style="flex:1;min-width:180px">{% for page in pages %}<p><a href="{% url 'printbook:source_asset' source.pk page.path %}" target="printbook-reader">{{ page.label }}</a></p>{% endfor %}</nav><iframe sandbox="" name="printbook-reader" title="EPUB final no PrintBook" src="{% url 'printbook:source_asset' source.pk pages.0.path %}" style="flex:3;min-width:280px;height:75vh;background:white;border:1px solid #d9d1c6"></iframe></div>
+{% endblock %}

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bloco 03 - Editorial e Assets</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; max-width: 980px; }
+    h1 { margin-bottom: 16px; }
+    form div { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 80px; font-family: monospace; }
+    .preview { background: #f5f5f5; border: 1px solid #ddd; padding: 8px; white-space: pre-wrap; font-family: monospace; }
+    .preview-title { font-weight: 600; margin: 6px 0 4px; }
+    .actions { margin-top: 20px; display: flex; gap: 12px; }
+    button { padding: 6px 12px; font-size: 14px; }
+    .field-group { border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+    .muted { color: #666; font-size: 13px; }
+    .warning-list { background: #fff7e8; border: 1px solid #e5c98a; padding: 10px 12px; border-radius: 8px; margin: 12px 0; }
+    .tab-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+    .tab-link { display: inline-flex; padding: 8px 10px; border-radius: 999px; border: 1px solid #ddd; text-decoration: none; color: #222; background: #fafafa; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
+      width: min(480px, 90vw);
+      border: 1px solid #ddd;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+    .modal h3 { margin: 0 0 8px; font-size: 16px; }
+    .modal p { margin: 0 0 12px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  {% url 'book_edition_new' as nav_home_url %}
+  {% if edition_source == 'writer' %}
+    <nav class="actions" aria-label="Edition Mode">
+      <a href="{% url 'writer:home' %}">Writer</a>
+      <strong>FRONTMATTER</strong>
+      <a href="{{ post_intake_return_url }}#figures">FIGURES</a>
+      <a href="{{ post_intake_return_url }}#assembly">ASSEMBLY</a>
+      <a href="{{ post_intake_return_url }}#preview">PREVIEW · APPROVE · GENERATE EPUB</a>
+    </nav>
+  {% elif edition %}
+    {% if source_format == 'html' %}
+      {% url 'pipeline_html_dashboard' edition.id as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_base_url %}
+      {% with nav_steps_url=nav_steps_base_url|add:'?allow_html_to_common=1' %}
+        {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+        {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_url nav_frontmatter_url=nav_frontmatter_url %}
+      {% endwith %}
+    {% else %}
+      {% url 'pipeline_dashboard' as nav_pipeline_url %}
+      {% url 'edition_steps' edition.id as nav_steps_url %}
+      {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+      {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_steps_url=nav_steps_url nav_frontmatter_url=nav_frontmatter_url %}
+    {% endif %}
+  {% else %}
+    {% url 'pipeline_dashboard' as nav_pipeline_url %}
+    {% url 'frontmatter_template_edit' book_code=book_code language=language as nav_frontmatter_url %}
+    {% include "pipeline/_workspace_nav.html" with nav_active="frontmatter" nav_home_url=nav_home_url nav_pipeline_url=nav_pipeline_url nav_frontmatter_url=nav_frontmatter_url %}
+  {% endif %}
+  <h1>Editorial · Frontmatter</h1>
+  <div class="muted">Bloco 03 · Editorial e Assets. Frontmatter obrigatorio separado de Prefacio, Introducao e Epilogo.</div>
+  {% if post_intake_return_url %}
+  <div class="actions">
+    <a class="tab-link" href="{{ post_intake_return_url }}">← Voltar à edição do Intake</a>
+  </div>
+  {% endif %}
+  {% if is_generic %}
+  <div class="preview">
+    Modo generico: nenhum Edition cadastrado para este livro/idioma.
+  </div>
+  {% endif %}
+  {% if optional_section_warnings %}
+  <div class="warning-list">
+    {% for item in optional_section_warnings %}
+      <div>{{ item }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="actions">
+    <label for="language_select">Idioma</label>
+    <select id="language_select" aria-label="Selecionar idioma" data-book-code="{{ book_code }}">
+      {% for code, label in language_options %}
+        <option value="{{ code }}" {% if code == language %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="tab-nav">
+    <a class="tab-link" href="#tab-frontmatter">Frontmatter</a>
+    <a class="tab-link" href="#tab-preface">Prefacio</a>
+    <a class="tab-link" href="#tab-epilogue">Epilogo</a>
+  </div>
+
+  <form method="post" id="frontmatter_form">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_overwrite" id="confirm_overwrite" value="0" />
+
+    <div>
+      <label for="{{ form.book_code.id_for_label }}">Book code</label>
+      {{ form.book_code }}
+    </div>
+
+    <div>
+      <label for="{{ form.language.id_for_label }}">Idioma</label>
+      {{ form.language }}
+    </div>
+
+    <div>
+      <label for="{{ form.seal_name.id_for_label }}">Selo</label>
+      {{ form.seal_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.title.id_for_label }}">Titulo do livro</label>
+      {{ form.title }}
+    </div>
+
+    <div>
+      <label for="{{ form.subtitle.id_for_label }}">Subtitulo</label>
+      {{ form.subtitle }}
+    </div>
+
+    <div>
+      <label for="{{ form.author_name.id_for_label }}">Autor</label>
+      {{ form.author_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.publication_year.id_for_label }}">Ano de publicacao</label>
+      {{ form.publication_year }}
+    </div>
+
+    <div>
+      <label for="{{ form.imprint_name.id_for_label }}">Imprint</label>
+      {{ form.imprint_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.city_name.id_for_label }}">Cidade</label>
+      {{ form.city_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.country_name.id_for_label }}">Pais</label>
+      {{ form.country_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.editor_name.id_for_label }}">Editor</label>
+      {{ form.editor_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.translator_name.id_for_label }}">Tradutor</label>
+      {{ form.translator_name }}
+    </div>
+
+    <div>
+      <label for="{{ form.adapter_name.id_for_label }}">Adaptador</label>
+      {{ form.adapter_name }}
+    </div>
+
+    <div class="field-group" id="tab-frontmatter">
+      <label for="{{ form.frontispiece_text.id_for_label }}">Frontispicio (template)</label>
+      <div class="muted">Obrigatorio. Sempre entra no livro final.</div>
+      {{ form.frontispiece_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ frontmatter_preview }}</div>
+    </div>
+
+    <div class="field-group">
+      <label for="{{ form.copyright_text.id_for_label }}">Copyright (template)</label>
+      <div class="muted">Obrigatorio. Sempre entra no livro final.</div>
+      {{ form.copyright_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ copyright_preview }}</div>
+    </div>
+
+    <div class="field-group">
+      <label for="{{ form.about_edition_text.id_for_label }}">About This Book</label>
+      <div class="muted">Obrigatorio. Entra logo apos o frontmatter fixo.</div>
+      {{ form.about_edition_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ about_edition_preview }}</div>
+      <div class="actions">
+        <button type="submit" name="save_block" value="frontmatter">Salvar Frontmatter</button>
+      </div>
+    </div>
+
+    <div class="field-group" id="tab-preface">
+      <label for="{{ form.has_preface.id_for_label }}">
+        {{ form.has_preface }} Livro tera Prefacio
+      </label>
+      <div class="muted">Opcional. So entra se marcado e com conteudo.</div>
+      <div data-optional-block="has_preface">
+        <label for="{{ form.preface_text.id_for_label }}">Prefacio</label>
+        {{ form.preface_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ preface_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="preface">Salvar Prefacio</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group" id="tab-epilogue">
+      <label for="{{ form.has_epilogue.id_for_label }}">
+        {{ form.has_epilogue }} Livro tera Epilogo
+      </label>
+      <div class="muted">Opcional. Entra depois do texto principal.</div>
+      <div data-optional-block="has_epilogue">
+        <label for="{{ form.epilogue_text.id_for_label }}">Epilogo</label>
+        {{ form.epilogue_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ epilogue_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="epilogue">Salvar Epilogo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="{{ form.about_contributor_text.id_for_label }}">About the Author</label>
+      <div class="muted">Opcional. Entra no frontmatter quando houver conteudo.</div>
+      {{ form.about_contributor_text }}
+      <div class="preview-title">Preview</div>
+      <div class="preview">{{ about_contributor_preview }}</div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" name="save_block" value="all">Salvar tudo</button>
+      {% if post_intake_return_url %}
+        <a href="{{ post_intake_return_url }}">Voltar à edição do Intake</a>
+      {% else %}
+        <a href="{% url 'book_edition_list' %}">Voltar</a>
+      {% endif %}
+    </div>
+  </form>
+  <div class="preview-title">Preview consolidado (final)</div>
+  <div class="preview">{{ frontmatter_merged_preview }}</div>
+  {% if overwrite_warning %}
+  <div class="preview">{{ overwrite_warning }}</div>
+  {% endif %}
+
+  <div class="modal-backdrop" id="overwrite_modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overwrite_title">
+      <h3 id="overwrite_title">Substituir frontmatter?</h3>
+      <p>Ja existem arquivos salvos. Deseja sobrescrever?</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel_overwrite">Cancelar</button>
+        <button type="button" id="confirm_overwrite_btn">Sobrescrever</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const langSelect = document.getElementById("language_select");
+    if (langSelect) {
+      langSelect.addEventListener("change", (event) => {
+        const code = event.target.value;
+        const bookCode = event.target.dataset.bookCode;
+        const returnQuery = "{{ frontmatter_return_query|escapejs }}";
+        window.location.href = `/editorial/frontmatter/${bookCode}/${code}/${returnQuery ? `?${returnQuery}` : ""}`;
+      });
+    }
+    const form = document.getElementById("frontmatter_form");
+    const confirmInput = document.getElementById("confirm_overwrite");
+    const modal = document.getElementById("overwrite_modal");
+    const cancelBtn = document.getElementById("cancel_overwrite");
+    const confirmBtn = document.getElementById("confirm_overwrite_btn");
+    function syncOptionalBlocks() {
+      document.querySelectorAll("[data-optional-block]").forEach((block) => {
+        const fieldName = block.getAttribute("data-optional-block");
+        const checkbox = document.getElementById(`id_${fieldName}`);
+        if (!checkbox) {
+          return;
+        }
+        block.style.display = checkbox.checked ? "block" : "none";
+      });
+    }
+    document.querySelectorAll('input[type="checkbox"][id^="id_has_"]').forEach((checkbox) => {
+      checkbox.addEventListener("change", syncOptionalBlocks);
+    });
+    syncOptionalBlocks();
+    if (form && confirmInput && modal && cancelBtn && confirmBtn) {
+      form.addEventListener("submit", (event) => {
+        const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};
+        if (hasFiles && confirmInput.value !== "1") {
+          event.preventDefault();
+          modal.style.display = "flex";
+        }
+      });
+      cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+      confirmBtn.addEventListener("click", () => {
+        confirmInput.value = "1";
+        modal.style.display = "none";
+        form.submit();
+      });
+    }
+  </script>
+</body>
+</html>

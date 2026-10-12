@@ -1,0 +1,24 @@
+{% extends "writer/base.html" %}
+{% block content %}
+<section class="card">
+  <h1>IMPORT FINAL VERSION · GOOGLE DRIVE</h1>
+  <p>{{ project.title }} · escolha o arquivo revisado. A importação é somente de leitura no Drive.</p>
+  <p>Formatos: .txt, .md ou Google Docs (exportado como texto). Depois da importação, confirme com SAVE FINAL.</p>
+  {% if drive_error %}<p class="notice">{{ drive_error }}</p>{% endif %}
+  {% if not project.drive_project_folder_id %}<p>Configure a pasta Drive no projeto para listar os arquivos, ou informe um link/ID abaixo.</p>{% endif %}
+  {% for file in files %}
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="file_id" value="{{ file.id }}">
+    <p><strong>{{ file.name }}</strong> · {{ file.modifiedTime }}
+      <button type="submit">Selecionar e importar</button></p>
+  </form>
+  {% empty %}<p>Nenhum arquivo compatível listado nesta página.</p>{% endfor %}
+  {% if next_page_query %}<a href="?{{ next_page_query }}">Próxima página</a>{% endif %}
+  <form method="post">{% csrf_token %}
+    <label for="drive-final-file">Link ou ID do arquivo refinado</label>
+    <input id="drive-final-file" name="file_id" maxlength="500" required>
+    <button type="submit">Selecionar e importar</button>
+  </form>
+  <p><a href="{% url 'writer:project_detail' project.id %}#manuscript-finalization">BACK · Writer</a></p>
+</section>
+{% endblock %}

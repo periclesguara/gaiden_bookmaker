@@ -1,0 +1,547 @@
+#!/usr/bin/env python3
+"""
+Force-translate chunks through the Gaiden internal agent runtime.
+
+For EN-US, this routes to the JSON-first internal Modernize agent.
+For other languages, this compatibility CLI uses the Responses API inference
+helper directly with internal route ids.
+Outputs are written into out_dir, preserving per-chunk filenames, plus a run report.
+
+Example:
+PYTHONPATH=. python gaiden/tools/agent_translate_default.py \
+  --book-id book_0003 \
+  --chunk-dir data/chunks/book_0003/en \
+  --out-dir data/translated/book_0003/en_us \
+  --suffix en_us \
+  --limit 1
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+from gaiden.lang import normalize_lang_code
+from gaiden.application.agents.contracts import (
+    contract_path_for_agent,
+    load_agent_contract,
+    validate_translate_contract_for_language,
+)
+from gaiden.translate_artifacts import (
+    assert_valid_canonical_artifact,
+    canonical_meta_path,
+    canonical_artifact_path,
+    lang_token,
+    normalize_book_code,
+    normalize_mode,
+    sha256_file,
+    source_input_hash,
+    write_canonical_meta,
+    write_active_pointer,
+)
+
+CHUNK_GLOB = "ch_*_chunk_*.txt"
+ENGLISH_TARGETS = {
+    "en",
+    "en_modern",
+    "en_2026",
+    "en_modern_2026",
+    "en_philo",
+    "en_philosofer",
+    "en_philosopher",
+    "en_devotional",
+}
+FRENCH_TARGETS = {
+    "fr",
+    "fr_fr",
+    "french",
+    "francais",
+    "français",
+}
+PORTUGUESE_TARGETS = {
+    "pt",
+    "ptbr",
+    "pt_br",
+    "pt-br",
+    "portuguese",
+    "portugues",
+    "português",
+    "brazilian_portuguese",
+}
+DEPRECATED_EXTERNAL_AGENT_NAMES = {
+    "alamaguederaz",
+    "aldebaran",
+    "yoda ming",
+    "kaiser",
+    "cacique",
+    "cacique tibirica",
+    "cacique tibiriça",
+    "priscus",
+    "el_obregon",
+    "le_gran_coulhon",
+    "le_gran_coulhon_translate",
+    "le_grand_coulhon",
+    "le_gran_colhoun",
+    "le_grand_colhoun",
+}
+
+
+def _is_deprecated_external_agent_name(value: str | None) -> bool:
+    normalized = (value or "").strip().lower().replace("-", "_")
+    return normalized in DEPRECATED_EXTERNAL_AGENT_NAMES
+
+
+def _now_iso() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
+def _read_text(p: Path) -> str:
+    return p.read_text(encoding="utf-8", errors="strict")
+
+
+def _write_text(p: Path, s: str) -> None:
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(s, encoding="utf-8", errors="strict")
+
+
+def _write_json(p: Path, obj: Any) -> None:
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _safe_len(s: str) -> int:
+    return len(s or "")
+
+
+def _merge_outputs(
+    out_dir: Path,
+    suffix: str,
+    *,
+    book_id: str,
+    mode: str,
+) -> tuple[Path, int, int]:
+    files = sorted(out_dir.glob(f"ch_*_chunk_*.{suffix}.txt"))
+    if not files:
+        files = sorted(
+            p
+            for p in out_dir.glob(f"*.{suffix}.txt")
+            if not (p.name.startswith("book_") or p.name.startswith("merge") or p.name.startswith("merged_"))
+        )
+    if not files:
+        raise RuntimeError(f"NO_TRANSLATED_CHUNKS: nothing matched {out_dir}/ch_*_chunk_*.{suffix}.txt")
+    parts: List[str] = []
+    for fp in files:
+        parts.append(fp.read_text(encoding="utf-8", errors="strict").rstrip("\n"))
+    merged = "\n".join(parts).rstrip("\n") + "\n"
+    out_path = canonical_artifact_path(out_dir, book_id, suffix, mode)
+    out_path.write_text(merged, encoding="utf-8", errors="strict")
+    assert_valid_canonical_artifact(out_path)
+
+    artifact_sha = sha256_file(out_path)
+    input_hash = source_input_hash(files)
+    write_canonical_meta(
+        out_path,
+        route=mode,
+        artifact_sha256=artifact_sha,
+        input_source_hash=input_hash,
+    )
+
+    # Compat output kept as non-canonical artifact; downstream consumers must ignore it.
+    legacy_path = out_dir / "merge_refine_clean.txt"
+    legacy_path.write_text(merged, encoding="utf-8", errors="strict")
+    write_active_pointer(out_dir, book_id, suffix, out_path.name)
+    return out_path, len(merged.encode("utf-8")), len(files)
+
+
+def _agent_translate_system_prompt(*, agent_name: str, suffix: str, mode: str, retry: bool = False) -> str:
+    if agent_name == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent_name)
+        validate_translate_contract_for_language(suffix, contract)
+        prompt = str(contract.get("system_prompt") or "").strip()
+        if not prompt:
+            raise RuntimeError("FR_TRANSLATE_UNIVERSAL contract has no system_prompt.")
+        if retry:
+            return prompt + "\n\nThe previous response was rejected because it was too short. Return the full chunk this time."
+        return prompt
+    target = normalize_lang_code(suffix, default="en")
+    if target.startswith("en"):
+        target_label = "modern English"
+    elif target in PORTUGUESE_TARGETS or target.startswith("pt"):
+        target_label = "modern Brazilian Portuguese"
+    elif target in FRENCH_TARGETS or target.startswith("fr"):
+        target_label = "modern French"
+    else:
+        target_label = target
+    retry_line = (
+        "The previous response was rejected because it was too short. Return the full chunk this time. "
+        if retry
+        else ""
+    )
+    return (
+        f"You are agent {agent_name} working in the Gaiden {mode} stage.\n"
+        f"{retry_line}"
+        f"Transform the source chunk into {target_label} and return the complete transformed chunk only.\n"
+        "Preserve every paragraph, heading, list item, endnote marker, name, number, quote, and factual detail.\n"
+        "Do not summarize, abridge, compress, omit, explain, comment, add metadata, or wrap the output in Markdown fences.\n"
+        "Keep the original order exactly. If a passage is already in the target language, lightly normalize it only where needed.\n"
+        "The output must remain close to the input length unless the source itself makes a small variation unavoidable."
+    )
+
+
+def _call_agent(
+    agent_name: str,
+    text: str,
+    *,
+    suffix: str,
+    mode: str,
+    temperature: float = 0.4,
+    max_output_tokens: int = 8000,
+    retry: bool = False,
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Calls the repository Responses API helper with a Gaiden-controlled prompt.
+    """
+    meta: Dict[str, Any] = {
+        "agent_name": agent_name,
+        "temperature": temperature,
+        "max_output_tokens": max_output_tokens,
+        "retry": retry,
+    }
+    contract_model: str | None = None
+    if agent_name == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent_name)
+        validate_translate_contract_for_language(suffix, contract)
+        contract_model = str(contract.get("model") or "").strip()
+        temperature = float(contract.get("temperature", temperature))
+        meta["contract_name"] = contract.get("contract_name")
+        meta["contract_version"] = contract.get("contract_version")
+        meta["model"] = contract_model
+
+    # Preferred: your existing helper
+    try:
+        from gaiden.openai_client import call_agent_text  # type: ignore
+
+        system_prompt = _agent_translate_system_prompt(
+            agent_name=agent_name,
+            suffix=suffix,
+            mode=mode,
+            retry=retry,
+        )
+        out = call_agent_text(
+            agent_name=agent_name,
+            text=text,
+            model=contract_model,
+            temperature=temperature,
+            max_output_tokens=max_output_tokens,
+            system_prompt=system_prompt,
+        )
+        meta["call_impl"] = "gaiden.openai_client.call_agent_text"
+        return out, meta
+
+    except Exception as e:
+        meta["call_impl"] = "missing_or_failed_gaiden_helper"
+        meta["call_error"] = repr(e)
+        raise RuntimeError(
+            "SHIM_MISSING: Could not import/use gaiden.openai_client.call_agent_text. "
+            f"Root error: {e!r}"
+        ) from e
+
+
+def _chunk_paths(chunk_dir: Path) -> List[Path]:
+    chunks = sorted(chunk_dir.glob(CHUNK_GLOB))
+    if chunks:
+        return chunks
+    return sorted(p for p in chunk_dir.glob("*.txt") if p.is_file())
+
+
+def _min_output_ratio_for_target(suffix: str) -> float:
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        return 0.80
+    return 0.85
+
+
+def resolve_agent_for_target(*, suffix: str, requested_agent: str | None = None) -> str:
+    candidate = (requested_agent or "").strip()
+    if _is_deprecated_external_agent_name(candidate):
+        candidate = ""
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        if candidate:
+            return candidate
+        return "modernize_en_us_2026"
+    if target in FRENCH_TARGETS or raw_target.startswith("fr"):
+        if candidate and candidate == "fr_translate_universal_2026":
+            return candidate
+        return "fr_translate_universal_2026"
+    if target in PORTUGUESE_TARGETS or raw_target.startswith("pt"):
+        if candidate:
+            return candidate
+        return "translate_pt_br_2026"
+
+    if candidate:
+        return candidate
+    return f"translate_{target}_2026"
+
+
+def run_agent_translate(
+    *,
+    book_id: str,
+    chunk_dir: str | Path,
+    out_dir: str | Path,
+    suffix: str,
+    mode: str = "default",
+    temperature: float = 0.4,
+    max_output_tokens: int = 8000,
+    limit: int = 0,
+    agent: str | None = None,
+) -> Dict[str, Any]:
+    chunk_dir = Path(chunk_dir)
+    out_dir = Path(out_dir)
+    book_id = normalize_book_code(book_id)
+    mode = normalize_mode(mode, default="default")
+    agent = resolve_agent_for_target(suffix=suffix, requested_agent=agent)
+
+    target = normalize_lang_code(suffix, default="en_modern")
+    raw_target = (suffix or "").strip().lower().replace("-", "_")
+    if target in ENGLISH_TARGETS or raw_target.startswith("en"):
+        from gaiden.application.agents.translate_router import run_translate_en_us_modernize
+
+        return run_translate_en_us_modernize(
+            book_id=book_id,
+            chunk_dir=chunk_dir,
+            out_dir=out_dir,
+            overwrite=False,
+            limit=limit,
+        )
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    from gaiden.openai_client import openai_healthcheck
+
+    ok, err = openai_healthcheck()
+    if not ok:
+        run_report: Dict[str, Any] = {
+            "schema": "gaiden_translate_default_v2",
+            "ts_start": _now_iso(),
+            "ts_end": _now_iso(),
+            "book_id": book_id,
+            "lang": lang_token(suffix),
+        "selected_mode": mode,
+        "final_mode": mode,
+        "effective_route": mode,
+        "preflight_ok": False,
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [err or "OPENAI_PREFLIGHT_FAILED"],
+        "exit_code": 2,
+            "agent": agent,
+            "chunk_dir": str(chunk_dir),
+            "out_dir": str(out_dir),
+            "suffix": suffix,
+            "count": 0,
+            "items": [],
+            "status": "error_preflight",
+            "error": err or "OPENAI_PREFLIGHT_FAILED",
+        }
+        _write_json(out_dir / "agent_translate_run_report.json", run_report)
+        raise RuntimeError(err or "OPENAI_PREFLIGHT_FAILED")
+
+    chunks = _chunk_paths(chunk_dir)
+    if not chunks:
+        raise RuntimeError(f"NO_CHUNKS: nothing matched {chunk_dir}/{CHUNK_GLOB}")
+
+    if limit and limit > 0:
+        chunks = chunks[:limit]
+
+    min_output_ratio = _min_output_ratio_for_target(suffix)
+    if agent == "fr_translate_universal_2026":
+        # The French universal contract is allowed to remove internal pipeline
+        # labels, glossary control notes, and agent-facing variants. Those
+        # cleanup-heavy chunks can legitimately shrink more than normal prose.
+        min_output_ratio = 0.70
+
+    run_report: Dict[str, Any] = {
+        "schema": "gaiden_translate_default_v2",
+        "ts_start": _now_iso(),
+        "book_id": book_id,
+        "lang": lang_token(suffix),
+        "selected_mode": mode,
+        "final_mode": mode,
+        "effective_route": mode,
+        "preflight_ok": True,
+        "fallback_used": False,
+        "fallback_reason": "none",
+        "artifact_filename": None,
+        "artifact_sha256": None,
+        "artifact_meta_path": None,
+        "errors": [],
+        "exit_code": None,
+        "agent": agent,
+        "chunk_dir": str(chunk_dir),
+        "out_dir": str(out_dir),
+        "suffix": suffix,
+        "count": len(chunks),
+        "items": [],
+        "status": "running",
+    }
+    if agent == "fr_translate_universal_2026":
+        contract = load_agent_contract(agent)
+        validate_translate_contract_for_language(suffix, contract)
+        run_report["contract_name"] = contract.get("contract_name")
+        run_report["contract_version"] = contract.get("contract_version")
+        run_report["model"] = contract.get("model")
+        run_report["contract_path"] = contract_path_for_agent(agent)
+
+    for p in chunks:
+        in_text = _read_text(p)
+        in_len = _safe_len(in_text)
+
+        base = p.stem  # e.g. ch_001_chunk_001
+        out_txt = out_dir / f"{base}.{suffix}.txt"
+        out_meta = out_dir / f"{base}.{suffix}.meta.json"
+
+        item: Dict[str, Any] = {
+            "chunk": p.name,
+            "in_len": in_len,
+            "out_txt": str(out_txt),
+            "out_meta": str(out_meta),
+            "status": "running",
+            "ts": _now_iso(),
+        }
+
+        if out_txt.exists() and out_txt.stat().st_size > 0:
+            item.update(
+                {
+                    "status": "skipped_existing",
+                    "out_len": out_txt.stat().st_size,
+                    "resume": True,
+                }
+            )
+            run_report["items"].append(item)
+            continue
+
+        try:
+            attempts: list[dict[str, Any]] = []
+            out_text = ""
+            meta: Dict[str, Any] = {}
+            out_len = 0
+            ratio = None
+            for attempt in range(1, 3):
+                out_text, meta = _call_agent(
+                    agent,
+                    in_text,
+                    suffix=suffix,
+                    mode=mode,
+                    temperature=temperature,
+                    max_output_tokens=max_output_tokens,
+                    retry=attempt > 1,
+                )
+                out_len = _safe_len(out_text)
+                ratio = (out_len / in_len) if in_len else None
+                attempts.append(
+                    {
+                        "attempt": attempt,
+                        "out_len": out_len,
+                        "ratio": ratio,
+                        "agent_meta": meta,
+                    }
+                )
+                if ratio is None or ratio >= min_output_ratio:
+                    break
+            if ratio is not None and ratio < min_output_ratio:
+                raise RuntimeError(f"TRUNCATION_OR_SUMMARY: ratio={ratio:.3f}")
+            item.update(
+                {
+                    "status": "ok",
+                    "out_len": out_len,
+                    "ratio": ratio,
+                    "agent_meta": meta,
+                    "attempts": attempts,
+                }
+            )
+            _write_text(out_txt, out_text)
+            _write_json(out_meta, item)
+        except Exception as e:
+            item.update({"status": "error", "error": repr(e)})
+            _write_json(out_meta, item)
+            run_report["items"].append(item)
+            run_report["status"] = "error"
+            run_report["errors"].append(repr(e))
+            run_report["exit_code"] = 3
+            run_report["ts_end"] = _now_iso()
+            _write_json(out_dir / "agent_translate_run_report.json", run_report)
+            raise
+
+        run_report["items"].append(item)
+
+    run_report["status"] = "ok"
+    run_report["ts_end"] = _now_iso()
+    try:
+        merged_path, merged_len, merged_count = _merge_outputs(
+            out_dir,
+            suffix,
+            book_id=book_id,
+            mode=mode,
+        )
+    except Exception as exc:
+        run_report["status"] = "error"
+        run_report["errors"].append(repr(exc))
+        run_report["exit_code"] = 3
+        run_report["ts_end"] = _now_iso()
+        _write_json(out_dir / "agent_translate_run_report.json", run_report)
+        raise
+    run_report["merged_txt"] = str(merged_path)
+    run_report["merged_len"] = merged_len
+    run_report["merged_count"] = merged_count
+    run_report["artifact_filename"] = merged_path.name
+    run_report["artifact_sha256"] = sha256_file(merged_path)
+    run_report["artifact_meta_path"] = str(canonical_meta_path(merged_path))
+    run_report["exit_code"] = 0
+    _write_json(out_dir / "agent_translate_run_report.json", run_report)
+    print(f"[MERGE] wrote {merged_path} bytes={merged_len} chunks={merged_count}")
+    return run_report
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--book-id", required=True, help="e.g. book_0003")
+    ap.add_argument("--chunk-dir", required=True, help="e.g. data/chunks/book_0003/en")
+    ap.add_argument("--out-dir", required=True, help="e.g. data/translated/book_0003/en_modern")
+    ap.add_argument("--agent", default=os.getenv("GAIDEN_DEFAULT_TRANSLATE_AGENT", ""))
+    ap.add_argument("--suffix", default="en_modern", help="suffix for output filenames")
+    ap.add_argument("--mode", default="default", choices=["default"], help="translate mode")
+    ap.add_argument("--limit", type=int, default=0, help="0 = all chunks")
+    ap.add_argument("--temperature", type=float, default=0.4)
+    ap.add_argument("--max-output-tokens", type=int, default=8000)
+    args = ap.parse_args()
+
+    try:
+        run_agent_translate(
+            book_id=args.book_id,
+            chunk_dir=args.chunk_dir,
+            out_dir=args.out_dir,
+            suffix=args.suffix,
+            mode=args.mode,
+            temperature=args.temperature,
+            max_output_tokens=args.max_output_tokens,
+            limit=args.limit,
+            agent=args.agent,
+        )
+    except Exception:
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

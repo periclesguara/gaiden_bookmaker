@@ -1,0 +1,11 @@
+Django==5.2.11
+beautifulsoup4==4.14.3
+lxml==6.1.0
+markitdown[all]==0.1.5
+pgvector==0.5.0
+pillow==12.1.1
+opencv-python-headless==5.0.0.93
+psycopg2-binary==2.9.11
+requests==2.33.1
+tiktoken==0.13.0
+langdetect==1.0.9

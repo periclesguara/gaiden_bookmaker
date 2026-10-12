@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bookmaker — {{ book_code }} ({{ language }})</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --ink: #1c1a16;
+      --muted: #6c5f54;
+      --card: #fffaf3;
+      --accent: #c84f2a;
+      --accent-dark: #a63f22;
+      --border: #e2d9cf;
+      --ok: #1f7a3b;
+      --warn: #b56a00;
+    }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 0%, #fff2e1 0%, #f7f2ea 35%, #efe8de 100%);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      padding: 18px 24px 36px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(31, 27, 22, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .actions {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    header .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .actions form {
+      margin: 0;
+    }
+    .pipeline-step {
+      padding: 14px 0 16px;
+      border-top: 1px solid var(--border);
+    }
+    .pipeline-step:first-of-type {
+      padding-top: 4px;
+      border-top: 0;
+    }
+    .pipeline-step form {
+      display: grid;
+      gap: 8px;
+    }
+    .pipeline-step select,
+    .pipeline-step input[type="file"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+    }
+    .pipeline-step .btn {
+      width: 100%;
+    }
+    .pipeline-step .polidor-action {
+      margin-top: 10px;
+    }
+    .pipeline-step .status {
+      line-height: 1.45;
+    }
+    .translate-controls {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .translate-field {
+      display: grid;
+      gap: 4px;
+    }
+    .translate-field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pipeline-step code {
+      display: inline-block;
+      margin: 4px 6px 0 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn.danger {
+      border-color: #b3261e;
+      background: #b3261e;
+      color: #fff;
+    }
+    .btn.danger:hover {
+      background: #8f1d18;
+      border-color: #8f1d18;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--ink);
+    }
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .status strong {
+      color: var(--ink);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .badge.ok {
+      color: var(--ok);
+    }
+    .badge.warn {
+      color: var(--warn);
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      padding: 10px;
+      font-family: "Courier New", monospace;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .links {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .links a {
+      color: var(--accent-dark);
+      text-decoration: none;
+    }
+    .cover-preview {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: minmax(82px, 120px) 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .cover-preview img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .block-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      padding: 0 24px 18px;
+    }
+    .block-card {
+      background: rgba(255, 250, 243, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .block-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .block-card.core {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(200, 79, 42, 0.1);
+    }
+    .bookmaker-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 10px;
+      margin-bottom: 4px;
+    }
+    .bookmaker-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--ink);
+      background: rgba(255, 250, 243, 0.92);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .bookmaker-tab.active,
+    .bookmaker-tab.active-state {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent);
+    }
+    .bookmaker-tab.locked {
+      color: var(--muted);
+      border-style: dashed;
+    }
+    .bookmaker-subtabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0 0 18px;
+    }
+    .bookmaker-subtab {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--accent-dark);
+      background: #fff;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    .bookmaker-subtab.active {
+      color: #fff;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .lang-matrix {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .lang-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="bookmaker-tabs" aria-label="Etapas do Bookmaker">
+      {% for block in bookmaker_blocks %}
+      <a class="bookmaker-tab {{ block.state }}{% if block.active %} active{% elif block.state == 'active' %} active-state{% endif %}" href="{{ block.url }}">
+        <span aria-hidden="true">{{ block.marker }}</span> {{ block.label }}
+      </a>
+      {% endfor %}
+    </nav>
+    {% for block in bookmaker_blocks %}
+      {% if block.active %}
+      <nav class="bookmaker-subtabs" aria-label="Subetapas de {{ block.label }}">
+        {% for tab in block.tabs %}
+        <a class="bookmaker-subtab{% if tab.active %} active{% endif %}" href="{{ tab.url }}">{{ tab.label }}</a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+    {% endfor %}
+    <h1>{{ active_bookmaker_label }} — {{ book_code }} ({{ language }})</h1>
+    <p class="subtitle">{{ edition.work.title }} · {{ edition.work.author.name }}</p>
+  </header>
+  {% if messages %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Mensagens</h2>
+      {% for message in messages %}
+      <div class="status"><strong>{{ message.tags|upper }}</strong>: {{ message }}</div>
+      {% endfor %}
+    </article>
+  </section>
+  {% endif %}
+  {% if pipeline_last_log %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Ultimo Evento</h2>
+      <div class="status"><strong>Stage:</strong> {{ pipeline_stage|default:"-" }}</div>
+      <div class="status">{{ pipeline_last_log }}</div>
+    </article>
+  </section>
+  {% endif %}
+  {% if sync_log %}
+  <section class="grid" style="padding-top: 0;">
+    <article class="card">
+      <h2>Sync</h2>
+      {% for line in sync_log %}
+      <div class="status">{{ line }}</div>
+      {% endfor %}
+    </article>
+  </section>
+  {% endif %}
+
+  <section class="grid">
+    {% if not active_bookmaker_block or active_bookmaker_block == 'intake' or active_bookmaker_block == 'editorial' %}
+    <article class="card">
+      <h2>{% if active_bookmaker_block == 'intake' %}00 · Intake{% elif active_bookmaker_block == 'editorial' %}01 · Editorial{% else %}Intake e Editorial{% endif %}</h2>
+      <div class="status">O pipeline continua na mesma ordem e usa os mesmos serviços; esta tela apenas separa o acesso por etapa.</div>
+      {% if writer_canonical %}
+      {% if active_bookmaker_block == 'intake' %}
+      <h3>Origem canônica — somente leitura</h3>
+      <p class="status">O Intake desta obra já foi concluído pelo Writer. Nenhuma operação de upload, normalização, split, limpeza de headings ou tradução é permitida nesta etapa.</p>
+      <div class="status"><strong>Origem:</strong> writer_canonical</div>
+      <div class="status"><strong>Projeto Writer:</strong> {{ writer_provenance.writer_project_id|default:"-" }}</div>
+      <div class="status"><strong>Revisão canônica:</strong> {{ writer_provenance.writer_revision_id|default:"-" }}</div>
+      <div class="status"><strong>Pipeline:</strong> {{ pipeline_stage|default:"FINAL_MD" }}</div>
+      <div class="status"><strong>BOOK.MD_FINAL:</strong> {% if md_final_path %}{{ md_final_path }}{% else %}<span class="badge warn">ausente</span>{% endif %}</div>
+      <div class="status"><strong>SHA-256 canônico:</strong> <code>{{ writer_provenance.source_sha256|default:"-" }}</code></div>
+      <div class="status"><strong>SHA-256 da working copy:</strong> <code>{{ writer_provenance.working_manuscript_sha256|default:"-" }}</code></div>
+      <div class="meta-row"><span class="badge ok">Intake concluído</span><span class="badge ok">Writer canonical</span><span class="badge">FINAL_MD</span></div>
+      {% elif active_bookmaker_block == 'editorial' %}
+      <h3>Editorial bloqueado</h3>
+      <p class="status">Esta Edition veio do manuscrito canônico do Writer. O bloco Editorial é preservado como histórico e não oferece transformações.</p>
+      <div class="meta-row"><span class="badge">Somente leitura</span><span class="badge warn">Sem Normalize</span><span class="badge warn">Sem Split</span><span class="badge warn">Sem Translate / Refine / Polish / Merge</span></div>
+      {% endif %}
+      {% else %}
+      <div class="actions">
+        {% if raw_path %}
+        <div class="status">
+          <strong>Arquivo-fonte atual:</strong> {{ raw_name }}
+        </div>
+        {% else %}
+        <div class="status">
+          <strong>Arquivo-fonte ausente.</strong> O upload inicial fica centralizado na Pagina 02.
+        </div>
+        {% endif %}
+        <a class="btn secondary" href="{{ source_upload_url }}">Ir para Upload</a>
+        {% for s in visible_pipeline_steps %}
+        <section class="pipeline-step">
+          <div class="status">
+            <strong>{{ s.n }}) {{ s.title }}</strong>
+            {% if s.done %}
+              <span class="badge {% if s.status_tone %}{{ s.status_tone }}{% else %}ok{% endif %}">
+                {% if s.status_label %}{{ s.status_label }}{% else %}OK{% endif %}
+              </span>
+            {% elif s.can_run %}
+              <span class="badge">pronto</span>
+            {% else %}
+              <span class="badge warn">bloqueado</span>
+            {% endif %}
+            {% if s.block_reason %}
+              {{ s.block_reason }}
+            {% endif %}
+          </div>
+          <div class="status">
+            {% if s.notes %}{{ s.notes }}{% endif %}
+          </div>
+          <div class="status">
+            Saidas:
+            {% for out in s.outputs %}
+              <code>{{ out }}</code>
+            {% endfor %}
+          </div>
+          <form method="post" action="{{ s.run_url }}" {% if s.key == "translate" %}onsubmit="return confirm('Iniciar traducao agora? Isso salva o idioma e envia os chunks para o motor.');"{% endif %}>
+            {% csrf_token %}
+            {% if s.key == "translate" %}
+            <div class="translate-controls">
+              <div class="translate-field">
+                <label for="translate_target_language">Lingua</label>
+                <select id="translate_target_language" name="target_language" aria-label="Idioma de traducao">
+                  {% for option in translate_variant_options %}
+                  <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="translate-field">
+                <label for="translate_agent_name">Agente</label>
+                <select id="translate_agent_name" name="translate_agent_name" aria-label="Agente de traducao">
+                  {% for option in translate_agent_choices %}
+                  <option value="{{ option.value }}" {% if selected_translate_agent == option.value %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <span class="status">Agente selecionado: <strong id="translate_agent_route"></strong></span>
+            <table class="status" style="width:100%; border-collapse:collapse; margin:0.75rem 0;">
+              <thead>
+                <tr>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Opcao</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Rota</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Agente</th>
+                  <th style="text-align:left; border-bottom:1px solid #ddd; padding:0.35rem;">Observacao</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for option in translate_agent_options %}
+                <tr>
+                  <td style="padding:0.35rem;">{{ option.label }}</td>
+                  <td style="padding:0.35rem;">{{ option.route }}</td>
+                  <td style="padding:0.35rem;"><strong>{{ option.agent_name }}</strong></td>
+                  <td style="padding:0.35rem;">{{ option.detail }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+            {% if s.key == "refine" %}
+            <select id="refine_profile" name="refine_profile" aria-label="Perfil de refine">
+              {% for option in refine_profile_options %}
+                <option value="{{ option.value }}" {% if refine_profile == option.value %}selected{% endif %}>
+                  {{ option.label }} - {{ option.agent_name }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="status">
+              EN-US: runtime interno JSON-first via refine_en_us_2026. FR: runtime interno JSON-first via FR_REFINE_UNIVERSAL / fr_refine_universal_2026_v1 / gpt-5.5.
+            </span>
+            {% endif %}
+            {% if s.key == "polish_agent" %}
+            <select id="polish_agent_name" name="polish_agent_name" aria-label="Agente polidor">
+              {% for option in polish_agent_options %}
+                <option value="{{ option }}" {% if polish_agent_default == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+            <span class="status">Escolha o agente que fará o polimento antes de rodar.</span>
+            {% endif %}
+            <button
+              {% if s.key == "translate" %}id="btn_translate"{% endif %}
+              {% if s.key == "refine" %}id="btn_refine"{% endif %}
+              class="btn{% if s.key == 'polish_agent' %} danger{% endif %}"
+              type="submit"
+              {% if not s.can_run %}disabled{% endif %}
+            >
+              {{ s.button_label }}
+            </button>
+          </form>
+          {% if s.key == "polish_agent" %}
+          <form class="polidor-action" method="post" action="{% url 'save_merge_polidor_preview' edition_id=edition.id %}">
+            {% csrf_token %}
+            <button class="btn danger" type="submit">Salvar Merge Polidor</button>
+          </form>
+          <form class="polidor-action" method="get" action="{% url 'preview_merge_selected' edition_id=edition.id %}" target="_blank">
+            <select name="merge_kind" aria-label="Arquivo para preview">
+              {% for option in merge_preview_options %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn danger" type="submit">Preview</button>
+          </form>
+          {% endif %}
+          {% if s.key == "translate" and not s.can_run %}
+          <div id="translate_prereq_msg" class="status">
+            Prerequisito: rode HeadingCleaner e depois refaca <code>data/chunks/.../split_01/*.txt</code>.
+          </div>
+          {% endif %}
+        </section>
+        {% endfor %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_translation_language" />
+          <select name="target_language" aria-label="Salvar idioma de traducao">
+            {% for option in translate_variant_options %}
+            <option value="{{ option.value }}" {% if translate_language == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn secondary" type="submit">Next step</button>
+        </form>
+      </div>
+      <div class="status">
+        RAW: <strong>{{ status.raw }}</strong>
+      </div>
+      <div class="status">
+        Core salvo:
+        {% if core_last_txt_path %}
+          <strong>{{ core_last_txt_path }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        RAW path:
+        {% if raw_path %}
+          <strong>{{ raw_path }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        RAW arquivo:
+        {% if raw_name %}
+          <strong>{{ raw_name }}</strong>
+        {% else %}
+          <span class="badge">nenhum arquivo</span>
+        {% endif %}
+      </div>
+      {% for s in pipeline01_steps %}
+      <div class="status">
+        {{ s.n }}) {{ s.title }}: <strong>{% if s.done %}OK{% elif s.can_run %}pronto{% else %}bloqueado{% endif %}</strong>
+      </div>
+      {% endfor %}
+      <div class="status">
+        Gate normalize_v2:
+        {% if pipeline_prereqs.normalized_v2_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.normalized_v2_path }}</code>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.normalized_v2_path }}</code>
+        {% endif %}
+      </div>
+      <div class="status">
+        Gate split_01:
+        {% if pipeline_prereqs.split_01_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.split_01_dir }}</code>
+          <span class="badge ok">{{ pipeline_prereqs.split_01_count }} chunks</span>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.split_01_dir }}</code>
+        {% endif %}
+      </div>
+      <div class="status">
+        Gate heading_cleaner:
+        {% if pipeline_prereqs.heading_clean_exists %}
+          <strong>OK</strong> <code>{{ pipeline_prereqs.heading_clean_dir }}</code>
+        {% else %}
+          <span class="badge">falta</span> <code>{{ pipeline_prereqs.heading_clean_dir }}</code>
+        {% endif %}
+      </div>
+      <div class="status">
+        Split by Chapter: <strong>{{ status.split_by_chapter }}</strong>
+      </div>
+      <div class="status">
+        Translate:
+        <strong>{{ status.translate }}</strong>
+        {% if chunk_count %}
+        <span class="badge ok">{{ chunk_count }} chunks</span>
+        {% endif %}
+      </div>
+      <div class="status">
+        Refine: <strong>{{ status.refine }}</strong>
+      </div>
+      <div class="status">
+        Polish: <strong>{{ status.polish }}</strong>
+      </div>
+      <div class="actions">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_core_txt" />
+          <button class="btn secondary" type="submit">Salvar Core como .txt de referência</button>
+        </form>
+      </div>
+      {% endif %}
+    </article>
+    {% endif %}
+
+    {% if not active_bookmaker_block or active_bookmaker_block == 'production' %}
+    <article class="card" id="transformacao-editorial">
+      <h2>02 · Produção</h2>
+      <div class="status">Frontmatter obrigatorio e materiais opcionais por idioma vivem aqui, separados do core textual.</div>
+      <h3>Estrutura Editorial nas 6 Linguas</h3>
+      <div class="lang-matrix">
+        {% for row in editorial_language_rows %}
+        <div class="lang-row">
+          <div>
+            <strong>{{ row.label }}</strong> [{{ row.code }}]
+            <div class="status">
+              Obrigatorios: {% if row.required_ready %}<span class="badge ok">frontmatter pronto</span>{% else %}<span class="badge warn">frontmatter pendente</span>{% endif %}
+            </div>
+            <div class="status">
+              Opcionais:
+              Prefacio {% if row.has_preface %}ON{% else %}OFF{% endif %} ·
+              Introducao {% if row.has_introduction %}ON{% else %}OFF{% endif %} ·
+              Epilogo {% if row.has_epilogue %}ON{% else %}OFF{% endif %}
+            </div>
+            {% if row.warnings %}
+            <div class="status">
+              Avisos: {{ row.warnings|join:" | " }}
+            </div>
+            {% endif %}
+          </div>
+          <a class="btn secondary" target="_blank" rel="noopener noreferrer" href="{{ row.url }}">Editar idioma</a>
+        </div>
+        {% endfor %}
+      </div>
+      <h3>Frontmatter por Idioma</h3>
+      <form method="get" class="actions">
+        <label for="frontmatter_lang">Idioma</label>
+        <select id="frontmatter_lang" name="frontmatter_lang" aria-label="Selecionar idioma do frontmatter" onchange="this.form.submit()">
+          {% for code, label in frontmatter_lang_choices %}
+            <option value="{{ code }}" {% if frontmatter_lang == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <a class="btn secondary ml-2" target="_blank" rel="noopener noreferrer" href="{% url 'frontmatter_template_edit' book_code=book_code language=frontmatter_lang %}">
+          {% if writer_canonical %}Editar / Salvar Frontmatter{% else %}Frontmatter{% endif %}
+        </a>
+        <noscript>
+          <button class="btn secondary" type="submit">Atualizar</button>
+        </noscript>
+      </form>
+      {% if not writer_canonical %}
+      <form method="post" class="actions" action="{% url 'editorial_frontmatter_actions' edition.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="target_lang" value="{{ frontmatter_lang }}" />
+        <button class="btn secondary" type="submit" name="action" value="rebuild_frontmatter">
+          Regerar Frontmatter (.md)
+        </button>
+        <button class="btn secondary" type="submit" name="action" value="build_frontmatter_and_merged" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
+          Frontmatter + BOOK.BUILD.MD
+        </button>
+      </form>
+      {% endif %}
+      {% if editorial_optional_warnings %}
+      <div class="status">
+        Avisos do idioma atual: {{ editorial_optional_warnings|join:" | " }}
+      </div>
+      {% endif %}
+      <div class="status">
+        Editorial changed: <strong>{% if editorial_changed %}true{% else %}false{% endif %}</strong>
+        · Build outdated: <strong>{% if build_outdated %}true{% else %}false{% endif %}</strong>
+      </div>
+      {% if last_editorial_update_at %}
+      <div class="status">Ultima atualizacao editorial: <strong>{{ last_editorial_update_at }}</strong></div>
+      {% endif %}
+      {% if not block_statuses.bloco_03_ready %}
+      <div class="status">
+        Bloco 03 aguardando a conclusao textual do bloco 02.
+      </div>
+      {% endif %}
+      <section class="pipeline-step">
+        <div class="status">
+          <strong>{{ preflight_step.title }}</strong>
+          {% if preflight_step.done %}
+            <span class="badge {% if preflight_step.status_tone %}{{ preflight_step.status_tone }}{% else %}ok{% endif %}">
+              {% if preflight_step.status_label %}{{ preflight_step.status_label }}{% else %}OK{% endif %}
+            </span>
+          {% elif preflight_step.can_run %}
+            <span class="badge">pronto</span>
+          {% else %}
+            <span class="badge warn">bloqueado</span>
+          {% endif %}
+          {% if preflight_step.block_reason %}
+            {{ preflight_step.block_reason }}
+          {% endif %}
+        </div>
+        <div class="status">
+          {% if preflight_step.notes %}{{ preflight_step.notes }}{% endif %}
+        </div>
+        <div class="status">
+          Saidas:
+          {% for out in preflight_step.outputs %}
+            <code>{{ out }}</code>
+          {% endfor %}
+        </div>
+        <form method="post" action="{{ preflight_step.run_url }}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not preflight_step.can_run %}disabled{% endif %}>
+            {{ preflight_step.button_label }}
+          </button>
+        </form>
+      </section>
+      {% if writer_canonical %}
+      <h3>Livro</h3>
+      <p class="status">
+        Fluxo Writer canonical: Frontmatter → Salvar → Montar Livro → Preview do Livro →
+        Imagens → Preview do Livro → Capa → EPUB.
+      </p>
+      <div class="actions">
+        <form method="post" action="{% url 'build_book_md' book_code=book_code language=md_language_default|default:language %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Montar Livro</button>
+        </form>
+        <a class="btn secondary" href="{% url 'premium_epub_preview' edition.id %}">
+          Preview do Livro
+        </a>
+        {% if writer_intake_url %}
+        <a class="btn ghost" href="{{ writer_intake_url }}">Continuar no Intake · {{ writer_intake_code }}</a>
+        {% endif %}
+      </div>
+      {% else %}
+      <h3>Fonte de Texto (para TXT -&gt; MD)</h3>
+      <p>
+        A fonte e resolvida automaticamente a partir dos merges em <code>data/builds</code>.
+      </p>
+      <div class="actions">
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'txt_to_md' %}">
+          {% csrf_token %}
+          <label for="md_language">Idioma</label>
+          <select id="md_language" name="md_language">
+            <option value="en" {% if md_language_default == "en" %}selected{% endif %}>EN</option>
+            <option value="es" {% if md_language_default == "es" %}selected{% endif %}>ES</option>
+            <option value="ptbr" {% if md_language_default == "ptbr" %}selected{% endif %}>PT-BR</option>
+            <option value="de" {% if md_language_default == "de" %}selected{% endif %}>DE</option>
+            <option value="fr" {% if md_language_default == "fr" %}selected{% endif %}>FR</option>
+            <option value="it" {% if md_language_default == "it" %}selected{% endif %}>IT</option>
+          </select>
+          <button class="btn" type="submit">Convert TXT to MD</button>
+        </form>
+        <div class="status">
+          Arquivo selecionado:
+          <strong id="md_source_path"></strong>
+        </div>
+        <a
+          class="btn secondary"
+          href="{% url 'preview_book_md' book_code=book_code language=md_language_default|default:language %}"
+        >
+          Preview MD
+        </a>
+      </div>
+      {% endif %}
+      {% if writer_canonical %}<h3>Capa</h3>{% endif %}
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_cover" />
+        <label for="cover_file">Cover</label>
+        <input id="cover_file" type="file" name="cover_file" accept="image/*" />
+        <button type="submit" class="btn btn-sm btn-secondary">Salvar capa (JPG)</button>
+        {% if cover_filepath %}
+        <div class="cover-preview">
+          {% if cover_preview_url %}
+          <img src="{{ cover_preview_url }}" alt="Capa atual de {{ book_code }}" />
+          {% endif %}
+          <p class="form-text">
+            Capa atual: <strong>{{ cover_filepath }}</strong>
+          </p>
+        </div>
+        {% endif %}
+      </form>
+      {% if writer_canonical %}<h3>Imagens</h3>{% endif %}
+      {% if internal_images_end_only %}
+      <div class="mt-3">
+        <strong>Image Gallery</strong>
+        <p class="form-text">
+          Este modulo cuida das figuras internas somente no fim do livro: upload, conversao para JPG, consolidacao e insercao final.
+        </p>
+      </div>
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_gallery_v1" data-contract-step="upload_gallery_files">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_gallery_files" />
+        <label for="gallery_files">Image Gallery files</label>
+        <input id="gallery_files" type="file" name="images_files" accept="image/*" multiple />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
+        <p class="form-text">
+          Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
+        </p>
+        <p class="form-text">
+          As figuras internas desta edicao entram apenas no fim do livro, em uma secao unica.
+        </p>
+        <p class="form-text">
+          Imagens locais: <strong>{{ images_count }}</strong>
+          {% if images_dir_path %}
+          em <code>{{ images_dir_path }}</code>.
+          {% else %}
+          (nenhum diretorio de imagens resolvido).
+          {% endif %}
+        </p>
+      </form>
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_gallery_v1" data-contract-step="upload_gallery_zip">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_gallery_zip" />
+        <label for="gallery_zip">ZIP da Image Gallery</label>
+        <input id="gallery_zip" type="file" name="images_zip" accept=".zip,application/zip" />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que o ZIP contem somente imagens geradas para esta edicao.</label>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
+      </form>
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_gallery_v1" data-contract-step="consolidate_gallery_images">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="consolidate_gallery_images" />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>
+          Consolidate image gallery
+        </button>
+        <p class="form-text">
+          Renomeia e organiza as imagens da galeria final para aplicacao consistente no PRE_EDITION.
+        </p>
+        <p class="form-text">
+          Consolidadas: <strong>{{ images_consolidated_count }}</strong>
+          {% if images_consolidated_dir_path %}
+          em <code>{{ images_consolidated_dir_path }}</code>.
+          {% else %}
+          (consolidacao ainda nao gerada).
+          {% endif %}
+        </p>
+      </form>
+      {% else %}
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="upload_images_files">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_images_files" />
+        <label for="images_files">Insert multiple images</label>
+        <input id="images_files" type="file" name="images_files" accept="image/*" multiple />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que estes arquivos sao imagens geradas para esta edicao, nao imagens da obra-fonte.</label>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Salvar e converter imagens</button>
+        <p class="form-text">
+          Converte varias imagens para JPG e salva no diretorio ativo de imagens do livro.
+        </p>
+        {% if internal_images_end_only %}
+        <p class="form-text">
+          Este livro usa imagens internas apenas no fim, em uma secao de ilustracoes.
+        </p>
+        {% endif %}
+        {% if internal_images_disabled %}
+        <p class="form-text">
+          Este livro esta em modo <strong>cover only</strong>: figuras internas nao entram no miolo.
+        </p>
+        {% endif %}
+        <p class="form-text">
+          Imagens locais: <strong>{{ images_count }}</strong>
+          {% if images_dir_path %}
+          em <code>{{ images_dir_path }}</code>.
+          {% else %}
+          (nenhum diretorio de imagens resolvido).
+          {% endif %}
+        </p>
+      </form>
+      <form method="post" class="mt-3" enctype="multipart/form-data" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="upload_images_zip">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_images_zip" />
+        <label for="images_zip">ZIP de imagens</label>
+        <input id="images_zip" type="file" name="images_zip" accept=".zip,application/zip" />
+        <label><input type="checkbox" name="confirm_generated_images" value="1" required /> Confirmo que o ZIP contem somente imagens geradas para esta edicao.</label>
+        <button type="submit" class="btn btn-sm btn-secondary" {% if internal_images_disabled %}disabled{% endif %}>Upload ZIP images</button>
+      </form>
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="consolidate_images">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="consolidate_images" />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>
+          Consolidate internal images
+        </button>
+        <p class="form-text">
+          Renomeia e organiza imagens internas para aplicacao consistente no PRE_EDITION.
+        </p>
+        <p class="form-text">
+          Consolidadas: <strong>{{ images_consolidated_count }}</strong>
+          {% if images_consolidated_dir_path %}
+          em <code>{{ images_consolidated_dir_path }}</code>.
+          {% else %}
+          (consolidacao ainda nao gerada).
+          {% endif %}
+        </p>
+      </form>
+      {% endif %}
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="editorial_image_pipeline_v1" data-contract-step="insert_headlines">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="insert_headlines" />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready %}disabled{% endif %}>
+          Insert page headlines
+        </button>
+        <p class="form-text">
+          Aplica pagebreak + heading de capitulo no PRE_EDITION atual.
+        </p>
+      </form>
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="{% if internal_images_end_only %}editorial_image_gallery_v1{% else %}editorial_image_pipeline_v1{% endif %}" data-contract-step="{% if internal_images_end_only %}insert_gallery_images_disabled{% else %}insert_images{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="insert_images" />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled or internal_images_end_only %}disabled{% endif %}>
+          Insert image placeholders
+        </button>
+        <p class="form-text">
+          Insere placeholders de imagem (&#123;&#123;IMAGE:CHXX:01&#125;&#125;) no MD atual.
+        </p>
+        {% if internal_images_end_only %}
+        <p class="form-text">
+          Desativado para esta edicao: as figuras nao entram entre capitulos.
+        </p>
+        {% endif %}
+      </form>
+      <form method="post" class="mt-3" action="{{ edition_steps_action_url }}#transformacao-editorial" data-contract="{% if internal_images_end_only %}editorial_image_gallery_v1{% else %}editorial_image_pipeline_v1{% endif %}" data-contract-step="{% if internal_images_end_only %}apply_gallery_images{% else %}apply_images{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="{% if internal_images_end_only %}apply_gallery_images{% else %}apply_images{% endif %}" />
+        <button type="submit" class="btn btn-sm btn-secondary" {% if not block_statuses.bloco_03_ready or internal_images_disabled %}disabled{% endif %}>
+          {% if internal_images_end_only %}Append images at end{% else %}Apply images to PRE_EDITION{% endif %}
+        </button>
+        <p class="form-text">
+          {% if internal_images_end_only %}
+          Anexa as imagens consolidadas ao fim do livro, em vez de inseri-las entre capitulos.
+          {% else %}
+          Substitui placeholders por referencias Markdown de imagem no PRE_EDITION atual.
+          {% endif %}
+        </p>
+        {% if images_consolidated_dir_path %}
+        <p class="form-text">
+          Imagens consolidadas disponiveis: <strong>{{ images_consolidated_count }}</strong>
+          em <code>{{ images_consolidated_dir_path }}</code>.
+          {% if images_consolidated_map_path %}
+          Mapa: <code>{{ images_consolidated_map_path }}</code>.
+          {% endif %}
+        </p>
+        {% else %}
+        <p class="form-text">
+          Imagens locais disponiveis: <strong>{{ images_count }}</strong>
+          {% if images_dir_path %}
+          em <code>{{ images_dir_path }}</code>.
+          {% else %}
+          (nenhum diretorio de imagens resolvido).
+          {% endif %}
+        </p>
+        {% endif %}
+      </form>
+      <div class="actions">
+        {% if not writer_canonical %}
+        <a
+          class="btn secondary"
+          href="{% url 'preview_pre_edition_md' book_code=book_code language=md_language_default|default:language %}"
+        >
+          Preview (Pre-Edition)
+        </a>
+        {% endif %}
+      </div>
+      {% if not writer_canonical and miolo_paths %}
+      <div class="actions">
+        {% for miolo in miolo_paths %}
+          <a class="btn secondary" href="{% url 'preview_miolo_md' book_code=book_code language=miolo.language %}">
+            Preview Miolo ({{ miolo.language }})
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if not writer_canonical %}
+      <div class="actions" style="margin-top: 12px;">
+        <div class="status"><strong>QA suspenso</strong></div>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'approve_md' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Approve MD Final</button>
+        </form>
+      </div>
+      {% endif %}
+
+      <div class="status">
+        MD status: <strong>{{ md_status }}</strong>
+      </div>
+
+      {% if not writer_canonical %}
+      <div class="links">
+        {% if md_pre_edition_path %}
+        <a href="{{ md_pre_edition_path }}">BOOK.PRE_EDITION.md</a>
+        {% else %}
+        <span class="badge">BOOK.PRE_EDITION.md</span>
+        {% endif %}
+        {% if miolo_paths %}
+          {% for miolo in miolo_paths %}
+          <a href="{{ miolo.path }}">{{ miolo.label }}</a>
+          {% endfor %}
+        {% else %}
+        <span class="badge">{{ miolo_filename }}</span>
+        {% endif %}
+        {% if md_pre_qa_path %}
+        <a href="{{ md_pre_qa_path }}">BOOK.PRE_QA.md</a>
+        {% else %}
+        <span class="badge">BOOK.PRE_QA.md</span>
+        {% endif %}
+        {% if md_final_path %}
+        <a href="{{ md_final_path }}">BOOK.MD_FINAL</a>
+        {% else %}
+        <span class="badge">BOOK.MD_FINAL</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </article>
+    {% endif %}
+
+    {% if not active_bookmaker_block or active_bookmaker_block == 'production' %}
+    <article class="card">
+      <h2>02 · Produção — EPUB e arquivos finais</h2>
+      <div class="status">Montagem final, EPUB e PDF dependem do bloco 03 pronto e de <strong>BOOK.MD_FINAL</strong>.</div>
+      {% if writer_canonical %}
+      <h3>EPUB</h3>
+      <div class="actions">
+        {% if epub_path %}
+        <a class="btn secondary" href="{% url 'premium_epub_preview' edition.id %}">Preview EPUB Premium</a>
+        {% endif %}
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_epub' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Gerar EPUB</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'epubcheck' %}">
+          {% csrf_token %}
+          <button class="btn ghost" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>EPUBCheck</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="actions">
+        <a class="btn secondary" href="{% url 'premium_epub_preview' edition.id %}">Preview EPUB Premium</a>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'build' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Build (Cover + Edition + Miolo)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_epub' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Export EPUB3 (Pandoc)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'export_pdf' %}">
+          {% csrf_token %}
+          <button class="btn secondary" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Export Print PDF (Pandoc)</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'epubcheck' %}">
+          {% csrf_token %}
+          <button class="btn ghost" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Run epubcheck</button>
+        </form>
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'done' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not last_version_download_url %}disabled{% endif %}>0 DONE (FEITO)</button>
+        </form>
+        {% if last_version_download_url %}
+        <a class="btn secondary" href="{{ last_version_download_url }}">DOWNLOAD LAST VERSION</a>
+        {% else %}
+        <span class="badge">DOWNLOAD LAST VERSION</span>
+        {% endif %}
+        <form method="post" action="{% url 'pipeline_run_edition_step' edition.id 'gaiden' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit" {% if not block_statuses.block_04_ready %}disabled{% endif %}>Gaiden: Montar Livro Completo</button>
+        </form>
+      </div>
+      {% endif %}
+      {% if not block_statuses.block_04_ready %}
+      <div class="status">Bloco 04 bloqueado ate o bloco 03 ficar pronto no idioma selecionado e o MD final existir.</div>
+      {% endif %}
+      {% if last_built_at %}
+      <div class="status">Ultimo build registrado: <strong>{{ last_built_at }}</strong></div>
+      {% endif %}
+      <div class="status">
+        Build status: <strong>{{ build_status }}</strong>
+      </div>
+      <div class="status">
+        Ultima versao oficial:
+        {% if last_version_filename %}
+          <strong>{{ last_version_filename }}</strong>
+          {% if last_version_path %}<code>{{ last_version_path }}</code>{% endif %}
+        {% else %}
+          <strong>nao registrada</strong>
+        {% endif %}
+      </div>
+      <div class="links">
+        {% if build_path %}
+        <a href="{{ build_path }}">BOOK.BUILD.MD</a>
+        {% else %}
+        <span class="badge">BOOK.BUILD.MD</span>
+        {% endif %}
+        {% if epub_path %}
+        <a href="{{ epub_path }}">BOOK.EPUB3</a>
+        {% else %}
+        <span class="badge">BOOK.EPUB3</span>
+        {% endif %}
+        {% if pdf_path %}
+        <a href="{{ pdf_path }}">BOOK.PRINT.PDF</a>
+        {% else %}
+        <span class="badge">BOOK.PRINT.PDF</span>
+        {% endif %}
+      </div>
+      {% if build_history %}
+      <div class="links" style="margin-top: 12px;">
+        {% for item in build_history %}
+        <div class="status">
+          Build v{{ item.build_version }} · {{ item.build_type }}
+          {% if item.build_path %}<code>{{ item.build_path }}</code>{% endif %}
+          {% if item.epub_path %}<code>{{ item.epub_path }}</code>{% endif %}
+          {% if item.pdf_path %}<code>{{ item.pdf_path }}</code>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </article>
+    {% endif %}
+
+    {% if active_bookmaker_block == 'publication' %}
+    <article class="card">
+      <h2>03 · Publicação</h2>
+      <div class="status">A publicação não cria um segundo pipeline. Os arquivos aprovados e o download oficial permanecem disponíveis após o EPUBCheck no bloco Produção.</div>
+      {% if last_version_download_url %}
+      <a class="btn secondary" href="{{ last_version_download_url }}">DOWNLOAD LAST VERSION</a>
+      {% else %}
+      <div class="status">Aguardando um EPUB final aprovado.</div>
+      {% endif %}
+    </article>
+    {% endif %}
+  </section>
+  <script>
+    const mdSourceMap = {{ md_source_map|safe }};
+    const mdSelect = document.getElementById("md_language");
+    const mdSourceLabel = document.getElementById("md_source_path");
+    const translateAgentMap = {{ translate_agent_map|safe }};
+    const translateAgentChoicesMap = {{ translate_agent_choices_map|safe }};
+    const translateSelect = document.getElementById("translate_target_language");
+    const translateAgentSelect = document.getElementById("translate_agent_name");
+    const translateAgentLabel = document.getElementById("translate_agent_route");
+
+    function updateMdSource() {
+      if (!mdSelect || !mdSourceLabel) return;
+      const lang = mdSelect.value;
+      mdSourceLabel.textContent = mdSourceMap[lang] || "nao encontrado";
+    }
+
+    function updateTranslateAgent() {
+      if (!translateSelect || !translateAgentLabel) return;
+      const lang = translateSelect.value;
+      const choices = translateAgentChoicesMap[lang] || [];
+      if (translateAgentSelect) {
+        const current = translateAgentSelect.value;
+        translateAgentSelect.innerHTML = "";
+        choices.forEach((agent) => {
+          const option = document.createElement("option");
+          option.value = agent;
+          option.textContent = agent;
+          if (agent === current) option.selected = true;
+          translateAgentSelect.appendChild(option);
+        });
+        if (choices.length && !choices.includes(current)) {
+          translateAgentSelect.value = choices[0];
+        }
+      }
+      translateAgentLabel.textContent = translateAgentSelect && translateAgentSelect.value
+        ? translateAgentSelect.value
+        : (translateAgentMap[lang] || "rota nao configurada");
+    }
+
+    if (mdSelect) {
+      mdSelect.addEventListener("change", updateMdSource);
+      updateMdSource();
+    }
+    if (translateSelect) {
+      translateSelect.addEventListener("change", updateTranslateAgent);
+      if (translateAgentSelect) {
+        translateAgentSelect.addEventListener("change", updateTranslateAgent);
+      }
+      updateTranslateAgent();
+    }
+  </script>
+</body>
+</html>

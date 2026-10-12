@@ -1,0 +1,23 @@
+<dialog class="corpus-dialog" id="reference-selector" aria-labelledby="reference-selector-title">
+  <header class="corpus-dialog-heading"><h2 id="reference-selector-title">Corpus do Projeto · Selecionar obras</h2></header>
+  <div class="corpus-dialog-body">
+    <label for="corpus-search">Buscar autor ou obra</label>
+    <div class="corpus-search"><span aria-hidden="true">⌕</span><input id="corpus-search" type="search" autocomplete="off"></div>
+    <label for="corpus-author">Autor</label><select id="corpus-author"><option value="">Selecione um autor</option></select>
+    <div id="author-results"></div>
+    <h3 id="current-author">Obras</h3>
+    <div class="actions" id="author-actions" hidden>
+      <button type="button" class="secondary" id="select-author">Selecionar todas deste autor</button>
+      <button type="button" class="secondary" id="clear-author">Limpar autor</button>
+    </div>
+    <p id="corpus-message" role="status"></p>
+    <div id="work-list"></div>
+    <button type="button" class="secondary" id="more-works" hidden>Mais obras</button>
+  </div>
+  <footer class="corpus-dialog-footer"><span id="draft-count" aria-live="polite"></span><div class="actions">
+    <button type="button" class="secondary" id="cancel-references">Cancelar</button><button type="button" id="apply-references">Salvar seleção</button>
+  </div></footer>
+</dialog>
+{{ selected_works|json_script:"selected-works-data" }}
+<div id="reference-endpoints" data-authors="{% url 'writer:reference_authors' %}" data-works="{% url 'writer:work_catalog' %}" {% if save_corpus %}data-save="{% url 'writer:project_references' project.id %}"{% endif %} hidden></div>
+{% if save_corpus %}<form method="post" id="corpus-selection-form" action="{% url 'writer:project_references' project.id %}" hidden>{% csrf_token %}<input type="hidden" name="corpus_selection" value="1"></form>{% endif %}

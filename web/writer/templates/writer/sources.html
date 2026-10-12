@@ -1,0 +1,48 @@
+{% extends "writer/base.html" %}
+{% block title %}Arquivos{% endblock %}
+{% block content %}
+<p><a class="btn secondary" href="{% url 'writer:library' %}">Pastas importadas e referências</a></p>
+<section class="card"><h1>1 · Seleção e normalização</h1><p class="muted">A normalização remove contratos e material editorial de Project Gutenberg, Internet Archive, Standard Ebooks e frontmatter técnico. Epílogos narrativos são preservados.</p>
+{% if normalization_complete %}<div class="notice ok"><strong>✓ Normalização concluída</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos. O botão continua clicável para confirmar este estado.</div>{% else %}<div class="notice"><strong>Normalização pendente</strong><br>{{ normalized_count }} de {{ documents|length }} arquivos prontos.</div>{% endif %}
+<form method="post" action="{% url 'writer:scan_sources' %}">{% csrf_token %}<button type="submit">Localizar arquivos</button></form></section>
+<section class="card">
+  <h2>Corpus dos projetos</h2>
+  <p class="muted">Caminho principal para preparar o corpus selecionado do projeto.</p>
+  <div class="table"><table><thead><tr><th>Projeto</th><th>Normalização</th><th>Vetorização</th><th>RAG</th><th>Ações</th></tr></thead><tbody>
+  {% for row in project_rows %}
+    <tr>
+      <td><strong>{{ row.project.title }}</strong><br><a href="{% url 'writer:project_detail' row.project.id %}">Abrir projeto</a></td>
+      <td>{{ row.dashboard.corpus.normalized }}/{{ row.dashboard.corpus.selected }}{% if row.dashboard.corpus.preparation_pending %}<br><span class="muted">{{ row.dashboard.corpus.preparation_pending }} pendente{{ row.dashboard.corpus.preparation_pending|pluralize:"s" }}</span>{% endif %}</td>
+      <td>{{ row.dashboard.corpus.vectorized }}/{{ row.dashboard.corpus.selected }}{% if row.dashboard.corpus.vectorization_pending %}<br><span class="muted">{{ row.dashboard.corpus.vectorization_pending }} pendente{{ row.dashboard.corpus.vectorization_pending|pluralize:"s" }}</span>{% endif %}</td>
+      <td>{% if row.dashboard.corpus.all_vectorized %}<span class="check">✓ Pronto</span>{% else %}<span class="muted">Pendente</span>{% endif %}</td>
+      <td><div class="actions">
+        <form method="post" action="{% url 'writer:prepare_corpus' row.project.id %}">{% csrf_token %}<input type="hidden" name="next" value="sources"><button type="submit">Normalizar pendentes</button></form>
+        <form method="post" action="{% url 'writer:vectorize' row.project.id %}">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><input type="hidden" name="next" value="sources"><button type="submit">Vetorizar pendentes</button></form>
+      </div></td>
+    </tr>
+  {% empty %}<tr><td colspan="5">Nenhum projeto com obras selecionadas.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="card"><h2>Adicionar Google Docs</h2><p class="muted">Fonte somente leitura; será normalizada para o armazenamento interno.</p><a class="btn" href="{% url 'writer:google_doc_source_add' %}">Registrar Google Docs</a></section>
+<form method="post" action="{% url 'writer:normalize_sources' %}">{% csrf_token %}
+<section class="card"><div class="actions"><button type="button" data-dialog-open="normalize-dialog">{% if normalization_complete %}Normalização concluída · opções{% else %}Normalizar arquivos selecionados{% endif %}</button></div>
+<dialog class="confirm-dialog" id="normalize-dialog">
+  <div class="dialog-body">
+    {% if normalization_complete %}
+      <h2>Normalização já concluída</h2>
+      <p>{{ normalized_count }} de {{ documents|length }} arquivos estão prontos.</p>
+      <p class="impact"><strong>Refazer?</strong> Os arquivos marcados serão normalizados novamente. Se nenhum estiver marcado, todos serão refeitos. Os índices RAG relacionados serão invalidados e precisarão de nova vetorização.</p>
+    {% else %}
+      <h2>Confirmar normalização</h2>
+      <p>Os arquivos marcados serão lidos e uma versão normalizada derivada será criada. As fontes originais não serão sobrescritas.</p>
+    {% endif %}
+  </div>
+  <div class="dialog-actions">
+    <button class="secondary" type="button" data-dialog-close>Cancelar</button>
+    {% if normalization_complete %}<button type="submit" name="remake" value="yes">Refazer normalização</button>{% else %}<button type="submit" name="confirm" value="yes">Confirmar e executar</button>{% endif %}
+  </div>
+</dialog>
+<div class="table"><table><thead><tr><th></th><th>Arquivo</th><th>Origem detectada</th><th>Status</th><th>Tratamento</th></tr></thead><tbody>
+{% for document in documents %}<tr><td><input type="checkbox" name="documents" value="{{ document.id }}" aria-label="Selecionar {{ document.filename }}"></td><td><strong>{{ document.filename }}</strong>{% if document.external_url %}<br><a href="{{ document.external_url }}" target="_blank" rel="noreferrer">Abrir Google Docs</a>{% endif %}{% if document.error_message %}<br><span class="errors">{{ document.error_message }}</span>{% endif %}</td><td>{{ document.get_source_type_display }}<br>{{ document.provider|default:"—" }}</td><td><span class="status {{ document.status }}">{{ document.get_status_display }}</span></td><td>{% if document.normalization_report %}{{ document.normalization_report.removed_characters }} caracteres removidos<br><span class="muted">{{ document.normalization_report.rules|join:", " }}</span>{% else %}—{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5">Clique em Localizar arquivos para carregar os textos canônicos do Author Studio e, se configuradas, fontes adicionais de GAIDEN_WRITER_SOURCE_ROOT.</td></tr>{% endfor %}</tbody></table></div></section></form>
+{% endblock %}
