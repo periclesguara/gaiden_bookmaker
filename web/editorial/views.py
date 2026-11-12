@@ -415,7 +415,11 @@ def frontmatter_template_edit(request, book_code: str, language: str):
         form = FrontmatterTemplateForm(request.POST, instance=template)
         if form.is_valid():
             confirm_overwrite = request.POST.get("confirm_overwrite") == "1"
-            save_block = (request.POST.get("save_block") or "all").strip()
+            save_block = (
+                request.POST.get("save_block_intent")
+                or request.POST.get("save_block")
+                or "all"
+            ).strip()
             if files_exist and not confirm_overwrite:
                 warning = "Substituir arquivos atuais do frontmatter?"
             else:
@@ -454,7 +458,11 @@ def frontmatter_template_edit(request, book_code: str, language: str):
                 instance.language = language
                 instance.save(apply_defaults=False, update_fields=update_fields)
                 if edition:
-                    _sync_template_to_edition(template, edition)
+                    # ModelForm updates every field on the in-memory instance during
+                    # validation. Reload after a block-scoped save so stale values
+                    # from the other blocks cannot leak into the edition record.
+                    instance.refresh_from_db()
+                    _sync_template_to_edition(instance, edition)
                     _write_frontmatter_files(edition)
                     _mark_editorial_changed(edition)
                     invalidate_premium_render(edition, "frontmatter_changed")

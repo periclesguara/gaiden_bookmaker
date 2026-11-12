@@ -611,6 +611,9 @@ class CadastroSourceFormatRoutingTests(TestCase):
             response,
             reverse("frontmatter_template_edit", kwargs={"book_code": self.work.code, "language": "en"}),
         )
+        self.assertContains(response, 'href="#tab-introduction"')
+        self.assertContains(response, 'data-optional-block="has_introduction"')
+        self.assertContains(response, 'value="introduction">Salvar Introducao</button>')
 
     def test_new_frontmatter_preview_does_not_prefill_publisher_or_copyright(self):
         response = self.client.get(

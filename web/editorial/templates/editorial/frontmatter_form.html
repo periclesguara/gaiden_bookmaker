@@ -106,12 +106,14 @@
   <div class="tab-nav">
     <a class="tab-link" href="#tab-frontmatter">Frontmatter</a>
     <a class="tab-link" href="#tab-preface">Prefacio</a>
+    <a class="tab-link" href="#tab-introduction">Introducao</a>
     <a class="tab-link" href="#tab-epilogue">Epilogo</a>
   </div>
 
   <form method="post" id="frontmatter_form">
     {% csrf_token %}
     <input type="hidden" name="confirm_overwrite" id="confirm_overwrite" value="0" />
+    <input type="hidden" name="save_block_intent" id="save_block_intent" value="" />
 
     <div>
       <label for="{{ form.book_code.id_for_label }}">Book code</label>
@@ -221,6 +223,22 @@
       </div>
     </div>
 
+    <div class="field-group" id="tab-introduction">
+      <label for="{{ form.has_introduction.id_for_label }}">
+        {{ form.has_introduction }} Livro tera Introducao
+      </label>
+      <div class="muted">Opcional. So entra se marcado e com conteudo.</div>
+      <div data-optional-block="has_introduction">
+        <label for="{{ form.introduction_text.id_for_label }}">Introducao</label>
+        {{ form.introduction_text }}
+        <div class="preview-title">Preview</div>
+        <div class="preview">{{ introduction_preview }}</div>
+        <div class="actions">
+          <button type="submit" name="save_block" value="introduction">Salvar Introducao</button>
+        </div>
+      </div>
+    </div>
+
     <div class="field-group" id="tab-epilogue">
       <label for="{{ form.has_epilogue.id_for_label }}">
         {{ form.has_epilogue }} Livro tera Epilogo
@@ -282,6 +300,7 @@
     }
     const form = document.getElementById("frontmatter_form");
     const confirmInput = document.getElementById("confirm_overwrite");
+    const saveBlockIntent = document.getElementById("save_block_intent");
     const modal = document.getElementById("overwrite_modal");
     const cancelBtn = document.getElementById("cancel_overwrite");
     const confirmBtn = document.getElementById("confirm_overwrite_btn");
@@ -301,6 +320,9 @@
     syncOptionalBlocks();
     if (form && confirmInput && modal && cancelBtn && confirmBtn) {
       form.addEventListener("submit", (event) => {
+        if (saveBlockIntent && event.submitter && event.submitter.name === "save_block") {
+          saveBlockIntent.value = event.submitter.value;
+        }
         const hasFiles = {{ frontmatter_files_exist|yesno:"true,false" }};
         if (hasFiles && confirmInput.value !== "1") {
           event.preventDefault();
