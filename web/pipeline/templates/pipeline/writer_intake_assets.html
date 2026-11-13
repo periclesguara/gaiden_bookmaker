@@ -25,8 +25,9 @@ body{margin:0;background:#f4f1ec;color:#20272a;font:15px/1.5 system-ui,sans-seri
     </form>
   </section>
   <section class="card">
-    <h2>Imagens internas</h2>
-    {% if images %}<ul>{% for image in images %}<li><a href="{{ image.url }}"><img src="{{ image.url }}" alt="{{ image.name }}" style="max-width:140px;max-height:140px;object-fit:contain"> {{ image.name }}</a></li>{% endfor %}</ul>{% else %}<p>Nenhuma imagem interna cadastrada.</p>{% endif %}
+    <h2>Imagens internas · opcional</h2>
+    <p class="muted">O livro pode seguir para montagem, preview e EPUB sem imagens internas. O upload só ocorre ao clicar em <strong>Adicionar imagens</strong>.</p>
+    {% if images %}<ul>{% for image in images %}<li><a href="{{ image.url }}"><img src="{{ image.url }}" alt="{{ image.name }}" style="max-width:140px;max-height:140px;object-fit:contain"> {{ image.name }}</a></li>{% endfor %}</ul>{% else %}<p>Nenhuma imagem interna cadastrada; esta etapa não bloqueia a edição.</p>{% endif %}
     <form method="post" enctype="multipart/form-data">{% csrf_token %}
       <input type="hidden" name="action" value="upload_gallery_files">
       <input type="hidden" name="confirm_generated_images" value="1">
