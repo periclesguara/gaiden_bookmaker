@@ -232,7 +232,7 @@ class CoverDesignForm(forms.Form):
         help_text="Opcional. A imagem é recortada dentro da largura calculada da lombada.",
     )
     add_front_text = forms.BooleanField(
-        label="Usar título, subtítulo e autor sobre o fundo da frente",
+        label="Usar título, subtítulo, autor, língua e editora sobre o fundo da frente",
         required=False,
         initial=True,
     )
@@ -260,6 +260,8 @@ class CoverDesignForm(forms.Form):
         help_text="Distância a partir do topo da frente.", required=False,
     )
     front_author_x_percent = forms.IntegerField(label="Posição horizontal do autor (%)", min_value=10, max_value=90, initial=50, required=False)
+    front_language_x_percent = forms.IntegerField(label="Posição horizontal da língua (%)", min_value=10, max_value=90, initial=50, required=False)
+    front_language_y_percent = forms.IntegerField(label="Posição vertical da língua (%)", min_value=70, max_value=94, initial=84, required=False)
     front_text_scale_percent = forms.IntegerField(
         label="Escala dos textos (%)", min_value=50, max_value=160, initial=100,
         required=False,
@@ -270,7 +272,7 @@ class CoverDesignForm(forms.Form):
         initial="center", required=False,
     )
     front_publisher_y_percent = forms.IntegerField(
-        label="Posição da editora (%)", min_value=78, max_value=96, initial=92,
+        label="Posição da editora (%)", min_value=78, max_value=96, initial=89,
         help_text="A editora permanece no pé da capa, dentro da área segura.", required=False,
     )
     front_publisher_x_percent = forms.IntegerField(label="Posição horizontal da editora (%)", min_value=10, max_value=90, initial=50, required=False)
@@ -305,15 +307,18 @@ class CoverDesignForm(forms.Form):
     front_title_font_family = forms.ChoiceField(label="Fonte do título", choices=COVER_FONTS, initial="EB Garamond", required=False)
     front_subtitle_font_family = forms.ChoiceField(label="Fonte do subtítulo", choices=COVER_FONTS, initial="EB Garamond", required=False)
     front_author_font_family = forms.ChoiceField(label="Fonte do autor", choices=COVER_FONTS, initial="EB Garamond", required=False)
+    front_language_font_family = forms.ChoiceField(label="Fonte da língua", choices=COVER_FONTS, initial="EB Garamond", required=False)
     front_publisher_font_family = forms.ChoiceField(label="Fonte da editora", choices=COVER_FONTS, initial="EB Garamond", required=False)
     front_title_color = forms.RegexField(label="Cor do título", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF", required=False, widget=forms.TextInput(attrs={"type": "color"}))
     front_subtitle_color = forms.RegexField(label="Cor do subtítulo", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C", required=False, widget=forms.TextInput(attrs={"type": "color"}))
     front_author_color = forms.RegexField(label="Cor do autor", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C", required=False, widget=forms.TextInput(attrs={"type": "color"}))
+    front_language_color = forms.RegexField(label="Cor da língua", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C", required=False, widget=forms.TextInput(attrs={"type": "color"}))
     front_publisher_color = forms.RegexField(label="Cor da editora", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C", required=False, widget=forms.TextInput(attrs={"type": "color"}))
     front_title_font_size_pt = forms.DecimalField(label="Título (pt)", min_value=12, max_value=72, decimal_places=1, initial=28, required=False)
     front_subtitle_font_size_pt = forms.DecimalField(label="Subtítulo (pt)", min_value=8, max_value=42, decimal_places=1, initial=14, required=False)
     front_author_font_size_pt = forms.DecimalField(label="Autor (pt)", min_value=8, max_value=36, decimal_places=1, initial=12, required=False)
-    front_publisher_font_size_pt = forms.DecimalField(label="Editora e língua (pt)", min_value=6, max_value=24, decimal_places=1, initial=9, required=False)
+    front_language_font_size_pt = forms.DecimalField(label="Língua (pt)", min_value=6, max_value=24, decimal_places=1, initial=8, required=False)
+    front_publisher_font_size_pt = forms.DecimalField(label="Editora (pt)", min_value=6, max_value=24, decimal_places=1, initial=10, required=False)
     front_title_weight = forms.ChoiceField(label="Peso do título", choices=(("regular", "Regular"), ("bold", "Negrito")), initial="bold", required=False)
     FONT_SHAPES = (("normal", "Normal"), ("italic", "Itálico"), ("small_caps", "Versalete"))
     FONT_WEIGHTS = (("regular", "Regular"), ("bold", "Negrito"))
@@ -322,11 +327,14 @@ class CoverDesignForm(forms.Form):
     front_subtitle_style = forms.ChoiceField(label="Forma do subtítulo", choices=FONT_SHAPES, initial="normal", required=False)
     front_author_weight = forms.ChoiceField(label="Peso do autor", choices=FONT_WEIGHTS, initial="regular", required=False)
     front_author_style = forms.ChoiceField(label="Forma do autor", choices=FONT_SHAPES, initial="normal", required=False)
+    front_language_weight = forms.ChoiceField(label="Peso da língua", choices=FONT_WEIGHTS, initial="regular", required=False)
+    front_language_style = forms.ChoiceField(label="Forma da língua", choices=FONT_SHAPES, initial="normal", required=False)
     front_publisher_weight = forms.ChoiceField(label="Peso da editora", choices=FONT_WEIGHTS, initial="regular", required=False)
     front_publisher_style = forms.ChoiceField(label="Forma da editora", choices=FONT_SHAPES, initial="normal", required=False)
     front_title_letter_spacing_pt = forms.DecimalField(label="Espaçamento do título (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
     front_subtitle_letter_spacing_pt = forms.DecimalField(label="Espaçamento do subtítulo (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
     front_author_letter_spacing_pt = forms.DecimalField(label="Espaçamento do autor (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
+    front_language_letter_spacing_pt = forms.DecimalField(label="Espaçamento da língua (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
     front_publisher_letter_spacing_pt = forms.DecimalField(label="Espaçamento da editora (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
     back_heading_font_size_pt = forms.DecimalField(label="Título da contracapa (pt)", min_value=8, max_value=36, decimal_places=1, initial=17, required=False)
     back_body_font_size_pt = forms.DecimalField(label="Texto sobre o livro (pt)", min_value=7, max_value=18, decimal_places=1, initial=10.5, required=False)
@@ -469,22 +477,28 @@ class CoverDesignForm(forms.Form):
             "front_title_y_percent": 20, "front_author_y_percent": 84,
             "front_title_x_percent": 50, "front_subtitle_x_percent": 50,
             "front_subtitle_y_percent": 34, "front_author_x_percent": 50,
+            "front_language_x_percent": 50, "front_language_y_percent": 84,
             "front_text_scale_percent": 100, "front_text_align": "center",
             "front_palette": "classic_blue",
-            "front_publisher_y_percent": 92, "cover_font_family": "EB Garamond",
+            "front_publisher_y_percent": 89, "cover_font_family": "EB Garamond",
             "front_title_font_family": "EB Garamond", "front_subtitle_font_family": "EB Garamond",
-            "front_author_font_family": "EB Garamond", "front_publisher_font_family": "EB Garamond",
+            "front_author_font_family": "EB Garamond", "front_language_font_family": "EB Garamond",
+            "front_publisher_font_family": "EB Garamond",
             "front_title_color": "#FFFFFF", "front_subtitle_color": "#D4A24C",
-            "front_author_color": "#D4A24C", "front_publisher_color": "#D4A24C",
+            "front_author_color": "#D4A24C", "front_language_color": "#D4A24C",
+            "front_publisher_color": "#D4A24C",
             "front_publisher_x_percent": 50,
             "front_title_font_size_pt": 28, "front_subtitle_font_size_pt": 14,
-            "front_author_font_size_pt": 12, "front_publisher_font_size_pt": 9,
+            "front_author_font_size_pt": 12, "front_language_font_size_pt": 8,
+            "front_publisher_font_size_pt": 10,
             "front_title_weight": "bold", "back_heading_font_size_pt": 17,
             "front_title_style": "normal", "front_subtitle_weight": "regular",
             "front_subtitle_style": "normal", "front_author_weight": "regular",
-            "front_author_style": "normal", "front_publisher_weight": "regular",
+            "front_author_style": "normal", "front_language_weight": "regular",
+            "front_language_style": "normal", "front_publisher_weight": "regular",
             "front_publisher_style": "normal", "front_title_letter_spacing_pt": 0,
             "front_subtitle_letter_spacing_pt": 0, "front_author_letter_spacing_pt": 0,
+            "front_language_letter_spacing_pt": 0,
             "front_publisher_letter_spacing_pt": 0,
             "back_body_font_size_pt": 10.5, "back_text_align": "left",
             "back_text_x_percent": 50, "back_text_y_percent": 12,

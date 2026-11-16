@@ -148,34 +148,42 @@ def design_cover_tex(
     front_subtitle_y_percent: int = 34,
     front_author_x_percent: int = 50,
     front_author_y_percent: int = 84,
+    front_language_x_percent: int = 50,
+    front_language_y_percent: int = 84,
     front_text_scale_percent: int = 100,
     front_text_align: str = "center",
-    front_publisher_y_percent: int = 92,
+    front_publisher_y_percent: int = 89,
     front_publisher_x_percent: int = 50,
     cover_font_family: str = "TeX Gyre Pagella",
     front_title_font_family: str = "",
     front_subtitle_font_family: str = "",
     front_author_font_family: str = "",
+    front_language_font_family: str = "",
     front_publisher_font_family: str = "",
     front_title_color: str = "",
     front_subtitle_color: str = "",
     front_author_color: str = "",
+    front_language_color: str = "",
     front_publisher_color: str = "",
     front_title_font_size_pt: Decimal | int | str = 28,
     front_subtitle_font_size_pt: Decimal | int | str = 14,
     front_author_font_size_pt: Decimal | int | str = 12,
-    front_publisher_font_size_pt: Decimal | int | str = 9,
+    front_language_font_size_pt: Decimal | int | str = 8,
+    front_publisher_font_size_pt: Decimal | int | str = 10,
     front_title_weight: str = "bold",
     front_title_style: str = "normal",
     front_subtitle_weight: str = "regular",
     front_subtitle_style: str = "normal",
     front_author_weight: str = "regular",
     front_author_style: str = "normal",
+    front_language_weight: str = "regular",
+    front_language_style: str = "normal",
     front_publisher_weight: str = "regular",
     front_publisher_style: str = "normal",
     front_title_letter_spacing_pt: Decimal | int | str = 0,
     front_subtitle_letter_spacing_pt: Decimal | int | str = 0,
     front_author_letter_spacing_pt: Decimal | int | str = 0,
+    front_language_letter_spacing_pt: Decimal | int | str = 0,
     front_publisher_letter_spacing_pt: Decimal | int | str = 0,
     back_text: str = "",
     back_heading: str = "",
@@ -261,11 +269,13 @@ def design_cover_tex(
         raise ValueError("invalid cover overlay opacity")
     if not 8 <= int(front_title_y_percent) <= 70 or not 45 <= int(front_author_y_percent) <= 92:
         raise ValueError("invalid front-cover text position")
-    for position in (front_title_x_percent, front_subtitle_x_percent, front_author_x_percent, front_publisher_x_percent):
+    for position in (front_title_x_percent, front_subtitle_x_percent, front_author_x_percent, front_language_x_percent, front_publisher_x_percent):
         if not 10 <= int(position) <= 90:
             raise ValueError("invalid front-cover horizontal position")
     if not 10 <= int(front_subtitle_y_percent) <= 82 or not 78 <= int(front_publisher_y_percent) <= 96:
         raise ValueError("invalid front-cover secondary text position")
+    if not 70 <= int(front_language_y_percent) <= 94:
+        raise ValueError("invalid front-cover language position")
     if not 10 <= int(back_text_x_percent) <= 90 or not 8 <= int(back_text_y_percent) <= 75:
         raise ValueError("invalid back-cover text position")
     if not 10 <= int(spine_text_x_percent) <= 90 or not 10 <= int(spine_text_y_percent) <= 90:
@@ -279,6 +289,7 @@ def design_cover_tex(
     title_decorations = _font_decorations(front_title_weight, front_title_style, front_title_letter_spacing_pt)
     subtitle_decorations = _font_decorations(front_subtitle_weight, front_subtitle_style, front_subtitle_letter_spacing_pt)
     author_decorations = _font_decorations(front_author_weight, front_author_style, front_author_letter_spacing_pt)
+    language_decorations = _font_decorations(front_language_weight, front_language_style, front_language_letter_spacing_pt)
     publisher_decorations = _font_decorations(front_publisher_weight, front_publisher_style, front_publisher_letter_spacing_pt)
     supported_fonts = {
         "EB Garamond", "GFS Didot", "GFS BodoniClassic", "GFS Baskerville",
@@ -293,10 +304,11 @@ def design_cover_tex(
     front_title_font_family = front_title_font_family or cover_font_family
     front_subtitle_font_family = front_subtitle_font_family or cover_font_family
     front_author_font_family = front_author_font_family or cover_font_family
+    front_language_font_family = front_language_font_family or cover_font_family
     front_publisher_font_family = front_publisher_font_family or cover_font_family
     if any(font not in supported_fonts for font in (
         front_title_font_family, front_subtitle_font_family,
-        front_author_font_family, front_publisher_font_family,
+        front_author_font_family, front_language_font_family, front_publisher_font_family,
     )):
         raise ValueError("unsupported front-cover font")
     if spine_font_family not in supported_fonts:
@@ -315,6 +327,7 @@ def design_cover_tex(
     title_color_value = _hex_color(front_title_color or text_color)
     subtitle_color_value = _hex_color(front_subtitle_color or accent_color)
     author_color_value = _hex_color(front_author_color or accent_color)
+    language_color_value = _hex_color(front_language_color or accent_color)
     publisher_color_value = _hex_color(front_publisher_color or accent_color)
     back_background = _hex_color(back_background_color)
     back_text_color = _hex_color(back_text_color)
@@ -330,12 +343,14 @@ def design_cover_tex(
     title_size = Decimal(str(front_title_font_size_pt)) * text_scale
     subtitle_size = Decimal(str(front_subtitle_font_size_pt)) * text_scale
     author_size = Decimal(str(front_author_font_size_pt)) * text_scale
+    language_size = Decimal(str(front_language_font_size_pt)) * text_scale
     publisher_size = Decimal(str(front_publisher_font_size_pt)) * text_scale
     back_heading_size = Decimal(str(back_heading_font_size_pt))
     back_body_size = Decimal(str(back_body_font_size_pt))
     title_y = geometry.bleed_in + geometry.trim_height_in * Decimal(str(front_title_y_percent)) / Decimal("100")
     subtitle_y = geometry.bleed_in + geometry.trim_height_in * Decimal(str(front_subtitle_y_percent)) / Decimal("100")
     author_y = geometry.bleed_in + geometry.trim_height_in * Decimal(str(front_author_y_percent)) / Decimal("100")
+    language_y = geometry.bleed_in + geometry.trim_height_in * Decimal(str(front_language_y_percent)) / Decimal("100")
     publisher_y = geometry.bleed_in + geometry.trim_height_in * Decimal(str(front_publisher_y_percent)) / Decimal("100")
     front_alignment = {"left": r"\raggedright", "center": r"\centering", "right": r"\raggedleft"}[front_text_align]
     image_block = ""
@@ -406,12 +421,21 @@ def design_cover_tex(
 \end{{textblock*}}"""
     front_copy_block = ""
     if layout != "art_only":
-        publisher_copy = " · ".join(part.strip() for part in (language, publisher) if part.strip())
+        # Language and publisher are independent editorial fields so each one
+        # keeps its own position, font and color on the front cover.
+        publisher_copy = publisher.strip()
         publisher_block = (
             rf"""\begin{{textblock*}}{{{text_width}in}}({text_x(front_x, int(front_publisher_x_percent))}in,{publisher_y}in)
 {front_alignment}\publisherfont\color{{publishercolor}}{publisher_decorations}\fontsize{{{publisher_size}}}{{{publisher_size + Decimal('3')}}}\selectfont {_tex_text(publisher_copy)}
 \end{{textblock*}}"""
             if publisher_copy else ""
+        )
+        language_copy = language.strip()
+        language_block = (
+            rf"""\begin{{textblock*}}{{{text_width}in}}({text_x(front_x, int(front_language_x_percent))}in,{language_y}in)
+{front_alignment}\languagefont\color{{languagecolor}}{language_decorations}\fontsize{{{language_size}}}{{{language_size + Decimal('3')}}}\selectfont {_tex_text(language_copy)}
+\end{{textblock*}}"""
+            if language_copy else ""
         )
         subtitle_block = (
             rf"""\begin{{textblock*}}{{{text_width}in}}({text_x(front_x, int(front_subtitle_x_percent))}in,{subtitle_y}in)
@@ -426,6 +450,7 @@ def design_cover_tex(
 \begin{{textblock*}}{{{text_width}in}}({text_x(front_x, int(front_author_x_percent))}in,{author_y}in)
 {front_alignment}\authorfont\color{{authorcolor}}{author_decorations}\fontsize{{{author_size}}}{{{author_size + Decimal('4')}}}\selectfont {_tex_text(author)}
 \end{{textblock*}}
+{language_block}
 {publisher_block}
 """
     barcode_block = ""
@@ -450,6 +475,7 @@ def design_cover_tex(
 \definecolor{{titlecolor}}{{HTML}}{{{title_color_value}}}
 \definecolor{{subtitlecolor}}{{HTML}}{{{subtitle_color_value}}}
 \definecolor{{authorcolor}}{{HTML}}{{{author_color_value}}}
+\definecolor{{languagecolor}}{{HTML}}{{{language_color_value}}}
 \definecolor{{publishercolor}}{{HTML}}{{{publisher_color_value}}}
 \definecolor{{backbg}}{{HTML}}{{{back_background}}}
 \definecolor{{backtext}}{{HTML}}{{{back_text_color}}}
@@ -459,6 +485,7 @@ def design_cover_tex(
 \newfontfamily\titlefont{{{front_title_font_family}}}
 \newfontfamily\subtitlefont{{{front_subtitle_font_family}}}
 \newfontfamily\authorfont{{{front_author_font_family}}}
+\newfontfamily\languagefont{{{front_language_font_family}}}
 \newfontfamily\publisherfont{{{front_publisher_font_family}}}
 \setmainfont{{{cover_font_family}}}
 \pagecolor{{coverbg}}

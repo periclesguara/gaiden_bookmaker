@@ -169,14 +169,17 @@ def test_editorial_cover_fields_typography_and_spine_background_reach_pdf_source
         front_title_font_family="GFS Didot",
         front_subtitle_font_family="Berenis ADF Pro",
         front_author_font_family="Gentium Book Plus",
+        front_language_font_family="Charis SIL",
         front_publisher_font_family="Fira Sans",
         front_title_color="#F7F1E3",
         front_subtitle_color="#C9A45C",
         front_author_color="#D8D0C0",
+        front_language_color="#AFC7D8",
         front_publisher_color="#B99A58",
         front_title_font_size_pt="34",
         front_subtitle_font_size_pt="16",
         front_author_font_size_pt="13",
+        front_language_font_size_pt="8",
         front_publisher_font_size_pt="9",
         front_title_weight="regular",
         front_title_style="small_caps",
@@ -185,11 +188,15 @@ def test_editorial_cover_fields_typography_and_spine_background_reach_pdf_source
         front_subtitle_style="italic",
         front_subtitle_letter_spacing_pt="0.5",
         front_author_style="italic",
+        front_language_style="small_caps",
+        front_language_letter_spacing_pt="0.8",
         front_publisher_weight="bold",
         front_title_x_percent=44,
         front_subtitle_x_percent=56,
         front_subtitle_y_percent=38,
         front_author_x_percent=48,
+        front_language_x_percent=50,
+        front_language_y_percent=84,
         front_publisher_x_percent=52,
         back_heading="Sobre o livro",
         back_text="Texto editorial da contracapa.",
@@ -209,11 +216,14 @@ def test_editorial_cover_fields_typography_and_spine_background_reach_pdf_source
     assert r"\newfontfamily\titlefont{GFS Didot}" in tex
     assert r"\newfontfamily\subtitlefont{Berenis ADF Pro}" in tex
     assert r"\newfontfamily\authorfont{Gentium Book Plus}" in tex
+    assert r"\newfontfamily\languagefont{Charis SIL}" in tex
     assert r"\newfontfamily\publisherfont{Fira Sans}" in tex
-    assert "F7F1E3" in tex and "C9A45C" in tex and "B99A58" in tex
+    assert "F7F1E3" in tex and "C9A45C" in tex and "AFC7D8" in tex and "B99A58" in tex
     assert r"\scshape\addfontfeatures{LetterSpace=1.2}" in tex
     assert r"\bfseries\itshape\addfontfeatures{LetterSpace=0.5}" in tex
-    assert "Português brasileiro · RinoBooks" in tex
+    assert "RinoBooks" in tex
+    assert "Português brasileiro" in tex
+    assert "Português brasileiro · RinoBooks" not in tex
     assert r"\fontsize{34}" in tex
     assert r"\fontsize{18}" in tex and r"\fontsize{11}" in tex
     assert r"\justifying" in tex

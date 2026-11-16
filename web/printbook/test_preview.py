@@ -112,7 +112,8 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertNotIn("Times New Roman", values)
         for field_name in (
             "front_title_font_size_pt", "front_title_style", "front_title_letter_spacing_pt",
-            "front_subtitle_font_size_pt", "front_author_font_size_pt", "front_publisher_font_size_pt",
+            "front_subtitle_font_size_pt", "front_author_font_size_pt", "front_language_font_size_pt",
+            "front_language_style", "front_language_x_percent", "front_publisher_font_size_pt",
         ):
             self.assertIn(field_name, CoverDesignForm.base_fields)
 

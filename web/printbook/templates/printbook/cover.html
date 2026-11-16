@@ -115,7 +115,7 @@
       </fieldset>
       <fieldset id="textos-frente" class="cover-section-front" data-cover-tab-panel="front">
         <legend>Textos da frente</legend>
-        <p class="cover-section-help">Ative os textos quando a arte enviada ainda não contém título e autor. Os controles abaixo ajustam a composição dentro da área segura da frente.</p>
+        <p class="cover-section-help">Ative os cinco campos quando a arte enviada ainda não contém os textos. Título, subtítulo, autor, língua e editora podem ser diagramados separadamente dentro da área segura.</p>
         <p class="front-text-switch">{{ design_form.add_front_text }} {{ design_form.add_front_text.label_tag }}</p>
         <div id="front-text-fields" hidden>
           <div class="layout-preset-control">
@@ -128,7 +128,7 @@
           <p>{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}</p>
           <p>{{ design_form.author.label_tag }} {{ design_form.author }}</p>
           <p>{{ design_form.language.label_tag }} {{ design_form.language }}</p>
-          <p>{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<small>A editora será posicionada automaticamente no pé da capa.</small></p>
+          <p>{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<small>A editora será impressa sozinha no pé da capa. A língua possui um quinto campo independente.</small></p>
           <p>{{ design_form.front_palette.label_tag }} {{ design_form.front_palette }}<small>{{ design_form.front_palette.help_text }}</small></p>
           <div class="cover-palette-swatches front-palette-swatches" aria-label="Prévia da cor clássica da frente"><span></span><span></span><span></span></div>
           <fieldset class="front-element-typography">
@@ -137,6 +137,7 @@
             <div class="element-type-row"><strong>Título</strong><p>{{ design_form.front_title_font_family.label_tag }} {{ design_form.front_title_font_family }}</p><p>{{ design_form.front_title_font_size_pt.label_tag }} {{ design_form.front_title_font_size_pt }}</p><p>{{ design_form.front_title_weight.label_tag }} {{ design_form.front_title_weight }}</p><p>{{ design_form.front_title_style.label_tag }} {{ design_form.front_title_style }}</p><p>{{ design_form.front_title_letter_spacing_pt.label_tag }} {{ design_form.front_title_letter_spacing_pt }}</p><p>{{ design_form.front_title_color.label_tag }} {{ design_form.front_title_color }}</p></div>
             <div class="element-type-row"><strong>Subtítulo</strong><p>{{ design_form.front_subtitle_font_family.label_tag }} {{ design_form.front_subtitle_font_family }}</p><p>{{ design_form.front_subtitle_font_size_pt.label_tag }} {{ design_form.front_subtitle_font_size_pt }}</p><p>{{ design_form.front_subtitle_weight.label_tag }} {{ design_form.front_subtitle_weight }}</p><p>{{ design_form.front_subtitle_style.label_tag }} {{ design_form.front_subtitle_style }}</p><p>{{ design_form.front_subtitle_letter_spacing_pt.label_tag }} {{ design_form.front_subtitle_letter_spacing_pt }}</p><p>{{ design_form.front_subtitle_color.label_tag }} {{ design_form.front_subtitle_color }}</p></div>
             <div class="element-type-row"><strong>Autor</strong><p>{{ design_form.front_author_font_family.label_tag }} {{ design_form.front_author_font_family }}</p><p>{{ design_form.front_author_font_size_pt.label_tag }} {{ design_form.front_author_font_size_pt }}</p><p>{{ design_form.front_author_weight.label_tag }} {{ design_form.front_author_weight }}</p><p>{{ design_form.front_author_style.label_tag }} {{ design_form.front_author_style }}</p><p>{{ design_form.front_author_letter_spacing_pt.label_tag }} {{ design_form.front_author_letter_spacing_pt }}</p><p>{{ design_form.front_author_color.label_tag }} {{ design_form.front_author_color }}</p></div>
+            <div class="element-type-row"><strong>Língua</strong><p>{{ design_form.front_language_font_family.label_tag }} {{ design_form.front_language_font_family }}</p><p>{{ design_form.front_language_font_size_pt.label_tag }} {{ design_form.front_language_font_size_pt }}</p><p>{{ design_form.front_language_weight.label_tag }} {{ design_form.front_language_weight }}</p><p>{{ design_form.front_language_style.label_tag }} {{ design_form.front_language_style }}</p><p>{{ design_form.front_language_letter_spacing_pt.label_tag }} {{ design_form.front_language_letter_spacing_pt }}</p><p>{{ design_form.front_language_color.label_tag }} {{ design_form.front_language_color }}</p></div>
             <div class="element-type-row"><strong>Editora</strong><p>{{ design_form.front_publisher_font_family.label_tag }} {{ design_form.front_publisher_font_family }}</p><p>{{ design_form.front_publisher_font_size_pt.label_tag }} {{ design_form.front_publisher_font_size_pt }}</p><p>{{ design_form.front_publisher_weight.label_tag }} {{ design_form.front_publisher_weight }}</p><p>{{ design_form.front_publisher_style.label_tag }} {{ design_form.front_publisher_style }}</p><p>{{ design_form.front_publisher_letter_spacing_pt.label_tag }} {{ design_form.front_publisher_letter_spacing_pt }}</p><p>{{ design_form.front_publisher_color.label_tag }} {{ design_form.front_publisher_color }}</p></div>
           </fieldset>
           <fieldset>
@@ -148,6 +149,8 @@
               <p>{{ design_form.front_subtitle_y_percent.label_tag }} {{ design_form.front_subtitle_y_percent }}</p>
               <p>{{ design_form.front_author_x_percent.label_tag }} {{ design_form.front_author_x_percent }}</p>
               <p>{{ design_form.front_author_y_percent.label_tag }} {{ design_form.front_author_y_percent }}<small>{{ design_form.front_author_y_percent.help_text }}</small></p>
+              <p>{{ design_form.front_language_x_percent.label_tag }} {{ design_form.front_language_x_percent }}</p>
+              <p>{{ design_form.front_language_y_percent.label_tag }} {{ design_form.front_language_y_percent }}</p>
               <p>{{ design_form.front_publisher_x_percent.label_tag }} {{ design_form.front_publisher_x_percent }}</p>
               <p>{{ design_form.front_publisher_y_percent.label_tag }} {{ design_form.front_publisher_y_percent }}<small>{{ design_form.front_publisher_y_percent.help_text }}</small></p>
               <p>{{ design_form.front_text_scale_percent.label_tag }} {{ design_form.front_text_scale_percent }}</p>
@@ -160,9 +163,10 @@
             <button type="button" class="floating-cover-field cover-live-title" data-floating-field="title" data-x-field="front_title_x_percent" data-y-field="front_title_y_percent" data-cover-title></button>
             <button type="button" class="floating-cover-field cover-live-subtitle" data-floating-field="subtitle" data-x-field="front_subtitle_x_percent" data-y-field="front_subtitle_y_percent" data-cover-subtitle></button>
             <button type="button" class="floating-cover-field cover-live-author" data-floating-field="author" data-x-field="front_author_x_percent" data-y-field="front_author_y_percent" data-cover-author></button>
+            <button type="button" class="floating-cover-field cover-live-language" data-floating-field="language" data-x-field="front_language_x_percent" data-y-field="front_language_y_percent" data-cover-language></button>
             <button type="button" class="floating-cover-field cover-live-publisher" data-floating-field="publisher" data-x-field="front_publisher_x_percent" data-y-field="front_publisher_y_percent" data-cover-publisher></button>
           </div>
-          <p class="cover-section-help">Arraste título, subtítulo, autor e editora para organizar o espaço da capa.</p>
+          <p class="cover-section-help">Arraste título, subtítulo, autor, língua e editora para organizar o espaço da capa.</p>
           <input type="hidden" name="text_color" value="{{ design_form.text_color.value|default:'#FFFFFF' }}">
           <input type="hidden" name="accent_color" value="{{ design_form.accent_color.value|default:'#D4A24C' }}">
         </div>
@@ -250,6 +254,7 @@
           <span class="cover-live-title" data-cover-title></span>
           <span class="cover-live-subtitle" data-cover-subtitle></span>
           <span class="cover-live-author" data-cover-author></span>
+          <span class="cover-live-language" data-cover-language></span>
           <span class="cover-live-publisher" data-cover-publisher></span>
         </div>
       </div>
@@ -264,6 +269,7 @@
           <span class="cover-live-title" data-cover-title></span>
           <span class="cover-live-subtitle" data-cover-subtitle></span>
           <span class="cover-live-author" data-cover-author></span>
+          <span class="cover-live-language" data-cover-language></span>
           <span class="cover-live-publisher" data-cover-publisher></span>
         </div>
       </div>
@@ -307,7 +313,7 @@
 main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minmax(260px,320px) minmax(560px,1fr) minmax(280px,350px);grid-template-areas:"left canvas right";gap:18px}.cover-studio-pro>form{display:contents}.cover-editor-left{grid-area:left}.cover-editor-right{grid-area:right}.cover-simulator{grid-area:canvas;position:sticky;top:12px;min-width:0}.cover-editor-panel{background:#f8f6f1;border:1px solid #d9d1c6;border-radius:12px;padding:14px;max-height:calc(100vh - 28px);overflow:auto}.cover-editor-panel h3{margin-top:0}.panel-selector,.image-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}.panel-selector button,.image-actions button,.nudge-grid button{background:#e4ded4;color:#26323a;padding:7px 9px}.panel-selector button.active{background:#285f94;color:#fff}.cover-control-grid p{margin:.4rem 0}.cover-control-grid label{display:block;font-size:12px}.cover-control-grid input,.cover-control-grid select{width:100%}.nudge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.cover-save-actions{position:sticky;bottom:-14px;background:#f8f6f1;padding:12px 0}.cover-canvas-viewport{height:min(68vh,720px);min-height:480px;background:#c9c5bd;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;border:1px solid #aaa;position:relative}.cover-canvas-viewport:active{cursor:grabbing}.cover-live-preview{width:min(900px,92%);max-width:none;flex:0 0 auto;transform-origin:center;transition:transform .08s linear}.cover-live-back>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;z-index:0;transform-origin:center}.cover-live-back-copy,.cover-barcode-zone{position:relative}.cover-ruler{height:22px;background-color:#f8f6f1;background-image:repeating-linear-gradient(90deg,#555 0 1px,transparent 1px 10px);border:1px solid #bbb;color:#444}.cover-ruler-y{display:none}.cursor-position{font:12px ui-monospace,monospace;background:#1f2937;color:#fff;padding:5px 8px}.guide-controls{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;padding:8px;background:#fff}.guide-controls label{display:flex;align-items:center;gap:4px}.guide-controls i{width:14px;border-top:3px solid}.key-physical{border-color:#111!important}.key-trim{border-color:#ef4444!important}.key-bleed{border-color:#f59e0b!important}.key-safe{border-color:#22c55e!important}.key-spine{border-color:#3b82f6!important}.key-center{border-color:#a855f7!important}.cover-live-preview:not(.guide-physical){border-color:transparent}.cover-live-preview.guide-bleed:after{content:"SANGRIA";position:absolute;inset:0;border:2px solid #f59e0b;color:#f59e0b;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview.guide-trim:before{content:"CORTE";position:absolute;inset:1.35%;border:2px solid #ef4444;color:#ef4444;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview:not(.guide-safe) .cover-safe-zone{display:none}.cover-live-preview.guide-safe .cover-safe-zone{display:block}.cover-live-preview:not(.guide-spine) .cover-live-spine{outline:0}.cover-live-preview.guide-spine .cover-live-spine{outline:2px solid #3b82f6;outline-offset:-2px}.spine-center-guide{display:none;position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed #a855f7}.guide-center .spine-center-guide{display:block}.cover-live-spine span{position:relative;z-index:2;white-space:nowrap}.cover-live-image{image-rendering:auto;will-change:transform}.cover-image-status{overflow-wrap:anywhere}.simulator-toolbar output{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}@media(max-width:1180px){.cover-studio-pro{grid-template-columns:minmax(250px,320px) 1fr;grid-template-areas:"left canvas" "right right"}.cover-editor-right{max-height:none}.cover-simulator{position:static}}@media(max-width:760px){.cover-studio-pro{grid-template-columns:1fr;grid-template-areas:"canvas" "left" "right"}.cover-canvas-viewport{min-height:340px}.cover-live-preview{min-width:620px}.cover-editor-panel{max-height:none}}
 @media(min-width:901px){.cover-studio-pro{grid-template-columns:minmax(210px,280px) minmax(430px,1fr) minmax(220px,280px);grid-template-areas:"left canvas right";gap:12px}.cover-editor-right{max-height:calc(100vh - 28px)}.cover-simulator{position:sticky}}
 .cover-editor-panel{overflow-x:hidden}.cover-editor-panel .cover-control-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cover-editor-panel .cover-control-grid>*{min-width:0}.cover-editor-panel input,.cover-editor-panel select,.cover-editor-panel textarea{max-width:100%;min-width:0}
-.cover-section-help{font-size:12px;line-height:1.45;color:#5c5b59;background:#fff;border-left:3px solid #285f94;padding:8px 10px}.cover-live-back-footer{font-size:clamp(6px,.9vw,9px);line-height:1.25;margin-top:auto}.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-publisher]{position:absolute;z-index:3;width:80%;left:10%;transform-origin:center}.cover-live-publisher{font-size:clamp(7px,1vw,11px);letter-spacing:.08em;text-transform:uppercase}
+.cover-section-help{font-size:12px;line-height:1.45;color:#5c5b59;background:#fff;border-left:3px solid #285f94;padding:8px 10px}.cover-live-back-footer{font-size:clamp(6px,.9vw,9px);line-height:1.25;margin-top:auto}.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-language],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-language],.cover-book-front [data-cover-publisher]{position:absolute;z-index:3;width:80%;left:10%;transform-origin:center}.cover-live-language,.cover-live-publisher{font-size:clamp(7px,1vw,11px);letter-spacing:.08em;text-transform:uppercase}
 .cover-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px;border-bottom:1px solid #d9d1c6;padding-bottom:10px}.cover-editor-tabs button{background:#e8e2d8;color:#30363b;font-weight:700}.cover-editor-tabs button.active{background:#285f94;color:#fff}.cover-editor-right{display:flex;flex-direction:column}.cover-editor-right>.production-gate{order:20}.cover-editor-right>.cover-save-actions{order:21}[data-cover-tab-panel][hidden]{display:none!important}.cover-section-typography{order:1}#textos-frente:target,#textos-contracapa:target{outline:3px solid #d4a24c;outline-offset:3px;background:#fffdf5}.cover-live-spine>.cover-live-image,.cover-book-spine>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.cover-live-spine,.cover-book-spine{position:relative;overflow:hidden}.cover-live-spine>[data-cover-spine],.cover-book-spine>[data-cover-spine]{position:relative;z-index:2}
 .cover-studio-pro:not(.montage-active){grid-template-columns:minmax(390px,.9fr) minmax(560px,1.1fr);grid-template-areas:"left right";align-items:start}.cover-studio-pro:not(.montage-active) .cover-editor-panel{max-height:none;width:auto;min-width:0}.cover-image-picker{display:grid;gap:8px;border:2px dashed #285f94;background:#eef5fb;border-radius:10px;padding:16px;margin-bottom:14px}.cover-image-picker label{font-weight:800;color:#204f78}.cover-image-picker input[type=file]{display:block;width:100%;max-width:100%;padding:12px;background:#fff;border:1px solid #9eb9cf;border-radius:8px}.cover-image-picker strong{font-size:12px;color:#285f94}.panel-layout-stage{position:relative;width:min(100%,430px);aspect-ratio:2/3;margin:16px auto;background:#1f2937;overflow:hidden;border:8px solid #e8e2d8;box-shadow:0 10px 24px #1f293733;color:#fff}.panel-layout-stage>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.panel-layout-stage>.cover-live-overlay{position:absolute;inset:0;z-index:1}.floating-cover-field{position:absolute;z-index:3;width:80%;left:50%;transform:translateX(-50%);margin:0;padding:7px;border:1px dashed #fff9;background:#1115;color:inherit;cursor:grab;touch-action:none;overflow-wrap:anywhere}.floating-cover-field:active{cursor:grabbing;border-style:solid}.floating-back-copy{display:flex;flex-direction:column;gap:8px;text-align:left}.floating-back-copy span{white-space:pre-wrap}.spine-layout-stage{width:min(100%,110px);aspect-ratio:1/8}.floating-spine-copy{width:max-content;max-width:720%;white-space:nowrap;transform:translate(-50%,-50%) rotate(90deg)}.next-cover-step{width:100%;margin-top:12px;background:#285f94}.empty-back-approval{border:1px solid #d4a24c;background:#fff8e8;border-radius:8px;padding:10px}.cover-section-typography{order:1}@media(max-width:1280px){.cover-studio-pro:not(.montage-active){grid-template-columns:minmax(0,1fr);grid-template-areas:"left" "right"}.cover-studio-pro:not(.montage-active) .cover-editor-panel{width:100%;box-sizing:border-box}.cover-studio-pro:not(.montage-active) .panel-layout-stage{width:min(100%,520px)}}
 .cover-font-sample{display:grid;gap:5px;margin:12px 0 18px;padding:22px;border:1px solid #c8a66a;border-radius:10px;background:#fffdf8;text-align:center;color:#241f1a}.cover-font-sample span{font:700 10px/1.2 system-ui;letter-spacing:.18em;color:#8a5a32}.cover-font-sample strong{font-size:32px;line-height:1.05;font-weight:600}.cover-font-sample small{font-size:14px;letter-spacing:.04em}
@@ -351,22 +357,25 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
       front_title_font_family: 'GFS Baskerville', front_title_font_size_pt: '30', front_title_weight: 'bold', front_title_style: 'normal', front_title_letter_spacing_pt: '.3',
       front_subtitle_font_family: 'EB Garamond', front_subtitle_font_size_pt: '14', front_subtitle_weight: 'regular', front_subtitle_style: 'italic', front_subtitle_letter_spacing_pt: '.1',
       front_author_font_family: 'GFS Baskerville', front_author_font_size_pt: '12', front_author_weight: 'regular', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1',
-      front_publisher_font_family: 'GFS Baskerville', front_publisher_font_size_pt: '8.5', front_publisher_weight: 'regular', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1',
-      front_title_x_percent: '50', front_title_y_percent: '17', front_subtitle_x_percent: '50', front_subtitle_y_percent: '32', front_author_x_percent: '50', front_author_y_percent: '82', front_publisher_x_percent: '50', front_publisher_y_percent: '92', front_text_scale_percent: '100', front_text_align: 'center'
+      front_language_font_family: 'EB Garamond', front_language_font_size_pt: '8', front_language_weight: 'regular', front_language_style: 'small_caps', front_language_letter_spacing_pt: '.8',
+      front_publisher_font_family: 'GFS Baskerville', front_publisher_font_size_pt: '10', front_publisher_weight: 'regular', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1',
+      front_title_x_percent: '50', front_title_y_percent: '17', front_subtitle_x_percent: '50', front_subtitle_y_percent: '32', front_author_x_percent: '50', front_author_y_percent: '79', front_language_x_percent: '50', front_language_y_percent: '84', front_publisher_x_percent: '50', front_publisher_y_percent: '89', front_text_scale_percent: '100', front_text_align: 'center'
     },
     modern: {
       front_title_font_family: 'Fira Sans', front_title_font_size_pt: '32', front_title_weight: 'bold', front_title_style: 'normal', front_title_letter_spacing_pt: '0',
       front_subtitle_font_family: 'Fira Sans', front_subtitle_font_size_pt: '13', front_subtitle_weight: 'regular', front_subtitle_style: 'normal', front_subtitle_letter_spacing_pt: '.3',
       front_author_font_family: 'Fira Sans', front_author_font_size_pt: '11', front_author_weight: 'bold', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1.2',
-      front_publisher_font_family: 'Fira Sans', front_publisher_font_size_pt: '8', front_publisher_weight: 'regular', front_publisher_style: 'normal', front_publisher_letter_spacing_pt: '1',
-      front_title_x_percent: '50', front_title_y_percent: '13', front_subtitle_x_percent: '50', front_subtitle_y_percent: '30', front_author_x_percent: '50', front_author_y_percent: '78', front_publisher_x_percent: '50', front_publisher_y_percent: '92', front_text_scale_percent: '100', front_text_align: 'left'
+      front_language_font_family: 'Fira Sans', front_language_font_size_pt: '8', front_language_weight: 'regular', front_language_style: 'normal', front_language_letter_spacing_pt: '.8',
+      front_publisher_font_family: 'Fira Sans', front_publisher_font_size_pt: '9.5', front_publisher_weight: 'bold', front_publisher_style: 'normal', front_publisher_letter_spacing_pt: '1',
+      front_title_x_percent: '50', front_title_y_percent: '13', front_subtitle_x_percent: '50', front_subtitle_y_percent: '30', front_author_x_percent: '50', front_author_y_percent: '76', front_language_x_percent: '50', front_language_y_percent: '84', front_publisher_x_percent: '50', front_publisher_y_percent: '89', front_text_scale_percent: '100', front_text_align: 'left'
     },
     minimal: {
       front_title_font_family: 'GFS Didot', front_title_font_size_pt: '25', front_title_weight: 'regular', front_title_style: 'normal', front_title_letter_spacing_pt: '1.4',
       front_subtitle_font_family: 'GFS Didot', front_subtitle_font_size_pt: '11', front_subtitle_weight: 'regular', front_subtitle_style: 'italic', front_subtitle_letter_spacing_pt: '.4',
       front_author_font_family: 'GFS Didot', front_author_font_size_pt: '10', front_author_weight: 'regular', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1.5',
-      front_publisher_font_family: 'GFS Didot', front_publisher_font_size_pt: '7.5', front_publisher_weight: 'regular', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1.2',
-      front_title_x_percent: '50', front_title_y_percent: '27', front_subtitle_x_percent: '50', front_subtitle_y_percent: '43', front_author_x_percent: '50', front_author_y_percent: '79', front_publisher_x_percent: '50', front_publisher_y_percent: '91', front_text_scale_percent: '100', front_text_align: 'center'
+      front_language_font_family: 'GFS Didot', front_language_font_size_pt: '8', front_language_weight: 'regular', front_language_style: 'italic', front_language_letter_spacing_pt: '.8',
+      front_publisher_font_family: 'GFS Didot', front_publisher_font_size_pt: '9', front_publisher_weight: 'bold', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1.2',
+      front_title_x_percent: '50', front_title_y_percent: '27', front_subtitle_x_percent: '50', front_subtitle_y_percent: '43', front_author_x_percent: '50', front_author_y_percent: '77', front_language_x_percent: '50', front_language_y_percent: '83', front_publisher_x_percent: '50', front_publisher_y_percent: '88', front_text_scale_percent: '100', front_text_align: 'center'
     }
   };
   const applyLayoutPreset = (name) => {
@@ -436,6 +445,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const titleColor = value('front_title_color') || text;
     const subtitleColor = value('front_subtitle_color') || accent;
     const authorColor = value('front_author_color') || accent;
+    const languageColor = value('front_language_color') || accent;
     const publisherColor = value('front_publisher_color') || accent;
     const backBackground = value('back_background_color') || '#1F2937';
     const backText = value('back_text_color') || '#FFFFFF';
@@ -465,8 +475,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     all('[data-cover-title]').forEach((element) => { element.textContent = value('title') || 'Título do livro'; element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
     all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
     all('[data-cover-author]').forEach((element) => { element.textContent = value('author') || 'Autor'; element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
-    all('[data-cover-publisher]').forEach((element) => { element.textContent = [value('language'), value('publisher')].filter(Boolean).join(' · '); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
-    ['front_title', 'front_subtitle', 'front_author', 'front_publisher'].forEach((prefix) => {
+    all('[data-cover-language]').forEach((element) => { element.textContent = value('language') || 'Português (Brasil)'; element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
+    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher') || 'RinoBooks'; element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
+    ['front_title', 'front_subtitle', 'front_author', 'front_language', 'front_publisher'].forEach((prefix) => {
       const selector = form.elements[`${prefix}_font_family`];
       if (selector) selector.style.fontFamily = previewFont(selector.value);
     });
@@ -481,15 +492,18 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const subtitleY = Number(value('front_subtitle_y_percent') || 34);
     const authorX = Number(value('front_author_x_percent') || 50);
     const authorY = Number(value('front_author_y_percent') || 84);
+    const languageX = Number(value('front_language_x_percent') || 50);
+    const languageY = Number(value('front_language_y_percent') || 84);
     const publisherX = Number(value('front_publisher_x_percent') || 50);
-    const publisherY = Number(value('front_publisher_y_percent') || 92);
+    const publisherY = Number(value('front_publisher_y_percent') || 89);
     const frontScale = Number(value('front_text_scale_percent') || 100) / 100;
     const frontAlign = value('front_text_align') || 'center';
     const applyShape = (element, prefix) => { const shape = value(`${prefix}_style`) || 'normal'; element.style.fontWeight = value(`${prefix}_weight`) === 'bold' ? '700' : '400'; element.style.fontStyle = shape === 'italic' ? 'italic' : 'normal'; element.style.fontVariant = shape === 'small_caps' ? 'small-caps' : 'normal'; element.style.letterSpacing = `${value(`${prefix}_letter_spacing_pt`) || 0}pt`; };
     all('[data-cover-title]').forEach((element) => { element.style.left = `${titleX}%`; element.style.top = `${titleY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_title_font_size_pt') || 28}pt`; applyShape(element, 'front_title'); });
     all('[data-cover-subtitle]').forEach((element) => { element.style.left = `${subtitleX}%`; element.style.top = `${subtitleY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_subtitle_font_size_pt') || 14}pt`; applyShape(element, 'front_subtitle'); });
     all('[data-cover-author]').forEach((element) => { element.style.left = `${authorX}%`; element.style.top = `${authorY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.marginTop = '0'; element.style.fontSize = `${value('front_author_font_size_pt') || 12}pt`; applyShape(element, 'front_author'); });
-    all('[data-cover-publisher]').forEach((element) => { element.style.left = `${publisherX}%`; element.style.top = `${publisherY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_publisher_font_size_pt') || 9}pt`; applyShape(element, 'front_publisher'); });
+    all('[data-cover-language]').forEach((element) => { element.style.left = `${languageX}%`; element.style.top = `${languageY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_language_font_size_pt') || 8}pt`; applyShape(element, 'front_language'); });
+    all('[data-cover-publisher]').forEach((element) => { element.style.left = `${publisherX}%`; element.style.top = `${publisherY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_publisher_font_size_pt') || 10}pt`; applyShape(element, 'front_publisher'); });
     all('[data-cover-back-heading]').forEach((element) => { element.style.fontSize = `${value('back_heading_font_size_pt') || 17}pt`; });
     all('[data-cover-back]').forEach((element) => { element.style.fontSize = `${value('back_body_font_size_pt') || 10.5}pt`; });
     all('.cover-live-back-copy').forEach((element) => { element.style.position = 'absolute'; element.style.width = '80%'; element.style.left = `${value('back_text_x_percent') || 50}%`; element.style.top = `${value('back_text_y_percent') || 12}%`; element.style.transform = 'translateX(-50%)'; element.style.textAlign = value('back_text_align') === 'center' ? 'center' : value('back_text_align') === 'justify' ? 'justify' : 'left'; element.style.fontFamily = previewFont(value('cover_font_family')); });
@@ -508,7 +522,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
       element.style.transform = `translate(-50%, -50%) translate(${value('spine_offset_x_mm') || 0}px, ${value('spine_offset_y_mm') || 0}px) rotate(${Number(value('spine_rotation') || 90) - 90}deg)`;
     });
     const artOnly = !addFrontText;
-    document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-publisher]').forEach((element) => {
+    document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-language],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-language],.cover-book-front [data-cover-publisher]').forEach((element) => {
       element.hidden = artOnly;
     });
     applyImageTransform('front');
@@ -578,6 +592,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     form.elements.front_title_color.value = colors[1];
     form.elements.front_subtitle_color.value = colors[2];
     form.elements.front_author_color.value = colors[2];
+    form.elements.front_language_color.value = colors[2];
     form.elements.front_publisher_color.value = colors[2];
     update();
   });

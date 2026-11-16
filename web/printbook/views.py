@@ -281,7 +281,7 @@ def cover_dashboard(request, pk):
         design_initial["cover_font_family"] = "EB Garamond"
     for field_name in (
         "front_title_font_family", "front_subtitle_font_family",
-        "front_author_font_family", "front_publisher_font_family",
+        "front_author_font_family", "front_language_font_family", "front_publisher_font_family",
     ):
         if design_initial.get(field_name) not in professional_fonts:
             design_initial[field_name] = design_initial["cover_font_family"]
