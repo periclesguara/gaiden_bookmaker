@@ -73,6 +73,9 @@ and approved recovery sequence are documented in
 - `docs/architecture.md`: active modules, compatibility boundary, runtime data,
   and quality gates.
 - `docs/repository-governance.md`: branch, pull request, and artifact policy.
+- `docs/printbook-platform-template-contract.md`: platform-specific PrintBook
+  template, validation, and output rules for IngramSpark, Amazon KDP, and
+  UICLAP.
 - `docs/runbooks/secret-rotation-and-history-cleanup.md`: credential response.
 - `docs/audits/main-migration-reconciliation.md`: recovered migration
   provenance, data-preserving reconciliation, deployment, and rollback.
