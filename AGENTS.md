@@ -166,3 +166,25 @@ Codex may recommend merge only when:
 
 If any condition cannot be satisfied, leave the PR in draft and report the
 specific blocker. Never describe incomplete or unverified work as finished.
+
+## PrintBook platform profiles
+
+For changes that affect PrintBook, print-cover templates, spine/bleed/barcode
+calculations, interior-PDF inspection, or publishing-platform selection, read
+and implement `docs/printbook-platform-template-contract.md`.
+
+- Use one strict platform adapter and manifest per IngramSpark, Amazon KDP, and
+  UICLAP. A template or final cover is never universal.
+- IngramSpark accepts IDML or PDF template sources, does not use INDD from
+  November 2026, and requires separate final cover and interior PDFs.
+- Amazon KDP uses its own PDF/PNG guide template and final cover PDF. IDML is
+  not a KDP platform template or upload format.
+- UICLAP derives cover geometry from the final interior PDF and requires the
+  final cover as JPG; a cover PDF is intermediate only.
+- Reject platform mismatches. Invalidate derived artifacts when the interior
+  hash, page count, trim, paper, binding, reading direction, ISBN/barcode mode,
+  finish, or flap configuration changes.
+- Add deterministic offline tests for accepted/rejected formats, geometry,
+  invalidation, output format, resolution, and barcode safety areas.
+- Keep generated interiors, covers, and operator template files in configured
+  external storage, never in Git.
