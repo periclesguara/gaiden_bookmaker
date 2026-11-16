@@ -405,6 +405,7 @@ def cover_template(request, pk):
 @require_POST
 def action(request, pk, action):
     edition = get_object_or_404(PrintEdition, pk=pk)
+    cover_continue_to = ""
     try:
         if action == "configure":
             services.guard(edition)
@@ -447,6 +448,9 @@ def action(request, pk, action):
                         messages.error(request, f"{label}: {error}")
                 return redirect("printbook:cover", pk=pk)
             services.design_cover(edition, **form.cleaned_data)
+            requested_tab = request.POST.get("continue_to", "")
+            if requested_tab in {"back", "spine", "montage"}:
+                cover_continue_to = requested_tab
         elif action == "approve_cover":
             services.approve_cover(edition)
         elif action == "preflight":
@@ -459,7 +463,10 @@ def action(request, pk, action):
             services.export_package(edition)
         else:
             raise Http404
-        messages.success(request, "Operação registrada. Confira o estado e o relatório do build.")
+        if action == "design_cover" and cover_continue_to:
+            messages.success(request, "Rascunho da capa salvo. Continue na próxima etapa.")
+        else:
+            messages.success(request, "Operação registrada. Confira o estado e o relatório do build.")
     except (ValueError, RuntimeError) as exc:
         # Compiler output may contain operator paths; keep it out of the page.
         if isinstance(exc, ValueError):
@@ -481,7 +488,10 @@ def action(request, pk, action):
         "approve_edition": "printbook:preflight",
         "export": "printbook:export",
     }
-    return redirect(destinations.get(action, "printbook:configuration"), pk=pk)
+    response = redirect(destinations.get(action, "printbook:configuration"), pk=pk)
+    if action == "design_cover" and cover_continue_to:
+        response["Location"] = f'{response["Location"]}?tab={cover_continue_to}&saved=draft'
+    return response
 
 
 MODELS = {"interior": InteriorBuild, "cover": CoverBuild, "report": PreflightReport, "export": PrintExport}

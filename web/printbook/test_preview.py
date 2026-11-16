@@ -7,7 +7,7 @@ from django.test import RequestFactory, SimpleTestCase
 
 from web.printbook.forms import CoverDesignForm
 from web.printbook.services import estimated_spine_width
-from web.printbook.views import preview, preview_navigation
+from web.printbook.views import action, preview, preview_navigation
 
 
 class PreviewNavigationTests(SimpleTestCase):
@@ -101,6 +101,21 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data["layout"], "art_only")
         self.assertEqual(form.cleaned_data["overlay_opacity"], 0)
+
+    def test_draft_save_redirects_to_the_requested_next_cover_stage(self):
+        data = self._data()
+        data["continue_to"] = "back"
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6)
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.design_cover"
+        ) as design_cover, patch("web.printbook.views.messages.success"):
+            response = action(request, 6, "design_cover")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
+        self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
 
     def test_cover_font_catalog_uses_professional_editorial_families(self):
         values = dict(CoverDesignForm.COVER_FONTS)

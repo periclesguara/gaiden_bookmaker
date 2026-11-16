@@ -49,9 +49,11 @@
     <button type="button" role="tab" aria-selected="false" data-cover-tab="montage">Montagem da capa</button>
   </nav>
   {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
+  {% if request.GET.saved == 'draft' %}<p class="quality-good" role="status"><strong>Rascunho salvo.</strong> A etapa anterior foi gravada; continue trabalhando na aba aberta.</p>{% endif %}
   <div class="cover-studio cover-studio-pro">
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}
+      <input type="hidden" name="continue_to" value="">
       <aside class="cover-editor-panel cover-editor-left">
       <h3>Imagens de fundo</h3>
       <fieldset data-cover-tab-panel="front">
@@ -69,7 +71,7 @@
         </div>
         <p class="range-control">{{ design_form.overlay_opacity.label_tag }} {{ design_form.overlay_opacity }} <output data-output="overlay_opacity">0%</output></p>
         <div class="image-actions"><button type="button" data-image-action="center">Centralizar</button><button type="button" data-image-action="contain">Ajustar</button><button type="button" data-image-action="cover">Preencher</button><button type="button" data-image-action="reset">Restaurar</button></div>
-        <button type="button" class="next-cover-step" data-next-tab="back">Continuar para Contracapa →</button>
+        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar capa e continuar para Contracapa →</button>
       </fieldset>
       <fieldset data-cover-tab-panel="back" hidden>
         <legend>Arte da contracapa</legend>
@@ -81,7 +83,7 @@
           <p>{{ design_form.back_image_offset_x_mm.label_tag }} {{ design_form.back_image_offset_x_mm }}</p><p>{{ design_form.back_image_offset_y_mm.label_tag }} {{ design_form.back_image_offset_y_mm }}</p>
           <p>{{ design_form.back_image_rotation_deg.label_tag }} {{ design_form.back_image_rotation_deg }}</p>
         </div>
-        <button type="button" class="next-cover-step" data-next-tab="spine">Continuar para Lombada →</button>
+        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar contracapa e continuar para Lombada →</button>
       </fieldset>
       <fieldset data-cover-tab-panel="spine" hidden>
         <legend>Imagem de fundo da lombada</legend>
@@ -89,7 +91,7 @@
         <p>{{ design_form.spine_image_fit.label_tag }} {{ design_form.spine_image_fit }}</p>
         <p>{{ design_form.spine_image_zoom.label_tag }} {{ design_form.spine_image_zoom }}</p>
         <div class="cover-control-grid"><p>{{ design_form.spine_image_x.label_tag }} {{ design_form.spine_image_x }}</p><p>{{ design_form.spine_image_y.label_tag }} {{ design_form.spine_image_y }}</p></div>
-        <button type="button" class="next-cover-step" data-next-tab="montage">Continuar para Montagem →</button>
+        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="montage" {% if not interior or source_error %}disabled{% endif %}>Salvar lombada e continuar para Montagem →</button>
       </fieldset>
       <div data-cover-tab-panel="montage" hidden>
         <p class="front-text-switch">{{ design_form.allow_empty_areas }} {{ design_form.allow_empty_areas.label_tag }}</p>
@@ -711,6 +713,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   };
   all('[data-cover-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.coverTab)));
   all('[data-next-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.nextTab)));
+  all('[data-save-next]').forEach((button) => button.addEventListener('click', () => {
+    form.elements.continue_to.value = button.dataset.saveNext;
+  }));
 
   all('[data-floating-field]').forEach((field) => {
     field.addEventListener('pointerdown', (event) => {
@@ -748,7 +753,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   viewport.addEventListener('pointerdown', (event) => { if (event.target !== viewport && event.button !== 1) return; panning = true; panStart = {x: event.clientX - pan.x, y: event.clientY - pan.y}; viewport.setPointerCapture(event.pointerId); });
   viewport.addEventListener('pointermove', (event) => { const box = preview.getBoundingClientRect(); const spreadWidthMm = ((Number(simulator.dataset.panelWidth) || 6.125) * 2 + (Number(value('spine')) || Number(simulator.dataset.spine) || 0)) * 25.4; const spreadHeightMm = (Number(simulator.dataset.panelHeight) || 9.25) * 25.4; document.getElementById('cursor-mm').value = `${((event.clientX - box.left) / box.width * spreadWidthMm).toFixed(1)} × ${((event.clientY - box.top) / box.height * spreadHeightMm).toFixed(1)} mm`; if (panning) { pan = {x: event.clientX - panStart.x, y: event.clientY - panStart.y}; renderCanvasTransform(); } });
   viewport.addEventListener('pointerup', () => { panning = false; });
-  activateCoverTab('front'); pushHistory(); update(); renderCanvasTransform();
+  const requestedCoverTab = new URLSearchParams(window.location.search).get('tab');
+  const initialCoverTab = ['front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : 'front';
+  activateCoverTab(initialCoverTab); pushHistory(); update(); renderCanvasTransform();
 }());
 </script>
 {% endblock %}
