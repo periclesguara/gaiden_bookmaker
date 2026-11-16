@@ -513,6 +513,23 @@ def load_cover_design(build):
     return value if isinstance(value, dict) else {}
 
 
+def save_cover_draft_fields(edition, fields):
+    """Persist editable cover fields before any PDF or image build can fail."""
+    excluded = {"cover_image", "back_image", "spine_image", "template"}
+    draft = dict(edition.cover_settings or {})
+    for key, value in fields.items():
+        if key in excluded or value is None:
+            continue
+        if isinstance(value, Decimal):
+            value = str(value)
+        if isinstance(value, (str, int, float, bool)):
+            draft[key] = value
+    draft["save_mode"] = "draft"
+    edition.cover_settings = draft
+    edition.save(update_fields=["cover_settings", "updated_at"])
+    return draft
+
+
 def upload_pdf(upload, path):
     if Path(upload.name).suffix.lower() != ".pdf" or upload.size > 100 * 1024 * 1024:
         raise ValueError("Envie um PDF de até 100 MiB.")

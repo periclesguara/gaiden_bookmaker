@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, SimpleTestCase
 
 from web.printbook.forms import CoverDesignForm
-from web.printbook.services import estimated_spine_width
+from web.printbook.services import estimated_spine_width, save_cover_draft_fields
 from web.printbook.views import action, preview, preview_navigation
 
 
@@ -109,13 +109,42 @@ class CoverStudioFormTests(SimpleTestCase):
         edition = SimpleNamespace(pk=6)
 
         with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
-            "web.printbook.views.services.design_cover"
-        ) as design_cover, patch("web.printbook.views.messages.success"):
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
             response = action(request, 6, "design_cover")
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
+        save_fields.assert_called_once()
         self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
+
+    def test_cover_draft_fields_are_persisted_before_compilation(self):
+        class DraftEdition:
+            cover_settings = {"title": "Versão anterior"}
+            saved_fields = None
+
+            def save(self, *, update_fields):
+                self.saved_fields = update_fields
+
+        edition = DraftEdition()
+        draft = save_cover_draft_fields(edition, {
+            "title": "Manual de Epicteto",
+            "front_title_x_percent": 51,
+            "front_title_font_size_pt": Decimal("28.5"),
+            "front_title_color": "#EAB308",
+            "add_front_text": True,
+            "cover_image": object(),
+        })
+
+        self.assertEqual(draft["title"], "Manual de Epicteto")
+        self.assertEqual(draft["front_title_x_percent"], 51)
+        self.assertEqual(draft["front_title_font_size_pt"], "28.5")
+        self.assertEqual(draft["front_title_color"], "#EAB308")
+        self.assertTrue(draft["add_front_text"])
+        self.assertNotIn("cover_image", draft)
+        self.assertEqual(edition.saved_fields, ["cover_settings", "updated_at"])
 
     def test_cover_font_catalog_uses_professional_editorial_families(self):
         values = dict(CoverDesignForm.COVER_FONTS)

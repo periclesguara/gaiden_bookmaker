@@ -275,6 +275,7 @@ def cover_dashboard(request, pk):
         "spine": estimated_spine,
     }
     saved = services.load_cover_design(latest_visual)
+    saved.update(edition.cover_settings or {})
     design_initial.update({key: value for key, value in saved.items() if key in CoverDesignForm.base_fields})
     professional_fonts = {value for value, _label in CoverDesignForm.COVER_FONTS}
     if design_initial.get("cover_font_family") not in professional_fonts:
@@ -447,6 +448,7 @@ def action(request, pk, action):
                     for error in errors:
                         messages.error(request, f"{label}: {error}")
                 return redirect("printbook:cover", pk=pk)
+            services.save_cover_draft_fields(edition, form.cleaned_data)
             services.design_cover(edition, **form.cleaned_data)
             requested_tab = request.POST.get("continue_to", "")
             if requested_tab in {"back", "spine", "montage"}:
