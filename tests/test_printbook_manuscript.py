@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 
 from gaiden.print_engine.manuscript import manuscript_tex
+from gaiden.print_engine.epub_frontmatter import merge_frontmatter_with_body
 from gaiden.print_engine.isbn import isbn13
 from gaiden.print_engine.providers.industrial import REQUIRED_CHECKS, validate_industrial
 from gaiden.print_engine.specs import PrintSpec
@@ -52,12 +53,30 @@ def test_frontispiece_and_approved_illustration_have_dedicated_print_pages():
 
     assert "\\frontispiecepage" in result
     assert "\\closefrontispiecepage" in result
-    assert "\\illustrationpage{1}{illustrations/FIGURE_001.jpg}" in result
+    assert "\\illustrationpage{Chapter 01.}{illustrations/FIGURE_001.jpg}" in result
+    assert "\\cleardoublepage\\thispagestyle{empty}" in result
+    assert "\\chaptertitle{Chapter text.}" not in result
     assert "\\mainmatter" in result
-    assert "\\chaptertitle{Chapter text.}" in result
+    assert "Chapter text." in result
     assert "\\chapterheading{" not in result
     assert "### THE DEVIL IN PARIS" not in result
     assert result.count("RINOBOOKS") == 1
+
+
+def test_title_page_keeps_text_that_is_repeated_on_later_frontispiece():
+    source = (
+        "# Title Page\n\n"
+        "Epicteto de Hierápolis\n\n"
+        "::: pagebreak\n:::\n\n"
+        "# Frontispiece\n\n"
+        "Epicteto de Hierápolis\n\n"
+        "::: pagebreak\n:::\n\n"
+        "# Capitulo 01\n\nBody."
+    )
+
+    result = manuscript_tex(source, PrintSpec(), language_code="ptbr")
+
+    assert result.count("Epicteto de Hierápolis") == 2
 
 
 def test_portuguese_print_ends_with_fim():
@@ -65,6 +84,14 @@ def test_portuguese_print_ends_with_fim():
 
     assert "\\printendmark{Fim}" in result
     assert "\\printendmark{The End}" not in result
+
+
+def test_portuguese_chapter_heading_starts_mainmatter():
+    result = manuscript_tex("# Introdução\n\nTexto.\n\n# Capitulo 01 - A prática\n\nCorpo.", PrintSpec())
+
+    assert "\\frontheading{Introdução}" in result
+    assert "\\mainmatter" in result
+    assert "\\chapterheading{Capitulo 01 - A prática}" in result
 
 
 def test_units_remain_inches():

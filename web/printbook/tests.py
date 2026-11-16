@@ -9,10 +9,24 @@ from tempfile import TemporaryDirectory
 from unittest.mock import PropertyMock, patch
 
 from django.test import TestCase
+from django.utils import timezone
 
 from editorial.models import Contributor, Edition, EditionBuild, Language, Seal, Work
 from web.printbook.models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport, TypographyProfile
-from web.printbook.services import export_package, fail, guard, invalidate, render_preview, sha, snapshot, validate_pdf_page_size
+from web.printbook.services import (
+    approve_interior,
+    export_package,
+    fail,
+    guard,
+    invalidate,
+    official_composition_preset,
+    render_preview,
+    save_composition,
+    sha,
+    snapshot,
+    validate_pdf_page_size,
+    workflow_steps,
+)
 from web.printbook.views import preview_panels
 
 
@@ -59,6 +73,79 @@ class PrintBuildStateTests(TestCase):
             snapshot=snapshot(self.edition),
             page_count=2,
         )
+
+    def _record(self, name, content=b"artifact"):
+        path = self.storage_root / name
+        path.write_bytes(content)
+        return {"path": str(path), "sha256": sha(path)}
+
+    def test_interior_approval_records_exact_build_and_configuration(self):
+        # Views load the edition and its decimal typography fields from the
+        # database; mirror that path instead of keeping model default integers
+        # cached on the freshly-created related object.
+        self.edition.refresh_from_db()
+        interior = self._interior()
+        interior.files = {"pdf": self._record("INTERIOR.pdf", b"%PDF-approved")}
+        interior.save(update_fields=["files"])
+
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}), patch.object(
+            EditionBuild, "qualifies_as_done", new_callable=PropertyMock, return_value=True
+        ):
+            approve_interior(self.edition)
+
+        self.edition.refresh_from_db()
+        self.assertEqual(self.edition.interior_approval["build_id"], interior.id)
+        self.assertEqual(self.edition.interior_approval["sha256"], interior.files["pdf"]["sha256"])
+        self.assertEqual(self.edition.interior_approval["configuration"], snapshot(self.edition))
+        self.assertEqual(workflow_steps(self.edition)[1]["status_label"], "Aprovado")
+
+    def test_composition_change_invalidates_only_print_derivatives(self):
+        interior = self._interior()
+        cover = CoverBuild.objects.create(
+            edition=self.edition,
+            version=1,
+            status="READY",
+            snapshot=snapshot(self.edition),
+            interior=interior,
+        )
+        source_id = self.edition.source_id
+        source_hash = self.edition.source_sha256
+        settings = {
+            "body_font": "TeX Gyre Pagella",
+            "font_size_pt": "11",
+            "leading_pt": "14",
+            "paragraph_indent_em": "0.8",
+            "inner_margin_in": "0.75",
+            "outer_margin_in": "0.50",
+            "top_margin_in": "0.55",
+            "bottom_margin_in": "0.65",
+            "header_style": "chapter",
+            "footer_style": "page",
+            "page_numbering": True,
+            "chapter_opening": "recto",
+        }
+
+        self.assertTrue(save_composition(self.edition, settings))
+
+        interior.refresh_from_db()
+        cover.refresh_from_db()
+        self.edition.refresh_from_db()
+        self.assertEqual(interior.status, "INVALIDATED")
+        self.assertEqual(cover.status, "INVALIDATED")
+        self.assertEqual(self.edition.source_id, source_id)
+        self.assertEqual(self.edition.source_sha256, source_hash)
+        self.assertEqual(self.edition.composition_settings["paragraph_indent_em"], "0.8")
+
+    def test_first_official_preset_is_persisted_for_the_compiler(self):
+        self.edition.platform = "amazon_kdp"
+        self.edition.composition_settings = {}
+        self.edition.save(update_fields=["platform", "composition_settings"])
+        preset = official_composition_preset(self.edition)
+
+        self.assertTrue(save_composition(self.edition, preset["values"]))
+
+        self.edition.refresh_from_db()
+        self.assertEqual(self.edition.composition_settings["inner_margin_in"], "0.875")
 
     def test_invalidation_preserves_history_and_invalidates_every_dependency(self):
         interior = self._interior()
@@ -209,7 +296,8 @@ class PrintBuildStateTests(TestCase):
             findings=[{"code": "all", "severity": "INFO", "message": "verified"}],
         )
         self.edition.state = PrintEdition.State.PRINT_READY
-        self.edition.save(update_fields=["state"])
+        self.edition.edition_approved_at = timezone.now()
+        self.edition.save(update_fields=["state", "edition_approved_at"])
 
         def fake_preview(_pdf, output):
             output.write_bytes(b"PNG")

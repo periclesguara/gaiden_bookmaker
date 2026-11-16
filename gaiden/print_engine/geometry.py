@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass
 from decimal import Decimal
 
-from .specs import Binding, PrintSpec
+from .specs import Binding, PrintProvider, PrintSpec
 
 
 @dataclass(frozen=True)
@@ -34,8 +34,9 @@ class CoverGeometry:
             + (spec.cover_bleed_in * Decimal("2"))
         )
         spread_height = spec.trim_height_in + (spec.cover_bleed_in * Decimal("2"))
+        minimum_pages = 80 if spec.provider == PrintProvider.AMAZON_KDP else 48
         spine_text_allowed = not (
-            spec.binding == Binding.PAPERBACK and spec.page_count < 48
+            spec.binding == Binding.PAPERBACK and spec.page_count < minimum_pages
         )
         return cls(
             trim_width_in=spec.trim_width_in,

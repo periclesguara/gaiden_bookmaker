@@ -16,6 +16,8 @@ from typing import Optional
 
 class PrintProvider(str, Enum):
     INGRAMSPARK = "ingramspark"
+    AMAZON_KDP = "amazon_kdp"
+    UICLAP = "uiclap"
     LULU = "lulu"
     GENERIC = "generic"
 

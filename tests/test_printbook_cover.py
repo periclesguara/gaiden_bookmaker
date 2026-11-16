@@ -7,9 +7,9 @@ import pytest
 import cv2
 import numpy as np
 
-from gaiden.print_engine.cover_composition import cover_tex, design_cover_tex
+from gaiden.print_engine.cover_composition import cover_tex, design_cover_tex, image_print_metrics
 from gaiden.print_engine.geometry import CoverGeometry
-from gaiden.print_engine.specs import PrintSpec
+from gaiden.print_engine.specs import PrintProvider, PrintSpec
 from gaiden.print_engine.image_enhancement import enhance_print_image
 
 
@@ -102,6 +102,124 @@ def test_ready_art_layout_keeps_front_image_clean_and_reserves_barcode_area():
     assert "1.75in" in tex
 
 
+def test_effective_dpi_uses_printed_box_after_fit_and_scale():
+    metrics = image_print_metrics(
+        1800, 2700, Decimal("6.125"), Decimal("9.25"), fit="cover", scale_percent=150,
+    )
+    assert metrics["printed_height_in"] == Decimal("13.875")
+    assert int(metrics["effective_dpi_y"]) == 194
+    assert metrics["effective_dpi_x"] == metrics["effective_dpi_y"]
+
+
+def test_kdp_requires_at_least_eighty_pages_for_spine_text():
+    short = CoverGeometry.from_spec(PrintSpec(provider=PrintProvider.AMAZON_KDP).finalize(page_count=79, spine_width_in="0.20"))
+    eligible = CoverGeometry.from_spec(PrintSpec(provider=PrintProvider.AMAZON_KDP).finalize(page_count=80, spine_width_in="0.20"))
+    assert short.spine_text_allowed is False
+    assert eligible.spine_text_allowed is True
+
+
+def test_back_image_and_spine_typography_are_vector_layout_inputs():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=100, spine_width_in="0.4"))
+    tex = design_cover_tex(
+        geometry, title="Book", author="Author", layout="classic",
+        image_name="FRONT.jpg", image_width_px=1800, image_height_px=2700,
+        back_image_name="BACK.jpg", back_image_width_px=1800, back_image_height_px=2700,
+        spine_title="Book", spine_author="Author", spine_font_size_pt=8,
+        image_offset_x_mm="1.2", back_image_rotation_deg="2",
+    )
+    assert "FRONT.jpg" in tex and "BACK.jpg" in tex
+    assert r"\newfontfamily\spinefont" in tex
+    assert "Book · Author" in tex
+    assert "rotate=2" in tex
+
+
+def test_front_text_adjustments_and_back_footer_are_exported():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=100, spine_width_in="0.4"))
+    tex = design_cover_tex(
+        geometry,
+        title="Manual de Epicteto",
+        author="Epicteto de Hierápolis",
+        layout="classic",
+        front_title_y_percent=30,
+        front_author_y_percent=78,
+        front_text_scale_percent=120,
+        front_text_align="left",
+        cover_font_family="TeX Gyre Pagella",
+        back_footer="Coleção Mestres Estoicos · RinoBooks",
+    )
+
+    assert r"\raggedright\titlefont\color{titlecolor}" in tex
+    assert "Epicteto de Hierápolis" in tex
+    assert "Coleção Mestres Estoicos · RinoBooks" in tex
+    assert r"\setmainfont{TeX Gyre Pagella}" in tex
+    assert r"\begin{adjustbox}{max width=" in tex
+
+
+def test_editorial_cover_fields_typography_and_spine_background_reach_pdf_source():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(
+        geometry,
+        title="Manual de Epicteto",
+        subtitle="Encheirídion",
+        author="Epicteto de Hierápolis",
+        language="Português brasileiro",
+        publisher="RinoBooks",
+        layout="classic",
+        cover_font_family="EB Garamond",
+        front_title_font_family="GFS Didot",
+        front_subtitle_font_family="Berenis ADF Pro",
+        front_author_font_family="Gentium Book Plus",
+        front_publisher_font_family="Fira Sans",
+        front_title_color="#F7F1E3",
+        front_subtitle_color="#C9A45C",
+        front_author_color="#D8D0C0",
+        front_publisher_color="#B99A58",
+        front_title_font_size_pt="34",
+        front_subtitle_font_size_pt="16",
+        front_author_font_size_pt="13",
+        front_publisher_font_size_pt="9",
+        front_title_weight="regular",
+        front_title_style="small_caps",
+        front_title_letter_spacing_pt="1.2",
+        front_subtitle_weight="bold",
+        front_subtitle_style="italic",
+        front_subtitle_letter_spacing_pt="0.5",
+        front_author_style="italic",
+        front_publisher_weight="bold",
+        front_title_x_percent=44,
+        front_subtitle_x_percent=56,
+        front_subtitle_y_percent=38,
+        front_author_x_percent=48,
+        front_publisher_x_percent=52,
+        back_heading="Sobre o livro",
+        back_text="Texto editorial da contracapa.",
+        back_heading_font_size_pt="18",
+        back_body_font_size_pt="11",
+        back_text_align="justify",
+        back_text_x_percent=54,
+        back_text_y_percent=18,
+        spine_image_name="SPINE_IMAGE.jpg",
+        spine_image_width_px=600,
+        spine_image_height_px=2700,
+        spine_text_x_percent=55,
+        spine_text_y_percent=47,
+    )
+
+    assert r"\setmainfont{EB Garamond}" in tex
+    assert r"\newfontfamily\titlefont{GFS Didot}" in tex
+    assert r"\newfontfamily\subtitlefont{Berenis ADF Pro}" in tex
+    assert r"\newfontfamily\authorfont{Gentium Book Plus}" in tex
+    assert r"\newfontfamily\publisherfont{Fira Sans}" in tex
+    assert "F7F1E3" in tex and "C9A45C" in tex and "B99A58" in tex
+    assert r"\scshape\addfontfeatures{LetterSpace=1.2}" in tex
+    assert r"\bfseries\itshape\addfontfeatures{LetterSpace=0.5}" in tex
+    assert "Português brasileiro · RinoBooks" in tex
+    assert r"\fontsize{34}" in tex
+    assert r"\fontsize{18}" in tex and r"\fontsize{11}" in tex
+    assert r"\justifying" in tex
+    assert "SPINE_IMAGE.jpg" in tex
+
+
 @pytest.mark.skipif(not shutil.which("lualatex") or not shutil.which("pdfinfo"), reason="LuaLaTeX and Poppler required")
 def test_composed_cover_is_one_page_with_full_wrap_dimensions(tmp_path):
     geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=100, spine_width_in=Decimal("0.25")))
@@ -129,6 +247,12 @@ def test_cover_builder_compiles_one_page(tmp_path):
             back_text="A short description for the back cover.",
             spine_text="The Devil in Paris",
             layout="classic",
+            cover_font_family="EB Garamond",
+            spine_font_family="EB Garamond",
+            front_title_font_family="GFS Didot",
+            front_subtitle_font_family="Berenis ADF Pro",
+            front_author_font_family="Gentium Book Plus",
+            front_publisher_font_family="Fira Sans",
         )
     )
     result = subprocess.run(["lualatex", "-no-shell-escape", "-interaction=nonstopmode", "-halt-on-error", "COVER.tex"], cwd=tmp_path, capture_output=True, timeout=60)

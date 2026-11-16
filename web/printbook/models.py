@@ -1,4 +1,5 @@
 from django.db import models
+from .trim_sizes import TRIM_CHOICES
 
 
 class TypographyProfile(models.Model):
@@ -13,6 +14,21 @@ class TypographyProfile(models.Model):
 
 
 class PrintEdition(models.Model):
+    PLATFORM_CHOICES = [
+        ("ingramspark", "IngramSpark"),
+        ("amazon_kdp", "Amazon KDP"),
+        ("uiclap", "UICLAP"),
+    ]
+    BINDING_CHOICES = [
+        ("paperback", "Paperback"),
+        ("hardcover", "Hardcover"),
+        ("hardcover_dust_jacket", "Hardcover com sobrecapa"),
+    ]
+    COVER_MODE_CHOICES = [
+        ("new_print_cover", "Criar nova capa de impressão"),
+        ("adapt_epub_cover", "Adaptar a capa atual do EPUB"),
+        ("external_artwork", "Usar nova arte preparada externamente"),
+    ]
     class State(models.TextChoices):
         DRAFT = "DRAFT", "Rascunho"
         CONFIGURED = "CONFIGURED", "Configurada"
@@ -29,11 +45,11 @@ class PrintEdition(models.Model):
     source_path = models.TextField()
     source_sha256 = models.CharField(max_length=64)
     name = models.CharField(max_length=150)
-    platform = models.CharField(max_length=30, default="ingramspark")
+    platform = models.CharField(max_length=30, choices=PLATFORM_CHOICES, default="ingramspark")
     profile_version = models.CharField(max_length=40, default="2026-09-22")
-    trim = models.CharField(max_length=20, choices=[("5.5x8.5", "5,5 × 8,5 in"), ("6x9", "6 × 9 in")], default="6x9")
+    trim = models.CharField(max_length=20, choices=TRIM_CHOICES, default="6x9")
     paper = models.CharField(max_length=20, choices=[("white", "Branco"), ("cream", "Creme")], default="cream")
-    binding = models.CharField(max_length=20, default="paperback")
+    binding = models.CharField(max_length=30, choices=BINDING_CHOICES, default="paperback")
     interior_color = models.CharField(max_length=30, default="black_and_white")
     typography = models.ForeignKey(TypographyProfile, on_delete=models.PROTECT)
     isbn = models.CharField(max_length=13, unique=True, null=True, blank=True)
@@ -42,7 +58,19 @@ class PrintEdition(models.Model):
         choices=[("provider", "Gerado pela gráfica"), ("embedded", "Incorporado à arte")],
         default="provider",
     )
+    cover_mode = models.CharField(
+        max_length=30,
+        choices=COVER_MODE_CHOICES,
+        default="new_print_cover",
+    )
     state = models.CharField(max_length=30, choices=State.choices, default=State.CONFIGURED)
+    composition_settings = models.JSONField(default=dict, blank=True)
+    cover_settings = models.JSONField(default=dict, blank=True)
+    configuration_history = models.JSONField(default=list, blank=True)
+    interior_approval = models.JSONField(default=dict, blank=True)
+    cover_approval = models.JSONField(default=dict, blank=True)
+    visual_review_approved_at = models.DateTimeField(null=True, blank=True)
+    edition_approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

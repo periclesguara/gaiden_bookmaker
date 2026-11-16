@@ -102,6 +102,20 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertEqual(form.cleaned_data["layout"], "art_only")
         self.assertEqual(form.cleaned_data["overlay_opacity"], 0)
 
+    def test_cover_font_catalog_uses_professional_editorial_families(self):
+        values = dict(CoverDesignForm.COVER_FONTS)
+
+        self.assertIn("EB Garamond", values)
+        self.assertIn("GFS Didot", values)
+        self.assertIn("GFS BodoniClassic", values)
+        self.assertNotIn("Arial", values)
+        self.assertNotIn("Times New Roman", values)
+        for field_name in (
+            "front_title_font_size_pt", "front_title_style", "front_title_letter_spacing_pt",
+            "front_subtitle_font_size_pt", "front_author_font_size_pt", "front_publisher_font_size_pt",
+        ):
+            self.assertIn(field_name, CoverDesignForm.base_fields)
+
     def test_front_text_is_required_only_when_operator_enables_it(self):
         data = self._data()
         data.update({"add_front_text": "on", "title": "", "author": ""})
@@ -118,6 +132,20 @@ class CoverStudioFormTests(SimpleTestCase):
 
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data["enhancement_profile"], "production_300")
+
+    def test_final_cover_may_explicitly_approve_an_empty_back_cover(self):
+        data = self._data()
+        data.update({
+            "save_mode": "final",
+            "back_heading": "",
+            "back_text": "",
+            "approve_empty_back": "on",
+        })
+
+        form = CoverDesignForm(data=data)
+
+        self.assertTrue(form.is_valid(), form.errors.as_json())
+        self.assertTrue(form.cleaned_data["approve_empty_back"])
 
     def test_image_in_template_field_gets_specific_error(self):
         upload = SimpleUploadedFile("cover.jpg", b"not-a-pdf", content_type="image/jpeg")

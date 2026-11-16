@@ -14,22 +14,35 @@ from PIL import Image
 
 from django.db import transaction
 from django.conf import settings
+from django.utils import timezone
 
 from gaiden.infrastructure import storage
 from gaiden.print_engine.compiler import compile_lualatex
 from gaiden.print_engine.image_enhancement import enhance_print_image
+from gaiden.print_engine.epub_frontmatter import merge_frontmatter_with_body
 from gaiden.print_engine.isbn import isbn13
 from gaiden.print_engine.manuscript import manuscript_tex
 from gaiden.print_engine.preflight import inspect_pdf_page_count, preflight_pdfs
-from gaiden.print_engine.providers.ingramspark import IngramSparkAdapter
+from gaiden.print_engine.geometry import CoverGeometry
 from gaiden.print_engine.providers.industrial import validate_industrial
-from gaiden.print_engine.specs import PrintSpec
+from gaiden.print_engine.specs import Binding, PrintProvider, PrintSpec
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
+from .trim_sizes import validate_trim
 
 
 _OPENING_IMAGE_RE = re.compile(r"(?:src|href)=[\"']\.\./images/([^\"']+)[\"']", re.IGNORECASE)
 _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 _SIMULATOR_CALIPER_IN = {"white": Decimal("0.00225"), "cream": Decimal("0.00250")}
+_PLATFORM_COMPATIBILITY = {
+    "ingramspark": {"bindings": {"paperback", "hardcover", "hardcover_dust_jacket"}, "papers": {"white", "cream"}},
+    "amazon_kdp": {"bindings": {"paperback", "hardcover"}, "papers": {"white", "cream"}},
+    "uiclap": {"bindings": {"paperback"}, "papers": {"white", "cream"}},
+}
+_OFFICIAL_COMPOSITION_SOURCES = {
+    "ingramspark": "https://www.ingramspark.com/hubfs/downloads/file-creation-guide.pdf",
+    "amazon_kdp": "https://kdp.amazon.com/en_US/help/topic/GVBQ3CMEQW3W2VL6",
+    "uiclap": "https://suporte.uiclap.com/support/solutions/articles/67000747527-margens-sangrias-e-o-caminho-para-uma-impress%C3%A3o-perfeita",
+}
 
 
 def sha(path):
@@ -49,14 +62,247 @@ def snapshot(edition):
             "binding": edition.binding, "color": edition.interior_color, "isbn": edition.isbn,
             "barcode_mode": edition.barcode_mode,
             "font": typography.font, "size": str(typography.size_pt),
-            "leading": str(typography.leading_pt), "license": typography.license_reference}
+            "leading": str(typography.leading_pt), "license": typography.license_reference,
+            "composition": edition.composition_settings}
+
+
+def provider_support(edition):
+    profile = _PLATFORM_COMPATIBILITY.get(edition.platform)
+    if not profile:
+        raise ValueError("Fornecedor de impressão não reconhecido.")
+    if edition.binding not in profile["bindings"]:
+        raise ValueError("A encadernação escolhida não é compatível com este fornecedor.")
+    if edition.paper not in profile["papers"]:
+        raise ValueError("O papel escolhido não é compatível com este fornecedor.")
+    if edition.interior_color != "black_and_white":
+        raise ValueError("A composição atual aceita somente miolo em preto e branco.")
+    return profile
 
 
 def invalidate(edition):
     for model in (InteriorBuild, CoverBuild, PreflightReport, PrintExport):
         model.objects.filter(edition=edition).exclude(status="FAILED").update(status="INVALIDATED")
     edition.state = PrintEdition.State.INVALIDATED
-    edition.save(update_fields=["state", "updated_at"])
+    edition.interior_approval = {}
+    edition.cover_approval = {}
+    edition.visual_review_approved_at = None
+    edition.edition_approved_at = None
+    edition.save(update_fields=["state", "interior_approval", "cover_approval", "visual_review_approved_at", "edition_approved_at", "updated_at"])
+
+
+def invalidate_after_interior(edition):
+    for model in (CoverBuild, PreflightReport, PrintExport):
+        model.objects.filter(edition=edition).exclude(status="FAILED").update(status="INVALIDATED")
+    edition.interior_approval = {}
+    edition.cover_approval = {}
+    edition.visual_review_approved_at = None
+    edition.edition_approved_at = None
+
+
+def invalidate_after_cover(edition):
+    for model in (PreflightReport, PrintExport):
+        model.objects.filter(edition=edition).exclude(status="FAILED").update(status="INVALIDATED")
+    edition.cover_approval = {}
+    edition.visual_review_approved_at = None
+    edition.edition_approved_at = None
+
+
+def official_composition_preset(edition, page_count=None):
+    """Return a documented provider baseline plus neutral editorial choices."""
+    values = {
+        "body_font": edition.typography.font,
+        "font_size_pt": str(edition.typography.size_pt),
+        "leading_pt": str(edition.typography.leading_pt),
+        "paragraph_indent_em": "1.25",
+        "inner_margin_in": "0.75",
+        "outer_margin_in": "0.50",
+        "top_margin_in": "0.55",
+        "bottom_margin_in": "0.65",
+        "header_style": "none",
+        "footer_style": "page",
+        "page_numbering": True,
+        "chapter_opening": "recto",
+    }
+
+    if edition.platform == "ingramspark":
+        values.update({
+            "inner_margin_in": "0.50", "outer_margin_in": "0.50",
+            "top_margin_in": "0.50", "bottom_margin_in": "0.50",
+        })
+        title = "IngramSpark · mínimo documentado"
+        rule = "Margem recomendada mínima de 0,5″ em todos os lados para miolo preto e branco."
+        basis = "recomendação oficial"
+    elif edition.platform == "amazon_kdp":
+        bands = ((150, "0.375"), (300, "0.50"), (500, "0.625"), (700, "0.75"), (828, "0.875"))
+        resolved_pages = int(page_count) if page_count else None
+        gutter = next((margin for maximum, margin in bands if resolved_pages and resolved_pages <= maximum), "0.875")
+        values.update({
+            "inner_margin_in": gutter, "outer_margin_in": "0.50",
+            "top_margin_in": "0.50", "bottom_margin_in": "0.50",
+        })
+        title = "Amazon KDP · margem por paginação"
+        if resolved_pages:
+            rule = f"Margem interna oficial para {resolved_pages} páginas: {gutter}″; demais margens em 0,5″, acima do mínimo sem sangria."
+        else:
+            rule = "Antes da paginação, usa margem interna conservadora de 0,875″ (até 828 páginas); reaplique após compilar para ajustar à faixa real."
+        basis = "mínimo oficial + margem externa conservadora"
+    elif edition.platform == "uiclap":
+        values.update({
+            "inner_margin_in": "0.80", "outer_margin_in": "0.60",
+            "top_margin_in": "0.60", "bottom_margin_in": "0.70",
+        })
+        title = "UICLAP · livro de formato médio"
+        rule = "Base oficial de 2,0 cm internos e 1,5 cm externos; margens verticais editoriais seguras para leitura."
+        basis = "recomendação oficial + acabamento editorial"
+    else:
+        raise ValueError("Fornecedor de impressão não reconhecido.")
+
+    return {
+        "provider": edition.platform, "title": title, "rule": rule,
+        "basis": basis, "source_url": _OFFICIAL_COMPOSITION_SOURCES[edition.platform],
+        "values": values, "page_count": page_count,
+    }
+
+
+def default_composition(edition):
+    values = official_composition_preset(edition)["values"]
+    values.update(edition.composition_settings or {})
+    return values
+
+
+def save_composition(edition, cleaned_data):
+    normalized = {
+        key: (str(value) if isinstance(value, Decimal) else value)
+        for key, value in cleaned_data.items()
+    }
+    # Persist the first explicit preset even when its values match the visible
+    # defaults; the compiler reads only versioned edition settings.
+    if edition.composition_settings and normalized == default_composition(edition):
+        return False
+    InteriorBuild.objects.filter(edition=edition).exclude(status="FAILED").update(status="INVALIDATED")
+    invalidate_after_interior(edition)
+    edition.composition_settings = normalized
+    edition.state = PrintEdition.State.CONFIGURED
+    edition.save(update_fields=[
+        "composition_settings", "state", "interior_approval", "cover_approval",
+        "visual_review_approved_at", "edition_approved_at", "updated_at",
+    ])
+    return True
+
+
+def record_configuration_history(edition, before, after):
+    if before == after:
+        return
+    history = list(edition.configuration_history or [])
+    history.append({"changed_at": timezone.now().isoformat(), "before": before, "after": after})
+    edition.configuration_history = history[-50:]
+    edition.save(update_fields=["configuration_history", "updated_at"])
+
+
+def approve_interior(edition):
+    guard(edition)
+    interior = latest(InteriorBuild, edition)
+    item = interior.files.get("pdf")
+    if not item:
+        raise ValueError("O miolo atual não possui PDF verificável.")
+    edition.interior_approval = {
+        "build_id": interior.id,
+        "version": interior.version,
+        "sha256": item["sha256"],
+        "page_count": interior.page_count,
+        "configuration": snapshot(edition),
+        "approved_at": timezone.now().isoformat(),
+    }
+    edition.save(update_fields=["interior_approval", "updated_at"])
+    return interior
+
+
+def approve_cover(edition):
+    guard(edition)
+    interior = latest(InteriorBuild, edition)
+    cover = latest(CoverBuild, edition)
+    if edition.interior_approval.get("build_id") != interior.id:
+        raise ValueError("Aprove o miolo atual antes de aprovar a capa.")
+    if cover.interior_id != interior.id or not cover.files.get("template"):
+        raise ValueError("A capa final deve usar o miolo atual e um template oficial.")
+    if any(item.get("severity") in {"BLOCKER", "ERROR"} for item in cover.findings):
+        raise ValueError("Corrija os bloqueadores da capa antes da aprovação.")
+    edition.cover_approval = {
+        "build_id": cover.id,
+        "version": cover.version,
+        "sha256": cover.files["pdf"]["sha256"],
+        "geometry": cover.geometry,
+        "approved_at": timezone.now().isoformat(),
+    }
+    edition.save(update_fields=["cover_approval", "updated_at"])
+    return cover
+
+
+def approve_visual_review(edition):
+    report = latest(PreflightReport, edition)
+    if report.status != "READY" or any(item.get("severity") in {"BLOCKER", "ERROR"} for item in report.findings):
+        raise ValueError("A revisão visual exige um preflight atual sem bloqueadores.")
+    if edition.interior_approval.get("build_id") != report.interior_id or edition.cover_approval.get("build_id") != report.cover_id:
+        raise ValueError("As aprovações do miolo e da capa não correspondem ao preflight atual.")
+    edition.visual_review_approved_at = timezone.now()
+    edition.save(update_fields=["visual_review_approved_at", "updated_at"])
+    return report
+
+
+def approve_edition(edition):
+    report = latest(PreflightReport, edition)
+    if not edition.visual_review_approved_at:
+        raise ValueError("Conclua a revisão visual humana antes de aprovar a edição.")
+    if any(item.get("severity") in {"BLOCKER", "ERROR"} for item in report.findings):
+        raise ValueError("A edição não pode ser aprovada com bloqueadores ativos.")
+    edition.edition_approved_at = timezone.now()
+    edition.state = PrintEdition.State.PRINT_READY
+    edition.save(update_fields=["edition_approved_at", "state", "updated_at"])
+    return report
+
+
+def workflow_steps(edition):
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
+    report = PreflightReport.objects.filter(edition=edition, status__in=["READY", "BLOCKED"]).first()
+    exported = PrintExport.objects.filter(edition=edition, status="READY").exists()
+    latest_interior = InteriorBuild.objects.filter(edition=edition).first()
+    latest_cover = CoverBuild.objects.filter(edition=edition).first()
+    def status(*, exists=False, approved=False, error=False):
+        if error:
+            return "error", "Erro"
+        if approved:
+            return "approved", "Aprovado"
+        if exists:
+            return "review", "Pronto para revisão"
+        return "pending", "Não iniciado"
+    configuration_status = status(
+        exists=True,
+        approved=edition.state not in {PrintEdition.State.DRAFT, PrintEdition.State.INVALIDATED},
+        error=edition.state == PrintEdition.State.INVALIDATED,
+    )
+    interior_status = status(
+        exists=bool(interior),
+        approved=bool(interior and edition.interior_approval.get("build_id") == interior.id),
+        error=bool(latest_interior and latest_interior.status == "FAILED"),
+    )
+    cover_status = status(
+        exists=bool(cover),
+        approved=bool(cover and edition.cover_approval.get("build_id") == cover.id),
+        error=bool(latest_cover and latest_cover.status == "FAILED"),
+    )
+    report_status = status(
+        exists=bool(report and report.status == "READY"),
+        approved=bool(edition.edition_approved_at),
+        error=bool(report and report.status == "BLOCKED"),
+    )
+    return [
+        {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
+        {"number": "02", "label": "Miolo", "url_name": "printbook:interior", "status": interior_status[0], "status_label": interior_status[1]},
+        {"number": "03", "label": "Capa", "url_name": "printbook:cover", "status": cover_status[0], "status_label": cover_status[1]},
+        {"number": "04", "label": "Preflight", "url_name": "printbook:preflight", "status": report_status[0], "status_label": report_status[1]},
+        {"number": "05", "label": "Exportação", "url_name": "printbook:export", "status": "approved" if exported else "pending", "status_label": "Aprovado" if exported else "Não iniciado"},
+    ]
 
 
 def guard(edition):
@@ -77,19 +323,35 @@ def guard(edition):
                 or sha(item["path"]) != item["sha256"]
                 for item in build.files.values()
             )
-            if build.snapshot != snapshot(edition) or malformed:
+            expected_snapshot = snapshot(edition)
+            recorded_snapshot = dict(build.snapshot or {})
+            # Builds created before the workflow refactor did not store the
+            # empty composition key. Treat that representation as equivalent.
+            if not expected_snapshot.get("composition") and "composition" not in recorded_snapshot:
+                expected_snapshot.pop("composition", None)
+            if recorded_snapshot != expected_snapshot or malformed:
                 invalidate(edition)
                 raise ValueError("Configuração ou artefato alterado; builds invalidados. Compile novamente.")
     return path
 
 
 def spec_for(edition):
-    if edition.platform != "ingramspark" or edition.binding != "paperback" or edition.interior_color != "black_and_white":
-        raise ValueError("Perfil não suportado pelo MVP.")
+    provider_support(edition)
+    validate_trim(edition.platform, edition.binding, edition.paper, edition.trim)
     width, height = edition.trim.split("x")
-    return PrintSpec(trim_width_in=width, trim_height_in=height, paper=edition.paper,
-                     body_font=edition.typography.font, body_font_size_pt=edition.typography.size_pt,
-                     body_leading_pt=edition.typography.leading_pt)
+    configured = edition.composition_settings or {}
+    binding = "hardcover" if edition.binding.startswith("hardcover") else "paperback"
+    return PrintSpec(
+        provider=PrintProvider(edition.platform), binding=Binding(binding),
+        trim_width_in=width, trim_height_in=height, paper=edition.paper,
+        body_font=configured.get("body_font", edition.typography.font),
+        body_font_size_pt=configured.get("font_size_pt", edition.typography.size_pt),
+        body_leading_pt=configured.get("leading_pt", edition.typography.leading_pt),
+        inner_margin_in=configured.get("inner_margin_in", "0.75"),
+        outer_margin_in=configured.get("outer_margin_in", "0.5"),
+        top_margin_in=configured.get("top_margin_in", "0.55"),
+        bottom_margin_in=configured.get("bottom_margin_in", "0.65"),
+    )
 
 
 def estimated_spine_width(edition, page_count):
@@ -101,7 +363,7 @@ def estimated_spine_width(edition, page_count):
 def estimated_cover_geometry(edition, page_count):
     spine = estimated_spine_width(edition, page_count)
     spec = spec_for(edition).finalize(page_count=page_count, spine_width_in=spine)
-    return geometry_payload(IngramSparkAdapter.cover_geometry(spec))
+    return geometry_payload(CoverGeometry.from_spec(spec))
 
 
 def root_for(build):
@@ -155,11 +417,14 @@ def compile_interior(edition):
     try:
         root = root_for(build)
         image_manifest, image_files = extract_print_illustrations(edition.source, root)
+        epub_path = edition.source._safe_existing_path(edition.source.epub_path, require_epub=True)
+        manuscript = merge_frontmatter_with_body(epub_path, path.read_text(encoding="utf-8-sig"))
         tex = manuscript_tex(
-            path.read_text(encoding="utf-8-sig"),
+            manuscript,
             spec,
             image_manifest=image_manifest,
             language_code=edition.source.language_code,
+            composition=edition.composition_settings,
         )
         source = root / "INTERIOR.tex"
         source.write_text(tex, encoding="utf-8")
@@ -170,13 +435,12 @@ def compile_interior(edition):
             "lualatex": subprocess.run(["lualatex", "--version"], capture_output=True, text=True, timeout=10).stdout.splitlines()[0],
             "illustrations": len(image_manifest),
         }
-        # A new interior makes every previous cover and approval stale.
-        for model in (CoverBuild, PreflightReport, PrintExport):
-            statuses = ["READY", "DRAFT", "BLOCKED"] if model is CoverBuild else ["READY"]
-            model.objects.filter(edition=edition, status__in=statuses).update(status="INVALIDATED")
+        # A new interior makes only dependent artefacts and approvals stale.
+        invalidate_after_interior(edition)
         files = {"pdf": result.pdf_path, "tex": source}
         files.update(image_files)
         record(build, files, PrintEdition.State.INTERIOR_READY)
+        edition.save(update_fields=["interior_approval", "cover_approval", "visual_review_approved_at", "edition_approved_at", "updated_at"])
     except Exception as exc:
         fail(build, exc)
         raise
@@ -294,11 +558,45 @@ def upload_cover_image(upload, path):
     return dimensions
 
 
+def _prepare_design_image(*, upload, previous, root, prefix, previous_key, profile, geometry, zoom, panel_width=None):
+    """Preserve an original raster and build a versioned print derivative."""
+    source_path = None
+    original_dimensions = (None, None)
+    if upload is not None:
+        suffix = Path(upload.name).suffix.lower()
+        source_path = root / f"{prefix}_ORIGINAL{suffix}"
+        original_dimensions = upload_cover_image(upload, source_path)
+    elif previous and previous.files.get(previous_key):
+        candidate = Path(previous.files[previous_key]["path"])
+        if candidate.is_file() and sha(candidate) == previous.files[previous_key]["sha256"]:
+            suffix = candidate.suffix.lower()
+            source_path = root / f"{prefix}_ORIGINAL{suffix}"
+            shutil.copy2(candidate, source_path)
+            with Image.open(source_path) as image:
+                original_dimensions = image.size
+    if source_path is None:
+        return None
+    output_path = root / f"{prefix}{source_path.suffix.lower()}"
+    scale = Decimal(str(zoom)) / Decimal("100")
+    output_width = panel_width or (geometry.trim_width_in + geometry.bleed_in)
+    enhancement = enhance_print_image(
+        source_path, output_path, profile,
+        minimum_width_px=math.ceil(float(output_width * scale * Decimal("300"))),
+        minimum_height_px=math.ceil(float(geometry.spread_height_in * scale * Decimal("300"))),
+    )
+    return {
+        "name": output_path.name, "path": output_path, "original_path": source_path,
+        "original_dimensions": original_dimensions,
+        "output_dimensions": (enhancement["width_px"], enhancement["height_px"]),
+        "enhancement": enhancement,
+    }
+
+
 def import_cover(edition, cover, template, spine):
     guard(edition)
     interior = latest(InteriorBuild, edition)
     spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=spine)
-    geometry = IngramSparkAdapter.cover_geometry(spec)
+    geometry = CoverGeometry.from_spec(spec)
     build = new_build(CoverBuild, edition, interior=interior, geometry=geometry_payload(geometry))
     try:
         root = root_for(build)
@@ -336,10 +634,55 @@ def design_cover(
     title,
     subtitle,
     author,
+    language="",
+    publisher="",
+    front_title_x_percent=50,
+    front_title_y_percent=20,
+    front_author_y_percent=84,
+    front_subtitle_x_percent=50,
+    front_subtitle_y_percent=34,
+    front_author_x_percent=50,
+    front_text_scale_percent=100,
+    front_text_align="center",
+    front_publisher_y_percent=92,
+    front_publisher_x_percent=50,
+    front_palette="classic_blue",
+    cover_font_family="TeX Gyre Pagella",
+    front_title_font_family="EB Garamond",
+    front_subtitle_font_family="EB Garamond",
+    front_author_font_family="EB Garamond",
+    front_publisher_font_family="EB Garamond",
+    front_title_color="#FFFFFF",
+    front_subtitle_color="#D4A24C",
+    front_author_color="#D4A24C",
+    front_publisher_color="#D4A24C",
+    front_title_font_size_pt=28,
+    front_subtitle_font_size_pt=14,
+    front_author_font_size_pt=12,
+    front_publisher_font_size_pt=9,
+    front_title_weight="bold",
+    front_title_style="normal",
+    front_subtitle_weight="regular",
+    front_subtitle_style="normal",
+    front_author_weight="regular",
+    front_author_style="normal",
+    front_publisher_weight="regular",
+    front_publisher_style="normal",
+    front_title_letter_spacing_pt=0,
+    front_subtitle_letter_spacing_pt=0,
+    front_author_letter_spacing_pt=0,
+    front_publisher_letter_spacing_pt=0,
     back_text,
     back_heading="",
     back_quote="",
     back_bio="",
+    back_footer="",
+    back_heading_font_size_pt=17,
+    back_body_font_size_pt=10.5,
+    back_text_align="left",
+    approve_empty_back=False,
+    back_text_x_percent=50,
+    back_text_y_percent=12,
     spine_text,
     background_color,
     text_color,
@@ -355,12 +698,46 @@ def design_cover(
     image_zoom=100,
     image_x=50,
     image_y=50,
+    image_offset_x_mm=0,
+    image_offset_y_mm=0,
+    image_rotation_deg=0,
+    back_image=None,
+    back_image_fit="cover",
+    back_image_zoom=100,
+    back_image_x=50,
+    back_image_y=50,
+    back_image_offset_x_mm=0,
+    back_image_offset_y_mm=0,
+    back_image_rotation_deg=0,
+    spine_image=None,
+    spine_image_fit="cover",
+    spine_image_zoom=100,
+    spine_image_x=50,
+    spine_image_y=50,
+    allow_empty_areas=False,
+    minimum_dpi=300,
+    spine_title="",
+    spine_author="",
+    spine_publisher="",
+    spine_font_family="TeX Gyre Pagella",
+    spine_font_size_pt=8,
+    spine_font_weight="regular",
+    spine_color="#FFFFFF",
+    spine_letter_spacing_pt=0,
+    spine_align_horizontal="center",
+    spine_align_vertical="center",
+    spine_offset_x_mm=0,
+    spine_offset_y_mm=0,
+    spine_text_x_percent=50,
+    spine_text_y_percent=50,
+    spine_rotation="90",
+    spine_edge_safe_mm=1.6,
     overlay_opacity=25,
     enhancement_profile="print_safe",
     save_mode="draft",
 ):
     """Generate a local text-first cover from operator-selected design data."""
-    from gaiden.print_engine.cover_composition import design_cover_tex
+    from gaiden.print_engine.cover_composition import design_cover_tex, image_print_metrics
 
     guard(edition)
     interior = latest(InteriorBuild, edition)
@@ -372,10 +749,10 @@ def design_cover(
     if save_mode not in {"draft", "final"}:
         raise ValueError("Modo de salvamento da capa inválido.")
     if save_mode == "final" and template is None:
-        raise ValueError("Para salvar a capa final, anexe o template oficial da IngramSpark.")
+        raise ValueError(f"Para salvar a capa final, anexe o template oficial da plataforma {edition.get_platform_display()}.")
     spine = spine or estimated_spine_width(edition, interior.page_count)
     spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=spine)
-    geometry = IngramSparkAdapter.cover_geometry(spec)
+    geometry = CoverGeometry.from_spec(spec)
     executable = shutil.which("lualatex")
     if not executable:
         raise ValueError("Instale LuaLaTeX para montar a capa.")
@@ -394,60 +771,93 @@ def design_cover(
                 height_in=geometry.spread_height_in,
                 label="O template oficial",
             )
-        image_name = None
-        image_path = None
-        original_image_path = None
-        image_dimensions = (None, None)
-        enhancement = None
-        if cover_image is not None:
-            suffix = Path(cover_image.name).suffix.lower()
-            image_name = "COVER_IMAGE" + suffix
-            image_path = root / image_name
-            original_image_path = root / ("COVER_IMAGE_ORIGINAL" + suffix)
-            image_dimensions = upload_cover_image(cover_image, original_image_path)
-            zoom = Decimal(str(image_zoom)) / Decimal("100")
-            print_width = geometry.trim_width_in + geometry.bleed_in
-            print_height = geometry.spread_height_in
-            minimum_width = math.ceil(float(print_width * zoom * Decimal("300")))
-            minimum_height = math.ceil(float(print_height * zoom * Decimal("300")))
-            enhancement = enhance_print_image(
-                original_image_path,
-                image_path,
-                enhancement_profile,
-                minimum_width_px=minimum_width,
-                minimum_height_px=minimum_height,
-            )
-            image_dimensions = (enhancement["width_px"], enhancement["height_px"])
-        elif previous and previous.files.get("cover_image_original"):
-            previous_original = Path(previous.files["cover_image_original"]["path"])
-            if previous_original.is_file() and sha(previous_original) == previous.files["cover_image_original"]["sha256"]:
-                suffix = previous_original.suffix.lower()
-                image_name = "COVER_IMAGE" + suffix
-                original_image_path = root / ("COVER_IMAGE_ORIGINAL" + suffix)
-                image_path = root / image_name
-                shutil.copy2(previous_original, original_image_path)
-                with Image.open(original_image_path) as source_image:
-                    image_dimensions = source_image.size
-                zoom = Decimal(str(image_zoom)) / Decimal("100")
-                enhancement = enhance_print_image(
-                    original_image_path,
-                    image_path,
-                    enhancement_profile,
-                    minimum_width_px=math.ceil(float((geometry.trim_width_in + geometry.bleed_in) * zoom * Decimal("300"))),
-                    minimum_height_px=math.ceil(float(geometry.spread_height_in * zoom * Decimal("300"))),
-                )
-                image_dimensions = (enhancement["width_px"], enhancement["height_px"])
+        front_art = _prepare_design_image(
+            upload=cover_image, previous=previous, root=root, prefix="COVER_IMAGE",
+            previous_key="cover_image_original", profile=enhancement_profile,
+            geometry=geometry, zoom=image_zoom,
+        )
+        back_art = _prepare_design_image(
+            upload=back_image, previous=previous, root=root, prefix="BACK_IMAGE",
+            previous_key="back_image_original", profile=enhancement_profile,
+            geometry=geometry, zoom=back_image_zoom,
+        )
+        spine_art = _prepare_design_image(
+            upload=spine_image, previous=previous, root=root, prefix="SPINE_IMAGE",
+            previous_key="spine_image_original", profile=enhancement_profile,
+            geometry=geometry, zoom=spine_image_zoom, panel_width=geometry.spine_width_in,
+        )
         design = {
             "layout": layout,
             "add_front_text": add_front_text,
             "title": title,
             "subtitle": subtitle,
             "author": author,
+            "language": language,
+            "publisher": publisher,
+            "front_title_x_percent": int(front_title_x_percent),
+            "front_title_y_percent": int(front_title_y_percent),
+            "front_author_y_percent": int(front_author_y_percent),
+            "front_subtitle_x_percent": int(front_subtitle_x_percent),
+            "front_subtitle_y_percent": int(front_subtitle_y_percent),
+            "front_author_x_percent": int(front_author_x_percent),
+            "front_text_scale_percent": int(front_text_scale_percent),
+            "front_text_align": front_text_align,
+            "front_publisher_y_percent": int(front_publisher_y_percent),
+            "front_publisher_x_percent": int(front_publisher_x_percent),
+            "front_palette": front_palette,
+            "cover_font_family": cover_font_family,
+            "front_title_font_family": front_title_font_family,
+            "front_subtitle_font_family": front_subtitle_font_family,
+            "front_author_font_family": front_author_font_family,
+            "front_publisher_font_family": front_publisher_font_family,
+            "front_title_color": front_title_color,
+            "front_subtitle_color": front_subtitle_color,
+            "front_author_color": front_author_color,
+            "front_publisher_color": front_publisher_color,
+            "front_title_font_size_pt": str(front_title_font_size_pt),
+            "front_subtitle_font_size_pt": str(front_subtitle_font_size_pt),
+            "front_author_font_size_pt": str(front_author_font_size_pt),
+            "front_publisher_font_size_pt": str(front_publisher_font_size_pt),
+            "front_title_weight": front_title_weight,
+            "front_title_style": front_title_style,
+            "front_subtitle_weight": front_subtitle_weight,
+            "front_subtitle_style": front_subtitle_style,
+            "front_author_weight": front_author_weight,
+            "front_author_style": front_author_style,
+            "front_publisher_weight": front_publisher_weight,
+            "front_publisher_style": front_publisher_style,
+            "front_title_letter_spacing_pt": str(front_title_letter_spacing_pt),
+            "front_subtitle_letter_spacing_pt": str(front_subtitle_letter_spacing_pt),
+            "front_author_letter_spacing_pt": str(front_author_letter_spacing_pt),
+            "front_publisher_letter_spacing_pt": str(front_publisher_letter_spacing_pt),
             "back_text": back_text,
             "back_heading": back_heading,
             "back_quote": back_quote,
             "back_bio": back_bio,
-            "spine_text": spine_text if geometry.spine_text_allowed else "",
+            "back_footer": back_footer,
+            "back_heading_font_size_pt": str(back_heading_font_size_pt),
+            "back_body_font_size_pt": str(back_body_font_size_pt),
+            "back_text_align": back_text_align,
+            "approve_empty_back": bool(approve_empty_back),
+            "back_text_x_percent": int(back_text_x_percent),
+            "back_text_y_percent": int(back_text_y_percent),
+            "spine_text": spine_text,
+            "spine_title": spine_title or spine_text,
+            "spine_author": spine_author,
+            "spine_publisher": spine_publisher,
+            "spine_font_family": spine_font_family,
+            "spine_font_size_pt": str(spine_font_size_pt),
+            "spine_font_weight": spine_font_weight,
+            "spine_color": spine_color,
+            "spine_letter_spacing_pt": str(spine_letter_spacing_pt),
+            "spine_align_horizontal": spine_align_horizontal,
+            "spine_align_vertical": spine_align_vertical,
+            "spine_offset_x_mm": str(spine_offset_x_mm),
+            "spine_offset_y_mm": str(spine_offset_y_mm),
+            "spine_text_x_percent": int(spine_text_x_percent),
+            "spine_text_y_percent": int(spine_text_y_percent),
+            "spine_rotation": str(spine_rotation),
+            "spine_edge_safe_mm": str(spine_edge_safe_mm),
             "background_color": background_color,
             "text_color": text_color,
             "accent_color": accent_color,
@@ -457,43 +867,98 @@ def design_cover(
             "back_accent_color": back_accent_color,
             "page_count": interior.page_count,
             "spine_width_in": str(spine),
-            "geometry_source": "official_template" if template_path else "simulator_estimate",
+            "geometry_source": "official_template" if template_path else (
+                "kdp_official_page_caliper_formula" if edition.platform == "amazon_kdp" else "explicit_simulator_estimate"
+            ),
             "image_fit": image_fit,
             "image_zoom": image_zoom,
             "image_x": image_x,
             "image_y": image_y,
+            "image_offset_x_mm": str(image_offset_x_mm),
+            "image_offset_y_mm": str(image_offset_y_mm),
+            "image_rotation_deg": str(image_rotation_deg),
+            "back_image_fit": back_image_fit,
+            "back_image_zoom": back_image_zoom,
+            "back_image_x": back_image_x,
+            "back_image_y": back_image_y,
+            "back_image_offset_x_mm": str(back_image_offset_x_mm),
+            "back_image_offset_y_mm": str(back_image_offset_y_mm),
+            "back_image_rotation_deg": str(back_image_rotation_deg),
+            "spine_image_fit": spine_image_fit,
+            "spine_image_zoom": spine_image_zoom,
+            "spine_image_x": spine_image_x,
+            "spine_image_y": spine_image_y,
+            "allow_empty_areas": bool(allow_empty_areas),
+            "minimum_dpi": int(minimum_dpi),
             "overlay_opacity": overlay_opacity,
             "enhancement_profile": enhancement_profile,
-            "image_enhancement": enhancement,
+            "image_enhancement": front_art["enhancement"] if front_art else None,
+            "back_image_enhancement": back_art["enhancement"] if back_art else None,
+            "spine_image_enhancement": spine_art["enhancement"] if spine_art else None,
             "barcode_mode": edition.barcode_mode,
             "save_mode": save_mode,
         }
         design_findings = []
-        if enhancement and enhancement["resized"]:
-            design_findings.append({
-                "code": "cover.image_upscaled",
-                "severity": "WARNING",
-                "message": (
-                    f"OpenCV ampliou a arte em {enhancement['scale_factor']:.2f}× com Lanczos para atingir "
-                    "300 ppi efetivos. Confira rostos, letras e detalhes finos na prova antes do envio."
-                ),
-            })
-        if image_dimensions[0] and image_dimensions[1]:
-            zoom = Decimal(str(image_zoom)) / Decimal("100")
-            effective_ppi = min(
-                Decimal(image_dimensions[0]) / ((geometry.trim_width_in + geometry.bleed_in) * zoom),
-                Decimal(image_dimensions[1]) / (geometry.spread_height_in * zoom),
-            )
-            design["effective_image_ppi"] = int(effective_ppi)
-            if effective_ppi < 300:
+        for label, key, art, fit, zoom, print_width in (
+            ("frente", "front_image", front_art, image_fit, image_zoom, geometry.trim_width_in + geometry.bleed_in),
+            ("contracapa", "back_image", back_art, back_image_fit, back_image_zoom, geometry.trim_width_in + geometry.bleed_in),
+            ("lombada", "spine_image", spine_art, spine_image_fit, spine_image_zoom, geometry.spine_width_in),
+        ):
+            if not art:
+                continue
+            if art["enhancement"]["resized"]:
                 design_findings.append({
-                    "code": "cover.image_resolution",
-                    "severity": "BLOCKER",
-                    "message": (
-                        f"A imagem fornece aproximadamente {int(effective_ppi)} ppi no tamanho final; "
-                        "use uma imagem que mantenha pelo menos 300 ppi após o enquadramento."
-                    ),
+                    "code": f"cover.{key}_upscaled", "severity": "WARNING",
+                    "message": f"A imagem da {label} recebeu ampliação de produção; verifique detalhes finos na prova em 100%.",
                 })
+            metrics = image_print_metrics(
+                art["original_dimensions"][0], art["original_dimensions"][1],
+                print_width, geometry.spread_height_in,
+                fit=fit, scale_percent=zoom,
+            )
+            evidence = {
+                "original_width_px": art["original_dimensions"][0],
+                "original_height_px": art["original_dimensions"][1],
+                "printed_width_in": str(metrics["printed_width_in"]),
+                "printed_height_in": str(metrics["printed_height_in"]),
+                "effective_dpi_x": int(metrics["effective_dpi_x"]),
+                "effective_dpi_y": int(metrics["effective_dpi_y"]),
+                "distorted": False,
+            }
+            design[f"{key}_quality"] = evidence
+            if key == "front_image":
+                design["effective_image_ppi"] = min(evidence["effective_dpi_x"], evidence["effective_dpi_y"])
+            if min(evidence["effective_dpi_x"], evidence["effective_dpi_y"]) < int(minimum_dpi):
+                design_findings.append({
+                    "code": f"cover.{key}_resolution", "severity": "BLOCKER",
+                    "message": f"A imagem da {label} fica abaixo de {minimum_dpi} DPI efetivos no tamanho impresso.",
+                })
+            if fit == "contain" and int(zoom) <= 100 and not allow_empty_areas:
+                design_findings.append({
+                    "code": f"cover.{key}_empty_area", "severity": "BLOCKER",
+                    "message": f"O modo Ajustar da {label} pode deixar área vazia. Use Preencher ou marque a área vazia como intencional.",
+                })
+        spine_copy = " · ".join(part.strip() for part in (spine_title or spine_text, spine_author, spine_publisher) if part and part.strip())
+        if spine_copy and not geometry.spine_text_allowed:
+            design_findings.append({
+                "code": "cover.spine_text_not_allowed",
+                "severity": "BLOCKER" if (spine_title or spine_author or spine_publisher) else "WARNING",
+                "message": "Este perfil não permite texto na lombada para a paginação atual; o texto não será exportado.",
+            })
+        available_spine_pt = (geometry.spine_width_in - Decimal(str(spine_edge_safe_mm)) * 2 / Decimal("25.4")) * 72
+        if spine_copy and geometry.spine_text_allowed and (available_spine_pt <= 0 or Decimal(str(spine_font_size_pt)) > available_spine_pt):
+            design_findings.append({
+                "code": "cover.spine_text_width", "severity": "BLOCKER",
+                "message": "A tipografia não cabe entre as margens de segurança da lombada.",
+            })
+        estimated_length_pt = Decimal(len(spine_copy)) * Decimal(str(spine_font_size_pt)) * Decimal("0.55")
+        estimated_length_pt += max(0, len(spine_copy) - 1) * Decimal(str(spine_letter_spacing_pt))
+        available_length_pt = (geometry.trim_height_in - Decimal("0.50")) * 72
+        if spine_copy and geometry.spine_text_allowed and estimated_length_pt > available_length_pt:
+            design_findings.append({
+                "code": "cover.spine_text_length", "severity": "BLOCKER",
+                "message": "O conjunto título/autor/editora é longo demais para a altura segura da lombada.",
+            })
         design_path = root / "DESIGN.json"
         design_path.write_text(json.dumps(design, ensure_ascii=False, indent=2), encoding="utf-8")
         tex = root / "COVER.tex"
@@ -503,10 +968,53 @@ def design_cover(
                 title=title,
                 subtitle=subtitle,
                 author=author,
+                language=language,
+                publisher=publisher,
+                front_title_x_percent=front_title_x_percent,
+                front_title_y_percent=front_title_y_percent,
+                front_author_y_percent=front_author_y_percent,
+                front_subtitle_x_percent=front_subtitle_x_percent,
+                front_subtitle_y_percent=front_subtitle_y_percent,
+                front_author_x_percent=front_author_x_percent,
+                front_text_scale_percent=front_text_scale_percent,
+                front_text_align=front_text_align,
+                front_publisher_y_percent=front_publisher_y_percent,
+                front_publisher_x_percent=front_publisher_x_percent,
+                cover_font_family=cover_font_family,
+                front_title_font_family=front_title_font_family,
+                front_subtitle_font_family=front_subtitle_font_family,
+                front_author_font_family=front_author_font_family,
+                front_publisher_font_family=front_publisher_font_family,
+                front_title_color=front_title_color,
+                front_subtitle_color=front_subtitle_color,
+                front_author_color=front_author_color,
+                front_publisher_color=front_publisher_color,
+                front_title_font_size_pt=front_title_font_size_pt,
+                front_subtitle_font_size_pt=front_subtitle_font_size_pt,
+                front_author_font_size_pt=front_author_font_size_pt,
+                front_publisher_font_size_pt=front_publisher_font_size_pt,
+                front_title_weight=front_title_weight,
+                front_title_style=front_title_style,
+                front_subtitle_weight=front_subtitle_weight,
+                front_subtitle_style=front_subtitle_style,
+                front_author_weight=front_author_weight,
+                front_author_style=front_author_style,
+                front_publisher_weight=front_publisher_weight,
+                front_publisher_style=front_publisher_style,
+                front_title_letter_spacing_pt=front_title_letter_spacing_pt,
+                front_subtitle_letter_spacing_pt=front_subtitle_letter_spacing_pt,
+                front_author_letter_spacing_pt=front_author_letter_spacing_pt,
+                front_publisher_letter_spacing_pt=front_publisher_letter_spacing_pt,
                 back_text=back_text,
                 back_heading=back_heading,
                 back_quote=back_quote,
                 back_bio=back_bio,
+                back_footer=back_footer,
+                back_heading_font_size_pt=back_heading_font_size_pt,
+                back_body_font_size_pt=back_body_font_size_pt,
+                back_text_align=back_text_align,
+                back_text_x_percent=back_text_x_percent,
+                back_text_y_percent=back_text_y_percent,
                 spine_text=spine_text,
                 background_color=background_color,
                 text_color=text_color,
@@ -515,13 +1023,49 @@ def design_cover(
                 back_text_color=back_text_color,
                 back_accent_color=back_accent_color,
                 layout=layout,
-                image_name=image_name,
-                image_width_px=image_dimensions[0],
-                image_height_px=image_dimensions[1],
+                image_name=front_art["name"] if front_art else None,
+                image_width_px=front_art["output_dimensions"][0] if front_art else None,
+                image_height_px=front_art["output_dimensions"][1] if front_art else None,
                 image_fit=image_fit,
                 image_zoom=image_zoom,
                 image_x=image_x,
                 image_y=image_y,
+                image_offset_x_mm=image_offset_x_mm,
+                image_offset_y_mm=image_offset_y_mm,
+                image_rotation_deg=image_rotation_deg,
+                back_image_name=back_art["name"] if back_art else None,
+                back_image_width_px=back_art["output_dimensions"][0] if back_art else None,
+                back_image_height_px=back_art["output_dimensions"][1] if back_art else None,
+                back_image_fit=back_image_fit,
+                back_image_zoom=back_image_zoom,
+                back_image_x=back_image_x,
+                back_image_y=back_image_y,
+                back_image_offset_x_mm=back_image_offset_x_mm,
+                back_image_offset_y_mm=back_image_offset_y_mm,
+                back_image_rotation_deg=back_image_rotation_deg,
+                spine_image_name=spine_art["name"] if spine_art else None,
+                spine_image_width_px=spine_art["output_dimensions"][0] if spine_art else None,
+                spine_image_height_px=spine_art["output_dimensions"][1] if spine_art else None,
+                spine_image_fit=spine_image_fit,
+                spine_image_zoom=spine_image_zoom,
+                spine_image_x=spine_image_x,
+                spine_image_y=spine_image_y,
+                spine_title=spine_title,
+                spine_author=spine_author,
+                spine_publisher=spine_publisher,
+                spine_font_family=spine_font_family,
+                spine_font_size_pt=spine_font_size_pt,
+                spine_font_weight=spine_font_weight,
+                spine_color=spine_color,
+                spine_letter_spacing_pt=spine_letter_spacing_pt,
+                spine_align_horizontal=spine_align_horizontal,
+                spine_align_vertical=spine_align_vertical,
+                spine_offset_x_mm=spine_offset_x_mm,
+                spine_offset_y_mm=spine_offset_y_mm,
+                spine_text_x_percent=spine_text_x_percent,
+                spine_text_y_percent=spine_text_y_percent,
+                spine_rotation=spine_rotation,
+                spine_edge_safe_mm=spine_edge_safe_mm,
                 overlay_opacity=overlay_opacity,
                 reserve_barcode=edition.barcode_mode == "provider",
             ),
@@ -540,20 +1084,31 @@ def design_cover(
         build.tools = {
             "lualatex": tool_version("lualatex"),
             "designer": "gaiden-cover-studio-v3",
-            "image_engine": enhancement["engine"] if enhancement else None,
+            "image_engine": front_art["enhancement"]["engine"] if front_art else (
+                back_art["enhancement"]["engine"] if back_art else (
+                    spine_art["enhancement"]["engine"] if spine_art else None
+                )
+            ),
         }
         build.findings = design_findings
         files = {"pdf": pdf, "tex": tex, "design": design_path}
         if template_path:
             files["template"] = template_path
-        if image_path:
-            files["cover_image"] = image_path
-            files["cover_image_original"] = original_image_path
+        if front_art:
+            files["cover_image"] = front_art["path"]
+            files["cover_image_original"] = front_art["original_path"]
+        if back_art:
+            files["back_image"] = back_art["path"]
+            files["back_image_original"] = back_art["original_path"]
+        if spine_art:
+            files["spine_image"] = spine_art["path"]
+            files["spine_image_original"] = spine_art["original_path"]
         has_blocker = any(item["severity"] == "BLOCKER" for item in design_findings)
+        invalidate_after_cover(edition)
+        edition.cover_settings = design
         if save_mode == "final" and template_path and not has_blocker:
-            for model in (PreflightReport, PrintExport):
-                model.objects.filter(edition=edition, status="READY").update(status="INVALIDATED")
             record(build, files, PrintEdition.State.COVER_READY)
+            edition.save(update_fields=["cover_settings", "cover_approval", "visual_review_approved_at", "edition_approved_at", "updated_at"])
         else:
             build.files = {key: {"path": str(path), "sha256": sha(path)} for key, path in files.items()}
             build.status = "BLOCKED" if save_mode == "final" else "DRAFT"
@@ -566,7 +1121,7 @@ def design_cover(
                 })
             build.save()
             edition.state = PrintEdition.State.COVER_PENDING
-            edition.save(update_fields=["state", "updated_at"])
+            edition.save(update_fields=["state", "cover_settings", "cover_approval", "visual_review_approved_at", "edition_approved_at", "updated_at"])
     except Exception as exc:
         fail(build, exc)
         raise
@@ -576,6 +1131,8 @@ def design_cover(
 def preflight(edition):
     guard(edition)
     interior, cover = latest(InteriorBuild, edition), latest(CoverBuild, edition)
+    if edition.interior_approval.get("build_id") != interior.id or edition.cover_approval.get("build_id") != cover.id:
+        raise ValueError("Aprove o miolo e a capa atuais antes de executar o preflight.")
     if cover.interior_id != interior.id:
         raise ValueError("A capa não pertence ao miolo atual.")
     build = new_build(PreflightReport, edition, interior=interior, cover=cover)
@@ -611,7 +1168,11 @@ def preflight(edition):
         }, ensure_ascii=False, indent=2), encoding="utf-8")
         guard(edition)
         passed = not any(f["severity"] in {"BLOCKER", "ERROR"} for f in build.findings)
-        record(build, {"report": output}, PrintEdition.State.PRINT_READY if passed else PrintEdition.State.PREFLIGHT_PENDING)
+        edition.visual_review_approved_at = None
+        edition.edition_approved_at = None
+        PrintExport.objects.filter(edition=edition).exclude(status="FAILED").update(status="INVALIDATED")
+        record(build, {"report": output}, PrintEdition.State.PREFLIGHT_PENDING)
+        edition.save(update_fields=["visual_review_approved_at", "edition_approved_at", "updated_at"])
         if not passed:
             build.status = "BLOCKED"
             build.save(update_fields=["status"])
@@ -624,7 +1185,7 @@ def preflight(edition):
 def export_package(edition):
     guard(edition)
     report = latest(PreflightReport, edition)
-    if edition.state not in {PrintEdition.State.PRINT_READY, PrintEdition.State.EXPORTED} or any(f["severity"] in {"ERROR", "BLOCKER"} for f in report.findings):
+    if edition.state not in {PrintEdition.State.PRINT_READY, PrintEdition.State.EXPORTED} or not edition.edition_approved_at or any(f["severity"] in {"ERROR", "BLOCKER"} for f in report.findings):
         raise ValueError("Exportação bloqueada pelo preflight.")
     if report.interior_id != latest(InteriorBuild, edition).id or report.cover_id != latest(CoverBuild, edition).id:
         raise ValueError("Preflight desatualizado.")
@@ -681,6 +1242,47 @@ def render_preview(pdf_path, output_path):
     return target
 
 
+def interior_chapters(build):
+    """Extract a bounded, read-only chapter index from the compiled PDF."""
+    item = build.files.get("pdf") if build else None
+    if not item or not shutil.which("pdftotext"):
+        return []
+    path = Path(item["path"])
+    if not path.is_file() or sha(path) != item["sha256"]:
+        return []
+    try:
+        result = subprocess.run(
+            ["pdftotext", "-layout", str(path), "-"],
+            capture_output=True, text=True, timeout=30, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if result.returncode:
+        return []
+    chapters = []
+    seen = set()
+    pattern = re.compile(
+        r"^\s*((?:chapter|cap[ií]tulo)\s+[0-9ivxlcdm]+(?:\s*[:.\-–—].*)?|"
+        r"[ivxlcdm]+\s*[:.\-–—]\s*.+)\s*$",
+        re.I,
+    )
+    for page_number, text in enumerate(result.stdout.split("\f"), 1):
+        page_lines = text.splitlines()[:35]
+        if any(line.strip().casefold() in {"sumario", "sumário"} for line in page_lines):
+            continue
+        for line in page_lines:
+            match = pattern.match(line)
+            if not match:
+                continue
+            label = " ".join(match.group(1).split())[:120]
+            key = label.casefold()
+            if key not in seen:
+                seen.add(key)
+                chapters.append({"label": label, "page": page_number})
+            break
+    return chapters[:250]
+
+
 def tool_version(command):
     executable = shutil.which(command)
     if not executable:
@@ -727,7 +1329,7 @@ def compose_cover(edition, front, back, template, spine):
     guard(edition)
     interior = latest(InteriorBuild, edition)
     spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=spine)
-    geometry = IngramSparkAdapter.cover_geometry(spec)
+    geometry = CoverGeometry.from_spec(spec)
     executable = shutil.which("lualatex")
     if not executable:
         raise ValueError("Instale LuaLaTeX para montar a capa.")

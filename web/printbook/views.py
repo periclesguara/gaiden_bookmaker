@@ -2,6 +2,7 @@ import logging
 import json
 import subprocess
 import tempfile
+from functools import lru_cache
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .forms import CoverDesignForm, EditionConfigurationForm, EditionForm
+from .forms import CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
 from . import services, catalog, epub_preview
 from zipfile import ZipFile, BadZipFile
@@ -21,6 +22,38 @@ from lxml.etree import XMLSyntaxError
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
+
+
+COVER_PREVIEW_FONTS = {
+    "eb-garamond": "EB Garamond",
+    "gfs-didot": "GFS Didot",
+    "gfs-bodoni": "GFS BodoniClassic",
+    "gfs-baskerville": "GFS Baskerville",
+    "berenis-adf-pro": "Berenis ADF Pro",
+    "accanthis-adf": "Accanthis ADF Std",
+    "gentium-book-plus": "Gentium Book Plus",
+    "charis-sil": "Charis SIL",
+    "noto-serif-display": "Noto Serif Display",
+    "fira-sans": "Fira Sans",
+}
+
+
+@lru_cache(maxsize=len(COVER_PREVIEW_FONTS))
+def _cover_preview_font_path(family):
+    """Resolve only allowlisted system fonts used by the local cover renderer."""
+    try:
+        result = subprocess.run(
+            ["fc-match", "-f", "%{file}", family],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise Http404("Fonte de prévia indisponível.") from exc
+    path = Path(result.stdout.strip()).resolve()
+    if path.suffix.lower() not in {".otf", ".ttf"} or not path.is_file():
+        raise Http404("Fonte de prévia indisponível.")
+    return path
 
 
 @require_GET
@@ -98,7 +131,12 @@ def source_asset(request, source_id, member):
 
 @require_GET
 def detail(request, pk):
-    edition = get_object_or_404(PrintEdition, pk=pk)
+    # Legacy entrypoint kept for existing bookmarks and integrations. The
+    # dedicated /configuration/ URL is used by the new step navigation.
+    return configuration(request, pk)
+
+
+def _edition_context(edition):
     source_error = ""
     try:
         services.guard(edition)
@@ -109,13 +147,96 @@ def detail(request, pk):
     reports = PreflightReport.objects.filter(edition=edition)
     interior = interiors.filter(status="READY").first()
     cover = covers.filter(status="READY").first()
-    return render(request, "printbook/detail.html", {
+    return {
         "edition": edition, "source_error": source_error, "interiors": interiors,
         "covers": covers, "reports": reports, "exports": PrintExport.objects.filter(edition=edition),
         "interior": interior, "cover": cover,
         "configuration_form": EditionConfigurationForm(instance=edition),
-        "can_export": not source_error and edition.state in {"PRINT_READY", "EXPORTED"},
-    })
+        "workflow_steps": services.workflow_steps(edition),
+        "can_export": not source_error and edition.state in {"PRINT_READY", "EXPORTED"} and bool(edition.edition_approved_at),
+    }
+
+
+@require_GET
+def configuration(request, pk):
+    edition = get_object_or_404(PrintEdition, pk=pk)
+    context = _edition_context(edition)
+    context["active_step"] = "configuration"
+    context["technical_sheet"] = {
+        "Fornecedor": edition.get_platform_display(),
+        "Encadernação": edition.get_binding_display(),
+        "Formato": edition.get_trim_display(),
+        "Papel": edition.get_paper_display(),
+        "Tipografia": edition.typography.name,
+        "Capa": edition.get_cover_mode_display(),
+        "Fonte editorial": f"#{edition.source_id}",
+    }
+    return render(request, "printbook/configuration.html", context)
+
+
+@require_GET
+def interior_workspace(request, pk):
+    edition = get_object_or_404(PrintEdition, pk=pk)
+    context = _edition_context(edition)
+    context["active_step"] = "interior"
+    build = context["interior"]
+    preset = services.official_composition_preset(edition, build.page_count if build else None)
+    initial = preset["values"] | (edition.composition_settings or {})
+    context["interior_form"] = InteriorSettingsForm(initial=initial)
+    context["official_preset"] = preset
+    if build:
+        pages = build.page_count or services.inspect_pdf_page_count(services.root_for(build) / "INTERIOR.pdf")
+        try:
+            page = int(request.GET.get("page", "1"))
+        except ValueError:
+            page = 1
+        page = max(1, min(page, pages))
+        mode = request.GET.get("mode", "spread")
+        navigation = preview_navigation("interior", page, pages, mode)
+        context.update(navigation)
+        context.update({
+            "page": page,
+            "pages": pages,
+            "panels": [preview_panels(build, "interior", number, pages)[0] if number else {"number": None} for number in navigation["numbers"]],
+            "thumbnail_pages": range(1, pages + 1),
+            "chapters": services.interior_chapters(build),
+            "paper_tone": request.GET.get("paper_tone", edition.paper) if request.GET.get("paper_tone", edition.paper) in {"white", "cream", "natural"} else edition.paper,
+        })
+    return render(request, "printbook/interior.html", context)
+
+
+def _finding_group(item, edition):
+    code = item.get("code", "")
+    if code.startswith("interior"):
+        category, url_name = "Miolo", "printbook:interior"
+    elif code.startswith("cover"):
+        category, url_name = "Capa", "printbook:cover"
+    elif code.startswith("spec"):
+        category, url_name = "Compatibilidade", "printbook:configuration"
+    else:
+        category, url_name = "Arquivos", "printbook:preflight"
+    return {**item, "category": category, "correction_url": url_name, "correction_label": f"Abrir {category.lower()}"}
+
+
+@require_GET
+def preflight_workspace(request, pk):
+    edition = get_object_or_404(PrintEdition, pk=pk)
+    context = _edition_context(edition)
+    context["active_step"] = "preflight"
+    report = context["reports"].first()
+    context["report"] = report
+    context["presented_findings"] = [_finding_group(item, edition) for item in report.findings] if report else []
+    context["has_blockers"] = bool(report and any(item.get("severity") in {"BLOCKER", "ERROR"} for item in report.findings))
+    return render(request, "printbook/preflight.html", context)
+
+
+@require_GET
+def export_workspace(request, pk):
+    edition = get_object_or_404(PrintEdition, pk=pk)
+    context = _edition_context(edition)
+    context["active_step"] = "export"
+    context["report"] = context["reports"].filter(status="READY").first()
+    return render(request, "printbook/export.html", context)
 
 
 @require_GET
@@ -135,17 +256,51 @@ def cover_dashboard(request, pk):
     geometry = latest_visual.geometry if latest_visual else (
         services.estimated_cover_geometry(edition, interior.page_count) if interior else {}
     )
+    panel_width_in = (
+        Decimal(str(geometry["trim_width_in"])) + Decimal(str(geometry["bleed_in"]))
+        if geometry else None
+    )
     design_initial = {
         "title": edition.name,
-        "author": getattr(getattr(edition.source.edition.work, "author", None), "name", ""),
+        "subtitle": edition.source.edition.subtitle,
+        "author": edition.source.edition.author or getattr(getattr(edition.source.edition.work, "author", None), "name", ""),
+        "language": edition.source.edition.language.native_name,
+        "publisher": edition.source.edition.publisher or edition.source.edition.imprint_name,
+        "cover_font_family": "EB Garamond",
         "spine_text": edition.name,
+        "spine_title": edition.name,
+        "spine_author": edition.source.edition.author or getattr(getattr(edition.source.edition.work, "author", None), "name", ""),
+        "spine_publisher": edition.source.edition.publisher or edition.source.edition.imprint_name,
+        "back_footer": "Coleção Mestres Estoicos · RinoBooks",
         "spine": estimated_spine,
     }
     saved = services.load_cover_design(latest_visual)
     design_initial.update({key: value for key, value in saved.items() if key in CoverDesignForm.base_fields})
+    professional_fonts = {value for value, _label in CoverDesignForm.COVER_FONTS}
+    if design_initial.get("cover_font_family") not in professional_fonts:
+        design_initial["cover_font_family"] = "EB Garamond"
+    for field_name in (
+        "front_title_font_family", "front_subtitle_font_family",
+        "front_author_font_family", "front_publisher_font_family",
+    ):
+        if design_initial.get(field_name) not in professional_fonts:
+            design_initial[field_name] = design_initial["cover_font_family"]
+    if design_initial.get("spine_font_family") not in professional_fonts:
+        design_initial["spine_font_family"] = design_initial["cover_font_family"]
     design_initial["save_mode"] = "draft"
+    cover_font_faces = [
+        {
+            "slug": slug,
+            "family": family,
+            "css_family": f"Gaiden-{slug}",
+            "format": "opentype" if _cover_preview_font_path(family).suffix.lower() == ".otf" else "truetype",
+        }
+        for slug, family in COVER_PREVIEW_FONTS.items()
+    ]
     return render(request, "printbook/cover.html", {
         "edition": edition,
+        "active_step": "cover",
+        "workflow_steps": services.workflow_steps(edition),
         "source_error": source_error,
         "interior": interior,
         "cover": cover,
@@ -153,16 +308,46 @@ def cover_dashboard(request, pk):
         "saved_design": saved,
         "covers": CoverBuild.objects.filter(edition=edition),
         "geometry": geometry,
+        "panel_width_in": panel_width_in,
         "estimated_spine": estimated_spine,
         "design_form": CoverDesignForm(initial=design_initial),
+        "cover_mode": edition.cover_mode,
+        "cover_font_faces": cover_font_faces,
     })
 
 
 @require_GET
+def cover_preview_font(request, slug):
+    family = COVER_PREVIEW_FONTS.get(slug)
+    if not family:
+        raise Http404("Fonte de prévia indisponível.")
+    path = _cover_preview_font_path(family)
+    content_type = "font/otf" if path.suffix.lower() == ".otf" else "font/ttf"
+    response = FileResponse(path.open("rb"), content_type=content_type)
+    response["Cache-Control"] = "public, max-age=3600"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_GET
 def cover_source_image(request, pk):
+    return _cover_design_image(request, pk, "cover_image")
+
+
+@require_GET
+def cover_back_source_image(request, pk):
+    return _cover_design_image(request, pk, "back_image")
+
+
+@require_GET
+def cover_spine_source_image(request, pk):
+    return _cover_design_image(request, pk, "spine_image")
+
+
+def _cover_design_image(request, pk, file_key):
     build = get_object_or_404(CoverBuild, pk=pk, status__in=["DRAFT", "BLOCKED", "READY"])
     services.guard(build.edition)
-    item = build.files.get("cover_image")
+    item = build.files.get(file_key)
     if not item:
         raise Http404
     path = Path(item["path"]).resolve()
@@ -231,12 +416,28 @@ def action(request, pk, action):
                         messages.error(request, error)
                 return redirect("printbook:detail", pk=pk)
             edition = form.save()
-            if services.snapshot(edition) != before:
+            after = services.snapshot(edition)
+            if after != before:
                 services.invalidate(edition)
                 edition.state = PrintEdition.State.CONFIGURED
                 edition.save(update_fields=["state", "updated_at"])
+                services.record_configuration_history(edition, before, after)
+        elif action == "interior_settings":
+            form = InteriorSettingsForm(request.POST)
+            if not form.is_valid():
+                for errors in form.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
+                return redirect("printbook:interior", pk=pk)
+            services.save_composition(edition, form.cleaned_data)
+        elif action == "apply_official_preset":
+            current = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+            preset = services.official_composition_preset(edition, current.page_count if current else None)
+            services.save_composition(edition, preset["values"])
         elif action == "compile":
             services.compile_interior(edition)
+        elif action == "approve_interior":
+            services.approve_interior(edition)
         elif action == "design_cover":
             form = CoverDesignForm(request.POST, request.FILES)
             if not form.is_valid():
@@ -246,8 +447,14 @@ def action(request, pk, action):
                         messages.error(request, f"{label}: {error}")
                 return redirect("printbook:cover", pk=pk)
             services.design_cover(edition, **form.cleaned_data)
+        elif action == "approve_cover":
+            services.approve_cover(edition)
         elif action == "preflight":
             services.preflight(edition)
+        elif action == "approve_visual_review":
+            services.approve_visual_review(edition)
+        elif action == "approve_edition":
+            services.approve_edition(edition)
         elif action == "export":
             services.export_package(edition)
         else:
@@ -261,12 +468,23 @@ def action(request, pk, action):
             messages.error(request, "Ferramenta de produção indisponível ou build falhou. Consulte o administrador.")
     except (OSError, subprocess.SubprocessError):
         messages.error(request, "Falha de arquivo ou ferramenta externa; build não aprovado.")
-    if action == "design_cover":
-        return redirect("printbook:cover", pk=pk)
-    return redirect("printbook:detail", pk=pk)
+    destinations = {
+        "configure": "printbook:configuration",
+        "interior_settings": "printbook:interior",
+        "apply_official_preset": "printbook:interior",
+        "compile": "printbook:interior",
+        "approve_interior": "printbook:interior",
+        "design_cover": "printbook:cover",
+        "approve_cover": "printbook:cover",
+        "preflight": "printbook:preflight",
+        "approve_visual_review": "printbook:preflight",
+        "approve_edition": "printbook:preflight",
+        "export": "printbook:export",
+    }
+    return redirect(destinations.get(action, "printbook:configuration"), pk=pk)
 
 
-MODELS = {"interior": InteriorBuild, "cover": CoverBuild, "export": PrintExport}
+MODELS = {"interior": InteriorBuild, "cover": CoverBuild, "report": PreflightReport, "export": PrintExport}
 
 
 def artifact(build):
@@ -276,7 +494,7 @@ def artifact(build):
         isinstance(build, CoverBuild) and build.status in {"DRAFT", "BLOCKED"}
     ):
         raise Http404("Artefato não está atual.")
-    item = build.files.get("pdf") or build.files.get("package")
+    item = build.files.get("pdf") or build.files.get("report") or build.files.get("package")
     path = Path(item["path"]).resolve()
     if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
         raise Http404

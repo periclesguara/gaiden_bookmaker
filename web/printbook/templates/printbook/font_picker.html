@@ -1,0 +1,33 @@
+<fieldset class="font-picker-fieldset" data-font-selector>
+  <legend>{{ field.label }}</legend>
+  <p class="font-picker-help">{{ field.help_text }}</p>
+  <select name="{{ field.html_name }}" id="{{ field.id_for_label }}" class="font-select" {% if field.field.required %}required{% endif %}>
+    {% for profile in field.field.queryset %}
+      {% with selected=field.value|stringformat:'s' option_id=profile.pk|stringformat:'s' %}
+      <option value="{{ profile.pk }}" data-font="{{ profile.font|escape }}" data-size="{{ profile.size_pt }}" data-leading="{{ profile.leading_pt }}" {% if selected == option_id %}selected{% endif %}>{{ profile.font }}</option>
+      {% endwith %}
+    {% endfor %}
+  </select>
+  <div class="font-preview" aria-live="polite">
+    <strong class="font-preview-name"></strong>
+    <span class="font-preview-sample">Aa Bb Cc — O livro começa aqui</span>
+    <small class="font-preview-spec"></small>
+  </div>
+  {% for error in field.errors %}<span class="ERROR">{{ error }}</span>{% endfor %}
+</fieldset>
+<script>
+(() => {
+  const root = document.currentScript.previousElementSibling;
+  const select = root.querySelector('.font-select');
+  const preview = root.querySelector('.font-preview');
+  function updateFontPreview() {
+    const option = select.selectedOptions[0];
+    if (!option) return;
+    preview.style.fontFamily = `'${option.dataset.font}', serif`;
+    preview.querySelector('.font-preview-name').textContent = option.dataset.font;
+    preview.querySelector('.font-preview-spec').textContent = `${option.dataset.size} pt · entrelinha ${option.dataset.leading} pt`;
+  }
+  select.addEventListener('change', updateFontPreview);
+  updateFontPreview();
+})();
+</script>

@@ -1,13 +1,23 @@
 {% extends 'printbook/base.html' %}
 {% block content %}
-<p><a href="{% url 'printbook:detail' edition.pk %}">← Voltar para {{ edition.name }}</a></p>
-<h1>Confecção da capa</h1>
-<p>{{ edition.name }} · {{ edition.trim }} in · {{ edition.paper }} · {{ edition.get_state_display }}</p>
-<p>A capa pertence ao miolo aprovado desta edição. Cada montagem é versionada e só pode avançar para o preflight depois que o PDF completo e o template da gráfica estiverem conferidos.</p>
+<header class="page-heading"><div><span class="eyebrow">03 · Capa e editor gráfico</span><h1>Confecção da capa</h1><p>Montar capa completa · {{ edition.name }} · {{ edition.get_platform_display }} · {{ edition.trim }} in · {{ edition.get_paper_display }}. Os elementos permanecem estruturados e cada montagem cria uma versão.</p></div><span class="status-pill">{{ edition.get_state_display }}</span></header>
 
 {% if source_error %}
 <section><p class="BLOCKER">{{ source_error }}</p></section>
 {% endif %}
+
+<section class="cover-mode-summary">
+  <span class="eyebrow">Opção definida na configuração</span>
+  <h2>{{ edition.get_cover_mode_display }}</h2>
+  {% if cover_mode == 'new_print_cover' %}
+  <p>O miolo aprovado será preservado e esta etapa criará uma capa exclusiva para a edição impressa: contracapa, lombada e frente.</p>
+  {% elif cover_mode == 'adapt_epub_cover' %}
+  <p>Use a arte da capa do EPUB como ponto de partida para a frente. Contracapa e lombada serão confeccionadas para as dimensões finais do livro impresso.</p>
+  {% else %}
+  <p>Envie a nova arte preparada externamente e ajuste-a à geometria final. O PDF do miolo permanece independente e não será alterado.</p>
+  {% endif %}
+  <a href="{% url 'printbook:configuration' edition.pk %}">Alterar opção de capa</a>
+</section>
 
 <section>
   <h2>Geometria desta capa</h2>
@@ -30,49 +40,151 @@
 </section>
 
 <section>
-  <h2>1 · Estúdio e simulador de capa</h2>
-  <p>Envie a capa pronta como imagem e ajuste a produção em tempo real. Por padrão, nenhum texto é colocado sobre a arte. A prova sem template oficial fica marcada como <strong>PROVA</strong> e não libera o preflight.</p>
+  <h2>Editor de capa por etapas</h2>
+  <p>Edite separadamente capa, contracapa e lombada. Em cada etapa, use uma imagem de fundo e arraste os campos para organizar o espaço. A visualização completa e a tipografia ficam somente em <strong>Montagem da capa</strong>.</p>
+  <nav class="cover-editor-tabs" role="tablist" aria-label="Partes da capa">
+    <button type="button" class="active" role="tab" aria-selected="true" data-cover-tab="front">Capa</button>
+    <button type="button" role="tab" aria-selected="false" data-cover-tab="back">Contracapa</button>
+    <button type="button" role="tab" aria-selected="false" data-cover-tab="spine">Lombada</button>
+    <button type="button" role="tab" aria-selected="false" data-cover-tab="montage">Montagem da capa</button>
+  </nav>
   {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
   <div class="cover-studio cover-studio-pro">
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}
-      <fieldset>
-        <legend>Arte da frente</legend>
-        <p>{{ design_form.cover_image.label_tag }} {{ design_form.cover_image }}<small>{{ design_form.cover_image.help_text }}</small></p>
+      <aside class="cover-editor-panel cover-editor-left">
+      <h3>Imagens de fundo</h3>
+      <fieldset data-cover-tab-panel="front">
+        <legend>Imagem de fundo da capa</legend>
+        <div class="cover-image-picker">{{ design_form.cover_image.label_tag }} {{ design_form.cover_image }}<small>{{ design_form.cover_image.help_text }}</small><strong>Formatos aceitos: PNG ou JPEG.</strong></div>
         <p>{{ design_form.image_fit.label_tag }} {{ design_form.image_fit }}</p>
         <p>{{ design_form.enhancement_profile.label_tag }} {{ design_form.enhancement_profile }}<small>{{ design_form.enhancement_profile.help_text }}</small></p>
         <p class="range-control">{{ design_form.image_zoom.label_tag }} {{ design_form.image_zoom }} <output data-output="image_zoom">100%</output></p>
         <p class="range-control">{{ design_form.image_x.label_tag }} {{ design_form.image_x }} <output data-output="image_x">50%</output></p>
         <p class="range-control">{{ design_form.image_y.label_tag }} {{ design_form.image_y }} <output data-output="image_y">50%</output></p>
+        <div class="cover-control-grid">
+          <p>{{ design_form.image_offset_x_mm.label_tag }} {{ design_form.image_offset_x_mm }}</p>
+          <p>{{ design_form.image_offset_y_mm.label_tag }} {{ design_form.image_offset_y_mm }}</p>
+          <p>{{ design_form.image_rotation_deg.label_tag }} {{ design_form.image_rotation_deg }}</p>
+        </div>
         <p class="range-control">{{ design_form.overlay_opacity.label_tag }} {{ design_form.overlay_opacity }} <output data-output="overlay_opacity">0%</output></p>
+        <div class="image-actions"><button type="button" data-image-action="center">Centralizar</button><button type="button" data-image-action="contain">Ajustar</button><button type="button" data-image-action="cover">Preencher</button><button type="button" data-image-action="reset">Restaurar</button></div>
+        <button type="button" class="next-cover-step" data-next-tab="back">Continuar para Contracapa →</button>
       </fieldset>
-      <fieldset>
-        <legend>Lombada e frente</legend>
-        <p>{{ design_form.spine_text.label_tag }} {{ design_form.spine_text }}</p>
+      <fieldset data-cover-tab-panel="back" hidden>
+        <legend>Arte da contracapa</legend>
+        <p>{{ design_form.back_image.label_tag }} {{ design_form.back_image }}<small>{{ design_form.back_image.help_text }}</small></p>
+        <p>{{ design_form.back_image_fit.label_tag }} {{ design_form.back_image_fit }}</p>
+        <p>{{ design_form.back_image_zoom.label_tag }} {{ design_form.back_image_zoom }}</p>
+        <div class="cover-control-grid">
+          <p>{{ design_form.back_image_x.label_tag }} {{ design_form.back_image_x }}</p><p>{{ design_form.back_image_y.label_tag }} {{ design_form.back_image_y }}</p>
+          <p>{{ design_form.back_image_offset_x_mm.label_tag }} {{ design_form.back_image_offset_x_mm }}</p><p>{{ design_form.back_image_offset_y_mm.label_tag }} {{ design_form.back_image_offset_y_mm }}</p>
+          <p>{{ design_form.back_image_rotation_deg.label_tag }} {{ design_form.back_image_rotation_deg }}</p>
+        </div>
+        <button type="button" class="next-cover-step" data-next-tab="spine">Continuar para Lombada →</button>
+      </fieldset>
+      <fieldset data-cover-tab-panel="spine" hidden>
+        <legend>Imagem de fundo da lombada</legend>
+        <p>{{ design_form.spine_image.label_tag }} {{ design_form.spine_image }}<small>{{ design_form.spine_image.help_text }}</small></p>
+        <p>{{ design_form.spine_image_fit.label_tag }} {{ design_form.spine_image_fit }}</p>
+        <p>{{ design_form.spine_image_zoom.label_tag }} {{ design_form.spine_image_zoom }}</p>
+        <div class="cover-control-grid"><p>{{ design_form.spine_image_x.label_tag }} {{ design_form.spine_image_x }}</p><p>{{ design_form.spine_image_y.label_tag }} {{ design_form.spine_image_y }}</p></div>
+        <button type="button" class="next-cover-step" data-next-tab="montage">Continuar para Montagem →</button>
+      </fieldset>
+      <div data-cover-tab-panel="montage" hidden>
+        <p class="front-text-switch">{{ design_form.allow_empty_areas }} {{ design_form.allow_empty_areas.label_tag }}</p>
+        <p>{{ design_form.minimum_dpi.label_tag }} {{ design_form.minimum_dpi }}</p>
+        <div id="front-image-quality" class="cover-image-status">Frente: carregue uma imagem para medir o DPI efetivo.</div>
+        <div id="back-image-quality" class="cover-image-status">Contracapa: opcional.</div>
+      </div>
+      </aside>
+      <aside class="cover-editor-panel cover-editor-right">
+      <fieldset class="cover-section-spine" data-cover-tab-panel="spine" hidden>
+        <legend>Tipografia da lombada</legend>
+        {{ design_form.spine_text }}
+        <p>{{ design_form.spine_title.label_tag }} {{ design_form.spine_title }}</p>
+        <p>{{ design_form.spine_author.label_tag }} {{ design_form.spine_author }}</p>
+        <p>{{ design_form.spine_publisher.label_tag }} {{ design_form.spine_publisher }}</p>
+        <div class="cover-control-grid"><p>{{ design_form.spine_font_family.label_tag }} {{ design_form.spine_font_family }}</p><p>{{ design_form.spine_font_size_pt.label_tag }} {{ design_form.spine_font_size_pt }}</p><p>{{ design_form.spine_font_weight.label_tag }} {{ design_form.spine_font_weight }}</p><p>{{ design_form.spine_color.label_tag }} {{ design_form.spine_color }}</p><p>{{ design_form.spine_letter_spacing_pt.label_tag }} {{ design_form.spine_letter_spacing_pt }}</p><p>{{ design_form.spine_rotation.label_tag }} {{ design_form.spine_rotation }}</p><p>{{ design_form.spine_text_x_percent.label_tag }} {{ design_form.spine_text_x_percent }}</p><p>{{ design_form.spine_text_y_percent.label_tag }} {{ design_form.spine_text_y_percent }}</p><p>{{ design_form.spine_offset_x_mm.label_tag }} {{ design_form.spine_offset_x_mm }}</p><p>{{ design_form.spine_offset_y_mm.label_tag }} {{ design_form.spine_offset_y_mm }}</p><p>{{ design_form.spine_edge_safe_mm.label_tag }} {{ design_form.spine_edge_safe_mm }}</p></div>
+        <div class="panel-layout-stage spine-layout-stage" data-layout-stage="spine" aria-label="Área de organização da lombada">
+          <img class="cover-live-image" data-cover-spine-image{% if latest_visual.files.spine_image %} src="{% url 'printbook:cover_spine_source_image' latest_visual.pk %}"{% endif %} alt="Imagem de fundo da lombada">
+          <button type="button" class="floating-cover-field floating-spine-copy" data-floating-field="spine" data-x-field="spine_text_x_percent" data-y-field="spine_text_y_percent" data-cover-spine></button>
+        </div>
+        <p class="cover-section-help">Arraste o texto para posicioná-lo sobre a imagem da lombada.</p>
+        <p id="spine-fit-status" class="cover-image-status">Ajuste calculado conforme a lombada e a paginação.</p>
+      </fieldset>
+      <fieldset id="textos-frente" class="cover-section-front" data-cover-tab-panel="front">
+        <legend>Textos da frente</legend>
+        <p class="cover-section-help">Ative os textos quando a arte enviada ainda não contém título e autor. Os controles abaixo ajustam a composição dentro da área segura da frente.</p>
         <p class="front-text-switch">{{ design_form.add_front_text }} {{ design_form.add_front_text.label_tag }}</p>
         <div id="front-text-fields" hidden>
-          <p>{{ design_form.layout.label_tag }} {{ design_form.layout }}</p>
+          <div class="layout-preset-control">
+            <p>{{ design_form.layout.label_tag }} {{ design_form.layout }}</p>
+            <button type="button" data-apply-layout>Aplicar diagramação</button>
+            <small>O modelo reorganiza fontes, tamanhos, posições, alinhamento e espaçamento. Depois, todos os controles continuam livres para refinamento.</small>
+            <strong data-layout-status aria-live="polite"></strong>
+          </div>
           <p>{{ design_form.title.label_tag }} {{ design_form.title }}</p>
           <p>{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}</p>
           <p>{{ design_form.author.label_tag }} {{ design_form.author }}</p>
+          <p>{{ design_form.language.label_tag }} {{ design_form.language }}</p>
+          <p>{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<small>A editora será posicionada automaticamente no pé da capa.</small></p>
+          <p>{{ design_form.front_palette.label_tag }} {{ design_form.front_palette }}<small>{{ design_form.front_palette.help_text }}</small></p>
+          <div class="cover-palette-swatches front-palette-swatches" aria-label="Prévia da cor clássica da frente"><span></span><span></span><span></span></div>
+          <fieldset class="front-element-typography">
+            <legend>Tipografia e cores dos textos</legend>
+            <p class="cover-section-help">Cada elemento pode usar sua própria fonte editorial e sua própria cor. A amostra na página muda imediatamente.</p>
+            <div class="element-type-row"><strong>Título</strong><p>{{ design_form.front_title_font_family.label_tag }} {{ design_form.front_title_font_family }}</p><p>{{ design_form.front_title_font_size_pt.label_tag }} {{ design_form.front_title_font_size_pt }}</p><p>{{ design_form.front_title_weight.label_tag }} {{ design_form.front_title_weight }}</p><p>{{ design_form.front_title_style.label_tag }} {{ design_form.front_title_style }}</p><p>{{ design_form.front_title_letter_spacing_pt.label_tag }} {{ design_form.front_title_letter_spacing_pt }}</p><p>{{ design_form.front_title_color.label_tag }} {{ design_form.front_title_color }}</p></div>
+            <div class="element-type-row"><strong>Subtítulo</strong><p>{{ design_form.front_subtitle_font_family.label_tag }} {{ design_form.front_subtitle_font_family }}</p><p>{{ design_form.front_subtitle_font_size_pt.label_tag }} {{ design_form.front_subtitle_font_size_pt }}</p><p>{{ design_form.front_subtitle_weight.label_tag }} {{ design_form.front_subtitle_weight }}</p><p>{{ design_form.front_subtitle_style.label_tag }} {{ design_form.front_subtitle_style }}</p><p>{{ design_form.front_subtitle_letter_spacing_pt.label_tag }} {{ design_form.front_subtitle_letter_spacing_pt }}</p><p>{{ design_form.front_subtitle_color.label_tag }} {{ design_form.front_subtitle_color }}</p></div>
+            <div class="element-type-row"><strong>Autor</strong><p>{{ design_form.front_author_font_family.label_tag }} {{ design_form.front_author_font_family }}</p><p>{{ design_form.front_author_font_size_pt.label_tag }} {{ design_form.front_author_font_size_pt }}</p><p>{{ design_form.front_author_weight.label_tag }} {{ design_form.front_author_weight }}</p><p>{{ design_form.front_author_style.label_tag }} {{ design_form.front_author_style }}</p><p>{{ design_form.front_author_letter_spacing_pt.label_tag }} {{ design_form.front_author_letter_spacing_pt }}</p><p>{{ design_form.front_author_color.label_tag }} {{ design_form.front_author_color }}</p></div>
+            <div class="element-type-row"><strong>Editora</strong><p>{{ design_form.front_publisher_font_family.label_tag }} {{ design_form.front_publisher_font_family }}</p><p>{{ design_form.front_publisher_font_size_pt.label_tag }} {{ design_form.front_publisher_font_size_pt }}</p><p>{{ design_form.front_publisher_weight.label_tag }} {{ design_form.front_publisher_weight }}</p><p>{{ design_form.front_publisher_style.label_tag }} {{ design_form.front_publisher_style }}</p><p>{{ design_form.front_publisher_letter_spacing_pt.label_tag }} {{ design_form.front_publisher_letter_spacing_pt }}</p><p>{{ design_form.front_publisher_color.label_tag }} {{ design_form.front_publisher_color }}</p></div>
+          </fieldset>
           <fieldset>
-            <legend>Cores dos textos da frente</legend>
+            <legend>Ajuste frontal da página</legend>
             <div class="cover-control-grid">
-              <p>{{ design_form.text_color.label_tag }} {{ design_form.text_color }}</p>
-              <p>{{ design_form.accent_color.label_tag }} {{ design_form.accent_color }}</p>
+              <p>{{ design_form.front_title_x_percent.label_tag }} {{ design_form.front_title_x_percent }}</p>
+              <p>{{ design_form.front_title_y_percent.label_tag }} {{ design_form.front_title_y_percent }}<small>{{ design_form.front_title_y_percent.help_text }}</small></p>
+              <p>{{ design_form.front_subtitle_x_percent.label_tag }} {{ design_form.front_subtitle_x_percent }}</p>
+              <p>{{ design_form.front_subtitle_y_percent.label_tag }} {{ design_form.front_subtitle_y_percent }}</p>
+              <p>{{ design_form.front_author_x_percent.label_tag }} {{ design_form.front_author_x_percent }}</p>
+              <p>{{ design_form.front_author_y_percent.label_tag }} {{ design_form.front_author_y_percent }}<small>{{ design_form.front_author_y_percent.help_text }}</small></p>
+              <p>{{ design_form.front_publisher_x_percent.label_tag }} {{ design_form.front_publisher_x_percent }}</p>
+              <p>{{ design_form.front_publisher_y_percent.label_tag }} {{ design_form.front_publisher_y_percent }}<small>{{ design_form.front_publisher_y_percent.help_text }}</small></p>
+              <p>{{ design_form.front_text_scale_percent.label_tag }} {{ design_form.front_text_scale_percent }}</p>
+              <p>{{ design_form.front_text_align.label_tag }} {{ design_form.front_text_align }}</p>
             </div>
           </fieldset>
+          <div class="panel-layout-stage front-layout-stage" data-layout-stage="front" aria-label="Área de organização da capa">
+            <img class="cover-live-image" data-cover-image{% if latest_visual.files.cover_image %} src="{% url 'printbook:cover_source_image' latest_visual.pk %}"{% endif %} alt="Imagem de fundo da capa">
+            <span class="cover-live-overlay" data-cover-overlay></span>
+            <button type="button" class="floating-cover-field cover-live-title" data-floating-field="title" data-x-field="front_title_x_percent" data-y-field="front_title_y_percent" data-cover-title></button>
+            <button type="button" class="floating-cover-field cover-live-subtitle" data-floating-field="subtitle" data-x-field="front_subtitle_x_percent" data-y-field="front_subtitle_y_percent" data-cover-subtitle></button>
+            <button type="button" class="floating-cover-field cover-live-author" data-floating-field="author" data-x-field="front_author_x_percent" data-y-field="front_author_y_percent" data-cover-author></button>
+            <button type="button" class="floating-cover-field cover-live-publisher" data-floating-field="publisher" data-x-field="front_publisher_x_percent" data-y-field="front_publisher_y_percent" data-cover-publisher></button>
+          </div>
+          <p class="cover-section-help">Arraste título, subtítulo, autor e editora para organizar o espaço da capa.</p>
+          <input type="hidden" name="text_color" value="{{ design_form.text_color.value|default:'#FFFFFF' }}">
+          <input type="hidden" name="accent_color" value="{{ design_form.accent_color.value|default:'#D4A24C' }}">
         </div>
       </fieldset>
-      <fieldset>
-        <legend>Blocos da contracapa</legend>
+      <fieldset id="textos-contracapa" class="cover-section-back" data-cover-tab-panel="back" hidden>
+        <legend>Textos da contracapa</legend>
+        <p class="cover-section-help">Preencha somente os blocos que deseja imprimir. A prévia é atualizada enquanto você escreve.</p>
         <p>{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}</p>
         <p>{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}</p>
         <p>{{ design_form.back_text.label_tag }} {{ design_form.back_text }}</p>
+        <p class="empty-back-approval">{{ design_form.approve_empty_back }} {{ design_form.approve_empty_back.label_tag }}<small>{{ design_form.approve_empty_back.help_text }}</small></p>
         <p>{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}</p>
+        <p>{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<small>{{ design_form.back_footer.help_text }}</small></p>
+        <div class="cover-control-grid"><p>{{ design_form.back_text_x_percent.label_tag }} {{ design_form.back_text_x_percent }}</p><p>{{ design_form.back_text_y_percent.label_tag }} {{ design_form.back_text_y_percent }}</p></div>
+        <div class="panel-layout-stage back-layout-stage" data-layout-stage="back" aria-label="Área de organização da contracapa">
+          <img class="cover-live-image" data-cover-back-image{% if latest_visual.files.back_image %} src="{% url 'printbook:cover_back_source_image' latest_visual.pk %}"{% endif %} alt="Imagem de fundo da contracapa">
+          <button type="button" class="floating-cover-field floating-back-copy" data-floating-field="back" data-x-field="back_text_x_percent" data-y-field="back_text_y_percent"><strong data-cover-back-heading></strong><span data-cover-back></span></button>
+        </div>
+        <p class="cover-section-help">Arraste o bloco para posicioná-lo. Para usar apenas a imagem, marque a aprovação sem texto.</p>
       </fieldset>
       <input type="hidden" name="background_color" value="{{ design_form.background_color.value|default:'#1F2937' }}">
-      <fieldset>
+      <fieldset class="cover-section-back-palette" data-cover-tab-panel="back" hidden>
         <legend>Paleta da contracapa</legend>
         <p>{{ design_form.back_palette.label_tag }} {{ design_form.back_palette }}</p>
         <div class="cover-palette-swatches" aria-label="Prévia da paleta"><span></span><span></span><span></span></div>
@@ -82,24 +194,42 @@
           <p>{{ design_form.back_accent_color.label_tag }} {{ design_form.back_accent_color }}</p>
         </div>
       </fieldset>
-      <details class="production-gate">
+      <fieldset class="cover-section-typography" data-cover-tab-panel="montage" hidden>
+        <legend>Tipografia da montagem</legend>
+        <p class="cover-section-help">Estes valores são enviados ao LuaLaTeX e entram no PDF final. A família escolhida vale para capa e contracapa; a lombada pode acompanhar ou usar sua seleção própria.</p>
+        <p>{{ design_form.cover_font_family.label_tag }} {{ design_form.cover_font_family }}<small>{{ design_form.cover_font_family.help_text }}</small></p>
+        <div class="cover-font-sample" data-cover-font-sample>
+          <span>AMOSTRA EDITORIAL</span>
+          <strong>O Ofício de Fazer Livros</strong>
+          <small>RinoBooks · Tipografia para impressão</small>
+        </div>
+        <div class="cover-control-grid">
+          <p>{{ design_form.back_heading_font_size_pt.label_tag }} {{ design_form.back_heading_font_size_pt }}</p>
+          <p>{{ design_form.back_body_font_size_pt.label_tag }} {{ design_form.back_body_font_size_pt }}</p>
+          <p>{{ design_form.back_text_align.label_tag }} {{ design_form.back_text_align }}</p>
+        </div>
+      </fieldset>
+      <details class="production-gate" data-cover-tab-panel="montage" hidden>
         <summary>Produção gráfica e template oficial</summary>
         <p>{{ design_form.spine.label_tag }} {{ design_form.spine }}<small>{{ design_form.spine.help_text }}</small></p>
         <p>{{ design_form.template.label_tag }} {{ design_form.template }}<small>{{ design_form.template.help_text }}</small></p>
       </details>
-      <div class="cover-save-actions">
+      <div class="cover-save-actions" data-cover-tab-panel="montage" hidden>
         <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar rascunho</button>
         <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error %}disabled{% endif %}>Salvar capa final</button>
       </div>
+      </aside>
     </form>
-    <div class="cover-simulator" data-trim="{{ edition.trim }}" data-trim-width="{{ edition.trim|cut:'x9'|cut:'x8.5' }}">
+    <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}">
       <div class="simulator-toolbar">
-        <button type="button" class="simulator-tab active" data-simulator-mode="wrap">Capa aberta</button>
-        <button type="button" class="simulator-tab" data-simulator-mode="book">Livro 3D</button>
-        <label><input type="checkbox" id="cover-guides" checked> Guias</label>
+        <button type="button" data-history="undo" title="Desfazer">↶</button><button type="button" data-history="redo" title="Refazer">↷</button>
+        <button type="button" data-canvas-zoom="out">−</button><output id="canvas-zoom-output">100%</output><button type="button" data-canvas-zoom="in">+</button><button type="button" data-canvas-zoom="fit">Ajustar à tela</button><button type="button" data-canvas-zoom="100">100%</button>
       </div>
-      <div class="cover-live-preview with-guides" id="cover-live-preview" aria-label="Simulador da capa completa"{% if geometry %} style="aspect-ratio:{{ geometry.spread_width_in }}/{{ geometry.spread_height_in }}"{% endif %}>
+      <div class="cover-ruler cover-ruler-x" aria-hidden="true"></div><div class="cover-ruler cover-ruler-y" aria-hidden="true"></div>
+      <div class="cover-canvas-viewport" id="cover-canvas-viewport">
+      <div class="cover-live-preview guide-physical guide-trim guide-bleed guide-safe guide-spine guide-center" id="cover-live-preview" aria-label="Simulador da capa completa"{% if geometry %} style="aspect-ratio:{{ geometry.spread_width_in }}/{{ geometry.spread_height_in }}"{% endif %}>
         <div class="cover-live-back">
+          <img class="cover-live-image" data-cover-back-image{% if latest_visual.files.back_image %} src="{% url 'printbook:cover_back_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a contracapa">
           <span class="cover-panel-label">CONTRACAPA</span>
           <span class="cover-safe-zone"></span>
           <div class="cover-live-back-copy">
@@ -107,10 +237,11 @@
             <blockquote data-cover-back-quote></blockquote>
             <span class="cover-live-back-text" data-cover-back></span>
             <small data-cover-back-bio></small>
+            <small class="cover-live-back-footer" data-cover-back-footer></small>
           </div>
           <span class="cover-barcode-zone">ÁREA DO CÓDIGO</span>
         </div>
-        <div class="cover-live-spine"><span data-cover-spine></span></div>
+        <div class="cover-live-spine"><img class="cover-live-image" data-cover-spine-image{% if latest_visual.files.spine_image %} src="{% url 'printbook:cover_spine_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a lombada"><span data-cover-spine></span><i class="spine-center-guide"></i></div>
         <div class="cover-live-front">
           <img class="cover-live-image" data-cover-image{% if latest_visual.files.cover_image %} src="{% url 'printbook:cover_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a capa">
           <span class="cover-live-overlay" data-cover-overlay></span>
@@ -119,20 +250,25 @@
           <span class="cover-live-title" data-cover-title></span>
           <span class="cover-live-subtitle" data-cover-subtitle></span>
           <span class="cover-live-author" data-cover-author></span>
+          <span class="cover-live-publisher" data-cover-publisher></span>
         </div>
       </div>
+      </div>
+      <div class="cursor-position">Cursor: <output id="cursor-mm">—</output></div>
+      <div class="guide-controls" aria-label="Guias"><label><input type="checkbox" data-guide="physical" checked><i class="key-physical"></i> Limites</label><label><input type="checkbox" data-guide="trim" checked><i class="key-trim"></i> Corte</label><label><input type="checkbox" data-guide="bleed" checked><i class="key-bleed"></i> Sangria</label><label><input type="checkbox" data-guide="safe" checked><i class="key-safe"></i> Segurança</label><label><input type="checkbox" data-guide="spine" checked><i class="key-spine"></i> Lombada</label><label><input type="checkbox" data-guide="center" checked><i class="key-center"></i> Centro</label></div>
       <div class="cover-book-view" id="cover-book-view" hidden>
-        <div class="cover-book-spine"><span data-cover-spine></span></div>
+        <div class="cover-book-spine"><img class="cover-live-image" data-cover-spine-image{% if latest_visual.files.spine_image %} src="{% url 'printbook:cover_spine_source_image' latest_visual.pk %}"{% endif %} alt="Fundo da lombada"><span data-cover-spine></span></div>
         <div class="cover-book-front">
           <img class="cover-live-image" data-cover-image{% if latest_visual.files.cover_image %} src="{% url 'printbook:cover_source_image' latest_visual.pk %}"{% endif %} alt="Simulação tridimensional da capa">
           <span class="cover-live-overlay" data-cover-overlay></span>
           <span class="cover-live-title" data-cover-title></span>
           <span class="cover-live-subtitle" data-cover-subtitle></span>
           <span class="cover-live-author" data-cover-author></span>
+          <span class="cover-live-publisher" data-cover-publisher></span>
         </div>
       </div>
-      <p id="cover-image-status" class="cover-image-status">Selecione uma imagem PNG ou JPEG para visualizar a capa.</p>
-      <p class="cover-live-note">Linhas vermelhas: sangria e corte. Linhas verdes: área segura. A largura da lombada acompanha o valor do formulário.</p>
+      <p id="cover-image-status" class="cover-image-status">O zoom do visualizador não altera as dimensões físicas nem o DPI.</p>
+      <p class="cover-live-note">As guias são exclusivas do editor e nunca são incluídas no PDF final.</p>
     </div>
   </div>
 </section>
@@ -154,163 +290,372 @@
   <p>Nenhuma capa montada para este miolo.</p>
   {% endfor %}
   <p class="muted">PROVA usa a lombada estimada pelo simulador. READY possui template oficial conferido e pode seguir para o preflight.</p>
+  {% if cover %}<form method="post" action="{% url 'printbook:action' edition.pk 'approve_cover' %}">{% csrf_token %}<button class="approve">Aprovar capa</button></form>{% endif %}
 </section>
 
 <section>
   <h2>Próxima etapa</h2>
   <p>Depois de salvar, retorne ao PrintBook para conferir capa e miolo juntos e executar os testes da IngramSpark.</p>
-  <a class="button-link" href="{% url 'printbook:detail' edition.pk %}">← Retornar ao PrintBook</a>
+  <a class="button-link" href="{% url 'printbook:interior' edition.pk %}">← Retornar ao miolo</a>
+  <a class="button-link" href="{% url 'printbook:preflight' edition.pk %}">Continuar para o preflight →</a>
   {% if interior and latest_visual %}<a class="button-link" href="{% url 'printbook:book_preview' edition.pk %}">Ver capa junto com o miolo</a>{% endif %}
 </section>
 {% endblock %}
 {% block extra_scripts %}
+<style>
+{% for font in cover_font_faces %}@font-face{font-family:"{{ font.css_family }}";src:url("{% url 'printbook:cover_preview_font' font.slug %}") format("{{ font.format }}");font-style:normal;font-weight:400;font-display:swap}{% endfor %}
+main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minmax(260px,320px) minmax(560px,1fr) minmax(280px,350px);grid-template-areas:"left canvas right";gap:18px}.cover-studio-pro>form{display:contents}.cover-editor-left{grid-area:left}.cover-editor-right{grid-area:right}.cover-simulator{grid-area:canvas;position:sticky;top:12px;min-width:0}.cover-editor-panel{background:#f8f6f1;border:1px solid #d9d1c6;border-radius:12px;padding:14px;max-height:calc(100vh - 28px);overflow:auto}.cover-editor-panel h3{margin-top:0}.panel-selector,.image-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}.panel-selector button,.image-actions button,.nudge-grid button{background:#e4ded4;color:#26323a;padding:7px 9px}.panel-selector button.active{background:#285f94;color:#fff}.cover-control-grid p{margin:.4rem 0}.cover-control-grid label{display:block;font-size:12px}.cover-control-grid input,.cover-control-grid select{width:100%}.nudge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.cover-save-actions{position:sticky;bottom:-14px;background:#f8f6f1;padding:12px 0}.cover-canvas-viewport{height:min(68vh,720px);min-height:480px;background:#c9c5bd;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;border:1px solid #aaa;position:relative}.cover-canvas-viewport:active{cursor:grabbing}.cover-live-preview{width:min(900px,92%);max-width:none;flex:0 0 auto;transform-origin:center;transition:transform .08s linear}.cover-live-back>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;z-index:0;transform-origin:center}.cover-live-back-copy,.cover-barcode-zone{position:relative}.cover-ruler{height:22px;background-color:#f8f6f1;background-image:repeating-linear-gradient(90deg,#555 0 1px,transparent 1px 10px);border:1px solid #bbb;color:#444}.cover-ruler-y{display:none}.cursor-position{font:12px ui-monospace,monospace;background:#1f2937;color:#fff;padding:5px 8px}.guide-controls{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;padding:8px;background:#fff}.guide-controls label{display:flex;align-items:center;gap:4px}.guide-controls i{width:14px;border-top:3px solid}.key-physical{border-color:#111!important}.key-trim{border-color:#ef4444!important}.key-bleed{border-color:#f59e0b!important}.key-safe{border-color:#22c55e!important}.key-spine{border-color:#3b82f6!important}.key-center{border-color:#a855f7!important}.cover-live-preview:not(.guide-physical){border-color:transparent}.cover-live-preview.guide-bleed:after{content:"SANGRIA";position:absolute;inset:0;border:2px solid #f59e0b;color:#f59e0b;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview.guide-trim:before{content:"CORTE";position:absolute;inset:1.35%;border:2px solid #ef4444;color:#ef4444;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview:not(.guide-safe) .cover-safe-zone{display:none}.cover-live-preview.guide-safe .cover-safe-zone{display:block}.cover-live-preview:not(.guide-spine) .cover-live-spine{outline:0}.cover-live-preview.guide-spine .cover-live-spine{outline:2px solid #3b82f6;outline-offset:-2px}.spine-center-guide{display:none;position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed #a855f7}.guide-center .spine-center-guide{display:block}.cover-live-spine span{position:relative;z-index:2;white-space:nowrap}.cover-live-image{image-rendering:auto;will-change:transform}.cover-image-status{overflow-wrap:anywhere}.simulator-toolbar output{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}@media(max-width:1180px){.cover-studio-pro{grid-template-columns:minmax(250px,320px) 1fr;grid-template-areas:"left canvas" "right right"}.cover-editor-right{max-height:none}.cover-simulator{position:static}}@media(max-width:760px){.cover-studio-pro{grid-template-columns:1fr;grid-template-areas:"canvas" "left" "right"}.cover-canvas-viewport{min-height:340px}.cover-live-preview{min-width:620px}.cover-editor-panel{max-height:none}}
+@media(min-width:901px){.cover-studio-pro{grid-template-columns:minmax(210px,280px) minmax(430px,1fr) minmax(220px,280px);grid-template-areas:"left canvas right";gap:12px}.cover-editor-right{max-height:calc(100vh - 28px)}.cover-simulator{position:sticky}}
+.cover-editor-panel{overflow-x:hidden}.cover-editor-panel .cover-control-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cover-editor-panel .cover-control-grid>*{min-width:0}.cover-editor-panel input,.cover-editor-panel select,.cover-editor-panel textarea{max-width:100%;min-width:0}
+.cover-section-help{font-size:12px;line-height:1.45;color:#5c5b59;background:#fff;border-left:3px solid #285f94;padding:8px 10px}.cover-live-back-footer{font-size:clamp(6px,.9vw,9px);line-height:1.25;margin-top:auto}.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-publisher]{position:absolute;z-index:3;width:80%;left:10%;transform-origin:center}.cover-live-publisher{font-size:clamp(7px,1vw,11px);letter-spacing:.08em;text-transform:uppercase}
+.cover-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px;border-bottom:1px solid #d9d1c6;padding-bottom:10px}.cover-editor-tabs button{background:#e8e2d8;color:#30363b;font-weight:700}.cover-editor-tabs button.active{background:#285f94;color:#fff}.cover-editor-right{display:flex;flex-direction:column}.cover-editor-right>.production-gate{order:20}.cover-editor-right>.cover-save-actions{order:21}[data-cover-tab-panel][hidden]{display:none!important}.cover-section-typography{order:1}#textos-frente:target,#textos-contracapa:target{outline:3px solid #d4a24c;outline-offset:3px;background:#fffdf5}.cover-live-spine>.cover-live-image,.cover-book-spine>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.cover-live-spine,.cover-book-spine{position:relative;overflow:hidden}.cover-live-spine>[data-cover-spine],.cover-book-spine>[data-cover-spine]{position:relative;z-index:2}
+.cover-studio-pro:not(.montage-active){grid-template-columns:minmax(390px,.9fr) minmax(560px,1.1fr);grid-template-areas:"left right";align-items:start}.cover-studio-pro:not(.montage-active) .cover-editor-panel{max-height:none;width:auto;min-width:0}.cover-image-picker{display:grid;gap:8px;border:2px dashed #285f94;background:#eef5fb;border-radius:10px;padding:16px;margin-bottom:14px}.cover-image-picker label{font-weight:800;color:#204f78}.cover-image-picker input[type=file]{display:block;width:100%;max-width:100%;padding:12px;background:#fff;border:1px solid #9eb9cf;border-radius:8px}.cover-image-picker strong{font-size:12px;color:#285f94}.panel-layout-stage{position:relative;width:min(100%,430px);aspect-ratio:2/3;margin:16px auto;background:#1f2937;overflow:hidden;border:8px solid #e8e2d8;box-shadow:0 10px 24px #1f293733;color:#fff}.panel-layout-stage>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.panel-layout-stage>.cover-live-overlay{position:absolute;inset:0;z-index:1}.floating-cover-field{position:absolute;z-index:3;width:80%;left:50%;transform:translateX(-50%);margin:0;padding:7px;border:1px dashed #fff9;background:#1115;color:inherit;cursor:grab;touch-action:none;overflow-wrap:anywhere}.floating-cover-field:active{cursor:grabbing;border-style:solid}.floating-back-copy{display:flex;flex-direction:column;gap:8px;text-align:left}.floating-back-copy span{white-space:pre-wrap}.spine-layout-stage{width:min(100%,110px);aspect-ratio:1/8}.floating-spine-copy{width:max-content;max-width:720%;white-space:nowrap;transform:translate(-50%,-50%) rotate(90deg)}.next-cover-step{width:100%;margin-top:12px;background:#285f94}.empty-back-approval{border:1px solid #d4a24c;background:#fff8e8;border-radius:8px;padding:10px}.cover-section-typography{order:1}@media(max-width:1280px){.cover-studio-pro:not(.montage-active){grid-template-columns:minmax(0,1fr);grid-template-areas:"left" "right"}.cover-studio-pro:not(.montage-active) .cover-editor-panel{width:100%;box-sizing:border-box}.cover-studio-pro:not(.montage-active) .panel-layout-stage{width:min(100%,520px)}}
+.cover-font-sample{display:grid;gap:5px;margin:12px 0 18px;padding:22px;border:1px solid #c8a66a;border-radius:10px;background:#fffdf8;text-align:center;color:#241f1a}.cover-font-sample span{font:700 10px/1.2 system-ui;letter-spacing:.18em;color:#8a5a32}.cover-font-sample strong{font-size:32px;line-height:1.05;font-weight:600}.cover-font-sample small{font-size:14px;letter-spacing:.04em}
+.front-element-typography{background:#fffdf8!important;border-color:#c8a66a!important}.element-type-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0;padding:14px;border:1px solid #e5ddd1;border-radius:9px;background:#fff}.element-type-row>strong{grid-column:1/-1;font-size:17px;color:#5b3b24}.element-type-row p{margin:0}.element-type-row p:first-of-type{grid-column:span 2}.element-type-row label{display:block;font-size:11px;color:#666}.element-type-row input,.element-type-row select{width:100%}.element-type-row input[type=color]{height:40px;padding:2px;border:1px solid #b7aa99;border-radius:6px;background:#fff}@media(max-width:700px){.element-type-row{grid-template-columns:1fr}.element-type-row p:first-of-type,.element-type-row>strong{grid-column:1}}
+.layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
+</style>
 <script>
 (function () {
   const form = document.getElementById('cover-design-form');
   if (!form) return;
   const preview = document.getElementById('cover-live-preview');
-  const bookView = document.getElementById('cover-book-view');
+  const viewport = document.getElementById('cover-canvas-viewport');
   const simulator = form.closest('.cover-studio').querySelector('.cover-simulator');
-  const status = document.getElementById('cover-image-status');
   const value = (name) => (form.elements[name] ? form.elements[name].value : '');
   const all = (selector) => document.querySelectorAll(selector);
-  let imageUrl = '';
-  let imageWidth = 0;
-  let imageHeight = 0;
-  const palettes = {
+  const previewFontFamilies = {
+    {% for font in cover_font_faces %}"{{ font.family|escapejs }}": "{{ font.css_family|escapejs }}",{% endfor %}
+  };
+  const previewFont = (family) => `"${previewFontFamilies[family] || family || 'serif'}", "${family || 'serif'}", serif`;
+  const dimensions = {front: {width: 0, height: 0}, back: {width: 0, height: 0}, spine: {width: 0, height: 0}};
+  const urls = {front: '', back: '', spine: ''};
+  let selectedPanel = 'front';
+  let canvasZoom = 1;
+  let pan = {x: 0, y: 0};
+  let history = [], historyIndex = -1, historyTimer;
+  const backPalettes = {
     midnight: ['#1F2937', '#FFFFFF', '#D4A24C'],
     ivory: ['#F4EBDD', '#2D2926', '#8A5A32'],
     burgundy: ['#5A1726', '#FFF7ED', '#D6A75C'],
     forest: ['#173C32', '#F5F1E8', '#C8A96B']
   };
-
-  const updateImageQuality = () => {
-    if (!imageWidth || !imageHeight) return;
-    const trim = simulator.dataset.trim.split('x').map(Number);
-    const zoom = Number(value('image_zoom') || 100) / 100;
-    const ppi = Math.floor(Math.min(imageWidth / (trim[0] * zoom), imageHeight / (trim[1] * zoom)));
-    if (value('enhancement_profile') === 'production_300' && ppi < 300) {
-      const factor = (300 / ppi).toFixed(2);
-      status.className = 'cover-image-status quality-warning';
-      status.textContent = `${imageWidth} × ${imageHeight} px · ${ppi} ppi na origem · será ampliada em aproximadamente ${factor}× para 300 ppi. Confira a prova em tamanho real.`;
-      return;
+  const frontPalettes = {
+    classic_blue: ['#17365D', '#FFFFFF', '#D9B56D'],
+    classic_red: ['#6B1E2B', '#FFF8F0', '#D9B56D'],
+    classic_gray: ['#4B5563', '#FFFFFF', '#D1D5DB'],
+    classic_black: ['#111111', '#FFFFFF', '#C9A55C'],
+    classic_green: ['#1F4D3A', '#F7F3E8', '#D2B36C']
+  };
+  const layoutPresets = {
+    classic: {
+      front_title_font_family: 'GFS Baskerville', front_title_font_size_pt: '30', front_title_weight: 'bold', front_title_style: 'normal', front_title_letter_spacing_pt: '.3',
+      front_subtitle_font_family: 'EB Garamond', front_subtitle_font_size_pt: '14', front_subtitle_weight: 'regular', front_subtitle_style: 'italic', front_subtitle_letter_spacing_pt: '.1',
+      front_author_font_family: 'GFS Baskerville', front_author_font_size_pt: '12', front_author_weight: 'regular', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1',
+      front_publisher_font_family: 'GFS Baskerville', front_publisher_font_size_pt: '8.5', front_publisher_weight: 'regular', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1',
+      front_title_x_percent: '50', front_title_y_percent: '17', front_subtitle_x_percent: '50', front_subtitle_y_percent: '32', front_author_x_percent: '50', front_author_y_percent: '82', front_publisher_x_percent: '50', front_publisher_y_percent: '92', front_text_scale_percent: '100', front_text_align: 'center'
+    },
+    modern: {
+      front_title_font_family: 'Fira Sans', front_title_font_size_pt: '32', front_title_weight: 'bold', front_title_style: 'normal', front_title_letter_spacing_pt: '0',
+      front_subtitle_font_family: 'Fira Sans', front_subtitle_font_size_pt: '13', front_subtitle_weight: 'regular', front_subtitle_style: 'normal', front_subtitle_letter_spacing_pt: '.3',
+      front_author_font_family: 'Fira Sans', front_author_font_size_pt: '11', front_author_weight: 'bold', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1.2',
+      front_publisher_font_family: 'Fira Sans', front_publisher_font_size_pt: '8', front_publisher_weight: 'regular', front_publisher_style: 'normal', front_publisher_letter_spacing_pt: '1',
+      front_title_x_percent: '50', front_title_y_percent: '13', front_subtitle_x_percent: '50', front_subtitle_y_percent: '30', front_author_x_percent: '50', front_author_y_percent: '78', front_publisher_x_percent: '50', front_publisher_y_percent: '92', front_text_scale_percent: '100', front_text_align: 'left'
+    },
+    minimal: {
+      front_title_font_family: 'GFS Didot', front_title_font_size_pt: '25', front_title_weight: 'regular', front_title_style: 'normal', front_title_letter_spacing_pt: '1.4',
+      front_subtitle_font_family: 'GFS Didot', front_subtitle_font_size_pt: '11', front_subtitle_weight: 'regular', front_subtitle_style: 'italic', front_subtitle_letter_spacing_pt: '.4',
+      front_author_font_family: 'GFS Didot', front_author_font_size_pt: '10', front_author_weight: 'regular', front_author_style: 'small_caps', front_author_letter_spacing_pt: '1.5',
+      front_publisher_font_family: 'GFS Didot', front_publisher_font_size_pt: '7.5', front_publisher_weight: 'regular', front_publisher_style: 'small_caps', front_publisher_letter_spacing_pt: '1.2',
+      front_title_x_percent: '50', front_title_y_percent: '27', front_subtitle_x_percent: '50', front_subtitle_y_percent: '43', front_author_x_percent: '50', front_author_y_percent: '79', front_publisher_x_percent: '50', front_publisher_y_percent: '91', front_text_scale_percent: '100', front_text_align: 'center'
     }
-    const quality = ppi >= 300 ? 'boa para impressão' : ppi >= 200 ? 'aceitável para prova; revise antes da gráfica' : 'baixa resolução para impressão';
-    status.className = `cover-image-status ${ppi >= 300 ? 'quality-good' : ppi >= 200 ? 'quality-warning' : 'quality-error'}`;
-    status.textContent = `${imageWidth} × ${imageHeight} px · aproximadamente ${ppi} ppi · ${quality}.`;
+  };
+  const applyLayoutPreset = (name) => {
+    const preset = layoutPresets[name];
+    if (!preset) return;
+    Object.entries(preset).forEach(([fieldName, fieldValue]) => {
+      if (form.elements[fieldName]) form.elements[fieldName].value = fieldValue;
+    });
+    const status = document.querySelector('[data-layout-status]');
+    const label = form.elements.layout.options[form.elements.layout.selectedIndex].text;
+    if (status) status.textContent = `Diagramação ${label} aplicada à capa.`;
+  };
+
+  const names = (panel) => panel === 'front' ? {
+    fit: 'image_fit', zoom: 'image_zoom', x: 'image_x', y: 'image_y', ox: 'image_offset_x_mm', oy: 'image_offset_y_mm', rotation: 'image_rotation_deg'
+  } : panel === 'back' ? {
+    fit: 'back_image_fit', zoom: 'back_image_zoom', x: 'back_image_x', y: 'back_image_y', ox: 'back_image_offset_x_mm', oy: 'back_image_offset_y_mm', rotation: 'back_image_rotation_deg'
+  } : {
+    fit: 'spine_image_fit', zoom: 'spine_image_zoom', x: 'spine_image_x', y: 'spine_image_y', ox: '', oy: '', rotation: ''
+  };
+
+  const physicalMetrics = (panel) => {
+    const size = dimensions[panel];
+    if (!size.width || !size.height) return null;
+    const controls = names(panel);
+    const panelWidth = panel === 'spine' ? (Number(value('spine')) || Number(simulator.dataset.spine) || .25) : (Number(simulator.dataset.panelWidth) || 6.125);
+    const panelHeight = Number(simulator.dataset.panelHeight) || 9.25;
+    const imageAspect = size.width / size.height;
+    const panelAspect = panelWidth / panelHeight;
+    const fit = value(controls.fit) || 'cover';
+    const scale = Number(value(controls.zoom) || 100) / 100;
+    const useWidth = (fit === 'cover' && imageAspect < panelAspect) || (fit === 'contain' && imageAspect >= panelAspect);
+    const printedWidth = useWidth ? panelWidth * scale : panelHeight * scale * imageAspect;
+    const printedHeight = useWidth ? printedWidth / imageAspect : panelHeight * scale;
+    return {printedWidth, printedHeight, dpiX: size.width / printedWidth, dpiY: size.height / printedHeight};
+  };
+
+  const updateImageQuality = (panel) => {
+    const target = document.getElementById(`${panel}-image-quality`);
+    const metrics = physicalMetrics(panel);
+    if (!target || !metrics) return;
+    const size = dimensions[panel];
+    const minimum = Number(value('minimum_dpi') || 300);
+    const effective = Math.min(metrics.dpiX, metrics.dpiY);
+    target.className = `cover-image-status ${effective >= minimum ? 'quality-good' : 'quality-error'}`;
+    target.textContent = `${panel === 'front' ? 'Frente' : 'Contracapa'} · ${size.width} × ${size.height} px · ${metrics.printedWidth.toFixed(2)} × ${metrics.printedHeight.toFixed(2)} in · ${Math.floor(metrics.dpiX)} × ${Math.floor(metrics.dpiY)} DPI efetivos · proporção preservada.`;
+  };
+
+  const applyImageTransform = (panel) => {
+    const controls = names(panel);
+    const selector = panel === 'front' ? '[data-cover-image]' : panel === 'back' ? '[data-cover-back-image]' : '[data-cover-spine-image]';
+    const panelWidthMm = (panel === 'spine' ? (Number(value('spine')) || Number(simulator.dataset.spine) || .25) : (Number(simulator.dataset.panelWidth) || 6.125)) * 25.4;
+    const panelHeightMm = (Number(simulator.dataset.panelHeight) || 9.25) * 25.4;
+    const tx = Number(controls.ox ? value(controls.ox) : 0) / panelWidthMm * 100;
+    const ty = Number(controls.oy ? value(controls.oy) : 0) / panelHeightMm * 100;
+    all(selector).forEach((element) => {
+      element.style.objectFit = value(controls.fit) || 'cover';
+      element.style.objectPosition = `${value(controls.x) || 50}% ${value(controls.y) || 50}%`;
+      element.style.transform = `translate(${tx}%, ${ty}%) scale(${Number(value(controls.zoom) || 100) / 100}) rotate(${Number(controls.rotation ? value(controls.rotation) : 0)}deg)`;
+    });
   };
 
   const update = () => {
     const background = value('background_color') || '#1F2937';
     const text = value('text_color') || '#FFFFFF';
     const accent = value('accent_color') || '#D4A24C';
+    const titleColor = value('front_title_color') || text;
+    const subtitleColor = value('front_subtitle_color') || accent;
+    const authorColor = value('front_author_color') || accent;
+    const publisherColor = value('front_publisher_color') || accent;
     const backBackground = value('back_background_color') || '#1F2937';
     const backText = value('back_text_color') || '#FFFFFF';
     const backAccent = value('back_accent_color') || '#D4A24C';
-    const zoom = Number(value('image_zoom') || 100) / 100;
-    const x = value('image_x') || 50;
-    const y = value('image_y') || 50;
     const opacity = Number(value('overlay_opacity') || 0) / 100;
     const spine = Number.parseFloat(value('spine'));
     const spineFraction = Number.isFinite(spine) ? Math.max(0.05, Math.min(0.28, spine / 6)) : 0.08;
     preview.style.gridTemplateColumns = `1fr ${spineFraction}fr 1fr`;
     preview.style.backgroundColor = background;
     preview.style.color = text;
+    preview.style.fontFamily = previewFont(value('cover_font_family') || simulator.dataset.coverFont);
+    all('.front-layout-stage,.back-layout-stage,[data-cover-font-sample]').forEach((element) => { element.style.fontFamily = previewFont(value('cover_font_family')); });
     const addFrontText = Boolean(form.elements.add_front_text && form.elements.add_front_text.checked);
     preview.dataset.layout = addFrontText ? (value('layout') || 'classic') : 'art_only';
     const frontFields = document.getElementById('front-text-fields');
     if (frontFields) frontFields.hidden = !addFrontText;
-    all('.cover-live-spine,.cover-live-front,.cover-book-spine,.cover-book-front').forEach((element) => {
+    all('.cover-live-spine,.cover-live-front,.cover-book-spine,.cover-book-front,.front-layout-stage,.spine-layout-stage').forEach((element) => {
       element.style.backgroundColor = background;
       element.style.color = text;
     });
-    all('.cover-live-back').forEach((element) => { element.style.backgroundColor = backBackground; element.style.color = backText; });
+    all('.cover-live-back,.back-layout-stage').forEach((element) => { element.style.backgroundColor = backBackground; element.style.color = backText; });
     all('[data-cover-back-heading],[data-cover-back-quote]').forEach((element) => { element.style.color = backAccent; });
-    const swatches = document.querySelectorAll('.cover-palette-swatches span');
+    const swatches = document.querySelectorAll('.cover-palette-swatches:not(.front-palette-swatches) span');
     [backBackground, backText, backAccent].forEach((color, index) => { if (swatches[index]) swatches[index].style.background = color; });
-    all('[data-cover-title]').forEach((element) => { element.textContent = value('title') || 'Título do livro'; });
-    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = accent; });
-    all('[data-cover-author]').forEach((element) => { element.textContent = value('author') || 'Autor'; element.style.color = accent; });
+    const frontSwatches = document.querySelectorAll('.front-palette-swatches span');
+    [background, text, accent].forEach((color, index) => { if (frontSwatches[index]) frontSwatches[index].style.background = color; });
+    all('[data-cover-title]').forEach((element) => { element.textContent = value('title') || 'Título do livro'; element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
+    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
+    all('[data-cover-author]').forEach((element) => { element.textContent = value('author') || 'Autor'; element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
+    all('[data-cover-publisher]').forEach((element) => { element.textContent = [value('language'), value('publisher')].filter(Boolean).join(' · '); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
+    ['front_title', 'front_subtitle', 'front_author', 'front_publisher'].forEach((prefix) => {
+      const selector = form.elements[`${prefix}_font_family`];
+      if (selector) selector.style.fontFamily = previewFont(selector.value);
+    });
     all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text') || 'Texto da contracapa'; });
     all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading') || 'Sobre este livro'; });
     all('[data-cover-back-quote]').forEach((element) => { element.textContent = value('back_quote'); element.hidden = !value('back_quote'); });
     all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; });
-    all('[data-cover-spine]').forEach((element) => { element.textContent = value('spine_text') || 'Lombada'; });
+    all('[data-cover-back-footer]').forEach((element) => { element.textContent = value('back_footer'); element.hidden = !value('back_footer'); });
+    const titleY = Number(value('front_title_y_percent') || 20);
+    const titleX = Number(value('front_title_x_percent') || 50);
+    const subtitleX = Number(value('front_subtitle_x_percent') || 50);
+    const subtitleY = Number(value('front_subtitle_y_percent') || 34);
+    const authorX = Number(value('front_author_x_percent') || 50);
+    const authorY = Number(value('front_author_y_percent') || 84);
+    const publisherX = Number(value('front_publisher_x_percent') || 50);
+    const publisherY = Number(value('front_publisher_y_percent') || 92);
+    const frontScale = Number(value('front_text_scale_percent') || 100) / 100;
+    const frontAlign = value('front_text_align') || 'center';
+    const applyShape = (element, prefix) => { const shape = value(`${prefix}_style`) || 'normal'; element.style.fontWeight = value(`${prefix}_weight`) === 'bold' ? '700' : '400'; element.style.fontStyle = shape === 'italic' ? 'italic' : 'normal'; element.style.fontVariant = shape === 'small_caps' ? 'small-caps' : 'normal'; element.style.letterSpacing = `${value(`${prefix}_letter_spacing_pt`) || 0}pt`; };
+    all('[data-cover-title]').forEach((element) => { element.style.left = `${titleX}%`; element.style.top = `${titleY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_title_font_size_pt') || 28}pt`; applyShape(element, 'front_title'); });
+    all('[data-cover-subtitle]').forEach((element) => { element.style.left = `${subtitleX}%`; element.style.top = `${subtitleY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_subtitle_font_size_pt') || 14}pt`; applyShape(element, 'front_subtitle'); });
+    all('[data-cover-author]').forEach((element) => { element.style.left = `${authorX}%`; element.style.top = `${authorY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.marginTop = '0'; element.style.fontSize = `${value('front_author_font_size_pt') || 12}pt`; applyShape(element, 'front_author'); });
+    all('[data-cover-publisher]').forEach((element) => { element.style.left = `${publisherX}%`; element.style.top = `${publisherY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_publisher_font_size_pt') || 9}pt`; applyShape(element, 'front_publisher'); });
+    all('[data-cover-back-heading]').forEach((element) => { element.style.fontSize = `${value('back_heading_font_size_pt') || 17}pt`; });
+    all('[data-cover-back]').forEach((element) => { element.style.fontSize = `${value('back_body_font_size_pt') || 10.5}pt`; });
+    all('.cover-live-back-copy').forEach((element) => { element.style.position = 'absolute'; element.style.width = '80%'; element.style.left = `${value('back_text_x_percent') || 50}%`; element.style.top = `${value('back_text_y_percent') || 12}%`; element.style.transform = 'translateX(-50%)'; element.style.textAlign = value('back_text_align') === 'center' ? 'center' : value('back_text_align') === 'justify' ? 'justify' : 'left'; element.style.fontFamily = previewFont(value('cover_font_family')); });
+    all('.floating-back-copy').forEach((element) => { element.style.left = `${value('back_text_x_percent') || 50}%`; element.style.top = `${value('back_text_y_percent') || 12}%`; element.style.transform = 'translateX(-50%)'; });
+    const spineCopy = [value('spine_title') || value('spine_text'), value('spine_author'), value('spine_publisher')].filter(Boolean).join(' · ');
+    all('[data-cover-spine]').forEach((element) => {
+      element.textContent = spineCopy || 'Lombada';
+      element.style.fontFamily = previewFont(value('spine_font_family'));
+      element.style.fontSize = `${value('spine_font_size_pt') || 8}pt`;
+      element.style.fontWeight = value('spine_font_weight') === 'bold' ? '700' : '400';
+      element.style.color = value('spine_color') || '#fff';
+      element.style.letterSpacing = `${value('spine_letter_spacing_pt') || 0}pt`;
+      element.style.position = 'absolute';
+      element.style.left = `${value('spine_text_x_percent') || 50}%`;
+      element.style.top = `${value('spine_text_y_percent') || 50}%`;
+      element.style.transform = `translate(-50%, -50%) translate(${value('spine_offset_x_mm') || 0}px, ${value('spine_offset_y_mm') || 0}px) rotate(${Number(value('spine_rotation') || 90) - 90}deg)`;
+    });
     const artOnly = !addFrontText;
-    document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author]').forEach((element) => {
+    document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-publisher]').forEach((element) => {
       element.hidden = artOnly;
     });
-    all('[data-cover-image]').forEach((element) => {
-      element.style.objectFit = value('image_fit') || 'cover';
-      element.style.objectPosition = `${x}% ${y}%`;
-      element.style.transform = `scale(${zoom})`;
-    });
+    applyImageTransform('front');
+    applyImageTransform('back');
+    applyImageTransform('spine');
     all('[data-cover-overlay]').forEach((element) => { element.style.backgroundColor = `rgba(0,0,0,${opacity})`; });
     ['image_zoom', 'image_x', 'image_y', 'overlay_opacity'].forEach((name) => {
       const output = document.querySelector(`[data-output="${name}"]`);
       if (output) output.value = `${value(name)}%`;
     });
-    updateImageQuality();
+    updateImageQuality('front');
+    updateImageQuality('back');
+    const spineWidthPt = (Number(value('spine')) || Number(simulator.dataset.spine) || 0) * 72;
+    const safePt = Number(value('spine_edge_safe_mm') || 1.6) / 25.4 * 72 * 2;
+    const fontPt = Number(value('spine_font_size_pt') || 8);
+    const spineStatus = document.getElementById('spine-fit-status');
+    const letterSpacing = Number(value('spine_letter_spacing_pt') || 0);
+    const estimatedLength = spineCopy.length * fontPt * .55 + Math.max(0, spineCopy.length - 1) * letterSpacing;
+    const availableLength = ((Number(simulator.dataset.panelHeight) || 9.25) - .5) * 72;
+    const fits = !spineCopy || (fontPt <= spineWidthPt - safePt && estimatedLength <= availableLength);
+    if (spineWidthPt <= 0) {
+      spineStatus.className = 'cover-image-status quality-warning';
+      spineStatus.textContent = 'Compile e aprove o miolo para calcular a largura útil da lombada.';
+    } else {
+      spineStatus.className = `cover-image-status ${fits ? 'quality-good' : 'quality-error'}`;
+      spineStatus.textContent = fits ? `Texto dentro da largura útil da lombada (${Math.max(0, spineWidthPt - safePt).toFixed(1)} pt).` : 'O texto excede a área útil da lombada.';
+    }
   };
+
+  const snapshot = () => Object.fromEntries([...form.elements].filter((field) => field.name && field.type !== 'file' && field.type !== 'submit').map((field) => [field.name, field.type === 'checkbox' ? field.checked : field.value]));
+  const pushHistory = () => {
+    const state = snapshot();
+    if (historyIndex >= 0 && JSON.stringify(history[historyIndex]) === JSON.stringify(state)) return;
+    history = history.slice(0, historyIndex + 1); history.push(state); historyIndex = history.length - 1;
+  };
+  const restore = (state) => { Object.entries(state || {}).forEach(([name, saved]) => { const field = form.elements[name]; if (field) { if (field.type === 'checkbox') field.checked = saved; else field.value = saved; } }); update(); };
   form.querySelectorAll('input, textarea, select').forEach((field) => {
-    field.addEventListener('input', update);
-    field.addEventListener('change', update);
+    field.addEventListener('input', () => { update(); clearTimeout(historyTimer); historyTimer = setTimeout(pushHistory, 250); });
+    field.addEventListener('change', () => { update(); pushHistory(); });
   });
+  const layoutField = form.elements.layout;
+  const applyLayoutButton = document.querySelector('[data-apply-layout]');
+  const applySelectedLayout = () => {
+    applyLayoutPreset(layoutField.value);
+    update();
+    pushHistory();
+  };
+  if (layoutField) layoutField.addEventListener('change', applySelectedLayout);
+  if (applyLayoutButton) applyLayoutButton.addEventListener('click', applySelectedLayout);
+  if (document.fonts) document.fonts.ready.then(update);
   const palette = form.elements.back_palette;
   if (palette) palette.addEventListener('change', () => {
-    const colors = palettes[palette.value];
+    const colors = backPalettes[palette.value];
     if (!colors) return;
     form.elements.back_background_color.value = colors[0];
     form.elements.back_text_color.value = colors[1];
     form.elements.back_accent_color.value = colors[2];
     update();
   });
-  const image = form.elements.cover_image;
-  const existingImage = document.querySelector('[data-cover-image][src]');
-  if (existingImage) {
-    const captureExistingSize = () => {
-      imageWidth = existingImage.naturalWidth;
-      imageHeight = existingImage.naturalHeight;
-      updateImageQuality();
-    };
-    if (existingImage.complete) captureExistingSize(); else existingImage.addEventListener('load', captureExistingSize, {once: true});
-  }
-  if (image) image.addEventListener('change', () => {
-    const file = image.files && image.files[0];
-    if (imageUrl) URL.revokeObjectURL(imageUrl);
-    imageUrl = '';
-    imageWidth = 0;
-    imageHeight = 0;
+  const frontPalette = form.elements.front_palette;
+  if (frontPalette) frontPalette.addEventListener('change', () => {
+    const colors = frontPalettes[frontPalette.value];
+    if (!colors) return;
+    form.elements.background_color.value = colors[0];
+    form.elements.text_color.value = colors[1];
+    form.elements.accent_color.value = colors[2];
+    form.elements.front_title_color.value = colors[1];
+    form.elements.front_subtitle_color.value = colors[2];
+    form.elements.front_author_color.value = colors[2];
+    form.elements.front_publisher_color.value = colors[2];
+    update();
+  });
+  const bindImage = (panel, inputName, selector) => {
+    const input = form.elements[inputName];
+    const existing = document.querySelector(`${selector}[src]`);
+    const capture = (element) => { dimensions[panel] = {width: element.naturalWidth, height: element.naturalHeight}; updateImageQuality(panel); };
+    if (existing) { if (existing.complete) capture(existing); else existing.addEventListener('load', () => capture(existing), {once: true}); }
+    if (!input) return;
+    input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    if (urls[panel]) URL.revokeObjectURL(urls[panel]);
+    urls[panel] = ''; dimensions[panel] = {width: 0, height: 0};
     if (!file) {
-      all('[data-cover-image]').forEach((element) => { element.removeAttribute('src'); });
-      status.className = 'cover-image-status';
-      status.textContent = 'Selecione uma imagem PNG ou JPEG para visualizar a capa.';
+      all(selector).forEach((element) => { element.removeAttribute('src'); });
       return;
     }
     if (!/^image\/(png|jpeg)$/.test(file.type)) {
-      status.className = 'cover-image-status quality-error';
-      status.textContent = 'Use uma imagem PNG ou JPEG neste campo. O PDF pertence ao campo de template oficial.';
+      document.getElementById(`${panel}-image-quality`).textContent = 'Use uma imagem PNG ou JPEG.';
       return;
     }
-    imageUrl = URL.createObjectURL(file);
-    all('[data-cover-image]').forEach((element) => {
-      element.src = imageUrl;
-      element.onload = () => {
-        imageWidth = element.naturalWidth;
-        imageHeight = element.naturalHeight;
-        updateImageQuality();
+    urls[panel] = URL.createObjectURL(file);
+    all(selector).forEach((element) => {
+      element.src = urls[panel];
+      element.onload = () => capture(element);
+    });
+    });
+  };
+  bindImage('front', 'cover_image', '[data-cover-image]');
+  bindImage('back', 'back_image', '[data-cover-back-image]');
+  bindImage('spine', 'spine_image', '[data-cover-spine-image]');
+
+  const activateCoverTab = (tab) => {
+    all('[data-cover-tab]').forEach((button) => { const active = button.dataset.coverTab === tab; button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
+    all('[data-cover-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.coverTabPanel !== tab; });
+    form.closest('.cover-studio').classList.toggle('montage-active', tab === 'montage');
+    if (['front', 'back', 'spine'].includes(tab)) selectedPanel = tab;
+  };
+  all('[data-cover-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.coverTab)));
+  all('[data-next-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.nextTab)));
+
+  all('[data-floating-field]').forEach((field) => {
+    field.addEventListener('pointerdown', (event) => {
+      const stage = field.closest('[data-layout-stage]');
+      const xInput = form.elements[field.dataset.xField];
+      const yInput = form.elements[field.dataset.yField];
+      if (!stage || !xInput || !yInput) return;
+      event.preventDefault();
+      field.setPointerCapture(event.pointerId);
+      const move = (moveEvent) => {
+        const box = stage.getBoundingClientRect();
+        const clamp = (number, minimum, maximum) => Math.max(minimum, Math.min(maximum, number));
+        xInput.value = Math.round(clamp((moveEvent.clientX - box.left) / box.width * 100, Number(xInput.min || 0), Number(xInput.max || 100)));
+        yInput.value = Math.round(clamp((moveEvent.clientY - box.top) / box.height * 100, Number(yInput.min || 0), Number(yInput.max || 100)));
+        update();
       };
+      const finish = () => { field.removeEventListener('pointermove', move); pushHistory(); };
+      field.addEventListener('pointermove', move);
+      field.addEventListener('pointerup', finish, {once: true});
+      field.addEventListener('pointercancel', finish, {once: true});
     });
   });
-  document.querySelectorAll('[data-simulator-mode]').forEach((button) => button.addEventListener('click', () => {
-    const bookMode = button.dataset.simulatorMode === 'book';
-    preview.hidden = bookMode;
-    bookView.hidden = !bookMode;
-    document.querySelectorAll('[data-simulator-mode]').forEach((item) => item.classList.toggle('active', item === button));
-  }));
-  const guides = document.getElementById('cover-guides');
-  if (guides) guides.addEventListener('change', () => preview.classList.toggle('with-guides', guides.checked));
-  update();
+
+  all('[data-select-panel]').forEach((button) => button.addEventListener('click', () => { selectedPanel = button.dataset.selectPanel; all('[data-select-panel]').forEach((item) => item.classList.toggle('active', item === button)); }));
+  all('[data-image-action]').forEach((button) => button.addEventListener('click', () => { const n = names(selectedPanel); const action = button.dataset.imageAction; if (action === 'center') { form.elements[n.x].value = 50; form.elements[n.y].value = 50; form.elements[n.ox].value = 0; form.elements[n.oy].value = 0; } if (action === 'contain' || action === 'cover') form.elements[n.fit].value = action; if (action === 'reset') { form.elements[n.fit].value = 'cover'; form.elements[n.zoom].value = 100; form.elements[n.x].value = 50; form.elements[n.y].value = 50; form.elements[n.ox].value = 0; form.elements[n.oy].value = 0; form.elements[n.rotation].value = 0; } update(); pushHistory(); }));
+  all('[data-nudge-x],[data-nudge-y]').forEach((button) => button.addEventListener('click', () => { const n = names(selectedPanel); const axis = button.dataset.nudgeX !== undefined ? 'ox' : 'oy'; if (!n[axis] || !form.elements[n[axis]]) return; const delta = Number(button.dataset.nudgeX !== undefined ? button.dataset.nudgeX : button.dataset.nudgeY); form.elements[n[axis]].value = (Number(form.elements[n[axis]].value || 0) + delta).toFixed(1); update(); pushHistory(); }));
+  all('[data-history]').forEach((button) => button.addEventListener('click', () => { const next = button.dataset.history === 'undo' ? historyIndex - 1 : historyIndex + 1; if (next >= 0 && next < history.length) { historyIndex = next; restore(history[next]); } }));
+  all('[data-guide]').forEach((checkbox) => checkbox.addEventListener('change', () => preview.classList.toggle(`guide-${checkbox.dataset.guide}`, checkbox.checked)));
+
+  const renderCanvasTransform = () => { preview.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${canvasZoom})`; document.getElementById('canvas-zoom-output').value = `${Math.round(canvasZoom * 100)}%`; };
+  const setZoom = (next) => { canvasZoom = Math.max(.25, Math.min(4, next)); renderCanvasTransform(); };
+  all('[data-canvas-zoom]').forEach((button) => button.addEventListener('click', () => { const action = button.dataset.canvasZoom; if (action === 'in') setZoom(canvasZoom + .25); else if (action === 'out') setZoom(canvasZoom - .25); else if (action === '100') setZoom(1); else { pan = {x: 0, y: 0}; setZoom(Math.min(1, (viewport.clientWidth - 32) / preview.offsetWidth)); } }));
+  viewport.addEventListener('wheel', (event) => { if (!event.ctrlKey) return; event.preventDefault(); setZoom(canvasZoom + (event.deltaY < 0 ? .1 : -.1)); }, {passive: false});
+  let panning = false, panStart;
+  viewport.addEventListener('pointerdown', (event) => { if (event.target !== viewport && event.button !== 1) return; panning = true; panStart = {x: event.clientX - pan.x, y: event.clientY - pan.y}; viewport.setPointerCapture(event.pointerId); });
+  viewport.addEventListener('pointermove', (event) => { const box = preview.getBoundingClientRect(); const spreadWidthMm = ((Number(simulator.dataset.panelWidth) || 6.125) * 2 + (Number(value('spine')) || Number(simulator.dataset.spine) || 0)) * 25.4; const spreadHeightMm = (Number(simulator.dataset.panelHeight) || 9.25) * 25.4; document.getElementById('cursor-mm').value = `${((event.clientX - box.left) / box.width * spreadWidthMm).toFixed(1)} × ${((event.clientY - box.top) / box.height * spreadHeightMm).toFixed(1)} mm`; if (panning) { pan = {x: event.clientX - panStart.x, y: event.clientY - panStart.y}; renderCanvasTransform(); } });
+  viewport.addEventListener('pointerup', () => { panning = false; });
+  activateCoverTab('front'); pushHistory(); update(); renderCanvasTransform();
 }());
 </script>
 {% endblock %}
