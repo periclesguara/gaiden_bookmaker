@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 from editorial.models import EditionBuild
 from gaiden.print_engine.isbn import isbn13
@@ -136,10 +138,10 @@ class InteriorSettingsForm(forms.Form):
     font_size_pt = forms.DecimalField(label="Tamanho da fonte (pt)", min_value=8, max_value=18, decimal_places=2)
     leading_pt = forms.DecimalField(label="Entrelinha (pt)", min_value=9, max_value=24, decimal_places=2)
     paragraph_indent_em = forms.DecimalField(label="Recuo do parágrafo (em)", min_value=0, max_value=4, decimal_places=2)
-    inner_margin_in = forms.DecimalField(label="Margem interna (in)", min_value=0.25, max_value=2, decimal_places=3)
-    outer_margin_in = forms.DecimalField(label="Margem externa (in)", min_value=0.25, max_value=2, decimal_places=3)
-    top_margin_in = forms.DecimalField(label="Margem superior (in)", min_value=0.25, max_value=2, decimal_places=3)
-    bottom_margin_in = forms.DecimalField(label="Margem inferior (in)", min_value=0.25, max_value=2, decimal_places=3)
+    inner_margin_in = forms.DecimalField(label="Margem interna (in)", min_value=Decimal("0.25"), max_value=2, decimal_places=3)
+    outer_margin_in = forms.DecimalField(label="Margem externa (in)", min_value=Decimal("0.25"), max_value=2, decimal_places=3)
+    top_margin_in = forms.DecimalField(label="Margem superior (in)", min_value=Decimal("0.25"), max_value=2, decimal_places=3)
+    bottom_margin_in = forms.DecimalField(label="Margem inferior (in)", min_value=Decimal("0.25"), max_value=2, decimal_places=3)
     header_style = forms.ChoiceField(label="Cabeçalhos", choices=HEADER_CHOICES)
     footer_style = forms.ChoiceField(label="Rodapés", choices=FOOTER_CHOICES)
     page_numbering = forms.BooleanField(label="Exibir numeração", required=False)
@@ -156,14 +158,14 @@ class InteriorSettingsForm(forms.Form):
 class CoverForm(forms.Form):
     cover = forms.FileField(label="PDF da capa completa")
     template = forms.FileField(label="PDF do template oficial para este miolo")
-    spine = forms.DecimalField(label="Lombada indicada no template (polegadas)", min_value=0.001, max_value=5, max_digits=7, decimal_places=4)
+    spine = forms.DecimalField(label="Lombada indicada no template (polegadas)", min_value=Decimal("0.001"), max_value=5, max_digits=7, decimal_places=4)
 
 
 class CoverCompositionForm(forms.Form):
     front = forms.FileField(label="Frente em PDF (uma página, com sangria externa)")
     back = forms.FileField(label="Contracapa em PDF (uma página, com sangria externa)")
     template = forms.FileField(label="Template oficial para a paginação final")
-    spine = forms.DecimalField(label="Lombada do template (polegadas)", min_value=0.001, max_value=5, max_digits=7, decimal_places=4)
+    spine = forms.DecimalField(label="Lombada do template (polegadas)", min_value=Decimal("0.001"), max_value=5, max_digits=7, decimal_places=4)
 
 
 class CoverDesignForm(forms.Form):
@@ -351,7 +353,10 @@ class CoverDesignForm(forms.Form):
     spine_text_x_percent = forms.IntegerField(label="Posição horizontal do texto (%)", min_value=10, max_value=90, initial=50, required=False)
     spine_text_y_percent = forms.IntegerField(label="Posição vertical do texto (%)", min_value=10, max_value=90, initial=50, required=False)
     spine_rotation = forms.ChoiceField(label="Sentido de leitura", choices=(("90", "De baixo para cima"), ("-90", "De cima para baixo")), initial="90", required=False)
-    spine_edge_safe_mm = forms.DecimalField(label="Distância das dobras (mm)", min_value=1.6, max_value=20, decimal_places=1, initial=1.6, required=False)
+    spine_edge_safe_mm = forms.DecimalField(
+        label="Distância das dobras (mm)", min_value=Decimal("1.6"), max_value=20,
+        decimal_places=1, initial=Decimal("1.6"), required=False,
+    )
     image_fit = forms.ChoiceField(label="Enquadramento", choices=IMAGE_FITS, initial="cover")
     image_zoom = forms.IntegerField(
         label="Zoom da imagem (%)",

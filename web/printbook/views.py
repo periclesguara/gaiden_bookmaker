@@ -8,6 +8,7 @@ from pathlib import Path
 
 from django.contrib import messages
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.forms import HiddenInput
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,6 +37,37 @@ COVER_PREVIEW_FONTS = {
     "noto-serif-display": "Noto Serif Display",
     "fira-sans": "Fira Sans",
 }
+
+
+def _cover_stage_post_data(request, edition):
+    """Keep fields from later, hidden stages from blocking the current save."""
+    requested_tab = request.POST.get("continue_to", "")
+    future_prefixes = {
+        "back": ("back_", "spine_"),
+        "spine": ("spine_",),
+    }.get(requested_tab, ())
+    if not future_prefixes:
+        return request.POST
+
+    data = request.POST.copy()
+    saved = edition.cover_settings or {}
+    file_fields = {"cover_image", "back_image", "spine_image", "template"}
+    for name, field in CoverDesignForm.base_fields.items():
+        if name in file_fields or not name.startswith(future_prefixes):
+            continue
+        try:
+            field.clean(data.get(name))
+        except ValidationError:
+            replacement = saved.get(name, field.initial)
+            if callable(replacement):
+                replacement = replacement()
+            if replacement is None:
+                data.pop(name, None)
+            elif isinstance(replacement, bool):
+                data[name] = "on" if replacement else ""
+            else:
+                data[name] = str(replacement)
+    return data
 
 
 @lru_cache(maxsize=len(COVER_PREVIEW_FONTS))
@@ -441,16 +473,23 @@ def action(request, pk, action):
         elif action == "approve_interior":
             services.approve_interior(edition)
         elif action == "design_cover":
-            form = CoverDesignForm(request.POST, request.FILES)
+            requested_tab = request.POST.get("continue_to", "")
+            form = CoverDesignForm(_cover_stage_post_data(request, edition), request.FILES)
             if not form.is_valid():
+                if form.cleaned_data:
+                    services.save_cover_draft_fields(edition, form.cleaned_data)
                 for field, errors in form.errors.items():
                     label = form.fields[field].label if field in form.fields else "Formulário"
                     for error in errors:
                         messages.error(request, f"{label}: {error}")
-                return redirect("printbook:cover", pk=pk)
+                messages.warning(request, "Os demais campos válidos foram preservados no rascunho.")
+                response = redirect("printbook:cover", pk=pk)
+                current_tab = {"back": "front", "spine": "back", "montage": "spine"}.get(requested_tab)
+                if current_tab:
+                    response["Location"] = f'{response["Location"]}?tab={current_tab}&saved=partial'
+                return response
             services.save_cover_draft_fields(edition, form.cleaned_data)
             services.design_cover(edition, **form.cleaned_data)
-            requested_tab = request.POST.get("continue_to", "")
             if requested_tab in {"back", "spine", "montage"}:
                 cover_continue_to = requested_tab
         elif action == "approve_cover":

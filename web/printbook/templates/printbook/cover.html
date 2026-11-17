@@ -50,6 +50,7 @@
   </nav>
   {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
   {% if request.GET.saved == 'draft' %}<p class="quality-good" role="status"><strong>Rascunho salvo.</strong> A etapa anterior foi gravada; continue trabalhando na aba aberta.</p>{% endif %}
+  {% if request.GET.saved == 'partial' %}<p class="quality-good" role="status"><strong>Trabalho preservado.</strong> Os campos válidos permanecem salvos; corrija somente o campo indicado acima.</p>{% endif %}
   <div class="cover-studio cover-studio-pro">
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}

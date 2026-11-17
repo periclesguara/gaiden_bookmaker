@@ -106,7 +106,7 @@ class CoverStudioFormTests(SimpleTestCase):
         data = self._data()
         data["continue_to"] = "back"
         request = RequestFactory().post("/printbook/6/action/design_cover/", data)
-        edition = SimpleNamespace(pk=6)
+        edition = SimpleNamespace(pk=6, cover_settings={})
 
         with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
             "web.printbook.views.services.save_cover_draft_fields"
@@ -119,6 +119,47 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
         save_fields.assert_called_once()
         self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
+
+    def test_hidden_future_stage_error_does_not_block_front_cover_save(self):
+        data = self._data()
+        data.update({"continue_to": "back", "spine_edge_safe_mm": "1.5"})
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["spine_edge_safe_mm"], Decimal("1.6"))
+        design_cover.assert_called_once()
+
+    def test_invalid_current_field_preserves_every_other_valid_field(self):
+        data = self._data()
+        data.update({
+            "continue_to": "back",
+            "add_front_text": "on",
+            "title": "",
+            "author": "Epicteto de Hierápolis",
+            "front_title_x_percent": "63",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.error"
+        ), patch("web.printbook.views.messages.warning"):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=front&saved=partial"))
+        self.assertEqual(save_fields.call_args.args[1]["front_title_x_percent"], 63)
+        self.assertEqual(save_fields.call_args.args[1]["author"], "Epicteto de Hierápolis")
+        design_cover.assert_not_called()
 
     def test_cover_draft_fields_are_persisted_before_compilation(self):
         class DraftEdition:
