@@ -492,9 +492,11 @@ def design_cover_tex(
     barcode_block = ""
     if reserve_barcode:
         # The provider barcode must remain inside the trimmed back-cover panel,
-        # with 0.30 in of safety below it.  Using spread_height_in placed its
+        # with 1.10 in of safety below it.  This leaves room for the provider
+        # code, the trim tolerance, and a visible separation from cover art.
+        # Using spread_height_in placed its
         # lower edge in the bleed area whenever the provider required bleed.
-        barcode_y = geometry.bleed_in + geometry.trim_height_in - Decimal("1.35")
+        barcode_y = geometry.bleed_in + geometry.trim_height_in - Decimal("2.15")
         barcode_block = rf"""\begin{{textblock*}}{{1.75in}}({geometry.bleed_in + geometry.trim_width_in - Decimal("2.05")}in,{barcode_y}in)
 \colorbox{{white}}{{\rule{{0pt}}{{1.05in}}\rule{{1.67in}}{{0pt}}}}
 \end{{textblock*}}

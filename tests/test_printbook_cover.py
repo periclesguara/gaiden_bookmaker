@@ -159,7 +159,7 @@ def test_ready_art_layout_keeps_front_image_clean_and_reserves_barcode_area():
     assert "Author biography" in tex
     assert "F4EBDD" in tex and "8A5A32" in tex
     assert "1.75in" in tex
-    assert f"{geometry.bleed_in + geometry.trim_height_in - Decimal('1.35')}in" in tex
+    assert f"{geometry.bleed_in + geometry.trim_height_in - Decimal('2.15')}in" in tex
 
 
 def test_effective_dpi_uses_printed_box_after_fit_and_scale():
