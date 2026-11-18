@@ -13,6 +13,22 @@ from web.printbook.services import preflight, quality_readiness, workflow_steps
 
 
 class CoverEditorControlTests(SimpleTestCase):
+    @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
+    def test_saved_enhancement_uses_original_pixels_but_upload_uses_new_pixels(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text()
+        script = "const capture =" + template.split("    const capture =", 1)[1].split("    if (existing)", 1)[0]
+        harness = r'''
+const panel = 'front', dimensions = {};
+const document = {getElementById: () => ({textContent: JSON.stringify({front_image_quality: {original_width_px: 1024, original_height_px: 1536}})})};
+const updateImageQuality = () => {};
+''' + script + r'''
+capture({naturalWidth: 1949, naturalHeight: 2924}, true);
+if (dimensions.front.width !== 1024 || dimensions.front.height !== 1536) process.exit(1);
+capture({naturalWidth: 4000, naturalHeight: 6000});
+if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process.exit(2);
+'''
+        subprocess.run(["node", "-e", harness], check=True, capture_output=True, text=True)
+
     @override_settings(PRINTBOOK_VALIDATOR="")
     def test_quality_control_remains_accessible_with_draft_cover(self):
         edition = SimpleNamespace(pk=6, name="Edition", source_id=1, get_platform_display=lambda: "Platform", interior_approval={"build_id": 23}, cover_approval={}, visual_review_approved_at=None, edition_approved_at=None)

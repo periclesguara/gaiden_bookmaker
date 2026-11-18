@@ -337,6 +337,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 .layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
 </style>
 <script src="{% static 'printbook/cover_autofit.js' %}?v=20261117-1"></script>
+{{ saved_design|json_script:"saved-cover-design" }}
 <script>
 (function () {
   const form = document.getElementById('cover-design-form');
@@ -862,8 +863,16 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   const bindImage = (panel, inputName, selector) => {
     const input = form.elements[inputName];
     const existing = document.querySelector(`${selector}[src]`);
-    const capture = (element) => { dimensions[panel] = {width: element.naturalWidth, height: element.naturalHeight}; updateImageQuality(panel); };
-    if (existing) { if (existing.complete) capture(existing); else existing.addEventListener('load', () => capture(existing), {once: true}); }
+    const capture = (element, saved = false) => {
+      const design = JSON.parse(document.getElementById('saved-cover-design').textContent || '{}') || {};
+      const quality = (saved && design[`${panel}_image_quality`]) || {};
+      dimensions[panel] = {
+        width: Number(quality.original_width_px) || element.naturalWidth,
+        height: Number(quality.original_height_px) || element.naturalHeight,
+      };
+      updateImageQuality(panel);
+    };
+    if (existing) { if (existing.complete) capture(existing, true); else existing.addEventListener('load', () => capture(existing, true), {once: true}); }
     if (!input) return;
     input.addEventListener('change', () => {
     const file = input.files && input.files[0];
