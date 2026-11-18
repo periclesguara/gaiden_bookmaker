@@ -34,7 +34,8 @@ class CoverGeometry:
             + (spec.cover_bleed_in * Decimal("2"))
         )
         spread_height = spec.trim_height_in + (spec.cover_bleed_in * Decimal("2"))
-        minimum_pages = 80 if spec.provider == PrintProvider.AMAZON_KDP else 48
+        # UICLAP states books under 60 pages are stapled and have no spine.
+        minimum_pages = {PrintProvider.AMAZON_KDP: 80, PrintProvider.UICLAP: 60}.get(spec.provider, 48)
         spine_text_allowed = not (
             spec.binding == Binding.PAPERBACK and spec.page_count < minimum_pages
         )

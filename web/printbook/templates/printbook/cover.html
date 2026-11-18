@@ -1,4 +1,5 @@
 {% extends 'printbook/base.html' %}
+{% load static %}
 {% block content %}
 <header class="page-heading"><div><span class="eyebrow">03 · Capa e editor gráfico</span><h1>Confecção da capa</h1><p>Montar capa completa · {{ edition.name }} · {{ edition.get_platform_display }} · {{ edition.trim }} in · {{ edition.get_paper_display }}. Os elementos permanecem estruturados e cada montagem cria uma versão.</p></div><span class="status-pill">{{ edition.get_state_display }}</span></header>
 
@@ -19,6 +20,9 @@
   <a href="{% url 'printbook:configuration' edition.pk %}">Alterar opção de capa</a>
 </section>
 
+{% if stapled_uiclap %}
+<section><h2>UICLAP · prova grampeada sem lombada</h2><p>A UICLAP informa que livros com menos de 60 páginas são grampeados. A prova usa lombada de 0 mm e sangria estimada de 5 mm; textos e imagens de lombada não entram nesta montagem. A capa permanece em rascunho até existir validação do formato final da plataforma.</p></section>
+{% endif %}
 <section>
   <h2>Geometria desta capa</h2>
   {% if interior %}
@@ -109,6 +113,9 @@
         <p>{{ design_form.spine_author.label_tag }} {{ design_form.spine_author }}</p>
         <p>{{ design_form.spine_publisher.label_tag }} {{ design_form.spine_publisher }}</p>
         <div class="cover-control-grid"><p>{{ design_form.spine_font_family.label_tag }} {{ design_form.spine_font_family }}</p><p>{{ design_form.spine_font_size_pt.label_tag }} {{ design_form.spine_font_size_pt }}</p><p>{{ design_form.spine_font_weight.label_tag }} {{ design_form.spine_font_weight }}</p><p>{{ design_form.spine_color.label_tag }} {{ design_form.spine_color }}</p><p>{{ design_form.spine_letter_spacing_pt.label_tag }} {{ design_form.spine_letter_spacing_pt }}</p><p>{{ design_form.spine_rotation.label_tag }} {{ design_form.spine_rotation }}</p><p>{{ design_form.spine_text_x_percent.label_tag }} {{ design_form.spine_text_x_percent }}</p><p>{{ design_form.spine_text_y_percent.label_tag }} {{ design_form.spine_text_y_percent }}</p><p>{{ design_form.spine_offset_x_mm.label_tag }} {{ design_form.spine_offset_x_mm }}</p><p>{{ design_form.spine_offset_y_mm.label_tag }} {{ design_form.spine_offset_y_mm }}</p><p>{{ design_form.spine_edge_safe_mm.label_tag }} {{ design_form.spine_edge_safe_mm }}</p></div>
+        <button type="button" data-rotate-spine>Girar sentido da lombada ↻</button>
+        <p class="cover-section-help">O sentido de leitura é mostrado na prévia. Arraste o bloco para posicionar o texto.</p>
+        <div data-quick-color-field="spine_color" data-color-label="texto da lombada"></div>
         <div class="panel-layout-stage spine-layout-stage" data-layout-stage="spine" aria-label="Área de organização da lombada">
           <img class="cover-live-image" data-cover-spine-image{% if latest_visual.files.spine_image %} src="{% url 'printbook:cover_spine_source_image' latest_visual.pk %}"{% endif %} alt="Imagem de fundo da lombada">
           <button type="button" class="floating-cover-field floating-spine-copy" data-floating-field="spine" data-x-field="spine_text_x_percent" data-y-field="spine_text_y_percent" data-cover-spine></button>
@@ -183,12 +190,22 @@
         <p class="empty-back-approval">{{ design_form.approve_empty_back }} {{ design_form.approve_empty_back.label_tag }}<small>{{ design_form.approve_empty_back.help_text }}</small></p>
         <p>{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}</p>
         <p>{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<small>{{ design_form.back_footer.help_text }}</small></p>
+        <fieldset class="front-element-typography"><legend>Tipografia e cores de cada texto</legend>
+          {% for element in back_elements %}
+          <div class="element-type-row"><strong>{{ element.label }}</strong><output class="element-font-preview" data-back-font-preview="{{ element.key }}">{{ element.label }}</output>
+            {% for field in element.fields %}<p>{{ field.label_tag }} {{ field }}</p>{% endfor %}
+            <div data-quick-color-field="{{ element.prefix }}_color" data-color-label="{{ element.label }} da contracapa"></div>
+          </div>
+          {% endfor %}
+        </fieldset>
+        <p>{{ design_form.cover_font_family.label_tag }} {{ design_form.cover_font_family }}<small>Usada nos textos da contracapa e como fonte geral da montagem.</small></p>
+        <div class="cover-control-grid"><p>{{ design_form.back_heading_font_size_pt.label_tag }} {{ design_form.back_heading_font_size_pt }}</p><p>{{ design_form.back_body_font_size_pt.label_tag }} {{ design_form.back_body_font_size_pt }}</p><p>{{ design_form.back_text_align.label_tag }} {{ design_form.back_text_align }}</p></div>
         <div class="cover-control-grid"><p>{{ design_form.back_text_x_percent.label_tag }} {{ design_form.back_text_x_percent }}</p><p>{{ design_form.back_text_y_percent.label_tag }} {{ design_form.back_text_y_percent }}</p></div>
         <div class="panel-layout-stage back-layout-stage" data-layout-stage="back" aria-label="Área de organização da contracapa">
           <img class="cover-live-image" data-cover-back-image{% if latest_visual.files.back_image %} src="{% url 'printbook:cover_back_source_image' latest_visual.pk %}"{% endif %} alt="Imagem de fundo da contracapa">
-          <button type="button" class="floating-cover-field floating-back-copy" data-floating-field="back" data-x-field="back_text_x_percent" data-y-field="back_text_y_percent"><strong data-cover-back-heading></strong><span data-cover-back></span></button>
+          {% for element in back_elements %}<button type="button" class="floating-cover-field" data-floating-field="back-{{ element.key }}" data-back-element="{{ element.key }}" data-x-field="{{ element.prefix }}_x_percent" data-y-field="{{ element.prefix }}_y_percent">{{ element.label }}</button>{% endfor %}
         </div>
-        <p class="cover-section-help">Arraste o bloco para posicioná-lo. Para usar apenas a imagem, marque a aprovação sem texto.</p>
+        <p class="cover-section-help">Arraste cada texto para posicioná-lo. Para usar apenas a imagem, marque a aprovação sem texto.</p>
       </fieldset>
       <input type="hidden" name="background_color" value="{{ design_form.background_color.value|default:'#1F2937' }}">
       <fieldset class="cover-section-back-palette" data-cover-tab-panel="back" hidden>
@@ -200,20 +217,17 @@
           <p>{{ design_form.back_text_color.label_tag }} {{ design_form.back_text_color }}</p>
           <p>{{ design_form.back_accent_color.label_tag }} {{ design_form.back_accent_color }}</p>
         </div>
+        <div data-quick-color-field="back_background_color" data-color-label="fundo da contracapa"></div>
+        <div data-quick-color-field="back_text_color" data-color-label="texto da contracapa"></div>
+        <div data-quick-color-field="back_accent_color" data-color-label="destaque da contracapa"></div>
       </fieldset>
       <fieldset class="cover-section-typography" data-cover-tab-panel="montage" hidden>
         <legend>Tipografia da montagem</legend>
         <p class="cover-section-help">Estes valores são enviados ao LuaLaTeX e entram no PDF final. A família escolhida vale para capa e contracapa; a lombada pode acompanhar ou usar sua seleção própria.</p>
-        <p>{{ design_form.cover_font_family.label_tag }} {{ design_form.cover_font_family }}<small>{{ design_form.cover_font_family.help_text }}</small></p>
         <div class="cover-font-sample" data-cover-font-sample>
           <span>AMOSTRA EDITORIAL</span>
           <strong>O Ofício de Fazer Livros</strong>
           <small>RinoBooks · Tipografia para impressão</small>
-        </div>
-        <div class="cover-control-grid">
-          <p>{{ design_form.back_heading_font_size_pt.label_tag }} {{ design_form.back_heading_font_size_pt }}</p>
-          <p>{{ design_form.back_body_font_size_pt.label_tag }} {{ design_form.back_body_font_size_pt }}</p>
-          <p>{{ design_form.back_text_align.label_tag }} {{ design_form.back_text_align }}</p>
         </div>
       </fieldset>
       <details class="production-gate" data-cover-tab-panel="montage" hidden>
@@ -223,15 +237,18 @@
       </details>
       <div class="cover-save-actions" data-cover-tab-panel="montage" hidden>
         <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar rascunho</button>
-        <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error %}disabled{% endif %}>Salvar capa final</button>
+        <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>
+        {% if stapled_uiclap %}<p>Esta montagem grampeada só pode ser salva como rascunho.</p>{% endif %}
       </div>
       </aside>
     </form>
-    <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}">
+    <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-trim-width="{% if geometry %}{{ geometry.trim_width_in }}{% endif %}" data-trim-height="{% if geometry %}{{ geometry.trim_height_in }}{% endif %}" data-bleed="{% if geometry %}{{ geometry.bleed_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}" data-barcode-mode="{{ edition.barcode_mode }}" data-no-spine="{% if stapled_uiclap %}yes{% else %}no{% endif %}" data-spine-allowed="{% if geometry.spine_text_allowed %}yes{% else %}no{% endif %}">
       <div class="simulator-toolbar">
+        <button type="button" id="auto-fit-cover">Autoajustar textos</button>
         <button type="button" data-history="undo" title="Desfazer">↶</button><button type="button" data-history="redo" title="Refazer">↷</button>
         <button type="button" data-canvas-zoom="out">−</button><output id="canvas-zoom-output">100%</output><button type="button" data-canvas-zoom="in">+</button><button type="button" data-canvas-zoom="fit">Ajustar à tela</button><button type="button" data-canvas-zoom="100">100%</button>
       </div>
+      <p id="auto-fit-status" class="cover-live-note" role="status" aria-live="polite">Organiza os textos e procura manter letras com pelo menos 9 pt. Revise a prova PDF antes de salvar.</p>
       <div class="cover-ruler cover-ruler-x" aria-hidden="true"></div><div class="cover-ruler cover-ruler-y" aria-hidden="true"></div>
       <div class="cover-canvas-viewport" id="cover-canvas-viewport">
       <div class="cover-live-preview guide-physical guide-trim guide-bleed guide-safe guide-spine guide-center" id="cover-live-preview" aria-label="Simulador da capa completa"{% if geometry %} style="aspect-ratio:{{ geometry.spread_width_in }}/{{ geometry.spread_height_in }}"{% endif %}>
@@ -239,13 +256,7 @@
           <img class="cover-live-image" data-cover-back-image{% if latest_visual.files.back_image %} src="{% url 'printbook:cover_back_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a contracapa">
           <span class="cover-panel-label">CONTRACAPA</span>
           <span class="cover-safe-zone"></span>
-          <div class="cover-live-back-copy">
-            <strong data-cover-back-heading></strong>
-            <blockquote data-cover-back-quote></blockquote>
-            <span class="cover-live-back-text" data-cover-back></span>
-            <small data-cover-back-bio></small>
-            <small class="cover-live-back-footer" data-cover-back-footer></small>
-          </div>
+          {% for element in back_elements %}<div class="cover-live-back-copy" data-back-element="{{ element.key }}"></div>{% endfor %}
           <span class="cover-barcode-zone">ÁREA DO CÓDIGO</span>
         </div>
         <div class="cover-live-spine"><img class="cover-live-image" data-cover-spine-image{% if latest_visual.files.spine_image %} src="{% url 'printbook:cover_spine_source_image' latest_visual.pk %}"{% endif %} alt="Imagem selecionada para a lombada"><span data-cover-spine></span><i class="spine-center-guide"></i></div>
@@ -312,6 +323,8 @@
 {% endblock %}
 {% block extra_scripts %}
 <style>
+[data-back-element][hidden]{display:none!important}
+.panel-layout-stage .floating-cover-field{padding:0}
 {% for font in cover_font_faces %}@font-face{font-family:"{{ font.css_family }}";src:url("{% url 'printbook:cover_preview_font' font.slug %}") format("{{ font.format }}");font-style:normal;font-weight:400;font-display:swap}{% endfor %}
 main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minmax(260px,320px) minmax(560px,1fr) minmax(280px,350px);grid-template-areas:"left canvas right";gap:18px}.cover-studio-pro>form{display:contents}.cover-editor-left{grid-area:left}.cover-editor-right{grid-area:right}.cover-simulator{grid-area:canvas;position:sticky;top:12px;min-width:0}.cover-editor-panel{background:#f8f6f1;border:1px solid #d9d1c6;border-radius:12px;padding:14px;max-height:calc(100vh - 28px);overflow:auto}.cover-editor-panel h3{margin-top:0}.panel-selector,.image-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}.panel-selector button,.image-actions button,.nudge-grid button{background:#e4ded4;color:#26323a;padding:7px 9px}.panel-selector button.active{background:#285f94;color:#fff}.cover-control-grid p{margin:.4rem 0}.cover-control-grid label{display:block;font-size:12px}.cover-control-grid input,.cover-control-grid select{width:100%}.nudge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.cover-save-actions{position:sticky;bottom:-14px;background:#f8f6f1;padding:12px 0}.cover-canvas-viewport{height:min(68vh,720px);min-height:480px;background:#c9c5bd;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;border:1px solid #aaa;position:relative}.cover-canvas-viewport:active{cursor:grabbing}.cover-live-preview{width:min(900px,92%);max-width:none;flex:0 0 auto;transform-origin:center;transition:transform .08s linear}.cover-live-back>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;z-index:0;transform-origin:center}.cover-live-back-copy,.cover-barcode-zone{position:relative}.cover-ruler{height:22px;background-color:#f8f6f1;background-image:repeating-linear-gradient(90deg,#555 0 1px,transparent 1px 10px);border:1px solid #bbb;color:#444}.cover-ruler-y{display:none}.cursor-position{font:12px ui-monospace,monospace;background:#1f2937;color:#fff;padding:5px 8px}.guide-controls{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;padding:8px;background:#fff}.guide-controls label{display:flex;align-items:center;gap:4px}.guide-controls i{width:14px;border-top:3px solid}.key-physical{border-color:#111!important}.key-trim{border-color:#ef4444!important}.key-bleed{border-color:#f59e0b!important}.key-safe{border-color:#22c55e!important}.key-spine{border-color:#3b82f6!important}.key-center{border-color:#a855f7!important}.cover-live-preview:not(.guide-physical){border-color:transparent}.cover-live-preview.guide-bleed:after{content:"SANGRIA";position:absolute;inset:0;border:2px solid #f59e0b;color:#f59e0b;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview.guide-trim:before{content:"CORTE";position:absolute;inset:1.35%;border:2px solid #ef4444;color:#ef4444;font-size:9px;padding:2px;pointer-events:none;z-index:8}.cover-live-preview:not(.guide-safe) .cover-safe-zone{display:none}.cover-live-preview.guide-safe .cover-safe-zone{display:block}.cover-live-preview:not(.guide-spine) .cover-live-spine{outline:0}.cover-live-preview.guide-spine .cover-live-spine{outline:2px solid #3b82f6;outline-offset:-2px}.spine-center-guide{display:none;position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed #a855f7}.guide-center .spine-center-guide{display:block}.cover-live-spine span{position:relative;z-index:2;white-space:nowrap}.cover-live-image{image-rendering:auto;will-change:transform}.cover-image-status{overflow-wrap:anywhere}.simulator-toolbar output{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}@media(max-width:1180px){.cover-studio-pro{grid-template-columns:minmax(250px,320px) 1fr;grid-template-areas:"left canvas" "right right"}.cover-editor-right{max-height:none}.cover-simulator{position:static}}@media(max-width:760px){.cover-studio-pro{grid-template-columns:1fr;grid-template-areas:"canvas" "left" "right"}.cover-canvas-viewport{min-height:340px}.cover-live-preview{min-width:620px}.cover-editor-panel{max-height:none}}
 @media(min-width:901px){.cover-studio-pro{grid-template-columns:minmax(210px,280px) minmax(430px,1fr) minmax(220px,280px);grid-template-areas:"left canvas right";gap:12px}.cover-editor-right{max-height:calc(100vh - 28px)}.cover-simulator{position:sticky}}
@@ -323,6 +336,8 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 .front-element-typography{background:#fffdf8!important;border-color:#c8a66a!important}.element-type-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0;padding:14px;border:1px solid #e5ddd1;border-radius:9px;background:#fff}.element-type-row>strong{grid-column:1/-1;font-size:17px;color:#5b3b24}.element-font-preview{display:block;grid-column:1/-1;min-height:44px;padding:12px 14px;border:1px solid #d9c8ae;border-radius:7px;background:#fff;color:#241f1a;font-size:27px;line-height:1.15;text-align:center;overflow-wrap:anywhere;transition:color .15s ease,font-family .15s ease,font-weight .15s ease,font-style .15s ease}.element-type-row p{margin:0}.element-type-row p:first-of-type{grid-column:span 2}.element-type-row label{display:block;font-size:11px;color:#666}.element-type-row input,.element-type-row select{width:100%}.element-type-row input[type=color]{height:40px;padding:2px;border:1px solid #b7aa99;border-radius:6px;background:#fff}.fixed-color-palette{grid-column:1/-1;padding-top:4px}.fixed-color-palette>strong{display:block;margin-bottom:8px;font-size:12px;color:#5b3b24}.fixed-color-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.fixed-color-family{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;border:1px solid #e5ddd1;border-radius:7px;background:#faf8f4}.fixed-color-family>span{grid-column:1/-1;font-size:10px;font-weight:700;color:#62594f;text-align:center}.fixed-color-swatch{display:block;width:100%;min-width:24px;aspect-ratio:1;border:2px solid #fff;border-radius:5px;padding:0;box-shadow:0 0 0 1px #a89e91;cursor:pointer}.fixed-color-swatch:hover,.fixed-color-swatch:focus-visible{transform:scale(1.08);box-shadow:0 0 0 3px #285f94}.fixed-color-swatch.active{box-shadow:0 0 0 3px #d4a24c,0 0 0 5px #5b3b24}@media(max-width:700px){.element-type-row{grid-template-columns:1fr}.element-type-row p:first-of-type,.element-type-row>strong,.element-font-preview,.fixed-color-palette{grid-column:1}.fixed-color-families{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
 </style>
+<script src="{% static 'printbook/cover_autofit.js' %}?v=20261118-3"></script>
+{{ saved_design|json_script:"saved-cover-design" }}
 <script>
 (function () {
   const form = document.getElementById('cover-design-form');
@@ -332,6 +347,34 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   const simulator = form.closest('.cover-studio').querySelector('.cover-simulator');
   const value = (name) => (form.elements[name] ? form.elements[name].value : '');
   const all = (selector) => document.querySelectorAll(selector);
+  const inches = (name, fallback) => {
+    const raw = simulator.dataset[name];
+    if (raw === undefined || raw === '') return fallback;
+    const parsed = Number.parseFloat(String(raw).replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const trimWidth = inches('trimWidth', 6);
+  const trimHeight = inches('trimHeight', 9);
+  const bleed = inches('bleed', 0.125);
+  const panelWidth = trimWidth + bleed;
+  const panelHeight = trimHeight + 2 * bleed;
+  const panelPercent = (percent, axis) => {
+    const trim = axis === 'x' ? trimWidth : trimHeight;
+    const panel = axis === 'x' ? panelWidth : panelHeight;
+    return (bleed + trim * percent / 100) / panel * 100;
+  };
+  const trimPercent = (percent, axis) => {
+    const trim = axis === 'x' ? trimWidth : trimHeight;
+    const panel = axis === 'x' ? panelWidth : panelHeight;
+    return (panel * percent / 100 - bleed) / trim * 100;
+  };
+  // The green guide occupies 82% of the panel. Keep copy at 80% so glyph
+  // overhang and browser/PDF rounding cannot cross either side of the guide.
+  const textWidthPercent = 80;
+  const previewSize = (element, points) => {
+    const panel = element.closest('[data-layout-stage], .cover-live-front, .cover-live-back, .cover-live-spine, .cover-book-front, .cover-book-spine');
+    return panel && panel.clientHeight ? `${Number(points) * panel.clientHeight / (72 * panelHeight)}px` : `${points}pt`;
+  };
   const previewFontFamilies = {
     {% for font in cover_font_faces %}"{{ font.family|escapejs }}": "{{ font.css_family|escapejs }}",{% endfor %}
   };
@@ -354,13 +397,11 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     front_language: {noun: 'língua', group: 'da língua'},
     front_publisher: {noun: 'editora', group: 'da editora'}
   };
-  all('[data-font-preview]').forEach((fontPreview) => {
-    const prefix = fontPreview.dataset.fontPreview;
-    const colorField = `${prefix}_color`;
+  const addQuickColors = (container, colorField, label) => {
     const palette = document.createElement('div');
     palette.className = 'fixed-color-palette';
     palette.setAttribute('role', 'group');
-    palette.setAttribute('aria-label', `Cores rápidas ${fixedColorFieldLabels[prefix].group}`);
+    palette.setAttribute('aria-label', `Cores rápidas: ${label}`);
     const heading = document.createElement('strong');
     heading.textContent = 'Cores rápidas · escolha uma variação';
     palette.appendChild(heading);
@@ -380,7 +421,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
         button.dataset.colorField = colorField;
         button.dataset.colorValue = color;
         button.title = `${family.name} ${shade} · ${color}`;
-        button.setAttribute('aria-label', `${fixedColorFieldLabels[prefix].noun}: ${family.name} ${shade}`);
+        button.setAttribute('aria-label', `${label}: ${family.name} ${shade}`);
         button.addEventListener('click', () => {
           const input = form.elements[colorField];
           if (!input) return;
@@ -393,8 +434,13 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
       families.appendChild(group);
     });
     palette.appendChild(families);
-    fontPreview.closest('.element-type-row').appendChild(palette);
+    container.appendChild(palette);
+  };
+  all('[data-font-preview]').forEach((fontPreview) => {
+    const prefix = fontPreview.dataset.fontPreview;
+    addQuickColors(fontPreview.closest('.element-type-row'), `${prefix}_color`, fixedColorFieldLabels[prefix].noun);
   });
+  all('[data-quick-color-field]').forEach((container) => addQuickColors(container, container.dataset.quickColorField, container.dataset.colorLabel));
   const dimensions = {front: {width: 0, height: 0}, back: {width: 0, height: 0}, spine: {width: 0, height: 0}};
   const urls = {front: '', back: '', spine: ''};
   let selectedPanel = 'front';
@@ -514,8 +560,11 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const backAccent = value('back_accent_color') || '#D4A24C';
     const opacity = Number(value('overlay_opacity') || 0) / 100;
     const spine = Number.parseFloat(value('spine'));
-    const spineFraction = Number.isFinite(spine) ? Math.max(0.05, Math.min(0.28, spine / 6)) : 0.08;
+    const noSpine = simulator.dataset.noSpine === 'yes';
+    const spineFraction = noSpine ? 0 : (Number.isFinite(spine) ? Math.max(0.05, Math.min(0.28, spine / 6)) : 0.08);
     preview.style.gridTemplateColumns = `1fr ${spineFraction}fr 1fr`;
+    all('.cover-live-spine').forEach((element) => { element.style.visibility = noSpine ? 'hidden' : ''; });
+    all('.cover-book-spine').forEach((element) => { element.style.display = noSpine ? 'none' : ''; });
     preview.style.backgroundColor = background;
     preview.style.color = text;
     preview.style.fontFamily = previewFont(value('cover_font_family') || simulator.dataset.coverFont);
@@ -534,11 +583,11 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     [backBackground, backText, backAccent].forEach((color, index) => { if (swatches[index]) swatches[index].style.background = color; });
     const frontSwatches = document.querySelectorAll('.front-palette-swatches span');
     [background, text, accent].forEach((color, index) => { if (frontSwatches[index]) frontSwatches[index].style.background = color; });
-    all('[data-cover-title]').forEach((element) => { element.textContent = value('title') || 'Título do livro'; element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
+    all('[data-cover-title]').forEach((element) => { element.textContent = value('title'); element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
     all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
-    all('[data-cover-author]').forEach((element) => { element.textContent = value('author') || 'Autor'; element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
-    all('[data-cover-language]').forEach((element) => { element.textContent = value('language') || 'Português (Brasil)'; element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
-    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher') || 'RinoBooks'; element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
+    all('[data-cover-author]').forEach((element) => { element.textContent = value('author'); element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
+    all('[data-cover-language]').forEach((element) => { element.textContent = value('language'); element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
+    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher'); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
     ['front_title', 'front_subtitle', 'front_author', 'front_language', 'front_publisher'].forEach((prefix) => {
       const selector = form.elements[`${prefix}_font_family`];
       if (selector) selector.style.fontFamily = previewFont(selector.value);
@@ -566,6 +615,19 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     all('[data-cover-author]').forEach((element) => { element.style.left = `${authorX}%`; element.style.top = `${authorY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.marginTop = '0'; element.style.fontSize = `${value('front_author_font_size_pt') || 12}pt`; applyShape(element, 'front_author'); });
     all('[data-cover-language]').forEach((element) => { element.style.left = `${languageX}%`; element.style.top = `${languageY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_language_font_size_pt') || 8}pt`; applyShape(element, 'front_language'); });
     all('[data-cover-publisher]').forEach((element) => { element.style.left = `${publisherX}%`; element.style.top = `${publisherY}%`; element.style.textAlign = frontAlign; element.style.transform = `translateX(-50%) scale(${frontScale})`; element.style.fontSize = `${value('front_publisher_font_size_pt') || 10}pt`; applyShape(element, 'front_publisher'); });
+    [['title', titleX, titleY, 28], ['subtitle', subtitleX, subtitleY, 14], ['author', authorX, authorY, 12], ['language', languageX, languageY, 8], ['publisher', publisherX, publisherY, 10]].forEach(([name, x, y, size]) => {
+      all(`[data-cover-${name}]`).forEach((element) => {
+        element.style.position = 'absolute';
+        element.style.width = `${textWidthPercent}%`;
+        element.style.margin = '0';
+        element.style.transform = 'translateX(-50%)';
+        element.style.left = `${panelPercent(x, 'x')}%`;
+        element.style.top = `${panelPercent(y, 'y')}%`;
+        const points = Number(value(`front_${name}_font_size_pt`) || size);
+        element.style.fontSize = previewSize(element, points * frontScale);
+        element.style.lineHeight = String((points + (name === 'title' ? 7 : name === 'language' || name === 'publisher' ? 3 : 4)) / points);
+      });
+    });
     const fontPreviewCopies = {
       front_title: value('title') || 'Manual de Epicteto',
       front_subtitle: value('subtitle') || 'Encheirídion',
@@ -589,18 +651,48 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     all('[data-cover-back]').forEach((element) => { element.style.fontSize = `${value('back_body_font_size_pt') || 10.5}pt`; });
     all('.cover-live-back-copy').forEach((element) => { element.style.position = 'absolute'; element.style.width = '80%'; element.style.left = `${value('back_text_x_percent') || 50}%`; element.style.top = `${value('back_text_y_percent') || 12}%`; element.style.transform = 'translateX(-50%)'; element.style.textAlign = value('back_text_align') === 'center' ? 'center' : value('back_text_align') === 'justify' ? 'justify' : 'left'; element.style.fontFamily = previewFont(value('cover_font_family')); });
     all('.floating-back-copy').forEach((element) => { element.style.left = `${value('back_text_x_percent') || 50}%`; element.style.top = `${value('back_text_y_percent') || 12}%`; element.style.transform = 'translateX(-50%)'; });
-    const spineCopy = [value('spine_title') || value('spine_text'), value('spine_author'), value('spine_publisher')].filter(Boolean).join(' · ');
+    const backCopies = {heading: value('back_heading'), quote: value('back_quote'), body: value('back_text'), bio: value('back_bio'), footer: value('back_footer')};
+    const backLabels = {heading: 'Título', quote: 'Citação', body: 'Sobre o livro', bio: 'Sobre o autor', footer: 'Rodapé'};
+    all('[data-back-element],[data-back-font-preview]').forEach((element) => {
+      const key = element.dataset.backElement || element.dataset.backFontPreview;
+      const prefix = `back_element_${key}`;
+      const copy = backCopies[key] || '';
+      element.textContent = copy || backLabels[key];
+      if (element.dataset.backElement) element.hidden = !copy.trim();
+      element.style.fontFamily = previewFont(value(`${prefix}_font_family`) || value('cover_font_family'));
+      element.style.color = value(`${prefix}_color`) || '#FFFFFF';
+      element.style.fontSize = `${value(`${prefix}_font_size_pt`) || 10}pt`;
+      element.style.whiteSpace = 'pre-wrap';
+      applyShape(element, prefix);
+      if (element.dataset.backElement) {
+        element.style.position = 'absolute'; element.style.width = `${textWidthPercent}%`;
+        element.style.left = `${panelPercent(Number(value(`${prefix}_x_percent`) || 50), 'x')}%`;
+        element.style.top = `${panelPercent(Number(value(`${prefix}_y_percent`) || 12), 'y')}%`;
+        element.style.fontSize = previewSize(element, value(`${prefix}_font_size_pt`) || 10);
+        element.style.lineHeight = '1.25';
+        element.style.transform = 'translateX(-50%)';
+        element.style.textAlign = value('back_text_align') === 'center' ? 'center' : value('back_text_align') === 'justify' ? 'justify' : 'left';
+      }
+    });
+    const spineCopy = [form.elements.spine_title ? value('spine_title') : value('spine_text'), value('spine_author'), value('spine_publisher')].filter((part) => part.trim()).join(' · ');
     all('[data-cover-spine]').forEach((element) => {
-      element.textContent = spineCopy || 'Lombada';
+      element.textContent = spineCopy;
+      element.hidden = !spineCopy;
       element.style.fontFamily = previewFont(value('spine_font_family'));
-      element.style.fontSize = `${value('spine_font_size_pt') || 8}pt`;
+      element.style.fontSize = previewSize(element, value('spine_font_size_pt') || 8);
       element.style.fontWeight = value('spine_font_weight') === 'bold' ? '700' : '400';
       element.style.color = value('spine_color') || '#fff';
       element.style.letterSpacing = `${value('spine_letter_spacing_pt') || 0}pt`;
+      element.style.writingMode = 'horizontal-tb';
+      element.style.whiteSpace = 'nowrap';
+      element.style.width = 'max-content';
       element.style.position = 'absolute';
-      element.style.left = `${value('spine_text_x_percent') || 50}%`;
-      element.style.top = `${value('spine_text_y_percent') || 50}%`;
-      element.style.transform = `translate(-50%, -50%) translate(${value('spine_offset_x_mm') || 0}px, ${value('spine_offset_y_mm') || 0}px) rotate(${Number(value('spine_rotation') || 90) - 90}deg)`;
+      const spineWidth = Number.parseFloat(String(value('spine') || simulator.dataset.spine || '0.2').replace(',', '.')) || 0.2;
+      const offsetX = Number(value('spine_offset_x_mm') || 0) / 25.4 / spineWidth * 100;
+      const offsetY = Number(value('spine_offset_y_mm') || 0) / 25.4 / panelHeight * 100;
+      element.style.left = `${Number(value('spine_text_x_percent') || 50) + offsetX}%`;
+      element.style.top = `${Number(value('spine_text_y_percent') || 50) + offsetY}%`;
+      element.style.transform = `translate(-50%, -50%) rotate(${-Number(value('spine_rotation') || -90)}deg)`;
     });
     const artOnly = !addFrontText;
     document.querySelectorAll('.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-language],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-language],.cover-book-front [data-cover-publisher]').forEach((element) => {
@@ -640,11 +732,109 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     history = history.slice(0, historyIndex + 1); history.push(state); historyIndex = history.length - 1;
   };
   const restore = (state) => { Object.entries(state || {}).forEach(([name, saved]) => { const field = form.elements[name]; if (field) { if (field.type === 'checkbox') field.checked = saved; else field.value = saved; } }); update(); };
+  const autoFitButton = document.getElementById('auto-fit-cover');
+  const autoFitStatus = document.getElementById('auto-fit-status');
+  if (autoFitButton) autoFitButton.addEventListener('click', async () => {
+    if (document.fonts) await document.fonts.ready;
+    const before = snapshot();
+    const fail = (message) => { restore(before); autoFitStatus.textContent = message; };
+    if (typeof window.fitCoverBlocks !== 'function') { fail('Não foi possível carregar o autoajuste. Atualize a página.'); return; }
+    pushHistory();
+    const groups = [];
+    if (form.elements.add_front_text.checked) {
+      groups.push({name: 'capa', panel: document.querySelector('.cover-live-front'), bottom: 93, items: [
+        ['title', 'front_title', 10], ['subtitle', 'front_subtitle', 28],
+        ['author', 'front_author', 60], ['language', 'front_language', 76], ['publisher', 'front_publisher', 86]
+      ].filter(([name]) => value(name).trim()).map(([name, prefix, preferred]) => ({
+        node: document.querySelector(`.cover-live-front [data-cover-${name}]`),
+        x: form.elements[`${prefix}_x_percent`], y: form.elements[`${prefix}_y_percent`],
+        size: form.elements[`${prefix}_font_size_pt`], preferred
+      }))});
+      form.elements.front_text_scale_percent.value = '100';
+    }
+    const backInputs = {heading: 'back_heading', quote: 'back_quote', body: 'back_text', bio: 'back_bio', footer: 'back_footer'};
+    const backItems = [['heading', 10], ['quote', 18], ['body', 30], ['bio', 55], ['footer', 65]]
+      .filter(([key]) => value(backInputs[key]).trim()).map(([key, preferred]) => ({
+        node: document.querySelector(`.cover-live-back [data-back-element="${key}"]`),
+        x: form.elements[`back_element_${key}_x_percent`], y: form.elements[`back_element_${key}_y_percent`],
+        size: form.elements[`back_element_${key}_font_size_pt`], preferred
+      }));
+    if (backItems.length) groups.push({
+      name: 'contracapa', panel: document.querySelector('.cover-live-back'),
+      top: 10,
+      bottom: simulator.dataset.barcodeMode === 'provider' ? 72 : 89,
+      items: backItems,
+    });
+    const spineCopy = [value('spine_title'), value('spine_author'), value('spine_publisher')].filter((text) => text.trim()).join(' · ');
+    if (!groups.some((group) => group.items.length) && !spineCopy) { fail('Não há textos ativos para ajustar.'); return; }
+    try {
+      for (const group of groups) {
+        if (!group.items.length) continue;
+        if (!group.panel || !group.panel.clientHeight) throw new Error('Abra a montagem para medir os textos.');
+        for (const item of group.items) {
+          if (!item.node || !item.x || !item.y || !item.size) throw new Error('Faltam controles para ajustar os textos.');
+          item.x.value = '50';
+          const initial = Number(item.size.value);
+          if (!Number.isFinite(initial) || initial <= 0) throw new Error('Confira os tamanhos das fontes antes de ajustar.');
+          item.floor = Math.max(9, Number(item.size.min || 0));
+          if (initial < item.floor) item.size.value = item.floor.toFixed(1);
+        }
+        let positions = null;
+        for (let attempt = 0; attempt < 128; attempt++) {
+          update();
+          const trimPixels = group.panel.clientHeight * trimHeight / panelHeight;
+          const metrics = group.items.map((item) => ({
+            height: item.node.scrollHeight / trimPixels * 100,
+            minimum: Number(item.y.min || 8), maximum: Number(item.y.max || 90), preferred: item.preferred
+          }));
+          const tooWide = group.items.some((item) => !item.node.clientWidth || item.node.scrollWidth > item.node.clientWidth + 1);
+          positions = tooWide ? null : window.fitCoverBlocks(metrics, group.bottom, 1.5, group.top);
+          if (positions) break;
+          let reduced = false;
+          group.items.forEach((item) => {
+            const current = Number(item.size.value);
+            if (current > item.floor) { item.size.value = Math.max(item.floor, current - 0.5).toFixed(1); reduced = true; }
+          });
+          if (!reduced) break;
+        }
+        if (!positions) throw new Error(`Os textos da ${group.name || 'capa'} não couberam com os tamanhos mínimos. Reduza o texto ou ajuste a diagramação manualmente.`);
+        group.items.forEach((item, index) => { item.y.value = String(positions[index]); });
+      }
+      const spineWarning = simulator.dataset.spineAllowed !== 'yes' && Boolean(spineCopy);
+      if (spineWarning && !groups.some((group) => group.items.length)) throw new Error('O perfil atual não permite texto na lombada.');
+      if (spineCopy && !spineWarning) {
+        const width = Number.parseFloat(String(value('spine') || simulator.dataset.spine || '').replace(',', '.'));
+        const safe = Number(value('spine_edge_safe_mm') || 1.6) / 25.4;
+        const spacing = Number(value('spine_letter_spacing_pt') || 0);
+        const availableWidth = (width - 2 * safe) * 72;
+        const availableLength = (trimHeight - 0.5) * 72;
+        const lengthLimit = (availableLength - Math.max(0, spineCopy.length - 1) * spacing) / (spineCopy.length * 0.55);
+        const maximum = Math.min(36, availableWidth, lengthLimit);
+        if (!Number.isFinite(maximum) || maximum < 9) throw new Error('O texto da lombada não cabe com pelo menos 9 pt. Encurte o texto ou ajuste a lombada manualmente.');
+        const size = Math.min(maximum, Math.max(9, Number(value('spine_font_size_pt') || 9)));
+        form.elements.spine_font_size_pt.value = (Math.floor(size * 10) / 10).toFixed(1);
+        form.elements.spine_text_x_percent.value = '50'; form.elements.spine_text_y_percent.value = '50';
+        form.elements.spine_offset_x_mm.value = '0'; form.elements.spine_offset_y_mm.value = '0';
+      }
+      update();
+      pushHistory();
+      autoFitStatus.textContent = 'Textos organizados na prévia. Salve uma nova prova e confira o PDF em tamanho real; o autoajuste não substitui o preflight.'
+        + (spineWarning ? ' O perfil atual não permite texto na lombada.' : '');
+    } catch (error) {
+      fail(error.message || 'Não foi possível ajustar os textos; os valores anteriores foram preservados.');
+    }
+  });
   form.querySelectorAll('input, textarea, select').forEach((field) => {
     field.addEventListener('input', () => { update(); clearTimeout(historyTimer); historyTimer = setTimeout(pushHistory, 250); });
     field.addEventListener('change', () => { update(); pushHistory(); });
   });
   const layoutField = form.elements.layout;
+  const rotateSpine = document.querySelector('[data-rotate-spine]');
+  if (rotateSpine) rotateSpine.addEventListener('click', () => {
+    const direction = form.elements.spine_rotation;
+    direction.value = direction.value === '-90' ? '90' : '-90';
+    direction.dispatchEvent(new Event('change', {bubbles: true}));
+  });
   const applyLayoutButton = document.querySelector('[data-apply-layout]');
   const applySelectedLayout = () => {
     applyLayoutPreset(layoutField.value);
@@ -680,8 +870,16 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   const bindImage = (panel, inputName, selector) => {
     const input = form.elements[inputName];
     const existing = document.querySelector(`${selector}[src]`);
-    const capture = (element) => { dimensions[panel] = {width: element.naturalWidth, height: element.naturalHeight}; updateImageQuality(panel); };
-    if (existing) { if (existing.complete) capture(existing); else existing.addEventListener('load', () => capture(existing), {once: true}); }
+    const capture = (element, saved = false) => {
+      const design = JSON.parse(document.getElementById('saved-cover-design').textContent || '{}') || {};
+      const quality = (saved && design[`${panel}_image_quality`]) || {};
+      dimensions[panel] = {
+        width: Number(quality.original_width_px) || element.naturalWidth,
+        height: Number(quality.original_height_px) || element.naturalHeight,
+      };
+      updateImageQuality(panel);
+    };
+    if (existing) { if (existing.complete) capture(existing, true); else existing.addEventListener('load', () => capture(existing, true), {once: true}); }
     if (!input) return;
     input.addEventListener('change', () => {
     const file = input.files && input.files[0];
@@ -708,10 +906,20 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 
   const activateCoverTab = (tab) => {
     all('[data-cover-tab]').forEach((button) => { const active = button.dataset.coverTab === tab; button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
+    all('[data-step-cover-tab]').forEach((link) => { link.classList.toggle('active', link.dataset.stepCoverTab === tab); });
     all('[data-cover-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.coverTabPanel !== tab; });
     form.closest('.cover-studio').classList.toggle('montage-active', tab === 'montage');
     if (['front', 'back', 'spine'].includes(tab)) selectedPanel = tab;
+    if (form.elements && form.elements.continue_to) form.elements.continue_to.value = tab;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('tab', tab);
+    window.history.replaceState(window.history.state, '', currentUrl);
+    update();
   };
+  all('[data-step-cover-tab]').forEach((link) => link.addEventListener('click', (event) => {
+    event.preventDefault();
+    activateCoverTab(link.dataset.stepCoverTab);
+  }));
   all('[data-cover-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.coverTab)));
   all('[data-next-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.nextTab)));
   all('[data-save-next]').forEach((button) => button.addEventListener('click', () => {
@@ -729,8 +937,11 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
       const move = (moveEvent) => {
         const box = stage.getBoundingClientRect();
         const clamp = (number, minimum, maximum) => Math.max(minimum, Math.min(maximum, number));
-        xInput.value = Math.round(clamp((moveEvent.clientX - box.left) / box.width * 100, Number(xInput.min || 0), Number(xInput.max || 100)));
-        yInput.value = Math.round(clamp((moveEvent.clientY - box.top) / box.height * 100, Number(yInput.min || 0), Number(yInput.max || 100)));
+        let x = (moveEvent.clientX - box.left - stage.clientLeft) / stage.clientWidth * 100;
+        let y = (moveEvent.clientY - box.top - stage.clientTop) / stage.clientHeight * 100;
+        if (stage.dataset.layoutStage !== 'spine') { x = trimPercent(x, 'x'); y = trimPercent(y, 'y'); }
+        xInput.value = Math.round(clamp(x, Number(xInput.min || 0), Number(xInput.max || 100)));
+        yInput.value = Math.round(clamp(y, Number(yInput.min || 0), Number(yInput.max || 100)));
         update();
       };
       const finish = () => { field.removeEventListener('pointermove', move); pushHistory(); };
@@ -757,6 +968,13 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   const requestedCoverTab = new URLSearchParams(window.location.search).get('tab');
   const initialCoverTab = ['front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : 'front';
   activateCoverTab(initialCoverTab); pushHistory(); update(); renderCanvasTransform();
+  const autoFitUrl = new URL(window.location.href);
+  if (autoFitUrl.searchParams.get('autofit') === '1') {
+    autoFitUrl.searchParams.delete('autofit');
+    window.history.replaceState(window.history.state, '', autoFitUrl);
+    activateCoverTab('montage');
+    if (autoFitButton) autoFitButton.click();
+  }
 }());
 </script>
 {% endblock %}

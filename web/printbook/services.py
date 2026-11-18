@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import zipfile
 import math
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from django.utils.text import slugify
@@ -291,6 +291,12 @@ def workflow_steps(edition):
         approved=bool(cover and edition.cover_approval.get("build_id") == cover.id),
         error=bool(latest_cover and latest_cover.status == "FAILED"),
     )
+    if latest_cover and not cover and latest_cover.status in {"DRAFT", "BLOCKED", "RUNNING"}:
+        cover_status = {
+            "DRAFT": ("progress", "Em edição"),
+            "BLOCKED": ("error", "Ajustes pendentes"),
+            "RUNNING": ("progress", "Em processamento"),
+        }[latest_cover.status]
     report_status = status(
         exists=bool(report and report.status == "READY"),
         approved=bool(edition.edition_approved_at),
@@ -299,9 +305,11 @@ def workflow_steps(edition):
     return [
         {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
         {"number": "02", "label": "Miolo", "url_name": "printbook:interior", "status": interior_status[0], "status_label": interior_status[1]},
-        {"number": "03", "label": "Capa", "url_name": "printbook:cover", "status": cover_status[0], "status_label": cover_status[1]},
-        {"number": "04", "label": "Preflight", "url_name": "printbook:preflight", "status": report_status[0], "status_label": report_status[1]},
-        {"number": "05", "label": "Exportação", "url_name": "printbook:export", "status": "approved" if exported else "pending", "status_label": "Aprovado" if exported else "Não iniciado"},
+        {"number": "03", "label": "Capa", "url_name": "printbook:cover", "cover_tab": "front", "status": cover_status[0], "status_label": cover_status[1]},
+        {"number": "04", "label": "Contracapa", "url_name": "printbook:cover", "cover_tab": "back", "status": cover_status[0], "status_label": cover_status[1] + " · capa completa"},
+        {"number": "05", "label": "Lombada", "url_name": "printbook:cover", "cover_tab": "spine", "status": cover_status[0], "status_label": cover_status[1] + " · capa completa"},
+        {"number": "06", "label": "Preflight", "url_name": "printbook:preflight", "status": report_status[0], "status_label": report_status[1]},
+        {"number": "07", "label": "Exportação", "url_name": "printbook:export", "status": "approved" if exported else "pending", "status_label": "Aprovado" if exported else "Não iniciado"},
     ]
 
 
@@ -354,16 +362,32 @@ def spec_for(edition):
     )
 
 
+def is_uiclap_stapled(edition, page_count):
+    """UICLAP states paperback books below 60 pages are stapled without a spine."""
+    return getattr(edition, "platform", None) == "uiclap" and page_count < 60
+
+
 def estimated_spine_width(edition, page_count):
     """Return a simulator-only spine estimate; provider approval still needs its template."""
+    if is_uiclap_stapled(edition, page_count):
+        return Decimal("0")
     coefficient = _SIMULATOR_CALIPER_IN.get(edition.paper, Decimal("0.00225"))
     return (Decimal(page_count) * coefficient).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
 
 
+def cover_spec_for(edition, page_count, spine):
+    """Calculate stapled UICLAP proof geometry without certifying a final template."""
+    spec = spec_for(edition)
+    if is_uiclap_stapled(edition, page_count):
+        # UICLAP describes 5 mm bleed on each edge; this remains a draft proof.
+        spec = replace(spec, cover_bleed_in=Decimal("5") / Decimal("25.4"))
+        spine = Decimal("0")
+    return spec.finalize(page_count=page_count, spine_width_in=spine)
+
+
 def estimated_cover_geometry(edition, page_count):
     spine = estimated_spine_width(edition, page_count)
-    spec = spec_for(edition).finalize(page_count=page_count, spine_width_in=spine)
-    return geometry_payload(CoverGeometry.from_spec(spec))
+    return geometry_payload(CoverGeometry.from_spec(cover_spec_for(edition, page_count, spine)))
 
 
 def root_for(build):
@@ -741,7 +765,7 @@ def design_cover(
     spine_image_y=50,
     allow_empty_areas=False,
     minimum_dpi=300,
-    spine_title="",
+    spine_title=None,
     spine_author="",
     spine_publisher="",
     spine_font_family="TeX Gyre Pagella",
@@ -755,11 +779,12 @@ def design_cover(
     spine_offset_y_mm=0,
     spine_text_x_percent=50,
     spine_text_y_percent=50,
-    spine_rotation="90",
+    spine_rotation="-90",
     spine_edge_safe_mm=1.6,
     overlay_opacity=25,
     enhancement_profile="print_safe",
     save_mode="draft",
+    **back_element_fields,
 ):
     """Generate a local text-first cover from operator-selected design data."""
     from gaiden.print_engine.cover_composition import design_cover_tex, image_print_metrics
@@ -770,13 +795,21 @@ def design_cover(
         edition=edition, interior=interior, status__in=["DRAFT", "BLOCKED", "READY"]
     ).first()
     previous_design = load_cover_design(previous)
-    spine_text = (spine_text or "").strip() or previous_design.get("spine_text") or edition.name
+    spine_text = (spine_text or "").strip()
+    if spine_title is None and not spine_text:
+        spine_text = previous_design.get("spine_text") or edition.name
+    effective_spine_title = spine_text if spine_title is None else spine_title.strip()
     if save_mode not in {"draft", "final"}:
         raise ValueError("Modo de salvamento da capa inválido.")
+    stapled = is_uiclap_stapled(edition, interior.page_count)
+    if stapled and save_mode == "final":
+        raise ValueError("A capa UICLAP grampeada permanece como rascunho até existir validação do formato oficial de produção.")
+    if stapled and spine_image is not None:
+        raise ValueError("A UICLAP não usa lombada com menos de 60 páginas; remova a imagem da lombada antes de salvar a prova.")
     if save_mode == "final" and template is None:
         raise ValueError(f"Para salvar a capa final, anexe o template oficial da plataforma {edition.get_platform_display()}.")
-    spine = spine or estimated_spine_width(edition, interior.page_count)
-    spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=spine)
+    spine = Decimal("0") if stapled else (spine if spine is not None else estimated_spine_width(edition, interior.page_count))
+    spec = cover_spec_for(edition, interior.page_count, spine)
     geometry = CoverGeometry.from_spec(spec)
     executable = shutil.which("lualatex")
     if not executable:
@@ -806,7 +839,7 @@ def design_cover(
             previous_key="back_image_original", profile=enhancement_profile,
             geometry=geometry, zoom=back_image_zoom,
         )
-        spine_art = _prepare_design_image(
+        spine_art = None if stapled else _prepare_design_image(
             upload=spine_image, previous=previous, root=root, prefix="SPINE_IMAGE",
             previous_key="spine_image_original", profile=enhancement_profile,
             geometry=geometry, zoom=spine_image_zoom, panel_width=geometry.spine_width_in,
@@ -875,7 +908,7 @@ def design_cover(
             "back_text_x_percent": int(back_text_x_percent),
             "back_text_y_percent": int(back_text_y_percent),
             "spine_text": spine_text,
-            "spine_title": spine_title or spine_text,
+            "spine_title": effective_spine_title,
             "spine_author": spine_author,
             "spine_publisher": spine_publisher,
             "spine_font_family": spine_font_family,
@@ -900,9 +933,9 @@ def design_cover(
             "back_accent_color": back_accent_color,
             "page_count": interior.page_count,
             "spine_width_in": str(spine),
-            "geometry_source": "official_template" if template_path else (
+            "geometry_source": "uiclap_stapled_draft" if stapled else ("official_template" if template_path else (
                 "kdp_official_page_caliper_formula" if edition.platform == "amazon_kdp" else "explicit_simulator_estimate"
-            ),
+            )),
             "image_fit": image_fit,
             "image_zoom": image_zoom,
             "image_x": image_x,
@@ -931,7 +964,19 @@ def design_cover(
             "barcode_mode": edition.barcode_mode,
             "save_mode": save_mode,
         }
+        for key, value in back_element_fields.items():
+            if not key.startswith("back_element_"):
+                raise ValueError("Campo de capa desconhecido.")
+            if value is not None:
+                design[key] = str(value) if isinstance(value, Decimal) else value
         design_findings = []
+        cover_copy = (title, subtitle, author, language, publisher, back_heading, back_quote, back_text, back_bio, back_footer, effective_spine_title, spine_author, spine_publisher)
+        if any("**" in (part or "") or "__" in (part or "") for part in cover_copy):
+            design_findings.append({"code": "cover.markdown_literal", "severity": "WARNING",
+                "message": "O texto contém marcas de Markdown que serão impressas literalmente. Revise os campos antes da prova final."})
+        if stapled:
+            design_findings.append({"code": "cover.uiclap_stapled_proof", "severity": "WARNING",
+                "message": "UICLAP: abaixo de 60 páginas o acabamento é grampeado, sem lombada. Esta capa é apenas uma prova em rascunho."})
         for label, key, art, fit, zoom, print_width in (
             ("frente", "front_image", front_art, image_fit, image_zoom, geometry.trim_width_in + geometry.bleed_in),
             ("contracapa", "back_image", back_art, back_image_fit, back_image_zoom, geometry.trim_width_in + geometry.bleed_in),
@@ -964,19 +1009,22 @@ def design_cover(
             if min(evidence["effective_dpi_x"], evidence["effective_dpi_y"]) < int(minimum_dpi):
                 design_findings.append({
                     "code": f"cover.{key}_resolution", "severity": "BLOCKER",
-                    "message": f"A imagem da {label} fica abaixo de {minimum_dpi} DPI efetivos no tamanho impresso.",
+                    "message": (
+                        f"A imagem original da {label} fica em {min(evidence['effective_dpi_x'], evidence['effective_dpi_y'])} DPI efetivos; o mínimo é {minimum_dpi}. "
+                        + ("A ampliação interpolada não recupera detalhes da origem; use uma imagem original maior." if art["enhancement"]["resized"] else "Use uma imagem original maior ou reduza seu tamanho impresso.")
+                    ),
                 })
             if fit == "contain" and int(zoom) <= 100 and not allow_empty_areas:
                 design_findings.append({
                     "code": f"cover.{key}_empty_area", "severity": "BLOCKER",
                     "message": f"O modo Ajustar da {label} pode deixar área vazia. Use Preencher ou marque a área vazia como intencional.",
                 })
-        spine_copy = " · ".join(part.strip() for part in (spine_title or spine_text, spine_author, spine_publisher) if part and part.strip())
+        spine_copy = " · ".join(part.strip() for part in (effective_spine_title, spine_author, spine_publisher) if part and part.strip())
         if spine_copy and not geometry.spine_text_allowed:
             design_findings.append({
                 "code": "cover.spine_text_not_allowed",
-                "severity": "BLOCKER" if (spine_title or spine_author or spine_publisher) else "WARNING",
-                "message": "Este perfil não permite texto na lombada para a paginação atual; o texto não será exportado.",
+                "severity": "WARNING" if stapled else ("BLOCKER" if (spine_title or spine_author or spine_publisher) else "WARNING"),
+                "message": "A prova grampeada não possui lombada; o texto permanece salvo, mas não será renderizado." if stapled else "Este perfil não permite texto na lombada para a paginação atual; o texto não será exportado.",
             })
         available_spine_pt = (geometry.spine_width_in - Decimal(str(spine_edge_safe_mm)) * 2 / Decimal("25.4")) * 72
         if spine_copy and geometry.spine_text_allowed and (available_spine_pt <= 0 or Decimal(str(spine_font_size_pt)) > available_spine_pt):
@@ -1051,6 +1099,7 @@ def design_cover(
                 back_quote=back_quote,
                 back_bio=back_bio,
                 back_footer=back_footer,
+                back_elements=back_element_fields,
                 back_heading_font_size_pt=back_heading_font_size_pt,
                 back_body_font_size_pt=back_body_font_size_pt,
                 back_text_align=back_text_align,
@@ -1120,6 +1169,21 @@ def design_cover(
         pdf = root / f"{slugify(edition.name) or 'book'}-cover.pdf"
         if result.returncode or not compiled_pdf.is_file() or inspect_pdf_page_count(compiled_pdf) != 1:
             raise ValueError("Não foi possível gerar a capa do modelo escolhido.")
+        compiler_output = b""
+        for stream in (result.stdout, result.stderr):
+            if isinstance(stream, str):
+                stream = stream.encode("utf-8", errors="replace")
+            compiler_output += stream or b""
+        compiler_log = root / "COVER.log"
+        if compiler_log.is_file():
+            if compiler_log.stat().st_size > 8 * 1024 * 1024:
+                design_findings.append({"code": "cover.font_log_unchecked", "severity": "BLOCKER",
+                    "message": "O relatório de fontes é grande demais para conferência automática; a capa não pode ser aprovada."})
+            else:
+                compiler_output += compiler_log.read_bytes()
+        if b"Missing character:" in compiler_output:
+            design_findings.append({"code": "cover.missing_glyphs", "severity": "BLOCKER",
+                "message": "A fonte selecionada não contém todos os caracteres da capa. Escolha uma fonte compatível e gere outra prova."})
         compiled_pdf.replace(pdf)
         guard(edition)
         build.tools = {
@@ -1158,7 +1222,7 @@ def design_cover(
                 build.findings.append({
                     "code": "cover.template_pending",
                     "severity": "WARNING",
-                    "message": "Prova visual gerada com lombada estimada. Anexe o template oficial antes do preflight.",
+                    "message": "Prova UICLAP grampeada, sem lombada; ainda não é um arquivo final de produção." if stapled else "Prova visual gerada com lombada estimada. Anexe o template oficial antes do preflight.",
                 })
             build.save()
             edition.state = PrintEdition.State.COVER_PENDING
@@ -1169,9 +1233,31 @@ def design_cover(
     return build
 
 
+def quality_readiness(edition, interior, cover, *, source_error=""):
+    """Describe prerequisites without changing builds or claiming a preflight pass."""
+    checks = []
+    if source_error:
+        checks.append({"ok": False, "message": "A fonte editorial precisa ser conferida antes da validação.", "url_name": "printbook:configuration", "label": "Revisar configuração"})
+    interior_approved = bool(interior and edition.interior_approval.get("build_id") == interior.id)
+    checks.append({"ok": interior_approved, "message": "Miolo atual aprovado." if interior_approved else "Compile e aprove o miolo atual.", "url_name": "printbook:interior", "label": "Abrir miolo"})
+    cover_current = bool(cover and interior and cover.interior_id == interior.id)
+    cover_ready = bool(cover_current and cover.files.get("template"))
+    checks.append({"ok": cover_ready, "message": "Capa final com template oficial registrada." if cover_ready else "Salve uma capa final para o miolo atual com o template oficial; a prova em rascunho não é uma capa final.", "url_name": "printbook:cover", "label": "Abrir montagem"})
+    cover_approved = bool(cover_ready and edition.cover_approval.get("build_id") == cover.id)
+    checks.append({"ok": cover_approved, "message": "Capa final atual aprovada." if cover_approved else "Aprove a capa final atual depois de corrigir seus bloqueadores.", "url_name": "printbook:cover", "label": "Abrir capa"})
+    configured = bool(getattr(settings, "PRINTBOOK_VALIDATOR", ""))
+    checks.append({"ok": False, "message": "Validador industrial configurado; sua execução e evidências serão verificadas no preflight." if configured else "Validador industrial não configurado; a aprovação para impressão ficará bloqueada até existir evidência válida.", "url_name": "printbook:preflight", "label": "Ver preflight"})
+    return checks
+
+
 def preflight(edition):
     guard(edition)
-    interior, cover = latest(InteriorBuild, edition), latest(CoverBuild, edition)
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
+    if not interior:
+        raise ValueError("Compile e aprove o miolo atual antes do preflight.")
+    if not cover:
+        raise ValueError("A capa ainda é uma prova. Anexe o template oficial, salve a capa final e aprove-a antes do preflight.")
     if edition.interior_approval.get("build_id") != interior.id or edition.cover_approval.get("build_id") != cover.id:
         raise ValueError("Aprove o miolo e a capa atuais antes de executar o preflight.")
     if cover.interior_id != interior.id:
