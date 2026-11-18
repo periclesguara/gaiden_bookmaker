@@ -62,10 +62,10 @@ class UiclapProofTests(SimpleTestCase):
             return build
         def compile_cover(_args, **kwargs):
             (kwargs["cwd"] / "COVER.pdf").write_bytes(b"%PDF-proof")
-            return subprocess.CompletedProcess(_args, 0)
+            return subprocess.CompletedProcess(_args, 0, stdout=b"Missing character: test font", stderr=b"")
         with TemporaryDirectory() as directory, patch("web.printbook.services.guard"), patch("web.printbook.services.latest", return_value=interior), patch("web.printbook.services.CoverBuild") as covers, patch("web.printbook.services.load_cover_design", return_value={}), patch("web.printbook.services.new_build", side_effect=new_build), patch("web.printbook.services.root_for", return_value=Path(directory)), patch("web.printbook.services.spec_for", return_value=PrintSpec(provider=PrintProvider.UICLAP, trim_width_in="2", trim_height_in="3")), patch("web.printbook.services.subprocess.run", side_effect=compile_cover), patch("web.printbook.services.inspect_pdf_page_count", return_value=1), patch("web.printbook.services.tool_version", return_value="test"), patch("web.printbook.services.invalidate_after_cover"):
             covers.objects.filter.return_value.first.return_value = None
-            result = design_cover(edition, layout="classic", title="Title", subtitle="", author="Author", back_text="Back", spine_text="Old spine", background_color="#000000", text_color="#FFFFFF", accent_color="#FFFFFF", enhancement_profile="uiclap_300", cover_image=upload, save_mode="draft")
+            result = design_cover(edition, layout="classic", title="Title", subtitle="", author="Author", back_text="Back **strong**", spine_text="Old spine", background_color="#000000", text_color="#FFFFFF", accent_color="#FFFFFF", enhancement_profile="uiclap_300", cover_image=upload, save_mode="draft")
             design = json.loads(Path(result.files["design"]["path"]).read_text())
             tex = Path(result.files["tex"]["path"]).read_text()
             self.assertEqual(result.status, "DRAFT")
@@ -75,6 +75,8 @@ class UiclapProofTests(SimpleTestCase):
             self.assertEqual(design["image_enhancement"]["resolution_note"], "interpolated")
             self.assertTrue(any(item["code"] == "cover.front_image_resolution" and item["severity"] == "BLOCKER" for item in result.findings))
             self.assertTrue(any(item["code"] == "cover.uiclap_stapled_proof" for item in result.findings))
+            self.assertTrue(any(item["code"] == "cover.missing_glyphs" and item["severity"] == "BLOCKER" for item in result.findings))
+            self.assertTrue(any(item["code"] == "cover.markdown_literal" and item["severity"] == "WARNING" for item in result.findings))
 
     @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
     def test_stapled_preview_keeps_both_cover_panels_in_grid(self):

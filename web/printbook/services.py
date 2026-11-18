@@ -970,6 +970,10 @@ def design_cover(
             if value is not None:
                 design[key] = str(value) if isinstance(value, Decimal) else value
         design_findings = []
+        cover_copy = (title, subtitle, author, language, publisher, back_heading, back_quote, back_text, back_bio, back_footer, effective_spine_title, spine_author, spine_publisher)
+        if any("**" in (part or "") or "__" in (part or "") for part in cover_copy):
+            design_findings.append({"code": "cover.markdown_literal", "severity": "WARNING",
+                "message": "O texto contém marcas de Markdown que serão impressas literalmente. Revise os campos antes da prova final."})
         if stapled:
             design_findings.append({"code": "cover.uiclap_stapled_proof", "severity": "WARNING",
                 "message": "UICLAP: abaixo de 60 páginas o acabamento é grampeado, sem lombada. Esta capa é apenas uma prova em rascunho."})
@@ -1165,6 +1169,21 @@ def design_cover(
         pdf = root / f"{slugify(edition.name) or 'book'}-cover.pdf"
         if result.returncode or not compiled_pdf.is_file() or inspect_pdf_page_count(compiled_pdf) != 1:
             raise ValueError("Não foi possível gerar a capa do modelo escolhido.")
+        compiler_output = b""
+        for stream in (result.stdout, result.stderr):
+            if isinstance(stream, str):
+                stream = stream.encode("utf-8", errors="replace")
+            compiler_output += stream or b""
+        compiler_log = root / "COVER.log"
+        if compiler_log.is_file():
+            if compiler_log.stat().st_size > 8 * 1024 * 1024:
+                design_findings.append({"code": "cover.font_log_unchecked", "severity": "BLOCKER",
+                    "message": "O relatório de fontes é grande demais para conferência automática; a capa não pode ser aprovada."})
+            else:
+                compiler_output += compiler_log.read_bytes()
+        if b"Missing character:" in compiler_output:
+            design_findings.append({"code": "cover.missing_glyphs", "severity": "BLOCKER",
+                "message": "A fonte selecionada não contém todos os caracteres da capa. Escolha uma fonte compatível e gere outra prova."})
         compiled_pdf.replace(pdf)
         guard(edition)
         build.tools = {

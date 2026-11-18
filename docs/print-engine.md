@@ -335,3 +335,9 @@ when final assets are missing, running the check reports the missing inputs and
 does not create a production report. A failed, blocked or absent validation
 never enables final approval. Save a new proof and inspect the PDF at print size
 before proceeding.
+
+Cover compilation inspects LuaLaTeX output for missing-character diagnostics;
+missing glyphs are blocking findings and require a compatible font and new
+proof. Markdown emphasis markers in cover text are reported as a warning
+because the cover composer prints them literally; the operator must review the
+text. These checks supplement rather than replace visual proof inspection.
