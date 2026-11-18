@@ -118,7 +118,7 @@ let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
 (async () => {
  await click();
  if (form.elements.front_title_x_percent.value !== '50' || form.elements.front_text_scale_percent.value !== '100' || saved !== 2) throw Error('fit: ' + status.textContent + ' / ' + saved);
- if (form.elements.back_element_body_x_percent.value !== '50' || Number(form.elements.back_element_body_y_percent.value) < 9 || Number(form.elements.back_element_body_y_percent.value) > 70) throw Error('back safety bounds');
+ if (form.elements.back_element_body_x_percent.value !== '50' || Number(form.elements.back_element_body_y_percent.value) < 10 || Number(form.elements.back_element_body_y_percent.value) > 72) throw Error('back safety bounds');
  if (Number(form.elements.front_author_font_size_pt.value) !== 9) throw Error('minimum font size not applied');
  if (!status.textContent.includes('Textos organizados')) throw Error('status: ' + status.textContent);
  const before = JSON.stringify(snapshot()); oversized = true;
@@ -146,7 +146,7 @@ const simulator = {dataset: {trimWidth: '6', trimHeight: '9', bleed: '0.125'}};
 const almost = (a, b) => Math.abs(a-b) < 0.00001;
 if (!almost(trimPercent(panelPercent(42, 'x'), 'x'), 42)) process.exit(1);
 if (!almost(trimPercent(panelPercent(75, 'y'), 'y'), 75)) process.exit(1);
-if (!almost(textWidthPercent, 100 * 5.1 / 6.125)) process.exit(1);
+if (!almost(textWidthPercent, 80) || textWidthPercent >= 82) process.exit(1);
 const panel = {clientHeight: 333};
 if (!almost(parseFloat(previewSize({closest: () => panel}, 18)), 9)) process.exit(1);
 '''

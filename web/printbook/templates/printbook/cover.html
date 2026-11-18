@@ -336,7 +336,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 .front-element-typography{background:#fffdf8!important;border-color:#c8a66a!important}.element-type-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0;padding:14px;border:1px solid #e5ddd1;border-radius:9px;background:#fff}.element-type-row>strong{grid-column:1/-1;font-size:17px;color:#5b3b24}.element-font-preview{display:block;grid-column:1/-1;min-height:44px;padding:12px 14px;border:1px solid #d9c8ae;border-radius:7px;background:#fff;color:#241f1a;font-size:27px;line-height:1.15;text-align:center;overflow-wrap:anywhere;transition:color .15s ease,font-family .15s ease,font-weight .15s ease,font-style .15s ease}.element-type-row p{margin:0}.element-type-row p:first-of-type{grid-column:span 2}.element-type-row label{display:block;font-size:11px;color:#666}.element-type-row input,.element-type-row select{width:100%}.element-type-row input[type=color]{height:40px;padding:2px;border:1px solid #b7aa99;border-radius:6px;background:#fff}.fixed-color-palette{grid-column:1/-1;padding-top:4px}.fixed-color-palette>strong{display:block;margin-bottom:8px;font-size:12px;color:#5b3b24}.fixed-color-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.fixed-color-family{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;border:1px solid #e5ddd1;border-radius:7px;background:#faf8f4}.fixed-color-family>span{grid-column:1/-1;font-size:10px;font-weight:700;color:#62594f;text-align:center}.fixed-color-swatch{display:block;width:100%;min-width:24px;aspect-ratio:1;border:2px solid #fff;border-radius:5px;padding:0;box-shadow:0 0 0 1px #a89e91;cursor:pointer}.fixed-color-swatch:hover,.fixed-color-swatch:focus-visible{transform:scale(1.08);box-shadow:0 0 0 3px #285f94}.fixed-color-swatch.active{box-shadow:0 0 0 3px #d4a24c,0 0 0 5px #5b3b24}@media(max-width:700px){.element-type-row{grid-template-columns:1fr}.element-type-row p:first-of-type,.element-type-row>strong,.element-font-preview,.fixed-color-palette{grid-column:1}.fixed-color-families{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
 </style>
-<script src="{% static 'printbook/cover_autofit.js' %}?v=20261117-1"></script>
+<script src="{% static 'printbook/cover_autofit.js' %}?v=20261118-3"></script>
 {{ saved_design|json_script:"saved-cover-design" }}
 <script>
 (function () {
@@ -368,9 +368,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const panel = axis === 'x' ? panelWidth : panelHeight;
     return (panel * percent / 100 - bleed) / trim * 100;
   };
-  // Keep copy inside the green safety guide. The extra 0.45 in on each side
-  // also absorbs rounding differences between the browser preview and PDF.
-  const textWidthPercent = (trimWidth - 0.90) / panelWidth * 100;
+  // The green guide occupies 82% of the panel. Keep copy at 80% so glyph
+  // overhang and browser/PDF rounding cannot cross either side of the guide.
+  const textWidthPercent = 80;
   const previewSize = (element, points) => {
     const panel = element.closest('[data-layout-stage], .cover-live-front, .cover-live-back, .cover-live-spine, .cover-book-front, .cover-book-spine');
     return panel && panel.clientHeight ? `${Number(points) * panel.clientHeight / (72 * panelHeight)}px` : `${points}pt`;
@@ -669,7 +669,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
         element.style.left = `${panelPercent(Number(value(`${prefix}_x_percent`) || 50), 'x')}%`;
         element.style.top = `${panelPercent(Number(value(`${prefix}_y_percent`) || 12), 'y')}%`;
         element.style.fontSize = previewSize(element, value(`${prefix}_font_size_pt`) || 10);
-        element.style.lineHeight = '1.4';
+        element.style.lineHeight = '1.25';
         element.style.transform = 'translateX(-50%)';
         element.style.textAlign = value('back_text_align') === 'center' ? 'center' : value('back_text_align') === 'justify' ? 'justify' : 'left';
       }
@@ -742,7 +742,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     pushHistory();
     const groups = [];
     if (form.elements.add_front_text.checked) {
-      groups.push({panel: document.querySelector('.cover-live-front'), bottom: 93, items: [
+      groups.push({name: 'capa', panel: document.querySelector('.cover-live-front'), bottom: 93, items: [
         ['title', 'front_title', 10], ['subtitle', 'front_subtitle', 28],
         ['author', 'front_author', 60], ['language', 'front_language', 76], ['publisher', 'front_publisher', 86]
       ].filter(([name]) => value(name).trim()).map(([name, prefix, preferred]) => ({
@@ -760,9 +760,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
         size: form.elements[`back_element_${key}_font_size_pt`], preferred
       }));
     if (backItems.length) groups.push({
-      panel: document.querySelector('.cover-live-back'),
-      top: 9,
-      bottom: simulator.dataset.barcodeMode === 'provider' ? 70 : 90,
+      name: 'contracapa', panel: document.querySelector('.cover-live-back'),
+      top: 10,
+      bottom: simulator.dataset.barcodeMode === 'provider' ? 72 : 89,
       items: backItems,
     });
     const spineCopy = [value('spine_title'), value('spine_author'), value('spine_publisher')].filter((text) => text.trim()).join(' · ');
@@ -788,7 +788,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
             minimum: Number(item.y.min || 8), maximum: Number(item.y.max || 90), preferred: item.preferred
           }));
           const tooWide = group.items.some((item) => !item.node.clientWidth || item.node.scrollWidth > item.node.clientWidth + 1);
-          positions = tooWide ? null : window.fitCoverBlocks(metrics, group.bottom, 1.8, group.top);
+          positions = tooWide ? null : window.fitCoverBlocks(metrics, group.bottom, 1.5, group.top);
           if (positions) break;
           let reduced = false;
           group.items.forEach((item) => {
@@ -797,7 +797,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
           });
           if (!reduced) break;
         }
-        if (!positions) throw new Error('Os textos não couberam com os tamanhos mínimos. Reduza o texto ou ajuste a diagramação manualmente.');
+        if (!positions) throw new Error(`Os textos da ${group.name || 'capa'} não couberam com os tamanhos mínimos. Reduza o texto ou ajuste a diagramação manualmente.`);
         group.items.forEach((item, index) => { item.y.value = String(positions[index]); });
       }
       const spineWarning = simulator.dataset.spineAllowed !== 'yes' && Boolean(spineCopy);
