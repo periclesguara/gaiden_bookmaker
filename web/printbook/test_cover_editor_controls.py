@@ -81,6 +81,8 @@ const result = fit(blocks, 90, 2);
 if (!result || result[0] !== 10 || result[1] < result[0] + 20) process.exit(1);
 if (fit([{height: 90, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) process.exit(1);
 if (fit([{height: 0, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) process.exit(1);
+const safeResult = fit([{height: 10, minimum: 0, maximum: 90, preferred: 0}], 90, 2, 9);
+if (!safeResult || safeResult[0] !== 9) process.exit(1);
 '''
         subprocess.run(["node", "-e", harness, str(script)], check=True, capture_output=True, text=True)
 
@@ -101,11 +103,13 @@ const field = (value, min='', max='') => ({value, min, max});
 const form = {elements: {add_front_text: {checked: true}, front_text_scale_percent: field('80'),
  title: field('Title'), author: field('Author'), subtitle: field(''), language: field(''), publisher: field(''),
  front_title_x_percent: field('20'), front_title_y_percent: field('20','8','70'), front_title_font_size_pt: field('28','12','72'),
- front_author_x_percent: field('20'), front_author_y_percent: field('84','45','92'), front_author_font_size_pt: field('8','8','36')}};
+ front_author_x_percent: field('20'), front_author_y_percent: field('84','45','92'), front_author_font_size_pt: field('8','8','36'),
+ back_heading: field(''), back_quote: field(''), back_text: field('Back cover copy'), back_bio: field(''), back_footer: field(''),
+ back_element_body_x_percent: field('25'), back_element_body_y_percent: field('80','0','90'), back_element_body_font_size_pt: field('10','9','24')}};
 const value = name => (form.elements[name] && form.elements[name].value) || '';
-const document = {querySelector: selector => selector === '.cover-live-front' ? panel : selector.startsWith('.cover-live-front [') ? node : null,
+const document = {querySelector: selector => selector === '.cover-live-front' || selector === '.cover-live-back' ? panel : selector.startsWith('.cover-live-front [') || selector.startsWith('.cover-live-back [') ? node : null,
  getElementById: id => id === 'auto-fit-cover' ? button : status};
-const simulator = {dataset: {barcodeMode: 'none', spineAllowed: 'yes'}};
+const simulator = {dataset: {barcodeMode: 'provider', spineAllowed: 'yes'}};
 const trimHeight = 9, panelHeight = 9.25;
 const snapshot = () => Object.fromEntries(Object.entries(form.elements).filter(([_, field]) => field.value !== undefined).map(([key, field]) => [key, field.value]));
 const restore = state => Object.entries(state).forEach(([key, value]) => {form.elements[key].value = value;});
@@ -114,6 +118,7 @@ let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
 (async () => {
  await click();
  if (form.elements.front_title_x_percent.value !== '50' || form.elements.front_text_scale_percent.value !== '100' || saved !== 2) throw Error('fit: ' + status.textContent + ' / ' + saved);
+ if (form.elements.back_element_body_x_percent.value !== '50' || Number(form.elements.back_element_body_y_percent.value) < 9 || Number(form.elements.back_element_body_y_percent.value) > 70) throw Error('back safety bounds');
  if (Number(form.elements.front_author_font_size_pt.value) !== 9) throw Error('minimum font size not applied');
  if (!status.textContent.includes('Textos organizados')) throw Error('status: ' + status.textContent);
  const before = JSON.stringify(snapshot()); oversized = true;
@@ -141,7 +146,7 @@ const simulator = {dataset: {trimWidth: '6', trimHeight: '9', bleed: '0.125'}};
 const almost = (a, b) => Math.abs(a-b) < 0.00001;
 if (!almost(trimPercent(panelPercent(42, 'x'), 'x'), 42)) process.exit(1);
 if (!almost(trimPercent(panelPercent(75, 'y'), 'y'), 75)) process.exit(1);
-if (!almost(textWidthPercent, 100 * 5.3 / 6.125)) process.exit(1);
+if (!almost(textWidthPercent, 100 * 5.1 / 6.125)) process.exit(1);
 const panel = {clientHeight: 333};
 if (!almost(parseFloat(previewSize({closest: () => panel}, 18)), 9)) process.exit(1);
 '''

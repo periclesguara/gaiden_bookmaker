@@ -1,8 +1,8 @@
 /* Compute non-overlapping top positions in trim-relative percentages. */
 (function (root) {
   'use strict';
-  root.fitCoverBlocks = function (blocks, bottom, gap) {
-    let cursor = 8;
+  root.fitCoverBlocks = function (blocks, bottom, gap, top) {
+    let cursor = Number.isFinite(top) ? top : 8;
     const positions = [];
     for (const block of blocks) {
       if (!Number.isFinite(block.height) || block.height <= 0) return null;

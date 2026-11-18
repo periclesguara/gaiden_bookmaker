@@ -368,7 +368,9 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const panel = axis === 'x' ? panelWidth : panelHeight;
     return (panel * percent / 100 - bleed) / trim * 100;
   };
-  const textWidthPercent = (trimWidth - 0.70) / panelWidth * 100;
+  // Keep copy inside the green safety guide. The extra 0.45 in on each side
+  // also absorbs rounding differences between the browser preview and PDF.
+  const textWidthPercent = (trimWidth - 0.90) / panelWidth * 100;
   const previewSize = (element, points) => {
     const panel = element.closest('[data-layout-stage], .cover-live-front, .cover-live-back, .cover-live-spine, .cover-book-front, .cover-book-spine');
     return panel && panel.clientHeight ? `${Number(points) * panel.clientHeight / (72 * panelHeight)}px` : `${points}pt`;
@@ -757,7 +759,12 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
         x: form.elements[`back_element_${key}_x_percent`], y: form.elements[`back_element_${key}_y_percent`],
         size: form.elements[`back_element_${key}_font_size_pt`], preferred
       }));
-    if (backItems.length) groups.push({panel: document.querySelector('.cover-live-back'), bottom: simulator.dataset.barcodeMode === 'provider' ? 73 : 91, items: backItems});
+    if (backItems.length) groups.push({
+      panel: document.querySelector('.cover-live-back'),
+      top: 9,
+      bottom: simulator.dataset.barcodeMode === 'provider' ? 70 : 90,
+      items: backItems,
+    });
     const spineCopy = [value('spine_title'), value('spine_author'), value('spine_publisher')].filter((text) => text.trim()).join(' · ');
     if (!groups.some((group) => group.items.length) && !spineCopy) { fail('Não há textos ativos para ajustar.'); return; }
     try {
@@ -781,7 +788,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
             minimum: Number(item.y.min || 8), maximum: Number(item.y.max || 90), preferred: item.preferred
           }));
           const tooWide = group.items.some((item) => !item.node.clientWidth || item.node.scrollWidth > item.node.clientWidth + 1);
-          positions = tooWide ? null : window.fitCoverBlocks(metrics, group.bottom, 1.5);
+          positions = tooWide ? null : window.fitCoverBlocks(metrics, group.bottom, 1.8, group.top);
           if (positions) break;
           let reduced = false;
           group.items.forEach((item) => {
@@ -903,6 +910,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     all('[data-cover-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.coverTabPanel !== tab; });
     form.closest('.cover-studio').classList.toggle('montage-active', tab === 'montage');
     if (['front', 'back', 'spine'].includes(tab)) selectedPanel = tab;
+    if (form.elements && form.elements.continue_to) form.elements.continue_to.value = tab;
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('tab', tab);
     window.history.replaceState(window.history.state, '', currentUrl);

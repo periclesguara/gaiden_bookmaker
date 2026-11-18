@@ -120,6 +120,21 @@ class CoverStudioFormTests(SimpleTestCase):
         save_fields.assert_called_once()
         self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
 
+    def test_montage_save_returns_to_montage(self):
+        data = self._data()
+        data["continue_to"] = "montage"
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ), patch("web.printbook.views.services.design_cover"), patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=montage&saved=draft"))
+
     def test_hidden_future_stage_error_does_not_block_front_cover_save(self):
         data = self._data()
         data.update({"continue_to": "back", "spine_edge_safe_mm": "1.5"})
