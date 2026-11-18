@@ -152,8 +152,15 @@ class PrintSpec:
             raise ValueError("font size and leading must be positive")
         if self.body_leading_pt < self.body_font_size_pt:
             raise ValueError("body leading cannot be smaller than font size")
-        if self.spine_width_in is not None and self.spine_width_in <= 0:
-            raise ValueError("spine width must be positive")
+        if self.spine_width_in is not None:
+            stapled_uiclap = (
+                self.provider == PrintProvider.UICLAP and self.binding == Binding.PAPERBACK
+                and self.page_count is not None and self.page_count < 60
+            )
+            if stapled_uiclap and self.spine_width_in != 0:
+                raise ValueError("UICLAP stapled books below 60 pages require zero spine width")
+            if self.spine_width_in < 0 or (self.spine_width_in == 0 and not stapled_uiclap):
+                raise ValueError("spine width must be positive except for a UICLAP stapled proof")
         if not isinstance(self.body_font, str) or not self.body_font.strip():
             raise ValueError("body font must not be empty")
 

@@ -13,6 +13,65 @@ from gaiden.print_engine.specs import PrintProvider, PrintSpec
 from gaiden.print_engine.image_enhancement import enhance_print_image
 
 
+def test_back_elements_export_independent_positions_fonts_and_colors():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(
+        geometry, title="Title", author="Author", back_heading="Heading", back_quote="Quote",
+        back_text="Body", back_bio="Bio", back_footer="Footer",
+        back_elements={"back_element_quote_font_family": "Fira Sans",
+                       "back_element_quote_color": "#2563EB",
+                       "back_element_quote_x_percent": 40,
+                       "back_element_quote_y_percent": 33},
+    )
+    assert r"\fontspec{Fira Sans}\color[HTML]{2563EB}" in tex
+    assert all(text in tex for text in ("Heading", "Quote", "Body", "Bio", "Footer"))
+    assert tex.count(r"\begin{minipage}") >= 5
+
+
+@pytest.mark.parametrize("rotation", [90, -90])
+def test_spine_text_uses_selected_sideways_rotation(rotation):
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(geometry, title="Title", author="Author", spine_title="Livro", spine_rotation=rotation)
+    assert f"rotate={rotation},anchor=center" in tex
+    assert "Livro" in tex
+
+
+def test_spine_default_reads_from_top_to_bottom():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(geometry, title="Title", author="Author", spine_title="Livro")
+    assert "rotate=-90,anchor=center" in tex
+
+
+@pytest.mark.skipif(not shutil.which("lualatex") or not shutil.which("pdftotext"), reason="LuaLaTeX and Poppler required")
+def test_spine_vertical_position_in_pdf_follows_editor_top_to_bottom(tmp_path):
+    import xml.etree.ElementTree as ET
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    positions = []
+    for y in (20, 80):
+        directory = tmp_path / str(y)
+        directory.mkdir()
+        tex = design_cover_tex(geometry, title="Q", author="Z", spine_title="ABCDEFG", spine_text_y_percent=y)
+        (directory / "cover.tex").write_text(tex, encoding="utf-8")
+        subprocess.run(["lualatex", "-interaction=nonstopmode", "-halt-on-error", "cover.tex"], cwd=directory, check=True, capture_output=True, timeout=60)
+        bbox = subprocess.check_output(["pdftotext", "-bbox", str(directory / "cover.pdf"), "-"], timeout=30)
+        xml = ET.fromstring(bbox)
+        positions.append(float(next(word.attrib["yMin"] for word in xml.findall(".//{*}word") if word.text == "ABCDEFG")))
+    assert positions[0] < positions[1]
+
+
+def test_cleared_spine_title_is_not_replaced_by_old_text():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(geometry, title="Front", author="Author", spine_text="Old Spine", spine_title="", spine_author="New Name")
+    assert "Old Spine" not in tex
+    assert "New Name" in tex
+
+
+def test_legacy_spine_text_remains_supported_when_title_is_absent():
+    geometry = CoverGeometry.from_spec(PrintSpec().finalize(page_count=160, spine_width_in="0.5"))
+    tex = design_cover_tex(geometry, title="Front", author="Author", spine_text="Legacy Spine")
+    assert "Legacy Spine" in tex
+
+
 def test_opencv_print_enhancement_preserves_real_pixel_dimensions(tmp_path):
     source = tmp_path / "source.jpg"
     target = tmp_path / "prepared.jpg"

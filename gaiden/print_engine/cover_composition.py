@@ -230,7 +230,7 @@ def design_cover_tex(
     spine_image_zoom: int = 100,
     spine_image_x: int = 50,
     spine_image_y: int = 50,
-    spine_title: str = "",
+    spine_title: str | None = None,
     spine_author: str = "",
     spine_publisher: str = "",
     spine_font_family: str = "TeX Gyre Pagella",
@@ -244,10 +244,11 @@ def design_cover_tex(
     spine_offset_y_mm: Decimal | int | str = 0,
     spine_text_x_percent: int = 50,
     spine_text_y_percent: int = 50,
-    spine_rotation: int | str = 90,
+    spine_rotation: int | str = -90,
     spine_edge_safe_mm: Decimal | int | str = 1.6,
     overlay_opacity: int = 25,
     reserve_barcode: bool = True,
+    back_elements: dict | None = None,
 ) -> str:
     """Render a self-contained, text-first cover-builder layout.
 
@@ -372,7 +373,7 @@ def design_cover_tex(
             rotation_deg=Decimal(str(back_image_rotation_deg)),
         )
     spine_image_block = ""
-    if spine_image_name:
+    if spine_image_name and geometry.spine_width_in > 0:
         spine_image_block = _image_panel_block(
             panel_x=panel_width, panel_width=geometry.spine_width_in, panel_height=geometry.spread_height_in,
             image_name=spine_image_name, width_px=int(spine_image_width_px or 1), height_px=int(spine_image_height_px or 1),
@@ -380,7 +381,8 @@ def design_cover_tex(
             offset_x_mm=Decimal("0"), offset_y_mm=Decimal("0"), rotation_deg=Decimal("0"),
         )
     spine_block = ""
-    spine_copy = " · ".join(part.strip() for part in (spine_title or spine_text, spine_author, spine_publisher) if part.strip())
+    effective_spine_title = spine_text if spine_title is None else spine_title
+    spine_copy = " · ".join(part.strip() for part in (effective_spine_title, spine_author, spine_publisher) if part.strip())
     if spine_copy and geometry.spine_text_allowed:
         font_weight = r"\bfseries" if spine_font_weight == "bold" else ""
         edge = Decimal(str(spine_edge_safe_mm)) / Decimal("25.4")
@@ -388,6 +390,8 @@ def design_cover_tex(
         spine_y = geometry.spread_height_in * Decimal(str(spine_text_y_percent)) / Decimal("100")
         spine_x_local += Decimal(str(spine_offset_x_mm)) / Decimal("25.4")
         spine_y += Decimal(str(spine_offset_y_mm)) / Decimal("25.4")
+        # Editor coordinates start at the top; TikZ's Y axis starts at the bottom.
+        spine_y = geometry.spread_height_in - spine_y
         spine_block = rf"""\begin{{textblock*}}{{{geometry.spine_width_in}in}}({panel_width}in,0in)
 \begin{{tikzpicture}}[x=1in,y=1in]
 \clip (0,0) rectangle ({geometry.spine_width_in},{geometry.spread_height_in});
@@ -419,6 +423,38 @@ def design_cover_tex(
 \end{{minipage}}
 \end{{adjustbox}}
 \end{{textblock*}}"""
+    # Older designs keep their original flowing back block. New designs carry
+    # independently positioned fields, each with validated production styling.
+    if back_elements and any(back_elements.values()):
+        independent = []
+        copies = {"heading": back_heading, "quote": back_quote, "body": back_text,
+                  "bio": back_bio, "footer": back_footer}
+        defaults = {"heading": (17, 12), "quote": (11, 25), "body": (10.5, 38),
+                    "bio": (8.5, 65), "footer": (7.5, 82)}
+        for key, copy in copies.items():
+            if not copy.strip():
+                continue
+            prefix = f"back_element_{key}"
+            get = lambda name, default: back_elements.get(f"{prefix}_{name}") or default
+            family = get("font_family", cover_font_family)
+            if family not in supported_fonts:
+                raise ValueError("unsupported back-cover font")
+            size = Decimal(str(get("font_size_pt", defaults[key][0])))
+            spacing = Decimal(str(get("letter_spacing_pt", 0)))
+            x, y = int(get("x_percent", 50)), int(get("y_percent", defaults[key][1]))
+            if not 6 <= size <= 72 or not -1 <= spacing <= 8 or not 10 <= x <= 90 or not 8 <= y <= 90:
+                raise ValueError("invalid back-cover element typography or position")
+            decorations = _font_decorations(get("weight", "regular"), get("style", "normal"), spacing)
+            color = _hex_color(get("color", back_accent_color if key in {"heading", "quote"} else back_text_color))
+            xpos = text_x(Decimal("0"), x)
+            ypos = geometry.bleed_in + geometry.trim_height_in * Decimal(y) / Decimal("100")
+            content = _tex_text(copy) if key == "heading" else _tex_paragraph(copy)
+            independent.append(rf"""\begin{{textblock*}}{{{text_width}in}}({xpos}in,{ypos}in)
+\begin{{minipage}}{{{text_width}in}}{back_alignment}
+\fontspec{{{family}}}\color[HTML]{{{color}}}{decorations}\fontsize{{{size}}}{{{size * Decimal('1.4')}}}\selectfont {content}
+\end{{minipage}}
+\end{{textblock*}}""")
+        back_block = "\n".join(independent)
     front_copy_block = ""
     if layout != "art_only":
         # Language and publisher are independent editorial fields so each one

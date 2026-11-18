@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .forms import CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
+from .forms import BACK_COVER_ELEMENTS, CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
 from . import services, catalog, epub_preview
 from zipfile import ZipFile, BadZipFile
@@ -257,6 +257,15 @@ def preflight_workspace(request, pk):
     context["active_step"] = "preflight"
     report = context["reports"].first()
     context["report"] = report
+    context["quality_readiness"] = services.quality_readiness(
+        edition, context["interior"], context["cover"], source_error=context["source_error"]
+    )
+    latest_proof = context["covers"].filter(status__in=["DRAFT", "BLOCKED"]).first()
+    context["latest_proof"] = latest_proof
+    context["proof_findings"] = [
+        _finding_group(item, edition) for item in latest_proof.findings
+        if item.get("severity") in {"WARNING", "BLOCKER", "ERROR"}
+    ] if latest_proof else []
     context["presented_findings"] = [_finding_group(item, edition) for item in report.findings] if report else []
     context["has_blockers"] = bool(report and any(item.get("severity") in {"BLOCKER", "ERROR"} for item in report.findings))
     return render(request, "printbook/preflight.html", context)
@@ -285,9 +294,12 @@ def cover_dashboard(request, pk):
     cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
     latest_visual = CoverBuild.objects.filter(edition=edition, status__in=["READY", "DRAFT", "BLOCKED"]).first()
     estimated_spine = services.estimated_spine_width(edition, interior.page_count) if interior else None
-    geometry = latest_visual.geometry if latest_visual else (
-        services.estimated_cover_geometry(edition, interior.page_count) if interior else {}
-    )
+    stapled_uiclap = bool(interior and services.is_uiclap_stapled(edition, interior.page_count))
+    geometry = (services.estimated_cover_geometry(edition, interior.page_count) if stapled_uiclap else (
+        latest_visual.geometry if latest_visual else (
+            services.estimated_cover_geometry(edition, interior.page_count) if interior else {}
+        )
+    ))
     panel_width_in = (
         Decimal(str(geometry["trim_width_in"])) + Decimal(str(geometry["bleed_in"]))
         if geometry else None
@@ -309,6 +321,10 @@ def cover_dashboard(request, pk):
     saved = services.load_cover_design(latest_visual)
     saved.update(edition.cover_settings or {})
     design_initial.update({key: value for key, value in saved.items() if key in CoverDesignForm.base_fields})
+    if edition.platform == "uiclap":
+        design_initial.setdefault("enhancement_profile", "uiclap_300")
+    if stapled_uiclap:
+        design_initial["spine"] = 0
     professional_fonts = {value for value, _label in CoverDesignForm.COVER_FONTS}
     if design_initial.get("cover_font_family") not in professional_fonts:
         design_initial["cover_font_family"] = "EB Garamond"
@@ -320,7 +336,23 @@ def cover_dashboard(request, pk):
             design_initial[field_name] = design_initial["cover_font_family"]
     if design_initial.get("spine_font_family") not in professional_fonts:
         design_initial["spine_font_family"] = design_initial["cover_font_family"]
+    for key, label, size, y in BACK_COVER_ELEMENTS:
+        prefix = f"back_element_{key}"
+        defaults = {"font_family": design_initial["cover_font_family"], "font_size_pt": size,
+                    "weight": "bold" if key == "heading" else "regular",
+                    "style": "italic" if key == "quote" else "normal", "letter_spacing_pt": 0,
+                    "color": design_initial.get("back_accent_color" if key in {"heading", "quote"} else "back_text_color", "#D4A24C" if key in {"heading", "quote"} else "#FFFFFF"),
+                    "x_percent": 50, "y_percent": y}
+        for suffix, value in defaults.items():
+            design_initial.setdefault(f"{prefix}_{suffix}", value)
     design_initial["save_mode"] = "draft"
+    design_form = CoverDesignForm(initial=design_initial)
+    if stapled_uiclap:
+        design_form.fields["spine_image"].widget.attrs["disabled"] = True
+    back_elements = [{"key": key, "label": label, "prefix": f"back_element_{key}",
+                      "fields": [design_form[f"back_element_{key}_{suffix}"] for suffix in
+                                 ("font_family", "font_size_pt", "weight", "style", "letter_spacing_pt", "color", "x_percent", "y_percent")]}
+                     for key, label, _size, _y in BACK_COVER_ELEMENTS]
     cover_font_faces = [
         {
             "slug": slug,
@@ -343,8 +375,10 @@ def cover_dashboard(request, pk):
         "geometry": geometry,
         "panel_width_in": panel_width_in,
         "estimated_spine": estimated_spine,
-        "design_form": CoverDesignForm(initial=design_initial),
+        "design_form": design_form,
+        "back_elements": back_elements,
         "cover_mode": edition.cover_mode,
+        "stapled_uiclap": stapled_uiclap,
         "cover_font_faces": cover_font_faces,
     })
 

@@ -292,3 +292,46 @@ broader SQLite suite ran 478 tests with 63 failures and 49 errors; those failure
 have not been diagnosed as part of this focused continuation. The dependency
 audit also reports findings for pinned Django and Pillow. No merge is recommended
 until those validation blockers are resolved separately.
+
+## UICLAP stapled cover proof
+
+UICLAP documents that books with fewer than 60 pages use staples and have no
+spine. For a UICLAP paperback below 60 pages, the editor now creates a
+**DRAFT-only** two-panel proof with zero spine width and an estimated 5 mm
+bleed on each outside edge. It does not render spine text or spine artwork. A
+previously uploaded spine image remains in its historical build; attempting to
+upload a new spine image for this proof is rejected with an explanation rather
+than silently discarding it. Saving or approving a production cover in this
+mode is blocked until an approved UICLAP final-output adapter exists. The
+platform specifies a single JPG cover; the generated PDF is an internal proof,
+not a provider-ready deliverable. Consult the [UICLAP cover specifications](https://suporte.uiclap.com/support/solutions/articles/67000705782-capa-formato-tipo-de-arquivo-e-material)
+and [bleed and cover guidance](https://suporte.uiclap.com/support/solutions/articles/67000747899-capa-do-miolo-ao-gabarito-com-sangria-e-margem-de-seguranca)
+before preparing provider files. The official template, independent quality
+evidence and approvals are not waived.
+
+The **UICLAP** image enhancement option creates a separate local derivative
+using denoising, restrained contrast and Lanczos interpolation to reach the
+requested print pixel box, subject to a 40-million-pixel input and output limit. The
+original remains stored in its versioned build. Enhancement evidence records
+source and output dimensions, scale and whether pixels were interpolated;
+interpolation cannot reconstruct missing source detail. Resolution checks
+continue to use the original pixels and can remain blocking below 300 effective
+DPI. Operators should supply a higher-resolution original where possible and
+inspect a new proof at full print size.
+
+No database migration or change to the approved interior is required. To undo
+this behavior, revert the focused application commit; historical builds and
+original image files remain intact. Do not delete operator storage. The
+UICLAP proof is not `READY` or eligible for export, and unsupported provider
+preflight remains fail-closed.
+
+The cover editor keeps front, back and spine text controls separate, preserves
+intentional empty values and provides a browser-based layout estimate. The
+assembly's **Autoajustar textos** command changes only unsaved form values,
+limits its calculated size reduction, and can be undone. It does not certify
+clipping, source resolution, barcode placement, font licensing or PDF/X. The
+preflight page offers a quality-readiness checklist and links to the editor;
+when final assets are missing, running the check reports the missing inputs and
+does not create a production report. A failed, blocked or absent validation
+never enables final approval. Save a new proof and inspect the PDF at print size
+before proceeding.
