@@ -120,6 +120,22 @@ class CoverStudioFormTests(SimpleTestCase):
         save_fields.assert_called_once()
         self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
 
+    def test_automatic_cover_pdf_goes_directly_to_preflight(self):
+        upload = SimpleUploadedFile("configured-cover.pdf", b"%PDF-1.4\n", content_type="application/pdf")
+        request = RequestFactory().post("/printbook/6/action/automatic_cover_pdf/", {"cover_pdf": upload})
+        edition = SimpleNamespace(pk=6)
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.import_automatic_cover_pdf"
+        ) as importer, patch("web.printbook.views.messages.success"):
+            response = action(request, 6, "automatic_cover_pdf")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("/printbook/6/preflight/"))
+        importer.assert_called_once()
+        imported_edition, imported_upload = importer.call_args.args
+        self.assertIs(imported_edition, edition)
+        self.assertEqual(imported_upload.name, "configured-cover.pdf")
+        self.assertEqual(imported_upload.content_type, "application/pdf")
+
     def test_montage_save_returns_to_montage(self):
         data = self._data()
         data["continue_to"] = "montage"

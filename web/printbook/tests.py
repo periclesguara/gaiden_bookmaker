@@ -4,17 +4,21 @@ import os
 import subprocess
 from decimal import Decimal
 import zipfile
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import PropertyMock, patch
 
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from editorial.models import Contributor, Edition, EditionBuild, Language, Seal, Work
+from gaiden.print_engine.geometry import CoverGeometry
 from web.printbook.models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport, TypographyProfile
 from web.printbook.services import (
     approve_interior,
+    import_automatic_cover_pdf,
     export_package,
     fail,
     guard,
@@ -26,6 +30,7 @@ from web.printbook.services import (
     snapshot,
     validate_pdf_page_size,
     workflow_steps,
+    cover_spec_for,
 )
 from web.printbook.views import preview_panels
 
@@ -98,6 +103,30 @@ class PrintBuildStateTests(TestCase):
         self.assertEqual(self.edition.interior_approval["sha256"], interior.files["pdf"]["sha256"])
         self.assertEqual(self.edition.interior_approval["configuration"], snapshot(self.edition))
         self.assertEqual(workflow_steps(self.edition)[1]["status_label"], "Aprovado")
+
+    def test_configured_cover_pdf_is_ready_and_skips_manual_cover_stages(self):
+        from reportlab.pdfgen.canvas import Canvas
+
+        interior = self._interior()
+        spec = cover_spec_for(self.edition, interior.page_count, Decimal("0.0045"))
+        geometry = CoverGeometry.from_spec(spec)
+        stream = BytesIO()
+        pdf = Canvas(stream, pagesize=(float(geometry.spread_width_in * 72), float(geometry.spread_height_in * 72)))
+        pdf.showPage()
+        pdf.save()
+        upload = SimpleUploadedFile("configured-cover.pdf", stream.getvalue(), content_type="application/pdf")
+
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}):
+            cover = import_automatic_cover_pdf(self.edition, upload)
+
+        self.edition.refresh_from_db()
+        self.assertEqual(cover.status, "READY")
+        self.assertIn("configured_cover", cover.files)
+        self.assertEqual(self.edition.cover_mode, "automatic_pdf")
+        self.assertEqual(self.edition.cover_approval["build_id"], cover.id)
+        self.assertEqual([step["label"] for step in workflow_steps(self.edition)], [
+            "Configuração", "Miolo", "Capa automática", "Preflight", "Exportação",
+        ])
 
     def test_composition_change_invalidates_only_print_derivatives(self):
         interior = self._interior()

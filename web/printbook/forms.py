@@ -72,6 +72,7 @@ class EditionForm(forms.ModelForm):
             raise forms.ValidationError("Build editorial sem aprovação/integridade atual.")
         return source
 
+
     def clean_isbn(self):
         value = self.cleaned_data.get("isbn")
         try:
@@ -94,6 +95,14 @@ class EditionForm(forms.ModelForm):
                 raise forms.ValidationError(str(exc)) from exc
         return data
 
+
+
+class AutomaticCoverPDFForm(forms.Form):
+    cover_pdf = forms.FileField(
+        label="Capa completa em PDF",
+        help_text="PDF de uma página, já configurado no tamanho total da capa impressa.",
+        widget=forms.ClearableFileInput(attrs={"accept": "application/pdf"}),
+    )
 
 
 class EditionConfigurationForm(EditionForm):

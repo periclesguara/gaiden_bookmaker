@@ -25,7 +25,7 @@
 {% endif %}
 <section>
   <h2>Geometria desta capa</h2>
-  {% if interior %}
+  {% if interior and interior.page_count > 0 %}
   <table>
     <tr><th>Miolo atual</th><td>{{ interior.page_count }} páginas</td></tr>
     <tr><th>Formato aparado</th><td>{{ edition.trim }} in</td></tr>
@@ -47,6 +47,7 @@
   <h2>Editor de capa por etapas</h2>
   <p>Edite separadamente capa, contracapa e lombada. Em cada etapa, use uma imagem de fundo e arraste os campos para organizar o espaço. A visualização completa e a tipografia ficam somente em <strong>Montagem da capa</strong>.</p>
   <nav class="cover-editor-tabs" role="tablist" aria-label="Partes da capa">
+    <button type="button" role="tab" aria-selected="false" data-cover-tab="automatic">Capa automática</button>
     <button type="button" class="active" role="tab" aria-selected="true" data-cover-tab="front">Capa</button>
     <button type="button" role="tab" aria-selected="false" data-cover-tab="back">Contracapa</button>
     <button type="button" role="tab" aria-selected="false" data-cover-tab="spine">Lombada</button>
@@ -55,6 +56,16 @@
   {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
   {% if request.GET.saved == 'draft' %}<p class="quality-good" role="status"><strong>Rascunho salvo.</strong> A etapa anterior foi gravada; continue trabalhando na aba aberta.</p>{% endif %}
   {% if request.GET.saved == 'partial' %}<p class="quality-good" role="status"><strong>Trabalho preservado.</strong> Os campos válidos permanecem salvos; corrija somente o campo indicado acima.</p>{% endif %}
+  <section class="automatic-cover-panel" data-cover-tab-panel="automatic" hidden>
+    <h3>Capa automática em PDF</h3>
+    <p>Use esta opção quando a capa completa já estiver configurada em um PDF de uma página. O sistema confere o tamanho total contra o miolo aprovado e, quando estiver correto, pula Contracapa e Lombada.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'automatic_cover_pdf' %}">
+      {% csrf_token %}
+      <p>{{ automatic_cover_form.cover_pdf.label_tag }} {{ automatic_cover_form.cover_pdf }}<small>{{ automatic_cover_form.cover_pdf.help_text }}</small></p>
+      <button type="submit" {% if not interior or source_error %}disabled{% endif %}>Validar PDF e ir para o preflight →</button>
+    </form>
+    {% if edition.cover_mode == 'automatic_pdf' and cover %}<p class="quality-good"><strong>PDF configurado registrado.</strong> Contracapa e lombada não são necessárias neste fluxo.</p>{% endif %}
+  </section>
   <div class="cover-studio cover-studio-pro">
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}
@@ -966,7 +977,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   viewport.addEventListener('pointermove', (event) => { const box = preview.getBoundingClientRect(); const spreadWidthMm = ((Number(simulator.dataset.panelWidth) || 6.125) * 2 + (Number(value('spine')) || Number(simulator.dataset.spine) || 0)) * 25.4; const spreadHeightMm = (Number(simulator.dataset.panelHeight) || 9.25) * 25.4; document.getElementById('cursor-mm').value = `${((event.clientX - box.left) / box.width * spreadWidthMm).toFixed(1)} × ${((event.clientY - box.top) / box.height * spreadHeightMm).toFixed(1)} mm`; if (panning) { pan = {x: event.clientX - panStart.x, y: event.clientY - panStart.y}; renderCanvasTransform(); } });
   viewport.addEventListener('pointerup', () => { panning = false; });
   const requestedCoverTab = new URLSearchParams(window.location.search).get('tab');
-  const initialCoverTab = ['front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : 'front';
+  const initialCoverTab = ['automatic', 'front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : {% if edition.cover_mode == 'automatic_pdf' %}'automatic'{% else %}'front'{% endif %};
   activateCoverTab(initialCoverTab); pushHistory(); update(); renderCanvasTransform();
   const autoFitUrl = new URL(window.location.href);
   if (autoFitUrl.searchParams.get('autofit') === '1') {

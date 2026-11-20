@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .forms import BACK_COVER_ELEMENTS, CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
+from .forms import AutomaticCoverPDFForm, BACK_COVER_ELEMENTS, CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
 from . import services, catalog, epub_preview
 from zipfile import ZipFile, BadZipFile
@@ -290,7 +290,7 @@ def cover_dashboard(request, pk):
     except ValueError as exc:
         source_error = str(exc)
 
-    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY", page_count__gt=0).first()
     cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
     latest_visual = CoverBuild.objects.filter(edition=edition, status__in=["READY", "DRAFT", "BLOCKED"]).first()
     estimated_spine = services.estimated_spine_width(edition, interior.page_count) if interior else None
@@ -376,6 +376,7 @@ def cover_dashboard(request, pk):
         "panel_width_in": panel_width_in,
         "estimated_spine": estimated_spine,
         "design_form": design_form,
+        "automatic_cover_form": AutomaticCoverPDFForm(),
         "back_elements": back_elements,
         "cover_mode": edition.cover_mode,
         "stapled_uiclap": stapled_uiclap,
@@ -438,7 +439,10 @@ def book_preview(request, pk):
         {"ok": interior.status == "READY", "label": f"Miolo atual: {interior.page_count} páginas"},
         {"ok": interior.page_count % 2 == 0, "label": "Paginação final par"},
         {"ok": ppi >= 300, "label": f"Imagem da capa: {ppi or 'não medida'} ppi efetivos"},
-        {"ok": cover.status == "READY" and bool(cover.files.get("template")), "label": "Template oficial conferido e capa final salva"},
+        {
+            "ok": cover.status == "READY" and bool(cover.files.get("template") or cover.files.get("configured_cover")),
+            "label": "Geometria da capa conferida e capa final salva",
+        },
         {"ok": bool(edition.isbn), "label": "ISBN da edição física informado"},
         {"ok": bool(getattr(settings, "PRINTBOOK_VALIDATOR", "")), "label": "Validador industrial configurado"},
     ]
@@ -506,6 +510,19 @@ def action(request, pk, action):
             services.compile_interior(edition)
         elif action == "approve_interior":
             services.approve_interior(edition)
+        elif action == "automatic_cover_pdf":
+            form = AutomaticCoverPDFForm(request.POST, request.FILES)
+            if not form.is_valid():
+                for errors in form.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
+                response = redirect("printbook:cover", pk=pk)
+                response["Location"] = f'{response["Location"]}?tab=automatic'
+                return response
+            services.import_automatic_cover_pdf(edition, form.cleaned_data["cover_pdf"])
+            messages.success(request, "Capa automática validada. Contracapa e lombada foram dispensadas; prossiga ao preflight.")
+            response = redirect("printbook:preflight", pk=pk)
+            return response
         elif action == "design_cover":
             requested_tab = request.POST.get("continue_to", "")
             form = CoverDesignForm(_cover_stage_post_data(request, edition), request.FILES)
@@ -557,6 +574,7 @@ def action(request, pk, action):
         "compile": "printbook:interior",
         "approve_interior": "printbook:interior",
         "design_cover": "printbook:cover",
+        "automatic_cover_pdf": "printbook:preflight",
         "approve_cover": "printbook:cover",
         "preflight": "printbook:preflight",
         "approve_visual_review": "printbook:preflight",

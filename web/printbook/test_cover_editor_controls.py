@@ -275,6 +275,16 @@ if (nodes[0].textContent !== '' || nodes[0].hidden !== true) process.exit(1);
         self.assertEqual([step.get("cover_tab") for step in steps[2:5]], ["front", "back", "spine"])
         self.assertEqual(len({step["status"] for step in steps[2:5]}), 1)
 
+    def test_automatic_pdf_workflow_skips_back_cover_and_spine(self):
+        edition = SimpleNamespace(cover_mode="automatic_pdf", state="COVER_READY", interior_approval={}, cover_approval={}, edition_approved_at=None)
+        with patch("web.printbook.services.InteriorBuild") as interior, patch("web.printbook.services.CoverBuild") as cover, patch("web.printbook.services.PreflightReport") as report, patch("web.printbook.services.PrintExport") as export:
+            for model in (interior, cover, report):
+                model.objects.filter.return_value.first.return_value = None
+            export.objects.filter.return_value.exists.return_value = False
+            steps = workflow_steps(edition)
+        self.assertEqual([step["label"] for step in steps], ["Configuração", "Miolo", "Capa automática", "Preflight", "Exportação"])
+        self.assertEqual(steps[2]["cover_tab"], "automatic")
+
     def test_draft_cover_is_in_editing_and_back_tab_remains_accessible(self):
         edition = SimpleNamespace(state="CONFIGURED", interior_approval={}, cover_approval={}, edition_approved_at=None)
         with patch("web.printbook.services.InteriorBuild") as interior, patch("web.printbook.services.CoverBuild") as cover, patch("web.printbook.services.PreflightReport") as report, patch("web.printbook.services.PrintExport") as export:

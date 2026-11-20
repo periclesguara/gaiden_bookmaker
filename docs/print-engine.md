@@ -77,6 +77,11 @@ The MVP operator flow is:
    reopening CoverMaker restores those controls and reuses the saved artwork.
    `Save final cover` requires the official template and produces a title-based
    PDF filename only when the cover has no blocking finding.
+   As an alternative first cover stage, `Capa automática` accepts a complete,
+   already configured one-page PDF. Gaiden checks its page count and exact
+   full-wrap dimensions against the current interior, records it as the current
+   ready cover, and sends the operator directly to preflight. In this mode the
+   manual front, back-cover, and spine stages are omitted from the workflow.
 4. Obtain the official provider template for the final page count and replace
    the estimated spine width with the template value. A cover becomes `READY`
    only after that one-page template matches the generated full-wrap size.
