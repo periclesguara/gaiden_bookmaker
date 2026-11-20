@@ -402,6 +402,23 @@ def root_for(build):
     return storage.storage_root() / "printbook" / str(build.edition_id) / build._meta.model_name / f"v{build.version:04d}"
 
 
+def verified_build_file(build, item):
+    """Resolve a recorded artifact from the active or legacy repository data root."""
+    if not isinstance(item, dict) or not item.get("path") or not item.get("sha256"):
+        raise ValueError("Metadados do artefato estão incompletos.")
+    path = Path(item["path"]).resolve()
+    legacy_root = (
+        storage.repo_root() / "data" / "printbook" / str(build.edition_id)
+        / build._meta.model_name / f"v{build.version:04d}"
+    ).resolve()
+    allowed_roots = {root_for(build).resolve(), legacy_root}
+    if not any(path.is_relative_to(root) for root in allowed_roots):
+        raise ValueError("O artefato está fora das raízes permitidas.")
+    if not path.is_file() or sha(path) != item["sha256"]:
+        raise ValueError("O artefato não existe ou falhou na verificação de integridade.")
+    return path
+
+
 @transaction.atomic
 def new_build(model, edition, **kwargs):
     edition = PrintEdition.objects.select_for_update().get(pk=edition.pk)

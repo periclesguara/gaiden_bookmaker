@@ -1,16 +1,35 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 from decimal import Decimal
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, SimpleTestCase
 
 from web.printbook.forms import CoverDesignForm
-from web.printbook.services import estimated_spine_width, save_cover_draft_fields
+from web.printbook.services import estimated_spine_width, save_cover_draft_fields, sha, verified_build_file
 from web.printbook.views import action, preview, preview_navigation
 
 
 class PreviewNavigationTests(SimpleTestCase):
+    def test_saved_cover_image_remains_readable_from_legacy_data_root(self):
+        with TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            path = repository / "data/printbook/6/coverbuild/v0023/COVER_IMAGE.png"
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b"saved-cover-image")
+            build = SimpleNamespace(
+                edition_id=6,
+                version=23,
+                _meta=SimpleNamespace(model_name="coverbuild"),
+            )
+            item = {"path": str(path), "sha256": sha(path)}
+            with patch("web.printbook.services.storage.repo_root", return_value=repository), patch(
+                "web.printbook.services.storage.storage_root", return_value=repository / "external"
+            ):
+                self.assertEqual(verified_build_file(build, item), path.resolve())
+
     def test_single_page_mode_reaches_every_page(self):
         for page in range(1, 7):
             navigation = preview_navigation("interior", page, 6, "single")

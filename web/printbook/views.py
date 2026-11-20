@@ -418,8 +418,9 @@ def _cover_design_image(request, pk, file_key):
     item = build.files.get(file_key)
     if not item:
         raise Http404
-    path = Path(item["path"]).resolve()
-    if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+    try:
+        path = services.verified_build_file(build, item)
+    except ValueError:
         raise Http404
     content_type = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
     return FileResponse(path.open("rb"), content_type=content_type)
@@ -465,8 +466,9 @@ def cover_template(request, pk):
         item = build.files.get("template")
         if not item:
             raise Http404("Este build não guarda um template.")
-        path = Path(item["path"]).resolve()
-        if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+        try:
+            path = services.verified_build_file(build, item)
+        except ValueError:
             raise Http404("Template inválido.")
     except ValueError as exc:
         raise Http404("Build invalidado.") from exc
@@ -598,8 +600,9 @@ def artifact(build):
     ):
         raise Http404("Artefato não está atual.")
     item = build.files.get("pdf") or build.files.get("report") or build.files.get("package")
-    path = Path(item["path"]).resolve()
-    if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+    try:
+        path = services.verified_build_file(build, item)
+    except ValueError:
         raise Http404
     return path
 
