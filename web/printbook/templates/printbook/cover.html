@@ -70,6 +70,7 @@
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}
       <input type="hidden" name="continue_to" value="">
+      <input type="hidden" name="current_stage" value="front">
       <aside class="cover-editor-panel cover-editor-left">
       <h3>Imagens de fundo</h3>
       <fieldset data-cover-tab-panel="front">
@@ -98,7 +99,6 @@
           <p>{{ design_form.back_image_offset_x_mm.label_tag }} {{ design_form.back_image_offset_x_mm }}</p><p>{{ design_form.back_image_offset_y_mm.label_tag }} {{ design_form.back_image_offset_y_mm }}</p>
           <p>{{ design_form.back_image_rotation_deg.label_tag }} {{ design_form.back_image_rotation_deg }}</p>
         </div>
-        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar contracapa e continuar para Lombada →</button>
       </fieldset>
       <fieldset data-cover-tab-panel="spine" hidden>
         <legend>Imagem de fundo da lombada</legend>
@@ -255,6 +255,11 @@
         <span data-unsaved-status role="status">A capa atual está salva.</span>
         <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="front" {% if not interior or source_error %}disabled{% endif %}>Salvar capa</button>
         <button type="submit" name="save_mode" value="draft" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Contracapa →</button>
+      </div>
+      <div class="cover-stage-actions" data-cover-tab-panel="back" hidden>
+        <span data-unsaved-status role="status">A contracapa atual está salva.</span>
+        <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar contracapa</button>
+        <button type="submit" name="save_mode" value="draft" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Lombada →</button>
       </div>
     </form>
     <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-trim-width="{% if geometry %}{{ geometry.trim_width_in }}{% endif %}" data-trim-height="{% if geometry %}{{ geometry.trim_height_in }}{% endif %}" data-bleed="{% if geometry %}{{ geometry.bleed_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}" data-barcode-mode="{{ edition.barcode_mode }}" data-no-spine="{% if stapled_uiclap %}yes{% else %}no{% endif %}" data-spine-allowed="{% if geometry.spine_text_allowed %}yes{% else %}no{% endif %}">
@@ -936,6 +941,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     form.closest('.cover-studio').classList.toggle('montage-active', tab === 'montage');
     if (['front', 'back', 'spine'].includes(tab)) selectedPanel = tab;
     if (form.elements && form.elements.continue_to) form.elements.continue_to.value = tab;
+    if (form.elements && form.elements.current_stage) form.elements.current_stage.value = tab;
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('tab', tab);
     window.history.replaceState(window.history.state, '', currentUrl);
@@ -949,13 +955,13 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   all('[data-next-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.nextTab)));
   let formDirty = false;
   let formSubmitting = false;
-  const unsavedStatus = document.querySelector('[data-unsaved-status]');
+  const unsavedStatuses = all('[data-unsaved-status]');
   const setFormDirty = () => {
     formDirty = true;
-    if (unsavedStatus) {
-      unsavedStatus.textContent = 'Há alterações na capa que ainda não foram salvas.';
-      unsavedStatus.classList.add('unsaved');
-    }
+    unsavedStatuses.forEach((status) => {
+      status.textContent = 'Há alterações nesta etapa que ainda não foram salvas.';
+      status.classList.add('unsaved');
+    });
   };
   form.addEventListener('input', setFormDirty);
   form.addEventListener('change', setFormDirty);

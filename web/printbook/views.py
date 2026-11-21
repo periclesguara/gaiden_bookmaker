@@ -42,11 +42,15 @@ COVER_PREVIEW_FONTS = {
 def _cover_stage_post_data(request, edition):
     """Keep fields from later, hidden stages from blocking the current save."""
     requested_tab = request.POST.get("continue_to", "")
+    current_stage = request.POST.get("current_stage", "")
+    if current_stage not in {"front", "back", "spine", "montage"}:
+        current_stage = {
+            "front": "front", "back": "front", "spine": "back", "montage": "spine",
+        }.get(requested_tab, "montage")
     future_prefixes = {
         "front": ("back_", "spine_"),
-        "back": ("back_", "spine_"),
-        "spine": ("spine_",),
-    }.get(requested_tab, ())
+        "back": ("spine_",),
+    }.get(current_stage, ())
     if not future_prefixes:
         return request.POST
 

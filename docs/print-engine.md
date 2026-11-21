@@ -332,9 +332,9 @@ preflight remains fail-closed.
 
 The cover editor keeps front, back and spine text controls separate, preserves
 intentional empty values and provides a browser-based layout estimate. The
-front stage exposes separate **Salvar capa** and **Salvar e seguir para
-Contracapa** actions. Both persist the current assembly, retain the selected
-stage after the POST and warn before leaving with unsaved local changes. The
+front and back stages expose separate save-in-place and save-and-follow
+actions. They persist the current assembly, retain the selected stage after the
+POST and warn before leaving with unsaved local changes. The
 assembly's **Autoajustar textos** command changes only unsaved form values,
 limits its calculated size reduction, and can be undone. It does not certify
 clipping, source resolution, barcode placement, font licensing or PDF/X. The

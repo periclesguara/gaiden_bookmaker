@@ -170,6 +170,36 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertIn('>Salvar e seguir para Contracapa →</button>', template)
         self.assertIn("window.addEventListener('beforeunload'", template)
 
+    def test_back_stage_can_save_in_place_without_hidden_spine_reset(self):
+        data = self._data()
+        data.update({
+            "current_stage": "back",
+            "continue_to": "back",
+            "back_element_body_y_percent": "44",
+            "spine_edge_safe_mm": "1.5",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={"spine_edge_safe_mm": "1.6"})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["back_element_body_y_percent"], 44)
+        self.assertEqual(save_fields.call_args.args[1]["spine_edge_safe_mm"], Decimal("1.6"))
+        design_cover.assert_called_once()
+
+    def test_back_stage_exposes_separate_save_and_follow_actions(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn('name="current_stage" value="front"', template)
+        self.assertIn('>Salvar contracapa</button>', template)
+        self.assertIn('>Salvar e seguir para Lombada →</button>', template)
+
     def test_automatic_cover_pdf_goes_directly_to_preflight(self):
         upload = SimpleUploadedFile("configured-cover.pdf", b"%PDF-1.4\n", content_type="application/pdf")
         request = RequestFactory().post("/printbook/6/action/automatic_cover_pdf/", {"cover_pdf": upload})
