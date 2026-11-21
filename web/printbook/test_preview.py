@@ -1,16 +1,35 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 from decimal import Decimal
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, SimpleTestCase
 
 from web.printbook.forms import CoverDesignForm
-from web.printbook.services import estimated_spine_width, save_cover_draft_fields
+from web.printbook.services import estimated_spine_width, save_cover_draft_fields, sha, verified_build_file
 from web.printbook.views import action, preview, preview_navigation
 
 
 class PreviewNavigationTests(SimpleTestCase):
+    def test_saved_cover_image_remains_readable_from_legacy_data_root(self):
+        with TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            path = repository / "data/printbook/6/coverbuild/v0023/COVER_IMAGE.png"
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b"saved-cover-image")
+            build = SimpleNamespace(
+                edition_id=6,
+                version=23,
+                _meta=SimpleNamespace(model_name="coverbuild"),
+            )
+            item = {"path": str(path), "sha256": sha(path)}
+            with patch("web.printbook.services.storage.repo_root", return_value=repository), patch(
+                "web.printbook.services.storage.storage_root", return_value=repository / "external"
+            ):
+                self.assertEqual(verified_build_file(build, item), path.resolve())
+
     def test_single_page_mode_reaches_every_page(self):
         for page in range(1, 7):
             navigation = preview_navigation("interior", page, 6, "single")
@@ -120,6 +139,160 @@ class CoverStudioFormTests(SimpleTestCase):
         save_fields.assert_called_once()
         self.assertEqual(design_cover.call_args.kwargs["save_mode"], "draft")
 
+    def test_front_stage_can_save_in_place_without_hidden_stage_reset(self):
+        data = self._data()
+        data.update({
+            "continue_to": "front",
+            "front_title_x_percent": "63",
+            "back_element_heading_y_percent": "999",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={"back_element_heading_y_percent": 12})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=front&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["front_title_x_percent"], 63)
+        self.assertEqual(save_fields.call_args.args[1]["back_element_heading_y_percent"], 12)
+        design_cover.assert_called_once()
+
+    def test_front_stage_exposes_separate_save_and_follow_actions(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn('data-save-next="front"', template)
+        self.assertIn('>Salvar capa</button>', template)
+        self.assertIn('data-save-next="back"', template)
+        self.assertIn('>Salvar e seguir para Contracapa →</button>', template)
+        self.assertIn("window.addEventListener('beforeunload'", template)
+
+    def test_back_stage_can_save_in_place_without_hidden_spine_reset(self):
+        data = self._data()
+        data.update({
+            "current_stage": "back",
+            "continue_to": "back",
+            "back_element_body_y_percent": "44",
+            "spine_edge_safe_mm": "1.5",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={"spine_edge_safe_mm": "1.6"})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=back&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["back_element_body_y_percent"], 44)
+        self.assertEqual(save_fields.call_args.args[1]["spine_edge_safe_mm"], Decimal("1.6"))
+        design_cover.assert_called_once()
+
+    def test_back_stage_exposes_separate_save_and_follow_actions(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn('name="current_stage" value="front"', template)
+        self.assertIn('>Salvar contracapa</button>', template)
+        self.assertIn('>Salvar e seguir para Lombada →</button>', template)
+
+    def test_spine_stage_can_save_in_place(self):
+        data = self._data()
+        data.update({
+            "current_stage": "spine",
+            "continue_to": "spine",
+            "spine_title": "A Book",
+            "spine_rotation": "-90",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=spine&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["spine_title"], "A Book")
+        self.assertEqual(save_fields.call_args.args[1]["spine_rotation"], "-90")
+        design_cover.assert_called_once()
+
+    def test_spine_stage_keeps_controls_and_adds_save_actions(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn("{{ design_form.spine_image.label_tag }}", template)
+        self.assertIn("{{ design_form.spine_title.label_tag }}", template)
+        self.assertIn("{{ design_form.spine_author.label_tag }}", template)
+        self.assertIn('>Salvar lombada</button>', template)
+        self.assertIn('>Salvar e seguir para Montagem →</button>', template)
+        self.assertIn("Você ainda pode ajustar e salvar esta etapa", template)
+        self.assertNotIn('data-next-tab="montage">Continuar automaticamente para Montagem →', template)
+        self.assertIn("simulator.dataset.noSpine === 'yes'", template)
+
+    def test_montage_save_action_remains_available_for_stapled_proofs(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn(
+            'name="save_mode" value="draft" data-save-montage {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>',
+            template,
+        )
+        self.assertIn("event.submitter.textContent = 'Salvando montagem…'", template)
+        self.assertIn('<p data-montage-save-status role="status">', template)
+        self.assertIn(
+            'name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>',
+            template,
+        )
+
+    def test_automatic_cover_pdf_goes_directly_to_preflight(self):
+        upload = SimpleUploadedFile("configured-cover.pdf", b"%PDF-1.4\n", content_type="application/pdf")
+        request = RequestFactory().post("/printbook/6/action/automatic_cover_pdf/", {"cover_pdf": upload})
+        edition = SimpleNamespace(pk=6)
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.import_automatic_cover_pdf"
+        ) as importer, patch("web.printbook.views.messages.success"):
+            response = action(request, 6, "automatic_cover_pdf")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("/printbook/6/preflight/"))
+        importer.assert_called_once()
+        imported_edition, imported_upload = importer.call_args.args
+        self.assertIs(imported_edition, edition)
+        self.assertEqual(imported_upload.name, "configured-cover.pdf")
+        self.assertEqual(imported_upload.content_type, "application/pdf")
+
+    def test_front_and_back_text_fields_may_be_saved_empty(self):
+        data = self._data()
+        data.update({
+            "save_mode": "final",
+            "title": "",
+            "subtitle": "",
+            "author": "",
+            "language": "",
+            "publisher": "",
+            "back_heading": "",
+            "back_quote": "",
+            "back_text": "",
+            "back_bio": "",
+            "back_footer": "",
+        })
+        form = CoverDesignForm(data=data)
+        self.assertTrue(form.is_valid(), form.errors.as_json())
+
+    def test_cover_template_has_delete_action_for_each_optional_copy_field(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+        for field in (
+            "title", "subtitle", "author", "language", "publisher",
+            "back_heading", "back_quote", "back_text", "back_bio", "back_footer",
+        ):
+            self.assertIn(f'data-clear-field="{field}"', template)
+        self.assertNotIn("value('back_text') || 'Texto da contracapa'", template)
+        self.assertNotIn("value('back_heading') || 'Sobre este livro'", template)
+
     def test_montage_save_returns_to_montage(self):
         data = self._data()
         data["continue_to"] = "montage"
@@ -160,6 +333,7 @@ class CoverStudioFormTests(SimpleTestCase):
             "title": "",
             "author": "Epicteto de Hierápolis",
             "front_title_x_percent": "63",
+            "minimum_dpi": "20",
         })
         request = RequestFactory().post("/printbook/6/action/design_cover/", data)
         edition = SimpleNamespace(pk=6, cover_settings={})
@@ -202,6 +376,19 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertNotIn("cover_image", draft)
         self.assertEqual(edition.saved_fields, ["cover_settings", "updated_at"])
 
+    def test_saving_an_empty_field_replaces_the_previous_text(self):
+        class DraftEdition:
+            cover_settings = {"title": "Texto antigo", "back_text": "Sinopse antiga"}
+
+            def save(self, *, update_fields):
+                self.saved_fields = update_fields
+
+        edition = DraftEdition()
+        draft = save_cover_draft_fields(edition, {"title": "", "back_text": ""})
+
+        self.assertEqual(draft["title"], "")
+        self.assertEqual(draft["back_text"], "")
+
     def test_cover_font_catalog_uses_professional_editorial_families(self):
         values = dict(CoverDesignForm.COVER_FONTS)
 
@@ -217,14 +404,14 @@ class CoverStudioFormTests(SimpleTestCase):
         ):
             self.assertIn(field_name, CoverDesignForm.base_fields)
 
-    def test_front_text_is_required_only_when_operator_enables_it(self):
+    def test_front_text_fields_may_be_individually_empty_when_enabled(self):
         data = self._data()
         data.update({"add_front_text": "on", "title": "", "author": ""})
         form = CoverDesignForm(data=data)
 
-        self.assertFalse(form.is_valid())
-        self.assertIn("title", form.errors)
-        self.assertIn("author", form.errors)
+        self.assertTrue(form.is_valid(), form.errors.as_json())
+        self.assertEqual(form.cleaned_data["title"], "")
+        self.assertEqual(form.cleaned_data["author"], "")
 
     def test_draft_form_keeps_selected_production_profile(self):
         data = self._data()

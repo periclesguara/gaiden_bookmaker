@@ -72,6 +72,7 @@ class EditionForm(forms.ModelForm):
             raise forms.ValidationError("Build editorial sem aprovação/integridade atual.")
         return source
 
+
     def clean_isbn(self):
         value = self.cleaned_data.get("isbn")
         try:
@@ -94,6 +95,14 @@ class EditionForm(forms.ModelForm):
                 raise forms.ValidationError(str(exc)) from exc
         return data
 
+
+
+class AutomaticCoverPDFForm(forms.Form):
+    cover_pdf = forms.FileField(
+        label="Capa completa em PDF",
+        help_text="PDF de uma página, já configurado no tamanho total da capa impressa.",
+        widget=forms.ClearableFileInput(attrs={"accept": "application/pdf"}),
+    )
 
 
 class EditionConfigurationForm(EditionForm):
@@ -469,10 +478,6 @@ class CoverDesignForm(forms.Form):
     def clean(self):
         data = super().clean()
         if data.get("add_front_text"):
-            if not (data.get("title") or "").strip():
-                self.add_error("title", "Informe o título quando os textos da frente estiverem ativados.")
-            if not (data.get("author") or "").strip():
-                self.add_error("author", "Informe o autor quando os textos da frente estiverem ativados.")
             data["layout"] = data.get("layout") or "classic"
         else:
             data["layout"] = "art_only"
@@ -526,11 +531,6 @@ class CoverDesignForm(forms.Form):
             data["spine_title"] = (data.get("spine_title") or "").strip()
         else:
             data["spine_title"] = (data.get("spine_text") or "").strip()
-        if data.get("save_mode") == "final":
-            if not data.get("approve_empty_back") and not (data.get("back_heading") or "").strip():
-                self.add_error("back_heading", "Informe a chamada da contracapa antes de salvar a capa final.")
-            if not data.get("approve_empty_back") and not (data.get("back_text") or "").strip():
-                self.add_error("back_text", "Informe o texto sobre o livro ou aprove a contracapa sem texto.")
         return data
 
 
