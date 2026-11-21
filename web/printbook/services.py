@@ -1410,6 +1410,30 @@ def preflight(edition):
     return build
 
 
+def approve_automatic_montage(edition):
+    """Run local quality checks and bind an editorial approval to a stapled proof."""
+    guard(edition)
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    if not interior or edition.interior_approval.get("build_id") != interior.id:
+        raise ValueError("Aprove o miolo atual antes de aprovar a montagem automática.")
+    if not is_uiclap_stapled(edition, interior.page_count):
+        raise ValueError("A aprovação automática sem lombada vale somente para UICLAP abaixo de 60 páginas.")
+    report = preflight(edition)
+    cover = report.cover
+    approval = {
+        "cover_build_id": cover.id,
+        "interior_build_id": interior.id,
+        "report_id": report.id,
+        "cover_sha256": cover.files["pdf"]["sha256"],
+        "approved_at": timezone.now().isoformat(),
+    }
+    cover_settings = dict(edition.cover_settings or {})
+    cover_settings["automatic_montage_approval"] = approval
+    edition.cover_settings = cover_settings
+    edition.save(update_fields=["cover_settings", "updated_at"])
+    return report
+
+
 def export_package(edition):
     guard(edition)
     report = latest(PreflightReport, edition)

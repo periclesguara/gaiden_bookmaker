@@ -267,6 +267,17 @@ def preflight_workspace(request, pk):
         edition, context["interior"], context["cover"] or latest_proof, source_error=context["source_error"]
     )
     context["latest_proof"] = latest_proof
+    context["stapled_uiclap"] = bool(
+        context["interior"] and services.is_uiclap_stapled(edition, context["interior"].page_count)
+    )
+    automatic_approval = (edition.cover_settings or {}).get("automatic_montage_approval", {})
+    context["automatic_montage_approved"] = bool(
+        context["stapled_uiclap"] and latest_proof and report
+        and automatic_approval.get("cover_build_id") == latest_proof.id
+        and automatic_approval.get("interior_build_id") == context["interior"].id
+        and automatic_approval.get("report_id") == report.id
+    )
+    context["automatic_montage_approval"] = automatic_approval
     context["proof_findings"] = [
         _finding_group(item, edition) for item in latest_proof.findings
         if item.get("severity") in {"WARNING", "BLOCKER", "ERROR"}
@@ -554,6 +565,8 @@ def action(request, pk, action):
             services.approve_cover(edition)
         elif action == "preflight":
             services.preflight(edition)
+        elif action == "approve_automatic_montage":
+            services.approve_automatic_montage(edition)
         elif action == "approve_visual_review":
             services.approve_visual_review(edition)
         elif action == "approve_edition":
@@ -564,6 +577,8 @@ def action(request, pk, action):
             raise Http404
         if action == "design_cover" and cover_continue_to:
             messages.success(request, "Rascunho da capa salvo. Continue na próxima etapa.")
+        elif action == "approve_automatic_montage":
+            messages.success(request, "Controle concluído. A montagem automática atual foi aprovada.")
         else:
             messages.success(request, "Operação registrada. Confira o estado e o relatório do build.")
     except (ValueError, RuntimeError) as exc:
@@ -584,6 +599,7 @@ def action(request, pk, action):
         "automatic_cover_pdf": "printbook:preflight",
         "approve_cover": "printbook:cover",
         "preflight": "printbook:preflight",
+        "approve_automatic_montage": "printbook:preflight",
         "approve_visual_review": "printbook:preflight",
         "approve_edition": "printbook:preflight",
         "export": "printbook:export",

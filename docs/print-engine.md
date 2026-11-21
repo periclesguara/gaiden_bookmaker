@@ -355,6 +355,14 @@ does not create a production report. A failed, blocked or absent validation
 never enables final approval. Save a new proof and inspect the PDF at print size
 before proceeding.
 
+For a stapled UICLAP proof below 60 pages, the operator page presents one
+focused action that runs the local quality control and records editorial
+approval of the automatic montage against the exact cover, interior and report
+versions. Technical findings remain in the versioned report but are omitted
+from this simplified operator screen. The approval is invalidated by any later
+cover or interior version and does not represent provider acceptance or enable
+production export without official evidence.
+
 Cover compilation inspects LuaLaTeX output for missing-character diagnostics;
 missing glyphs are blocking findings and require a compatible font and new
 proof. Markdown emphasis markers in cover text are reported as a warning

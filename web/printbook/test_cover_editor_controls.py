@@ -6,10 +6,10 @@ import shutil
 import subprocess
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from web.printbook.forms import CoverDesignForm
-from web.printbook.services import preflight, quality_readiness, workflow_steps
+from web.printbook.services import approve_automatic_montage, preflight, quality_readiness, workflow_steps
 
 
 class CoverEditorControlTests(SimpleTestCase):
@@ -46,6 +46,79 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
         self.assertFalse(button.has_attr("disabled"))
         self.assertEqual(soup.find("a", string="Autoajustar capa")["href"], "/printbook/6/cover/?tab=montage&autofit=1")
         self.assertTrue(soup.find("button", string="Confirmar revisão visual").has_attr("disabled"))
+
+    def test_stapled_uiclap_shows_one_automatic_approval_action(self):
+        edition = SimpleNamespace(pk=6, name="Edition")
+        latest_proof = SimpleNamespace(version=29, interior_id=23)
+        request = RequestFactory().get("/printbook/6/preflight/")
+        page = render_to_string(
+            "printbook/preflight.html",
+            {
+                "edition": edition,
+                "stapled_uiclap": True,
+                "automatic_montage_approved": False,
+                "latest_proof": latest_proof,
+                "report": None,
+                "workflow_steps": [],
+            },
+            request=request,
+        )
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Executar controle de qualidade e aprovar montagem automática")
+        self.assertIsNotNone(button)
+        self.assertEqual(button.find_parent("form")["action"], "/printbook/6/action/approve_automatic_montage/")
+        self.assertNotIn("Salve uma capa final", soup.get_text(" ", strip=True))
+        self.assertNotIn("Validador industrial", soup.get_text(" ", strip=True))
+        self.assertNotIn("Aprove a capa final", soup.get_text(" ", strip=True))
+
+    def test_stapled_uiclap_reports_exact_approved_versions(self):
+        edition = SimpleNamespace(pk=6, name="Edition")
+        latest_proof = SimpleNamespace(version=29, interior_id=23)
+        request = RequestFactory().get("/printbook/6/preflight/")
+        page = render_to_string(
+            "printbook/preflight.html",
+            {
+                "edition": edition,
+                "stapled_uiclap": True,
+                "automatic_montage_approved": True,
+                "latest_proof": latest_proof,
+                "report": SimpleNamespace(version=3, status="BLOCKED"),
+                "workflow_steps": [],
+            },
+            request=request,
+        )
+        text = BeautifulSoup(page, "html.parser").get_text(" ", strip=True)
+        self.assertIn("Montagem aprovada", text)
+        self.assertIn("Capa v29 e miolo #23 conferidos juntos", text)
+        self.assertNotIn("BLOCKER", text)
+
+    def test_automatic_montage_approval_binds_exact_versions(self):
+        edition = SimpleNamespace(
+            interior_approval={"build_id": 23},
+            cover_settings={"title": "Livro"},
+            save=Mock(),
+        )
+        interior_build = SimpleNamespace(id=23, page_count=30)
+        cover_build = SimpleNamespace(id=29, files={"pdf": {"sha256": "cover-sha"}})
+        report = SimpleNamespace(id=3, cover=cover_build)
+        with (
+            patch("web.printbook.services.guard"),
+            patch("web.printbook.services.InteriorBuild") as interior,
+            patch("web.printbook.services.is_uiclap_stapled", return_value=True),
+            patch("web.printbook.services.preflight", return_value=report),
+        ):
+            interior.objects.filter.return_value.first.return_value = interior_build
+            result = approve_automatic_montage(edition)
+
+        self.assertIs(result, report)
+        approval = edition.cover_settings["automatic_montage_approval"]
+        self.assertEqual(approval["cover_build_id"], 29)
+        self.assertEqual(approval["interior_build_id"], 23)
+        self.assertEqual(approval["report_id"], 3)
+        self.assertEqual(approval["cover_sha256"], "cover-sha")
+        self.assertTrue(approval["approved_at"])
+        self.assertEqual(edition.cover_settings["title"], "Livro")
+        edition.save.assert_called_once_with(update_fields=["cover_settings", "updated_at"])
 
     def test_quality_control_requires_a_saved_cover_proof(self):
         edition = SimpleNamespace(interior_approval={"build_id": 23})
