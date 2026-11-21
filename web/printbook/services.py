@@ -302,6 +302,8 @@ def workflow_steps(edition):
         approved=bool(edition.edition_approved_at),
         error=bool(report and report.status == "BLOCKED"),
     )
+    if report and report.status == "BLOCKED":
+        report_status = ("error", "Ajustes necessários")
     if getattr(edition, "cover_mode", "") == "automatic_pdf":
         return [
             {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
@@ -1315,37 +1317,70 @@ def quality_readiness(edition, interior, cover, *, source_error=""):
 def preflight(edition):
     guard(edition)
     interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
-    cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
     if not interior:
         raise ValueError("Compile e aprove o miolo atual antes do preflight.")
+    if edition.interior_approval.get("build_id") != interior.id:
+        raise ValueError("Aprove o miolo atual antes de executar o controle de qualidade.")
+    cover = CoverBuild.objects.filter(
+        edition=edition, status__in=["READY", "DRAFT", "BLOCKED"], interior=interior
+    ).first()
     if not cover:
-        raise ValueError("A capa ainda é uma prova. Anexe o template oficial, salve a capa final e aprove-a antes do preflight.")
-    if edition.interior_approval.get("build_id") != interior.id or edition.cover_approval.get("build_id") != cover.id:
-        raise ValueError("Aprove o miolo e a capa atuais antes de executar o preflight.")
+        raise ValueError("Salve uma prova da capa atual antes de executar o controle de qualidade.")
     if cover.interior_id != interior.id:
         raise ValueError("A capa não pertence ao miolo atual.")
+    geometry_evidence = cover.files.get("template") or cover.files.get("configured_cover")
+    production_ready = bool(
+        cover.status == "READY"
+        and geometry_evidence
+        and edition.cover_approval.get("build_id") == cover.id
+    )
     build = new_build(PreflightReport, edition, interior=interior, cover=cover)
     try:
-        spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=cover.geometry["spine_width_in"])
+        spec = cover_spec_for(edition, interior.page_count, cover.geometry["spine_width_in"])
         report = preflight_pdfs(spec, interior_pdf=interior.files["pdf"]["path"], cover_pdf=cover.files["pdf"]["path"])
-        build.findings = [{"code": c.code, "severity": "INFO" if c.status.value == "pass" else "BLOCKER", "message": c.message} for c in report.checks if c.code != "pdfx.validation"]
+        build.findings = []
+        for check in report.checks:
+            if check.code == "pdfx.validation":
+                continue
+            severity = "INFO" if check.status.value == "pass" else "BLOCKER"
+            message = check.message
+            if check.code == "interior.exists":
+                message = "PDF do miolo localizado." if check.status.value == "pass" else "PDF do miolo não foi localizado."
+            elif check.code == "cover.exists":
+                message = "PDF da capa localizado." if check.status.value == "pass" else "PDF da capa não foi localizado."
+            elif check.code == "spec.provider_policy" and not production_ready:
+                severity = "WARNING"
+                message = "A validação industrial do fornecedor ainda não está configurada; a análise local da prova foi executada."
+            build.findings.append({"code": check.code, "severity": severity, "message": message})
         build.findings.extend(cover.findings)
-        geometry_evidence = cover.files.get("template") or cover.files.get("configured_cover")
-        if not geometry_evidence:
-            raise ValueError("A capa não possui evidência de geometria configurada.")
-        hashes = {"interior": interior.files["pdf"]["sha256"], "cover": cover.files["pdf"]["sha256"], "template": geometry_evidence["sha256"]}
-        job = root_for(build) / "validation-job.json"
-        job.write_text(json.dumps({"hashes": hashes, "configuration": snapshot(edition), "geometry": cover.geometry,
-            "interior": interior.files["pdf"]["path"], "cover": cover.files["pdf"]["path"],
-            "template": geometry_evidence["path"], "page_count": interior.page_count}, indent=2), encoding="utf-8")
-        evidence = validate_industrial(getattr(settings, "PRINTBOOK_VALIDATOR", ""), job, hashes)
-        build.findings.extend(evidence["checks"])
-        build.tools = {
-            "pdfinfo": tool_version("pdfinfo"),
-            "pdffonts": tool_version("pdffonts"),
-            "industrial_validator": evidence["tool_version"],
-            "pdfx_standard": evidence["pdfx_standard"],
-        }
+        hashes = {"interior": interior.files["pdf"]["sha256"], "cover": cover.files["pdf"]["sha256"]}
+        if production_ready:
+            hashes["template"] = geometry_evidence["sha256"]
+            job = root_for(build) / "validation-job.json"
+            job.write_text(json.dumps({"hashes": hashes, "configuration": snapshot(edition), "geometry": cover.geometry,
+                "interior": interior.files["pdf"]["path"], "cover": cover.files["pdf"]["path"],
+                "template": geometry_evidence["path"], "page_count": interior.page_count}, indent=2), encoding="utf-8")
+            evidence = validate_industrial(getattr(settings, "PRINTBOOK_VALIDATOR", ""), job, hashes)
+            build.findings.extend(evidence["checks"])
+            build.tools = {
+                "pdfinfo": tool_version("pdfinfo"),
+                "pdffonts": tool_version("pdffonts"),
+                "industrial_validator": evidence["tool_version"],
+                "pdfx_standard": evidence["pdfx_standard"],
+            }
+        else:
+            reason = (
+                "A capa final ainda não foi aprovada. O controle de qualidade foi executado, mas a exportação permanece bloqueada."
+                if geometry_evidence else
+                "Controle de qualidade executado sobre a prova atual. Anexe o template oficial, salve a capa final e aprove-a para liberar a produção."
+            )
+            build.findings.append({"code": "cover.proof_only", "severity": "BLOCKER", "message": reason})
+            build.tools = {
+                "pdfinfo": tool_version("pdfinfo"),
+                "pdffonts": tool_version("pdffonts"),
+                "industrial_validator": None,
+                "pdfx_standard": None,
+            }
         if not edition.isbn:
             build.findings.append({"code": "isbn", "severity": "BLOCKER", "message": "Informe o ISBN desta edição física."})
         elif isbn13(edition.isbn):
@@ -1353,6 +1388,7 @@ def preflight(edition):
         output = root_for(build) / "preflight.json"
         output.write_text(json.dumps({
             "edition_id": edition.id,
+            "mode": "production_preflight" if production_ready else "proof_quality_control",
             "configuration": snapshot(edition),
             "hashes": hashes,
             "tools": build.tools,

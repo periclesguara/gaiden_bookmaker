@@ -341,7 +341,12 @@ output rule automatically omits spine art and text from the generated file. The
 assembly's **Autoajustar textos** command changes only unsaved form values,
 limits its calculated size reduction, and can be undone. It does not certify
 clipping, source resolution, barcode placement, font licensing or PDF/X. The
-preflight page offers a quality-readiness checklist and links to the editor;
+quality-control action can inspect the current proof before the official
+template is attached. That report remains blocked for production and cannot
+authorize export; a production preflight still requires the current interior
+and final cover approvals plus geometry evidence from the provider template or
+a validated configured cover PDF. The preflight page offers a
+quality-readiness checklist and links to the editor;
 when final assets are missing, running the check reports the missing inputs and
 does not create a production report. A failed, blocked or absent validation
 never enables final approval. Save a new proof and inspect the PDF at print size

@@ -7,6 +7,7 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import PropertyMock, patch
 
 from django.test import TestCase
@@ -24,6 +25,7 @@ from web.printbook.services import (
     guard,
     invalidate,
     official_composition_preset,
+    preflight,
     render_preview,
     save_composition,
     sha,
@@ -32,7 +34,7 @@ from web.printbook.services import (
     workflow_steps,
     cover_spec_for,
 )
-from web.printbook.views import preview_panels
+from web.printbook.views import artifact, preview_panels
 
 
 class PrintBuildStateTests(TestCase):
@@ -229,6 +231,49 @@ class PrintBuildStateTests(TestCase):
         ):
             with self.assertRaisesMessage(ValueError, "Conclua o build anterior"):
                 export_package(self.edition)
+
+    def test_quality_control_records_draft_cover_findings_without_enabling_production(self):
+        interior = self._interior()
+        interior.files = {"pdf": self._record("INTERIOR.pdf", b"%PDF-interior")}
+        interior.save(update_fields=["files"])
+        cover = CoverBuild.objects.create(
+            edition=self.edition,
+            version=1,
+            status="DRAFT",
+            snapshot=snapshot(self.edition),
+            interior=interior,
+            geometry={"spine_width_in": "0.1"},
+            files={"pdf": self._record("COVER.pdf", b"%PDF-cover")},
+            findings=[{"code": "cover.template_pending", "severity": "WARNING", "message": "Prova sem template."}],
+        )
+        self.edition.interior_approval = {"build_id": interior.id}
+        self.edition.save(update_fields=["interior_approval"])
+        pdf_report = SimpleNamespace(checks=[
+            SimpleNamespace(code="spec.provider_policy", status=SimpleNamespace(value="fail"), message="provider missing"),
+            SimpleNamespace(code="interior.exists", status=SimpleNamespace(value="pass"), message=str(self.storage_root / "INTERIOR.pdf")),
+            SimpleNamespace(code="cover.geometry", status=SimpleNamespace(value="pass"), message="Geometria conferida."),
+        ])
+
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}), patch.object(
+            EditionBuild, "qualifies_as_done", new_callable=PropertyMock, return_value=True
+        ), patch("web.printbook.services.preflight_pdfs", return_value=pdf_report), patch(
+            "web.printbook.services.tool_version", return_value="test"
+        ), patch("web.printbook.services.validate_industrial") as industrial:
+            report = preflight(self.edition)
+
+        report.refresh_from_db()
+        self.assertEqual(report.cover_id, cover.id)
+        self.assertEqual(report.status, "BLOCKED")
+        self.assertTrue(any(item["code"] == "cover.proof_only" for item in report.findings))
+        self.assertEqual(next(item for item in report.findings if item["code"] == "cover.geometry")["severity"], "INFO")
+        self.assertEqual(next(item for item in report.findings if item["code"] == "spec.provider_policy")["severity"], "WARNING")
+        self.assertEqual(next(item for item in report.findings if item["code"] == "interior.exists")["message"], "PDF do miolo localizado.")
+        payload = json.loads(Path(report.files["report"]["path"]).read_text(encoding="utf-8"))
+        self.assertEqual(payload["mode"], "proof_quality_control")
+        self.assertEqual(artifact(report), Path(report.files["report"]["path"]))
+        industrial.assert_not_called()
+        self.edition.refresh_from_db()
+        self.assertFalse(self.edition.edition_approved_at)
 
     def test_source_hash_drift_invalidates_derived_build(self):
         interior = self._interior()

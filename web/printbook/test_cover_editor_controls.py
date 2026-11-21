@@ -47,12 +47,12 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
         self.assertEqual(soup.find("a", string="Autoajustar capa")["href"], "/printbook/6/cover/?tab=montage&autofit=1")
         self.assertTrue(soup.find("button", string="Confirmar revisão visual").has_attr("disabled"))
 
-    def test_draft_cover_cannot_create_a_production_preflight(self):
-        edition = SimpleNamespace()
+    def test_quality_control_requires_a_saved_cover_proof(self):
+        edition = SimpleNamespace(interior_approval={"build_id": 23})
         with patch("web.printbook.services.guard"), patch("web.printbook.services.InteriorBuild") as interior, patch("web.printbook.services.CoverBuild") as cover, patch("web.printbook.services.new_build") as new_build:
             interior.objects.filter.return_value.first.return_value = SimpleNamespace(id=23)
             cover.objects.filter.return_value.first.return_value = None
-            with self.assertRaisesMessage(ValueError, "A capa ainda é uma prova"):
+            with self.assertRaisesMessage(ValueError, "Salve uma prova da capa atual"):
                 preflight(edition)
             new_build.assert_not_called()
 

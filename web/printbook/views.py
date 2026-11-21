@@ -262,10 +262,10 @@ def preflight_workspace(request, pk):
     context["active_step"] = "preflight"
     report = context["reports"].first()
     context["report"] = report
-    context["quality_readiness"] = services.quality_readiness(
-        edition, context["interior"], context["cover"], source_error=context["source_error"]
-    )
     latest_proof = context["covers"].filter(status__in=["DRAFT", "BLOCKED"]).first()
+    context["quality_readiness"] = services.quality_readiness(
+        edition, context["interior"], context["cover"] or latest_proof, source_error=context["source_error"]
+    )
     context["latest_proof"] = latest_proof
     context["proof_findings"] = [
         _finding_group(item, edition) for item in latest_proof.findings
@@ -602,6 +602,8 @@ def artifact(build):
     build.refresh_from_db()
     if build.status != "READY" and not (
         isinstance(build, CoverBuild) and build.status in {"DRAFT", "BLOCKED"}
+    ) and not (
+        isinstance(build, PreflightReport) and build.status == "BLOCKED"
     ):
         raise Http404("Artefato não está atual.")
     item = build.files.get("pdf") or build.files.get("report") or build.files.get("package")
