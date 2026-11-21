@@ -251,7 +251,7 @@
         <p>{{ design_form.template.label_tag }} {{ design_form.template }}<small>{{ design_form.template.help_text }}</small></p>
       </details>
       <div class="cover-save-actions" data-cover-tab-panel="montage" hidden>
-        <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar rascunho</button>
+        <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>
         <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>
         {% if stapled_uiclap %}<p>Esta montagem grampeada só pode ser salva como rascunho.</p>{% endif %}
       </div>

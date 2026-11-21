@@ -235,6 +235,18 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertNotIn('data-next-tab="montage">Continuar automaticamente para Montagem →', template)
         self.assertIn("simulator.dataset.noSpine === 'yes'", template)
 
+    def test_montage_save_action_remains_available_for_stapled_proofs(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn(
+            'name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>',
+            template,
+        )
+        self.assertIn(
+            'name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>',
+            template,
+        )
+
     def test_automatic_cover_pdf_goes_directly_to_preflight(self):
         upload = SimpleUploadedFile("configured-cover.pdf", b"%PDF-1.4\n", content_type="application/pdf")
         request = RequestFactory().post("/printbook/6/action/automatic_cover_pdf/", {"cover_pdf": upload})
