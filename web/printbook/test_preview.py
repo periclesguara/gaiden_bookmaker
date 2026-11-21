@@ -155,6 +155,34 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertEqual(imported_upload.name, "configured-cover.pdf")
         self.assertEqual(imported_upload.content_type, "application/pdf")
 
+    def test_front_and_back_text_fields_may_be_saved_empty(self):
+        data = self._data()
+        data.update({
+            "save_mode": "final",
+            "title": "",
+            "subtitle": "",
+            "author": "",
+            "language": "",
+            "publisher": "",
+            "back_heading": "",
+            "back_quote": "",
+            "back_text": "",
+            "back_bio": "",
+            "back_footer": "",
+        })
+        form = CoverDesignForm(data=data)
+        self.assertTrue(form.is_valid(), form.errors.as_json())
+
+    def test_cover_template_has_delete_action_for_each_optional_copy_field(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+        for field in (
+            "title", "subtitle", "author", "language", "publisher",
+            "back_heading", "back_quote", "back_text", "back_bio", "back_footer",
+        ):
+            self.assertIn(f'data-clear-field="{field}"', template)
+        self.assertNotIn("value('back_text') || 'Texto da contracapa'", template)
+        self.assertNotIn("value('back_heading') || 'Sobre este livro'", template)
+
     def test_montage_save_returns_to_montage(self):
         data = self._data()
         data["continue_to"] = "montage"
@@ -195,6 +223,7 @@ class CoverStudioFormTests(SimpleTestCase):
             "title": "",
             "author": "Epicteto de Hierápolis",
             "front_title_x_percent": "63",
+            "minimum_dpi": "20",
         })
         request = RequestFactory().post("/printbook/6/action/design_cover/", data)
         edition = SimpleNamespace(pk=6, cover_settings={})
@@ -237,6 +266,19 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertNotIn("cover_image", draft)
         self.assertEqual(edition.saved_fields, ["cover_settings", "updated_at"])
 
+    def test_saving_an_empty_field_replaces_the_previous_text(self):
+        class DraftEdition:
+            cover_settings = {"title": "Texto antigo", "back_text": "Sinopse antiga"}
+
+            def save(self, *, update_fields):
+                self.saved_fields = update_fields
+
+        edition = DraftEdition()
+        draft = save_cover_draft_fields(edition, {"title": "", "back_text": ""})
+
+        self.assertEqual(draft["title"], "")
+        self.assertEqual(draft["back_text"], "")
+
     def test_cover_font_catalog_uses_professional_editorial_families(self):
         values = dict(CoverDesignForm.COVER_FONTS)
 
@@ -252,14 +294,14 @@ class CoverStudioFormTests(SimpleTestCase):
         ):
             self.assertIn(field_name, CoverDesignForm.base_fields)
 
-    def test_front_text_is_required_only_when_operator_enables_it(self):
+    def test_front_text_fields_may_be_individually_empty_when_enabled(self):
         data = self._data()
         data.update({"add_front_text": "on", "title": "", "author": ""})
         form = CoverDesignForm(data=data)
 
-        self.assertFalse(form.is_valid())
-        self.assertIn("title", form.errors)
-        self.assertIn("author", form.errors)
+        self.assertTrue(form.is_valid(), form.errors.as_json())
+        self.assertEqual(form.cleaned_data["title"], "")
+        self.assertEqual(form.cleaned_data["author"], "")
 
     def test_draft_form_keeps_selected_production_profile(self):
         data = self._data()

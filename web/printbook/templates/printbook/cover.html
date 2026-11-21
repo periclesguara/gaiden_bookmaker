@@ -145,11 +145,11 @@
             <small>O modelo reorganiza fontes, tamanhos, posições, alinhamento e espaçamento. Depois, todos os controles continuam livres para refinamento.</small>
             <strong data-layout-status aria-live="polite"></strong>
           </div>
-          <p>{{ design_form.title.label_tag }} {{ design_form.title }}</p>
-          <p>{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}</p>
-          <p>{{ design_form.author.label_tag }} {{ design_form.author }}</p>
-          <p>{{ design_form.language.label_tag }} {{ design_form.language }}</p>
-          <p>{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<small>A editora será impressa sozinha no pé da capa. A língua possui um quinto campo independente.</small></p>
+          <p class="cover-copy-field">{{ design_form.title.label_tag }} {{ design_form.title }}<button type="button" data-clear-field="title">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}<button type="button" data-clear-field="subtitle">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.author.label_tag }} {{ design_form.author }}<button type="button" data-clear-field="author">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.language.label_tag }} {{ design_form.language }}<button type="button" data-clear-field="language">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<button type="button" data-clear-field="publisher">Excluir</button><small>A editora será impressa sozinha no pé da capa. A língua possui um quinto campo independente.</small></p>
           <p>{{ design_form.front_palette.label_tag }} {{ design_form.front_palette }}<small>{{ design_form.front_palette.help_text }}</small></p>
           <div class="cover-palette-swatches front-palette-swatches" aria-label="Prévia da cor clássica da frente"><span></span><span></span><span></span></div>
           <fieldset class="front-element-typography">
@@ -195,12 +195,12 @@
       <fieldset id="textos-contracapa" class="cover-section-back" data-cover-tab-panel="back" hidden>
         <legend>Textos da contracapa</legend>
         <p class="cover-section-help">Preencha somente os blocos que deseja imprimir. A prévia é atualizada enquanto você escreve.</p>
-        <p>{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}</p>
-        <p>{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}</p>
-        <p>{{ design_form.back_text.label_tag }} {{ design_form.back_text }}</p>
+        <p class="cover-copy-field">{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}<button type="button" data-clear-field="back_heading">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}<button type="button" data-clear-field="back_quote">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_text.label_tag }} {{ design_form.back_text }}<button type="button" data-clear-field="back_text">Excluir</button></p>
         <p class="empty-back-approval">{{ design_form.approve_empty_back }} {{ design_form.approve_empty_back.label_tag }}<small>{{ design_form.approve_empty_back.help_text }}</small></p>
-        <p>{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}</p>
-        <p>{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<small>{{ design_form.back_footer.help_text }}</small></p>
+        <p class="cover-copy-field">{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}<button type="button" data-clear-field="back_bio">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<button type="button" data-clear-field="back_footer">Excluir</button><small>{{ design_form.back_footer.help_text }}</small></p>
         <fieldset class="front-element-typography"><legend>Tipografia e cores de cada texto</legend>
           {% for element in back_elements %}
           <div class="element-type-row"><strong>{{ element.label }}</strong><output class="element-font-preview" data-back-font-preview="{{ element.key }}">{{ element.label }}</output>
@@ -346,6 +346,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 .cover-font-sample{display:grid;gap:5px;margin:12px 0 18px;padding:22px;border:1px solid #c8a66a;border-radius:10px;background:#fffdf8;text-align:center;color:#241f1a}.cover-font-sample span{font:700 10px/1.2 system-ui;letter-spacing:.18em;color:#8a5a32}.cover-font-sample strong{font-size:32px;line-height:1.05;font-weight:600}.cover-font-sample small{font-size:14px;letter-spacing:.04em}
 .front-element-typography{background:#fffdf8!important;border-color:#c8a66a!important}.element-type-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0;padding:14px;border:1px solid #e5ddd1;border-radius:9px;background:#fff}.element-type-row>strong{grid-column:1/-1;font-size:17px;color:#5b3b24}.element-font-preview{display:block;grid-column:1/-1;min-height:44px;padding:12px 14px;border:1px solid #d9c8ae;border-radius:7px;background:#fff;color:#241f1a;font-size:27px;line-height:1.15;text-align:center;overflow-wrap:anywhere;transition:color .15s ease,font-family .15s ease,font-weight .15s ease,font-style .15s ease}.element-type-row p{margin:0}.element-type-row p:first-of-type{grid-column:span 2}.element-type-row label{display:block;font-size:11px;color:#666}.element-type-row input,.element-type-row select{width:100%}.element-type-row input[type=color]{height:40px;padding:2px;border:1px solid #b7aa99;border-radius:6px;background:#fff}.fixed-color-palette{grid-column:1/-1;padding-top:4px}.fixed-color-palette>strong{display:block;margin-bottom:8px;font-size:12px;color:#5b3b24}.fixed-color-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.fixed-color-family{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;border:1px solid #e5ddd1;border-radius:7px;background:#faf8f4}.fixed-color-family>span{grid-column:1/-1;font-size:10px;font-weight:700;color:#62594f;text-align:center}.fixed-color-swatch{display:block;width:100%;min-width:24px;aspect-ratio:1;border:2px solid #fff;border-radius:5px;padding:0;box-shadow:0 0 0 1px #a89e91;cursor:pointer}.fixed-color-swatch:hover,.fixed-color-swatch:focus-visible{transform:scale(1.08);box-shadow:0 0 0 3px #285f94}.fixed-color-swatch.active{box-shadow:0 0 0 3px #d4a24c,0 0 0 5px #5b3b24}@media(max-width:700px){.element-type-row{grid-template-columns:1fr}.element-type-row p:first-of-type,.element-type-row>strong,.element-font-preview,.fixed-color-palette{grid-column:1}.fixed-color-families{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
+.cover-copy-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-items:start}.cover-copy-field>label,.cover-copy-field>small{grid-column:1/-1}.cover-copy-field>input,.cover-copy-field>textarea{width:100%;max-width:none}.cover-copy-field>[data-clear-field]{background:#8f2f24;padding:8px 11px;min-width:72px}.cover-copy-field>[data-clear-field]:hover,.cover-copy-field>[data-clear-field]:focus-visible{background:#6f2119}
 </style>
 <script src="{% static 'printbook/cover_autofit.js' %}?v=20261118-3"></script>
 {{ saved_design|json_script:"saved-cover-design" }}
@@ -594,19 +595,19 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     [backBackground, backText, backAccent].forEach((color, index) => { if (swatches[index]) swatches[index].style.background = color; });
     const frontSwatches = document.querySelectorAll('.front-palette-swatches span');
     [background, text, accent].forEach((color, index) => { if (frontSwatches[index]) frontSwatches[index].style.background = color; });
-    all('[data-cover-title]').forEach((element) => { element.textContent = value('title'); element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
-    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
-    all('[data-cover-author]').forEach((element) => { element.textContent = value('author'); element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
-    all('[data-cover-language]').forEach((element) => { element.textContent = value('language'); element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
-    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher'); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
+    all('[data-cover-title]').forEach((element) => { element.textContent = value('title'); element.hidden = !value('title').trim(); element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
+    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.hidden = !value('subtitle').trim(); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
+    all('[data-cover-author]').forEach((element) => { element.textContent = value('author'); element.hidden = !value('author').trim(); element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
+    all('[data-cover-language]').forEach((element) => { element.textContent = value('language'); element.hidden = !value('language').trim(); element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
+    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher'); element.hidden = !value('publisher').trim(); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
     ['front_title', 'front_subtitle', 'front_author', 'front_language', 'front_publisher'].forEach((prefix) => {
       const selector = form.elements[`${prefix}_font_family`];
       if (selector) selector.style.fontFamily = previewFont(selector.value);
     });
-    all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text') || 'Texto da contracapa'; });
-    all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading') || 'Sobre este livro'; });
+    all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text'); element.hidden = !value('back_text').trim(); });
+    all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading'); element.hidden = !value('back_heading').trim(); });
     all('[data-cover-back-quote]').forEach((element) => { element.textContent = value('back_quote'); element.hidden = !value('back_quote'); });
-    all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; });
+    all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; element.hidden = !value('back_bio').trim(); });
     all('[data-cover-back-footer]').forEach((element) => { element.textContent = value('back_footer'); element.hidden = !value('back_footer'); });
     const titleY = Number(value('front_title_y_percent') || 20);
     const titleX = Number(value('front_title_x_percent') || 50);
@@ -839,6 +840,14 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     field.addEventListener('input', () => { update(); clearTimeout(historyTimer); historyTimer = setTimeout(pushHistory, 250); });
     field.addEventListener('change', () => { update(); pushHistory(); });
   });
+  all('[data-clear-field]').forEach((button) => button.addEventListener('click', () => {
+    const field = form.elements[button.dataset.clearField];
+    if (!field) return;
+    field.value = '';
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+    field.dispatchEvent(new Event('change', {bubbles: true}));
+    field.focus();
+  }));
   const layoutField = form.elements.layout;
   const rotateSpine = document.querySelector('[data-rotate-spine]');
   if (rotateSpine) rotateSpine.addEventListener('click', () => {
