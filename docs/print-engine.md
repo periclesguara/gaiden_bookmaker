@@ -339,7 +339,8 @@ applies to every new print edition. For UICLAP editions below 60 pages, all
 spine controls remain available and their settings can be preserved, while the
 output rule automatically omits spine art and text from the generated file. The
 montage remains editable and its save action remains available for the stapled
-proof, while the production-final action stays gated by official evidence. The
+proof, reports progress immediately, and confirms the saved version beside the
+action; the production-final action stays gated by official evidence. The
 assembly's **Autoajustar textos** command changes only unsaved form values,
 limits its calculated size reduction, and can be undone. It does not certify
 clipping, source resolution, barcode placement, font licensing or PDF/X. The

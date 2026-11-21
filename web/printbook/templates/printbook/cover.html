@@ -251,7 +251,8 @@
         <p>{{ design_form.template.label_tag }} {{ design_form.template }}<small>{{ design_form.template.help_text }}</small></p>
       </details>
       <div class="cover-save-actions" data-cover-tab-panel="montage" hidden>
-        <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>
+        <p data-montage-save-status role="status">{% if request.GET.saved == 'draft' %}<strong>Montagem salva.</strong> A versão v{{ latest_visual.version }} está no histórico abaixo.{% else %}Salve para gerar uma nova prova versionada da montagem atual.{% endif %}</p>
+        <button type="submit" name="save_mode" value="draft" data-save-montage {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>
         <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>
         {% if stapled_uiclap %}<p>Esta montagem grampeada só pode ser salva como rascunho.</p>{% endif %}
       </div>
@@ -981,6 +982,12 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   form.addEventListener('submit', (event) => {
     const destination = event.submitter && event.submitter.dataset.saveNext;
     if (destination) form.elements.continue_to.value = destination;
+    if (event.submitter && event.submitter.hasAttribute('data-save-montage')) {
+      const montageStatus = form.querySelector('[data-montage-save-status]');
+      event.submitter.disabled = true;
+      event.submitter.textContent = 'Salvando montagem…';
+      if (montageStatus) montageStatus.textContent = 'Gerando a nova prova da montagem. Aguarde…';
+    }
     formSubmitting = true;
   });
   window.addEventListener('beforeunload', (event) => {

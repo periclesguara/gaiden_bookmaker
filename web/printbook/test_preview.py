@@ -239,9 +239,11 @@ class CoverStudioFormTests(SimpleTestCase):
         template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
 
         self.assertIn(
-            'name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>',
+            'name="save_mode" value="draft" data-save-montage {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>',
             template,
         )
+        self.assertIn("event.submitter.textContent = 'Salvando montagem…'", template)
+        self.assertIn('<p data-montage-save-status role="status">', template)
         self.assertIn(
             'name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>',
             template,
