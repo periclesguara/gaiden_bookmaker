@@ -200,6 +200,39 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertIn('>Salvar contracapa</button>', template)
         self.assertIn('>Salvar e seguir para Lombada →</button>', template)
 
+    def test_spine_stage_can_save_in_place(self):
+        data = self._data()
+        data.update({
+            "current_stage": "spine",
+            "continue_to": "spine",
+            "spine_title": "A Book",
+            "spine_rotation": "-90",
+        })
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with patch("web.printbook.views.get_object_or_404", return_value=edition), patch(
+            "web.printbook.views.services.save_cover_draft_fields"
+        ) as save_fields, patch("web.printbook.views.services.design_cover") as design_cover, patch(
+            "web.printbook.views.messages.success"
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=spine&saved=draft"))
+        self.assertEqual(save_fields.call_args.args[1]["spine_title"], "A Book")
+        self.assertEqual(save_fields.call_args.args[1]["spine_rotation"], "-90")
+        design_cover.assert_called_once()
+
+    def test_spine_stage_has_manual_and_automatic_actions(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+
+        self.assertIn('>Salvar lombada</button>', template)
+        self.assertIn('>Salvar e seguir para Montagem →</button>', template)
+        self.assertIn('data-next-tab="montage">Continuar automaticamente para Montagem →', template)
+        self.assertIn('Etapa automática.</strong> Esta edição UICLAP possui menos de 60 páginas', template)
+        self.assertIn('{% endif %}\n        <p id="spine-fit-status"', template)
+        self.assertIn("simulator.dataset.noSpine === 'yes'", template)
+
     def test_automatic_cover_pdf_goes_directly_to_preflight(self):
         upload = SimpleUploadedFile("configured-cover.pdf", b"%PDF-1.4\n", content_type="application/pdf")
         request = RequestFactory().post("/printbook/6/action/automatic_cover_pdf/", {"cover_pdf": upload})
