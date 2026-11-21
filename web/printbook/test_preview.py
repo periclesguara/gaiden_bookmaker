@@ -223,14 +223,16 @@ class CoverStudioFormTests(SimpleTestCase):
         self.assertEqual(save_fields.call_args.args[1]["spine_rotation"], "-90")
         design_cover.assert_called_once()
 
-    def test_spine_stage_has_manual_and_automatic_actions(self):
+    def test_spine_stage_keeps_controls_and_adds_save_actions(self):
         template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
 
+        self.assertIn("{{ design_form.spine_image.label_tag }}", template)
+        self.assertIn("{{ design_form.spine_title.label_tag }}", template)
+        self.assertIn("{{ design_form.spine_author.label_tag }}", template)
         self.assertIn('>Salvar lombada</button>', template)
         self.assertIn('>Salvar e seguir para Montagem →</button>', template)
-        self.assertIn('data-next-tab="montage">Continuar automaticamente para Montagem →', template)
-        self.assertIn('Etapa automática.</strong> Esta edição UICLAP possui menos de 60 páginas', template)
-        self.assertIn('{% endif %}\n        <p id="spine-fit-status"', template)
+        self.assertIn("Você ainda pode ajustar e salvar esta etapa", template)
+        self.assertNotIn('data-next-tab="montage">Continuar automaticamente para Montagem →', template)
         self.assertIn("simulator.dataset.noSpine === 'yes'", template)
 
     def test_automatic_cover_pdf_goes_directly_to_preflight(self):

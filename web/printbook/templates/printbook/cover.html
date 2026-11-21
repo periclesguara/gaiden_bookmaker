@@ -103,13 +103,12 @@
       <fieldset data-cover-tab-panel="spine" hidden>
         <legend>Imagem de fundo da lombada</legend>
         {% if stapled_uiclap %}
-        <p class="quality-warning"><strong>Etapa automática.</strong> Esta edição UICLAP possui menos de 60 páginas e será produzida sem lombada. Nenhuma imagem de lombada será salva ou renderizada.</p>
-        {% else %}
+        <p class="quality-warning"><strong>Regra automática de saída.</strong> Esta edição UICLAP possui menos de 60 páginas e será produzida sem lombada. Você ainda pode ajustar e salvar esta etapa para reutilizar a configuração, mas a lombada não será renderizada neste arquivo.</p>
+        {% endif %}
         <p>{{ design_form.spine_image.label_tag }} {{ design_form.spine_image }}<small>{{ design_form.spine_image.help_text }}</small></p>
         <p>{{ design_form.spine_image_fit.label_tag }} {{ design_form.spine_image_fit }}</p>
         <p>{{ design_form.spine_image_zoom.label_tag }} {{ design_form.spine_image_zoom }}</p>
         <div class="cover-control-grid"><p>{{ design_form.spine_image_x.label_tag }} {{ design_form.spine_image_x }}</p><p>{{ design_form.spine_image_y.label_tag }} {{ design_form.spine_image_y }}</p></div>
-        {% endif %}
       </fieldset>
       <div data-cover-tab-panel="montage" hidden>
         <p class="front-text-switch">{{ design_form.allow_empty_areas }} {{ design_form.allow_empty_areas.label_tag }}</p>
@@ -123,7 +122,7 @@
         <legend>Tipografia da lombada</legend>
         {% if stapled_uiclap %}
         <p class="quality-warning">A regra UICLAP abaixo de 60 páginas define largura de lombada igual a zero. Os textos existentes permanecem preservados no projeto, mas esta edição não os imprime.</p>
-        {% else %}
+        {% endif %}
         {{ design_form.spine_text }}
         <p>{{ design_form.spine_title.label_tag }} {{ design_form.spine_title }}</p>
         <p>{{ design_form.spine_author.label_tag }} {{ design_form.spine_author }}</p>
@@ -137,7 +136,6 @@
           <button type="button" class="floating-cover-field floating-spine-copy" data-floating-field="spine" data-x-field="spine_text_x_percent" data-y-field="spine_text_y_percent" data-cover-spine></button>
         </div>
         <p class="cover-section-help">Arraste o texto para posicioná-lo sobre a imagem da lombada.</p>
-        {% endif %}
         <p id="spine-fit-status" class="cover-image-status">Ajuste calculado conforme a lombada e a paginação.</p>
       </fieldset>
       <fieldset id="textos-frente" class="cover-section-front" data-cover-tab-panel="front">
@@ -269,14 +267,9 @@
         <button type="submit" name="save_mode" value="draft" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Lombada →</button>
       </div>
       <div class="cover-stage-actions" data-cover-tab-panel="spine" hidden>
-        {% if stapled_uiclap %}
-        <span role="status">UICLAP abaixo de 60 páginas: etapa concluída automaticamente, sem lombada.</span>
-        <button type="button" data-next-tab="montage">Continuar automaticamente para Montagem →</button>
-        {% else %}
-        <span data-unsaved-status role="status">A lombada atual está salva.</span>
+        <span data-unsaved-status role="status">{% if stapled_uiclap %}Configuração da lombada preservada; a saída UICLAP será automática e sem lombada.{% else %}A lombada atual está salva.{% endif %}</span>
         <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar lombada</button>
         <button type="submit" name="save_mode" value="draft" data-save-next="montage" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Montagem →</button>
-        {% endif %}
       </div>
     </form>
     <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-trim-width="{% if geometry %}{{ geometry.trim_width_in }}{% endif %}" data-trim-height="{% if geometry %}{{ geometry.trim_height_in }}{% endif %}" data-bleed="{% if geometry %}{{ geometry.bleed_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}" data-barcode-mode="{{ edition.barcode_mode }}" data-no-spine="{% if stapled_uiclap %}yes{% else %}no{% endif %}" data-spine-allowed="{% if geometry.spine_text_allowed %}yes{% else %}no{% endif %}">
