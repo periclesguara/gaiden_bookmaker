@@ -43,6 +43,7 @@ def _cover_stage_post_data(request, edition):
     """Keep fields from later, hidden stages from blocking the current save."""
     requested_tab = request.POST.get("continue_to", "")
     future_prefixes = {
+        "front": ("back_", "spine_"),
         "back": ("back_", "spine_"),
         "spine": ("spine_",),
     }.get(requested_tab, ())
@@ -543,7 +544,7 @@ def action(request, pk, action):
                 return response
             services.save_cover_draft_fields(edition, form.cleaned_data)
             services.design_cover(edition, **form.cleaned_data)
-            if requested_tab in {"back", "spine", "montage"}:
+            if requested_tab in {"front", "back", "spine", "montage"}:
                 cover_continue_to = requested_tab
         elif action == "approve_cover":
             services.approve_cover(edition)
