@@ -52,7 +52,8 @@ jobs:
           python -m pip install -r requirements-print-ci.txt
           python -m pip install --no-deps -e .
           sudo apt-get update
-          sudo apt-get install -y latexmk poppler-utils texlive-fonts-recommended texlive-latex-extra texlive-luatex
+          sudo apt-get install -y latexmk poppler-utils texlive-fonts-recommended texlive-latex-extra texlive-luatex \
+            fonts-ebgaramond fonts-gfs-didot fonts-sil-gentiumplus
 
       - name: Verify isolated print contracts
         run: >-

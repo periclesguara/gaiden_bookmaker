@@ -308,6 +308,23 @@ class CoverStudioFormTests(SimpleTestCase):
 
         self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=montage&saved=draft"))
 
+    def test_failed_montage_compile_returns_to_montage(self):
+        data = self._data()
+        data.update({"current_stage": "montage", "continue_to": "montage"})
+        request = RequestFactory().post("/printbook/6/action/design_cover/", data)
+        edition = SimpleNamespace(pk=6, cover_settings={})
+
+        with (
+            patch("web.printbook.views.get_object_or_404", return_value=edition),
+            patch("web.printbook.views.services.save_cover_draft_fields"),
+            patch("web.printbook.views.services.design_cover", side_effect=ValueError("Falha na montagem.")),
+            patch("web.printbook.views.messages.error") as error,
+        ):
+            response = action(request, 6, "design_cover")
+
+        self.assertTrue(response["Location"].endswith("/printbook/6/cover/?tab=montage"))
+        error.assert_called_once_with(request, "Falha na montagem.")
+
     def test_hidden_future_stage_error_does_not_block_front_cover_save(self):
         data = self._data()
         data.update({"continue_to": "back", "spine_edge_safe_mm": "1.5"})

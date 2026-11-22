@@ -39,18 +39,21 @@ COVER_PREVIEW_FONTS = {
 }
 
 
+def _cover_stage(data):
+    current = data.get("current_stage")
+    if current in {"front", "back", "spine", "montage"}:
+        return current
+    return {"front": "front", "back": "front", "spine": "back", "montage": "spine"}.get(
+        data.get("continue_to"), "montage"
+    )
+
+
 def _cover_stage_post_data(request, edition):
     """Keep fields from later, hidden stages from blocking the current save."""
-    requested_tab = request.POST.get("continue_to", "")
-    current_stage = request.POST.get("current_stage", "")
-    if current_stage not in {"front", "back", "spine", "montage"}:
-        current_stage = {
-            "front": "front", "back": "front", "spine": "back", "montage": "spine",
-        }.get(requested_tab, "montage")
     future_prefixes = {
         "front": ("back_", "spine_"),
         "back": ("spine_",),
-    }.get(current_stage, ())
+    }.get(_cover_stage(request.POST), ())
     if not future_prefixes:
         return request.POST
 
@@ -260,22 +263,34 @@ def preflight_workspace(request, pk):
     edition = get_object_or_404(PrintEdition, pk=pk)
     context = _edition_context(edition)
     context["active_step"] = "preflight"
+    interior = context["interior"]
+    stapled = bool(interior and services.is_uiclap_stapled(edition, interior.page_count))
+    covers = context["covers"].filter(interior=interior)
+    latest_proof = covers.filter(status__in=["DRAFT", "BLOCKED"]).first()
     report = context["reports"].first()
+    if stapled:
+        latest_proof = covers.filter(status__in=["READY", "DRAFT", "BLOCKED"]).first()
+        report = context["reports"].filter(
+            interior=interior, cover=latest_proof, status__in=["READY", "BLOCKED", "FAILED"],
+        ).first()
     context["report"] = report
-    latest_proof = context["covers"].filter(status__in=["DRAFT", "BLOCKED"]).first()
-    context["quality_readiness"] = services.quality_readiness(
-        edition, context["interior"], context["cover"] or latest_proof, source_error=context["source_error"]
-    )
     context["latest_proof"] = latest_proof
-    context["stapled_uiclap"] = bool(
-        context["interior"] and services.is_uiclap_stapled(edition, context["interior"].page_count)
+    context["quality_readiness"] = services.quality_readiness(
+        edition, interior, context["cover"] or latest_proof, source_error=context["source_error"]
     )
+    context["stapled_uiclap"] = stapled
+    context["preflight_interior_approved"] = bool(
+        interior and edition.interior_approval.get("build_id") == interior.id
+    )
+    context["stapled_preflight_ready"] = bool(
+        stapled and not context["source_error"] and latest_proof and context["preflight_interior_approved"]
+    )
+    montage_blockers = services.automatic_montage_blockers(report) if stapled and report else []
+    context["montage_blockers"] = [_finding_group(item, edition) for item in montage_blockers]
     automatic_approval = (edition.cover_settings or {}).get("automatic_montage_approval", {})
-    context["automatic_montage_approved"] = bool(
-        context["stapled_uiclap"] and latest_proof and report
-        and automatic_approval.get("cover_build_id") == latest_proof.id
-        and automatic_approval.get("interior_build_id") == context["interior"].id
-        and automatic_approval.get("report_id") == report.id
+    context["automatic_montage_approved"] = (
+        context["stapled_preflight_ready"]
+        and services.automatic_montage_is_approved(edition, interior, latest_proof, report)
     )
     context["automatic_montage_approval"] = automatic_approval
     context["proof_findings"] = [
@@ -495,6 +510,7 @@ def cover_template(request, pk):
 def action(request, pk, action):
     edition = get_object_or_404(PrintEdition, pk=pk)
     cover_continue_to = ""
+    cover_stage = ""
     try:
         if action == "configure":
             services.guard(edition)
@@ -543,6 +559,7 @@ def action(request, pk, action):
             return response
         elif action == "design_cover":
             requested_tab = request.POST.get("continue_to", "")
+            cover_stage = _cover_stage(request.POST)
             form = CoverDesignForm(_cover_stage_post_data(request, edition), request.FILES)
             if not form.is_valid():
                 if form.cleaned_data:
@@ -553,9 +570,7 @@ def action(request, pk, action):
                         messages.error(request, f"{label}: {error}")
                 messages.warning(request, "Os demais campos válidos foram preservados no rascunho.")
                 response = redirect("printbook:cover", pk=pk)
-                current_tab = {"back": "front", "spine": "back", "montage": "spine"}.get(requested_tab)
-                if current_tab:
-                    response["Location"] = f'{response["Location"]}?tab={current_tab}&saved=partial'
+                response["Location"] = f'{response["Location"]}?tab={cover_stage}&saved=partial'
                 return response
             services.save_cover_draft_fields(edition, form.cleaned_data)
             services.design_cover(edition, **form.cleaned_data)
@@ -566,7 +581,10 @@ def action(request, pk, action):
         elif action == "preflight":
             services.preflight(edition)
         elif action == "approve_automatic_montage":
-            services.approve_automatic_montage(edition)
+            report = services.approve_automatic_montage(edition)
+            if services.automatic_montage_blockers(report):
+                messages.warning(request, "Controle concluído. Corrija os bloqueios da prova e execute novamente.")
+                return redirect("printbook:preflight", pk=pk)
         elif action == "approve_visual_review":
             services.approve_visual_review(edition)
         elif action == "approve_edition":
@@ -605,8 +623,10 @@ def action(request, pk, action):
         "export": "printbook:export",
     }
     response = redirect(destinations.get(action, "printbook:configuration"), pk=pk)
-    if action == "design_cover" and cover_continue_to:
+    if cover_continue_to:
         response["Location"] = f'{response["Location"]}?tab={cover_continue_to}&saved=draft'
+    elif cover_stage:
+        response["Location"] = f'{response["Location"]}?tab={cover_stage}'
     return response
 
 

@@ -58,6 +58,7 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
                 "stapled_uiclap": True,
                 "automatic_montage_approved": False,
                 "latest_proof": latest_proof,
+                "stapled_preflight_ready": True,
                 "report": None,
                 "workflow_steps": [],
             },
@@ -100,7 +101,10 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
         )
         interior_build = SimpleNamespace(id=23, page_count=30)
         cover_build = SimpleNamespace(id=29, files={"pdf": {"sha256": "cover-sha"}})
-        report = SimpleNamespace(id=3, cover=cover_build)
+        report = SimpleNamespace(id=3, cover=cover_build, findings=[
+            {"code": "cover.proof_only", "severity": "BLOCKER"},
+            {"code": "isbn", "severity": "BLOCKER"},
+        ])
         with (
             patch("web.printbook.services.guard"),
             patch("web.printbook.services.InteriorBuild") as interior,
@@ -119,6 +123,25 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
         self.assertTrue(approval["approved_at"])
         self.assertEqual(edition.cover_settings["title"], "Livro")
         edition.save.assert_called_once_with(update_fields=["cover_settings", "updated_at"])
+
+    def test_automatic_montage_does_not_approve_real_quality_blockers(self):
+        edition = SimpleNamespace(interior_approval={"build_id": 23}, cover_settings={}, save=Mock())
+        cover = SimpleNamespace(id=29, files={"pdf": {"sha256": "cover-sha"}})
+        report = SimpleNamespace(id=3, cover=cover, findings=[
+            {"code": "cover.page_size", "severity": "BLOCKER"},
+            {"code": "cover.proof_only", "severity": "BLOCKER"},
+        ])
+        with (
+            patch("web.printbook.services.guard"),
+            patch("web.printbook.services.InteriorBuild") as interior,
+            patch("web.printbook.services.is_uiclap_stapled", return_value=True),
+            patch("web.printbook.services.preflight", return_value=report),
+        ):
+            interior.objects.filter.return_value.first.return_value = SimpleNamespace(id=23, page_count=30)
+            self.assertIs(approve_automatic_montage(edition), report)
+
+        self.assertNotIn("automatic_montage_approval", edition.cover_settings)
+        edition.save.assert_not_called()
 
     def test_quality_control_requires_a_saved_cover_proof(self):
         edition = SimpleNamespace(interior_approval={"build_id": 23})

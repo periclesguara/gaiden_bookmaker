@@ -304,6 +304,17 @@ def workflow_steps(edition):
     )
     if report and report.status == "BLOCKED":
         report_status = ("error", "Ajustes necessários")
+    if interior and is_uiclap_stapled(edition, interior.page_count):
+        proof = CoverBuild.objects.filter(
+            edition=edition, interior=interior, status__in=["READY", "DRAFT", "BLOCKED"]
+        ).first()
+        proof_report = PreflightReport.objects.filter(
+            edition=edition, interior=interior, cover=proof, status__in=["READY", "BLOCKED", "FAILED"]
+        ).first()
+        if automatic_montage_is_approved(edition, interior, proof, proof_report):
+            report_status = ("approved", "Prova aprovada")
+        elif proof_report and proof_report.status == "FAILED":
+            report_status = ("error", "Controle não concluído")
     if getattr(edition, "cover_mode", "") == "automatic_pdf":
         return [
             {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
@@ -343,6 +354,16 @@ def guard(edition):
             )
             expected_snapshot = snapshot(edition)
             recorded_snapshot = dict(build.snapshot or {})
+            if (
+                model is CoverBuild
+                and build.files.get("configured_cover")
+                and recorded_snapshot == {
+                    "source": "automatic_pdf", "configured_pdf": True, "skips_back_and_spine": True,
+                }
+                and build.interior.status == "READY"
+                and build.geometry == estimated_cover_geometry(edition, build.interior.page_count)
+            ):
+                recorded_snapshot = dict(build.interior.snapshot)
             # Builds created before the workflow refactor did not store the
             # empty composition key. Treat that representation as equivalent.
             if not expected_snapshot.get("composition") and "composition" not in recorded_snapshot:
@@ -716,8 +737,6 @@ def import_automatic_cover_pdf(edition, cover_pdf):
             height_in=geometry.spread_height_in,
             label="A capa automática",
         )
-        build.snapshot = {"source": "automatic_pdf", "configured_pdf": True, "skips_back_and_spine": True}
-        build.save(update_fields=["snapshot"])
         for model in (PreflightReport, PrintExport):
             model.objects.filter(edition=edition, status="READY").update(status="INVALIDATED")
         record(build, {"pdf": target, "configured_cover": target}, PrintEdition.State.COVER_READY)
@@ -1328,16 +1347,22 @@ def preflight(edition):
         raise ValueError("Salve uma prova da capa atual antes de executar o controle de qualidade.")
     if cover.interior_id != interior.id:
         raise ValueError("A capa não pertence ao miolo atual.")
+    stapled = is_uiclap_stapled(edition, interior.page_count)
     geometry_evidence = cover.files.get("template") or cover.files.get("configured_cover")
     production_ready = bool(
-        cover.status == "READY"
+        not stapled
+        and cover.status == "READY"
         and geometry_evidence
         and edition.cover_approval.get("build_id") == cover.id
     )
     build = new_build(PreflightReport, edition, interior=interior, cover=cover)
     try:
         spec = cover_spec_for(edition, interior.page_count, cover.geometry["spine_width_in"])
-        report = preflight_pdfs(spec, interior_pdf=interior.files["pdf"]["path"], cover_pdf=cover.files["pdf"]["path"])
+        report = preflight_pdfs(
+            spec,
+            interior_pdf=verified_build_file(interior, interior.files.get("pdf")),
+            cover_pdf=verified_build_file(cover, cover.files.get("pdf")),
+        )
         build.findings = []
         for check in report.checks:
             if check.code == "pdfx.validation":
@@ -1369,11 +1394,12 @@ def preflight(edition):
                 "pdfx_standard": evidence["pdfx_standard"],
             }
         else:
-            reason = (
-                "A capa final ainda não foi aprovada. O controle de qualidade foi executado, mas a exportação permanece bloqueada."
-                if geometry_evidence else
-                "Controle de qualidade executado sobre a prova atual. Anexe o template oficial, salve a capa final e aprove-a para liberar a produção."
-            )
+            if stapled:
+                reason = "Controle local da prova UICLAP sem lombada. A saída de produção em JPG ainda não está disponível."
+            elif geometry_evidence:
+                reason = "A capa final ainda não foi aprovada. O controle de qualidade foi executado, mas a exportação permanece bloqueada."
+            else:
+                reason = "Controle de qualidade executado sobre a prova atual. Anexe o template oficial, salve a capa final e aprove-a para liberar a produção."
             build.findings.append({"code": "cover.proof_only", "severity": "BLOCKER", "message": reason})
             build.tools = {
                 "pdfinfo": tool_version("pdfinfo"),
@@ -1410,6 +1436,31 @@ def preflight(edition):
     return build
 
 
+def automatic_montage_blockers(report):
+    """Find defects of the proof independently of final production requirements."""
+    return [
+        finding for finding in report.findings
+        if finding.get("severity") in {"BLOCKER", "ERROR"}
+        and finding.get("code") not in {"cover.proof_only", "isbn"}
+    ]
+
+
+def automatic_montage_is_approved(edition, interior, cover, report):
+    if not interior or not cover or not report or report.status not in {"READY", "BLOCKED"}:
+        return False
+    saved = (edition.cover_settings or {}).get("automatic_montage_approval", {})
+    return (
+        edition.interior_approval.get("build_id") == interior.id
+        and report.interior_id == interior.id
+        and report.cover_id == cover.id
+        and saved.get("interior_build_id") == interior.id
+        and saved.get("cover_build_id") == cover.id
+        and saved.get("report_id") == report.id
+        and saved.get("cover_sha256") == cover.files.get("pdf", {}).get("sha256")
+        and not automatic_montage_blockers(report)
+    )
+
+
 def approve_automatic_montage(edition):
     """Run local quality checks and bind an editorial approval to a stapled proof."""
     guard(edition)
@@ -1419,6 +1470,8 @@ def approve_automatic_montage(edition):
     if not is_uiclap_stapled(edition, interior.page_count):
         raise ValueError("A aprovação automática sem lombada vale somente para UICLAP abaixo de 60 páginas.")
     report = preflight(edition)
+    if automatic_montage_blockers(report):
+        return report
     cover = report.cover
     approval = {
         "cover_build_id": cover.id,

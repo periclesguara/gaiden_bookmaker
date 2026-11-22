@@ -2,6 +2,8 @@ import hashlib
 import json
 import os
 import subprocess
+import shutil
+import unittest
 from decimal import Decimal
 import zipfile
 from io import BytesIO
@@ -10,7 +12,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import PropertyMock, patch
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
@@ -19,6 +21,8 @@ from gaiden.print_engine.geometry import CoverGeometry
 from web.printbook.models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport, TypographyProfile
 from web.printbook.services import (
     approve_interior,
+    approve_automatic_montage,
+    design_cover,
     import_automatic_cover_pdf,
     export_package,
     fail,
@@ -27,6 +31,7 @@ from web.printbook.services import (
     official_composition_preset,
     preflight,
     render_preview,
+    root_for,
     save_composition,
     sha,
     snapshot,
@@ -34,7 +39,7 @@ from web.printbook.services import (
     workflow_steps,
     cover_spec_for,
 )
-from web.printbook.views import artifact, preview_panels
+from web.printbook.views import artifact, preflight_workspace, preview_panels
 
 
 class PrintBuildStateTests(TestCase):
@@ -107,18 +112,19 @@ class PrintBuildStateTests(TestCase):
         self.assertEqual(workflow_steps(self.edition)[1]["status_label"], "Aprovado")
 
     def test_configured_cover_pdf_is_ready_and_skips_manual_cover_stages(self):
-        from reportlab.pdfgen.canvas import Canvas
-
+        self.edition.refresh_from_db()
         interior = self._interior()
         spec = cover_spec_for(self.edition, interior.page_count, Decimal("0.0045"))
         geometry = CoverGeometry.from_spec(spec)
-        stream = BytesIO()
-        pdf = Canvas(stream, pagesize=(float(geometry.spread_width_in * 72), float(geometry.spread_height_in * 72)))
-        pdf.showPage()
-        pdf.save()
-        upload = SimpleUploadedFile("configured-cover.pdf", stream.getvalue(), content_type="application/pdf")
+        upload = SimpleUploadedFile(
+            "configured-cover.pdf",
+            self._proof_pdf(geometry.spread_width_in, geometry.spread_height_in, 1),
+            content_type="application/pdf",
+        )
 
-        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}):
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}), patch.object(
+            EditionBuild, "qualifies_as_done", new_callable=PropertyMock, return_value=True
+        ):
             cover = import_automatic_cover_pdf(self.edition, upload)
 
         self.edition.refresh_from_db()
@@ -129,6 +135,98 @@ class PrintBuildStateTests(TestCase):
         self.assertEqual([step["label"] for step in workflow_steps(self.edition)], [
             "Configuração", "Miolo", "Capa automática", "Preflight", "Exportação",
         ])
+
+    @staticmethod
+    def _proof_pdf(width, height, pages):
+        from PIL import Image
+
+        stream = BytesIO()
+        with Image.new("RGB", (round(width * 72), round(height * 72)), "white") as page:
+            page.save(stream, "PDF", save_all=True, append_images=[page] * (pages - 1), resolution=72)
+        return stream.getvalue()
+
+    def _stapled_interior(self):
+        self.edition.platform = "uiclap"
+        self.edition.trim = "6.299213x9.055118"
+        self.edition.save(update_fields=["platform", "trim"])
+        self.edition.refresh_from_db()
+        interior = self._interior()
+        interior.page_count = 30
+        geometry = CoverGeometry.from_spec(cover_spec_for(self.edition, 30, Decimal("0")))
+        path = root_for(interior) / "INTERIOR.pdf"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(self._proof_pdf(geometry.trim_width_in, geometry.trim_height_in, 30))
+        interior.files = {"pdf": {"path": str(path), "sha256": sha(path)}}
+        interior.save(update_fields=["page_count", "files"])
+        approve_interior(self.edition)
+        return geometry
+
+    def test_stapled_configured_pdf_survives_guard_and_reaches_preflight(self):
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}), patch.object(
+            EditionBuild, "qualifies_as_done", new_callable=PropertyMock, return_value=True
+        ):
+            geometry = self._stapled_interior()
+            upload = SimpleUploadedFile(
+                "configured-cover.pdf",
+                self._proof_pdf(geometry.spread_width_in, geometry.spread_height_in, 1),
+                content_type="application/pdf",
+            )
+            cover = import_automatic_cover_pdf(self.edition, upload)
+            self.assertEqual(cover.snapshot, snapshot(self.edition))
+            # Existing uploads used a marker in place of the print snapshot.
+            cover.snapshot = {"source": "automatic_pdf", "configured_pdf": True, "skips_back_and_spine": True}
+            cover.save(update_fields=["snapshot"])
+            self.edition.refresh_from_db()
+            report = approve_automatic_montage(self.edition)
+            page = preflight_workspace(RequestFactory().get("/printbook/preflight/"), self.edition.pk)
+
+        self.edition.refresh_from_db()
+        self.assertEqual(report.cover_id, cover.id)
+        self.assertEqual(report.status, "BLOCKED")
+        self.assertEqual(self.edition.cover_settings["automatic_montage_approval"]["report_id"], report.id)
+        self.assertFalse(self.edition.edition_approved_at)
+        self.assertContains(page, "Montagem aprovada")
+        self.assertContains(page, "Baixar relatório JSON")
+
+    @unittest.skipUnless(
+        all(shutil.which(tool) for tool in ("lualatex", "pdfinfo", "pdffonts", "pdftotext")),
+        "Real print tools are needed to compile and inspect the montage",
+    )
+    def test_stapled_manual_montage_compiles_and_surfaces_preflight_blockers(self):
+        with patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.storage_root)}), patch.object(
+            EditionBuild, "qualifies_as_done", new_callable=PropertyMock, return_value=True
+        ):
+            self._stapled_interior()
+            cover = design_cover(
+                self.edition, layout="classic", title="Front Proof", subtitle="", author="Test Author",
+                back_text="Back Proof", spine_text="Excluded Spine", background_color="#FFFFFF",
+                text_color="#000000", accent_color="#000000", cover_font_family="TeX Gyre Pagella",
+                front_title_font_family="TeX Gyre Pagella", front_author_font_family="TeX Gyre Pagella",
+                save_mode="draft",
+            )
+            self.assertEqual(cover.status, "DRAFT")
+            self.assertEqual(Decimal(cover.geometry["spine_width_in"]), 0)
+            text = subprocess.check_output(["pdftotext", cover.files["pdf"]["path"], "-"], text=True)
+            self.assertIn("Front Proof", text)
+            self.assertIn("Back Proof", text)
+            self.assertNotIn("Excluded Spine", text)
+
+            report = approve_automatic_montage(self.edition)
+            self.assertEqual(self.edition.cover_settings["automatic_montage_approval"]["report_id"], report.id)
+            self.assertEqual(artifact(report), Path(report.files["report"]["path"]))
+
+            cover.findings.append({
+                "code": "cover.front_image_resolution", "severity": "BLOCKER",
+                "message": "A imagem da capa precisa de maior resolução.",
+            })
+            cover.save(update_fields=["findings"])
+            blocked = approve_automatic_montage(self.edition)
+            page = preflight_workspace(RequestFactory().get("/printbook/preflight/"), self.edition.pk)
+
+        self.assertEqual(blocked.cover_id, cover.id)
+        self.assertContains(page, "A imagem da capa precisa de maior resolução.")
+        self.assertNotContains(page, "Montagem aprovada")
+        self.assertContains(page, "Baixar relatório JSON")
 
     def test_composition_change_invalidates_only_print_derivatives(self):
         interior = self._interior()
@@ -233,9 +331,8 @@ class PrintBuildStateTests(TestCase):
                 export_package(self.edition)
 
     def test_quality_control_records_draft_cover_findings_without_enabling_production(self):
+        self.edition.refresh_from_db()
         interior = self._interior()
-        interior.files = {"pdf": self._record("INTERIOR.pdf", b"%PDF-interior")}
-        interior.save(update_fields=["files"])
         cover = CoverBuild.objects.create(
             edition=self.edition,
             version=1,
@@ -243,7 +340,6 @@ class PrintBuildStateTests(TestCase):
             snapshot=snapshot(self.edition),
             interior=interior,
             geometry={"spine_width_in": "0.1"},
-            files={"pdf": self._record("COVER.pdf", b"%PDF-cover")},
             findings=[{"code": "cover.template_pending", "severity": "WARNING", "message": "Prova sem template."}],
         )
         self.edition.interior_approval = {"build_id": interior.id}
@@ -259,7 +355,14 @@ class PrintBuildStateTests(TestCase):
         ), patch("web.printbook.services.preflight_pdfs", return_value=pdf_report), patch(
             "web.printbook.services.tool_version", return_value="test"
         ), patch("web.printbook.services.validate_industrial") as industrial:
+            for build, filename in ((interior, "INTERIOR.pdf"), (cover, "COVER.pdf")):
+                path = root_for(build) / filename
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"%PDF-fixture")
+                build.files = {"pdf": {"path": str(path), "sha256": sha(path)}}
+                build.save(update_fields=["files"])
             report = preflight(self.edition)
+            self.assertEqual(artifact(report), Path(report.files["report"]["path"]))
 
         report.refresh_from_db()
         self.assertEqual(report.cover_id, cover.id)
@@ -270,7 +373,6 @@ class PrintBuildStateTests(TestCase):
         self.assertEqual(next(item for item in report.findings if item["code"] == "interior.exists")["message"], "PDF do miolo localizado.")
         payload = json.loads(Path(report.files["report"]["path"]).read_text(encoding="utf-8"))
         self.assertEqual(payload["mode"], "proof_quality_control")
-        self.assertEqual(artifact(report), Path(report.files["report"]["path"]))
         industrial.assert_not_called()
         self.edition.refresh_from_db()
         self.assertFalse(self.edition.edition_approved_at)

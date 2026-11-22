@@ -501,6 +501,20 @@ def design_cover_tex(
 \colorbox{{white}}{{\rule{{0pt}}{{1.05in}}\rule{{1.67in}}{{0pt}}}}
 \end{{textblock*}}
 """
+    # Inactive fields must not make a proof depend on their configured fonts.
+    families = (
+        ("spine", spine_font_family, spine_block),
+        ("title", front_title_font_family, front_copy_block),
+        ("subtitle", front_subtitle_font_family, front_copy_block and subtitle.strip()),
+        ("author", front_author_font_family, front_copy_block),
+        ("language", front_language_font_family, front_copy_block and language.strip()),
+        ("publisher", front_publisher_font_family, front_copy_block and publisher.strip()),
+    )
+    font_declarations = "\n".join(
+        rf"\newfontfamily\{name}font{{{family}}}"
+        for name, family, used in families if used
+    )
+    main_font = rf"\setmainfont{{{cover_font_family}}}" if front_copy_block or back_block else ""
     return rf"""\documentclass{{article}}
 \usepackage[paperwidth={geometry.spread_width_in}in,paperheight={geometry.spread_height_in}in,margin=0in]{{geometry}}
 \usepackage{{graphicx}}
@@ -523,13 +537,8 @@ def design_cover_tex(
 \definecolor{{backtext}}{{HTML}}{{{back_text_color}}}
 \definecolor{{backaccent}}{{HTML}}{{{back_accent}}}
 \definecolor{{spinecolor}}{{HTML}}{{{spine_color_value}}}
-\newfontfamily\spinefont{{{spine_font_family}}}
-\newfontfamily\titlefont{{{front_title_font_family}}}
-\newfontfamily\subtitlefont{{{front_subtitle_font_family}}}
-\newfontfamily\authorfont{{{front_author_font_family}}}
-\newfontfamily\languagefont{{{front_language_font_family}}}
-\newfontfamily\publisherfont{{{front_publisher_font_family}}}
-\setmainfont{{{cover_font_family}}}
+{font_declarations}
+{main_font}
 \pagecolor{{coverbg}}
 \setlength{{\TPHorizModule}}{{1in}}
 \setlength{{\TPVertModule}}{{1in}}
