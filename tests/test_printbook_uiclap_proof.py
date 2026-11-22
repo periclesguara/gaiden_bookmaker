@@ -21,6 +21,7 @@ def test_uiclap_short_book_has_zero_spine_and_no_printed_spine_content(pages):
     tex = design_cover_tex(geometry, title='Front', author='Author', spine_title='Spine copy', spine_image_name='SPINE.jpg', spine_image_width_px=100, spine_image_height_px=100)
     assert 'SPINE.jpg' not in tex
     assert 'Spine copy' not in tex
+    assert r"\newfontfamily\spinefont" not in tex
 
 
 def test_uiclap_sixty_pages_and_other_providers_require_positive_spine():

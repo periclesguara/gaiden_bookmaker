@@ -25,6 +25,7 @@ class PrintEdition(models.Model):
         ("hardcover_dust_jacket", "Hardcover com sobrecapa"),
     ]
     COVER_MODE_CHOICES = [
+        ("automatic_pdf", "Capa automática em PDF já configurada"),
         ("new_print_cover", "Criar nova capa de impressão"),
         ("adapt_epub_cover", "Adaptar a capa atual do EPUB"),
         ("external_artwork", "Usar nova arte preparada externamente"),

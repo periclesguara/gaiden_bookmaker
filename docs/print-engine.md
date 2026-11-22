@@ -77,6 +77,11 @@ The MVP operator flow is:
    reopening CoverMaker restores those controls and reuses the saved artwork.
    `Save final cover` requires the official template and produces a title-based
    PDF filename only when the cover has no blocking finding.
+   As an alternative first cover stage, `Capa automática` accepts a complete,
+   already configured one-page PDF. Gaiden checks its page count and exact
+   full-wrap dimensions against the current interior, records it as the current
+   ready cover, and sends the operator directly to preflight. In this mode the
+   manual front, back-cover, and spine stages are omitted from the workflow.
 4. Obtain the official provider template for the final page count and replace
    the estimated spine width with the template value. A cover becomes `READY`
    only after that one-page template matches the generated full-wrap size.
@@ -327,14 +332,36 @@ preflight remains fail-closed.
 
 The cover editor keeps front, back and spine text controls separate, preserves
 intentional empty values and provides a browser-based layout estimate. The
+front, back and spine stages expose separate save-in-place and save-and-follow
+actions. They persist the current assembly, retain the selected stage after the
+POST and warn before leaving with unsaved local changes. This shared workflow
+applies to every new print edition. For UICLAP editions below 60 pages, all
+spine controls remain available and their settings can be preserved, while the
+output rule automatically omits spine art and text from the generated file. The
+montage remains editable and its save action remains available for the stapled
+proof, reports progress immediately, and confirms the saved version beside the
+action; the production-final action stays gated by official evidence. The
 assembly's **Autoajustar textos** command changes only unsaved form values,
 limits its calculated size reduction, and can be undone. It does not certify
 clipping, source resolution, barcode placement, font licensing or PDF/X. The
-preflight page offers a quality-readiness checklist and links to the editor;
+quality-control action can inspect the current proof before the official
+template is attached. That report remains blocked for production and cannot
+authorize export; a production preflight still requires the current interior
+and final cover approvals plus geometry evidence from the provider template or
+a validated configured cover PDF. The preflight page offers a
+quality-readiness checklist and links to the editor;
 when final assets are missing, running the check reports the missing inputs and
 does not create a production report. A failed, blocked or absent validation
 never enables final approval. Save a new proof and inspect the PDF at print size
 before proceeding.
+
+For a stapled UICLAP proof below 60 pages, the operator page presents one
+focused action that runs the local quality control and records editorial
+approval of the automatic montage against the exact cover, interior and report
+versions. Technical findings remain in the versioned report but are omitted
+from this simplified operator screen. The approval is invalidated by any later
+cover or interior version and does not represent provider acceptance or enable
+production export without official evidence.
 
 Cover compilation inspects LuaLaTeX output for missing-character diagnostics;
 missing glyphs are blocking findings and require a compatible font and new

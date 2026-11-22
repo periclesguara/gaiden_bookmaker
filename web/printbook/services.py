@@ -223,8 +223,8 @@ def approve_cover(edition):
     cover = latest(CoverBuild, edition)
     if edition.interior_approval.get("build_id") != interior.id:
         raise ValueError("Aprove o miolo atual antes de aprovar a capa.")
-    if cover.interior_id != interior.id or not cover.files.get("template"):
-        raise ValueError("A capa final deve usar o miolo atual e um template oficial.")
+    if cover.interior_id != interior.id or not (cover.files.get("template") or cover.files.get("configured_cover")):
+        raise ValueError("A capa final deve usar o miolo atual e ter geometria de produção conferida.")
     if any(item.get("severity") in {"BLOCKER", "ERROR"} for item in cover.findings):
         raise ValueError("Corrija os bloqueadores da capa antes da aprovação.")
     edition.cover_approval = {
@@ -302,6 +302,27 @@ def workflow_steps(edition):
         approved=bool(edition.edition_approved_at),
         error=bool(report and report.status == "BLOCKED"),
     )
+    if report and report.status == "BLOCKED":
+        report_status = ("error", "Ajustes necessários")
+    if interior and is_uiclap_stapled(edition, interior.page_count):
+        proof = CoverBuild.objects.filter(
+            edition=edition, interior=interior, status__in=["READY", "DRAFT", "BLOCKED"]
+        ).first()
+        proof_report = PreflightReport.objects.filter(
+            edition=edition, interior=interior, cover=proof, status__in=["READY", "BLOCKED", "FAILED"]
+        ).first()
+        if automatic_montage_is_approved(edition, interior, proof, proof_report):
+            report_status = ("approved", "Prova aprovada")
+        elif proof_report and proof_report.status == "FAILED":
+            report_status = ("error", "Controle não concluído")
+    if getattr(edition, "cover_mode", "") == "automatic_pdf":
+        return [
+            {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
+            {"number": "02", "label": "Miolo", "url_name": "printbook:interior", "status": interior_status[0], "status_label": interior_status[1]},
+            {"number": "03", "label": "Capa automática", "url_name": "printbook:cover", "cover_tab": "automatic", "status": cover_status[0], "status_label": cover_status[1] + " · PDF configurado"},
+            {"number": "04", "label": "Preflight", "url_name": "printbook:preflight", "status": report_status[0], "status_label": report_status[1]},
+            {"number": "05", "label": "Exportação", "url_name": "printbook:export", "status": "approved" if exported else "pending", "status_label": "Aprovado" if exported else "Não iniciado"},
+        ]
     return [
         {"number": "01", "label": "Configuração", "url_name": "printbook:configuration", "status": configuration_status[0], "status_label": configuration_status[1]},
         {"number": "02", "label": "Miolo", "url_name": "printbook:interior", "status": interior_status[0], "status_label": interior_status[1]},
@@ -333,6 +354,16 @@ def guard(edition):
             )
             expected_snapshot = snapshot(edition)
             recorded_snapshot = dict(build.snapshot or {})
+            if (
+                model is CoverBuild
+                and build.files.get("configured_cover")
+                and recorded_snapshot == {
+                    "source": "automatic_pdf", "configured_pdf": True, "skips_back_and_spine": True,
+                }
+                and build.interior.status == "READY"
+                and build.geometry == estimated_cover_geometry(edition, build.interior.page_count)
+            ):
+                recorded_snapshot = dict(build.interior.snapshot)
             # Builds created before the workflow refactor did not store the
             # empty composition key. Treat that representation as equivalent.
             if not expected_snapshot.get("composition") and "composition" not in recorded_snapshot:
@@ -392,6 +423,23 @@ def estimated_cover_geometry(edition, page_count):
 
 def root_for(build):
     return storage.storage_root() / "printbook" / str(build.edition_id) / build._meta.model_name / f"v{build.version:04d}"
+
+
+def verified_build_file(build, item):
+    """Resolve a recorded artifact from the active or legacy repository data root."""
+    if not isinstance(item, dict) or not item.get("path") or not item.get("sha256"):
+        raise ValueError("Metadados do artefato estão incompletos.")
+    path = Path(item["path"]).resolve()
+    legacy_root = (
+        storage.repo_root() / "data" / "printbook" / str(build.edition_id)
+        / build._meta.model_name / f"v{build.version:04d}"
+    ).resolve()
+    allowed_roots = {root_for(build).resolve(), legacy_root}
+    if not any(path.is_relative_to(root) for root in allowed_roots):
+        raise ValueError("O artefato está fora das raízes permitidas.")
+    if not path.is_file() or sha(path) != item["sha256"]:
+        raise ValueError("O artefato não existe ou falhou na verificação de integridade.")
+    return path
 
 
 @transaction.atomic
@@ -661,6 +709,40 @@ def import_cover(edition, cover, template, spine):
         for model in (PreflightReport, PrintExport):
             model.objects.filter(edition=edition, status="READY").update(status="INVALIDATED")
         record(build, {"pdf": root / "COVER.pdf", "template": root / "OFFICIAL_TEMPLATE.pdf"}, PrintEdition.State.COVER_READY)
+    except Exception as exc:
+        fail(build, exc)
+        raise
+    return build
+
+
+def import_automatic_cover_pdf(edition, cover_pdf):
+    """Register a one-page, fully configured cover PDF for the current interior."""
+    guard(edition)
+    interior = latest(InteriorBuild, edition)
+    if not interior or not interior.page_count or interior.page_count < 1:
+        raise ValueError("Compile e aprove o miolo antes de inserir a capa automática.")
+    spine = Decimal("0") if is_uiclap_stapled(edition, interior.page_count) else estimated_spine_width(edition, interior.page_count)
+    spec = cover_spec_for(edition, interior.page_count, spine)
+    geometry = CoverGeometry.from_spec(spec)
+    build = new_build(CoverBuild, edition, interior=interior, geometry=geometry_payload(geometry))
+    try:
+        root = root_for(build)
+        target = root / "COVER.pdf"
+        upload_pdf(cover_pdf, target)
+        if inspect_pdf_page_count(target) != 1:
+            raise ValueError("A capa automática deve ser um PDF de uma página.")
+        validate_pdf_page_size(
+            target,
+            width_in=geometry.spread_width_in,
+            height_in=geometry.spread_height_in,
+            label="A capa automática",
+        )
+        for model in (PreflightReport, PrintExport):
+            model.objects.filter(edition=edition, status="READY").update(status="INVALIDATED")
+        record(build, {"pdf": target, "configured_cover": target}, PrintEdition.State.COVER_READY)
+        edition.cover_mode = "automatic_pdf"
+        edition.cover_approval = {"build_id": build.id, "source": "automatic_pdf", "approved_at": timezone.now().isoformat()}
+        edition.save(update_fields=["cover_mode", "cover_approval", "updated_at"])
     except Exception as exc:
         fail(build, exc)
         raise
@@ -1241,8 +1323,9 @@ def quality_readiness(edition, interior, cover, *, source_error=""):
     interior_approved = bool(interior and edition.interior_approval.get("build_id") == interior.id)
     checks.append({"ok": interior_approved, "message": "Miolo atual aprovado." if interior_approved else "Compile e aprove o miolo atual.", "url_name": "printbook:interior", "label": "Abrir miolo"})
     cover_current = bool(cover and interior and cover.interior_id == interior.id)
-    cover_ready = bool(cover_current and cover.files.get("template"))
-    checks.append({"ok": cover_ready, "message": "Capa final com template oficial registrada." if cover_ready else "Salve uma capa final para o miolo atual com o template oficial; a prova em rascunho não é uma capa final.", "url_name": "printbook:cover", "label": "Abrir montagem"})
+    automatic_cover = bool(cover_current and cover.files.get("configured_cover"))
+    cover_ready = bool(cover_current and (cover.files.get("template") or automatic_cover))
+    checks.append({"ok": cover_ready, "message": "Capa automática configurada e validada." if automatic_cover else ("Capa final com template oficial registrada." if cover_ready else "Salve uma capa final para o miolo atual com o template oficial; a prova em rascunho não é uma capa final."), "url_name": "printbook:cover", "label": "Abrir capa"})
     cover_approved = bool(cover_ready and edition.cover_approval.get("build_id") == cover.id)
     checks.append({"ok": cover_approved, "message": "Capa final atual aprovada." if cover_approved else "Aprove a capa final atual depois de corrigir seus bloqueadores.", "url_name": "printbook:cover", "label": "Abrir capa"})
     configured = bool(getattr(settings, "PRINTBOOK_VALIDATOR", ""))
@@ -1253,34 +1336,77 @@ def quality_readiness(edition, interior, cover, *, source_error=""):
 def preflight(edition):
     guard(edition)
     interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
-    cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
     if not interior:
         raise ValueError("Compile e aprove o miolo atual antes do preflight.")
+    if edition.interior_approval.get("build_id") != interior.id:
+        raise ValueError("Aprove o miolo atual antes de executar o controle de qualidade.")
+    cover = CoverBuild.objects.filter(
+        edition=edition, status__in=["READY", "DRAFT", "BLOCKED"], interior=interior
+    ).first()
     if not cover:
-        raise ValueError("A capa ainda é uma prova. Anexe o template oficial, salve a capa final e aprove-a antes do preflight.")
-    if edition.interior_approval.get("build_id") != interior.id or edition.cover_approval.get("build_id") != cover.id:
-        raise ValueError("Aprove o miolo e a capa atuais antes de executar o preflight.")
+        raise ValueError("Salve uma prova da capa atual antes de executar o controle de qualidade.")
     if cover.interior_id != interior.id:
         raise ValueError("A capa não pertence ao miolo atual.")
+    stapled = is_uiclap_stapled(edition, interior.page_count)
+    geometry_evidence = cover.files.get("template") or cover.files.get("configured_cover")
+    production_ready = bool(
+        not stapled
+        and cover.status == "READY"
+        and geometry_evidence
+        and edition.cover_approval.get("build_id") == cover.id
+    )
     build = new_build(PreflightReport, edition, interior=interior, cover=cover)
     try:
-        spec = spec_for(edition).finalize(page_count=interior.page_count, spine_width_in=cover.geometry["spine_width_in"])
-        report = preflight_pdfs(spec, interior_pdf=interior.files["pdf"]["path"], cover_pdf=cover.files["pdf"]["path"])
-        build.findings = [{"code": c.code, "severity": "INFO" if c.status.value == "pass" else "BLOCKER", "message": c.message} for c in report.checks if c.code != "pdfx.validation"]
+        spec = cover_spec_for(edition, interior.page_count, cover.geometry["spine_width_in"])
+        report = preflight_pdfs(
+            spec,
+            interior_pdf=verified_build_file(interior, interior.files.get("pdf")),
+            cover_pdf=verified_build_file(cover, cover.files.get("pdf")),
+        )
+        build.findings = []
+        for check in report.checks:
+            if check.code == "pdfx.validation":
+                continue
+            severity = "INFO" if check.status.value == "pass" else "BLOCKER"
+            message = check.message
+            if check.code == "interior.exists":
+                message = "PDF do miolo localizado." if check.status.value == "pass" else "PDF do miolo não foi localizado."
+            elif check.code == "cover.exists":
+                message = "PDF da capa localizado." if check.status.value == "pass" else "PDF da capa não foi localizado."
+            elif check.code == "spec.provider_policy" and not production_ready:
+                severity = "WARNING"
+                message = "A validação industrial do fornecedor ainda não está configurada; a análise local da prova foi executada."
+            build.findings.append({"code": check.code, "severity": severity, "message": message})
         build.findings.extend(cover.findings)
-        hashes = {"interior": interior.files["pdf"]["sha256"], "cover": cover.files["pdf"]["sha256"], "template": cover.files["template"]["sha256"]}
-        job = root_for(build) / "validation-job.json"
-        job.write_text(json.dumps({"hashes": hashes, "configuration": snapshot(edition), "geometry": cover.geometry,
-            "interior": interior.files["pdf"]["path"], "cover": cover.files["pdf"]["path"],
-            "template": cover.files["template"]["path"], "page_count": interior.page_count}, indent=2), encoding="utf-8")
-        evidence = validate_industrial(getattr(settings, "PRINTBOOK_VALIDATOR", ""), job, hashes)
-        build.findings.extend(evidence["checks"])
-        build.tools = {
-            "pdfinfo": tool_version("pdfinfo"),
-            "pdffonts": tool_version("pdffonts"),
-            "industrial_validator": evidence["tool_version"],
-            "pdfx_standard": evidence["pdfx_standard"],
-        }
+        hashes = {"interior": interior.files["pdf"]["sha256"], "cover": cover.files["pdf"]["sha256"]}
+        if production_ready:
+            hashes["template"] = geometry_evidence["sha256"]
+            job = root_for(build) / "validation-job.json"
+            job.write_text(json.dumps({"hashes": hashes, "configuration": snapshot(edition), "geometry": cover.geometry,
+                "interior": interior.files["pdf"]["path"], "cover": cover.files["pdf"]["path"],
+                "template": geometry_evidence["path"], "page_count": interior.page_count}, indent=2), encoding="utf-8")
+            evidence = validate_industrial(getattr(settings, "PRINTBOOK_VALIDATOR", ""), job, hashes)
+            build.findings.extend(evidence["checks"])
+            build.tools = {
+                "pdfinfo": tool_version("pdfinfo"),
+                "pdffonts": tool_version("pdffonts"),
+                "industrial_validator": evidence["tool_version"],
+                "pdfx_standard": evidence["pdfx_standard"],
+            }
+        else:
+            if stapled:
+                reason = "Controle local da prova UICLAP sem lombada. A saída de produção em JPG ainda não está disponível."
+            elif geometry_evidence:
+                reason = "A capa final ainda não foi aprovada. O controle de qualidade foi executado, mas a exportação permanece bloqueada."
+            else:
+                reason = "Controle de qualidade executado sobre a prova atual. Anexe o template oficial, salve a capa final e aprove-a para liberar a produção."
+            build.findings.append({"code": "cover.proof_only", "severity": "BLOCKER", "message": reason})
+            build.tools = {
+                "pdfinfo": tool_version("pdfinfo"),
+                "pdffonts": tool_version("pdffonts"),
+                "industrial_validator": None,
+                "pdfx_standard": None,
+            }
         if not edition.isbn:
             build.findings.append({"code": "isbn", "severity": "BLOCKER", "message": "Informe o ISBN desta edição física."})
         elif isbn13(edition.isbn):
@@ -1288,6 +1414,7 @@ def preflight(edition):
         output = root_for(build) / "preflight.json"
         output.write_text(json.dumps({
             "edition_id": edition.id,
+            "mode": "production_preflight" if production_ready else "proof_quality_control",
             "configuration": snapshot(edition),
             "hashes": hashes,
             "tools": build.tools,
@@ -1307,6 +1434,57 @@ def preflight(edition):
         fail(build, exc)
         raise
     return build
+
+
+def automatic_montage_blockers(report):
+    """Find defects of the proof independently of final production requirements."""
+    return [
+        finding for finding in report.findings
+        if finding.get("severity") in {"BLOCKER", "ERROR"}
+        and finding.get("code") not in {"cover.proof_only", "isbn"}
+    ]
+
+
+def automatic_montage_is_approved(edition, interior, cover, report):
+    if not interior or not cover or not report or report.status not in {"READY", "BLOCKED"}:
+        return False
+    saved = (edition.cover_settings or {}).get("automatic_montage_approval", {})
+    return (
+        edition.interior_approval.get("build_id") == interior.id
+        and report.interior_id == interior.id
+        and report.cover_id == cover.id
+        and saved.get("interior_build_id") == interior.id
+        and saved.get("cover_build_id") == cover.id
+        and saved.get("report_id") == report.id
+        and saved.get("cover_sha256") == cover.files.get("pdf", {}).get("sha256")
+        and not automatic_montage_blockers(report)
+    )
+
+
+def approve_automatic_montage(edition):
+    """Run local quality checks and bind an editorial approval to a stapled proof."""
+    guard(edition)
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    if not interior or edition.interior_approval.get("build_id") != interior.id:
+        raise ValueError("Aprove o miolo atual antes de aprovar a montagem automática.")
+    if not is_uiclap_stapled(edition, interior.page_count):
+        raise ValueError("A aprovação automática sem lombada vale somente para UICLAP abaixo de 60 páginas.")
+    report = preflight(edition)
+    if automatic_montage_blockers(report):
+        return report
+    cover = report.cover
+    approval = {
+        "cover_build_id": cover.id,
+        "interior_build_id": interior.id,
+        "report_id": report.id,
+        "cover_sha256": cover.files["pdf"]["sha256"],
+        "approved_at": timezone.now().isoformat(),
+    }
+    cover_settings = dict(edition.cover_settings or {})
+    cover_settings["automatic_montage_approval"] = approval
+    edition.cover_settings = cover_settings
+    edition.save(update_fields=["cover_settings", "updated_at"])
+    return report
 
 
 def export_package(edition):

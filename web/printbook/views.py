@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .forms import BACK_COVER_ELEMENTS, CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
+from .forms import AutomaticCoverPDFForm, BACK_COVER_ELEMENTS, CoverDesignForm, EditionConfigurationForm, EditionForm, InteriorSettingsForm
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
 from . import services, catalog, epub_preview
 from zipfile import ZipFile, BadZipFile
@@ -39,13 +39,21 @@ COVER_PREVIEW_FONTS = {
 }
 
 
+def _cover_stage(data):
+    current = data.get("current_stage")
+    if current in {"front", "back", "spine", "montage"}:
+        return current
+    return {"front": "front", "back": "front", "spine": "back", "montage": "spine"}.get(
+        data.get("continue_to"), "montage"
+    )
+
+
 def _cover_stage_post_data(request, edition):
     """Keep fields from later, hidden stages from blocking the current save."""
-    requested_tab = request.POST.get("continue_to", "")
     future_prefixes = {
-        "back": ("back_", "spine_"),
-        "spine": ("spine_",),
-    }.get(requested_tab, ())
+        "front": ("back_", "spine_"),
+        "back": ("spine_",),
+    }.get(_cover_stage(request.POST), ())
     if not future_prefixes:
         return request.POST
 
@@ -255,13 +263,36 @@ def preflight_workspace(request, pk):
     edition = get_object_or_404(PrintEdition, pk=pk)
     context = _edition_context(edition)
     context["active_step"] = "preflight"
+    interior = context["interior"]
+    stapled = bool(interior and services.is_uiclap_stapled(edition, interior.page_count))
+    covers = context["covers"].filter(interior=interior)
+    latest_proof = covers.filter(status__in=["DRAFT", "BLOCKED"]).first()
     report = context["reports"].first()
+    if stapled:
+        latest_proof = covers.filter(status__in=["READY", "DRAFT", "BLOCKED"]).first()
+        report = context["reports"].filter(
+            interior=interior, cover=latest_proof, status__in=["READY", "BLOCKED", "FAILED"],
+        ).first()
     context["report"] = report
-    context["quality_readiness"] = services.quality_readiness(
-        edition, context["interior"], context["cover"], source_error=context["source_error"]
-    )
-    latest_proof = context["covers"].filter(status__in=["DRAFT", "BLOCKED"]).first()
     context["latest_proof"] = latest_proof
+    context["quality_readiness"] = services.quality_readiness(
+        edition, interior, context["cover"] or latest_proof, source_error=context["source_error"]
+    )
+    context["stapled_uiclap"] = stapled
+    context["preflight_interior_approved"] = bool(
+        interior and edition.interior_approval.get("build_id") == interior.id
+    )
+    context["stapled_preflight_ready"] = bool(
+        stapled and not context["source_error"] and latest_proof and context["preflight_interior_approved"]
+    )
+    montage_blockers = services.automatic_montage_blockers(report) if stapled and report else []
+    context["montage_blockers"] = [_finding_group(item, edition) for item in montage_blockers]
+    automatic_approval = (edition.cover_settings or {}).get("automatic_montage_approval", {})
+    context["automatic_montage_approved"] = (
+        context["stapled_preflight_ready"]
+        and services.automatic_montage_is_approved(edition, interior, latest_proof, report)
+    )
+    context["automatic_montage_approval"] = automatic_approval
     context["proof_findings"] = [
         _finding_group(item, edition) for item in latest_proof.findings
         if item.get("severity") in {"WARNING", "BLOCKER", "ERROR"}
@@ -290,7 +321,7 @@ def cover_dashboard(request, pk):
     except ValueError as exc:
         source_error = str(exc)
 
-    interior = InteriorBuild.objects.filter(edition=edition, status="READY").first()
+    interior = InteriorBuild.objects.filter(edition=edition, status="READY", page_count__gt=0).first()
     cover = CoverBuild.objects.filter(edition=edition, status="READY").first()
     latest_visual = CoverBuild.objects.filter(edition=edition, status__in=["READY", "DRAFT", "BLOCKED"]).first()
     estimated_spine = services.estimated_spine_width(edition, interior.page_count) if interior else None
@@ -376,6 +407,7 @@ def cover_dashboard(request, pk):
         "panel_width_in": panel_width_in,
         "estimated_spine": estimated_spine,
         "design_form": design_form,
+        "automatic_cover_form": AutomaticCoverPDFForm(),
         "back_elements": back_elements,
         "cover_mode": edition.cover_mode,
         "stapled_uiclap": stapled_uiclap,
@@ -417,8 +449,9 @@ def _cover_design_image(request, pk, file_key):
     item = build.files.get(file_key)
     if not item:
         raise Http404
-    path = Path(item["path"]).resolve()
-    if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+    try:
+        path = services.verified_build_file(build, item)
+    except ValueError:
         raise Http404
     content_type = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
     return FileResponse(path.open("rb"), content_type=content_type)
@@ -438,7 +471,10 @@ def book_preview(request, pk):
         {"ok": interior.status == "READY", "label": f"Miolo atual: {interior.page_count} páginas"},
         {"ok": interior.page_count % 2 == 0, "label": "Paginação final par"},
         {"ok": ppi >= 300, "label": f"Imagem da capa: {ppi or 'não medida'} ppi efetivos"},
-        {"ok": cover.status == "READY" and bool(cover.files.get("template")), "label": "Template oficial conferido e capa final salva"},
+        {
+            "ok": cover.status == "READY" and bool(cover.files.get("template") or cover.files.get("configured_cover")),
+            "label": "Geometria da capa conferida e capa final salva",
+        },
         {"ok": bool(edition.isbn), "label": "ISBN da edição física informado"},
         {"ok": bool(getattr(settings, "PRINTBOOK_VALIDATOR", "")), "label": "Validador industrial configurado"},
     ]
@@ -461,8 +497,9 @@ def cover_template(request, pk):
         item = build.files.get("template")
         if not item:
             raise Http404("Este build não guarda um template.")
-        path = Path(item["path"]).resolve()
-        if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+        try:
+            path = services.verified_build_file(build, item)
+        except ValueError:
             raise Http404("Template inválido.")
     except ValueError as exc:
         raise Http404("Build invalidado.") from exc
@@ -473,6 +510,7 @@ def cover_template(request, pk):
 def action(request, pk, action):
     edition = get_object_or_404(PrintEdition, pk=pk)
     cover_continue_to = ""
+    cover_stage = ""
     try:
         if action == "configure":
             services.guard(edition)
@@ -506,8 +544,22 @@ def action(request, pk, action):
             services.compile_interior(edition)
         elif action == "approve_interior":
             services.approve_interior(edition)
+        elif action == "automatic_cover_pdf":
+            form = AutomaticCoverPDFForm(request.POST, request.FILES)
+            if not form.is_valid():
+                for errors in form.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
+                response = redirect("printbook:cover", pk=pk)
+                response["Location"] = f'{response["Location"]}?tab=automatic'
+                return response
+            services.import_automatic_cover_pdf(edition, form.cleaned_data["cover_pdf"])
+            messages.success(request, "Capa automática validada. Contracapa e lombada foram dispensadas; prossiga ao preflight.")
+            response = redirect("printbook:preflight", pk=pk)
+            return response
         elif action == "design_cover":
             requested_tab = request.POST.get("continue_to", "")
+            cover_stage = _cover_stage(request.POST)
             form = CoverDesignForm(_cover_stage_post_data(request, edition), request.FILES)
             if not form.is_valid():
                 if form.cleaned_data:
@@ -518,18 +570,21 @@ def action(request, pk, action):
                         messages.error(request, f"{label}: {error}")
                 messages.warning(request, "Os demais campos válidos foram preservados no rascunho.")
                 response = redirect("printbook:cover", pk=pk)
-                current_tab = {"back": "front", "spine": "back", "montage": "spine"}.get(requested_tab)
-                if current_tab:
-                    response["Location"] = f'{response["Location"]}?tab={current_tab}&saved=partial'
+                response["Location"] = f'{response["Location"]}?tab={cover_stage}&saved=partial'
                 return response
             services.save_cover_draft_fields(edition, form.cleaned_data)
             services.design_cover(edition, **form.cleaned_data)
-            if requested_tab in {"back", "spine", "montage"}:
+            if requested_tab in {"front", "back", "spine", "montage"}:
                 cover_continue_to = requested_tab
         elif action == "approve_cover":
             services.approve_cover(edition)
         elif action == "preflight":
             services.preflight(edition)
+        elif action == "approve_automatic_montage":
+            report = services.approve_automatic_montage(edition)
+            if services.automatic_montage_blockers(report):
+                messages.warning(request, "Controle concluído. Corrija os bloqueios da prova e execute novamente.")
+                return redirect("printbook:preflight", pk=pk)
         elif action == "approve_visual_review":
             services.approve_visual_review(edition)
         elif action == "approve_edition":
@@ -540,6 +595,8 @@ def action(request, pk, action):
             raise Http404
         if action == "design_cover" and cover_continue_to:
             messages.success(request, "Rascunho da capa salvo. Continue na próxima etapa.")
+        elif action == "approve_automatic_montage":
+            messages.success(request, "Controle concluído. A montagem automática atual foi aprovada.")
         else:
             messages.success(request, "Operação registrada. Confira o estado e o relatório do build.")
     except (ValueError, RuntimeError) as exc:
@@ -557,15 +614,19 @@ def action(request, pk, action):
         "compile": "printbook:interior",
         "approve_interior": "printbook:interior",
         "design_cover": "printbook:cover",
+        "automatic_cover_pdf": "printbook:preflight",
         "approve_cover": "printbook:cover",
         "preflight": "printbook:preflight",
+        "approve_automatic_montage": "printbook:preflight",
         "approve_visual_review": "printbook:preflight",
         "approve_edition": "printbook:preflight",
         "export": "printbook:export",
     }
     response = redirect(destinations.get(action, "printbook:configuration"), pk=pk)
-    if action == "design_cover" and cover_continue_to:
+    if cover_continue_to:
         response["Location"] = f'{response["Location"]}?tab={cover_continue_to}&saved=draft'
+    elif cover_stage:
+        response["Location"] = f'{response["Location"]}?tab={cover_stage}'
     return response
 
 
@@ -577,11 +638,14 @@ def artifact(build):
     build.refresh_from_db()
     if build.status != "READY" and not (
         isinstance(build, CoverBuild) and build.status in {"DRAFT", "BLOCKED"}
+    ) and not (
+        isinstance(build, PreflightReport) and build.status == "BLOCKED"
     ):
         raise Http404("Artefato não está atual.")
     item = build.files.get("pdf") or build.files.get("report") or build.files.get("package")
-    path = Path(item["path"]).resolve()
-    if not path.is_relative_to(services.root_for(build).resolve()) or not path.is_file() or services.sha(path) != item["sha256"]:
+    try:
+        path = services.verified_build_file(build, item)
+    except ValueError:
         raise Http404
     return path
 

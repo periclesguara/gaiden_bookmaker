@@ -6,10 +6,10 @@ import shutil
 import subprocess
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from web.printbook.forms import CoverDesignForm
-from web.printbook.services import preflight, quality_readiness, workflow_steps
+from web.printbook.services import approve_automatic_montage, preflight, quality_readiness, workflow_steps
 
 
 class CoverEditorControlTests(SimpleTestCase):
@@ -47,12 +47,108 @@ if (dimensions.front.width !== 4000 || dimensions.front.height !== 6000) process
         self.assertEqual(soup.find("a", string="Autoajustar capa")["href"], "/printbook/6/cover/?tab=montage&autofit=1")
         self.assertTrue(soup.find("button", string="Confirmar revisão visual").has_attr("disabled"))
 
-    def test_draft_cover_cannot_create_a_production_preflight(self):
-        edition = SimpleNamespace()
+    def test_stapled_uiclap_shows_one_automatic_approval_action(self):
+        edition = SimpleNamespace(pk=6, name="Edition")
+        latest_proof = SimpleNamespace(version=29, interior_id=23)
+        request = RequestFactory().get("/printbook/6/preflight/")
+        page = render_to_string(
+            "printbook/preflight.html",
+            {
+                "edition": edition,
+                "stapled_uiclap": True,
+                "automatic_montage_approved": False,
+                "latest_proof": latest_proof,
+                "stapled_preflight_ready": True,
+                "report": None,
+                "workflow_steps": [],
+            },
+            request=request,
+        )
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Executar controle de qualidade e aprovar montagem automática")
+        self.assertIsNotNone(button)
+        self.assertEqual(button.find_parent("form")["action"], "/printbook/6/action/approve_automatic_montage/")
+        self.assertNotIn("Salve uma capa final", soup.get_text(" ", strip=True))
+        self.assertNotIn("Validador industrial", soup.get_text(" ", strip=True))
+        self.assertNotIn("Aprove a capa final", soup.get_text(" ", strip=True))
+
+    def test_stapled_uiclap_reports_exact_approved_versions(self):
+        edition = SimpleNamespace(pk=6, name="Edition")
+        latest_proof = SimpleNamespace(version=29, interior_id=23)
+        request = RequestFactory().get("/printbook/6/preflight/")
+        page = render_to_string(
+            "printbook/preflight.html",
+            {
+                "edition": edition,
+                "stapled_uiclap": True,
+                "automatic_montage_approved": True,
+                "latest_proof": latest_proof,
+                "report": SimpleNamespace(version=3, status="BLOCKED"),
+                "workflow_steps": [],
+            },
+            request=request,
+        )
+        text = BeautifulSoup(page, "html.parser").get_text(" ", strip=True)
+        self.assertIn("Montagem aprovada", text)
+        self.assertIn("Capa v29 e miolo #23 conferidos juntos", text)
+        self.assertNotIn("BLOCKER", text)
+
+    def test_automatic_montage_approval_binds_exact_versions(self):
+        edition = SimpleNamespace(
+            interior_approval={"build_id": 23},
+            cover_settings={"title": "Livro"},
+            save=Mock(),
+        )
+        interior_build = SimpleNamespace(id=23, page_count=30)
+        cover_build = SimpleNamespace(id=29, files={"pdf": {"sha256": "cover-sha"}})
+        report = SimpleNamespace(id=3, cover=cover_build, findings=[
+            {"code": "cover.proof_only", "severity": "BLOCKER"},
+            {"code": "isbn", "severity": "BLOCKER"},
+        ])
+        with (
+            patch("web.printbook.services.guard"),
+            patch("web.printbook.services.InteriorBuild") as interior,
+            patch("web.printbook.services.is_uiclap_stapled", return_value=True),
+            patch("web.printbook.services.preflight", return_value=report),
+        ):
+            interior.objects.filter.return_value.first.return_value = interior_build
+            result = approve_automatic_montage(edition)
+
+        self.assertIs(result, report)
+        approval = edition.cover_settings["automatic_montage_approval"]
+        self.assertEqual(approval["cover_build_id"], 29)
+        self.assertEqual(approval["interior_build_id"], 23)
+        self.assertEqual(approval["report_id"], 3)
+        self.assertEqual(approval["cover_sha256"], "cover-sha")
+        self.assertTrue(approval["approved_at"])
+        self.assertEqual(edition.cover_settings["title"], "Livro")
+        edition.save.assert_called_once_with(update_fields=["cover_settings", "updated_at"])
+
+    def test_automatic_montage_does_not_approve_real_quality_blockers(self):
+        edition = SimpleNamespace(interior_approval={"build_id": 23}, cover_settings={}, save=Mock())
+        cover = SimpleNamespace(id=29, files={"pdf": {"sha256": "cover-sha"}})
+        report = SimpleNamespace(id=3, cover=cover, findings=[
+            {"code": "cover.page_size", "severity": "BLOCKER"},
+            {"code": "cover.proof_only", "severity": "BLOCKER"},
+        ])
+        with (
+            patch("web.printbook.services.guard"),
+            patch("web.printbook.services.InteriorBuild") as interior,
+            patch("web.printbook.services.is_uiclap_stapled", return_value=True),
+            patch("web.printbook.services.preflight", return_value=report),
+        ):
+            interior.objects.filter.return_value.first.return_value = SimpleNamespace(id=23, page_count=30)
+            self.assertIs(approve_automatic_montage(edition), report)
+
+        self.assertNotIn("automatic_montage_approval", edition.cover_settings)
+        edition.save.assert_not_called()
+
+    def test_quality_control_requires_a_saved_cover_proof(self):
+        edition = SimpleNamespace(interior_approval={"build_id": 23})
         with patch("web.printbook.services.guard"), patch("web.printbook.services.InteriorBuild") as interior, patch("web.printbook.services.CoverBuild") as cover, patch("web.printbook.services.new_build") as new_build:
             interior.objects.filter.return_value.first.return_value = SimpleNamespace(id=23)
             cover.objects.filter.return_value.first.return_value = None
-            with self.assertRaisesMessage(ValueError, "A capa ainda é uma prova"):
+            with self.assertRaisesMessage(ValueError, "Salve uma prova da capa atual"):
                 preflight(edition)
             new_build.assert_not_called()
 
@@ -71,6 +167,36 @@ if (clicked !== 1 || tab !== 'montage' || new URL(window.location.href).searchPa
         subprocess.run(["node", "-e", harness], check=True, capture_output=True, text=True)
 
     @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
+    def test_montage_submit_keeps_draft_value_and_blocks_repeated_saves(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+        script = "form.addEventListener('submit'," + template.split("  form.addEventListener('submit',", 1)[1].split(
+            "  window.addEventListener('beforeunload'", 1
+        )[0]
+        harness = r'''
+let submit;
+let formSubmitting = false;
+const status = {textContent: ''};
+const form = {addEventListener: (_, listener) => { submit = listener; }, querySelector: () => status};
+const button = {
+  name: 'save_mode', value: 'draft', disabled: false, dataset: {},
+  hasAttribute: name => name === 'data-save-montage',
+  setAttribute: () => {},
+};
+const save = () => {
+  const event = {submitter: button, prevented: false, preventDefault() { this.prevented = true; }};
+  submit(event);
+  return event.prevented || button.disabled ? null : {[button.name]: button.value};
+};
+''' + script + r'''
+if (save()?.save_mode !== 'draft' || !status.textContent.includes('nova prova')) {
+  throw Error('The requested draft mode must stay in the form submission.');
+}
+if (save() !== null) throw Error('A second save must be blocked.');
+'''
+        result = subprocess.run(["node", "-e", harness], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
     def test_auto_fit_calculates_non_overlapping_blocks_and_rejects_overflow(self):
         script = Path(__file__).parent / "static/printbook/cover_autofit.js"
         harness = r'''
@@ -83,6 +209,15 @@ if (fit([{height: 90, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) 
 if (fit([{height: 0, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) process.exit(1);
 const safeResult = fit([{height: 10, minimum: 0, maximum: 90, preferred: 0}], 90, 2, 9);
 if (!safeResult || safeResult[0] !== 9) process.exit(1);
+const crowded = [
+  {height: 25, minimum: 8, maximum: 60, preferred: 30},
+  {height: 25, minimum: 8, maximum: 80, preferred: 75}
+];
+const moved = fit(crowded, 80, 2);
+if (!moved || moved[0] !== 28 || moved[1] !== 55) {
+  throw Error('Late preferences must yield before reducing font size.');
+}
+if (fit([{...crowded[0], minimum: 30}], 54, 2) !== null) process.exit(1);
 '''
         subprocess.run(["node", "-e", harness, str(script)], check=True, capture_output=True, text=True)
 
@@ -113,6 +248,7 @@ const simulator = {dataset: {barcodeMode: 'provider', spineAllowed: 'yes'}};
 const trimHeight = 9, panelHeight = 9.25;
 const snapshot = () => Object.fromEntries(Object.entries(form.elements).filter(([_, field]) => field.value !== undefined).map(([key, field]) => [key, field.value]));
 const restore = state => Object.entries(state).forEach(([key, value]) => {form.elements[key].value = value;});
+let dirty = 0; const setFormDirty = () => {dirty++;};
 let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
 ''' + script + r'''
 (async () => {
@@ -120,10 +256,11 @@ let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
  if (form.elements.front_title_x_percent.value !== '50' || form.elements.front_text_scale_percent.value !== '100' || saved !== 2) throw Error('fit: ' + status.textContent + ' / ' + saved);
  if (form.elements.back_element_body_x_percent.value !== '50' || Number(form.elements.back_element_body_y_percent.value) < 10 || Number(form.elements.back_element_body_y_percent.value) > 72) throw Error('back safety bounds');
  if (Number(form.elements.front_author_font_size_pt.value) !== 9) throw Error('minimum font size not applied');
+ if (dirty !== 1) throw Error('Auto-fit must mark its edits as unsaved.');
  if (!status.textContent.includes('Textos organizados')) throw Error('status: ' + status.textContent);
  const before = JSON.stringify(snapshot()); oversized = true;
  await click();
- if (JSON.stringify(snapshot()) !== before || !status.textContent.includes('não couberam')) throw Error('rollback: ' + status.textContent);
+ if (dirty !== 1 || JSON.stringify(snapshot()) !== before || !status.textContent.includes('não couberam')) throw Error('rollback: ' + status.textContent);
  oversized = false;
  Object.assign(form.elements, {spine_title: field('Livro'), spine_author: field(''), spine_publisher: field(''), spine: field('0.5'), spine_edge_safe_mm: field('1.6'), spine_letter_spacing_pt: field('0'), spine_font_size_pt: field('8'), spine_text_x_percent: field('30'), spine_text_y_percent: field('70'), spine_offset_x_mm: field('2'), spine_offset_y_mm: field('1')});
  await click();
@@ -274,6 +411,16 @@ if (nodes[0].textContent !== '' || nodes[0].hidden !== true) process.exit(1);
         self.assertEqual([step["label"] for step in steps], ["Configuração", "Miolo", "Capa", "Contracapa", "Lombada", "Preflight", "Exportação"])
         self.assertEqual([step.get("cover_tab") for step in steps[2:5]], ["front", "back", "spine"])
         self.assertEqual(len({step["status"] for step in steps[2:5]}), 1)
+
+    def test_automatic_pdf_workflow_skips_back_cover_and_spine(self):
+        edition = SimpleNamespace(cover_mode="automatic_pdf", state="COVER_READY", interior_approval={}, cover_approval={}, edition_approved_at=None)
+        with patch("web.printbook.services.InteriorBuild") as interior, patch("web.printbook.services.CoverBuild") as cover, patch("web.printbook.services.PreflightReport") as report, patch("web.printbook.services.PrintExport") as export:
+            for model in (interior, cover, report):
+                model.objects.filter.return_value.first.return_value = None
+            export.objects.filter.return_value.exists.return_value = False
+            steps = workflow_steps(edition)
+        self.assertEqual([step["label"] for step in steps], ["Configuração", "Miolo", "Capa automática", "Preflight", "Exportação"])
+        self.assertEqual(steps[2]["cover_tab"], "automatic")
 
     def test_draft_cover_is_in_editing_and_back_tab_remains_accessible(self):
         edition = SimpleNamespace(state="CONFIGURED", interior_approval={}, cover_approval={}, edition_approved_at=None)

@@ -25,7 +25,7 @@
 {% endif %}
 <section>
   <h2>Geometria desta capa</h2>
-  {% if interior %}
+  {% if interior and interior.page_count > 0 %}
   <table>
     <tr><th>Miolo atual</th><td>{{ interior.page_count }} páginas</td></tr>
     <tr><th>Formato aparado</th><td>{{ edition.trim }} in</td></tr>
@@ -47,6 +47,7 @@
   <h2>Editor de capa por etapas</h2>
   <p>Edite separadamente capa, contracapa e lombada. Em cada etapa, use uma imagem de fundo e arraste os campos para organizar o espaço. A visualização completa e a tipografia ficam somente em <strong>Montagem da capa</strong>.</p>
   <nav class="cover-editor-tabs" role="tablist" aria-label="Partes da capa">
+    <button type="button" role="tab" aria-selected="false" data-cover-tab="automatic">Capa automática</button>
     <button type="button" class="active" role="tab" aria-selected="true" data-cover-tab="front">Capa</button>
     <button type="button" role="tab" aria-selected="false" data-cover-tab="back">Contracapa</button>
     <button type="button" role="tab" aria-selected="false" data-cover-tab="spine">Lombada</button>
@@ -55,10 +56,21 @@
   {% if latest_visual %}<p class="quality-good"><strong>Rascunho retomado:</strong> v{{ latest_visual.version }} · lombada “{{ saved_design.spine_text|default:edition.name }}”. Alterações só criam outra versão quando você clicar em salvar.</p>{% endif %}
   {% if request.GET.saved == 'draft' %}<p class="quality-good" role="status"><strong>Rascunho salvo.</strong> A etapa anterior foi gravada; continue trabalhando na aba aberta.</p>{% endif %}
   {% if request.GET.saved == 'partial' %}<p class="quality-good" role="status"><strong>Trabalho preservado.</strong> Os campos válidos permanecem salvos; corrija somente o campo indicado acima.</p>{% endif %}
+  <section class="automatic-cover-panel" data-cover-tab-panel="automatic" hidden>
+    <h3>Capa automática em PDF</h3>
+    <p>Use esta opção quando a capa completa já estiver configurada em um PDF de uma página. O sistema confere o tamanho total contra o miolo aprovado e, quando estiver correto, pula Contracapa e Lombada.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'automatic_cover_pdf' %}">
+      {% csrf_token %}
+      <p>{{ automatic_cover_form.cover_pdf.label_tag }} {{ automatic_cover_form.cover_pdf }}<small>{{ automatic_cover_form.cover_pdf.help_text }}</small></p>
+      <button type="submit" {% if not interior or source_error %}disabled{% endif %}>Validar PDF e ir para o preflight →</button>
+    </form>
+    {% if edition.cover_mode == 'automatic_pdf' and cover %}<p class="quality-good"><strong>PDF configurado registrado.</strong> Contracapa e lombada não são necessárias neste fluxo.</p>{% endif %}
+  </section>
   <div class="cover-studio cover-studio-pro">
     <form id="cover-design-form" method="post" enctype="multipart/form-data" action="{% url 'printbook:action' edition.pk 'design_cover' %}">
       {% csrf_token %}
       <input type="hidden" name="continue_to" value="">
+      <input type="hidden" name="current_stage" value="front">
       <aside class="cover-editor-panel cover-editor-left">
       <h3>Imagens de fundo</h3>
       <fieldset data-cover-tab-panel="front">
@@ -76,7 +88,6 @@
         </div>
         <p class="range-control">{{ design_form.overlay_opacity.label_tag }} {{ design_form.overlay_opacity }} <output data-output="overlay_opacity">0%</output></p>
         <div class="image-actions"><button type="button" data-image-action="center">Centralizar</button><button type="button" data-image-action="contain">Ajustar</button><button type="button" data-image-action="cover">Preencher</button><button type="button" data-image-action="reset">Restaurar</button></div>
-        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar capa e continuar para Contracapa →</button>
       </fieldset>
       <fieldset data-cover-tab-panel="back" hidden>
         <legend>Arte da contracapa</legend>
@@ -88,15 +99,16 @@
           <p>{{ design_form.back_image_offset_x_mm.label_tag }} {{ design_form.back_image_offset_x_mm }}</p><p>{{ design_form.back_image_offset_y_mm.label_tag }} {{ design_form.back_image_offset_y_mm }}</p>
           <p>{{ design_form.back_image_rotation_deg.label_tag }} {{ design_form.back_image_rotation_deg }}</p>
         </div>
-        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar contracapa e continuar para Lombada →</button>
       </fieldset>
       <fieldset data-cover-tab-panel="spine" hidden>
         <legend>Imagem de fundo da lombada</legend>
+        {% if stapled_uiclap %}
+        <p class="quality-warning"><strong>Regra automática de saída.</strong> Esta edição UICLAP possui menos de 60 páginas e será produzida sem lombada. Você ainda pode ajustar e salvar esta etapa para reutilizar a configuração, mas a lombada não será renderizada neste arquivo.</p>
+        {% endif %}
         <p>{{ design_form.spine_image.label_tag }} {{ design_form.spine_image }}<small>{{ design_form.spine_image.help_text }}</small></p>
         <p>{{ design_form.spine_image_fit.label_tag }} {{ design_form.spine_image_fit }}</p>
         <p>{{ design_form.spine_image_zoom.label_tag }} {{ design_form.spine_image_zoom }}</p>
         <div class="cover-control-grid"><p>{{ design_form.spine_image_x.label_tag }} {{ design_form.spine_image_x }}</p><p>{{ design_form.spine_image_y.label_tag }} {{ design_form.spine_image_y }}</p></div>
-        <button type="submit" name="save_mode" value="draft" class="next-cover-step" data-save-next="montage" {% if not interior or source_error %}disabled{% endif %}>Salvar lombada e continuar para Montagem →</button>
       </fieldset>
       <div data-cover-tab-panel="montage" hidden>
         <p class="front-text-switch">{{ design_form.allow_empty_areas }} {{ design_form.allow_empty_areas.label_tag }}</p>
@@ -108,6 +120,9 @@
       <aside class="cover-editor-panel cover-editor-right">
       <fieldset class="cover-section-spine" data-cover-tab-panel="spine" hidden>
         <legend>Tipografia da lombada</legend>
+        {% if stapled_uiclap %}
+        <p class="quality-warning">A regra UICLAP abaixo de 60 páginas define largura de lombada igual a zero. Os textos existentes permanecem preservados no projeto, mas esta edição não os imprime.</p>
+        {% endif %}
         {{ design_form.spine_text }}
         <p>{{ design_form.spine_title.label_tag }} {{ design_form.spine_title }}</p>
         <p>{{ design_form.spine_author.label_tag }} {{ design_form.spine_author }}</p>
@@ -134,11 +149,11 @@
             <small>O modelo reorganiza fontes, tamanhos, posições, alinhamento e espaçamento. Depois, todos os controles continuam livres para refinamento.</small>
             <strong data-layout-status aria-live="polite"></strong>
           </div>
-          <p>{{ design_form.title.label_tag }} {{ design_form.title }}</p>
-          <p>{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}</p>
-          <p>{{ design_form.author.label_tag }} {{ design_form.author }}</p>
-          <p>{{ design_form.language.label_tag }} {{ design_form.language }}</p>
-          <p>{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<small>A editora será impressa sozinha no pé da capa. A língua possui um quinto campo independente.</small></p>
+          <p class="cover-copy-field">{{ design_form.title.label_tag }} {{ design_form.title }}<button type="button" data-clear-field="title">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.subtitle.label_tag }} {{ design_form.subtitle }}<button type="button" data-clear-field="subtitle">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.author.label_tag }} {{ design_form.author }}<button type="button" data-clear-field="author">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.language.label_tag }} {{ design_form.language }}<button type="button" data-clear-field="language">Excluir</button></p>
+          <p class="cover-copy-field">{{ design_form.publisher.label_tag }} {{ design_form.publisher }}<button type="button" data-clear-field="publisher">Excluir</button><small>A editora será impressa sozinha no pé da capa. A língua possui um quinto campo independente.</small></p>
           <p>{{ design_form.front_palette.label_tag }} {{ design_form.front_palette }}<small>{{ design_form.front_palette.help_text }}</small></p>
           <div class="cover-palette-swatches front-palette-swatches" aria-label="Prévia da cor clássica da frente"><span></span><span></span><span></span></div>
           <fieldset class="front-element-typography">
@@ -184,12 +199,12 @@
       <fieldset id="textos-contracapa" class="cover-section-back" data-cover-tab-panel="back" hidden>
         <legend>Textos da contracapa</legend>
         <p class="cover-section-help">Preencha somente os blocos que deseja imprimir. A prévia é atualizada enquanto você escreve.</p>
-        <p>{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}</p>
-        <p>{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}</p>
-        <p>{{ design_form.back_text.label_tag }} {{ design_form.back_text }}</p>
+        <p class="cover-copy-field">{{ design_form.back_heading.label_tag }} {{ design_form.back_heading }}<button type="button" data-clear-field="back_heading">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_quote.label_tag }} {{ design_form.back_quote }}<button type="button" data-clear-field="back_quote">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_text.label_tag }} {{ design_form.back_text }}<button type="button" data-clear-field="back_text">Excluir</button></p>
         <p class="empty-back-approval">{{ design_form.approve_empty_back }} {{ design_form.approve_empty_back.label_tag }}<small>{{ design_form.approve_empty_back.help_text }}</small></p>
-        <p>{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}</p>
-        <p>{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<small>{{ design_form.back_footer.help_text }}</small></p>
+        <p class="cover-copy-field">{{ design_form.back_bio.label_tag }} {{ design_form.back_bio }}<button type="button" data-clear-field="back_bio">Excluir</button></p>
+        <p class="cover-copy-field">{{ design_form.back_footer.label_tag }} {{ design_form.back_footer }}<button type="button" data-clear-field="back_footer">Excluir</button><small>{{ design_form.back_footer.help_text }}</small></p>
         <fieldset class="front-element-typography"><legend>Tipografia e cores de cada texto</legend>
           {% for element in back_elements %}
           <div class="element-type-row"><strong>{{ element.label }}</strong><output class="element-font-preview" data-back-font-preview="{{ element.key }}">{{ element.label }}</output>
@@ -236,11 +251,27 @@
         <p>{{ design_form.template.label_tag }} {{ design_form.template }}<small>{{ design_form.template.help_text }}</small></p>
       </details>
       <div class="cover-save-actions" data-cover-tab-panel="montage" hidden>
-        <button type="submit" name="save_mode" value="draft" {% if not interior or source_error %}disabled{% endif %}>Salvar rascunho</button>
+        <p data-montage-save-status role="status">{% if request.GET.saved == 'draft' %}<strong>Montagem salva.</strong> A versão v{{ latest_visual.version }} está no histórico abaixo.{% else %}Salve para gerar uma nova prova versionada da montagem atual.{% endif %}</p>
+        <button type="submit" name="save_mode" value="draft" data-save-montage {% if not interior or source_error %}disabled{% endif %}>Salvar montagem da capa</button>
         <button type="submit" name="save_mode" value="final" class="button-final" {% if not interior or source_error or stapled_uiclap %}disabled{% endif %}>Salvar capa final</button>
         {% if stapled_uiclap %}<p>Esta montagem grampeada só pode ser salva como rascunho.</p>{% endif %}
       </div>
       </aside>
+      <div class="cover-stage-actions" data-cover-tab-panel="front">
+        <span data-unsaved-status role="status">A capa atual está salva.</span>
+        <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="front" {% if not interior or source_error %}disabled{% endif %}>Salvar capa</button>
+        <button type="submit" name="save_mode" value="draft" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Contracapa →</button>
+      </div>
+      <div class="cover-stage-actions" data-cover-tab-panel="back" hidden>
+        <span data-unsaved-status role="status">A contracapa atual está salva.</span>
+        <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="back" {% if not interior or source_error %}disabled{% endif %}>Salvar contracapa</button>
+        <button type="submit" name="save_mode" value="draft" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Lombada →</button>
+      </div>
+      <div class="cover-stage-actions" data-cover-tab-panel="spine" hidden>
+        <span data-unsaved-status role="status">{% if stapled_uiclap %}Configuração da lombada preservada; a saída UICLAP será automática e sem lombada.{% else %}A lombada atual está salva.{% endif %}</span>
+        <button type="submit" name="save_mode" value="draft" class="secondary" data-save-next="spine" {% if not interior or source_error %}disabled{% endif %}>Salvar lombada</button>
+        <button type="submit" name="save_mode" value="draft" data-save-next="montage" {% if not interior or source_error %}disabled{% endif %}>Salvar e seguir para Montagem →</button>
+      </div>
     </form>
     <div class="cover-simulator" data-cover-tab-panel="montage" hidden data-trim="{{ edition.trim }}" data-cover-font="{{ edition.typography.font }}" data-panel-width="{{ panel_width_in|default:'' }}" data-panel-height="{% if geometry %}{{ geometry.spread_height_in }}{% endif %}" data-trim-width="{% if geometry %}{{ geometry.trim_width_in }}{% endif %}" data-trim-height="{% if geometry %}{{ geometry.trim_height_in }}{% endif %}" data-bleed="{% if geometry %}{{ geometry.bleed_in }}{% endif %}" data-spine="{% if geometry %}{{ geometry.spine_width_in }}{% endif %}" data-barcode-mode="{{ edition.barcode_mode }}" data-no-spine="{% if stapled_uiclap %}yes{% else %}no{% endif %}" data-spine-allowed="{% if geometry.spine_text_allowed %}yes{% else %}no{% endif %}">
       <div class="simulator-toolbar">
@@ -332,11 +363,13 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
 .cover-section-help{font-size:12px;line-height:1.45;color:#5c5b59;background:#fff;border-left:3px solid #285f94;padding:8px 10px}.cover-live-back-footer{font-size:clamp(6px,.9vw,9px);line-height:1.25;margin-top:auto}.cover-live-front [data-cover-title],.cover-live-front [data-cover-subtitle],.cover-live-front [data-cover-author],.cover-live-front [data-cover-language],.cover-live-front [data-cover-publisher],.cover-book-front [data-cover-title],.cover-book-front [data-cover-subtitle],.cover-book-front [data-cover-author],.cover-book-front [data-cover-language],.cover-book-front [data-cover-publisher]{position:absolute;z-index:3;width:80%;left:10%;transform-origin:center}.cover-live-language,.cover-live-publisher{font-size:clamp(7px,1vw,11px);letter-spacing:.08em;text-transform:uppercase}
 .cover-editor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px;border-bottom:1px solid #d9d1c6;padding-bottom:10px}.cover-editor-tabs button{background:#e8e2d8;color:#30363b;font-weight:700}.cover-editor-tabs button.active{background:#285f94;color:#fff}.cover-editor-right{display:flex;flex-direction:column}.cover-editor-right>.production-gate{order:20}.cover-editor-right>.cover-save-actions{order:21}[data-cover-tab-panel][hidden]{display:none!important}.cover-section-typography{order:1}#textos-frente:target,#textos-contracapa:target{outline:3px solid #d4a24c;outline-offset:3px;background:#fffdf5}.cover-live-spine>.cover-live-image,.cover-book-spine>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.cover-live-spine,.cover-book-spine{position:relative;overflow:hidden}.cover-live-spine>[data-cover-spine],.cover-book-spine>[data-cover-spine]{position:relative;z-index:2}
 .cover-studio-pro:not(.montage-active){grid-template-columns:minmax(390px,.9fr) minmax(560px,1.1fr);grid-template-areas:"left right";align-items:start}.cover-studio-pro:not(.montage-active) .cover-editor-panel{max-height:none;width:auto;min-width:0}.cover-image-picker{display:grid;gap:8px;border:2px dashed #285f94;background:#eef5fb;border-radius:10px;padding:16px;margin-bottom:14px}.cover-image-picker label{font-weight:800;color:#204f78}.cover-image-picker input[type=file]{display:block;width:100%;max-width:100%;padding:12px;background:#fff;border:1px solid #9eb9cf;border-radius:8px}.cover-image-picker strong{font-size:12px;color:#285f94}.panel-layout-stage{position:relative;width:min(100%,430px);aspect-ratio:2/3;margin:16px auto;background:#1f2937;overflow:hidden;border:8px solid #e8e2d8;box-shadow:0 10px 24px #1f293733;color:#fff}.panel-layout-stage>.cover-live-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}.panel-layout-stage>.cover-live-overlay{position:absolute;inset:0;z-index:1}.floating-cover-field{position:absolute;z-index:3;width:80%;left:50%;transform:translateX(-50%);margin:0;padding:7px;border:1px dashed #fff9;background:#1115;color:inherit;cursor:grab;touch-action:none;overflow-wrap:anywhere}.floating-cover-field:active{cursor:grabbing;border-style:solid}.floating-back-copy{display:flex;flex-direction:column;gap:8px;text-align:left}.floating-back-copy span{white-space:pre-wrap}.spine-layout-stage{width:min(100%,110px);aspect-ratio:1/8}.floating-spine-copy{width:max-content;max-width:720%;white-space:nowrap;transform:translate(-50%,-50%) rotate(90deg)}.next-cover-step{width:100%;margin-top:12px;background:#285f94}.empty-back-approval{border:1px solid #d4a24c;background:#fff8e8;border-radius:8px;padding:10px}.cover-section-typography{order:1}@media(max-width:1280px){.cover-studio-pro:not(.montage-active){grid-template-columns:minmax(0,1fr);grid-template-areas:"left" "right"}.cover-studio-pro:not(.montage-active) .cover-editor-panel{width:100%;box-sizing:border-box}.cover-studio-pro:not(.montage-active) .panel-layout-stage{width:min(100%,520px)}}
+.cover-stage-actions{grid-column:1/-1;position:sticky;bottom:12px;z-index:20;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 16px;border:1px solid #9eb9cf;border-radius:12px;background:#f8fbfd;box-shadow:0 8px 26px #173b5530}.cover-stage-actions span{margin-right:auto;color:#176b35;font-weight:700}.cover-stage-actions span.unsaved{color:#895400}.cover-stage-actions button{min-width:160px}@media(max-width:700px){.cover-stage-actions{position:static;flex-direction:column;align-items:stretch}.cover-stage-actions span{margin-right:0}.cover-stage-actions button{width:100%}}
 .cover-font-sample{display:grid;gap:5px;margin:12px 0 18px;padding:22px;border:1px solid #c8a66a;border-radius:10px;background:#fffdf8;text-align:center;color:#241f1a}.cover-font-sample span{font:700 10px/1.2 system-ui;letter-spacing:.18em;color:#8a5a32}.cover-font-sample strong{font-size:32px;line-height:1.05;font-weight:600}.cover-font-sample small{font-size:14px;letter-spacing:.04em}
 .front-element-typography{background:#fffdf8!important;border-color:#c8a66a!important}.element-type-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0;padding:14px;border:1px solid #e5ddd1;border-radius:9px;background:#fff}.element-type-row>strong{grid-column:1/-1;font-size:17px;color:#5b3b24}.element-font-preview{display:block;grid-column:1/-1;min-height:44px;padding:12px 14px;border:1px solid #d9c8ae;border-radius:7px;background:#fff;color:#241f1a;font-size:27px;line-height:1.15;text-align:center;overflow-wrap:anywhere;transition:color .15s ease,font-family .15s ease,font-weight .15s ease,font-style .15s ease}.element-type-row p{margin:0}.element-type-row p:first-of-type{grid-column:span 2}.element-type-row label{display:block;font-size:11px;color:#666}.element-type-row input,.element-type-row select{width:100%}.element-type-row input[type=color]{height:40px;padding:2px;border:1px solid #b7aa99;border-radius:6px;background:#fff}.fixed-color-palette{grid-column:1/-1;padding-top:4px}.fixed-color-palette>strong{display:block;margin-bottom:8px;font-size:12px;color:#5b3b24}.fixed-color-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.fixed-color-family{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;border:1px solid #e5ddd1;border-radius:7px;background:#faf8f4}.fixed-color-family>span{grid-column:1/-1;font-size:10px;font-weight:700;color:#62594f;text-align:center}.fixed-color-swatch{display:block;width:100%;min-width:24px;aspect-ratio:1;border:2px solid #fff;border-radius:5px;padding:0;box-shadow:0 0 0 1px #a89e91;cursor:pointer}.fixed-color-swatch:hover,.fixed-color-swatch:focus-visible{transform:scale(1.08);box-shadow:0 0 0 3px #285f94}.fixed-color-swatch.active{box-shadow:0 0 0 3px #d4a24c,0 0 0 5px #5b3b24}@media(max-width:700px){.element-type-row{grid-template-columns:1fr}.element-type-row p:first-of-type,.element-type-row>strong,.element-font-preview,.fixed-color-palette{grid-column:1}.fixed-color-families{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .layout-preset-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid #c8a66a;border-radius:10px;background:#fff8e8}.layout-preset-control p{margin:0}.layout-preset-control label{display:block;font-weight:800}.layout-preset-control select{width:100%}.layout-preset-control button{white-space:nowrap;background:#6b4423}.layout-preset-control small,.layout-preset-control strong{grid-column:1/-1}.layout-preset-control strong{min-height:1.2em;color:#285f94;font-size:12px}@media(max-width:600px){.layout-preset-control{grid-template-columns:1fr}.layout-preset-control button{width:100%}}
+.cover-copy-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-items:start}.cover-copy-field>label,.cover-copy-field>small{grid-column:1/-1}.cover-copy-field>input,.cover-copy-field>textarea{width:100%;max-width:none}.cover-copy-field>[data-clear-field]{background:#8f2f24;padding:8px 11px;min-width:72px}.cover-copy-field>[data-clear-field]:hover,.cover-copy-field>[data-clear-field]:focus-visible{background:#6f2119}
 </style>
-<script src="{% static 'printbook/cover_autofit.js' %}?v=20261118-3"></script>
+<script src="{% static 'printbook/cover_autofit.js' %}?v=20261121-1"></script>
 {{ saved_design|json_script:"saved-cover-design" }}
 <script>
 (function () {
@@ -583,19 +616,19 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     [backBackground, backText, backAccent].forEach((color, index) => { if (swatches[index]) swatches[index].style.background = color; });
     const frontSwatches = document.querySelectorAll('.front-palette-swatches span');
     [background, text, accent].forEach((color, index) => { if (frontSwatches[index]) frontSwatches[index].style.background = color; });
-    all('[data-cover-title]').forEach((element) => { element.textContent = value('title'); element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
-    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
-    all('[data-cover-author]').forEach((element) => { element.textContent = value('author'); element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
-    all('[data-cover-language]').forEach((element) => { element.textContent = value('language'); element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
-    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher'); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
+    all('[data-cover-title]').forEach((element) => { element.textContent = value('title'); element.hidden = !value('title').trim(); element.style.color = titleColor; element.style.fontFamily = previewFont(value('front_title_font_family') || value('cover_font_family')); });
+    all('[data-cover-subtitle]').forEach((element) => { element.textContent = value('subtitle'); element.hidden = !value('subtitle').trim(); element.style.color = subtitleColor; element.style.fontFamily = previewFont(value('front_subtitle_font_family') || value('cover_font_family')); });
+    all('[data-cover-author]').forEach((element) => { element.textContent = value('author'); element.hidden = !value('author').trim(); element.style.color = authorColor; element.style.fontFamily = previewFont(value('front_author_font_family') || value('cover_font_family')); });
+    all('[data-cover-language]').forEach((element) => { element.textContent = value('language'); element.hidden = !value('language').trim(); element.style.color = languageColor; element.style.fontFamily = previewFont(value('front_language_font_family') || value('cover_font_family')); });
+    all('[data-cover-publisher]').forEach((element) => { element.textContent = value('publisher'); element.hidden = !value('publisher').trim(); element.style.color = publisherColor; element.style.fontFamily = previewFont(value('front_publisher_font_family') || value('cover_font_family')); });
     ['front_title', 'front_subtitle', 'front_author', 'front_language', 'front_publisher'].forEach((prefix) => {
       const selector = form.elements[`${prefix}_font_family`];
       if (selector) selector.style.fontFamily = previewFont(selector.value);
     });
-    all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text') || 'Texto da contracapa'; });
-    all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading') || 'Sobre este livro'; });
+    all('[data-cover-back]').forEach((element) => { element.textContent = value('back_text'); element.hidden = !value('back_text').trim(); });
+    all('[data-cover-back-heading]').forEach((element) => { element.textContent = value('back_heading'); element.hidden = !value('back_heading').trim(); });
     all('[data-cover-back-quote]').forEach((element) => { element.textContent = value('back_quote'); element.hidden = !value('back_quote'); });
-    all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; });
+    all('[data-cover-back-bio]').forEach((element) => { element.textContent = value('back_bio') ? `Sobre o autor — ${value('back_bio')}` : ''; element.hidden = !value('back_bio').trim(); });
     all('[data-cover-back-footer]').forEach((element) => { element.textContent = value('back_footer'); element.hidden = !value('back_footer'); });
     const titleY = Number(value('front_title_y_percent') || 20);
     const titleX = Number(value('front_title_x_percent') || 50);
@@ -716,7 +749,10 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     const estimatedLength = spineCopy.length * fontPt * .55 + Math.max(0, spineCopy.length - 1) * letterSpacing;
     const availableLength = ((Number(simulator.dataset.panelHeight) || 9.25) - .5) * 72;
     const fits = !spineCopy || (fontPt <= spineWidthPt - safePt && estimatedLength <= availableLength);
-    if (spineWidthPt <= 0) {
+    if (simulator.dataset.noSpine === 'yes') {
+      spineStatus.className = 'cover-image-status quality-warning';
+      spineStatus.textContent = 'UICLAP abaixo de 60 páginas: lombada dispensada automaticamente.';
+    } else if (spineWidthPt <= 0) {
       spineStatus.className = 'cover-image-status quality-warning';
       spineStatus.textContent = 'Compile e aprove o miolo para calcular a largura útil da lombada.';
     } else {
@@ -818,6 +854,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
       }
       update();
       pushHistory();
+      if (JSON.stringify(snapshot()) !== JSON.stringify(before)) setFormDirty();
       autoFitStatus.textContent = 'Textos organizados na prévia. Salve uma nova prova e confira o PDF em tamanho real; o autoajuste não substitui o preflight.'
         + (spineWarning ? ' O perfil atual não permite texto na lombada.' : '');
     } catch (error) {
@@ -828,6 +865,14 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     field.addEventListener('input', () => { update(); clearTimeout(historyTimer); historyTimer = setTimeout(pushHistory, 250); });
     field.addEventListener('change', () => { update(); pushHistory(); });
   });
+  all('[data-clear-field]').forEach((button) => button.addEventListener('click', () => {
+    const field = form.elements[button.dataset.clearField];
+    if (!field) return;
+    field.value = '';
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+    field.dispatchEvent(new Event('change', {bubbles: true}));
+    field.focus();
+  }));
   const layoutField = form.elements.layout;
   const rotateSpine = document.querySelector('[data-rotate-spine]');
   if (rotateSpine) rotateSpine.addEventListener('click', () => {
@@ -911,6 +956,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
     form.closest('.cover-studio').classList.toggle('montage-active', tab === 'montage');
     if (['front', 'back', 'spine'].includes(tab)) selectedPanel = tab;
     if (form.elements && form.elements.continue_to) form.elements.continue_to.value = tab;
+    if (form.elements && form.elements.current_stage) form.elements.current_stage.value = tab;
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('tab', tab);
     window.history.replaceState(window.history.state, '', currentUrl);
@@ -922,9 +968,39 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   }));
   all('[data-cover-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.coverTab)));
   all('[data-next-tab]').forEach((button) => button.addEventListener('click', () => activateCoverTab(button.dataset.nextTab)));
-  all('[data-save-next]').forEach((button) => button.addEventListener('click', () => {
-    form.elements.continue_to.value = button.dataset.saveNext;
-  }));
+  let formDirty = false;
+  let formSubmitting = false;
+  const unsavedStatuses = all('[data-unsaved-status]');
+  const setFormDirty = () => {
+    formDirty = true;
+    unsavedStatuses.forEach((status) => {
+      status.textContent = 'Há alterações nesta etapa que ainda não foram salvas.';
+      status.classList.add('unsaved');
+    });
+  };
+  form.addEventListener('input', setFormDirty);
+  form.addEventListener('change', setFormDirty);
+  form.addEventListener('submit', (event) => {
+    if (formSubmitting) {
+      event.preventDefault();
+      return;
+    }
+    const destination = event.submitter && event.submitter.dataset.saveNext;
+    if (destination) form.elements.continue_to.value = destination;
+    if (event.submitter && event.submitter.hasAttribute('data-save-montage')) {
+      const montageStatus = form.querySelector('[data-montage-save-status]');
+      // Disabling the submitter here would remove save_mode from the POST.
+      event.submitter.setAttribute('aria-disabled', 'true');
+      event.submitter.textContent = 'Salvando montagem…';
+      if (montageStatus) montageStatus.textContent = 'Gerando a nova prova da montagem. Aguarde…';
+    }
+    formSubmitting = true;
+  });
+  window.addEventListener('beforeunload', (event) => {
+    if (!formDirty || formSubmitting) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
 
   all('[data-floating-field]').forEach((field) => {
     field.addEventListener('pointerdown', (event) => {
@@ -966,7 +1042,7 @@ main{max-width:1600px}.cover-studio-pro{display:grid;grid-template-columns:minma
   viewport.addEventListener('pointermove', (event) => { const box = preview.getBoundingClientRect(); const spreadWidthMm = ((Number(simulator.dataset.panelWidth) || 6.125) * 2 + (Number(value('spine')) || Number(simulator.dataset.spine) || 0)) * 25.4; const spreadHeightMm = (Number(simulator.dataset.panelHeight) || 9.25) * 25.4; document.getElementById('cursor-mm').value = `${((event.clientX - box.left) / box.width * spreadWidthMm).toFixed(1)} × ${((event.clientY - box.top) / box.height * spreadHeightMm).toFixed(1)} mm`; if (panning) { pan = {x: event.clientX - panStart.x, y: event.clientY - panStart.y}; renderCanvasTransform(); } });
   viewport.addEventListener('pointerup', () => { panning = false; });
   const requestedCoverTab = new URLSearchParams(window.location.search).get('tab');
-  const initialCoverTab = ['front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : 'front';
+  const initialCoverTab = ['automatic', 'front', 'back', 'spine', 'montage'].includes(requestedCoverTab) ? requestedCoverTab : {% if edition.cover_mode == 'automatic_pdf' %}'automatic'{% else %}'front'{% endif %};
   activateCoverTab(initialCoverTab); pushHistory(); update(); renderCanvasTransform();
   const autoFitUrl = new URL(window.location.href);
   if (autoFitUrl.searchParams.get('autofit') === '1') {
