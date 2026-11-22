@@ -144,6 +144,36 @@ if (clicked !== 1 || tab !== 'montage' || new URL(window.location.href).searchPa
         subprocess.run(["node", "-e", harness], check=True, capture_output=True, text=True)
 
     @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
+    def test_montage_submit_keeps_draft_value_and_blocks_repeated_saves(self):
+        template = (Path(__file__).parent / "templates/printbook/cover.html").read_text(encoding="utf-8")
+        script = "form.addEventListener('submit'," + template.split("  form.addEventListener('submit',", 1)[1].split(
+            "  window.addEventListener('beforeunload'", 1
+        )[0]
+        harness = r'''
+let submit;
+let formSubmitting = false;
+const status = {textContent: ''};
+const form = {addEventListener: (_, listener) => { submit = listener; }, querySelector: () => status};
+const button = {
+  name: 'save_mode', value: 'draft', disabled: false, dataset: {},
+  hasAttribute: name => name === 'data-save-montage',
+  setAttribute: () => {},
+};
+const save = () => {
+  const event = {submitter: button, prevented: false, preventDefault() { this.prevented = true; }};
+  submit(event);
+  return event.prevented || button.disabled ? null : {[button.name]: button.value};
+};
+''' + script + r'''
+if (save()?.save_mode !== 'draft' || !status.textContent.includes('nova prova')) {
+  throw Error('The requested draft mode must stay in the form submission.');
+}
+if (save() !== null) throw Error('A second save must be blocked.');
+'''
+        result = subprocess.run(["node", "-e", harness], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js is needed to exercise the preview script")
     def test_auto_fit_calculates_non_overlapping_blocks_and_rejects_overflow(self):
         script = Path(__file__).parent / "static/printbook/cover_autofit.js"
         harness = r'''
@@ -156,6 +186,15 @@ if (fit([{height: 90, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) 
 if (fit([{height: 0, minimum: 8, maximum: 90, preferred: 8}], 90, 2) !== null) process.exit(1);
 const safeResult = fit([{height: 10, minimum: 0, maximum: 90, preferred: 0}], 90, 2, 9);
 if (!safeResult || safeResult[0] !== 9) process.exit(1);
+const crowded = [
+  {height: 25, minimum: 8, maximum: 60, preferred: 30},
+  {height: 25, minimum: 8, maximum: 80, preferred: 75}
+];
+const moved = fit(crowded, 80, 2);
+if (!moved || moved[0] !== 28 || moved[1] !== 55) {
+  throw Error('Late preferences must yield before reducing font size.');
+}
+if (fit([{...crowded[0], minimum: 30}], 54, 2) !== null) process.exit(1);
 '''
         subprocess.run(["node", "-e", harness, str(script)], check=True, capture_output=True, text=True)
 
@@ -186,6 +225,7 @@ const simulator = {dataset: {barcodeMode: 'provider', spineAllowed: 'yes'}};
 const trimHeight = 9, panelHeight = 9.25;
 const snapshot = () => Object.fromEntries(Object.entries(form.elements).filter(([_, field]) => field.value !== undefined).map(([key, field]) => [key, field.value]));
 const restore = state => Object.entries(state).forEach(([key, value]) => {form.elements[key].value = value;});
+let dirty = 0; const setFormDirty = () => {dirty++;};
 let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
 ''' + script + r'''
 (async () => {
@@ -193,10 +233,11 @@ let saved = 0; const pushHistory = () => {saved++;}; const update = () => {};
  if (form.elements.front_title_x_percent.value !== '50' || form.elements.front_text_scale_percent.value !== '100' || saved !== 2) throw Error('fit: ' + status.textContent + ' / ' + saved);
  if (form.elements.back_element_body_x_percent.value !== '50' || Number(form.elements.back_element_body_y_percent.value) < 10 || Number(form.elements.back_element_body_y_percent.value) > 72) throw Error('back safety bounds');
  if (Number(form.elements.front_author_font_size_pt.value) !== 9) throw Error('minimum font size not applied');
+ if (dirty !== 1) throw Error('Auto-fit must mark its edits as unsaved.');
  if (!status.textContent.includes('Textos organizados')) throw Error('status: ' + status.textContent);
  const before = JSON.stringify(snapshot()); oversized = true;
  await click();
- if (JSON.stringify(snapshot()) !== before || !status.textContent.includes('não couberam')) throw Error('rollback: ' + status.textContent);
+ if (dirty !== 1 || JSON.stringify(snapshot()) !== before || !status.textContent.includes('não couberam')) throw Error('rollback: ' + status.textContent);
  oversized = false;
  Object.assign(form.elements, {spine_title: field('Livro'), spine_author: field(''), spine_publisher: field(''), spine: field('0.5'), spine_edge_safe_mm: field('1.6'), spine_letter_spacing_pt: field('0'), spine_font_size_pt: field('8'), spine_text_x_percent: field('30'), spine_text_y_percent: field('70'), spine_offset_x_mm: field('2'), spine_offset_y_mm: field('1')});
  await click();

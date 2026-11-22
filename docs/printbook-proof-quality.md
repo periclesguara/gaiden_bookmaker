@@ -6,8 +6,11 @@ DPI. Selecting a replacement image measures the new upload instead. Zoom and fit
 continue to affect printed size and effective DPI.
 
 Cover auto-fit keeps back-cover copy inside the green safety guide on all sides.
-When the provider barcode is enabled, it also leaves a separate vertical clearance
-above the barcode reservation. Saving from the montage returns to the montage tab.
+It repositions text blocks within their allowed ranges before reducing type size.
+Applied changes remain in the editor until saved and trigger the unsaved-changes
+warning. When the provider barcode is enabled, auto-fit leaves a separate vertical
+clearance above the barcode reservation. Saving from the montage submits a draft,
+shows progress, and returns to the montage tab when the save succeeds.
 
 UICLAP proofs below 60 pages omit the spine and remain drafts. The current barcode
 reservation is an estimated layout position, not a provider template approval.
