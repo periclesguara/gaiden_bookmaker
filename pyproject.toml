@@ -6,22 +6,26 @@ build-backend = "setuptools.build_meta"
 name = "gaiden-bookmaker"
 version = "0.1.0"
 description = "Private editorial production platform for RinoBooks"
-requires-python = ">=3.10"
+requires-python = ">=3.11.5"
 dependencies = [
-    "Django==5.2.16",
+    "Django==5.2.19",
     "beautifulsoup4==4.14.3",
     "lxml==6.1.0",
     "markitdown[all]==0.1.5",
     "openai==2.24.0",
     "pgvector==0.5.0",
-    "pillow==12.3.0",
+    "pillow==13.0.0",
     "psycopg2-binary==2.9.11",
     "requests==2.33.1",
+    # Security pin for Beautiful Soup's selector engine.
+    "soupsieve==4.1.3",
     "tiktoken==0.13.0",
 ]
 
 [project.optional-dependencies]
 audit = [
+    # Security pin for pip-audit's CacheControl file cache.
+    "filelock==4.2.1",
     "pip-audit==2.10.1",
 ]
 
