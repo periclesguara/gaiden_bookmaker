@@ -22,7 +22,7 @@ retargeting or merging a branch.
 
 Requirements:
 
-- Python 3.10 or newer;
+- Python 3.11.5 or newer;
 - PostgreSQL 16 with pgvector for the integrated application;
 - a local environment containing the variables listed in `.env.example`;
 - EPUBCheck and Pandoc for the build paths that use them.
@@ -37,6 +37,10 @@ DJANGO_SECRET_KEY
 PGPASSWORD
 OPENAI_API_KEY
 ```
+
+For an existing Python 3.10 installation, create a new virtual environment with
+Python 3.11.5 or newer and activate it before installing. The patched Pillow,
+Soup Sieve, and audit-tool dependencies require a newer interpreter.
 
 Install the declared environment and then load the non-secret runtime defaults:
 
