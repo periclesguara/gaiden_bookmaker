@@ -95,6 +95,7 @@ class EditionForm(forms.ModelForm):
         return data
 
 
+
 class EditionConfigurationForm(EditionForm):
     """Editable print settings; the approved editorial source is immutable."""
 
@@ -198,6 +199,7 @@ class CoverDesignForm(forms.Form):
         ("print_safe", "Impressão segura: contraste e nitidez suaves"),
         ("detail", "Detalhes: redução de ruído e nitidez reforçada"),
         ("production_300", "Produção 300 ppi: ampliar com Lanczos e finalizar nitidez"),
+        ("uiclap_300", "UICLAP: ampliar com interpolação e melhorar nitidez"),
     )
     FRONT_PALETTES = (
         ("classic_blue", "Azul clássico"),
@@ -243,7 +245,7 @@ class CoverDesignForm(forms.Form):
         label="Melhoria OpenCV",
         choices=ENHANCEMENT_PROFILES,
         initial="print_safe",
-        help_text="Processamento local. O perfil 300 ppi amplia com Lanczos e registra o fator aplicado.",
+        help_text="A melhoria é local e preserva o original. A ampliação interpola pixels e não recupera detalhes; a qualidade original continua sendo verificada.",
     )
     title = forms.CharField(label="Título da capa", max_length=180, required=False)
     subtitle = forms.CharField(label="Subtítulo", max_length=240, required=False)
@@ -344,7 +346,7 @@ class CoverDesignForm(forms.Form):
     spine_font_family = forms.ChoiceField(label="Família tipográfica", choices=COVER_FONTS, initial="EB Garamond", required=False)
     spine_font_size_pt = forms.DecimalField(label="Tamanho (pt)", min_value=5, max_value=36, decimal_places=1, initial=8, required=False)
     spine_font_weight = forms.ChoiceField(label="Peso", choices=(("regular", "Regular"), ("bold", "Negrito")), initial="regular", required=False)
-    spine_color = forms.RegexField(label="Cor", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF", required=False)
+    spine_color = forms.RegexField(label="Cor", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF", required=False, widget=forms.TextInput(attrs={"type": "color"}))
     spine_letter_spacing_pt = forms.DecimalField(label="Espaçamento (pt)", min_value=-1, max_value=8, decimal_places=2, initial=0, required=False)
     spine_align_horizontal = forms.ChoiceField(label="Alinhamento horizontal", choices=(("left", "Esquerda"), ("center", "Centro"), ("right", "Direita")), initial="center", required=False)
     spine_align_vertical = forms.ChoiceField(label="Alinhamento vertical", choices=(("top", "Topo"), ("center", "Centro"), ("bottom", "Base")), initial="center", required=False)
@@ -352,7 +354,7 @@ class CoverDesignForm(forms.Form):
     spine_offset_y_mm = forms.DecimalField(label="Deslocamento vertical (mm)", min_value=-100, max_value=100, decimal_places=1, initial=0, required=False)
     spine_text_x_percent = forms.IntegerField(label="Posição horizontal do texto (%)", min_value=10, max_value=90, initial=50, required=False)
     spine_text_y_percent = forms.IntegerField(label="Posição vertical do texto (%)", min_value=10, max_value=90, initial=50, required=False)
-    spine_rotation = forms.ChoiceField(label="Sentido de leitura", choices=(("90", "De baixo para cima"), ("-90", "De cima para baixo")), initial="90", required=False)
+    spine_rotation = forms.ChoiceField(label="Sentido de leitura", choices=(("-90", "De cima para baixo"), ("90", "De baixo para cima")), initial="-90", required=False)
     spine_edge_safe_mm = forms.DecimalField(
         label="Distância das dobras (mm)", min_value=Decimal("1.6"), max_value=20,
         decimal_places=1, initial=Decimal("1.6"), required=False,
@@ -406,12 +408,12 @@ class CoverDesignForm(forms.Form):
     text_color = forms.RegexField(label="Cor do texto (#RRGGBB)", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF")
     accent_color = forms.RegexField(label="Cor de destaque (#RRGGBB)", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C")
     back_palette = forms.ChoiceField(label="Paleta da contracapa", choices=BACK_PALETTES, initial="midnight")
-    back_background_color = forms.RegexField(label="Fundo da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#1F2937")
-    back_text_color = forms.RegexField(label="Texto da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF")
-    back_accent_color = forms.RegexField(label="Destaque da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C")
+    back_background_color = forms.RegexField(label="Fundo da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#1F2937", widget=forms.TextInput(attrs={"type": "color"}))
+    back_text_color = forms.RegexField(label="Texto da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#FFFFFF", widget=forms.TextInput(attrs={"type": "color"}))
+    back_accent_color = forms.RegexField(label="Destaque da contracapa", regex=r"^#?[0-9a-fA-F]{6}$", initial="#D4A24C", widget=forms.TextInput(attrs={"type": "color"}))
     spine = forms.DecimalField(
         label="Largura da lombada (polegadas)",
-        min_value=0.001,
+        min_value=0,
         max_value=5,
         max_digits=7,
         decimal_places=4,
@@ -512,16 +514,41 @@ class CoverDesignForm(forms.Form):
             "minimum_dpi": 300, "spine_font_family": "EB Garamond", "spine_font_size_pt": 8,
             "spine_font_weight": "regular", "spine_color": "#FFFFFF", "spine_letter_spacing_pt": 0,
             "spine_align_horizontal": "center", "spine_align_vertical": "center",
-            "spine_offset_x_mm": 0, "spine_offset_y_mm": 0, "spine_rotation": "90", "spine_edge_safe_mm": 1.6,
+            "spine_offset_x_mm": 0, "spine_offset_y_mm": 0, "spine_rotation": "-90", "spine_edge_safe_mm": 1.6,
             "spine_text_x_percent": 50, "spine_text_y_percent": 50,
         }
         for key, default in defaults.items():
             if data.get(key) in (None, ""):
                 data[key] = default
-        data["spine_title"] = (data.get("spine_title") or data.get("spine_text") or "").strip()
+        # A submitted blank is intentional; legacy forms without this field
+        # can still use the old combined spine text.
+        if "spine_title" in self.data:
+            data["spine_title"] = (data.get("spine_title") or "").strip()
+        else:
+            data["spine_title"] = (data.get("spine_text") or "").strip()
         if data.get("save_mode") == "final":
             if not data.get("approve_empty_back") and not (data.get("back_heading") or "").strip():
                 self.add_error("back_heading", "Informe a chamada da contracapa antes de salvar a capa final.")
             if not data.get("approve_empty_back") and not (data.get("back_text") or "").strip():
                 self.add_error("back_text", "Informe o texto sobre o livro ou aprove a contracapa sem texto.")
         return data
+
+
+# Each back-cover element has its own production typography and position.
+BACK_COVER_ELEMENTS = (
+    ("heading", "Título", 17, 12),
+    ("quote", "Citação", 11, 25),
+    ("body", "Sobre o livro", 10.5, 38),
+    ("bio", "Sobre o autor", 8.5, 65),
+    ("footer", "Rodapé", 7.5, 82),
+)
+for _key, _label, _size, _y in BACK_COVER_ELEMENTS:
+    _prefix = f"back_element_{_key}"
+    CoverDesignForm.base_fields[f"{_prefix}_font_family"] = forms.ChoiceField(label="Fonte", choices=CoverDesignForm.COVER_FONTS, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_font_size_pt"] = forms.DecimalField(label="Tamanho (pt)", min_value=6, max_value=72, decimal_places=1, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_weight"] = forms.ChoiceField(label="Peso", choices=CoverDesignForm.FONT_WEIGHTS, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_style"] = forms.ChoiceField(label="Forma", choices=CoverDesignForm.FONT_SHAPES, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_letter_spacing_pt"] = forms.DecimalField(label="Espaçamento (pt)", min_value=-1, max_value=8, decimal_places=2, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_color"] = forms.RegexField(label="Cor", regex=r"^#[0-9a-fA-F]{6}$", required=False, widget=forms.TextInput(attrs={"type": "color"}))
+    CoverDesignForm.base_fields[f"{_prefix}_x_percent"] = forms.IntegerField(label="Posição horizontal (%)", min_value=10, max_value=90, required=False)
+    CoverDesignForm.base_fields[f"{_prefix}_y_percent"] = forms.IntegerField(label="Posição vertical (%)", min_value=8, max_value=90, required=False)
