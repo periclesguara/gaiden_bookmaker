@@ -82,6 +82,29 @@ dependencies on these compatibility modules.
 
 ## Quality gates
 
+### Post-Intake preservation and EPUB evidence
+
+The first Issue #43 correction is documented in
+[the implementation report](audits/post-intake-43.md). The existing QA service
+now flags source-reference and contents text for review rather than removing
+it with regular expressions. Manuscript promotion preserves exact UTF-8 bytes,
+stores a digest-addressed snapshot, and refuses to overwrite different existing
+content. Both normal and alternate-language approval use this guard.
+
+The default-branch Pandoc exporter consumes the existing frontmatter metadata
+context instead of inventing a book title. Explicit EPUBCheck validation records
+structured, hash-bound evidence and fails closed on missing tools, malformed
+reports, changed files, errors, and unreviewed warnings. Full-book production
+validates the exact newly exported file before proceeding to PDF; it does not
+select an old `BOOK.EPUB3` alias by precedence. Standalone export remains a
+candidate-generation operation, not editorial approval.
+
+These are partial integrity controls, not the complete fifteen editorial gates.
+The premium renderer running on the operator's feature branch is absent from
+this approved baseline and has not been integrated. No model-backed literary,
+semantic image, cover OCR, or reader-rendering approval is implied by a
+technical EPUBCheck pass. See the report for unresolved acceptance criteria.
+
 Every pull request must pass:
 
 1. repository hygiene and current-tree secret scanning;

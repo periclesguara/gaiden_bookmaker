@@ -905,9 +905,7 @@ def run_edition_step(request, edition_id: int, step: str):
                         f"No QA/PRE file found for language {target_lang} to approve."
                     )
                 final_path = build_dir / "BOOK.MD_FINAL"
-                final_path.parent.mkdir(parents=True, exist_ok=True)
-                final_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
-                result = {"path": str(final_path), "source": str(source_path)}
+                result = md_quality.approve_manuscript(source_path, final_path)
             else:
                 result = md_quality.approve_md_final(edition)
             messages.success(

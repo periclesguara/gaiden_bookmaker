@@ -4,8 +4,9 @@ import re
 import subprocess
 from pathlib import Path
 
-from editorial.frontmatter import build_frontmatter_files
+from editorial.frontmatter import build_context, build_frontmatter_files
 from editorial.models import Edition
+from gaiden.epub_validation import validate_epub
 
 
 def builds_dir(edition: Edition) -> Path:
@@ -83,9 +84,15 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") 
 
     epub_path = builds_base / epub_filename
 
-    title = (edition.title or "").strip() or "Die Abenteuer des Sherlock Holmes"
-    lang = edition.language.code
-    subtitle = (getattr(edition, "subtitle", "") or "").strip()
+    metadata = build_context(edition)
+    title = metadata["title"]
+    lang = metadata["language"]
+    subtitle = metadata["subtitle"]
+    if not all(
+        isinstance(metadata[key], str) and metadata[key].strip()
+        for key in ("title", "author", "language")
+    ):
+        raise ValueError("Canonical title, author and language are required for EPUB export.")
 
     cmd = [
         "pandoc",
@@ -97,7 +104,10 @@ def build_epub_for_edition(edition: Edition, epub_filename: str = "ebook.epub") 
         f"--metadata=title:{title}",
         f"--metadata=lang:{lang}",
         f"--metadata=language:{lang}",
+        f"--metadata=author:{metadata['author']}",
     ]
+    if metadata["publisher"]:
+        cmd.append(f"--metadata=publisher:{metadata['publisher']}")
     cover_path = _resolve_cover_path(edition)
     if cover_path:
         cmd.append(f"--epub-cover-image={cover_path}")
@@ -160,24 +170,27 @@ def build_print_pdf_for_edition(edition: Edition, variant: str = "print") -> Pat
     return pdf_path
 
 
-def run_epubcheck_for_edition(edition: Edition, epubcheck_cmd: str = "epubcheck") -> Path:
+def run_epubcheck_for_edition(
+    edition: Edition, epubcheck_cmd: str = "epubcheck", *, artifact_path: Path | None = None
+) -> Path:
     builds_base = builds_dir(edition)
-    epub_path = builds_base / "BOOK.EPUB3"
-    if not epub_path.exists():
-        alt = builds_base / "ebook.epub"
-        if alt.exists():
-            epub_path = alt
-        else:
+    if artifact_path is None:
+        candidates = [
+            builds_base / name for name in ("BOOK.EPUB3", "ebook.epub", "BOOK.epub")
+            if (builds_base / name).is_file()
+        ]
+        if not candidates:
             raise FileNotFoundError(f"Nenhum EPUB encontrado em {builds_base}")
-
-    cmd = [epubcheck_cmd, str(epub_path)]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    if result.returncode != 0:
-        raise RuntimeError(
-            "epubcheck encontrou problemas no EPUB para "
-            f"{edition.work.code} [{edition.language.code}]:\n"
-            f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
-        )
+        if len(candidates) != 1:
+            raise ValueError("Multiple EPUBs exist; select the exact artifact to validate.")
+        epub_path = candidates[0]
+    else:
+        epub_path = Path(artifact_path)
+    if not epub_path.resolve().is_relative_to(builds_base.resolve()):
+        raise ValueError("EPUB must belong to the requested edition build directory.")
+    report = validate_epub(epub_path, executable=epubcheck_cmd)
+    if report["status"] != "PASS":
+        raise RuntimeError(f"EPUBCheck {report['status']}: {report['reason']}")
     return epub_path
 
 
@@ -187,10 +200,7 @@ def gaiden_build_full_book(edition: Edition) -> dict:
     book_build_path = builds_dir(edition) / "BOOK.BUILD.MD"
 
     epub_path = build_epub_for_edition(edition)
-    book_epub3 = builds_dir(edition) / "BOOK.EPUB3"
-    if not book_epub3.exists():
-        book_epub3.write_bytes(epub_path.read_bytes())
-        epub_path = book_epub3
+    run_epubcheck_for_edition(edition, artifact_path=epub_path)
 
     pdf_path = build_print_pdf_for_edition(edition, variant="print")
 
