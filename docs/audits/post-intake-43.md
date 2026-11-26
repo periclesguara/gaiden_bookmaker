@@ -145,12 +145,105 @@ resultados locais não são apresentados como CI remoto.
 | Nome final canônico e metadados completos PDF/EPUB | Pendente; nomes legados foram preservados por compatibilidade |
 | Reexportação completa, publicação concorrente e download stale | Pendente fora da promoção de manuscritos/validação explícita |
 | Rollback integrado à interface e retomada transacional total | Pendente; snapshots e bloqueio de sobrescrita são parciais |
-| Golden master original/corrigido e Kindle Previewer | Não utilizados; não certificados |
+| Golden master original/corrigido e Kindle Previewer | Final corrigido registrado e inspecionado em 2026-11-26; comparação automatizada e Kindle Previewer pendentes |
 | Autocorreção com orçamentos de LLM | Pendente; não se criou outro motor textual |
 
 A existência de um sidecar `PASS` não deve ser tomada como autorização
 editorial final. Revalidar sempre após mudança dos bytes. Ainda não existe
 nesta base um consumidor universal que invalide downloads por hash.
+
+## Referência editorial aprovada recebida em 2026-11-26
+
+O operador designou `The_Hound_of_the_Baskervilles_Immersive_Final.epub`
+como final corrigido de `book_0008` (também referido como `book_008`) e
+referência para os próximos livros. Esta aprovação editorial vem do operador;
+não é inferida de notas de IA ou do nome do arquivo.
+
+- Tamanho observado: 10.313.312 bytes.
+- SHA-256: `a6b5a918d4003bfb54446790bb57195d33e45ea72b04a73e6d41edf1b2ecffb9`.
+- EPUBCheck 4.2.6 real: exit code 0, zero fatais, erros e warnings.
+- OPF: 21 documentos no spine, incluindo 15 capítulos com texto e uma
+  ilustração por capítulo, além da capa e front/backmatter.
+- Os capítulos contêm 1.578 elementos `p`; isso é uma contagem estrutural,
+  não certificação de completude contra outro manuscrito.
+- As figuras estão dentro de `chapter-body`, com classe
+  `chapter-illustration`, em posições específicas do texto. Não há XHTMLs
+  separados de abertura. Este final aprovado não deve ser convertido
+  automaticamente ao antigo modelo de uma página de abertura por capítulo.
+
+A sequência dos assets nos capítulos 1–15 é:
+`01, 02, 04, 03, 06, 05, 07, 08, 10, 14, 09, 15, 11, 12, 13` (arquivos JPG).
+É evidência deste livro, **não uma tabela a codificar no motor**. Por exemplo,
+ordenar arquivos numericamente trocaria as associações aprovadas dos
+capítulos 3 e 4. Também não basta corrigir a sequência: a posição dentro do
+capítulo precisa ser preservada. Os capítulos 2 e 11 têm a figura ao final
+do corpo; os demais têm blocos textuais depois dela.
+
+O manifesto local, fora do Git, registra o caminho do original, hash do EPUB,
+ordem do spine, hashes dos XHTMLs/CSS/assets, bloco da figura e hashes do texto
+normalizado dos blocos vizinhos. Está em
+`references/book_0008/manifest.json` no diretório local da tarefa do operador,
+fora deste repositório; o relatório integral está em `epubcheck.json` na
+mesma pasta. Não contém
+cópias do texto narrativo nem das imagens. Índices e hashes de vizinhos são
+evidência deste snapshot, não substitutos de IDs semânticos persistentes.
+
+Contrato para a integração futura:
+
+1. Ler a ordem do spine e os vínculos explícitos imagem/capítulo/âncora;
+   nunca reconstruí-los por ordenação de filenames ou posição no upload.
+2. Preservar texto, frontmatter e posição editorial das figuras; vínculo
+   ausente ou ambíguo requer revisão, não associação automática por número.
+3. Usar este final como caso de referência, sem impor seu número de capítulos,
+   quantidade de imagens, nomes, idioma ou mapeamento a outras obras.
+4. Cobrir em fixtures sintéticas nomes fora de ordem, imagem no meio/fim do
+   texto, múltiplas imagens e vínculo ausente, antes de integrar o renderer.
+5. Conferir o hash da referência antes de comparações; alterações de CSS,
+   texto ou recompressão exigem comparação explícita, não aceitação silenciosa
+   de um novo golden master.
+
+Escopo da etapa de registro da referência: documentação e evidências locais
+somente. O arquivo
+original permaneceu inalterado. Nenhuma importação, alteração de banco,
+substituição de artefato operacional ou mudança do renderer foi executada.
+A integração ao Django continua pendente conforme decisão do operador.
+Não se executou inspeção visual em leitores/Kindle Previewer nem validação
+semântica independente das cenas. A aprovação técnica do EPUBCheck não
+substitui essas verificações. Não há ainda teste automatizado consumindo este
+manifesto no pipeline.
+
+### Finalização operacional posterior, autorizada pelo operador
+
+Após o registro da referência, o operador solicitou restabelecer o Intake e
+finalizar `book_0008`. O Django foi iniciado pelo launcher existente, com
+PostgreSQL. A biblioteca `/intake/` e o painel `/intake/automated/` foram
+verificados no navegador, incluindo a listagem de pastas do Drive. Isso
+confirma disponibilidade dessas telas; não é uma nova validação ponta a ponta
+da importação ou da associação semântica de imagens.
+
+A edição 90 já tinha status DONE, mas o build 127 apontava para outro EPUB.
+O serviço operacional existente `import_final_epub` registrou o arquivo
+aprovado, com verificação de tamanho e hash e nova execução real do EPUBCheck:
+
+- Build 128, versão 3, locale `en-US`, status `DONE`, `EPUBCHECK_PASSED`.
+- SHA-256 e tamanho iguais aos da referência descrita acima.
+- Destino relativo ao armazenamento operacional:
+  `builds/book_0008/en-US/The_Hound_of_the_Baskervilles_Immersive_Final.epub`.
+- Eventos `FINAL_ARTIFACT_IMPORTED` e `FINALIZED_PROJECT_SYNCED` registrados.
+- Pipeline em DONE e presença confirmada em `/finalized-projects/`.
+- Build anterior substituído no histórico, sem apagar seu arquivo. O EPUB
+  aprovado foi copiado sem regenerar texto, imagens ou layout.
+
+O vínculo com o manuscrito oficial já registrado foi preservado e seu hash
+conferido antes da operação; isso não afirma igualdade textual desse
+manuscrito com o EPUB corrigido externamente.
+
+Essa operação não alterou código nem aplicou migrations. Não integra a PR
+ao checkout operacional: a integração de código permanece pendente. O commit
+de documentação não reproduz nem reverte dados no PostgreSQL. EPUB, relatórios,
+manifesto e registros operacionais ficam fora do Git. A recuperação deve usar
+o histórico de builds e o fluxo de aprovação existente, nunca um checkout
+de Git como se fosse restauração do banco.
 
 ## Operação, recuperação e rollback
 
