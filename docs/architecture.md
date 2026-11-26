@@ -91,9 +91,16 @@ The post-Intake workflow stores internal illustrations under the canonical
 edition image directory. Numbered filenames are mapped deterministically to
 chapter order during premium rendering (`01` to chapter 1, `02` to chapter 2,
 and so on); an explicit image already present in a chapter takes precedence.
-Unnumbered images fill the remaining unillustrated chapters in natural filename
-order. Images that cannot be mapped are reported as render warnings rather than
-silently inserted in an unrelated chapter.
+Automatic association requires an explicit chapter and slot number. Unnumbered
+or ambiguous images require review; missing numbers never consume the next
+available image. Existing authored anchors remain authoritative. Uploading a
+gallery invalidates its generated mapping, not images already referenced by
+the text. See [EPUB image preservation](audits/epub-image-placement.md).
+
+Each chapter retains its illustrations and complete text in one XHTML document;
+the renderer does not generate a surplus chapter-opening document. Typography
+continues to use the principal EPUB CSS. PrintBook consumes approved text and
+image assets with its own layout settings, never EPUB CSS.
 
 Source EPUB artwork is never copied into the canonical editorial image
 directory and inline source image references are removed during extraction.

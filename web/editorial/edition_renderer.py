@@ -17,6 +17,7 @@ from typing import Iterable
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 from gaiden.infrastructure import storage
+from gaiden.illustration_mapping import numbered_gallery
 
 
 THEME_NAME = "gaiden_epub_premium"
@@ -200,6 +201,7 @@ class EditionRenderer:
             if overrides.get("theme", THEME_NAME) != THEME_NAME:
                 raise ValueError("A per-edition CSS fork is not allowed")
             self.theme.update(overrides)
+        self.theme["illustration_opening_separate_xhtml"] = False
         self.warnings: list[str] = []
         self._metadata: dict[str, object] | None = None
 
@@ -303,6 +305,8 @@ class EditionRenderer:
         )
 
     def _clean_source(self, source: str) -> str:
+        if re.search(r"\{\{IMAGE:[^}]+\}\}", source):
+            raise ValueError("Há posições de imagem não resolvidas; revise a numeração antes de exportar o EPUB.")
         lines = [line for line in source.splitlines() if not _PIPELINE_MARKER_RE.match(line)]
         cleaned = "\n".join(lines).strip() + "\n"
         if _GUTENBERG_RE.search(cleaned):
@@ -320,6 +324,7 @@ class EditionRenderer:
             raise ValueError(f"Invalid chapter structure: {structure_path}")
 
         lines = source.splitlines()
+        has_positioned_images = re.search(r"!\[[^\]]*\][\[(]|<img\b", source, re.IGNORECASE)
         for index, chapter in enumerate(chapters, start=1):
             anchor = str(chapter.get("anchor") or "").strip()
             title = str(chapter.get("title") or "").strip()
@@ -341,7 +346,7 @@ class EditionRenderer:
                 lines[line_index:line_index] = [heading, ""]
                 insert_at = line_index + 2
 
-            if image_path:
+            if image_path and not has_positioned_images:
                 try:
                     self._resolve_image(image_path, self.build_dir)
                 except FileNotFoundError:
@@ -557,42 +562,35 @@ class EditionRenderer:
                     found[path.resolve()] = path.resolve()
         return sorted(found.values(), key=self._illustration_sort_key)
 
-    def _attach_saved_illustrations(self, units: list[RenderUnit]) -> None:
+    def _attach_saved_illustrations(self, units: list[RenderUnit], *, source_base: Path | None = None) -> None:
         """Attach Intake gallery images to chapters by their numeric filename."""
         chapters = [unit for unit in units if unit.kind == "chapter"]
         images = self._saved_illustrations()
         if not chapters or not images:
             return
 
+        embedded_hashes = set()
+        for unit in units:
+            for image in BeautifulSoup(unit.body_html, "html.parser").find_all("img", src=True):
+                resolved = self._resolve_image(str(image["src"]), source_base or self.build_dir)
+                embedded_hashes.add(_sha256(resolved))
+        images = [path for path in images if _sha256(path) not in embedded_hashes]
+        gallery = numbered_gallery(images)
         chapters_with_images = {
             index
             for index, unit in enumerate(chapters, start=1)
             if BeautifulSoup(unit.body_html, "html.parser").find("img") is not None
         }
         assignments: dict[int, list[Path]] = {}
-        unnumbered: list[Path] = []
         skipped = 0
 
-        for path in images:
-            numbers = [int(value) for value in re.findall(r"\d+", path.stem)]
-            chapter_number = numbers[0] if numbers else None
-            if chapter_number is None:
-                unnumbered.append(path)
-            elif chapter_number < 1 or chapter_number > len(chapters):
+        for (chapter_number, slot), path in sorted(gallery.items()):
+            if chapter_number > len(chapters):
                 skipped += 1
             elif chapter_number in chapters_with_images:
                 continue
             else:
                 assignments.setdefault(chapter_number, []).append(path)
-
-        available_chapters = [
-            index
-            for index in range(1, len(chapters) + 1)
-            if index not in chapters_with_images and index not in assignments
-        ]
-        for path, chapter_number in zip(unnumbered, available_chapters):
-            assignments.setdefault(chapter_number, []).append(path)
-        skipped += max(0, len(unnumbered) - len(available_chapters))
 
         for chapter_number, paths in assignments.items():
             unit = chapters[chapter_number - 1]
@@ -681,39 +679,15 @@ class EditionRenderer:
                 same_label = unit.title.casefold() == unit.number.casefold()
                 chapter_number_html = "" if same_label else f'<p class="chapter-number">{html.escape(unit.number)}</p>'
                 ornament = '<div class="chapter-ornament" aria-hidden="true">◆</div>' if self.theme.get("chapter_ornament_enabled") else ""
-                body_soup = BeautifulSoup(unit.body_html, "html.parser")
-                first_element = next((node for node in body_soup.contents if isinstance(node, Tag)), None)
-                opening_figure = first_element if first_element and first_element.name == "figure" else None
-                if opening_figure and self.theme.get("illustration_opening_separate_xhtml", True):
-                    image = opening_figure.find("img")
-                    caption = opening_figure.find("figcaption")
-                    unit.opening_filename = unit.filename.replace(".xhtml", "_opening.xhtml")
-                    opening = self._template(
-                        "chapter_opening.xhtml",
-                        section_id=html.escape(unit.section_id),
-                        chapter_number_html=chapter_number_html,
-                        chapter_title=html.escape(unit.title),
-                        image_filename=html.escape(str(image.get("src")).removeprefix("../images/")),
-                        image_alt=html.escape(str(image.get("alt") or f"Illustration for {unit.title}")),
-                        caption_html=str(caption) if caption and self.theme.get("show_illustration_captions") else "",
-                    )
-                    self._write_xhtml(text_dir, unit.opening_filename, unit.title, "bodymatter", opening)
-                    opening_figure.extract()
-                    unit.body_html = "".join(str(node) for node in body_soup.contents)
-                    content = self._template(
-                        "chapter_continuation.xhtml",
-                        section_id=html.escape(f"{unit.section_id}-body"),
-                        body_html=unit.body_html,
-                    )
-                else:
-                    content = self._template(
-                        "chapter_body.xhtml",
-                        section_id=html.escape(unit.section_id),
-                        chapter_number_html=chapter_number_html,
-                        chapter_title=html.escape(unit.title),
-                        ornament_html=ornament,
-                        body_html=unit.body_html,
-                    )
+                unit.opening_filename = ""
+                content = self._template(
+                    "chapter_body.xhtml",
+                    section_id=html.escape(unit.section_id),
+                    chapter_number_html=chapter_number_html,
+                    chapter_title=html.escape(unit.title),
+                    ornament_html=ornament,
+                    body_html=unit.body_html,
+                )
                 epub_type = "bodymatter"
             elif unit.kind == "backmatter":
                 section_type = "glossary" if "gloss" in unit.title.casefold() else "appendix"
@@ -869,7 +843,7 @@ class EditionRenderer:
         source = self._clean_source(source)
         source = self._apply_chapter_structure(source)
         units = self._split_units(self._markdown_fragment(source))
-        self._attach_saved_illustrations(units)
+        self._attach_saved_illustrations(units, source_base=source_base)
         self._copy_unit_images(units, images_dir, source_base)
 
         template = self._frontmatter_template()

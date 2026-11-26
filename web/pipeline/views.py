@@ -5529,17 +5529,16 @@ def _assets_language_for_edition(edition, pipeline_state: EditionPipeline | None
 
 def _images_dir_for_edition(edition, pipeline_state: EditionPipeline | None) -> Path:
     lang_code = _assets_language_for_edition(edition, pipeline_state)
-    return (
-        Path(settings.BASE_DIR).parent
-        / "data"
-        / "images"
-        / edition.work.code
-        / lang_code
-    )
+    return storage.images_dir(edition.work.code, lang_code)
 
 
 def _consolidated_images_dir_for_edition(edition) -> Path:
     return paths.edition_build_dir(edition) / "assets" / "images"
+
+
+def _clear_consolidated_images_for_edition(edition) -> None:
+    consolidated_dir = _consolidated_images_dir_for_edition(edition)
+    (consolidated_dir / "images_map.json").unlink(missing_ok=True)
 
 
 def _internal_images_disabled_marker(edition) -> Path:
@@ -5559,8 +5558,11 @@ def _internal_images_end_only_for_edition(edition) -> bool:
 
 
 def _extract_images_zip(images_zip, target_dir: Path) -> int:
-    extracted = 0
+    from gaiden.illustration_mapping import numbered_gallery
+    from PIL import Image
+
     with zipfile.ZipFile(images_zip) as archive:
+        members = []
         for member in archive.infolist():
             if member.is_dir():
                 continue
@@ -5570,22 +5572,57 @@ def _extract_images_zip(images_zip, target_dir: Path) -> int:
             suffix = rel.suffix.lower()
             if suffix not in md_transform.IMAGE_EXTENSIONS:
                 continue
-            target = target_dir / rel.name
-            with archive.open(member) as src, target.open("wb") as dst:
-                shutil.copyfileobj(src, dst)
-            extracted += 1
-    return extracted
+            if not _is_cover_upload_name(rel.name):
+                members.append(member)
+        try:
+            numbered_gallery([Path(member.filename) for member in members])
+        except ValueError as exc:
+            raise RuntimeError(str(exc)) from exc
+        if not members:
+            return 0
+        if any(member.file_size > 50 * 1024 * 1024 for member in members) or sum(
+            member.file_size for member in members
+        ) > 500 * 1024 * 1024:
+            raise RuntimeError("O lote de imagens excede o limite de importação.")
+        target_dir.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=target_dir.parent) as temporary:
+            staged = Path(temporary) / "gallery"
+            staged.mkdir()
+            for member in members:
+                target = staged / Path(member.filename).name
+                with archive.open(member) as src, target.open("wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                try:
+                    with Image.open(target) as image:
+                        image.verify()
+                except (OSError, ValueError) as exc:
+                    raise RuntimeError(f"Imagem inválida: {target.name}") from exc
+            previous = Path(temporary) / "previous"
+            if target_dir.exists():
+                target_dir.rename(previous)
+            try:
+                staged.rename(target_dir)
+            except OSError:
+                if previous.exists():
+                    previous.rename(target_dir)
+                raise
+    return len(members)
 
 
 def _normalize_uploaded_image_stem(name: str) -> str:
+    from gaiden.illustration_mapping import illustration_number
+
     stem = Path(name).stem.strip().lower()
     if not stem:
         return "image"
     if stem.isdigit():
         return f"{int(stem):02d}"
-    nums = re.findall(r"\d+", stem)
-    if nums:
-        return f"{int(nums[0]):02d}"
+    number = illustration_number(Path(name))
+    if number is not None:
+        chapter, slot = number
+        if len(re.findall(r"\d+", stem)) >= 2:
+            return f"ch{chapter:02d}_{slot:02d}"
+        return f"{chapter:02d}"
     clean = re.sub(r"[^a-z0-9._-]+", "_", stem).strip("._-")
     return clean or "image"
 
@@ -5647,6 +5684,22 @@ def _save_uploaded_image_as_jpg(uploaded, out_path: Path) -> None:
 
 
 def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[Path], int]:
+    from gaiden.illustration_mapping import illustration_number
+
+    files = list(files)
+    numbered_uploads = set()
+    normalized_names = set()
+    for uploaded in files:
+        if not uploaded or _is_cover_upload_name(uploaded.name):
+            continue
+        number = illustration_number(Path(uploaded.name))
+        name = _normalize_uploaded_image_stem(uploaded.name)
+        if name in normalized_names or (number is not None and number in numbered_uploads):
+            raise RuntimeError(f'Numeração/nome de imagem duplicado: {uploaded.name}. Revise o lote antes de importar.')
+        normalized_names.add(name)
+        if number is not None:
+            numbered_uploads.add(number)
+
     try:
         from PIL import Image
     except ImportError as exc:
@@ -5684,6 +5737,8 @@ def _convert_uploaded_images_to_jpg(files, target_dir: Path) -> tuple[int, list[
 
 
 def _consolidate_internal_images(images_dir: Path, consolidated_dir: Path) -> dict[str, int | str]:
+    from gaiden.illustration_mapping import numbered_gallery
+
     try:
         from PIL import Image
     except ImportError as exc:
@@ -5699,30 +5754,18 @@ def _consolidate_internal_images(images_dir: Path, consolidated_dir: Path) -> di
             "dir": str(consolidated_dir),
         }
 
-    if consolidated_dir.exists():
-        shutil.rmtree(consolidated_dir)
+    try:
+        mapping = numbered_gallery(source_images)
+    except ValueError as exc:
+        raise RuntimeError(str(exc)) from exc
+
     consolidated_dir.mkdir(parents=True, exist_ok=True)
 
-    used_names: set[str] = set()
-    seq = 1
     rows: list[dict[str, str | int]] = []
     consolidated_count = 0
 
-    for src in source_images:
-        numbers = re.findall(r"\d+", src.stem)
-        if numbers:
-            chapter = int(numbers[0])
-            slot = int(numbers[1]) if len(numbers) >= 2 else 1
-        else:
-            chapter = seq
-            slot = 1
-            seq += 1
-
+    for (chapter, slot), src in sorted(mapping.items()):
         out_name = f"ch{chapter:02d}_{slot:02d}.jpg"
-        while out_name in used_names:
-            slot += 1
-            out_name = f"ch{chapter:02d}_{slot:02d}.jpg"
-        used_names.add(out_name)
         out_path = consolidated_dir / out_name
 
         with Image.open(src) as img:
@@ -5959,19 +6002,20 @@ def edition_steps(request, edition_id: int):
 
             pipeline_state = EditionPipeline.objects.filter(edition=edition).first()
             images_dir = _images_dir_for_edition(edition, pipeline_state)
-            if images_dir.exists():
-                shutil.rmtree(images_dir)
-            images_dir.mkdir(parents=True, exist_ok=True)
 
             try:
                 extracted = _extract_images_zip(images_zip, images_dir)
             except zipfile.BadZipFile:
                 messages.error(request, "Arquivo ZIP invalido.")
                 return _redirect_editorial()
+            except (RuntimeError, OSError) as exc:
+                messages.error(request, str(exc))
+                return _redirect_editorial()
 
             if extracted == 0:
                 messages.warning(request, "ZIP processado, mas nenhuma imagem valida foi encontrada.")
             else:
+                _clear_consolidated_images_for_edition(edition)
                 messages.success(request, f"Imagens importadas: {extracted}")
                 invalidate_premium_render(edition, "images_changed")
             messages.info(request, f"Diretorio de imagens: {images_dir}")
@@ -6003,6 +6047,7 @@ def edition_steps(request, edition_id: int):
                 return _redirect_editorial()
 
             messages.success(request, f"Imagens convertidas para JPG: {converted}")
+            _clear_consolidated_images_for_edition(edition)
             invalidate_premium_render(edition, "images_changed")
             if skipped_cover:
                 messages.info(

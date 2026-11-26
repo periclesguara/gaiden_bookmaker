@@ -1,13 +1,14 @@
 # Canonical EPUB chapter layout
 
-An illustrated chapter consists of an illustration page followed immediately
-by the complete chapter text. The master premium theme uses
-`illustration_opening_separate_xhtml: true`.
+An illustrated chapter retains its illustration and complete chapter text in
+their authored order. The master premium theme uses
+`illustration_opening_separate_xhtml: false`.
 
-The EPUB spine places `chapter_NNN_opening.xhtml` immediately before
-`chapter_NNN.xhtml`. The first document contains the illustration and chapter
-heading; the second contains the prose. Do not combine these pages or shrink
-the illustration to force prose onto the same screen.
+The EPUB spine contains `chapter_NNN.xhtml`, with the chapter heading, images
+and complete prose. The renderer no longer extracts a figure into a separate
+`chapter_NNN_opening.xhtml` document. Image anchors and the principal CSS remain
+authoritative; document consolidation does not impose a fixed screen size or
+shrink artwork to fit text beside it.
 
 Preview navigation must use these XHTML documents, not raw image links.
 Prepared text, frontmatter, and gallery images are preserved. This contract

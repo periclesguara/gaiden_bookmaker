@@ -3257,6 +3257,9 @@ class EditorialImagePipelineContractTests(TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_root = Path(self.temp_dir.name)
+        self.storage_override = patch.dict(os.environ, {"GAIDEN_STORAGE_ROOT": str(self.temp_root / "data")})
+        self.storage_override.start()
+        self.addCleanup(self.storage_override.stop)
         self.temp_web = self.temp_root / "web"
         self.temp_web.mkdir(parents=True, exist_ok=True)
         self.settings_override = override_settings(BASE_DIR=self.temp_web)
@@ -3390,6 +3393,18 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertTrue((self.images_dir / "01.jpg").exists())
         self.assertTrue((self.images_dir / "02.jpg").exists())
 
+    def test_invalid_zip_keeps_existing_gallery(self):
+        self.images_dir.mkdir(parents=True, exist_ok=True)
+        existing = self.images_dir / "01.jpg"
+        existing.write_bytes(b"approved-image")
+        response = self.client.post(self.steps_url, data={
+            "action": "upload_images_zip",
+            "confirm_generated_images": "1",
+            "images_zip": SimpleUploadedFile("invalid.zip", b"not-a-zip"),
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(existing.read_bytes(), b"approved-image")
+
     def test_image_upload_rejects_files_without_generated_origin_confirmation(self):
         response = self.client.post(
             self.steps_url,
@@ -3458,7 +3473,7 @@ class EditorialImagePipelineContractTests(TestCase):
         self.assertTrue((self.assets_dir / "ch01_01_01.jpg").exists())
         self.assertTrue((self.assets_dir / "ch02_01_02.jpg").exists())
 
-    def test_insert_images_resets_existing_asset_refs_before_rebuilding_placeholders(self):
+    def test_insert_images_preserves_existing_asset_refs_and_positions(self):
         self.pre_edition_path.write_text(
             (
                 "# Chapter 01 - The Adventure of the Empty House\n\n"
@@ -3478,10 +3493,12 @@ class EditorialImagePipelineContractTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         updated_md = self.pre_edition_path.read_text(encoding="utf-8")
-        self.assertNotIn("assets/images/ch01_01_01.jpg", updated_md)
-        self.assertNotIn("assets/images/ch02_01_02.jpg", updated_md)
-        self.assertIn("{{IMAGE:CH01:01}}", updated_md)
-        self.assertIn("{{IMAGE:CH02:01}}", updated_md)
+        self.assertIn("assets/images/ch01_01_01.jpg", updated_md)
+        self.assertIn("assets/images/ch02_01_02.jpg", updated_md)
+        self.assertNotIn("{{IMAGE:CH01:01}}", updated_md)
+        self.assertNotIn("{{IMAGE:CH02:01}}", updated_md)
+        self.assertLess(updated_md.index("ch01_01_01.jpg"), updated_md.index("Body of chapter one."))
+        self.assertLess(updated_md.index("ch02_01_02.jpg"), updated_md.index("Body of chapter two."))
 
     def test_insert_images_does_not_treat_author_heading_as_chapter(self):
         self.pre_edition_path.write_text(

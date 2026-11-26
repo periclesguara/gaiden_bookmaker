@@ -28,6 +28,7 @@ from gaiden.print_engine.providers.industrial import validate_industrial
 from gaiden.print_engine.specs import Binding, PrintProvider, PrintSpec
 from .models import CoverBuild, InteriorBuild, PreflightReport, PrintEdition, PrintExport
 from .trim_sizes import validate_trim
+from .epub_illustrations import chapter_illustrations
 
 
 _OPENING_IMAGE_RE = re.compile(r"(?:src|href)=[\"']\.\./images/([^\"']+)[\"']", re.IGNORECASE)
@@ -448,31 +449,19 @@ def compile_interior(edition):
 
 
 def extract_print_illustrations(source, root):
-    """Copy only approved chapter-opening figures from the final EPUB.
-
-    The print build uses the same illustration mapping already approved by the
-    Intake EPUB. It never scans unrelated storage or invents chapter matches.
-    """
+    """Read approved chapter assets, without importing EPUB layout or CSS."""
     epub_path = source._safe_existing_path(source.epub_path, require_epub=True)
+    illustrations = chapter_illustrations(epub_path)
     manifest = {}
     files = {}
     target_dir = root / "illustrations"
     target_dir.mkdir(parents=True, exist_ok=True)
     total_bytes = 0
     with zipfile.ZipFile(epub_path) as archive:
-        for member in archive.namelist():
-            match = re.fullmatch(r"EPUB/text/chapter_(\d+)_opening\.xhtml", member)
-            if not match:
-                continue
-            chapter_number = int(match.group(1))
-            markup = archive.read(member).decode("utf-8")
-            image_match = _OPENING_IMAGE_RE.search(markup)
-            if not image_match:
-                continue
-            image_name = Path(image_match.group(1)).name
-            if image_name != image_match.group(1) or Path(image_name).suffix.lower() not in _IMAGE_EXTENSIONS:
+        for chapter_number, image_member in illustrations.items():
+            image_name = Path(image_member).name
+            if Path(image_name).suffix.lower() not in _IMAGE_EXTENSIONS:
                 raise ValueError("A ilustração aprovada contém um caminho inválido.")
-            image_member = f"EPUB/images/{image_name}"
             try:
                 info = archive.getinfo(image_member)
             except KeyError as exc:

@@ -87,29 +87,28 @@ class PremiumEpubRendererTests(TestCase):
             edition_copyright_holder="RinoBooks",
         )
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
-        os.environ["GAIDEN_STORAGE_ROOT"] = str(Path(cls.temp_dir.name) / "data")
-        cls.edition = Edition.objects.get(pk=cls.edition.pk)
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.old_storage_root = os.environ.get("GAIDEN_STORAGE_ROOT")
+        os.environ["GAIDEN_STORAGE_ROOT"] = str(Path(self.temp_dir.name) / "data")
+        self.edition = Edition.objects.get(pk=self.edition.pk)
 
-        cover = storage.covers_dir(cls.edition.work.code, cls.edition.language.code) / "cover.jpg"
+        cover = storage.covers_dir(self.edition.work.code, self.edition.language.code) / "cover.jpg"
         cover.parent.mkdir(parents=True, exist_ok=True)
         cover.write_bytes(
             base64.b64decode(
                 "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q=="
             )
         )
-        image = storage.builds_dir(cls.edition.work.code, cls.edition.language.code) / "assets" / "images" / "scene.png"
+        image = storage.builds_dir(self.edition.work.code, self.edition.language.code) / "assets" / "images" / "scene.png"
         image.parent.mkdir(parents=True, exist_ok=True)
         image.write_bytes(
             base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
         )
         saved_gallery_image = storage.images_dir(
-            cls.edition.work.code,
-            cls.edition.language.code,
+            self.edition.work.code,
+            self.edition.language.code,
         ) / "02.jpg"
         saved_gallery_image.parent.mkdir(parents=True, exist_ok=True)
         saved_gallery_image.write_bytes(
@@ -117,17 +116,16 @@ class PremiumEpubRendererTests(TestCase):
                 "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q=="
             )
         )
-        cls.renderer = EditionRenderer(cls.edition)
-        cls.result = cls.renderer.render()
+        self.renderer = EditionRenderer(self.edition)
+        self.result = self.renderer.render()
 
-    @classmethod
-    def tearDownClass(cls):
-        if cls.old_storage_root is None:
+    def tearDown(self):
+        if self.old_storage_root is None:
             os.environ.pop("GAIDEN_STORAGE_ROOT", None)
         else:
-            os.environ["GAIDEN_STORAGE_ROOT"] = cls.old_storage_root
-        cls.temp_dir.cleanup()
-        super().tearDownClass()
+            os.environ["GAIDEN_STORAGE_ROOT"] = self.old_storage_root
+        self.temp_dir.cleanup()
+        super().tearDown()
 
     def _opf(self):
         return BeautifulSoup((self.result.root / "EPUB" / "content.opf").read_text(encoding="utf-8"), "xml")
@@ -151,6 +149,15 @@ class PremiumEpubRendererTests(TestCase):
     def test_default_premium_theme_is_used(self):
         self.assertEqual(self.renderer.theme["name"], THEME_NAME)
         self.assertTrue((self.result.root / "EPUB/styles/gaiden-premium.css").exists())
+
+    def test_render_does_not_reset_frontmatter_or_source_provenance(self):
+        edition_before = Edition.objects.filter(pk=self.edition.pk).values().get()
+        work_before = Work.objects.filter(pk=self.edition.work_id).values().get()
+        template_before = list(BookEditionTemplate.objects.filter(book_code=self.edition.work.code).values())
+        self.renderer.render()
+        self.assertEqual(Edition.objects.filter(pk=self.edition.pk).values().get(), edition_before)
+        self.assertEqual(Work.objects.filter(pk=self.edition.work_id).values().get(), work_before)
+        self.assertEqual(list(BookEditionTemplate.objects.filter(book_code=self.edition.work.code).values()), template_before)
 
     def test_asset_change_invalidates_approval(self):
         self.renderer.approve_preview()
@@ -342,9 +349,9 @@ class PremiumEpubRendererTests(TestCase):
         self.assertIn("first-paragraph", soup.select_one(".chapter-body p").get("class"))
 
     def test_saved_gallery_image_is_linked_to_its_numbered_chapter(self):
-        opening = self.result.root / "EPUB/text/chapter_002_opening.xhtml"
-        self.assertTrue(opening.exists())
-        soup = BeautifulSoup(opening.read_text(encoding="utf-8"), "xml")
+        chapter = self.result.root / "EPUB/text/chapter_002.xhtml"
+        self.assertTrue(chapter.exists())
+        soup = BeautifulSoup(chapter.read_text(encoding="utf-8"), "xml")
         self.assertEqual(soup.find("img").get("src"), "../images/02.jpg")
         self.assertTrue((self.result.root / "EPUB/images/02.jpg").exists())
 
@@ -442,13 +449,16 @@ class PremiumEpubRendererTests(TestCase):
             headings.extend(h1.get_text(" ", strip=True) for h1 in soup.find_all("h1"))
         self.assertEqual(len(headings), len(set(headings)))
 
-    def test_illustrated_chapter_uses_separate_opening_xhtml(self):
+    def test_illustrated_chapter_keeps_image_and_text_in_one_xhtml(self):
         opening = self.result.root / "EPUB/text/chapter_001_opening.xhtml"
         body = self.result.root / "EPUB/text/chapter_001.xhtml"
-        self.assertTrue(opening.exists())
-        self.assertEqual(len(BeautifulSoup(opening.read_text(), "xml").find_all("h1")), 1)
-        self.assertEqual(len(BeautifulSoup(body.read_text(), "xml").find_all("h1")), 0)
-        self.assertLess(self.result.spine.index("text/chapter_001_opening.xhtml"), self.result.spine.index("text/chapter_001.xhtml"))
+        self.assertFalse(opening.exists())
+        soup = BeautifulSoup(body.read_text(), "xml")
+        self.assertEqual(len(soup.find_all("h1")), 1)
+        self.assertIsNotNone(soup.select_one(".chapter-body img"))
+        self.assertIn("The first paragraph opens the story.", soup.get_text())
+        self.assertIn("The following paragraph is indented.", soup.get_text())
+        self.assertNotIn("text/chapter_001_opening.xhtml", self.result.spine)
 
     def test_frontmatter_does_not_repeat_its_heading(self):
         for filename in ("copyright.xhtml", "about_this_edition.xhtml"):
@@ -509,7 +519,7 @@ class PremiumEpubRendererTests(TestCase):
             self.assertEqual(opf.find("contributor").get_text(strip=True), "Example Team")
             self.assertEqual(opf.find("description").get_text(strip=True), "A tested modern edition.")
             saved_image = BeautifulSoup(
-                (result.root / "EPUB/text/chapter_002_opening.xhtml").read_text(encoding="utf-8"),
+                (result.root / "EPUB/text/chapter_002.xhtml").read_text(encoding="utf-8"),
                 "xml",
             ).find("img", src=re.compile("02.jpg"))
             self.assertEqual(saved_image.get("alt"), "A meaningful scene description.")

@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
+from gaiden.illustration_mapping import illustration_number
+
 from . import paths
 
 PAGE_MARKER_RE = re.compile(r"@@P\d{4}@@\s*")
@@ -1259,11 +1261,8 @@ def insert_page_headlines(md_path: Path, lang: str = "en") -> None:
 
 def insert_image_placeholders(md_path: Path) -> None:
     text = md_path.read_text(encoding="utf-8")
-    # Rebuild placeholders from scratch so old misplaced placeholders
-    # do not accumulate across repeated runs.
-    text = IMAGE_PLACEHOLDER_RE.sub("", text)
-    text = IMAGE_MARKDOWN_ANY_RE.sub("", text)
-    text = re.sub(r"\n{3,}", "\n\n", text)
+    if IMAGE_PLACEHOLDER_RE.search(text) or re.search(r"!\[[^\]]*\][\[(]|<img\b", text, re.IGNORECASE):
+        return
 
     inside_center_block = False
     has_chapter = False
@@ -1369,19 +1368,7 @@ def _is_cover_asset(path: Path) -> bool:
 
 
 def _score_candidate(path: Path, chapter: int, slot: int) -> int | None:
-    nums = _extract_numbers(path)
-    norm = _normalize_stem(path)
-    ch = f"{chapter:02d}"
-    sl = f"{slot:02d}"
-    if len(nums) >= 2 and nums[0] == chapter and nums[1] == slot:
-        return 0
-    if f"ch{ch}{sl}" in norm or f"chapter{ch}{sl}" in norm:
-        return 0
-    if f"ch{ch}" in norm and sl in norm:
-        return 1
-    if len(nums) >= 1 and nums[0] == chapter:
-        return 2
-    return None
+    return 0 if illustration_number(path) == (chapter, slot) else None
 
 
 def _pick_image_for_placeholder(
@@ -1398,14 +1385,8 @@ def _pick_image_for_placeholder(
         if score is None:
             continue
         scored.append((score, idx, path))
-    if scored:
-        scored.sort(key=lambda row: (row[0], row[1]))
+    if len(scored) == 1:
         return scored[0][2]
-
-    # Fallback: first remaining image in natural order.
-    for path in images:
-        if path not in used:
-            return path
     return None
 
 
@@ -1415,7 +1396,7 @@ def _safe_copy_name(chapter: int, slot: int, src: Path) -> str:
 
 
 def apply_images_to_pre_edition(md_path: Path, images_dir: Path) -> dict[str, int | str]:
-    text = md_path.read_text(encoding="utf-8")
+    text = md_path.read_bytes().decode("utf-8")
     placeholders = list(IMAGE_PLACEHOLDER_TOKEN_RE.finditer(text))
     existing_refs = len(IMAGE_MARKDOWN_ANY_RE.findall(text))
     if not placeholders:
@@ -1470,7 +1451,8 @@ def apply_images_to_pre_edition(md_path: Path, images_dir: Path) -> dict[str, in
         return f"![]({rel_path.as_posix()})"
 
     updated = IMAGE_PLACEHOLDER_TOKEN_RE.sub(repl, text)
-    md_path.write_text(updated, encoding="utf-8")
+    if updated != text:
+        md_path.write_bytes(updated.encode("utf-8"))
 
     return {
         "placeholders_total": len(placeholders),
